@@ -55,12 +55,12 @@ CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
 	search.c tty.c term.c window.c utmp.c loadav.c putenv.c help.c \
 	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
 	kmapdef.c acls.c braille.c braille_tsi.c logfile.c layer.c \
-	sched.c teln.c nethack.c encoding.c
+	sched.c teln.c nethack.c encoding.c lua.c
 OFILES=	screen.o ansi.o fileio.o mark.o misc.o resize.o socket.o \
 	search.o tty.o term.o window.o utmp.o loadav.o putenv.o help.o \
 	termcap.o input.o attacher.o pty.o process.o display.o comm.o \
 	kmapdef.o acls.o braille.o braille_tsi.o logfile.o layer.o \
-	sched.o teln.o nethack.o encoding.o
+	sched.o teln.o nethack.o encoding.o lua.o
 
 all:	screen
 

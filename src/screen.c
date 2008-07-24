@@ -474,6 +474,8 @@ char **av;
   nwin_options = nwin_undef;
   strcpy(screenterm, "screen");
 
+  LuaInit();
+
   logreopen_register(lf_secreopen);
 
   av0 = *av;
@@ -2888,7 +2890,7 @@ int start, max;
 	      if (start-- > 0)
 		s++;
 	      else
-	        PUTCHARLP(*s++);
+		PUTCHARLP(*s++);
 	    }
 	}
       r = winmsg_rend[i];

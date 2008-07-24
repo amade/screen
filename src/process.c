@@ -3727,9 +3727,13 @@ int key;
 #endif
       break;
 
-      case RC_SOURCE:
-	do_source(*args);
-	break;
+    case RC_SOURCE:
+      do_source(*args);
+      break;
+
+    case RC_LUASOURCE:
+      LuaSource(*args);
+      break;
 
 #ifdef MULTIUSER
     case RC_SU:
@@ -4929,6 +4933,7 @@ struct win *wi;
   if (wi)
     WindowChanged(wi, 'u');
   flayer = D_forecv->c_layer;
+  LuaForeWindowChanged();
   /* Activate called afterwards, so no RefreshHStatus needed */
 }
 
