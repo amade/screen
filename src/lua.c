@@ -1,3 +1,24 @@
+/* Lua scripting support
+ *
+ * Copyright (c) 2008 Sadrul Habib Chowdhury (sadrul@users.sf.net)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program (see the file COPYING); if not, write to the
+ * Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
+ *
+ ****************************************************************
+ */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -16,14 +37,40 @@
 #include <lauxlib.h>
 #include <lualib.h>
 
-#define PACKAGE  "screen"
-
 extern struct win *windows, *fore;
 extern struct display *displays, *display;
 
 /** Template {{{ */
 
-/* Much of the following code comes from:
+#define CHECK_TYPE(name, type) \
+static type * \
+check_##name(lua_State *L, int index) \
+{ \
+  type *var; \
+  luaL_checktype(L, index, LUA_TUSERDATA); \
+  var = (type *) luaL_checkudata(L, index, #name); \
+  if (!var) \
+    luaL_typerror(L, index, #name); \
+  return var; \
+}
+
+#define PUSH_TYPE(name, type) \
+static void \
+push_##name(lua_State *L, type *t) \
+{ \
+  if (!t) \
+    lua_pushnil(L); \
+  else \
+    { \
+      type *r; \
+      r = (type *)lua_newuserdata(L, sizeof(type)); \
+      *r = *t; \
+      luaL_getmetatable(L, #name); \
+      lua_setmetatable(L,-2); \
+    } \
+}
+
+/* Much of the following template comes from:
  *	http://lua-users.org/wiki/BindingWithMembersAndMethods
  */
 
@@ -66,28 +113,30 @@ static int set_string (lua_State *L, void *v)
 typedef int (*Xet_func) (lua_State *L, void *v);
 
 /* member info for get and set handlers */
-typedef const struct Xet_reg {
+struct Xet_reg
+{
   const char *name;  /* member name */
   Xet_func func;     /* get or set function for type of member */
-  size_t offset;     /* offset of member within your_t */
-} *Xet_reg;
+  size_t offset;     /* offset of member within the struct */
+};
 
-static void Xet_add (lua_State *L, Xet_reg l)
+static void Xet_add (lua_State *L, const struct Xet_reg *l)
 {
   if (!l)
     return;
-  for (; l->name; l++) {
-    lua_pushstring(L, l->name);
-    lua_pushlightuserdata(L, (void*)l);
-    lua_settable(L, -3);
-  }
+  for (; l->name; l++)
+    {
+      lua_pushstring(L, l->name);
+      lua_pushlightuserdata(L, (void*)l);
+      lua_settable(L, -3);
+    }
 }
 
 static int Xet_call (lua_State *L)
 {
   /* for get: stack has userdata, index, lightuserdata */
   /* for set: stack has userdata, index, value, lightuserdata */
-  Xet_reg m = (Xet_reg)lua_touserdata(L, -1);  /* member info */
+  const struct Xet_reg *m = (const struct Xet_reg *)lua_touserdata(L, -1);  /* member info */
   lua_pop(L, 1);                               /* drop lightuserdata */
   luaL_checktype(L, 1, LUA_TUSERDATA);
   return m->func(L, lua_touserdata(L, 1) + m->offset);
@@ -98,14 +147,15 @@ static int index_handler (lua_State *L)
   /* stack has userdata, index */
   lua_pushvalue(L, 2);                     /* dup index */
   lua_rawget(L, lua_upvalueindex(1));      /* lookup member by name */
-  if (!lua_islightuserdata(L, -1)) {
-    lua_pop(L, 1);                         /* drop value */
-    lua_pushvalue(L, 2);                   /* dup index */
-    lua_gettable(L, lua_upvalueindex(2));  /* else try methods */
-    if (lua_isnil(L, -1))                  /* invalid member */
-      luaL_error(L, "cannot get member '%s'", lua_tostring(L, 2));
-    return 1;
-  }
+  if (!lua_islightuserdata(L, -1))
+    {
+      lua_pop(L, 1);                         /* drop value */
+      lua_pushvalue(L, 2);                   /* dup index */
+      lua_gettable(L, lua_upvalueindex(2));  /* else try methods */
+      if (lua_isnil(L, -1))                  /* invalid member */
+	luaL_error(L, "cannot get member '%s'", lua_tostring(L, 2));
+      return 1;
+    }
   return Xet_call(L);                      /* call get function */
 }
 
@@ -119,46 +169,69 @@ static int newindex_handler (lua_State *L)
   return Xet_call(L);                      /* call set function */
 }
 
+static int
+struct_register(lua_State *L, const char *name, const luaL_reg fn_methods[], const luaL_reg meta_methods[],
+    const struct Xet_reg setters[], const struct Xet_reg getters[])
+{
+  int metatable, methods;
+
+  /* create methods table & add it to the table of globals */
+  luaL_register(L, name, fn_methods);
+  methods = lua_gettop(L);
+
+  /* create metatable & add it to the registry */
+  luaL_newmetatable(L, name);
+  luaL_register(L, 0, meta_methods);  /* fill metatable */
+  metatable = lua_gettop(L);
+
+  lua_pushliteral(L, "__metatable");
+  lua_pushvalue(L, methods);    /* dup methods table*/
+  lua_rawset(L, metatable);     /* hide metatable:
+				   metatable.__metatable = methods */
+
+  lua_pushliteral(L, "__index");
+  lua_pushvalue(L, metatable);  /* upvalue index 1 */
+  Xet_add(L, getters);     /* fill metatable with getters */
+  lua_pushvalue(L, methods);    /* upvalue index 2 */
+  lua_pushcclosure(L, index_handler, 2);
+  lua_rawset(L, metatable);     /* metatable.__index = index_handler */
+
+  lua_pushliteral(L, "__newindex");
+  lua_newtable(L);              /* table for members you can set */
+  Xet_add(L, setters);     /* fill with setters */
+  lua_pushcclosure(L, newindex_handler, 1);
+  lua_rawset(L, metatable);     /* metatable.__newindex = newindex_handler */
+
+  lua_pop(L, 1);                /* drop metatable */
+  return 1;                     /* return methods on the stack */
+}
+
 /** }}} */
 
 /** Window {{{ */
 
-static void
-window_push(lua_State *L, struct win *w)
-{
-  struct win *r;
+PUSH_TYPE(window, struct win)
 
-  if (!w)
-    {
-      lua_pushnil(L);
-    }
-  else
-    {
-      r = (struct win *)lua_newuserdata(L, sizeof(struct win));
-      *r = *w;
-      luaL_getmetatable(L, "window");
-      lua_setmetatable(L, -2);
-    }
-}
+CHECK_TYPE(window, struct win)
 
 static int get_window(lua_State *L, void *v)
 {
-  window_push(L, *(struct win **)v);
+  push_window(L, *(struct win **)v);
   return 1;
 }
 
-static struct win*
-check_window(lua_State *L, int index)
+static int
+window_change_title(lua_State *L)
 {
-  struct win *win;
-  luaL_checktype(L, index, LUA_TUSERDATA);
-  win = (struct win*)luaL_checkudata(L, index, "window");
-  if (!win)
-    luaL_typerror(L, index, "window");
-  return win;
+  struct win *w = check_window(L, 1);
+  unsigned int len;
+  const char *title = luaL_checklstring(L, 2, &len);
+  ChangeAKA(w, title, len);
+  return 0;
 }
 
 static const luaL_reg window_methods[] = {
+  {"change_title", window_change_title},
   {0, 0}
 };
 
@@ -185,28 +258,12 @@ static const struct Xet_reg window_getters[] = {
 
 /** AclUser {{{ */
 
-static void
-user_push(lua_State *L, struct acluser *u)
-{
-  struct acluser *r;
-
-  if (!u)
-    {
-      lua_pushnil(L);
-    }
-  else
-    {
-      r = (struct acluser *)lua_newuserdata(L, sizeof(struct acluser));
-      *r = *u;
-      luaL_getmetatable(L, "user");
-      lua_setmetatable(L, -2);
-    }
-}
+PUSH_TYPE(user, struct acluser)
 
 static int
 get_user(lua_State *L, void *v)
 {
-  user_push(L, *(struct acluser **)v);
+  push_user(L, *(struct acluser **)v);
   return 1;
 }
 
@@ -232,28 +289,12 @@ static const struct Xet_reg user_getters[] = {
 
 /** Canvas {{{ */
 
-static void
-canvas_push(lua_State *L, struct canvas *c)
-{
-  struct canvas *r;
-
-  if (!c)
-    {
-      lua_pushnil(L);
-    }
-  else
-    {
-      r = (struct canvas *)lua_newuserdata(L, sizeof(struct canvas));
-      *r = *c;
-      luaL_getmetatable(L, "canvas");
-      lua_setmetatable(L, -2);
-    }
-}
+PUSH_TYPE(canvas, struct canvas)
 
 static int
 get_canvas(lua_State *L, void *v)
 {
-  user_push(L, *(struct canvas **)v);
+  push_canvas(L, *(struct canvas **)v);
   return 1;
 }
 
@@ -284,23 +325,9 @@ static const struct Xet_reg canvas_getters[] = {
 
 /** Display {{{ */
 
-static void
-display_push(lua_State *L, struct display *d)
-{
-  struct display *r;
+PUSH_TYPE(display, struct display)
 
-  if (!d)
-    {
-      lua_pushnil(L);
-    }
-  else
-    {
-      r = (struct display *)lua_newuserdata(L, sizeof(struct display));
-      *r = *d;
-      luaL_getmetatable(L, "display");
-      lua_setmetatable(L, -2);
-    }
-}
+CHECK_TYPE(display, struct display)
 
 static int
 display_get_canvases(lua_State *L)
@@ -309,14 +336,10 @@ display_get_canvases(lua_State *L)
   struct canvas *iter;
   int count;
 
-  luaL_checktype(L, 1, LUA_TUSERDATA);
-
-  d = lua_touserdata(L, 1);
-
+  d = check_display(L, 1);
   for (iter = d->d_cvlist, count = 0; iter; iter = iter->c_next, count++)
-    {
-      canvas_push(L, iter);
-    }
+    push_canvas(L, iter);
+
   return count;
 }
 
@@ -346,36 +369,34 @@ static const struct Xet_reg display_getters[] = {
 
 /** }}} */
 
-/** Global functions {{{ */
+/** Screen {{{ */
 
 static int
-get_windows(lua_State *L)
+screen_get_windows(lua_State *L)
 {
   struct win *iter;
   int count;
+
   for (iter = windows, count = 0; iter; iter = iter->w_next, count++)
-    {
-      window_push(L, iter);
-    }
+    push_window(L, iter);
 
   return count;
 }
 
 static int
-get_displays(lua_State *L)
+screen_get_displays(lua_State *L)
 {
   struct display *iter;
   int count;
+
   for (iter = displays, count = 0; iter; iter = iter->d_next, count++)
-    {
-      display_push(L, iter);
-    }
+    push_display(L, iter);
 
   return count;
 }
 
 static int
-exec_command(lua_State *L)
+screen_exec_command(lua_State *L)
 {
   const char *command;
   unsigned int len;
@@ -388,9 +409,9 @@ exec_command(lua_State *L)
 }
 
 static const luaL_reg screen_methods[] = {
-  {"windows", get_windows},
-  {"displays", get_displays},
-  {"command", exec_command},
+  {"windows", screen_get_windows},
+  {"displays", screen_get_displays},
+  {"command", screen_exec_command},
   {0, 0}
 };
 
@@ -408,46 +429,9 @@ static const struct Xet_reg screen_getters[] = {
 
 /** }}} */
 
-/* Ripped from http://lua-users.org/wiki/BindingWithMembersAndMethods */
-static int
-struct_register(lua_State *L, const char *name, const luaL_reg fn_methods[], const luaL_reg meta_methods[],
-    const struct Xet_reg setters[], const struct Xet_reg getters[])
-{
-  int metatable, methods;
-
-  /* create methods table, & add it to the table of globals */
-  luaL_register(L, name, fn_methods);
-  methods = lua_gettop(L);
-
-  /* create metatable for your_t, & add it to the registry */
-  luaL_newmetatable(L, name);
-  luaL_register(L, 0, meta_methods);  /* fill metatable */
-  metatable = lua_gettop(L);
-
-  lua_pushliteral(L, "__metatable");
-  lua_pushvalue(L, methods);    /* dup methods table*/
-  lua_rawset(L, metatable);     /* hide metatable:
-				   metatable.__metatable = methods */
-
-  lua_pushliteral(L, "__index");
-  lua_pushvalue(L, metatable);  /* upvalue index 1 */
-  Xet_add(L, getters);     /* fill metatable with getters */
-  lua_pushvalue(L, methods);    /* upvalue index 2 */
-  lua_pushcclosure(L, index_handler, 2);
-  lua_rawset(L, metatable);     /* metatable.__index = index_handler */
-
-  lua_pushliteral(L, "__newindex");
-  lua_newtable(L);              /* table for members you can set */
-  Xet_add(L, setters);     /* fill with setters */
-  lua_pushcclosure(L, newindex_handler, 1);
-  lua_rawset(L, metatable);     /* metatable.__newindex = newindex_handler */
-
-  lua_pop(L, 1);                /* drop metatable */
-  return 1;                     /* return methods on the stack */
-}
-
+/** Public functions {{{ */
 static lua_State *L;
-void LuaInit(void)
+int LuaInit(void)
 {
   L = luaL_newstate();
 
@@ -461,23 +445,47 @@ void LuaInit(void)
   REGISTER(user);
   REGISTER(canvas);
 
-  luaL_dofile(L, "/tmp/sc.lua");
+  return 0;
 }
 
-void LuaForeWindowChanged(void)
+int LuaForeWindowChanged(void)
 {
+  if (!L)
+    return 0;
   lua_getfield(L, LUA_GLOBALSINDEX, "fore_changed");
-  display_push(L, display);
-  window_push(L, display ? D_fore : fore);
-  lua_call(L, 2, 0);
+  push_display(L, display);
+  push_window(L, display ? D_fore : fore);
+  lua_pcall(L, 2, 0, 0);
+  return 0;
 }
 
-void LuaSource(const char *file)
+int LuaSource(const char *file)
 {
+  if (!L)
+    return 0;
   struct stat st;
   if (stat(file, &st) == -1)
     Msg(errno, "Error loading lua script file '%s'", file);
   else
-    luaL_dofile(L, file);
+    {
+      int len = strlen(file);
+      if (len < 4 || strncmp(file + len - 4, ".lua", 4) != 0)
+	return 0;
+      luaL_dofile(L, file);
+      return 1;
+    }
+  return 0;
 }
+
+int LuaFinit(void)
+{
+  if (!L)
+    return 0;
+  lua_close(L);
+  L = (lua_State*)0;
+  return 0;
+}
+
+
+/** }}} */
 
