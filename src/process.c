@@ -3732,7 +3732,7 @@ int key;
       break;
 
     case RC_LUASOURCE:
-      LuaSource(*args);
+      ScriptSource(*args);
       break;
 
 #ifdef MULTIUSER
@@ -4933,7 +4933,7 @@ struct win *wi;
   if (wi)
     WindowChanged(wi, 'u');
   flayer = D_forecv->c_layer;
-  LuaForeWindowChanged();
+  ScriptForeWindowChanged();
   /* Activate called afterwards, so no RefreshHStatus needed */
 }
 

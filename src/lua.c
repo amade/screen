@@ -489,3 +489,11 @@ int LuaFinit(void)
 
 /** }}} */
 
+struct ScriptFuncs LuaFuncs =
+{
+  LuaInit,
+  LuaFinit,
+  LuaForeWindowChanged,
+  LuaSource
+};
+

@@ -358,6 +358,7 @@ char **av;
 #ifdef MULTIUSER
   char *sockp;
 #endif
+  char *script_file = 0;
 
 #if (defined(AUX) || defined(_AUX_SOURCE)) && defined(POSIX)
   setcompat(COMPAT_POSIX|COMPAT_BSDPROT); /* turn on seteuid support */
@@ -473,8 +474,6 @@ char **av;
   nwin = nwin_undef;
   nwin_options = nwin_undef;
   strcpy(screenterm, "screen");
-
-  LuaInit();
 
   logreopen_register(lf_secreopen);
 
@@ -718,6 +717,13 @@ char **av;
 		  nwin_options.encoding = nwin_options.encoding == -1 ? UTF8 : 0;
 		  break;
 #endif
+		case 'u':
+		  if (--ac == 0)
+		    exit_with_usage(myname, "Specify lua script file with -u", NULL);
+		  if (script_file)
+		    free(script_file);
+		  script_file = SaveStr(*++av);
+		  break;
 		default:
 		  exit_with_usage(myname, "Unknown option %s", --ap);
 		}
@@ -1278,6 +1284,16 @@ char **av;
   
   ServerSocket = MakeServerSocket();
   InitKeytab();
+
+  LoadScripts();
+  ScriptInit();
+  if (script_file)
+    {
+      ScriptSource(script_file);
+      free(script_file);
+      script_file = 0;
+    }
+
 #ifdef ETCSCREENRC
 # ifdef ALLOW_SYSSCREENRC
   if ((ap = getenv("SYSSCREENRC")))
@@ -1678,6 +1694,9 @@ int i;
   signal(SIGCHLD, SIG_DFL);
   signal(SIGHUP, SIG_IGN);
   debug1("Finit(%d);\n", i);
+
+  ScriptFinit();
+
   while (windows)
     {
       struct win *p = windows;

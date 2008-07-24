@@ -43,6 +43,7 @@
 #include "comm.h"
 #include "layer.h"
 #include "term.h"
+#include "script.h"
 
 
 #ifdef DEBUG
@@ -293,3 +294,4 @@ struct baud_values
  */
 #define WLIST_NUM 0
 #define WLIST_MRU 1
+#define WLIST_NESTED 2
