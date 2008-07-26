@@ -495,7 +495,16 @@ int LuaForeWindowChanged(void)
   lua_getfield(L, LUA_GLOBALSINDEX, "fore_changed");
   push_display(L, display);
   push_window(L, display ? D_fore : fore);
-  lua_pcall(L, 2, 0, 0);
+  if (lua_pcall(L, 2, 0, 0) == LUA_ERRRUN)
+    {
+      if(lua_isstring(L, -1))
+	{
+	  unsigned int len;
+	  char *message = luaL_checklstring(L, -1, &len);
+	  LMsg(1, "%s", message ? message : "Unknown error");
+	  lua_pop(L, 1);
+	}
+    }
   return 0;
 }
 
