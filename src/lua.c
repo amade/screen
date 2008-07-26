@@ -118,6 +118,7 @@ struct Xet_reg
   const char *name;  /* member name */
   Xet_func func;     /* get or set function for type of member */
   size_t offset;     /* offset of member within the struct */
+  void *absolute;
 };
 
 static void Xet_add (lua_State *L, const struct Xet_reg *l)
@@ -138,6 +139,8 @@ static int Xet_call (lua_State *L)
   /* for set: stack has userdata, index, value, lightuserdata */
   const struct Xet_reg *m = (const struct Xet_reg *)lua_touserdata(L, -1);  /* member info */
   lua_pop(L, 1);                               /* drop lightuserdata */
+  if (m->absolute)
+    return m->func(L, m->absolute);
   luaL_checktype(L, 1, LUA_TUSERDATA);
   return m->func(L, lua_touserdata(L, 1) + m->offset);
 }
@@ -235,7 +238,18 @@ static const luaL_reg window_methods[] = {
   {0, 0}
 };
 
+static int
+window_tostring(lua_State *L)
+{
+  char str[128];
+  struct win *w = check_window(L, 1);
+  snprintf(str, sizeof(str), "{window #%d: '%s'}", w->w_number, w->w_title);
+  lua_pushstring(L, str);
+  return 1;
+}
+
 static const luaL_reg window_metamethods[] = {
+  {"__tostring", window_tostring},
   {0, 0}
 };
 
@@ -250,6 +264,8 @@ static const struct Xet_reg window_getters[] = {
   {"tty", get_string, offsetof(struct win, w_tty)},
   {"pid", get_int, offsetof(struct win, w_pid)},
   {"group", get_window, offsetof(struct win, w_group)},
+  {"bell", get_int, offsetof(struct win, w_bell)},
+  {"monitor", get_int, offsetof(struct win, w_monitor)},
   {0, 0}
 };
 
@@ -259,6 +275,8 @@ static const struct Xet_reg window_getters[] = {
 /** AclUser {{{ */
 
 PUSH_TYPE(user, struct acluser)
+
+CHECK_TYPE(user, struct acluser)
 
 static int
 get_user(lua_State *L, void *v)
@@ -271,7 +289,18 @@ static const luaL_reg user_methods[] = {
   {0, 0}
 };
 
+static int
+user_tostring(lua_State *L)
+{
+  char str[128];
+  struct acluser *u = check_user(L, 1);
+  snprintf(str, sizeof(str), "{user '%s'}", u->u_name);
+  lua_pushstring(L, str);
+  return 1;
+}
+
 static const luaL_reg user_metamethods[] = {
+  {"__tostring", user_tostring},
   {0, 0}
 };
 
@@ -348,7 +377,18 @@ static const luaL_reg display_methods[] = {
   {0, 0}
 };
 
+static int
+display_tostring(lua_State *L)
+{
+  char str[128];
+  struct display *d = check_display(L, 1);
+  snprintf(str, sizeof(str), "{display: tty = '%s', term = '%s'}", d->d_usertty, d->d_termname);
+  lua_pushstring(L, str);
+  return 1;
+}
+
 static const luaL_reg display_metamethods[] = {
+  {"__tostring", display_tostring},
   {0, 0}
 };
 
