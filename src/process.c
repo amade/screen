@@ -3731,6 +3731,10 @@ int key;
       do_source(*args);
       break;
 
+    case RC_LUA:
+      LuaCall(args);
+      break;
+
     case RC_LUASOURCE:
       ScriptSource(*args);
       break;

@@ -39,6 +39,8 @@
 
 extern struct win *windows, *fore;
 extern struct display *displays, *display;
+extern struct LayFuncs WinLf;
+extern struct layer *flayer;
 
 /** Template {{{ */
 
@@ -118,7 +120,7 @@ struct Xet_reg
   const char *name;  /* member name */
   Xet_func func;     /* get or set function for type of member */
   size_t offset;     /* offset of member within the struct */
-  void *absolute;
+  int (*absolute)(lua_State *);
 };
 
 static void Xet_add (lua_State *L, const struct Xet_reg *l)
@@ -139,9 +141,9 @@ static int Xet_call (lua_State *L)
   /* for set: stack has userdata, index, value, lightuserdata */
   const struct Xet_reg *m = (const struct Xet_reg *)lua_touserdata(L, -1);  /* member info */
   lua_pop(L, 1);                               /* drop lightuserdata */
-  if (m->absolute)
-    return m->func(L, m->absolute);
   luaL_checktype(L, 1, LUA_TUSERDATA);
+  if (m->absolute)
+    return m->absolute(L);
   return m->func(L, lua_touserdata(L, 1) + m->offset);
 }
 
@@ -320,6 +322,8 @@ static const struct Xet_reg user_getters[] = {
 
 PUSH_TYPE(canvas, struct canvas)
 
+CHECK_TYPE(canvas, struct canvas)
+
 static int
 get_canvas(lua_State *L, void *v)
 {
@@ -327,7 +331,41 @@ get_canvas(lua_State *L, void *v)
   return 1;
 }
 
+static int
+canvas_select(lua_State *L)
+{
+  struct canvas *c = check_canvas(L, 1);
+  if (!display || D_forecv == c)
+    return 0;
+  D_forecv = c;
+
+  /* XXX: the following all is duplicated from process.c:DoAction.
+   * Should these be in some better place?
+   */
+  ResizeCanvas(&D_canvas);
+  RecreateCanvasChain();
+  RethinkDisplayViewports();
+  ResizeLayersToCanvases();	/* redisplays */
+  fore = D_fore = Layer2Window(D_forecv->c_layer);
+  flayer = D_forecv->c_layer;
+#ifdef RXVT_OSC
+  if (D_xtermosc[2] || D_xtermosc[3])
+    {
+      Activate(-1);
+      break;
+    }
+#endif
+  RefreshHStatus();
+#ifdef RXVT_OSC
+  RefreshXtermOSC();
+#endif
+  flayer = D_forecv->c_layer;
+  CV_CALL(D_forecv, LayRestore();LaySetCursor());
+  WindowChanged(0, 'F');
+}
+
 static const luaL_reg canvas_methods[] = {
+  {"select", canvas_select},
   {0, 0}
 };
 
@@ -339,6 +377,17 @@ static const struct Xet_reg canvas_setters[] = {
   {0, 0}
 };
 
+static int
+canvas_get_window(lua_State *L)
+{
+  struct canvas *c = check_canvas(L, 1);
+  if (c->c_layer && c->c_layer->l_data && c->c_layer->l_layfn == &WinLf) /* ... go figure */
+    push_window(L, c->c_layer->l_data);
+  else
+    lua_pushnil(L);
+  return 1;
+}
+
 static const struct Xet_reg canvas_getters[] = {
   {"next", get_canvas, offsetof(struct canvas, c_next)},
   {"xoff", get_int, offsetof(struct canvas, c_xoff)},
@@ -347,6 +396,7 @@ static const struct Xet_reg canvas_getters[] = {
   {"ys", get_int, offsetof(struct canvas, c_ys)},
   {"xe", get_int, offsetof(struct canvas, c_xe)},
   {"ye", get_int, offsetof(struct canvas, c_ye)},
+  {"window", 0, 0, canvas_get_window},
   {0, 0}
 };
 
@@ -436,6 +486,13 @@ screen_get_displays(lua_State *L)
 }
 
 static int
+screen_get_display(lua_State *L)
+{
+  push_display(L, display);
+  return 1;
+}
+
+static int
 screen_exec_command(lua_State *L)
 {
   const char *command;
@@ -451,6 +508,7 @@ screen_exec_command(lua_State *L)
 static const luaL_reg screen_methods[] = {
   {"windows", screen_get_windows},
   {"displays", screen_get_displays},
+  {"display", screen_get_display},
   {"command", screen_exec_command},
   {0, 0}
 };
@@ -493,6 +551,8 @@ int LuaForeWindowChanged(void)
   if (!L)
     return 0;
   lua_getfield(L, LUA_GLOBALSINDEX, "fore_changed");
+  if (lua_isnil(L, -1))
+    return 0;
   push_display(L, display);
   push_window(L, display ? D_fore : fore);
   if (lua_pcall(L, 2, 0, 0) == LUA_ERRRUN)
@@ -533,6 +593,31 @@ int LuaFinit(void)
   lua_close(L);
   L = (lua_State*)0;
   return 0;
+}
+
+int LuaCall(char **argv)
+{
+  int argc;
+  if (!L)
+    return 0;
+
+  lua_getfield(L, LUA_GLOBALSINDEX, *argv);
+  for (argc = 0, argv++; *argv; argv++, argc++)
+    {
+      lua_pushstring(L, *argv);
+    }
+  if (lua_pcall(L, argc, 0, 0) == LUA_ERRRUN)
+    {
+      if(lua_isstring(L, -1))
+	{
+	  unsigned int len;
+	  char *message = luaL_checklstring(L, -1, &len);
+	  LMsg(1, "%s", message ? message : "Unknown error");
+	  lua_pop(L, 1);
+	  return 0;
+	}
+    }
+  return 1;
 }
 
 

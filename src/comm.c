@@ -215,6 +215,7 @@ struct comm comms[RC_LAST + 1] =
   { "login",		NEED_FORE|ARGS_01 },
 #endif
   { "logtstamp",	ARGS_012 },
+  { "lua",              ARGS_1 | ARGS_ORMORE},
   { "luasource",        ARGS_1 },
 #ifdef MAPKEYS
   { "mapdefault",	NEED_DISPLAY|ARGS_0 },
