@@ -381,8 +381,9 @@ static int
 canvas_get_window(lua_State *L)
 {
   struct canvas *c = check_canvas(L, 1);
-  if (c->c_layer && c->c_layer->l_data && c->c_layer->l_layfn == &WinLf) /* ... go figure */
-    push_window(L, c->c_layer->l_data);
+  struct win *win = Layer2Window(c->c_layer);
+  if (win)
+    push_window(L, win);
   else
     lua_pushnil(L);
   return 1;
