@@ -359,6 +359,7 @@ char **av;
   char *sockp;
 #endif
   char *script_file = 0;
+  char *sty = 0;
 
 #if (defined(AUX) || defined(_AUX_SOURCE)) && defined(POSIX)
   setcompat(COMPAT_POSIX|COMPAT_BSDPROT); /* turn on seteuid support */
@@ -813,6 +814,12 @@ char **av;
     }
   ShellArgs[0] = ShellProg;
   home = getenv("HOME");
+  if (!mflag && !SockMatch)
+    {
+      sty = getenv("STY");
+      if (sty && *sty == 0)
+	sty = 0;
+    }
 
 #ifdef NETHACK
   if (!(nethackflag = (getenv("NETHACKOPTIONS") != NULL)))
@@ -897,7 +904,7 @@ char **av;
     Panic(0, "$HOME too long - sorry.");
 
   attach_tty = "";
-  if (!detached && !lsflag && !cmdflag && !(dflag && !mflag && !rflag && !xflag))
+  if (!detached && !lsflag && !cmdflag && !(dflag && !mflag && !rflag && !xflag) && !(!mflag && !SockMatch && sty))
     {
 #ifndef NAMEDPIPE
       int fl;
@@ -1091,8 +1098,6 @@ char **av;
   signal(SIG_BYE, AttacherFinit);	/* prevent races */
   if (cmdflag)
     {
-      char *sty = 0;
-
       /* attach_tty is not mandatory */
       if ((attach_tty = ttyname(0)) == 0)
         attach_tty = "";
@@ -1104,12 +1109,6 @@ char **av;
       setuid(real_uid);
       eff_uid = real_uid;
       eff_gid = real_gid;
-      if (!mflag && !SockMatch)
-	{
-	  sty = getenv("STY");
-	  if (sty && *sty == 0)
-	    sty = 0;
-	}
       SendCmdMessage(sty, SockMatch, av);
       exit(0);
     }
@@ -1134,21 +1133,16 @@ char **av;
       eexit(0);
       /* NOTREACHED */
     }
-  if (!SockMatch && !mflag)
+  if (!SockMatch && !mflag && sty)
     {
-      register char *sty;
-
-      if ((sty = getenv("STY")) != 0 && *sty != '\0')
-	{
-	  setgid(real_gid);
-	  setuid(real_uid);
-	  eff_uid = real_uid;
-	  eff_gid = real_gid;
-	  nwin_options.args = av;
-	  SendCreateMsg(sty, &nwin);
-	  exit(0);
-	  /* NOTREACHED */
-	}
+      setgid(real_gid);
+      setuid(real_uid);
+      eff_uid = real_uid;
+      eff_gid = real_gid;
+      nwin_options.args = av;
+      SendCreateMsg(sty, &nwin);
+      exit(0);
+      /* NOTREACHED */
     }
   nwin_compose(&nwin_default, &nwin_options, &nwin_default);
 
