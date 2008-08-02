@@ -48,24 +48,24 @@ extern struct layer *flayer;
 static type * \
 check_##name(lua_State *L, int index) \
 { \
-  type *var; \
+  type **var; \
   luaL_checktype(L, index, LUA_TUSERDATA); \
-  var = (type *) luaL_checkudata(L, index, #name); \
-  if (!var) \
+  var = (type **) luaL_checkudata(L, index, #name); \
+  if (!var || !*var) \
     luaL_typerror(L, index, #name); \
-  return var; \
+  return *var; \
 }
 
 #define PUSH_TYPE(name, type) \
 static void \
-push_##name(lua_State *L, type *t) \
+push_##name(lua_State *L, type **t) \
 { \
   if (!t) \
     lua_pushnil(L); \
   else \
     { \
-      type *r; \
-      r = (type *)lua_newuserdata(L, sizeof(type)); \
+      type **r; \
+      r = (type **)lua_newuserdata(L, sizeof(type *)); \
       *r = *t; \
       luaL_getmetatable(L, #name); \
       lua_setmetatable(L,-2); \
@@ -144,7 +144,7 @@ static int Xet_call (lua_State *L)
   luaL_checktype(L, 1, LUA_TUSERDATA);
   if (m->absolute)
     return m->absolute(L);
-  return m->func(L, lua_touserdata(L, 1) + m->offset);
+  return m->func(L, *(char**)lua_touserdata(L, 1) + m->offset);
 }
 
 static int index_handler (lua_State *L)
@@ -221,7 +221,7 @@ CHECK_TYPE(window, struct win)
 
 static int get_window(lua_State *L, void *v)
 {
-  push_window(L, *(struct win **)v);
+  push_window(L, (struct win **)v);
   return 1;
 }
 
@@ -283,7 +283,7 @@ CHECK_TYPE(user, struct acluser)
 static int
 get_user(lua_State *L, void *v)
 {
-  push_user(L, *(struct acluser **)v);
+  push_user(L, (struct acluser **)v);
   return 1;
 }
 
@@ -327,7 +327,7 @@ CHECK_TYPE(canvas, struct canvas)
 static int
 get_canvas(lua_State *L, void *v)
 {
-  push_canvas(L, *(struct canvas **)v);
+  push_canvas(L, (struct canvas **)v);
   return 1;
 }
 
@@ -337,6 +337,7 @@ canvas_select(lua_State *L)
   struct canvas *c = check_canvas(L, 1);
   if (!display || D_forecv == c)
     return 0;
+  SetCanvasWindow(c, Layer2Window(c->c_layer));
   D_forecv = c;
 
   /* XXX: the following all is duplicated from process.c:DoAction.
@@ -362,6 +363,7 @@ canvas_select(lua_State *L)
   flayer = D_forecv->c_layer;
   CV_CALL(D_forecv, LayRestore();LaySetCursor());
   WindowChanged(0, 'F');
+  return 1;
 }
 
 static const luaL_reg canvas_methods[] = {
@@ -383,7 +385,7 @@ canvas_get_window(lua_State *L)
   struct canvas *c = check_canvas(L, 1);
   struct win *win = Layer2Window(c->c_layer);
   if (win)
-    push_window(L, win);
+    push_window(L, &win);
   else
     lua_pushnil(L);
   return 1;
@@ -418,7 +420,7 @@ display_get_canvases(lua_State *L)
 
   d = check_display(L, 1);
   for (iter = d->d_cvlist, count = 0; iter; iter = iter->c_next, count++)
-    push_canvas(L, iter);
+    push_canvas(L, &iter);
 
   return count;
 }
@@ -469,7 +471,7 @@ screen_get_windows(lua_State *L)
   int count;
 
   for (iter = windows, count = 0; iter; iter = iter->w_next, count++)
-    push_window(L, iter);
+    push_window(L, &iter);
 
   return count;
 }
@@ -481,7 +483,7 @@ screen_get_displays(lua_State *L)
   int count;
 
   for (iter = displays, count = 0; iter; iter = iter->d_next, count++)
-    push_display(L, iter);
+    push_display(L, &iter);
 
   return count;
 }
@@ -489,7 +491,7 @@ screen_get_displays(lua_State *L)
 static int
 screen_get_display(lua_State *L)
 {
-  push_display(L, display);
+  push_display(L, &display);
   return 1;
 }
 
@@ -554,8 +556,8 @@ int LuaForeWindowChanged(void)
   lua_getfield(L, LUA_GLOBALSINDEX, "fore_changed");
   if (lua_isnil(L, -1))
     return 0;
-  push_display(L, display);
-  push_window(L, display ? D_fore : fore);
+  push_display(L, &display);
+  push_window(L, display ? &D_fore : &fore);
   if (lua_pcall(L, 2, 0, 0) == LUA_ERRRUN)
     {
       if(lua_isstring(L, -1))
