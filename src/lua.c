@@ -60,7 +60,7 @@ check_##name(lua_State *L, int index) \
 static void \
 push_##name(lua_State *L, type **t) \
 { \
-  if (!t) \
+  if (!t || !*t) \
     lua_pushnil(L); \
   else \
     { \
@@ -250,8 +250,17 @@ window_tostring(lua_State *L)
   return 1;
 }
 
+static int
+window_equality(lua_State *L)
+{
+  struct win *w1 = check_window(L, 1), *w2 = check_window(L, 2);
+  lua_pushboolean(L, (w1 == w2 || (w1 && w2 && w1->w_number == w2->w_number)));
+  return 1;
+}
+
 static const luaL_reg window_metamethods[] = {
   {"__tostring", window_tostring},
+  {"__eq", window_equality},
   {0, 0}
 };
 
@@ -622,7 +631,6 @@ int LuaCall(char **argv)
     }
   return 1;
 }
-
 
 /** }}} */
 
