@@ -44,30 +44,41 @@ AddScript(struct ScriptFuncs *sf)
   struct scripts *iter; \
   for (iter = scripts; iter; iter = iter->s_next) \
     { \
-      if (iter->fns->fn && iter->fns->fn params && stop) \
+      if (iter->fns->fn && (ret = (iter->fns->fn params)) && stop) \
 	break; \
     } \
 } while (0)
 
 void ScriptInit(void)
 {
+  int ret;
   ALL_SCRIPTS(sf_Init, (), 0);
 }
 
 void ScriptFinit(void)
 {
+  int ret;
   ALL_SCRIPTS(sf_Finit, (), 0);
 }
 
 void ScriptForeWindowChanged(void)
 {
+  int ret;
   ALL_SCRIPTS(sf_ForeWindowChanged, (), 0);
 }
 
 void ScriptSource(const char *path)
 {
+  int ret;
   /* If one script loader accepts the file, we don't send it to any other loader */
   ALL_SCRIPTS(sf_Source, (path), 1);
+}
+
+int ScriptProcessCaption(const char *str, struct win *win, int len)
+{
+  int ret = 0;
+  ALL_SCRIPTS(sf_ProcessCaption, (str, win, len), 1);
+  return ret;
 }
 
 #define HAVE_LUA 1   /* XXX: Remove */

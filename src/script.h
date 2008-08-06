@@ -19,12 +19,15 @@
  * $Id$ FAU
  */
 
+struct win;
+
 struct ScriptFuncs
 {
   int (*sf_Init) __P((void));
   int (*sf_Finit) __P((void));
   int (*sf_ForeWindowChanged) __P((void));
   int (*sf_Source) __P((const char *));
+  int (*sf_ProcessCaption) __P((const char *, struct win *, int len));
 };
 
 void LoadScripts(void);

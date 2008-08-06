@@ -2346,6 +2346,30 @@ time_t now;
   return bt->result;
 }
 
+void
+AppendWinMsgRend(str, color)
+char *str, *color;
+{
+  char *p;
+  int r = -1;
+  if (winmsg_numrend >= MAX_WINMSG_REND)
+    return;
+  p = winmsg_buf + strlen(winmsg_buf);
+  if (color)
+    {
+      if (*color != '-')
+	{
+	  r = ParseAttrColor(color, 0, 0);
+	  if (r == -1)
+	    return;
+	}
+      winmsg_rend[winmsg_numrend] = r;
+      winmsg_rendpos[winmsg_numrend] = p - winmsg_buf;
+      winmsg_numrend++;
+    }
+  strncpy(p, str, winmsg_buf + sizeof(winmsg_buf) - p);
+}
+
 char *
 MakeWinMsgEv(str, win, esc, padlen, ev, rec)
 char *str;
@@ -2375,17 +2399,23 @@ int rec;
   int truncper = 0;
   int trunclong = 0;
   struct backtick *bt;
- 
+
   if (winmsg_numrend >= 0)
     winmsg_numrend = 0;
   else
     winmsg_numrend = -winmsg_numrend;
-    
+
+  *p = '\0';
+  if (ScriptProcessCaption(str, win, padlen))
+    return winmsg_buf;
+  if (!display)
+    return winmsg_buf;
+
   tick = 0;
   tm = 0;
   ctrl = 0;
   gettimeofday(&now, NULL);
-  for (; *s && (l = winmsg_buf + MAXSTR - 1 - p) > 0; s++, p++)
+  for (s = str; *s && (l = winmsg_buf + MAXSTR - 1 - p) > 0; s++, p++)
     {
       *p = *s;
       if (ctrl)

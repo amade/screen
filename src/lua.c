@@ -517,11 +517,26 @@ screen_exec_command(lua_State *L)
   return 0;
 }
 
+static int
+screen_append_msg(lua_State *L)
+{
+  const char *msg, *color;
+  int len;
+  msg = luaL_checklstring(L, 1, &len);
+  if (lua_isnil(L, 2))
+    color = NULL;
+  else
+    color = luaL_checklstring(L, 2, &len);
+  AppendWinMsgRend(msg, color);
+  return 0;
+}
+
 static const luaL_reg screen_methods[] = {
   {"windows", screen_get_windows},
   {"displays", screen_get_displays},
   {"display", screen_get_display},
   {"command", screen_exec_command},
+  {"append_msg", screen_append_msg},
   {0, 0}
 };
 
@@ -556,6 +571,35 @@ int LuaInit(void)
   REGISTER(canvas);
 
   return 0;
+}
+
+struct fn_def
+{
+  void (*push_fn)(lua_State *, void*);
+  void *value;
+};
+
+static int
+LuaCallProcess(const char *name, struct fn_def defs[])
+{
+  int argc = 0;
+
+  lua_getfield(L, LUA_GLOBALSINDEX, name);
+  if (lua_isnil(L, -1))
+    return 0;
+  for (argc = 0; defs[argc].push_fn; argc++)
+    defs[argc].push_fn(L, defs[argc].value);
+  if (lua_pcall(L, argc, 0, 0) == LUA_ERRRUN && lua_isstring(L, -1))
+    {
+      struct display *d = display;
+      unsigned int len;
+      char *message = luaL_checklstring(L, -1, &len);
+      LMsg(1, "%s", message ? message : "Unknown error");
+      lua_pop(L, 1);
+      display = d;
+      return 0;
+    }
+  return 1;
 }
 
 int LuaForeWindowChanged(void)
@@ -632,6 +676,20 @@ int LuaCall(char **argv)
   return 1;
 }
 
+int
+LuaProcessCaption(const char *caption, struct win *win, int len)
+{
+  if (!L)
+    return 0;
+  struct fn_def params[] = {
+    {lua_pushstring, caption},
+    {push_window, &win},
+    {lua_pushinteger, len},
+    {NULL, NULL}
+  };
+  return LuaCallProcess("process_caption", params);
+}
+
 /** }}} */
 
 struct ScriptFuncs LuaFuncs =
@@ -639,6 +697,7 @@ struct ScriptFuncs LuaFuncs =
   LuaInit,
   LuaFinit,
   LuaForeWindowChanged,
-  LuaSource
+  LuaSource,
+  LuaProcessCaption
 };
 
