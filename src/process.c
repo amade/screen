@@ -37,7 +37,7 @@
 #include "config.h"
 
 /* for solaris 2.1, Unixware (SVR4.2) and possibly others: */
-#ifdef SVR4
+#ifdef HAVE_STROPTS_H
 # include <sys/stropts.h>
 #endif
 
@@ -104,6 +104,9 @@ extern struct mchar mchar_so, mchar_null;
 extern int VerboseCreate;
 #ifdef UTF8
 extern char *screenencodings;
+#endif
+#ifdef DW_CHARS
+extern int cjkwidth;
 #endif
 
 static int  CheckArgNum __P((int, char **));
@@ -4189,6 +4192,15 @@ int key;
       else
 	Msg(0, "unknown layout subcommand");
       break;
+#ifdef DW_CHARS
+    case RC_CJKWIDTH:
+      if(ParseSwitch(act, &cjkwidth) == 0)
+      {
+        if(msgok)
+          Msg(0, "Treat ambiguous width characters as %s width", cjkwidth ? "full" : "half");
+      }
+      break;
+#endif
     default:
 #ifdef HAVE_BRAILLE
       /* key == -2: input from braille keybord, msgok always 0 */
@@ -6551,6 +6563,8 @@ int flags;
   int orient = 0;
 
   ASSERT(display);
+  if (!*arg)
+    return;
   if (D_forecv->c_slorient == SLICE_UNKN)
     {
       Msg(0, "resize: need more than one region");

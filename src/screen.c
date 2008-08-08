@@ -50,7 +50,7 @@
 
 #include "config.h"
 
-#ifdef SVR4
+#ifdef HAVE_STROPTS_H
 # include <sys/stropts.h>
 #endif
 
@@ -221,6 +221,10 @@ char *preselect = NULL;		/* only used in Attach() */
 
 #ifdef UTF8
 char *screenencodings;
+#endif
+
+#ifdef DW_CHARS
+int cjkwidth;
 #endif
 
 #ifdef NETHACK
@@ -471,6 +475,9 @@ char **av;
 #ifdef UTF8
   InitBuiltinTabs();
   screenencodings = SaveStr(SCREENENCODINGS);
+#endif
+#ifdef DW_CHARS
+  cjkwidth = 0;
 #endif
   nwin = nwin_undef;
   nwin_options = nwin_undef;
@@ -773,6 +780,19 @@ char **av;
       debug1("environment says encoding=%d\n", nwin_options.encoding);
 #endif
     }
+# ifdef DW_CHARS
+  {
+    char *s;
+    if((s = getenv("LC_ALL")) || (s = getenv("LC_CTYPE")) ||
+       (s = getenv("LANG")))
+    {
+      if(!strncmp(s, "zh_", 3) || !strncmp(s, "ja_", 3) || !strncmp(s, "ko_", 3))
+      {
+        cjkwidth = 1;
+      }
+    }
+  }
+#endif
 #endif
   if (SockMatch && strlen(SockMatch) >= MAXSTR)
     Panic(0, "Ridiculously long socketname - try again.");
@@ -892,6 +912,29 @@ char **av;
     }
 #endif
 
+#define SET_GUID() do \
+  { \
+    setgid(real_gid); \
+    setuid(real_uid); \
+    eff_uid = real_uid; \
+    eff_gid = real_gid; \
+  } while (0)
+
+#define SET_TTYNAME(fatal) do \
+  { \
+    if (!(attach_tty = ttyname(0))) \
+      { \
+	if (fatal) \
+	  Panic(0, "Must be connected to a terminal."); \
+	else \
+	  attach_tty = ""; \
+      } \
+    else if (stat(attach_tty, &st)) \
+      Panic(errno, "Cannot access '%s'", attach_tty); \
+    if (strlen(attach_tty) >= MAXPATHLEN) \
+      Panic(0, "TtyName too long - sorry."); \
+  } while (0)
+
   if (home == 0 || *home == '\0')
     home = ppp->pw_dir;
   if (strlen(LoginName) > 20)
@@ -911,12 +954,7 @@ char **av;
 #endif
 
       /* ttyname implies isatty */
-      if (!(attach_tty = ttyname(0)))
-        Panic(0, "Must be connected to a terminal.");
-      if (strlen(attach_tty) >= MAXPATHLEN)
-	Panic(0, "TtyName too long - sorry.");
-      if (stat(attach_tty, &st))
-	Panic(errno, "Cannot access '%s'", attach_tty);
+      SET_TTYNAME(1);
 #ifdef MULTIUSER
       tty_mode = (int)st.st_mode & 0777;
 #endif
@@ -1083,10 +1121,7 @@ char **av;
       if (multi)
 	real_uid = multi_uid;
 #endif
-      setgid(real_gid);
-      setuid(real_uid);
-      eff_uid = real_uid;
-      eff_gid = real_gid;
+      SET_GUID();
       i = FindSocket((int *)NULL, &fo, &oth, SockMatch);
       if (quietflag)
         exit(8 + (fo ? ((oth || i) ? 2 : 1) : 0) + i);
@@ -1099,16 +1134,10 @@ char **av;
   if (cmdflag)
     {
       /* attach_tty is not mandatory */
-      if ((attach_tty = ttyname(0)) == 0)
-        attach_tty = "";
-      if (strlen(attach_tty) >= MAXPATHLEN)
-	Panic(0, "TtyName too long - sorry.");
+      SET_TTYNAME(0);
       if (!*av)
 	Panic(0, "Please specify a command.");
-      setgid(real_gid);
-      setuid(real_uid);
-      eff_uid = real_uid;
-      eff_gid = real_gid;
+      SET_GUID();
       SendCmdMessage(sty, SockMatch, av);
       exit(0);
     }
@@ -1135,10 +1164,9 @@ char **av;
     }
   if (!SockMatch && !mflag && sty)
     {
-      setgid(real_gid);
-      setuid(real_uid);
-      eff_uid = real_uid;
-      eff_gid = real_gid;
+      /* attach_tty is not mandatory */
+      SET_TTYNAME(0);
+      SET_GUID();
       nwin_options.args = av;
       SendCreateMsg(sty, &nwin);
       exit(0);
@@ -1173,10 +1201,7 @@ char **av;
         socknamebuf[NAME_MAX] = 0;
 #endif
       sprintf(SockPath + strlen(SockPath), "/%s", socknamebuf);
-      setgid(real_gid);
-      setuid(real_uid);
-      eff_uid = real_uid;
-      eff_gid = real_gid;
+      SET_GUID();
       Attacher();
       /* NOTREACHED */
     }

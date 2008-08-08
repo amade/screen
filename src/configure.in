@@ -12,7 +12,7 @@ AC_CONFIG_HEADER(config.h)
 dnl
 dnl Define some useful macros
 dnl
-AC_DEFUN(AC_PROGRAM_SOURCE,
+AC_DEFUN([AC_PROGRAM_SOURCE],
 [AC_REQUIRE([AC_PROG_CPP])AC_PROVIDE([$0])cat > conftest.c <<EOF
 #include "confdefs.h"
 [$1]
@@ -208,6 +208,7 @@ AC_TRY_LINK([#include <utmpx.h>
 [AC_CHECK_HEADER(dwarf.h, AC_DEFINE(SVR4) AC_DEFINE(BUGGYGETLOGIN),
 [AC_CHECK_HEADER(elf.h, AC_DEFINE(SVR4) AC_DEFINE(BUGGYGETLOGIN))])]
 ,LIBS="$oldlibs")
+AC_CHECK_HEADERS([stropts.h])
 
 AC_CHECKING(for Solaris 2.x)
 AC_EGREP_CPP(yes,
