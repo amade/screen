@@ -1295,6 +1295,18 @@ fi
 dnl Ptx bug workaround -- insert -lc after -ltermcap
 test -n "$seqptx" && LIBS="-ltermcap -lc -lsocket -linet -lnsl -lsec -lseq"
 
+PKG_CHECK_MODULES(LUA, [lua5.1], , [
+    AC_MSG_RESULT(no)
+    AC_MSG_ERROR([
+
+*** You need to have lua5.1 (http://www.lua.org/) installed.
+*** If you don't want support for lua scripting, please use the official repository
+*** (http://git.savannah.gnu.org/gitweb/?p=screen.git;a=summary).
+])])
+
+AC_SUBST(LUA_CFLAGS)
+AC_SUBST(LUA_LIBS)
+
 AC_TRY_RUN(main(){exit(0);},,AC_MSG_ERROR(Can't run the compiler - internal error. Sorry.))
 
 AC_OUTPUT(Makefile doc/Makefile, [[

@@ -20,6 +20,8 @@
  ****************************************************************
  */
 #include <sys/types.h>
+#include "config.h"
+#include "screen.h"
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -27,9 +29,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "config.h"
-
-#include "screen.h"
 #include "extern.h"
 #include "logfile.h"
 
