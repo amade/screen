@@ -87,7 +87,7 @@
 
 #define Ctrl(c) ((c)&037)
 
-#define MAXSTR		256
+#define MAXSTR		512
 #define MAXARGS 	64
 #define MSGWAIT 	5
 #define MSGMINWAIT 	1
@@ -172,8 +172,9 @@ struct mode
 /*
  * versions of struct msg:
  * 0:	screen version 3.6.6 (version count introduced)
+ * 1:	screen version 4.1.0
  */
-#define MSG_VERSION	0	
+#define MSG_VERSION	1
 #define MSG_REVISION	(('m'<<24) | ('s'<<16) | ('g'<<8) | MSG_VERSION)
 struct msg
 {
@@ -205,6 +206,7 @@ struct msg
 	  int meta_esc;		/* his new meta esc character unless -1 */
 	  char envterm[20 + 1];	/* terminal type */
 	  int encoding;		/* encoding of display */
+	  int detachfirst;      /* whether to detach remote sessions first */
 	}
       attach;
       struct 

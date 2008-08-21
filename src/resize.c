@@ -146,9 +146,8 @@ int wi, he;
 int change_fore;
 {
   struct win *p;
-  struct canvas *cv, **cvpp;
+  struct canvas *cv;
   int wwi;
-  int y, h, hn, xe, ye;
 
   debug2("ChangeScreenSize from (%d,%d) ", D_width, D_height);
   debug3("to (%d,%d) (change_fore: %d)\n",wi, he, change_fore);
@@ -156,6 +155,7 @@ int change_fore;
   cv = &D_canvas;
   cv->c_xe = wi - 1;
   cv->c_ye = he - 1 - ((cv->c_slperp && cv->c_slperp->c_slnext) || captionalways) - (D_has_hstatus == HSTATUS_LASTLINE);
+  cv->c_blank.l_height = cv->c_ye - cv->c_ys + 1;
   if (cv->c_slperp)
     {
       ResizeCanvas(cv);
@@ -957,7 +957,8 @@ int wi, he, hi;
 
   /* signal new size to window */
 #ifdef TIOCSWINSZ
-  if (wi && (p->w_width != wi || p->w_height != he) && p->w_ptyfd >= 0 && p->w_pid)
+  if (wi && (p->w_width != wi || p->w_height != he)
+      && p->w_width != 0 && p->w_height != 0 && p->w_ptyfd >= 0 && p->w_pid)
     {
       glwz.ws_col = wi;
       glwz.ws_row = he;

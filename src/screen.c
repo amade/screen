@@ -335,6 +335,21 @@ pw_try_again:
   return ppp;
 }
 
+static char *
+locale_name(void)
+{
+  static char *s;
+
+  if (!s)
+    {
+      s = getenv("LC_ALL");
+      if (s == NULL)
+        s = getenv("LC_CTYPE");
+      if (s == NULL)
+        s = getenv("LANG");
+    }
+  return s;
+}
 
 int
 main(ac, av)
@@ -773,8 +788,7 @@ char **av;
 # else
 #  ifdef UTF8
       char *s;
-      if (((s = getenv("LC_ALL")) || (s = getenv("LC_CTYPE")) ||
-          (s = getenv("LANG"))) && InStr(s, "UTF-8"))
+      if ((s = locale_name()) && InStr(s, "UTF-8"))
         nwin_options.encoding = UTF8;
 #  endif
       debug1("environment says encoding=%d\n", nwin_options.encoding);
@@ -783,8 +797,7 @@ char **av;
 # ifdef DW_CHARS
   {
     char *s;
-    if((s = getenv("LC_ALL")) || (s = getenv("LC_CTYPE")) ||
-       (s = getenv("LANG")))
+    if ((s = locale_name()))
     {
       if(!strncmp(s, "zh_", 3) || !strncmp(s, "ja_", 3) || !strncmp(s, "ko_", 3))
       {
@@ -794,6 +807,31 @@ char **av;
   }
 #endif
 #endif
+  if (nwin_options.aka)
+    {
+#ifdef ENCODINGS
+      if (nwin_options.encoding > 0)
+        {
+          size_t len = strlen(nwin_options.aka);
+          size_t newsz;
+          char *newbuf = malloc(3 * len);
+          if (!newbuf)
+            Panic(0, strnomem);
+          newsz = RecodeBuf(nwin_options.aka, len,
+                            nwin_options.encoding, 0, newbuf);
+          newbuf[newsz] = '\0';
+          nwin_options.aka = newbuf;
+        }
+      else
+#endif
+        {
+          /* If we just use the original value from av,
+             subsequent shelltitle invocations will attempt to free
+             space we don't own... */
+          nwin_options.aka = SaveStr(nwin_options.aka);
+        }
+    }
+  
   if (SockMatch && strlen(SockMatch) >= MAXSTR)
     Panic(0, "Ridiculously long socketname - try again.");
   if (cmdflag && !rflag && !dflag && !xflag)
@@ -858,8 +896,6 @@ char **av;
   own_uid = multi_uid = real_uid;
   if (SockMatch && (sockp = index(SockMatch, '/')))
     {
-      if (eff_uid)
-        Panic(0, "Must run suid root for multiuser support.");
       *sockp = 0;
       multi = SockMatch;
       SockMatch = sockp + 1;
@@ -880,6 +916,9 @@ char **av;
 	  detached = 0;
 	  multiattach = 1;
 	}
+      /* Special case: effective user is multiuser. */
+      if (eff_uid && (multi_uid != eff_uid))
+        Panic(0, "Must run suid root for multiuser support.");
     }
   if (SockMatch && *SockMatch == 0)
     SockMatch = 0;
@@ -1157,7 +1196,8 @@ char **av;
     }
   else if (dflag && !mflag)
     {
-      (void) Attach(MSG_DETACH);
+      SET_TTYNAME(0);
+      Attach(MSG_DETACH);
       Msg(0, "[%s %sdetached.]\n", SockName, (dflag > 1 ? "power " : ""));
       eexit(0);
       /* NOTREACHED */
@@ -2146,7 +2186,7 @@ int padlen;
   r = winmsg_numrend;
   while (p >= buf)
     {
-      if (r && p - buf == winmsg_rendpos[r - 1])
+      if (r && *p != 127 && p - buf == winmsg_rendpos[r - 1])
 	{
 	  winmsg_rendpos[--r] = pn - buf;
 	  continue;
@@ -2160,6 +2200,8 @@ int padlen;
 	  while (i-- > 0)
 	    *pn-- = ' ';
 	  numpad--;
+	  if (r && p - buf == winmsg_rendpos[r - 1])
+	    winmsg_rendpos[--r] = pn - buf;
 	}
     }
   return pn2;
@@ -2729,6 +2771,26 @@ int rec;
 	    }
 	  p += strlen(p) - 1;
 	  break;
+	case 'S':
+	  {
+	    char *session_name;
+	    *p = 0;
+	    session_name = strchr(SockName, '.') + 1;
+	    if ((int)strlen(session_name) < l)
+	      {
+		strcpy(p, session_name);
+		if (*p)
+		  qmflag = 1;
+	      }
+	    p += strlen(p) - 1;
+	  }
+	  break;
+        case 'p':
+          {
+            sprintf(p, "%d", (plusflg && display) ? D_userpid : getpid());
+            p += strlen(p) - 1;
+          }
+          break;
 	case 'F':
 	  p--;
 	  /* small hack */

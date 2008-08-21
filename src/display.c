@@ -412,6 +412,22 @@ FreeDisplay()
   display = 0;
 }
 
+static void
+CanvasInitBlank(cv)
+struct canvas *cv;
+{
+  cv->c_blank.l_cvlist = cv;
+  cv->c_blank.l_width = cv->c_xe - cv->c_xs + 1;
+  cv->c_blank.l_height = cv->c_ye - cv->c_ys + 1;
+  cv->c_blank.l_x = cv->c_blank.l_y = 0;
+  cv->c_blank.l_layfn = &BlankLf;
+  cv->c_blank.l_data = 0;
+  cv->c_blank.l_next = 0;
+  cv->c_blank.l_bottom = &cv->c_blank;
+  cv->c_blank.l_blocking = 0;
+  cv->c_layer = &cv->c_blank;
+}
+
 int
 MakeDefaultCanvas()
 {
@@ -445,16 +461,7 @@ MakeDefaultCanvas()
   cv->c_captev.data = (char *)cv;
   cv->c_captev.handler = cv_winid_fn;
 
-  cv->c_blank.l_cvlist = cv;
-  cv->c_blank.l_width = cv->c_xe - cv->c_xs + 1;
-  cv->c_blank.l_height = cv->c_ye - cv->c_ys + 1;
-  cv->c_blank.l_x = cv->c_blank.l_y = 0;
-  cv->c_blank.l_layfn = &BlankLf;
-  cv->c_blank.l_data = 0;
-  cv->c_blank.l_next = 0;
-  cv->c_blank.l_bottom = &cv->c_blank;
-  cv->c_blank.l_blocking = 0;
-  cv->c_layer = &cv->c_blank;
+  CanvasInitBlank(cv);
   cv->c_lnext = 0;
 
   D_cvlist = cv;
@@ -631,6 +638,8 @@ struct canvas *cv;
       cv->c_ye = ye;
       cv->c_xoff = cv->c_xs;
       cv->c_yoff = cv->c_ys;
+      cv->c_blank.l_width = cv->c_xe - cv->c_xs + 1;
+      cv->c_blank.l_height = cv->c_ye - cv->c_ys + 1;
       return;
     }
 
@@ -773,6 +782,8 @@ struct canvas *cv;
         }
       cv->c_xoff = cv->c_xs;
       cv->c_yoff = cv->c_ys;
+      cv->c_blank.l_width = cv->c_xe - cv->c_xs + 1;
+      cv->c_blank.l_height = cv->c_ye - cv->c_ys + 1;
       if (cv->c_slperp)
 	{
           ResizeCanvas(cv);
@@ -816,6 +827,7 @@ struct canvas *cv;
   if (pcv->c_slprev)
     pcv->c_slprev->c_slnext = pcv;
   pcv->c_slweight = cv->c_slweight;
+  CanvasInitBlank(pcv);
   cv->c_slweight = 1;
   cv->c_slnext = 0;
   cv->c_slprev = 0;
@@ -916,16 +928,7 @@ int orient;
   cv->c_captev.data = (char *)cv;
   cv->c_captev.handler = cv_winid_fn;
 
-  cv->c_blank.l_cvlist = cv;
-  cv->c_blank.l_width = cv->c_xe - cv->c_xs + 1;
-  cv->c_blank.l_height = cv->c_ye - cv->c_ys + 1;
-  cv->c_blank.l_x = cv->c_blank.l_y = 0;
-  cv->c_blank.l_layfn = &BlankLf;
-  cv->c_blank.l_data = 0;
-  cv->c_blank.l_next = 0;
-  cv->c_blank.l_bottom = &cv->c_blank;
-  cv->c_blank.l_blocking = 0;
-  cv->c_layer = &cv->c_blank;
+  CanvasInitBlank(cv);
   cv->c_lnext = 0;
 
   cv->c_next    = 0;
@@ -2785,9 +2788,12 @@ RemoveStatus()
   oldflayer = flayer;
   if (where == STATUS_ON_WIN)
     {
-      GotoPos(0, STATLINE);
-      RefreshLine(STATLINE, 0, D_status_len - 1, 0);
-      GotoPos(D_status_lastx, D_status_lasty);
+      if (captionalways || (D_canvas.c_slperp && D_canvas.c_slperp->c_slnext))
+	{
+	  GotoPos(0, STATLINE);
+	  RefreshLine(STATLINE, 0, D_status_len - 1, 0);
+	  GotoPos(D_status_lastx, D_status_lasty);
+	}
     }
   else
     RefreshHStatus();
@@ -2944,11 +2950,24 @@ int y, from, to, isblank;
       return;	/* can't refresh status */
     }
 
+  /* The following check makes plenty of sense. Unfortunately,
+     vte-based terminals (notably gnome-terminal) experience a quirk
+     that causes the final line not to update properly when it falls outside
+     the scroll region; clearing the line with D_CE avoids the glitch,
+     so we'll disable this perfectly sensible shortcut until such a time
+     as widespread vte installations lack the glitch.
+
+     See http://bugzilla.gnome.org/show_bug.cgi?id=542087 for current
+     status of the VTE bug report, and
+     https://savannah.gnu.org/bugs/index.php?23699 for the history from
+     the Savannah BTS. */
+#if 0
   if (y == D_height - 1 && D_has_hstatus == HSTATUS_LASTLINE)
     {
       RefreshHStatus();
       return;
     }
+#endif
 
   if (isblank == 0 && D_CE && to == D_width - 1 && from < to)
     {
@@ -3146,8 +3165,8 @@ int from, to, y, bce;
 void
 DisplayLine(oml, ml, y, from, to)
 struct mline *oml, *ml;
-int from, to, y;
-{
+int from, to, y;{
+
   register int x;
   int last2flag = 0, delete_lp = 0;
 
@@ -4292,7 +4311,10 @@ char **cmdv;
       displays = 0;
 #ifdef DEBUG
       if (dfp && dfp != stderr)
-        fclose(dfp);
+	{
+	  fclose(dfp);
+	  dfp = 0;
+	}
 #endif
       if (setgid(real_gid) || setuid(real_uid))
         Panic(errno, "setuid/setgid");
@@ -4320,7 +4342,7 @@ char **cmdv;
       (void)ioctl(0, TIOCSWINSZ, (char *)&glwz);
 #else
       sprintf(libuf, "LINES=%d", D_height);
-      sprintf(libuf, "COLUMNS=%d", D_width);
+      sprintf(cobuf, "COLUMNS=%d", D_width);
       *np++ = libuf;
       *np++ = cobuf;
 #endif
@@ -4350,13 +4372,20 @@ void
 FreeLayoutCv(cv)
 struct canvas *cv;
 {
-  for (; cv; cv = cv->c_slnext)
-    if (cv->c_slperp)
-      {
-	FreeLayoutCv(cv->c_slperp);
-	free(cv->c_slperp);
-	cv->c_slperp = 0;
-      }
+  struct canvas *cnext, *c = cv;
+  for (; cv; cv = cnext)
+    {
+      if (cv->c_slperp)
+	{
+	  FreeLayoutCv(cv->c_slperp);
+	  free(cv->c_slperp);
+	  cv->c_slperp = 0;
+	}
+      cnext = cv->c_slnext;
+      cv->c_slnext = 0;
+      if (cv != c)
+	free(cv);
+    }
 }
 
 static void
@@ -4393,6 +4422,7 @@ int save;
 	{
 	  cvt->c_slperp = (struct canvas *)calloc(1, sizeof(struct canvas));
 	  cvt->c_slperp->c_slback = cvt;
+	  CanvasInitBlank(cvt->c_slperp);
 	  DupLayoutCv(cvf->c_slperp, cvt->c_slperp, save);
 	}
       if (cvf->c_slnext)
@@ -4400,6 +4430,7 @@ int save;
 	  cvt->c_slnext = (struct canvas *)calloc(1, sizeof(struct canvas));
 	  cvt->c_slnext->c_slprev = cvt;
 	  cvt->c_slnext->c_slback = cvt->c_slback;
+	  CanvasInitBlank(cvt->c_slnext);
 	}
       cvf = cvf->c_slnext;
       cvt = cvt->c_slnext;

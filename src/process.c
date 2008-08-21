@@ -2078,14 +2078,6 @@ int key;
     case RC_WINDOWLIST:
       if (!*args)
         display_wlist(0, WLIST_NUM, (struct win *)0);
-      else if (!strcmp(*args, "-m") && !args[1])
-        display_wlist(0, WLIST_MRU, (struct win *)0);
-      else if (!strcmp(*args, "-b") && !args[1])
-        display_wlist(1, WLIST_NUM, (struct win *)0);
-      else if (!strcmp(*args, "-b") && !strcmp(args[1], "-m") && !args[2])
-        display_wlist(1, WLIST_MRU, (struct win *)0);
-      else if (!strcmp(*args, "-m") && !strcmp(args[1], "-b") && !args[2])
-        display_wlist(1, WLIST_MRU, (struct win *)0);
       else if (!strcmp(*args, "string"))
 	{
 	  if (args[1])
@@ -2109,7 +2101,26 @@ int key;
 	    Msg(0, "windowlist title is '%s'", wlisttit);
 	}
       else
-	Msg(0, "usage: windowlist [-b] [string [string] | title [title]]");
+	{
+	  int flag = 0;
+	  int blank = 0;
+	  for (i = 0; i < argc; i++)
+	    if (!args[i])
+	      continue;
+	    else if (!strcmp(args[i], "-m"))
+	      flag |= WLIST_MRU;
+	    else if (!strcmp(args[i], "-b"))
+	      blank = 1;
+	    else if (!strcmp(args[i], "-g"))
+	      flag |= WLIST_NESTED;
+	    else
+	      {
+		Msg(0, "usage: windowlist [-b] [-g] [-m] [string [string] | title [title]]");
+		break;
+	      }
+	  if (i == argc)
+	    display_wlist(blank, flag, (struct win *)0);
+	}
       break;
     case RC_HELP:
       if (argc == 2 && !strcmp(*args, "-c"))
@@ -2962,6 +2973,7 @@ int key;
 	  debug2("rename(%s, %s) done\n", SockPath, buf);
 	  strcpy(SockPath, buf);
 	  MakeNewEnv();
+	  WindowChanged((struct win *)0, 'S');
 	}
       break;
     case RC_SETENV:
@@ -4112,7 +4124,6 @@ int key;
 	}
       else if (!strcmp(args[0], "select"))
 	{
-          struct layout *lay;
           if (!args[1])
 	    {
 	      Input("Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
@@ -5057,6 +5068,36 @@ MoreWindows()
   return 0;
 }
 
+static void
+UpdateLayoutCanvas(cv, wi)
+struct canvas *cv;
+struct win *wi;
+{
+  for (; cv; cv = cv->c_slnext)
+    {
+      if (cv->c_layer && Layer2Window(cv->c_layer) == wi)
+	{
+	  /* A simplistic version of SetCanvasWindow(cv, 0) */
+	  struct layer *l = cv->c_layer;
+	  cv->c_layer = 0;
+	  if (l->l_cvlist == 0 && (wi == 0 || l != wi->w_savelayer))
+	    KillLayerChain(l);
+	  l = &cv->c_blank;
+	  l->l_data = 0;
+	  if (l->l_cvlist != cv)
+	    {
+	      cv->c_lnext = l->l_cvlist;
+	      l->l_cvlist = cv;
+	    }
+	  cv->c_layer = l;
+	  /* Do not end here. Multiple canvases can have the same window */
+	}
+
+      if (cv->c_slperp)
+	UpdateLayoutCanvas(cv->c_slperp, wi);
+    }
+}
+
 void
 KillWindow(wi)
 struct win *wi;
@@ -5064,6 +5105,7 @@ struct win *wi;
   struct win **pp, *p;
   struct canvas *cv;
   int gotone;
+  struct layout *lay;
 
   /*
    * Remove window from linked list.
@@ -5108,6 +5150,11 @@ struct win *wi;
 	  Activate(-1);
 	}
     }
+
+  /* do the same for the layouts */
+  for (lay = layouts; lay; lay = lay->lay_next)
+    UpdateLayoutCanvas(&lay->lay_canvas, wi);
+
   FreeWindow(wi);
   WindowChanged((struct win *)0, 'w');
   WindowChanged((struct win *)0, 'W');
@@ -5598,14 +5645,13 @@ char *buf;
 int len;
 char *data;	/* dummy */
 {
-  int n;
   struct layout *lay;
 
   if (!len || !display)
     return;
   if (len == 1 && *buf == '-')
     {
-      LoadLayout((struct layout *)0);
+      LoadLayout((struct layout *)0, (struct canvas *)0);
       Activate(0);
       return;
     }
@@ -6558,7 +6604,7 @@ char *arg;
 int flags;
 {
   struct canvas *cv;
-  int nreg, dsize, diff, siz, nsiz, l, done;
+  int diff, l;
   int gflag = 0, abs = 0, percent = 0;
   int orient = 0;
 
