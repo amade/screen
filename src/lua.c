@@ -583,6 +583,7 @@ LuaCallProcess(const char *name, struct fn_def defs[])
 {
   int argc = 0;
 
+  lua_settop(L, 0);
   lua_getfield(L, LUA_GLOBALSINDEX, name);
   if (lua_isnil(L, -1))
     return 0;
