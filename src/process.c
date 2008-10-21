@@ -229,6 +229,20 @@ static int maptimeout = 300;
 #endif
 
 
+/*
+ * Command aliases.
+ */
+struct alias {
+  /* next in our linked list */
+  struct alias *next;
+  char *alias_name;
+  char *alias_value;
+  int  alias_arg_count;
+  char **alias_args;
+};
+struct alias *g_aliases_list = NULL;
+
+
 /* digraph table taken from old vim and rfc1345 */
 static const unsigned char digraphs[][3] = {
     {' ', ' ', 160},	/*   */
@@ -2521,6 +2535,14 @@ int key;
       break;
     case RC_SLEEP:
       break;			/* Already handled */
+    case RC_ALIAS:
+      if (argc > 2)
+          AddAlias(args[0], args[1], args+2, argc-2);
+      if (argc == 2)
+        AddAlias(args[0], args[1], NULL, 0);
+      if (argc == 1)
+        DelAlias(args[0]);
+      break;
     case RC_TERM:
       s = NULL;
       if (ParseSaveStr(act, &s))
@@ -4259,13 +4281,55 @@ int key;
 }
 
 void
-DoCommand(argv, argl) 
+DoAlias(argv, argl)
 char **argv;
 int *argl;
 {
   struct action act;
 
-  if ((act.nr = FindCommnr(*argv)) == RC_ILLEGAL)  
+  /* Find the alias */
+  struct alias *alias = FindAlias(*argv);
+
+  if (alias == NULL)
+    {
+      Msg(0, "internal error alias not found");
+      return;
+    }
+
+  act.nr = FindCommnr(alias->alias_value);
+
+  if (act.nr == RC_ILLEGAL)
+    {
+      Msg(0, "illegal alias value - aliases to aliases don't work (yet).");
+      return;
+    }
+  if (alias->alias_arg_count > 0)
+    {
+      act.args = alias->alias_args;
+      act.argl = &(alias->alias_arg_count);
+    }
+  else
+    {
+      act.args = argv + 1;
+      act.argl = argl + 1;
+    }
+
+  DoAction(&act, -1);
+}
+
+
+void
+DoCommand(argv, argl)
+char **argv;
+int *argl;
+{
+  struct action act;
+
+  /* Alias? */
+  if (FindAlias(*argv) != NULL)
+    return DoAlias(argv, argl);
+
+  if ((act.nr = FindCommnr(*argv)) == RC_ILLEGAL)
     {
       Msg(0, "%s: unknown command '%s'", rc_name, *argv);
       return;
@@ -6416,6 +6480,119 @@ char *presel;
     wi = 0;
 #endif
   return wi;
+}
+
+/**
+ * Add an alias
+ */
+void AddAlias(name, value, args, count)
+const char *name;
+const char *value;
+char **args;
+int count;
+{
+  struct alias *new = NULL;
+
+  /* Make sure the alias maps to something */
+  if (FindCommnr((char *)value) == RC_ILLEGAL)
+    {
+      Msg(0, "illegal alias value - aliases to aliases don't work (yet).");
+      return;
+    }
+
+  /* Make sure we don't already have this alias name defined. */
+  if (FindAlias((char *)name) != NULL)
+    {
+      Msg(0, "alias already defined: %s", name);
+      return;
+    }
+
+  new = (struct alias *)malloc(sizeof(struct alias));
+
+  /* store it */
+  new->next        = NULL;
+  new->alias_name  = SaveStr(name);
+  new->alias_value = SaveStr(value);
+  new->alias_arg_count = count;
+  new->alias_args = NULL;
+
+  if (count >0)
+    {
+      int i;
+      new->alias_args = (char **)malloc(sizeof(char *)*count+1);
+      for (i = 0; i< count; i++)
+	new->alias_args[i] = SaveStr(args[i]);
+      new->alias_args[i] = NULL;
+    }
+
+  /* Add to head */
+  new->next = g_aliases_list;
+  g_aliases_list = new;
+}
+
+
+/**
+ * Find an alias.
+ */
+struct alias *
+FindAlias(name)
+     char *name;
+{
+  struct alias *t = g_aliases_list;
+
+  while(t != NULL)
+    {
+      if ((t->alias_name != NULL) &&
+           (strcmp(t->alias_name, name) == 0))
+        return t;
+
+      t = t->next;
+    }
+
+  return NULL;
+}
+
+
+
+/**
+ * Delete an alias
+ */
+void DelAlias(name)
+const char *name;
+{
+  /* Find the previous alias */
+  struct alias *cur  = g_aliases_list;
+  struct alias *prev = g_aliases_list;
+
+  while (cur != NULL)
+    {
+      if ((cur->alias_name != NULL) &&
+           (strcmp(cur->alias_name, name) == 0))
+        {
+          struct alias *found = cur;
+          int c;
+
+          /* remove this one from the chain. */
+          prev->next = found->next;
+
+          free(found->alias_name);
+          free(found->alias_value);
+          if (found->alias_arg_count > 0)
+            {
+              for (c = 0; c <= found->alias_arg_count ; c++)
+                free(found->alias_args[c]);
+              free(found->alias_args);
+            }
+          free(cur);
+
+          Msg(0, "alias %s removed", name);
+
+        }
+      prev = cur;
+      cur = cur->next;
+    }
+
+  Msg(0, "alias %s not found", name);
 }
 
 #if 0
