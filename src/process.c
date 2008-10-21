@@ -161,6 +161,12 @@ static struct action *FindKtab __P((char *, int));
 static void SelectFin __P((char *, int, char *));
 static void SelectLayoutFin __P((char *, int, char *));
 
+/* Alias */
+static void  AddAlias __P((const char *name, const char *val , char **args, int *argl, int count));
+static struct alias * FindAlias __P((const char *name));
+static struct alias * FindAliasnr __P((int));
+static void  DelAlias __P((const char *name));
+static int   DoAlias __P((char **, int *));
 
 extern struct layer *flayer;
 extern struct display *display, *displays;
@@ -233,12 +239,12 @@ static int maptimeout = 300;
  * Command aliases.
  */
 struct alias {
-  /* next in our linked list */
+  int nr;
+  char *name;   /* Name of the alias */
+  int cmdnr;    /* Number of the command this is alias for */
+  char **args;  /* The argument list for the command */
+  int *argl;
   struct alias *next;
-  char *alias_name;
-  char *alias_value;
-  int  alias_arg_count;
-  char **alias_args;
 };
 struct alias *g_aliases_list = NULL;
 
@@ -1101,11 +1107,24 @@ int key;
   struct acluser *user;
 
   user = display ? D_user : users;
+
+  if (nr > RC_LAST)
+    {
+      struct alias *alias = FindAliasnr(nr);
+      if (nr)
+	{
+	  DoAlias(&alias->name, NULL);
+	  return;
+	}
+      nr = RC_ILLEGAL;
+    }
+
   if (nr == RC_ILLEGAL)
     {
       debug1("key '%c': No action\n", key);
       return;
     }
+
   n = comms[nr].flags;
   if ((n & NEED_DISPLAY) && display == 0)
     {
@@ -2536,12 +2555,10 @@ int key;
     case RC_SLEEP:
       break;			/* Already handled */
     case RC_ALIAS:
-      if (argc > 2)
-          AddAlias(args[0], args[1], args+2, argc-2);
-      if (argc == 2)
-        AddAlias(args[0], args[1], NULL, 0);
       if (argc == 1)
         DelAlias(args[0]);
+      else
+	AddAlias(args[0], args[1], args+1, argl+1, argc - 1);
       break;
     case RC_TERM:
       s = NULL;
@@ -3190,10 +3207,15 @@ int key;
 	    {
 	      if ((i = FindCommnr(args[1])) == RC_ILLEGAL)
 		{
-		  Msg(0, "%s: bind: unknown command '%s'", rc_name, args[1]);
-		  break;
+		  struct alias *alias = FindAlias(args[1]);
+		  if (!alias)
+		    {
+		      Msg(0, "%s: bind: unknown command '%s'", rc_name, args[1]);
+		      break;
+		    }
+		  i = alias->nr;
 		}
-	      if (CheckArgNum(i, args + 2) < 0)
+	      if (i <= RC_LAST && CheckArgNum(i, args + 2) < 0)
 		break;
 	      ClearAction(&ktabp[n]);
 	      SaveAction(ktabp + n, i, args + 2, argl + 2);
@@ -3320,10 +3342,15 @@ int key;
 	    {
 	      if ((newnr = FindCommnr(args[1])) == RC_ILLEGAL)
 		{
-		  Msg(0, "%s: bindkey: unknown command '%s'", rc_name, args[1]);
-		  break;
+		  struct alias *alias = FindAlias(args[1]);
+		  if (!alias)
+		    {
+		      Msg(0, "%s: bindkey: unknown command '%s'", rc_name, args[1]);
+		      break;
+		    }
+		  newnr = alias->nr;
 		}
-	      if (CheckArgNum(newnr, args + 2) < 0)
+	      if (newnr <= RC_LAST && CheckArgNum(newnr, args + 2) < 0)
 		break;
 	      ClearAction(newact);
 	      SaveAction(newact, newnr, args + 2, argl + 2);
@@ -4280,43 +4307,23 @@ int key;
     }
 }
 
-void
+/* Right now, aliased commands cannot really take parameters.
+ * So argv and argl are pretty much ununsed (except *argv, of course, which is the
+ * name of the alias itself).
+ */
+static int
 DoAlias(argv, argl)
 char **argv;
 int *argl;
 {
-  struct action act;
-
   /* Find the alias */
   struct alias *alias = FindAlias(*argv);
-
   if (alias == NULL)
-    {
-      Msg(0, "internal error alias not found");
-      return;
-    }
+    return 0;
 
-  act.nr = FindCommnr(alias->alias_value);
-
-  if (act.nr == RC_ILLEGAL)
-    {
-      Msg(0, "illegal alias value - aliases to aliases don't work (yet).");
-      return;
-    }
-  if (alias->alias_arg_count > 0)
-    {
-      act.args = alias->alias_args;
-      act.argl = &(alias->alias_arg_count);
-    }
-  else
-    {
-      act.args = argv + 1;
-      act.argl = argl + 1;
-    }
-
-  DoAction(&act, -1);
+  DoCommand(alias->args, alias->argl);
+  return 1;
 }
-
 
 void
 DoCommand(argv, argl)
@@ -4326,8 +4333,8 @@ int *argl;
   struct action act;
 
   /* Alias? */
-  if (FindAlias(*argv) != NULL)
-    return DoAlias(argv, argl);
+  if (DoAlias(argv, argl))
+    return;
 
   if ((act.nr = FindCommnr(*argv)) == RC_ILLEGAL)
     {
@@ -6485,65 +6492,71 @@ char *presel;
 /**
  * Add an alias
  */
-void AddAlias(name, value, args, count)
+void
+AddAlias(name, value, args, argl, count)
 const char *name;
 const char *value;
 char **args;
+int *argl;
 int count;
 {
-  struct alias *new = NULL;
-
-  /* Make sure the alias maps to something */
-  if (FindCommnr((char *)value) == RC_ILLEGAL)
-    {
-      Msg(0, "illegal alias value - aliases to aliases don't work (yet).");
-      return;
-    }
+  struct alias *nalias = NULL;
+  static next_command = RC_LAST;
+  int nr;
 
   /* Make sure we don't already have this alias name defined. */
-  if (FindAlias((char *)name) != NULL)
+  if (FindAlias(name) != NULL)
     {
       Msg(0, "alias already defined: %s", name);
       return;
     }
 
-  new = (struct alias *)malloc(sizeof(struct alias));
-
-  /* store it */
-  new->next        = NULL;
-  new->alias_name  = SaveStr(name);
-  new->alias_value = SaveStr(value);
-  new->alias_arg_count = count;
-  new->alias_args = NULL;
-
-  if (count >0)
+  /* Make sure the alias maps to something */
+  if ((nr = FindCommnr((char *)value)) == RC_ILLEGAL)
     {
-      int i;
-      new->alias_args = (char **)malloc(sizeof(char *)*count+1);
-      for (i = 0; i< count; i++)
-	new->alias_args[i] = SaveStr(args[i]);
-      new->alias_args[i] = NULL;
+      struct alias *alias = FindAlias(value);
+      if (!alias)
+	{
+          Msg(0, "%s: could not find command or alias '%s'", rc_name, value);
+	  return;
+	}
+      nr = alias->nr;
     }
 
+  nalias = (struct alias *)calloc(1, sizeof(struct alias));
+
+  /* store it */
+  nalias->next = NULL;
+  nalias->name = SaveStr(name);
+  nalias->cmdnr = nr;
+  if (count > 0)
+    {
+      nalias->args = SaveArgs(args);
+      nalias->argl = calloc(count + 1, sizeof(int));
+      while (count--)
+	nalias->argl[count] = argl[count];
+    }
+  nalias->nr = ++next_command;
+
   /* Add to head */
-  new->next = g_aliases_list;
-  g_aliases_list = new;
+  nalias->next = g_aliases_list;
+  g_aliases_list = nalias;
 }
 
 
 /**
- * Find an alias.
+ * Find an alias by name.
  */
-struct alias *
+static struct alias *
 FindAlias(name)
-     char *name;
+const char *name;
 {
   struct alias *t = g_aliases_list;
 
   while(t != NULL)
     {
-      if ((t->alias_name != NULL) &&
-           (strcmp(t->alias_name, name) == 0))
+      if ((t->name != NULL) &&
+           (strcmp(t->name, name) == 0))
         return t;
 
       t = t->next;
@@ -6552,12 +6565,28 @@ FindAlias(name)
   return NULL;
 }
 
+/**
+ * Find an alias by number.
+ */
+static struct alias *
+FindAliasnr(nr)
+int nr;
+{
+  struct alias *t;
+  for (t = g_aliases_list; t; t = t->next)
+    {
+      if (t->nr == nr)
+        return t;
+    }
 
+  return NULL;
+}
 
 /**
  * Delete an alias
  */
-void DelAlias(name)
+void
+DelAlias(name)
 const char *name;
 {
   /* Find the previous alias */
@@ -6566,8 +6595,8 @@ const char *name;
 
   while (cur != NULL)
     {
-      if ((cur->alias_name != NULL) &&
-           (strcmp(cur->alias_name, name) == 0))
+      if ((cur->name != NULL) &&
+           (strcmp(cur->name, name) == 0))
         {
           struct alias *found = cur;
           int c;
@@ -6575,14 +6604,14 @@ const char *name;
           /* remove this one from the chain. */
           *pcur = found->next;
 
-          free(found->alias_name);
-          free(found->alias_value);
-          if (found->alias_arg_count > 0)
-            {
-              for (c = 0; c <= found->alias_arg_count ; c++)
-                free(found->alias_args[c]);
-              free(found->alias_args);
-            }
+          free(found->name);
+	  if (found->args)
+	    {
+	      for (c = 0; found->args[c]; c++)
+		free(found->args[c]);
+	      free(found->args);
+	      free(found->argl);
+	    }
           free(found);
 
           Msg(0, "alias %s removed", name);

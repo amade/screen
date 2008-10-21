@@ -183,10 +183,6 @@ extern int   OpenPTY __P((char **));
 extern void  InitPTY __P((int));
 
 /* process.c */
-extern void  AddAlias __P((const char *name, const char *val , char **args, int count));
-struct alias * FindAlias __P((char *name));
-extern void  DelAlias __P((const char *name));
-
 extern void  InitKeytab __P((void));
 extern void  ProcessInput __P((char *, int));
 #ifdef MAPKEYS

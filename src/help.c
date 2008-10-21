@@ -172,7 +172,7 @@ struct action *ktabp;
   for (key = 0; key < 256 + KMAP_KEYS; key++)
     {
       n = ktabp[key].nr;
-      if (n == RC_ILLEGAL)
+      if (n == RC_ILLEGAL || n > RC_LAST)
 	continue;
       if (ktabp[key].args == noargs)
 	{
