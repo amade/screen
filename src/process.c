@@ -6562,7 +6562,7 @@ const char *name;
 {
   /* Find the previous alias */
   struct alias *cur  = g_aliases_list;
-  struct alias *prev = g_aliases_list;
+  struct alias **pcur = &g_aliases_list;
 
   while (cur != NULL)
     {
@@ -6573,7 +6573,7 @@ const char *name;
           int c;
 
           /* remove this one from the chain. */
-          prev->next = found->next;
+          *pcur = found->next;
 
           free(found->alias_name);
           free(found->alias_value);
@@ -6583,12 +6583,12 @@ const char *name;
                 free(found->alias_args[c]);
               free(found->alias_args);
             }
-          free(cur);
+          free(found);
 
           Msg(0, "alias %s removed", name);
-
+	  return;
         }
-      prev = cur;
+      pcur = &cur->next;
       cur = cur->next;
     }
 
