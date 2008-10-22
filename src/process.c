@@ -166,7 +166,7 @@ static void  AddAlias __P((const char *name, const char *val , char **args, int 
 static struct alias * FindAlias __P((const char *name));
 static struct alias * FindAliasnr __P((int));
 static void  DelAlias __P((const char *name));
-static int   DoAlias __P((char **, int *));
+static int   DoAlias __P((const char *, char **, int *));
 
 extern struct layer *flayer;
 extern struct display *display, *displays;
@@ -1113,7 +1113,7 @@ int key;
       struct alias *alias = FindAliasnr(nr);
       if (alias)
 	{
-	  DoAlias(&alias->name, NULL);
+	  DoAlias(alias->name, act->args, act->argl);
 	  return;
 	}
       nr = RC_ILLEGAL;
@@ -4307,21 +4307,51 @@ int key;
     }
 }
 
-/* Right now, aliased commands cannot really take parameters.
- * So argv and argl are pretty much ununsed (except *argv, of course, which is the
- * name of the alias itself).
- */
 static int
-DoAlias(argv, argl)
-char **argv;
+DoAlias(name, args, argl)
+const char *name;
+char **args;
 int *argl;
 {
-  /* Find the alias */
-  struct alias *alias = FindAlias(*argv);
+  char **mergeds;
+  int *mergedl;
+  int count, i;
+  struct alias *alias = FindAlias(name);
+
   if (alias == NULL)
     return 0;
 
-  DoCommand(alias->args, alias->argl);
+  count = 0;
+  for (; args && args[count]; count++)
+    ;
+  for (i = 0; alias->args && alias->args[i]; i++, count++)
+    ;
+  ++count;
+
+  if ((mergeds = malloc(count * sizeof(char *))) == 0)
+    return 0;
+  if ((mergedl = malloc(count * sizeof(int))) == 0)
+    {
+      free(mergeds);
+      return 0;
+    }
+  for (count = 0; alias->args && alias->args[count]; count++)
+    {
+      mergeds[count] = alias->args[count];
+      mergedl[count] = alias->argl[count];
+    }
+  for (i = 0; args && args[i]; i++, count++)
+    {
+      mergeds[count] = args[i];
+      mergedl[count] = argl[i];
+    }
+  mergeds[count] = 0;
+  mergedl[count] = 0 ;
+
+  DoCommand(mergeds, mergedl);
+
+  free(mergeds);
+  free(mergedl);
   return 1;
 }
 
@@ -4333,7 +4363,7 @@ int *argl;
   struct action act;
 
   /* Alias? */
-  if (DoAlias(argv, argl))
+  if (DoAlias(*argv, argv + 1, argl + 1))
     return;
 
   if ((act.nr = FindCommnr(*argv)) == RC_ILLEGAL)
