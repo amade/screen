@@ -3210,7 +3210,7 @@ int key;
 		  struct alias *alias = FindAlias(args[1]);
 		  if (!alias)
 		    {
-		      Msg(0, "%s: bind: unknown command '%s'", rc_name, args[1]);
+		      Msg(0, "%s: bind: unknown command or alias '%s'", rc_name, args[1]);
 		      break;
 		    }
 		  i = alias->nr;
@@ -3345,7 +3345,7 @@ int key;
 		  struct alias *alias = FindAlias(args[1]);
 		  if (!alias)
 		    {
-		      Msg(0, "%s: bindkey: unknown command '%s'", rc_name, args[1]);
+		      Msg(0, "%s: bindkey: unknown command or alias '%s'", rc_name, args[1]);
 		      break;
 		    }
 		  newnr = alias->nr;
@@ -4029,10 +4029,15 @@ int key;
 	    {
 	      if ((i = FindCommnr(args[1])) == RC_ILLEGAL)
 		{
-		  Msg(0, "%s: idle: unknown command '%s'", rc_name, args[1]);
-		  break;
+		  struct alias *alias = FindAlias(args[1]);
+		  if (!alias)
+		    {
+		      Msg(0, "%s: idle: unknown command or alias '%s'", rc_name, args[1]);
+		      break;
+		    }
+		  i = alias->nr;
 		}
-	      if (CheckArgNum(i, args + 2) < 0)
+	      if (i <= RC_LAST && CheckArgNum(i, args + 2) < 0)
 		break;
 	      ClearAction(&idleaction);
 	      SaveAction(&idleaction, i, args + 2, argl + 2);
