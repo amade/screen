@@ -1111,7 +1111,7 @@ int key;
   if (nr > RC_LAST)
     {
       struct alias *alias = FindAliasnr(nr);
-      if (nr)
+      if (alias)
 	{
 	  DoAlias(&alias->name, NULL);
 	  return;
