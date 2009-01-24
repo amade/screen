@@ -1,11 +1,16 @@
-/* Copyright (c) 1993-2002
+/* Copyright (c) 2008
+ *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
+ *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
+ *      Micah Cowan (micah@cowan.name)
+ *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
+ * Copyright (c) 1993-2002, 2003, 2005, 2006, 2007
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  * Copyright (c) 1987 Oliver Laumann
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
+ * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -14,9 +19,9 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program (see the file COPYING); if not, write to the
- * Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * along with this program (see the file COPYING); if not, see
+ * http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
  */
@@ -1053,6 +1058,18 @@ char **args;
   return i;
 }
 
+static void
+StuffFin(buf, len, data)
+char *buf;
+int len;
+char *data;
+{
+  if (!flayer)
+    return;
+  while(len)
+    LayProcess(&buf, &len);
+}
+
 /*ARGSUSED*/
 void
 DoAction(act, key)
@@ -1631,8 +1648,8 @@ int key;
 #endif
 	    }
 	}
-#endif
       else
+#endif
 	{
 	  struct plop *plp = plop_tab + (int)(unsigned char)ch;
 
@@ -1661,6 +1678,11 @@ int key;
       break;
     case RC_STUFF:
       s = *args;
+      if (!args[0])
+	{
+	  Input("Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
+	  break;
+	}
       n = *argl;
       if (args[1])
 	{
@@ -3829,6 +3851,8 @@ int key;
 	  ResizeLayersToCanvases();	/* redisplays */
 	}
       fore = D_fore = Layer2Window(D_forecv->c_layer);
+      if (D_other == fore)
+	D_other = 0;
       flayer = D_forecv->c_layer;
 #ifdef RXVT_OSC
       if (D_xtermosc[2] || D_xtermosc[3])
@@ -4199,6 +4223,21 @@ int key;
       else if (!strcmp(args[0], "show"))
 	{
 	  ShowLayouts(-1);
+	}
+      else if (!strcmp(args[0], "remove"))
+	{
+	  struct layout *lay = display ? D_layout : layouts;
+	  if (args[1])
+	    {
+	      lay = layouts ? FindLayout(args[1]) : (struct layout *)0;
+	      if (!lay)
+		{
+		  Msg(0, "unknown layout '%s'", args[1]);
+		  break;
+		}
+	    }
+	  if (lay)
+	    RemoveLayout(lay);
 	}
       else
 	Msg(0, "unknown layout subcommand");

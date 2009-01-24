@@ -1,11 +1,16 @@
-/* Copyright (c) 1993-2002
+/* Copyright (c) 2008
+ *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
+ *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
+ *      Micah Cowan (micah@cowan.name)
+ *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
+ * Copyright (c) 1993-2002, 2003, 2005, 2006, 2007
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  * Copyright (c) 1987 Oliver Laumann
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
+ * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -14,9 +19,9 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program (see the file COPYING); if not, write to the
- * Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * along with this program (see the file COPYING); if not, see
+ * http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
  * $Id$ FAU
@@ -70,26 +75,12 @@ extern int errno;
 #undef strerror
 #endif
 
-#if !defined(SYSV) && !defined(linux)
-# ifdef NEWSOS
-#  define strlen ___strlen___
-#  include <strings.h>
-#  undef strlen
-# else /* NEWSOS */
-#  include <strings.h>
-# endif /* NEWSOS */
-#else /* SYSV */
-# if defined(SVR4) || defined(NEWSOS)
-#  define strlen ___strlen___
-#  include <string.h>
-#  undef strlen
-#  if !defined(NEWSOS) && !defined(__hpux)
-    extern size_t strlen(const char *);
-#  endif
-# else /* SVR4 */
-#  include <string.h>
-# endif /* SVR4 */
-#endif /* SYSV */
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+#ifdef HAVE_STRING_H
+# include <string.h>
+#endif
 
 #ifdef USEVARARGS
 # if defined(__STDC__)

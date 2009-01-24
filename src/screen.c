@@ -1,4 +1,9 @@
-/* Copyright (c) 1993-2002
+/* Copyright (c) 2008
+ *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
+ *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
+ *      Micah Cowan (micah@cowan.name)
+ *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
+ * Copyright (c) 1993-2002, 2003, 2005, 2006, 2007
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  * Copyright (c) 1987 Oliver Laumann
@@ -14,7 +19,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
+ * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -23,9 +28,9 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program (see the file COPYING); if not, write to the
- * Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * along with this program (see the file COPYING); if not, see
+ * http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
  */
@@ -400,8 +405,8 @@ char **av;
 #ifdef DEBUG
   opendebug(1, 0);
 #endif
-  sprintf(version, "%d.%.2d.%.2d%s (%s) %s", REV, VERS,
-	  PATCHLEVEL, STATE, ORIGIN, DATE);
+  snprintf(version, 59, "%d.%.2d.%.2d%s (%s%s) %s", REV, VERS,
+	  PATCHLEVEL, STATE, ORIGIN, GIT_REV, DATE);
   nversion = REV * 10000 + VERS * 100 + PATCHLEVEL;
   debug2("-- screen debug started %s (%s)\n", *av, version);
 #ifdef POSIX
@@ -1853,6 +1858,17 @@ int mode;
   if (display == 0)
     return;
 
+#define AddStrSock(msg) do { \
+    if (SockName) \
+      { \
+	AddStr("[" msg " from "); \
+	AddStr(SockName); \
+	AddStr("]\r\n"); \
+      } \
+    else \
+      AddStr("[" msg "]\r\n"); \
+  } while (0)
+
   signal(SIGHUP, SIG_IGN);
   debug1("Detach(%d)\n", mode);
   if (D_status)
@@ -1866,7 +1882,7 @@ int mode;
       sign = SIG_BYE;
       break;
     case D_DETACH:
-      AddStr("[detached]\r\n");
+      AddStrSock("detached");
       sign = SIG_BYE;
       break;
 #ifdef BSDJOBS
@@ -1876,14 +1892,14 @@ int mode;
 #endif
 #ifdef REMOTE_DETACH
     case D_REMOTE:
-      AddStr("[remote detached]\r\n");
+      AddStrSock("remote detached");
       sign = SIG_BYE;
       break;
 #endif
 #ifdef POW_DETACH
     case D_POWER:
-      AddStr("[power detached]\r\n");
-      if (PowDetachString) 
+      AddStrSock("power detached");
+      if (PowDetachString)
 	{
 	  AddStr(PowDetachString);
 	  AddStr("\r\n");
@@ -1892,8 +1908,8 @@ int mode;
       break;
 #ifdef REMOTE_DETACH
     case D_REMOTE_POWER:
-      AddStr("[remote power detached]\r\n");
-      if (PowDetachString) 
+      AddStrSock("remote power detached");
+      if (PowDetachString)
 	{
 	  AddStr(PowDetachString);
 	  AddStr("\r\n");
@@ -1969,6 +1985,7 @@ int mode;
   debug2("Detach: Signal %d to Attacher(%d)!\n", sign, pid);
   debug("Detach returns, we are successfully detached.\n");
   signal(SIGHUP, SigHup);
+#undef AddStrSock
 }
 
 static int

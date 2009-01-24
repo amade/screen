@@ -1,11 +1,16 @@
-/* Copyright (c) 1993-2002
+/* Copyright (c) 2008
+ *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
+ *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
+ *      Micah Cowan (micah@cowan.name)
+ *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
+ * Copyright (c) 1993-2002, 2003, 2005, 2006, 2007
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  * Copyright (c) 1987 Oliver Laumann
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
+ * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -14,9 +19,9 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program (see the file COPYING); if not, write to the
- * Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * along with this program (see the file COPYING); if not, see
+ * http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
  */
@@ -2529,6 +2534,7 @@ struct mchar *mc;
 {
   if (!display)
     return;
+#ifdef COLOR
   if (nattr2color && D_hascolor && (mc->attr & nattr2color) != 0)
     {
       static struct mchar mmc;
@@ -2549,6 +2555,7 @@ struct mchar *mc;
       mc = &mmc;
       debug2("SetRendition: mapped to %02x %02x\n", (unsigned char)mc->attr, 0x99 - (unsigned char)mc->color);
     }
+# ifdef COLORS16
   if (D_hascolor && D_CC8 && (mc->attr & (A_BFG|A_BBG)))
     {
       int a = mc->attr;
@@ -2559,8 +2566,12 @@ struct mchar *mc;
       if (D_rend.attr != a)
         SetAttr(a);
     }
-  else if (D_rend.attr != mc->attr)
+  else
+# endif /* COLORS16 */
+#endif /* COLOR */
+    if (D_rend.attr != mc->attr)
     SetAttr(mc->attr);
+
 #ifdef COLOR
   if (D_rend.color != mc->color
 # ifdef COLORS256
@@ -2585,6 +2596,7 @@ int x;
 {
   if (!display)
     return;
+#ifdef COLOR
   if (nattr2color && D_hascolor && (ml->attr[x] & nattr2color) != 0)
     {
       struct mchar mc;
@@ -2592,6 +2604,7 @@ int x;
       SetRendition(&mc);
       return;
     }
+# ifdef COLORS16
   if (D_hascolor && D_CC8 && (ml->attr[x] & (A_BFG|A_BBG)))
     {
       int a = ml->attr[x];
@@ -2602,7 +2615,10 @@ int x;
       if (D_rend.attr != a)
         SetAttr(a);
     }
-  else if (D_rend.attr != ml->attr[x])
+  else
+# endif /* COLORS16 */
+#endif /* COLOR */
+    if (D_rend.attr != ml->attr[x])
     SetAttr(ml->attr[x]);
 #ifdef COLOR
   if (D_rend.color != ml->color[x]
@@ -4637,7 +4653,7 @@ ShowLayouts(where)
 int where;
 {
   char buf[1024];
-  char *s, *ss; 
+  char *s, *ss;
 
   if (!display)
     return;
@@ -4650,17 +4666,49 @@ int where;
     where = D_layout->lay_number;
   ss = AddLayoutsInfo(buf, sizeof(buf), where);
   s = buf + strlen(buf);
-  if (ss - buf > D_width / 2) 
-    {    
-      ss -= D_width / 2; 
+  if (ss - buf > D_width / 2)
+    {
+      ss -= D_width / 2;
       if (s - ss < D_width)
         {
           ss = s - D_width;
-          if (ss < buf) 
-            ss = buf; 
+          if (ss < buf)
+            ss = buf;
         }
-    }    
-  else 
-    ss = buf; 
-  Msg(0, "%s", ss); 
+    }
+  else
+    ss = buf;
+  Msg(0, "%s", ss);
 }
+
+void
+RemoveLayout(lay)
+struct layout *lay;
+{
+  struct layout **layp = &layouts;
+
+  for (; *layp; layp = &(*layp)->lay_next)
+    {
+      if (*layp == lay)
+	{
+	  *layp = lay->lay_next;
+	  break;
+	}
+    }
+  laytab[lay->lay_number] = (struct layout *)0;
+
+  if (display && D_layout == lay)
+    D_layout = (struct layout *)0;
+
+  FreeLayoutCv(&lay->lay_canvas);
+
+  if (lay->lay_title)
+    free(lay->lay_title);
+  free(lay);
+
+  if (layouts)
+    LoadLayout((display && D_layout) ? D_layout : *layp ? *layp : layouts,
+	display ? &D_canvas : (struct canvas *)0);
+  Activate(0);
+}
+

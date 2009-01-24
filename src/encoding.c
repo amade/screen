@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option) 
+ * the Free Software Foundation; either version 3, or (at your option) 
  * any later version.
  *
  * This program is distributed in the hope that it will be useful, 
@@ -14,9 +14,9 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License 
- * along with this program (see the file COPYING); if not, write to the
- * Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * along with this program (see the file COPYING); if not, see
+ * http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
  */
@@ -814,12 +814,11 @@ int encoding;
 	    continue;
 	  if (ml->font == null)
 	    {
-	      if ((ml->font = (unsigned char *)malloc(p->w_width + 1)) == 0)
+	      if ((ml->font = (unsigned char *)calloc(p->w_width + 1, 1)) == 0)
 		{
 		  ml->font = null;
 		  break;
 		}
-	      bzero(ml->font, p->w_width + 1);
 	    }
 #ifdef DW_CHARS
 	  if ((p->w_encoding != UTF8 && (c & 0x1f00) != 0 && (c & 0xe000) == 0) || (p->w_encoding == UTF8 && utf8_isdouble(c)))
@@ -1044,10 +1043,9 @@ struct mchar *mc;
   isdouble = c1 >= 0x1100 && utf8_isdouble(c1);
   if (!combchars)
     {
-      combchars = (struct combchar **)malloc(sizeof(struct combchar *) * 0x802);
+      combchars = (struct combchar **)calloc(0x802, sizeof(struct combchar *));
       if (!combchars)
 	return;
-      bzero((char *)combchars, sizeof(struct combchar *) * 0x802);
       combchars[0x800] = (struct combchar *)malloc(sizeof(struct combchar));
       combchars[0x801] = (struct combchar *)malloc(sizeof(struct combchar));
       if (!combchars[0x800] || !combchars[0x801])

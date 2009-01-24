@@ -1,11 +1,16 @@
-/* Copyright (c) 1993-2002
+/* Copyright (c) 2008
+ *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
+ *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
+ *      Micah Cowan (micah@cowan.name)
+ *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
+ * Copyright (c) 1993-2002, 2003, 2005, 2006, 2007
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  * Copyright (c) 1987 Oliver Laumann
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
+ * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -14,9 +19,9 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program (see the file COPYING); if not, write to the
- * Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+ * along with this program (see the file COPYING); if not, see
+ * http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
  */
@@ -530,9 +535,9 @@ int map;
 	a1 = 0;
       if (a2 && a2->nr == RC_ILLEGAL)
 	a2 = 0;
-      if (a1 && a1->nr == RC_STUFF && strcmp(a1->args[0], s) == 0)
+      if (a1 && a1->nr == RC_STUFF && a1->args[0] && strcmp(a1->args[0], s) == 0)
 	a1 = 0;
-      if (a2 && a2->nr == RC_STUFF && strcmp(a2->args[0], s) == 0)
+      if (a2 && a2->nr == RC_STUFF && a2->args[0] && strcmp(a2->args[0], s) == 0)
 	a2 = 0;
       domap |= (a1 || a2);
       if (tab == umtab)
@@ -1190,12 +1195,11 @@ char *s;
   char **ctable;
   int l, c;
 
-  if ((D_xtable = (char ***)malloc(256 * sizeof(char **))) == 0)
+  if ((D_xtable = (char ***)calloc(256, sizeof(char **))) == 0)
     {
       Msg(0, strnomem);
       return -1;
     }
-  bzero((char *)D_xtable, 256 * sizeof(char **));
 
   while (*s)
     {
@@ -1209,13 +1213,12 @@ char *s;
       templnsub = 0;
       if (D_xtable[curchar] == 0)
         {
-          if ((D_xtable[curchar] = (char **)malloc(257 * sizeof(char *))) == 0)
+          if ((D_xtable[curchar] = (char **)calloc(257, sizeof(char *))) == 0)
 	    {
 	      Msg(0, strnomem);
 	      FreeTransTable();
 	      return -1;
 	    }
-	  bzero((char *)D_xtable[curchar], 257 * sizeof(char *));
         }
       ctable = D_xtable[curchar];
       for(; *s && *s != ','; s++)
