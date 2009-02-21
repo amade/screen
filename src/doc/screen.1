@@ -1645,7 +1645,7 @@ Shows a tabular listing of all currently connected user front-ends (displays).
 This is most useful for multiuser sessions.
 .sp
 .ne 3
-.BR "digraph " [ \fIpreset ]
+.BR "digraph " [ \fIpreset [ \fI unicode-value ] ]
 .PP
 This command prompts the user for a digraph sequence. The next
 two characters typed are looked up in a builtin table and the
@@ -1659,6 +1659,11 @@ number instead.  The optional argument
 is treated as user input, thus one can create an \*Qumlaut\*U key.
 For example the command "bindkey ^K digraph '"'" enables the user
 to generate an a-umlaut by typing CTRL-K a.
+When a non-zero
+.I unicode-value
+is specified, a new digraph is created with the specified preset. The digraph is unset
+if a zero value is provided for the
+.I unicode-value.
 .sp
 .ne 3
 .B dumptermcap
@@ -2516,6 +2521,15 @@ Kill the current region. This is a no-op if there is only one region.
 .PP
 Unlinks the screen-exchange file used by the commands \*Qwritebuf\*U and 
 \*Qreadbuf\*U. 
+.sp
+.ne 3
+.B "rendition bell" | monitor | so
+.RB "\fIattr\fR " [ \fIcolor ]
+.PP
+Change the way
+.I screen
+renders the titles of windows that have monitor or bell flags set in caption or hardstatus or windowlist. See the \*QSTRING ESCAPES\*U chapter for the syntax of the modifiers.
+The default for monitor is currently \*Q=u dd\*U (underline, default colors) and for bell \*Q=B dd\*U (blink, default colors).
 .sp
 .ne 3
 .B "reset"
@@ -3639,7 +3653,7 @@ up to 8.
 Bash users will probably want to echo the escape sequence in the
 PROMPT_COMMAND:
 .IP
-PROMPT_COMMAND='echo -n -e "\e033k\e033\e134"'
+PROMPT_COMMAND='printf "\e033k\e033\e134"'
 .PP
 (I used \*Q\134\*U to output a `\e' because of a bug in bash v1.04).
 

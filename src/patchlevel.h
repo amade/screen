@@ -1,4 +1,4 @@
-/* Copyright (c) 2008
+/* Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -532,7 +532,7 @@
 
 #define ORIGIN "FAU"
 #define REV 4
-#define VERS 1
+#define VERS 10
 #define PATCHLEVEL 0
 #define DATE "2-May-06"
 #define STATE "devel"

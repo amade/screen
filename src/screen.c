@@ -1,4 +1,4 @@
-/* Copyright (c) 2008
+/* Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -1438,6 +1438,10 @@ char **av;
 	  /* NOTREACHED */
 	}
     }
+  else if (ac) /* Screen was invoked with a command */
+    {
+      MakeWindow(&nwin);
+    }
 
 #ifdef HAVE_BRAILLE
   StartBraille();
@@ -1473,7 +1477,11 @@ char **av;
 void
 WindowDied(p, wstat, wstat_valid)
 struct win *p;
-int wstat;
+#ifdef BSDWAIT
+  union wait wstat;
+#else
+  int wstat;
+#endif
 int wstat_valid;
 {
   int killit = 0;
@@ -2454,6 +2462,22 @@ char *str, *color;
   strncpy(p, str, winmsg_buf + sizeof(winmsg_buf) - p);
 }
 
+int
+AddWinMsgRend(str, r)
+const char *str;
+int r;
+{
+  if (winmsg_numrend >= MAX_WINMSG_REND || str < winmsg_buf ||
+      str >= winmsg_buf + MAXSTR)
+    return -1;
+
+  winmsg_rend[winmsg_numrend] = r;
+  winmsg_rendpos[winmsg_numrend] = str - winmsg_buf;
+  winmsg_numrend++;
+
+  return 0;
+}
+
 char *
 MakeWinMsgEv(str, win, esc, padlen, ev, rec)
 char *str;
@@ -2715,9 +2739,7 @@ int rec;
 		oldfore = D_fore;
 		D_fore = win;
 	      }
-	    ss = AddWindows(p, l - 1, (*s == 'w' ? 0 : 1) | (longflg ? 0 : 2) | (plusflg ? 4 : 0), win ? win->w_number : -1);
-	    if (minusflg)
-	       *ss = 0;
+	    ss = AddWindows(p, l - 1, (*s == 'w' ? 0 : 1) | (longflg ? 0 : 2) | (plusflg ? 4 : 0) | (minusflg ? 8 : 0), win ? win->w_number : -1);
 	    if (display)
 	      D_fore = oldfore;
 	  }

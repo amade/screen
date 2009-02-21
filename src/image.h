@@ -1,4 +1,4 @@
-/* Copyright (c) 2008
+/* Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -166,3 +166,11 @@ IFDWCHAR((mc)->mbcs  = 0;				      ) \
 #  define cole2i(c) ((c) ^ 9)
 # endif
 #endif
+
+enum
+{
+  REND_BELL = 0,
+  REND_MONITOR,
+  NUM_RENDS
+};
+

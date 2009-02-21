@@ -1,4 +1,4 @@
-/* Copyright (c) 2008
+/* Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -40,6 +40,10 @@
 #if defined(__bsdi__) || defined(__386BSD__) || defined(_CX_UX) || defined(hpux) || defined(_IBMR2) || defined(linux)
 # include <signal.h>
 #endif /* __bsdi__ || __386BSD__ || _CX_UX || hpux || _IBMR2 || linux */
+
+#if !defined(HAVE_LONG_FILE_NAMES) && !defined(NAME_MAX)
+#define NAME_MAX 14
+#endif
 
 #ifdef ISC
 # ifdef ENAMETOOLONG

@@ -1,4 +1,4 @@
-/* Copyright (c) 2008
+/* Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -77,6 +77,8 @@ struct mline mline_null;
 struct mchar mchar_null;
 struct mchar mchar_blank = {' ' /* , 0, 0, ... */};
 struct mchar mchar_so    = {' ', A_SO /* , 0, 0, ... */};
+
+int renditions[NUM_RENDS] = {6750175 /* =B dd */, 6750205 /* =u dd */};
 
 /* keep string_t and string_t_string in sync! */
 static char *string_t_string[] = 

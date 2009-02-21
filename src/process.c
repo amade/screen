@@ -1,4 +1,4 @@
-/* Copyright (c) 2008
+/* Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -106,6 +106,7 @@ extern char *kmapadef[];
 extern char *kmapmdef[];
 #endif
 extern struct mchar mchar_so, mchar_null;
+extern int renditions[];
 extern int VerboseCreate;
 #ifdef UTF8
 extern char *screenencodings;
@@ -153,6 +154,7 @@ static void pass2 __P((char *, int, char *));
 static void pow_detach_fn __P((char *, int, char *));
 #endif
 static void digraph_fn __P((char *, int, char *));
+static int  digraph_find __P((const char *buf));
 static void confirm_fn __P((char *, int, char *));
 static int  IsOnDisplay __P((struct win *));
 static void ResizeRegions __P((char *, int));
@@ -234,6 +236,15 @@ int kmap_extn;
 static int maptimeout = 300;
 #endif
 
+#ifndef MAX_DIGRAPH
+#define MAX_DIGRAPH 512
+#endif
+
+struct digraph
+{
+  unsigned char d[2];
+  int value;
+};
 
 /*
  * Command aliases.
@@ -250,7 +261,7 @@ struct alias *g_aliases_list = NULL;
 
 
 /* digraph table taken from old vim and rfc1345 */
-static const unsigned char digraphs[][3] = {
+static struct digraph digraphs[MAX_DIGRAPH + 1] = {
     {' ', ' ', 160},	/*   */
     {'N', 'S', 160},	/*   */
     {'~', '!', 161},	/* ¡ */
@@ -438,6 +449,44 @@ static char *resizeprompts[] = {
   "resize -l -v # lines: ",
   "resize -l -b # lines: ",
 };
+
+static int
+parse_input_int(buf, len, val)
+const char *buf;
+int len;
+int *val;
+{
+  int x = 0, i;
+  if (len >= 1 && ((*buf == 'U' && buf[1] == '+') || (*buf == '0' && (buf[1] == 'x' || buf[1] == 'X'))))
+    {
+      x = 0;
+      for (i = 2; i < len; i++)
+	{
+	  if (buf[i] >= '0' && buf[i] <= '9')
+	    x = x * 16 | (buf[i] - '0');
+	  else if (buf[i] >= 'a' && buf[i] <= 'f')
+	    x = x * 16 | (buf[i] - ('a' - 10));
+	  else if (buf[i] >= 'A' && buf[i] <= 'F')
+	    x = x * 16 | (buf[i] - ('A' - 10));
+	  else
+	    return 0;
+	}
+    }
+  else if (buf[0] == '0')
+    {
+      x = 0;
+      for (i = 1; i < len; i++)
+	{
+	  if (buf[i] < '0' || buf[i] > '7')
+	    return 0;
+	  x = x * 8 | (buf[i] - '0');
+	}
+    }
+  else
+    return 0;
+  *val = x;
+  return 1;
+}
 
 char *noargs[1];
 
@@ -3683,6 +3732,20 @@ int key;
       break;
 
     case RC_DIGRAPH:
+      if (argl && argl[0] > 0 && argl[1] > 0)
+	{
+	  if (argl[0] != 2)
+	    {
+	      Msg(0, "Two characters expected to define a digraph");
+	      break;
+	    }
+	  i = digraph_find(args[0]);
+	  digraphs[i].d[0] = args[0][0];
+	  digraphs[i].d[1] = args[0][1];
+	  if (!parse_input_int(args[1], argl[1], &digraphs[i].value))
+	    digraphs[i].value = atoi(args[1]);
+	  break;
+	}
       Input("Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL, 0);
       if (*args && **args)
 	{
@@ -3795,6 +3858,36 @@ int key;
       nattr2color = n;
       break;
 #endif
+    case RC_RENDITION:
+      i = -1;
+      if (strcmp(args[0], "bell") == 0)
+	{
+	  i = REND_BELL;
+	}
+      else if (strcmp(args[0], "monitor") == 0)
+	{
+	  i = REND_MONITOR;
+	}
+      else if (strcmp(args[0], "so") != 0)
+	{
+	  Msg(0, "Invalid option '%s' for rendition", args[0]);
+	  break;
+	}
+
+      ++args;
+      ++argl;
+
+      if (i != -1)
+	{
+	  renditions[i] = ParseAttrColor(args[0], args[1], 1);
+	  WindowChanged((struct win *)0, 'w');
+	  WindowChanged((struct win *)0, 'W');
+	  WindowChanged((struct win *)0, 0);
+	  break;
+	}
+
+      /* We are here, means we want to set the sorendition. */
+      /* FALLTHROUGH*/
     case RC_SORENDITION:
       i = 0;
       if (*args)
@@ -3803,6 +3896,7 @@ int key;
 	  if (i == -1)
 	    break;
 	  ApplyAttrColor(i, &mchar_so);
+	  WindowChanged((struct win *)0, 0);
 	  debug2("--> %x %x\n", mchar_so.attr, mchar_so.color);
 	}
       if (msgok)
@@ -5351,10 +5445,16 @@ int where;
   int l;
 
   s = ss = buf;
+  if ((flags & 8) && where < 0)
+    {
+      *s = 0;
+      return ss;
+    }
   for (pp = ((flags & 4) && where >= 0) ? wtab + where + 1: wtab; pp < wtab + MAXWIN; pp++)
     {
+      int rend = -1;
       if (pp - wtab == where && ss == buf)
-	ss = s;
+        ss = s;
       if ((p = *pp) == 0)
 	continue;
       if ((flags & 1) && display && p == D_fore)
@@ -5373,9 +5473,22 @@ int where;
 	  *s++ = ' ';
 	  *s++ = ' ';
 	}
+      if (!(flags & 4) || where < 0 || ((flags & 4) && where < p->w_number))
+	{
+	  if (p->w_monitor == MON_DONE && renditions[REND_MONITOR] != -1)
+	    rend = renditions[REND_MONITOR];
+	  else if ((p->w_bell == BELL_DONE || p->w_bell == BELL_FOUND) && renditions[REND_BELL] != -1)
+	    rend = renditions[REND_BELL];
+	}
+      if (rend != -1)
+	AddWinMsgRend(s, rend);
       sprintf(s, "%d", p->w_number);
       if (p->w_number == where)
-        ss = s;
+        {
+          ss = s;
+          if (flags & 8)
+            break;
+        }
       s += strlen(s);
       if (display && p == D_fore)
 	*s++ = '*';
@@ -5388,6 +5501,8 @@ int where;
       *s++ = ' ';
       strncpy(s, cmd, l);
       s += l;
+      if (rend != -1)
+	AddWinMsgRend(s, -1);
     }
   *s = 0;
   return ss;
@@ -6307,6 +6422,18 @@ char *data;
 }
 #endif /* PASSWORD */
 
+static int
+digraph_find(buf)
+const char *buf;
+{
+  int i;
+  for (i = 0; i < MAX_DIGRAPH && digraphs[i].d[0]; i++)
+    if ((digraphs[i].d[0] == (unsigned char)buf[0] && digraphs[i].d[1] == (unsigned char)buf[1]) ||
+	(digraphs[i].d[0] == (unsigned char)buf[1] && digraphs[i].d[1] == (unsigned char)buf[0]))
+      break;
+  return i;
+}
+
 static void
 digraph_fn(buf, len, data)
 char *buf;
@@ -6358,43 +6485,14 @@ char *data;	/* dummy */
     }
   if (len < 2)
     return;
-  if (len >= 1 && ((*buf == 'U' && buf[1] == '+') || (*buf == '0' && (buf[1] == 'x' || buf[1] == 'X'))))
+  if (!parse_input_int(buf, len, &x))
     {
-      x = 0;
-      for (i = 2; i < len; i++)
-	{
-	  if (buf[i] >= '0' && buf[i] <= '9')
-	    x = x * 16 | (buf[i] - '0');
-	  else if (buf[i] >= 'a' && buf[i] <= 'f')
-	    x = x * 16 | (buf[i] - ('a' - 10));
-	  else if (buf[i] >= 'A' && buf[i] <= 'F')
-	    x = x * 16 | (buf[i] - ('A' - 10));
-	  else
-	    break;
-	}
-    }
-  else if (buf[0] == '0')
-    {
-      x = 0;
-      for (i = 1; i < len; i++)
-	{
-	  if (buf[i] < '0' || buf[i] > '7')
-	    break;
-	  x = x * 8 | (buf[i] - '0');
-	}
-    }
-  else
-    {
-      for (i = 0; i < (int)(sizeof(digraphs)/sizeof(*digraphs)); i++)
-	if ((digraphs[i][0] == (unsigned char)buf[0] && digraphs[i][1] == (unsigned char)buf[1]) ||
-	    (digraphs[i][0] == (unsigned char)buf[1] && digraphs[i][1] == (unsigned char)buf[0]))
-	  break;
-      if (i == (int)(sizeof(digraphs)/sizeof(*digraphs)))
+      i = digraph_find(buf);
+      if ((x = digraphs[i].value) <= 0)
 	{
 	  Msg(0, "Unknown digraph");
 	  return;
 	}
-      x = digraphs[i][2];
     }
   i = 1;
   *buf = x;

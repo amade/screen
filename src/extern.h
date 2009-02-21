@@ -1,4 +1,4 @@
-/* Copyright (c) 2008
+/* Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -50,8 +50,13 @@ extern void  Finit __P((int));
 extern void  MakeNewEnv __P((void));
 extern char *MakeWinMsg __P((char *, struct win *, int));
 extern char *MakeWinMsgEv __P((char *, struct win *, int, int, struct event *, int));
+extern int   AddWinMsgRend __P((const char *, int));
 extern void  PutWinMsg __P((char *, int, int));
+#ifdef BSDWAIT
+extern void  WindowDied __P((struct win *, union wait, int));
+#else
 extern void  WindowDied __P((struct win *, int, int));
+#endif
 extern void  setbacktick __P((int, int, int, char **));
 
 /* ansi.c */

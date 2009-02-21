@@ -1,4 +1,4 @@
-/* Copyright (c) 2008
+/* Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -51,9 +51,7 @@ static void  screen_builtin_lck __P((void));
 #ifdef DEBUG
 static sigret_t AttacherChld __P(SIGPROTOARG);
 #endif
-#ifdef MULTIUSER
 static sigret_t AttachSigCont __P(SIGPROTOARG);
-#endif
 
 extern int real_uid, real_gid, eff_uid, eff_gid;
 extern char *SockName, *SockMatch, SockPath[];
@@ -75,7 +73,6 @@ static int multipipe[2];
 #endif
 
 
-#ifdef MULTIUSER
 static int ContinuePlease;
 
 static sigret_t
@@ -85,7 +82,6 @@ AttachSigCont SIGDEFARG
   ContinuePlease = 1;
   SIGRETURN;
 }
-#endif
 
 
 /*
@@ -407,9 +403,7 @@ int how;
 }
 
 
-#if defined(DEBUG) || !defined(DO_NOT_POLL_MASTER)
 static int AttacherPanic = 0;
-#endif
 
 #ifdef DEBUG
 static sigret_t
@@ -599,7 +593,6 @@ Attacher()
 #endif
   for (;;)
     {
-#ifndef DO_NOT_POLL_MASTER
       signal(SIGALRM, AttacherSigAlarm);
       alarm(15);
       pause();
@@ -609,10 +602,6 @@ Attacher()
 	  debug1("attacher: Panic! MasterPid %d does not exist.\n", MasterPid);
 	  AttacherPanic++;
 	}
-#else
-      pause();
-#endif
-#if defined(DEBUG) || !defined(DO_NOT_POLL_MASTER)
       if (AttacherPanic)
         {
 	  fcntl(0, F_SETFL, 0);
@@ -620,7 +609,6 @@ Attacher()
 	  printf("\nSuddenly the Dungeon collapses!! - You die...\n");
 	  eexit(1);
         }
-#endif
 #ifdef BSDJOBS
       if (SuspendPlease)
 	{

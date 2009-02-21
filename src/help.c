@@ -1,4 +1,4 @@
-/* Copyright (c) 2008
+/* Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -40,6 +40,7 @@ extern struct display *display, *displays;
 extern struct win *windows;
 extern char *noargs[];
 extern struct mchar mchar_blank, mchar_so;
+extern int renditions[];
 extern unsigned char *blank;
 extern struct win *wtab[];
 #ifdef MAPKEYS
@@ -502,7 +503,7 @@ static const char cpmsg[] = "\
 \n\
 Screen version %v\n\
 \n\
-Copyright (c) 2008 Juergen Weigert, Michael Schroeder, Micah Cowan, Sadrul Habib Chowdhury\n\
+Copyright (c) 2008, 2009 Juergen Weigert, Michael Schroeder, Micah Cowan, Sadrul Habib Chowdhury\n\
 Copyright (c) 1993-2002, 2003, 2005, 2006, 2007 Juergen Weigert, Michael Schroeder\n\
 Copyright (c) 1987 Oliver Laumann\n\
 \n\
@@ -1079,6 +1080,8 @@ int isblank;
   int yoff, xoff = 0;
   struct wlistdata *wlistdata;
   struct win *group;
+  struct mchar mchar_rend = mchar_blank;
+  struct mchar *mchar = (struct mchar *)0;
 
   if (i == MAXWIN)
     return;
@@ -1094,9 +1097,23 @@ int isblank;
   if (i != pos && isblank)
     while (n && str[n - 1] == ' ')
       n--;
-  LPutWinMsg(flayer, str, (i == pos || !isblank) ? flayer->l_width : n, i == pos ? &mchar_so : &mchar_blank, xoff, y + yoff);
+  if (i == pos)
+    mchar = &mchar_so;
+  else if (wtab[i]->w_monitor == MON_DONE && renditions[REND_MONITOR] != -1)
+    {
+      mchar = &mchar_rend;
+      ApplyAttrColor(renditions[REND_MONITOR], mchar);
+    }
+  else if ((wtab[i]->w_bell == BELL_DONE || wtab[i]->w_bell == BELL_FOUND) && renditions[REND_BELL] != -1)
+    {
+      mchar = &mchar_rend;
+      ApplyAttrColor(renditions[REND_BELL], mchar);
+    }
+  else
+    mchar = &mchar_blank;
+  LPutWinMsg(flayer, str, (i == pos || !isblank) ? flayer->l_width : n, mchar, xoff, y + yoff);
   if (xoff)
-    LPutWinMsg(flayer, "", xoff, i == pos ? &mchar_so : &mchar_blank, 0, y + yoff);
+    LPutWinMsg(flayer, "", xoff, mchar, 0, y + yoff);
 #if 0
   LPutStr(flayer, str, n, i == pos ? &mchar_so : &mchar_blank, 0, y + yoff);
   if (i == pos || !isblank)

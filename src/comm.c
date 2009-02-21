@@ -1,4 +1,4 @@
-/* Copyright (c) 2008
+/* Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -176,7 +176,7 @@ struct comm comms[RC_LAST + 1] =
 #ifdef DETACH
   { "detach",		NEED_DISPLAY|ARGS_01 },
 #endif
-  { "digraph",		NEED_LAYER|ARGS_01 },
+  { "digraph",		NEED_LAYER|ARGS_012 },
   { "dinfo",		NEED_DISPLAY|ARGS_0 },
   { "displays",		NEED_LAYER|ARGS_0 },
   { "dumptermcap",	NEED_FORE|ARGS_0 },
@@ -280,6 +280,7 @@ struct comm comms[RC_LAST + 1] =
 #ifdef COPY_PASTE
   { "removebuf",	ARGS_0 },
 #endif
+  { "rendition",	ARGS_23 },
   { "reset",		NEED_FORE|ARGS_0 },
   { "resize",		NEED_DISPLAY|ARGS_0|ARGS_ORMORE },
   { "screen",		ARGS_0|ARGS_ORMORE },
