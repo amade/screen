@@ -690,6 +690,32 @@ LuaProcessCaption(const char *caption, struct win *win, int len)
   return LuaCallProcess("process_caption", params);
 }
 
+static void
+push_stringarray(lua_State *L, void *data)
+{
+  char **args = (char **)data;
+  int i;
+  lua_newtable(L);
+  for (i = 1; args && *args; i++) {
+    lua_pushinteger(L, i);
+    lua_pushstring(L, *args++);
+    lua_settable(L, -3);
+  }
+}
+
+int
+LuaCommandExecuted(const char *command, const char **args, int argc)
+{
+  if (!L)
+    return 0;
+  struct fn_def params[] = {
+      {lua_pushstring, command},
+      {push_stringarray, args},
+      {NULL, NULL}
+  };
+  return LuaCallProcess("command_executed", params);
+}
+
 /** }}} */
 
 struct ScriptFuncs LuaFuncs =
@@ -698,6 +724,7 @@ struct ScriptFuncs LuaFuncs =
   LuaFinit,
   LuaForeWindowChanged,
   LuaSource,
-  LuaProcessCaption
+  LuaProcessCaption,
+  LuaCommandExecuted
 };
 

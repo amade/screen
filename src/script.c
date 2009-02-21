@@ -81,6 +81,13 @@ int ScriptProcessCaption(const char *str, struct win *win, int len)
   return ret;
 }
 
+int ScriptCommandExecuted(const char *command, const char **args, int argc)
+{
+  int ret = 0;
+  ALL_SCRIPTS(sf_CommandExecuted, (command, args, argc), 0);
+  return ret;
+}
+
 #define HAVE_LUA 1   /* XXX: Remove */
 #if HAVE_LUA
 extern struct ScriptFuncs LuaFuncs;

@@ -4406,6 +4406,8 @@ int key;
 #endif
       break;
     }
+  if (nr < RC_LAST)
+    ScriptCommandExecuted(comms[nr].name, args, argc);
   if (display != odisplay)
     {
       for (display = displays; display; display = display->d_next)
