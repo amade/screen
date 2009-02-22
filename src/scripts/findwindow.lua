@@ -1,6 +1,6 @@
 function find_window(name)
   display = screen.display()
-  canvases = {display:get_canvases()}
+  canvases = display:get_canvases()
   for i, c in pairs(canvases) do
     w = c.window
     if w ~= nil and (w.title == name or tostring(w.number) == name) then c:select() return end

@@ -427,10 +427,14 @@ display_get_canvases(lua_State *L)
   int count;
 
   d = check_display(L, 1);
-  for (iter = d->d_cvlist, count = 0; iter; iter = iter->c_next, count++)
+  lua_newtable(L);
+  for (iter = d->d_cvlist, count = 0; iter; iter = iter->c_next, count++) {
+    lua_pushinteger(L, count);
     push_canvas(L, &iter);
+    lua_settable(L, -3);
+  }
 
-  return count;
+  return 1;
 }
 
 static const luaL_reg display_methods[] = {
@@ -478,10 +482,14 @@ screen_get_windows(lua_State *L)
   struct win *iter;
   int count;
 
-  for (iter = windows, count = 0; iter; iter = iter->w_next, count++)
+  lua_newtable(L);
+  for (iter = windows, count = 0; iter; iter = iter->w_next, count++) {
+    lua_pushinteger(L, iter->w_number);
     push_window(L, &iter);
+    lua_settable(L, -3);
+  }
 
-  return count;
+  return 1;
 }
 
 static int
@@ -490,10 +498,14 @@ screen_get_displays(lua_State *L)
   struct display *iter;
   int count;
 
-  for (iter = displays, count = 0; iter; iter = iter->d_next, count++)
+  lua_newtable(L);
+  for (iter = displays, count = 0; iter; iter = iter->d_next, count++) {
+    lua_pushinteger(L, count);
     push_display(L, &iter);
+    lua_settable(L, -3);
+  }
 
-  return count;
+  return 1;
 }
 
 static int
