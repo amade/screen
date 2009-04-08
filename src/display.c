@@ -1154,8 +1154,8 @@ int adapt;
   ASSERT(display);
   ASSERT(D_tcinited);
   D_top = D_bot = -1;
-  AddCStr(D_TI);
   AddCStr(D_IS);
+  AddCStr(D_TI);
   /* Check for toggle */
   if (D_IM && strcmp(D_IM, D_EI))
     AddCStr(D_EI);
@@ -3757,8 +3757,8 @@ NukePending()
   D_obufp = D_obuf;
   D_obuffree += len;
   D_top = D_bot = -1;
-  AddCStr(D_TI);
   AddCStr(D_IS);
+  AddCStr(D_TI);
   /* Turn off all attributes. (Tim MacKenzie) */
   if (D_ME)
     AddCStr(D_ME);
@@ -4367,7 +4367,7 @@ char **cmdv;
 #endif
       display = 0;
       execvpe(*cmdv, cmdv, NewEnv + 3);
-      Panic(errno, *cmdv);
+      Panic(errno, "%s", *cmdv);
     default:
       break;
     }

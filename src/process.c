@@ -4224,6 +4224,11 @@ int key;
 	{
 	  int old;
 	  struct layout *lay;
+	  if (!D_layout)
+	    {
+	      Msg(0, "not on a layout");
+	      break;
+	    }
 	  if (!args[1])
 	    {
 	      Msg(0, "This is layout %d (%s).\n", D_layout->lay_number, D_layout->lay_title);
@@ -4595,7 +4600,7 @@ int bufl, *argl;
 	{
 	  if (*p == delim)
 	    delim = 0;
-	  else if (delim != '\'' && *p == '\\' && (p[1] == '\'' || p[1] == '"' || p[1] == '\\' || p[1] == '$' || p[1] == '#' || p[1] == '^' || (p[1] >= '0' && p[1] <= '7')))
+	  else if (delim != '\'' && *p == '\\' && (p[1] == 'n' || p[1] == 'r' || p[1] == 't' || p[1] == '\'' || p[1] == '"' || p[1] == '\\' || p[1] == '$' || p[1] == '#' || p[1] == '^' || (p[1] >= '0' && p[1] <= '7')))
 	    {
 	      p++;
 	      if (*p >= '0' && *p <= '7')
@@ -4614,7 +4619,16 @@ int bufl, *argl;
 		  pp++;
 		}
 	      else
-		*pp++ = *p;
+		{
+		  switch (*p)
+		    {
+		      case 'n': *pp = '\n'; break;
+		      case 'r': *pp = '\r'; break;
+		      case 't': *pp = '\t'; break;
+		      default: *pp = *p; break;
+		    }
+		  pp++;
+		}
 	    }
 	  else if (delim != '\'' && *p == '$' && (p[1] == '{' || p[1] == ':' || (p[1] >= 'a' && p[1] <= 'z') || (p[1] >= 'A' && p[1] <= 'Z') || (p[1] >= '0' && p[1] <= '9') || p[1] == '_'))
 
