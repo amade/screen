@@ -1,0 +1,18 @@
+A display stands for an attached display area. Since there can be multiple
+users, the possibly multiple displays are chained together in a single
+linked-list 'displays'. 
+
+Canvas is a place to draw on. They logically belong to a specific display.
+However, a display can be further divided to several sub-regions. As a result,
+The regions need corresponding canvases. Moreover, the way that a display is
+organised can be saved by layout object.
+
+Each window in screen stands for a sub-terminal that runs inside screen.
+When shown in foreground, the window draws a layer on the showing canvas.
+A layer can be drawn on multiple canvas, either in different regions or in
+different displays. So it also make sense to call it 'view'. However, the name
+layer tells us that it's stackable. One can add an overlay to the existing
+one, such as the help page.
+
+Finally, to ease the clipping of layer, there is also a viewport object to
+track the boundary of each canvas. (But why not the canvas itself?)
