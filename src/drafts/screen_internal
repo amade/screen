@@ -78,4 +78,18 @@ TODO
 
 IV. Event dispatching.
 
+Screen uses asynchronous IO to handle all inputs/outputs in all ttys. Such
+asynchronous events, IO related or not, are organized as events, registered to
+a central event list and got scheduled by a scheduler.
+
+The scheduler loops indefinitely. In each turn, it waits for some events to go
+ready using the Select() system call. There are three types of events,
+READ/WRITE, TIMEOUT and ALWAYS. The READ/WRITE events are mostly used to carry
+data between outer tty and ptys within screen. And the TIMEOUT events are
+mostly used to do periodically update. Different from other kinds of events,
+the TIMEOUT event is one-off, and should be re-scheduled if periodic
+activation is desired. Note that the TIMEOUT event has lower priority than
+READ/WRITE events, and the timeout specified is never adjusted to compensate
+the elapsed time. As a result, the period of activation should typically
+longer then specified.
 
