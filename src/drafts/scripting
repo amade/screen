@@ -1,0 +1,66 @@
+The design
+
+I. Key Factors
+There are several aspects to deal with when adding scripting support to
+Screen:
+1. The set of information to expose.
+2. The command interface to provide.
+3. The hook on interesting events in Screen.
+4. The ability to do run asynchronously to Screen itself.
+
+A. Query & control interface
+
+Currently, screen provides a way to control a running session through the -X
+command switch, which sends the specified command through the sever socket.
+It's quite useful and can already do automation to some degree, (e.g. [1]).
+However, the problem is that, there is no way to get enough feedback to make
+decision in your script in such a scheme. The first job is to provide an
+interface for scripts to query internal status of Screen. The second job is to
+provide an interface to control Screen, with reasonable feedback.
+
+B. Event hooking
+
+When the internal status of Screen changed, we say that an event happened.
+Events are also interesting to scripts, but are not covered by the query
+interface. A hook / callback system is needed to notify scripts about
+interested events. With the callback that triggers before an event, the script
+should be able to stop the event from happening.
+
+C. Asynchronous scripting
+
+So far, with the described scripting support, we can write small functions
+that provide enhanced functionality to a screen command, or write event
+handler that handles interested events. But we are restricted to finish our
+work quickly. The problem is that, Screen itself is a single threaded
+application, utilizing asynchronous I/O to provide services to all windows
+running inside. So you simply can not do time-consuming work in any of the
+processing path, including the scripts.
+
+Sometimes we may need to wait for something in a script, such as emulating
+Expect in a Screen script [2]. The core of this use case is to wait for an
+output pattern and react upon it. One possible way is to provide an event
+callback for it. But it's not a pleasant way to do a series of interaction.
+A natural solution is to make the script able to run asynchronously to Screen
+itself.
+
+[1] http://github.com/rblackwe/yapc--na-2007--making-an-ajax-gui-for-gnu-screen
+[2] http://lists.gnu.org/archive/html/screen-users/2009-05/msg00006.html
+
+
+II. The query & control interface
+
+There are several kinds of objects that may be interested to scripts.
+
+A. Display
+
+Stands for a user interface.
+
+Properties:
+tty: The tty that this attach runs on.
+term: The TERM env of that tty.
+fore: The fore window.
+other: List of windows other than the fore.
+width: As the name suggests
+height: As the name suggests
+user: The owner of this display.
+layout: Active layout on this diaplay.
