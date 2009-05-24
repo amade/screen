@@ -413,6 +413,24 @@ static const struct Xet_reg canvas_getters[] = {
 
 /** }}} */
 
+/** Layout {{{ */
+
+PUSH_TYPE(layout, struct layout)
+CHECK_TYPE(layout, struct layout)
+
+static const struct Xet_reg layout_getters[] = {
+      {0,0}
+};    
+
+static int
+get_layout(lua_State *L, void *v)
+{
+  push_layout(L, (struct layout **)v);
+  return 1;
+}
+
+/** }}} */
+
 /** Display {{{ */
 
 PUSH_TYPE(display, struct display)
@@ -469,6 +487,7 @@ static const struct Xet_reg display_getters[] = {
   {"width", get_int, offsetof(struct display, d_width)},
   {"height", get_int, offsetof(struct display, d_height)},
   {"user", get_user, offsetof(struct display, d_user)},
+  {"layout", get_layout, offsetof(struct display, d_layout)},
   {0, 0}
 };
 
