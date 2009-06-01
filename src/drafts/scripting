@@ -1,4 +1,6 @@
+===================
 The design
+===================
 
 I. Key Factors
 There are several aspects to deal with when adding scripting support to
@@ -46,8 +48,32 @@ itself.
 [1] http://github.com/rblackwe/yapc--na-2007--making-an-ajax-gui-for-gnu-screen
 [2] http://lists.gnu.org/archive/html/screen-users/2009-05/msg00006.html
 
+II. The Screen interface
 
-II. The query & control interface
+Screen needs to provide a user interface to source and run scripts.
+
+sourcescript [-async|-a] [-binding|-b <binding>] script.
+
+  This command sources the specified script. This command can be used several
+  times to source multiple scripts. Use the -async switch if the
+  script is supposed to run asynchronously , e.g. it needs to wait for
+  external events. Asynchronous scripts running mode needs to acquire a
+  lock before playing on Screen itself. As a result, it pays more overhead
+  than synch ones. Moreover, asynchronous scripts may be isolated from other
+  scripts and may not share any information with them. In other words, normal
+  scripts may share the same context. (Note: the isolation between scripts may
+  be implementation dependent. Which is more desirable?)
+
+scriptcall func arg1 arg2 ...
+
+  Call functions defined by scripts. If the same function are defined in 
+  multiple scripting context, the last one applies. Call to normal script
+  returns synchronously. And call to asynchronous one will return immediately.
+
+Special invoke interface, such as those embedded in caption/hstatus format
+string.
+
+III. The scripting interface
 
 There are several kinds of objects that may be interested to scripts.
 
@@ -55,12 +81,138 @@ A. Display
 
 Stands for a user interface.
 
+----------
 Properties:
-tty: The tty that this attach runs on.
-term: The TERM env of that tty.
-fore: The fore window.
-other: List of windows other than the fore.
-width: As the name suggests
-height: As the name suggests
-user: The owner of this display.
-layout: Active layout on this diaplay.
+----------
+
+tty:
+ mode: read only.
+ type: String.
+ description: The tty that this attach runs on.
+
+term:
+ mode: read only. 
+ type: String. 
+ description: The TERM env of that tty.
+
+fore:
+ mode: read only. 
+ type: Window. 
+ description: The fore window.
+
+other:
+ mode: read only. 
+ type: Window. 
+ description: List of windows other than the fore.
+
+width:
+ mode: read only. 
+ type: Int. 
+ description: As the name suggests
+
+height:
+ mode: read only. 
+ type: Int. 
+ description:  As the name suggests
+
+user:
+ mode: read only. 
+ type: User. 
+ description: The owner of this display.
+
+layout:
+ mode: read only. 
+ type: Layout. 
+ description: Active layout on this display.
+
+
+----------
+Methods:
+----------
+
+get_canvases: Get a list of canvases on this display.
+
+----------
+Events:
+----------
+
+on_resize: Triggered after the geometry of the display is changed.
+
+B. Window
+
+Stands for the sub-terminal(PTY, telnet etc) that processes runs on.
+
+----------
+Properties:
+----------
+
+title:
+ mode: read write
+ type: String.
+ description: The title of the window.
+
+number:
+ mode: read only
+ type: int.
+ description: The index in the window slots.
+
+dir:
+ mode: read only
+ type: String.
+ description: The initial directory of the first 
+              application (typically the shell) in that window.
+
+tty:
+ mode: read only
+ type: String
+ description: the associated terminal device for that window.
+
+pid:
+ mode: read only
+ type: int
+ description: the pid of of the slave end of the pty.
+
+group:
+ mode: read only
+ type: Window
+ description: The window group we belongs to. (*This seems in-active?*)
+
+bell:
+ mode: read only
+ type: int
+ description: The bell status of the window.
+
+----------
+Methods:
+----------
+
+int get_monitor_status(bool activity);
+ Returns the status of the specified monitor type. Either activity or silence.
+ When the silence monitor is active, the threshold is returned.
+ 
+void set_monitor_status(bool activity, int status);
+ Set the status of activity/silence monitor. The number of status for the
+ silence monitor is the seconds of threshold.
+ 
+void stuff(string buf);
+ put the string into the input buffer.
+
+int waitfor(string pattern);
+ Waiting for a specified output pattern. 
+ NOTICE: This is an asynchronous method call and can only be called in
+ asynchronous mode.
+
+----------
+Events
+----------
+
+on_activity
+on_silence
+before_winchange
+on_winchange
+before_resize
+on_resize
+
+===================
+The Implementation
+===================
