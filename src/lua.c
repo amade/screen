@@ -230,12 +230,27 @@ window_change_title(lua_State *L)
   struct win *w = check_window(L, 1);
   unsigned int len;
   const char *title = luaL_checklstring(L, 2, &len);
-  ChangeAKA(w, title, len);
+  ChangeAKA(w, (char *)title, len);
   return 0;
 }
 
+static int
+window_get_monitor_status(lua_State *L)
+{
+  struct win *w = check_window(L, 1);
+  int activity = luaL_checkint(L, 2);
+  if (activity)
+    //monitor
+    lua_pushinteger(L, w->w_monitor != MON_OFF);
+  else
+    //silence
+    lua_pushinteger(L, w->w_silence == SILENCE_ON ? w->w_silencewait: 0);
+
+  return 1;
+}
+
 static const luaL_reg window_methods[] = {
-  {"change_title", window_change_title},
+  {"get_monitor_status", window_get_monitor_status},
   {0, 0}
 };
 
@@ -264,6 +279,7 @@ static const luaL_reg window_metamethods[] = {
 };
 
 static const struct Xet_reg window_setters[] = {
+  {"title", 0, 0, window_change_title/*absolute setter*/},
   {0, 0}
 };
 
@@ -275,7 +291,6 @@ static const struct Xet_reg window_getters[] = {
   {"pid", get_int, offsetof(struct win, w_pid)},
   {"group", get_window, offsetof(struct win, w_group)},
   {"bell", get_int, offsetof(struct win, w_bell)},
-  {"monitor", get_int, offsetof(struct win, w_monitor)},
   {0, 0}
 };
 
