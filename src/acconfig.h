@@ -140,6 +140,7 @@
  *        Syntax: screen //telnet host [port]
  * define RXVT_OSC if you want support for rxvts special
  *        change fgcolor/bgcolor/bgpicture sequences
+ * define SCRIPT to add scripting support to screen.
  */
 #undef SIMPLESCREEN
 #ifndef SIMPLESCREEN
@@ -161,6 +162,7 @@
 # define COLORS16
 # define ZMODEM
 # define BLANKER_PRG
+# define SCRIPT
 #endif /* SIMPLESCREEN */
 
 #undef BUILTIN_TELNET

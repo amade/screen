@@ -3911,6 +3911,7 @@ int key;
       do_source(*args);
       break;
 
+#ifdef SCRIPT
     case RC_LUA:
       LuaCall(args);
       break;
@@ -3918,6 +3919,7 @@ int key;
     case RC_LUASOURCE:
       ScriptSource(*args);
       break;
+#endif
 
 #ifdef MULTIUSER
     case RC_SU:
@@ -4411,8 +4413,12 @@ int key;
 #endif
       break;
     }
+
+#ifdef SCRIPT
   if (nr < RC_LAST)
     ScriptCommandExecuted(comms[nr].name, args, argc);
+#endif
+
   if (display != odisplay)
     {
       for (display = displays; display; display = display->d_next)
@@ -5215,7 +5221,9 @@ struct win *wi;
   if (wi)
     WindowChanged(wi, 'u');
   flayer = D_forecv->c_layer;
+#ifdef SCRIPT
   ScriptForeWindowChanged();
+#endif
   /* Activate called afterwards, so no RefreshHStatus needed */
 }
 

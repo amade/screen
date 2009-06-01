@@ -382,7 +382,11 @@ char **av;
 #ifdef MULTIUSER
   char *sockp;
 #endif
+
+#ifdef SCRIPT
   char *script_file = 0;
+#endif
+
   char *sty = 0;
 
 #if (defined(AUX) || defined(_AUX_SOURCE)) && defined(POSIX)
@@ -1349,6 +1353,7 @@ char **av;
   ServerSocket = MakeServerSocket();
   InitKeytab();
 
+#ifdef SCRIPT
   LoadScripts();
   ScriptInit();
   if (script_file)
@@ -1357,6 +1362,7 @@ char **av;
       free(script_file);
       script_file = 0;
     }
+#endif
 
 #ifdef ETCSCREENRC
 # ifdef ALLOW_SYSSCREENRC
@@ -1767,7 +1773,9 @@ int i;
   signal(SIGHUP, SIG_IGN);
   debug1("Finit(%d);\n", i);
 
+#ifdef SCRIPT
   ScriptFinit();
+#endif
 
   while (windows)
     {
@@ -2514,8 +2522,10 @@ int rec;
     winmsg_numrend = -winmsg_numrend;
 
   *p = '\0';
+#ifdef SCRIPT
   if (ScriptProcessCaption(str, win, padlen))
     return winmsg_buf;
+#endif
   if (!display)
     return winmsg_buf;
 
