@@ -18,7 +18,8 @@
  ****************************************************************
  * $Id$ FAU
  */
-
+#ifndef SCRIPT_H
+#define SCRIPT_H
 struct win;
 
 struct ScriptFuncs
@@ -26,10 +27,26 @@ struct ScriptFuncs
   int (*sf_Init) __P((void));
   int (*sf_Finit) __P((void));
   int (*sf_ForeWindowChanged) __P((void));
-  int (*sf_Source) __P((const char *));
+  int (*sf_Source) __P((const char *, int));
   int (*sf_ProcessCaption) __P((const char *, struct win *, int len));
   int (*sf_CommandExecuted) __P((const char *, const char **, int));
 };
 
-void LoadScripts(void);
+struct binding
+{
+  char * name;
+  int inited;
+  int registered;
+  int (*bd_Init) __P((void));
+  int (*bd_Finit) __P((void));
+  /*Returns zero on failure, non zero on success*/
+  int (*bd_Source) __P((const char *, int));
+  struct binding *b_next;
+  struct ScriptFuncs *fns;
+};
 
+void LoadBindings(void);
+void FinializeBindings(void);
+
+
+#endif

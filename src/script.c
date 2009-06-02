@@ -1,4 +1,5 @@
 /* Copyright (c) 2008 Sadrul Habib Chowdhury (sadrul@users.sf.net)
+ * 2009 Rui Guo (firemeteor.guo@gmail.com)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,58 +22,53 @@
 #include "config.h"
 #include "screen.h"
 
-struct scripts
-{
-  struct scripts *s_next;
-  struct ScriptFuncs *fns;
-};
-
-struct scripts *scripts;
+struct binding *bindings = NULL;
 
 static void
-AddScript(struct ScriptFuncs *sf)
+register_binding (struct binding *new_binding)
 {
-  struct scripts *ns = (struct scripts *)calloc(1, sizeof(*ns));
-  if (!ns)
-    return;
-  ns->fns = sf;
-  ns->s_next = scripts;
-  scripts = ns;
+  if (!new_binding->registered)
+    {
+      new_binding->b_next = bindings;
+      bindings = new_binding;
+      new_binding->registered = 1;
+    }
 }
 
-#define ALL_SCRIPTS(fn, params, stop) do { \
-  struct scripts *iter; \
-  for (iter = scripts; iter; iter = iter->s_next) \
-    { \
-      if (iter->fns->fn && (ret = (iter->fns->fn params)) && stop) \
-	break; \
-    } \
-} while (0)
+#ifdef LUA_BINDING
+extern struct binding lua_binding;
+#endif
 
-void ScriptInit(void)
+void LoadBindings(void)
 {
-  int ret;
-  ALL_SCRIPTS(sf_Init, (), 0);
+#ifdef LUA_BINDING
+  register_binding(&lua_binding);
+#endif
 }
 
-void ScriptFinit(void)
+void
+FinalizeBindings (void)
 {
-  int ret;
-  ALL_SCRIPTS(sf_Finit, (), 0);
+  struct binding *binding=bindings;
+  while(binding)
+    {
+      if (binding->inited)
+        binding->bd_Finit();
+      binding = binding->b_next;
+    }
 }
 
-void ScriptForeWindowChanged(void)
+void 
+ScriptSource(int argc, const char **argv)
 {
-  int ret;
-  ALL_SCRIPTS(sf_ForeWindowChanged, (), 0);
-}
-
-void ScriptSource(int argc, const char **argv)
-{
-  int ret;
+  int ret = 0;
   int async = 0;
-  const char *binding = 0, *path;
+  const char *bd_select = 0, *script;
+  struct binding *binding = bindings;
 
+  /* Parse the commandline options
+   * sourcescript [-async|-a] [-binding|-b <binding>] script
+   */
   while (*argv && **argv == '-') {
       // check for (-a | -async)
       if ((*argv[1] == 'a' && !*argv[2])
@@ -82,18 +78,41 @@ void ScriptSource(int argc, const char **argv)
       else if ((*argv[1] == 'b' && !*argv[2])
                || strcmp(*argv, "-binding") == 0) {
           argv++;
-          binding = *argv;
+          bd_select = *argv;
       }
       argv++;
   }
+  script = *argv;
 
-  path = *argv;
-  if (!binding) {
-  /* If one script loader accepts the file, we don't send it to any other loader */
-  ALL_SCRIPTS(sf_Source, (path), 1);
-  } else {
-      //TODO: select the specified engine.
+  while (binding) {
+      if (!bd_select || strcmp(bd_select, binding->name) == 0) {
+          //dynamically initialize the binding
+          if (!binding->inited)
+            binding->bd_Init();
+
+          //and source the script
+          if (ret = binding->bd_Source(script, async))
+            break;
+      }
+      binding = binding->b_next;
   }
+  if (!ret)
+    LMsg(1, "Could not source specified script %s", script);
+}
+
+#define ALL_SCRIPTS(fn, params, stop) do { \
+  struct binding *iter; \
+  for (iter = bindings; iter; iter = iter->b_next) \
+    { \
+      if (iter->fns->fn && (ret = (iter->fns->fn params)) && stop) \
+	break; \
+    } \
+} while (0)
+
+void ScriptForeWindowChanged(void)
+{
+  int ret;
+  ALL_SCRIPTS(sf_ForeWindowChanged, (), 0);
 }
 
 int ScriptProcessCaption(const char *str, struct win *win, int len)
@@ -108,18 +127,5 @@ int ScriptCommandExecuted(const char *command, const char **args, int argc)
   int ret = 0;
   ALL_SCRIPTS(sf_CommandExecuted, (command, args, argc), 0);
   return ret;
-}
-
-#define HAVE_LUA 1   /* XXX: Remove */
-#if HAVE_LUA
-extern struct ScriptFuncs LuaFuncs;
-#endif
-
-void LoadScripts(void)
-{
-  /* XXX: We could load the script loaders dynamically */
-#if HAVE_LUA
-  AddScript(&LuaFuncs);
-#endif
 }
 

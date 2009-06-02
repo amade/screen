@@ -1354,8 +1354,7 @@ char **av;
   InitKeytab();
 
 #ifdef SCRIPT
-  LoadScripts();
-  ScriptInit();
+  LoadBindings();
   if (script_file)
     {
       ScriptSource(script_file);
@@ -1774,7 +1773,7 @@ int i;
   debug1("Finit(%d);\n", i);
 
 #ifdef SCRIPT
-  ScriptFinit();
+  FinalizeBindings();
 #endif
 
   while (windows)

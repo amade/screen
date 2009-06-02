@@ -670,7 +670,7 @@ int LuaForeWindowChanged(void)
   return 0;
 }
 
-int LuaSource(const char *file)
+int LuaSource(const char *file, int async)
 {
   if (!L)
     return 0;
@@ -772,5 +772,17 @@ struct ScriptFuncs LuaFuncs =
   LuaSource,
   LuaProcessCaption,
   LuaCommandExecuted
+};
+
+struct binding lua_binding =
+{
+    "lua", /*name*/
+    0,     /*inited*/
+    0,     /*registered*/
+    LuaInit,
+    LuaFinit,
+    LuaSource,
+    0,     /*b_next*/
+    &LuaFuncs
 };
 
