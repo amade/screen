@@ -198,7 +198,7 @@ void stuff(string buf);
  put the string into the input buffer.
 
 int waitfor(string pattern);
- Waiting for a specified output pattern. 
+ Waiting for a specified output pattern. The pattern is limited to plain text. 
  NOTICE: This is an asynchronous method call and can only be called in
  asynchronous mode.
 
@@ -213,6 +213,56 @@ on_winchange
 before_resize
 on_resize
 
+C. User
+
+--------
+Property:
+--------
+
+name:
+ mode: read only
+ type: String.
+ description: The login name.
+
+uid:
+ mode: read only
+ type: int
+ description: The index in the ACL bit fields.
+
+esc:
+metaesc:
+ mode: read only
+ type: int
+ description: The escape character
+
+umask:
+ mode: read only
+ type: String.
+ description: The access for the window created by this user to other users.
+              The result will be in a form of 'rwx'.
+
+D. Screen
+
+ This is a pseudo object standing for the whole screen object. All other
+ objects can be obtained starting from this one.
+
+--------
+Methods:
+--------
+windows
+displays
+command
+windowbyname
+
+
 ===================
 The Implementation
 ===================
+
+---------------
+Binding related.
+---------------
+
+---------------
+Binding independent
+---------------
