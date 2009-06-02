@@ -3912,12 +3912,12 @@ int key;
       break;
 
 #ifdef SCRIPT
-    case RC_LUA:
+    case RC_SCRIPTCALL:
       LuaCall(args);
       break;
 
-    case RC_LUASOURCE:
-      ScriptSource(*args);
+    case RC_SOURCESCRIPT:
+      ScriptSource(*argl, args);
       break;
 #endif
 

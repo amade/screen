@@ -67,11 +67,33 @@ void ScriptForeWindowChanged(void)
   ALL_SCRIPTS(sf_ForeWindowChanged, (), 0);
 }
 
-void ScriptSource(const char *path)
+void ScriptSource(int argc, const char **argv)
 {
   int ret;
+  int async = 0;
+  const char *binding = 0, *path;
+
+  while (*argv && **argv == '-') {
+      // check for (-a | -async)
+      if ((*argv[1] == 'a' && !*argv[2])
+          || strcmp(*argv, "-async") == 0)
+        async = 1;
+      // check for (-b | -binding)
+      else if ((*argv[1] == 'b' && !*argv[2])
+               || strcmp(*argv, "-binding") == 0) {
+          argv++;
+          binding = *argv;
+      }
+      argv++;
+  }
+
+  path = *argv;
+  if (!binding) {
   /* If one script loader accepts the file, we don't send it to any other loader */
   ALL_SCRIPTS(sf_Source, (path), 1);
+  } else {
+      //TODO: select the specified engine.
+  }
 }
 
 int ScriptProcessCaption(const char *str, struct win *win, int len)
