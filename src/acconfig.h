@@ -165,6 +165,11 @@
 # define SCRIPT
 #endif /* SIMPLESCREEN */
 
+/*Include the binding you would like to use.*/
+#ifdef SCRIPT
+#define LUA_BINDING
+#endif
+
 #undef BUILTIN_TELNET
 #undef RXVT_OSC
 #undef COLORS256
