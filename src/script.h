@@ -47,6 +47,7 @@ struct binding
 
 void LoadBindings(void);
 void FinializeBindings(void);
+void ScriptCmd __P((int argc, const char **argv));
 
 struct listener {
 

@@ -283,7 +283,7 @@ struct comm comms[RC_LAST + 1] =
   { "resize",		NEED_DISPLAY|ARGS_0|ARGS_ORMORE },
   { "screen",		ARGS_0|ARGS_ORMORE },
 #ifdef SCRIPT
-  { "scriptcall",	ARGS_1|ARGS_ORMORE },
+  { "script",	        ARGS_2|ARGS_ORMORE },
 #endif
 #ifdef COPY_PASTE
   { "scrollback",	NEED_FORE|ARGS_1 },
@@ -300,9 +300,6 @@ struct comm comms[RC_LAST + 1] =
   { "slowpaste",	NEED_FORE|ARGS_01 },
   { "sorendition",      ARGS_012 },
   { "source",		ARGS_1 },
-#ifdef SCRIPT
-  { "sourcescript",	ARGS_1234 },
-#endif
   { "split",		NEED_DISPLAY|ARGS_01 },
   { "startup_message",	ARGS_1 },
   { "stuff",		NEED_LAYER|ARGS_012 },

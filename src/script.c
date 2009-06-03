@@ -103,6 +103,17 @@ ScriptSource(int argc, const char **argv)
     LMsg(1, "Could not source specified script %s", script);
 }
 
+void
+ScriptCmd(int argc, const char **argv)
+{
+  const char * sub = *argv;
+  argv++;argc--;
+  if (!strcmp(sub, "call"))
+    LuaCall(argv);
+  else if (!strcmp(sub, "source"))
+    ScriptSource(argc, argv);
+}
+
 /* Event notification handling */
 
 struct gevents {
@@ -143,7 +154,7 @@ get_object_event_queue(char *name, char *obj) {
 
     if (lo >= n || strcmp(name, event_table[lo].name))
       return 0;
-    else
+    else 
       return (struct event *)(obj + event_table[lo].offset);
 }
 
