@@ -48,5 +48,13 @@ struct binding
 void LoadBindings(void);
 void FinializeBindings(void);
 
+struct listener {
+
+};
+
+struct script_event {
+    int blockable;
+    struct listener *listeners;
+};
 
 #endif

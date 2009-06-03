@@ -21,6 +21,9 @@
 
 #include "config.h"
 #include "screen.h"
+#include <stddef.h>
+
+/*Binding structure & functions*/
 
 struct binding *bindings = NULL;
 
@@ -98,6 +101,55 @@ ScriptSource(int argc, const char **argv)
   }
   if (!ret)
     LMsg(1, "Could not source specified script %s", script);
+}
+
+/* Event notification handling */
+
+struct gevents {
+    struct script_event cmdexecuted;
+} globalevents;
+
+/* To add new event, introduce a filed for that event to the object in
+ * question, don't forget to put a name, offset pair here.  NOTE: keep the
+ * name field sorted in alphabet order, the searching relies on it.
+ */
+
+struct {
+    char *name;
+    int offset;
+} event_table[] = {
+      {"global_cmdexecuted", offsetof(struct gevents, cmdexecuted)},
+      {"window_resize", offsetof(struct win, resize)},
+      {"window_can_resize", offsetof(struct win, canresize)}
+};
+
+struct script_event *
+get_object_event_queue(char *name, char *obj) {
+    int lo, hi, n, cmp;
+    if (!obj)
+      obj = (char *)&globalevents;
+
+    lo = 0;
+    n = hi = sizeof(event_table);
+    while (lo < hi) {
+        int half;
+        half = (lo + hi) >> 1;
+        cmp = strcmp(name, event_table[half].name);
+        if (cmp > 0)
+          lo = half + 1;
+        else
+          hi = half;
+    }
+
+    if (lo >= n || strcmp(name, event_table[lo].name))
+      return 0;
+    else
+      return (struct event *)(obj + event_table[lo].offset);
+}
+
+void
+register_listener(struct script_event * event, struct listener *listener)
+{
 }
 
 #define ALL_SCRIPTS(fn, params, stop) do { \
