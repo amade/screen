@@ -52,7 +52,7 @@ II. The Screen interface
 
 Screen needs to provide a user interface to source and run scripts.
 
-sourcescript [-async|-a] [-binding|-b <binding>] script.
+script source [-async|-a] [-binding|-b <binding>] script.
 
   This command sources the specified script. This command can be used several
   times to source multiple scripts. Use the -async switch if the
@@ -64,7 +64,7 @@ sourcescript [-async|-a] [-binding|-b <binding>] script.
   scripts may share the same context. (Note: the isolation between scripts may
   be implementation dependent. Which is more desirable?)
 
-scriptcall func arg1 arg2 ...
+script call func arg1 arg2 ...
 
   Call functions defined by scripts. If the same function are defined in 
   multiple scripting context, the last one applies. Call to normal script
@@ -254,10 +254,18 @@ displays
 command
 windowbyname
 
+input
+get input from user.
+
 
 ===================
 The Implementation
 ===================
+
+Bindings are in fact script interpretors. We can have several different
+language bindings at the same time, with each registered at the compiling time
+and loaded (initialized) dynamically at runtime. It's an bridge between
+scripts and screen itself.
 
 ---------------
 Binding related.
