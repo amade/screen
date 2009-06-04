@@ -281,8 +281,11 @@ struct win
   int    w_alt_histidx;
 #endif
 #ifdef SCRIPT
-  struct script_event resize;
-  struct script_event canresize;
+  struct
+    {
+      struct script_event resize;
+      struct script_event canresize;
+    } w_sev; /*For Script events. */
 #endif
 };
 
