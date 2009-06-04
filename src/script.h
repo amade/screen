@@ -22,16 +22,15 @@
 #define SCRIPT_H
 struct win;
 
+//Obsolete
 struct ScriptFuncs
 {
-  int (*sf_Init) __P((void));
-  int (*sf_Finit) __P((void));
   int (*sf_ForeWindowChanged) __P((void));
-  int (*sf_Source) __P((const char *, int));
   int (*sf_ProcessCaption) __P((const char *, struct win *, int len));
   int (*sf_CommandExecuted) __P((const char *, const char **, int));
 };
 
+/***Language binding***/
 struct binding
 {
   char * name;
@@ -49,13 +48,33 @@ void LoadBindings(void);
 void FinializeBindings(void);
 void ScriptCmd __P((int argc, const char **argv));
 
-struct listener {
+/***Script events***/
 
+// Script event listener
+struct listener 
+{
+  /*Binding dependent event handler data*/
+  void *handler; 
+
+  /* dispatcher provided by the binding.
+   * The return value is significant: 
+   * a non-zero value will stop further
+   * notification to the rest of the chain.*/
+  int (*dispatcher) __P((void *handler, char *params, VA_DOTS)); 
+  
+  /* smaller means higher privilege.*/
+  int priv;
+  struct listener *chain;
 };
 
-struct script_event {
-    int blockable;
-    struct listener *listeners;
+/* the script_event structure needs to be zeroed before using.
+ * embeding this structure directly into screen objects will do the job, as
+ * long as the objects are created from calloc() call.*/
+struct script_event
+{
+  /* expected parameter description of this event. */
+  char *params;
+  struct listener *listeners;
 };
 
 #endif

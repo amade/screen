@@ -118,24 +118,39 @@ ScriptCmd(int argc, const char **argv)
 
 struct gevents {
     struct script_event cmdexecuted;
+    struct script_event detached;
 } globalevents;
 
-/* To add new event, introduce a filed for that event to the object in
- * question, don't forget to put a name, offset pair here.  NOTE: keep the
+/* To add a new event, introduce a field for that event to the object in
+ * question, and don't forget to put an descriptor here.  NOTE: keep the
  * name field sorted in alphabet order, the searching relies on it.
+ *
+ * the params string specifies the expected parameters. The length of the
+ * string equals to the number of parameters. Each char specifies the type of
+ * the parameter, with its meaning similar to those in printf().
+ *
+ * s: string (char *)
+ * S: string array (char **)
+ * i: signed int
+ * 
  */
 
 struct {
     char *name;
+    char *params;
     int offset;
 } event_table[] = {
-      {"global_cmdexecuted", offsetof(struct gevents, cmdexecuted)},
-      {"window_resize", offsetof(struct win, resize)},
-      {"window_can_resize", offsetof(struct win, canresize)}
+      {"global_cmdexecuted", "sSi", offsetof(struct gevents, cmdexecuted)},
+      {"global_detached", "", offsetof(struct gevents, detached)},
+      {"window_resize", "", offsetof(struct win, w_sev.resize)},
+      {"window_can_resize", "", offsetof(struct win, w_sev.canresize)}
 };
 
+/* Get the event queue with the given name in the obj.  If the obj is NULL,
+ * global events are searched.  If no event is found, a NULL is returned.
+ */
 struct script_event *
-get_object_event_queue(char *name, char *obj) {
+object_get_event(char *obj, char *name) {
     int lo, hi, n, cmp;
     if (!obj)
       obj = (char *)&globalevents;
@@ -154,13 +169,62 @@ get_object_event_queue(char *name, char *obj) {
 
     if (lo >= n || strcmp(name, event_table[lo].name))
       return 0;
-    else 
-      return (struct event *)(obj + event_table[lo].offset);
+    else {
+        //found an entry.
+        struct script_event *res;
+        res = (struct script_event *) (obj + event_table[lo].offset);
+        //Setup the parameter record.
+        res->params = event_table[lo].params;
+        return res;
+    }
 }
 
+/* Put a listener in a proper position in the chain 
+ * according to the privlege.*/
+#define PRIV_MIN  -31
 void
-register_listener(struct script_event * event, struct listener *listener)
+register_listener(struct script_event *ev, struct listener *l)
 {
+  int priv;
+  struct listener head, *p;
+  head.chain = ev->listeners;
+  p = &head;
+
+  if (l->priv < PRIV_MIN)
+    l->priv = PRIV_MIN;
+  priv = l->priv;
+
+  while (p->chain && priv >= p->chain->priv)
+    p = p->chain;
+
+  l->chain = p->chain;
+  p->chain = l;
+  ev->listeners = head.chain;
+}
+
+/* Trigger event with given parameters.*/
+int
+trigger_sevent(struct script_event *ev, VA_DOTS)
+{
+  int res = 0;
+  struct listener *chain;
+  char *params;
+  VA_LIST(va);
+  /*invalid or un-registered event structure*/
+  if (!ev || !ev->params)
+    return 0;
+
+  //process the chain in order, stop if any of the handler returns true.
+  chain = ev->listeners;
+  params = ev->params;
+  while (chain)
+    {
+      res = chain->dispatcher(chain->handler, params, va);
+      if (res)
+        break;
+    }
+
+  return res;
 }
 
 #define ALL_SCRIPTS(fn, params, stop) do { \
