@@ -3913,7 +3913,7 @@ int key;
 
 #ifdef SCRIPT
     case RC_SCRIPT:
-      ScriptCmd(argc, args);
+      ScriptCmd(argc, (const char **) args);
       break;
 #endif
 
