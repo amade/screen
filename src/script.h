@@ -60,7 +60,7 @@ struct listener
    * The return value is significant: 
    * a non-zero value will stop further
    * notification to the rest of the chain.*/
-  int (*dispatcher) __P((void *handler, char *params, VA_DOTS)); 
+  int (*dispatcher) __P((void *handler, char *params, va_list va)); 
   
   /* smaller means higher privilege.*/
   int priv;

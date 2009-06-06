@@ -219,7 +219,9 @@ trigger_sevent(struct script_event *ev, VA_DOTS)
   params = ev->params;
   while (chain)
     {
+      VA_START(va, ev);
       res = chain->dispatcher(chain->handler, params, va);
+      VA_END(va);
       if (res)
         break;
     }
