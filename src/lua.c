@@ -557,7 +557,7 @@ screen_exec_command(lua_State *L)
 
   command = luaL_checklstring(L, 1, &len);
   if (command)
-    RcLine(command, len);
+    RcLine((char *)command, len);
 
   return 0;
 }
@@ -766,10 +766,7 @@ LuaCommandExecuted(const char *command, const char **args, int argc)
 
 struct ScriptFuncs LuaFuncs =
 {
-  LuaInit,
-  LuaFinit,
   LuaForeWindowChanged,
-  LuaSource,
   LuaProcessCaption,
   LuaCommandExecuted
 };
