@@ -41,6 +41,7 @@ extern struct display *displays, *display;
 extern struct LayFuncs WinLf;
 extern struct layer *flayer;
 
+static int LuaDispatch(void *handler, const char *params, va_list va);
 /** Template {{{ */
 
 #define CHECK_TYPE(name, type) \
@@ -576,12 +577,32 @@ screen_append_msg(lua_State *L)
   return 0;
 }
 
+static int
+screen_register_event(lua_State *L)
+{
+  int len;
+  const char *event, *handler;
+  struct listener *l;
+  struct script_event *sev;
+  event = luaL_checklstring(L, 1, &len);
+  handler = luaL_checklstring(L, 2, &len);
+  sev = object_get_event(NULL, event);
+  if (sev)
+    {
+      l = (struct listener *)malloc(sizeof(struct listener));
+      l->handler = (void *)handler;
+      l->dispatcher = LuaDispatch;
+      register_listener(sev, l); 
+    }
+}
+
 static const luaL_reg screen_methods[] = {
   {"windows", screen_get_windows},
   {"displays", screen_get_displays},
   {"display", screen_get_display},
   {"command", screen_exec_command},
   {"append_msg", screen_append_msg},
+  {"listen_to", screen_register_event},
   {0, 0}
 };
 
@@ -639,7 +660,7 @@ LuaCallProcess(const char *name, struct fn_def defs[])
     {
       struct display *d = display;
       unsigned int len;
-      char *message = luaL_checklstring(L, -1, &len);
+      const char *message = luaL_checklstring(L, -1, &len);
       LMsg(1, "%s", message ? message : "Unknown error");
       lua_pop(L, 1);
       display = d;
@@ -662,7 +683,7 @@ int LuaForeWindowChanged(void)
       if(lua_isstring(L, -1))
 	{
 	  unsigned int len;
-	  char *message = luaL_checklstring(L, -1, &len);
+	  const char *message = luaL_checklstring(L, -1, &len);
 	  LMsg(1, "%s", message ? message : "Unknown error");
 	  lua_pop(L, 1);
 	}
@@ -713,7 +734,7 @@ int LuaCall(char *func, char **argv)
       if(lua_isstring(L, -1))
 	{
 	  unsigned int len;
-	  char *message = luaL_checklstring(L, -1, &len);
+	  const char *message = luaL_checklstring(L, -1, &len);
 	  LMsg(1, "%s", message ? message : "Unknown error");
 	  lua_pop(L, 1);
 	  return 0;
@@ -747,6 +768,55 @@ push_stringarray(lua_State *L, void *data)
     lua_pushstring(L, *args++);
     lua_settable(L, -3);
   }
+}
+
+int LuaPushParams(const char *params, va_list va)
+{
+  int num = 0;
+  while (*params)
+    {
+      switch (*params)
+        {
+        case 's':
+          lua_pushstring(L, va_arg(va, char *));
+          break;
+        case 'S':
+          push_stringarray(L, va_arg(va, char **));
+          break;
+        case 'i':
+          lua_pushinteger(L, va_arg(va, int));
+        }
+      params++;
+      num++;
+    }
+  return num;
+}
+
+static int
+LuaDispatch(void *handler, const char *params, va_list va)
+{
+  const char *func = handler;
+  int argc;
+
+  /*FIXME:Really need this?*/
+  lua_settop(L, 0);
+
+  lua_getfield(L, LUA_GLOBALSINDEX, func);
+  if (lua_isnil(L, -1))
+    return 0;
+  argc = LuaPushParams(params, va);
+
+  if (lua_pcall(L, argc, 0, 0) == LUA_ERRRUN && lua_isstring(L, -1))
+    {
+      struct display *d = display;
+      unsigned int len;
+      char *message = luaL_checklstring(L, -1, &len);
+      LMsg(1, "%s", message ? message : "Unknown error");
+      lua_pop(L, 1);
+      display = d;
+      return 0;
+    }
+  return 1;
 }
 
 int

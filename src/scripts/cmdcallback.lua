@@ -12,3 +12,4 @@ function command_executed(name, args)
   f:close()
 end
 
+screen.listen_to("global_cmdexecuted", "command_executed")

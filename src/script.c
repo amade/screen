@@ -123,10 +123,7 @@ ScriptCmd(int argc, const char **argv)
 
 /* Event notification handling */
 
-struct gevents {
-    struct script_event cmdexecuted;
-    struct script_event detached;
-} globalevents;
+struct gevents globalevents;
 
 /* To add a new event, introduce a field for that event to the object in
  * question, and don't forget to put an descriptor here.  NOTE: keep the
@@ -142,12 +139,12 @@ struct gevents {
  * 
  */
 
-struct {
+struct sev_description {
     char *name;
     char *params;
     int offset;
 } event_table[] = {
-      {"global_cmdexecuted", "sSi", offsetof(struct gevents, cmdexecuted)},
+      {"global_cmdexecuted", "sS", offsetof(struct gevents, cmdexecuted)},
       {"global_detached", "", offsetof(struct gevents, detached)},
       {"window_resize", "", offsetof(struct win, w_sev.resize)},
       {"window_can_resize", "", offsetof(struct win, w_sev.canresize)}
@@ -157,32 +154,35 @@ struct {
  * global events are searched.  If no event is found, a NULL is returned.
  */
 struct script_event *
-object_get_event(char *obj, char *name) {
-    int lo, hi, n, cmp;
-    if (!obj)
-      obj = (char *)&globalevents;
+object_get_event(char *obj, const char *name) 
+{
+  int lo, hi, n, cmp;
+  if (!obj)
+    obj = (char *)&globalevents;
 
-    lo = 0;
-    n = hi = sizeof(event_table);
-    while (lo < hi) {
-        int half;
-        half = (lo + hi) >> 1;
-        cmp = strcmp(name, event_table[half].name);
-        if (cmp > 0)
-          lo = half + 1;
-        else
-          hi = half;
+  lo = 0;
+  n = hi = sizeof(event_table) / sizeof(struct sev_description);
+  while (lo < hi) 
+    {
+      int half;
+      half = (lo + hi) >> 1;
+      cmp = strcmp(name, event_table[half].name);
+      if (cmp > 0)
+        lo = half + 1;
+      else
+        hi = half;
     }
 
-    if (lo >= n || strcmp(name, event_table[lo].name))
-      return 0;
-    else {
-        /*found an entry.*/
-        struct script_event *res;
-        res = (struct script_event *) (obj + event_table[lo].offset);
-        /*Setup the parameter record.*/
-        res->params = event_table[lo].params;
-        return res;
+  if (lo >= n || strcmp(name, event_table[lo].name))
+    return 0;
+  else 
+    {
+      /*found an entry.*/
+      struct script_event *res;
+      res = (struct script_event *) (obj + event_table[lo].offset);
+      /*Setup the parameter record.*/
+      res->params = event_table[lo].params;
+      return res;
     }
 }
 

@@ -61,7 +61,7 @@ struct listener
    * The return value is significant: 
    * a non-zero value will stop further
    * notification to the rest of the chain.*/
-  int (*dispatcher) __P((void *handler, char *params, va_list va)); 
+  int (*dispatcher) __P((void *handler, const char *params, va_list va)); 
   
   /* smaller means higher privilege.*/
   int priv;
@@ -77,5 +77,12 @@ struct script_event
   char *params;
   struct listener *listeners;
 };
+struct script_event* object_get_event __P((char *obj, const char *name));
+int trigger_sevent(struct script_event *ev, VA_DOTS);
 
+struct gevents {
+    struct script_event cmdexecuted;
+    struct script_event detached;
+};
+extern struct gevents globalevents;
 #endif
