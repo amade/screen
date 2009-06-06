@@ -73,11 +73,11 @@ ScriptSource(int argc, const char **argv)
    * sourcescript [-async|-a] [-binding|-b <binding>] script
    */
   while (*argv && **argv == '-') {
-      // check for (-a | -async)
+      /* check for (-a | -async) */
       if ((*argv[1] == 'a' && !*argv[2])
           || strcmp(*argv, "-async") == 0)
         async = 1;
-      // check for (-b | -binding)
+      /* check for (-b | -binding) */
       else if ((*argv[1] == 'b' && !*argv[2])
                || strcmp(*argv, "-binding") == 0) {
           argv++;
@@ -89,11 +89,11 @@ ScriptSource(int argc, const char **argv)
 
   while (binding) {
       if (!bd_select || strcmp(bd_select, binding->name) == 0) {
-          //dynamically initialize the binding
+          /*dynamically initialize the binding*/
           if (!binding->inited)
             binding->bd_Init();
 
-          //and source the script
+          /*and source the script*/
           if (ret = binding->bd_Source(script, async))
             break;
       }
@@ -170,10 +170,10 @@ object_get_event(char *obj, char *name) {
     if (lo >= n || strcmp(name, event_table[lo].name))
       return 0;
     else {
-        //found an entry.
+        /*found an entry.*/
         struct script_event *res;
         res = (struct script_event *) (obj + event_table[lo].offset);
-        //Setup the parameter record.
+        /*Setup the parameter record.*/
         res->params = event_table[lo].params;
         return res;
     }
@@ -214,7 +214,7 @@ trigger_sevent(struct script_event *ev, VA_DOTS)
   if (!ev || !ev->params)
     return 0;
 
-  //process the chain in order, stop if any of the handler returns true.
+  /*process the chain in order, stop if any of the handler returns true.*/
   chain = ev->listeners;
   params = ev->params;
   while (chain)

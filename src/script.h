@@ -22,7 +22,7 @@
 #define SCRIPT_H
 struct win;
 
-//Obsolete
+/*Obsolete*/
 struct ScriptFuncs
 {
   int (*sf_ForeWindowChanged) __P((void));
@@ -50,7 +50,7 @@ void ScriptCmd __P((int argc, const char **argv));
 
 /***Script events***/
 
-// Script event listener
+/* Script event listener */
 struct listener 
 {
   /*Binding dependent event handler data*/

@@ -240,10 +240,10 @@ window_get_monitor_status(lua_State *L)
   struct win *w = check_window(L, 1);
   int activity = luaL_checkint(L, 2);
   if (activity)
-    //monitor
+    /*monitor*/
     lua_pushinteger(L, w->w_monitor != MON_OFF);
   else
-    //silence
+    /*silence*/
     lua_pushinteger(L, w->w_silence == SILENCE_ON ? w->w_silencewait: 0);
 
   return 1;
