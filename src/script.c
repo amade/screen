@@ -103,13 +103,20 @@ ScriptSource(int argc, const char **argv)
     LMsg(1, "Could not source specified script %s", script);
 }
 
+int
+ScriptCall(const char *func, const char **argv)
+{
+  /*TODO*/
+  return LuaCall(func, argv);
+}
+
 void
 ScriptCmd(int argc, const char **argv)
 {
   const char * sub = *argv;
   argv++;argc--;
   if (!strcmp(sub, "call"))
-    LuaCall(argv);
+    ScriptCall(*argv, argv+1);
   else if (!strcmp(sub, "source"))
     ScriptSource(argc, argv);
 }

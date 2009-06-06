@@ -697,14 +697,14 @@ int LuaFinit(void)
   return 0;
 }
 
-int LuaCall(char **argv)
+int LuaCall(char *func, char **argv)
 {
   int argc;
   if (!L)
     return 0;
 
-  lua_getfield(L, LUA_GLOBALSINDEX, *argv);
-  for (argc = 0, argv++; *argv; argv++, argc++)
+  lua_getfield(L, LUA_GLOBALSINDEX, func);
+  for (argc = 0; *argv; argv++, argc++)
     {
       lua_pushstring(L, *argv);
     }
@@ -778,6 +778,7 @@ struct binding lua_binding =
     0,     /*registered*/
     LuaInit,
     LuaFinit,
+    LuaCall,
     LuaSource,
     0,     /*b_next*/
     &LuaFuncs
