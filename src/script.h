@@ -50,6 +50,7 @@ void ScriptCmd __P((int argc, const char **argv));
 
 /***Script events***/
 
+struct script_event;
 /* Script event listener */
 struct listener 
 {
@@ -63,8 +64,9 @@ struct listener
   int (*dispatcher) __P((void *handler, const char *params, va_list va)); 
   
   /* smaller means higher privilege.*/
-  int priv;
+  unsigned int priv;
   struct listener *chain;
+  struct listener *prev;
 };
 
 /* the script_event structure needs to be zeroed before using.
@@ -74,7 +76,7 @@ struct script_event
 {
   /* expected parameter description of this event. */
   char *params;
-  struct listener *listeners;
+  struct listener listeners;
 };
 struct script_event* object_get_event __P((char *obj, const char *name));
 int trigger_sevent(struct script_event *ev, VA_DOTS);

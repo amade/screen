@@ -12,4 +12,11 @@ function command_executed(name, args)
   f:close()
 end
 
-screen.listen_to("cmdexecuted", "command_executed")
+function toogle_cmd_log()
+  if  (type(ticket) == "nil") then
+    ticket = screen.hook("cmdexecuted", "command_executed")
+  else
+    screen.unhook(ticket, "command_executed")
+    ticket = nil
+  end
+end

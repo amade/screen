@@ -187,32 +187,51 @@ object_get_event(char *obj, const char *name)
 }
 
 /* Put a listener in a proper position in the chain 
- * according to the privlege.*/
-#define PRIV_MIN  -31
-void
+ * according to the privlege.
+ * Not insert duplicate entry. return zero if successful.*/
+int
 register_listener(struct script_event *ev, struct listener *l)
 {
-  int priv;
-  struct listener head, *p;
-  head.chain = ev->listeners;
-  p = &head;
+  unsigned int priv = l->priv;
+  struct listener *p, *iter = &ev->listeners;
 
-  if (l->priv < PRIV_MIN)
-    l->priv = PRIV_MIN;
-  priv = l->priv;
+  while(iter->chain && priv >= iter->chain->priv)
+    {
+      iter = iter->chain;
+      /* return if duplicate found*/
+      if (iter->handler == l->handler
+          && iter->dispatcher == l->dispatcher)
+        return 1;
+    }
+  p = iter;
 
-  while (p->chain && priv >= p->chain->priv)
-    p = p->chain;
+  while(iter->chain)
+    {
+      iter = iter->chain;
+      /* return if duplicate found*/
+      if (iter->handler == l->handler
+          && iter->dispatcher == l->dispatcher)
+        return 1;
+    }
 
   l->chain = p->chain;
+  l->prev = p;
+  if (p->chain)
+    p->chain->prev = l;
   p->chain = l;
-  ev->listeners = head.chain;
+  return 0;
 }
 
 void
 unregister_listener(struct listener *l)
 {
-  /*TODO*/
+  struct listener *p = l->prev;
+  p->chain = l->chain;
+  if (l->chain)
+    l->chain->prev = p;
+  l->chain = l->prev = 0;
+  l->handler = 0;
+  free(l);
 }
 
 /* Trigger event with given parameters.*/
@@ -228,7 +247,7 @@ trigger_sevent(struct script_event *ev, VA_DOTS)
     return 0;
 
   /*process the chain in order, stop if any of the handler returns true.*/
-  chain = ev->listeners;
+  chain = ev->listeners.chain;
   params = ev->params;
   while (chain)
     {
@@ -237,6 +256,7 @@ trigger_sevent(struct script_event *ev, VA_DOTS)
       VA_END(va);
       if (res)
         break;
+      chain = chain->chain;
     }
 
   return res;
