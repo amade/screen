@@ -209,6 +209,12 @@ register_listener(struct script_event *ev, struct listener *l)
   ev->listeners = head.chain;
 }
 
+void
+unregister_listener(struct listener *l)
+{
+  /*TODO*/
+}
+
 /* Trigger event with given parameters.*/
 int
 trigger_sevent(struct script_event *ev, VA_DOTS)
@@ -255,13 +261,6 @@ int ScriptProcessCaption(const char *str, struct win *win, int len)
 {
   int ret = 0;
   ALL_SCRIPTS(sf_ProcessCaption, (str, win, len), 1);
-  return ret;
-}
-
-int ScriptCommandExecuted(const char *command, const char **args, int argc)
-{
-  int ret = 0;
-  ALL_SCRIPTS(sf_CommandExecuted, (command, args, argc), 0);
   return ret;
 }
 

@@ -27,7 +27,6 @@ struct ScriptFuncs
 {
   int (*sf_ForeWindowChanged) __P((void));
   int (*sf_ProcessCaption) __P((const char *, struct win *, int len));
-  int (*sf_CommandExecuted) __P((const char *, const char **, int));
 };
 
 /***Language binding***/

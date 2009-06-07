@@ -42,6 +42,8 @@ extern struct LayFuncs WinLf;
 extern struct layer *flayer;
 
 static int LuaDispatch(void *handler, const char *params, va_list va);
+static int LuaRegEvent(lua_State *L);
+
 /** Template {{{ */
 
 #define CHECK_TYPE(name, type) \
@@ -187,6 +189,12 @@ struct_register(lua_State *L, const char *name, const luaL_reg fn_methods[], con
   /* create metatable & add it to the registry */
   luaL_newmetatable(L, name);
   luaL_register(L, 0, meta_methods);  /* fill metatable */
+
+  /* To identify the type of object */
+  lua_pushstring(L, "_objname");
+  lua_pushstring(L, name);
+  lua_settable(L, -3);
+
   metatable = lua_gettop(L);
 
   lua_pushliteral(L, "__metatable");
@@ -252,6 +260,7 @@ window_get_monitor_status(lua_State *L)
 
 static const luaL_reg window_methods[] = {
   {"get_monitor_status", window_get_monitor_status},
+  {"listen_to", LuaRegEvent},
   {0, 0}
 };
 
@@ -577,32 +586,13 @@ screen_append_msg(lua_State *L)
   return 0;
 }
 
-static int
-screen_register_event(lua_State *L)
-{
-  int len;
-  const char *event, *handler;
-  struct listener *l;
-  struct script_event *sev;
-  event = luaL_checklstring(L, 1, &len);
-  handler = luaL_checklstring(L, 2, &len);
-  sev = object_get_event(NULL, event);
-  if (sev)
-    {
-      l = (struct listener *)malloc(sizeof(struct listener));
-      l->handler = (void *)handler;
-      l->dispatcher = LuaDispatch;
-      register_listener(sev, l); 
-    }
-}
-
 static const luaL_reg screen_methods[] = {
   {"windows", screen_get_windows},
   {"displays", screen_get_displays},
   {"display", screen_get_display},
   {"command", screen_exec_command},
   {"append_msg", screen_append_msg},
-  {"listen_to", screen_register_event},
+  {"listen_to", LuaRegEvent},
   {0, 0}
 };
 
@@ -639,6 +629,18 @@ int LuaInit(void)
   return 0;
 }
 
+/* An error message on top of the stack. */
+static void 
+LuaShowErr(lua_State *L)
+{
+  struct display *d = display;
+  unsigned int len;
+  const char *message = luaL_checklstring(L, -1, &len);
+  LMsg(0, "%s", message ? message : "Unknown error");
+  lua_pop(L, 1);
+  display = d;
+}
+
 struct fn_def
 {
   void (*push_fn)(lua_State *, void*);
@@ -658,37 +660,10 @@ LuaCallProcess(const char *name, struct fn_def defs[])
     defs[argc].push_fn(L, defs[argc].value);
   if (lua_pcall(L, argc, 0, 0) == LUA_ERRRUN && lua_isstring(L, -1))
     {
-      struct display *d = display;
-      unsigned int len;
-      const char *message = luaL_checklstring(L, -1, &len);
-      LMsg(1, "%s", message ? message : "Unknown error");
-      lua_pop(L, 1);
-      display = d;
+      LuaShowErr(L);
       return 0;
     }
   return 1;
-}
-
-int LuaForeWindowChanged(void)
-{
-  if (!L)
-    return 0;
-  lua_getfield(L, LUA_GLOBALSINDEX, "fore_changed");
-  if (lua_isnil(L, -1))
-    return 0;
-  push_display(L, &display);
-  push_window(L, display ? &D_fore : &fore);
-  if (lua_pcall(L, 2, 0, 0) == LUA_ERRRUN)
-    {
-      if(lua_isstring(L, -1))
-	{
-	  unsigned int len;
-	  const char *message = luaL_checklstring(L, -1, &len);
-	  LMsg(1, "%s", message ? message : "Unknown error");
-	  lua_pop(L, 1);
-	}
-    }
-  return 0;
 }
 
 int LuaSource(const char *file, int async)
@@ -703,7 +678,10 @@ int LuaSource(const char *file, int async)
       int len = strlen(file);
       if (len < 4 || strncmp(file + len - 4, ".lua", 4) != 0)
 	return 0;
-      luaL_dofile(L, file);
+      if (luaL_dofile(L, file) && lua_isstring(L, -1))
+	{
+          LuaShowErr(L);
+	}
       return 1;
     }
   return 0;
@@ -716,31 +694,6 @@ int LuaFinit(void)
   lua_close(L);
   L = (lua_State*)0;
   return 0;
-}
-
-int LuaCall(char *func, char **argv)
-{
-  int argc;
-  if (!L)
-    return 0;
-
-  lua_getfield(L, LUA_GLOBALSINDEX, func);
-  for (argc = 0; *argv; argv++, argc++)
-    {
-      lua_pushstring(L, *argv);
-    }
-  if (lua_pcall(L, argc, 0, 0) == LUA_ERRRUN)
-    {
-      if(lua_isstring(L, -1))
-	{
-	  unsigned int len;
-	  const char *message = luaL_checklstring(L, -1, &len);
-	  LMsg(1, "%s", message ? message : "Unknown error");
-	  lua_pop(L, 1);
-	  return 0;
-	}
-    }
-  return 1;
 }
 
 int
@@ -758,9 +711,8 @@ LuaProcessCaption(const char *caption, struct win *win, int len)
 }
 
 static void
-push_stringarray(lua_State *L, void *data)
+push_stringarray(lua_State *L, char **args)
 {
-  char **args = (char **)data;
   int i;
   lua_newtable(L);
   for (i = 1; args && *args; i++) {
@@ -770,7 +722,8 @@ push_stringarray(lua_State *L, void *data)
   }
 }
 
-int LuaPushParams(const char *params, va_list va)
+int
+LuaPushParams(lua_State *L, const char *params, va_list va)
 {
   int num = 0;
   while (*params)
@@ -792,6 +745,28 @@ int LuaPushParams(const char *params, va_list va)
   return num;
 }
 
+int LuaCall(char *func, char **argv)
+{
+  int argc;
+  if (!L)
+    return 0;
+
+  lua_getfield(L, LUA_GLOBALSINDEX, func);
+  for (argc = 0; *argv; argv++, argc++)
+    {
+      lua_pushstring(L, *argv);
+    }
+  if (lua_pcall(L, argc, 0, 0) == LUA_ERRRUN)
+    {
+      if(lua_isstring(L, -1))
+	{
+          LuaShowErr(L);
+	  return 0;
+	}
+    }
+  return 1;
+}
+
 static int
 LuaDispatch(void *handler, const char *params, va_list va)
 {
@@ -804,21 +779,29 @@ LuaDispatch(void *handler, const char *params, va_list va)
   lua_getfield(L, LUA_GLOBALSINDEX, func);
   if (lua_isnil(L, -1))
     return 0;
-  argc = LuaPushParams(params, va);
+  argc = LuaPushParams(L, params, va);
 
   if (lua_pcall(L, argc, 0, 0) == LUA_ERRRUN && lua_isstring(L, -1))
     {
-      struct display *d = display;
-      unsigned int len;
-      char *message = luaL_checklstring(L, -1, &len);
-      LMsg(1, "%s", message ? message : "Unknown error");
-      lua_pop(L, 1);
-      display = d;
+      LuaShowErr(L);
       return 0;
     }
   return 1;
 }
 
+int LuaForeWindowChanged(void)
+{
+  struct fn_def params[] = {
+        {push_display, &display},
+        {push_window, display ? &D_fore : &fore},
+        {NULL, NULL}
+  };
+  if (!L)
+    return 0;
+  return LuaCallProcess("fore_changed", params);
+}
+
+/*
 int
 LuaCommandExecuted(const char *command, const char **args, int argc)
 {
@@ -830,6 +813,91 @@ LuaCommandExecuted(const char *command, const char **args, int argc)
       {NULL, NULL}
   };
   return LuaCallProcess("command_executed", params);
+}*/
+
+static int
+LuaRegEvent(lua_State *L)
+{
+  /* signature: listen_to(obj, event, handler, priv);
+   *        or: listen_to(event, handler, priv)
+   *   returns: A ticket for later unregister. */
+  int idx = 1, argc = lua_gettop(L);
+  int priv = 0;
+
+  char *obj = NULL;
+  const char *objname = "global";
+
+  static char evbuf[30];
+  const char *event, *handler;
+
+  struct script_event *sev;
+
+  /* Identify the object, if specified */
+  if (luaL_getmetafield(L, 1, "_objname"))
+    {
+      objname = luaL_checkstring(L, -1);
+      lua_pop(L, 1);
+      if (!strcmp("screen", objname))
+        objname = "global";
+      else
+        obj = *(char **)lua_touserdata(L, 1);
+      idx++;
+    }
+
+  event = luaL_checkstring(L, idx++);
+  snprintf(evbuf, 30, "%s_%s", objname, event);
+  handler = luaL_checkstring(L, idx++);
+  if (idx <= argc)
+    priv = luaL_checkinteger(L, idx);
+
+  sev = object_get_event(obj, evbuf);
+  if (sev)
+    {
+      struct listener *l;
+      l = (struct listener *)malloc(sizeof(struct listener));
+      if (!l)
+        return luaL_error(L, "Out of memory");
+      l->handler = (void *)handler;
+      l->priv = priv;
+      l->dispatcher = LuaDispatch;
+      register_listener(sev, l); 
+      /*Return the handler for un-register*/
+      lua_pushlightuserdata(L, l);
+    }
+  else
+    return luaL_error(L, "Invalid event specified: %s for object %s", event, objname);
+
+  return 1;
+}
+
+static int
+LuaUnRegEvent(lua_State *L)
+{
+  /* signature: release([obj], ticket, handler)
+   *   returns: zero of success, non-zero otherwise */
+  int idx = 1;
+  struct listener *l;
+  const char *handler;
+  if (lua_isuserdata(L, idx))
+    idx++;
+
+  luaL_checktype(L, idx, LUA_TLIGHTUSERDATA);
+  l = (struct listener*)lua_touserdata(L, idx++);
+  handler = luaL_checkstring(L, idx++);
+
+  /*Validate the listener structure*/
+  if (strcmp((char *)handler, (char *)l->handler))
+    {
+      /* invalid */
+      lua_pushinteger(L, 1);
+    }
+  else
+    {
+      unregister_listener(l);
+      lua_pushinteger(L, 0);
+    }
+  
+  return 1;
 }
 
 /** }}} */
@@ -837,8 +905,7 @@ LuaCommandExecuted(const char *command, const char **args, int argc)
 struct ScriptFuncs LuaFuncs =
 {
   LuaForeWindowChanged,
-  LuaProcessCaption,
-  LuaCommandExecuted
+  LuaProcessCaption
 };
 
 struct binding lua_binding =

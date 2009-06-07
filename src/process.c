@@ -4412,7 +4412,6 @@ int key;
 
 #ifdef SCRIPT
   if (nr < RC_LAST)
-    //ScriptCommandExecuted(comms[nr].name, args, argc);
     trigger_sevent(&globalevents.cmdexecuted, comms[nr].name, args);
     
 #endif
