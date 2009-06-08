@@ -12,7 +12,7 @@ function command_executed(name, args)
   f:close()
 end
 
-function toogle_cmd_log()
+function toggle_cmd_log()
   if  (type(ticket) == "nil") then
     ticket = screen.hook("cmdexecuted", "command_executed")
   else
