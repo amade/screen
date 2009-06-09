@@ -814,20 +814,22 @@ static int
 LuaDispatch(void *handler, const char *params, va_list va)
 {
   const char *func = handler;
-  int argc;
+  int argc, retvalue;
 
   lua_getfield(L, LUA_GLOBALSINDEX, func);
   if (lua_isnil(L, -1))
     return 0;
   argc = LuaPushParams(L, params, va);
 
-  if (lua_pcall(L, argc, 0, 0) == LUA_ERRRUN && lua_isstring(L, -1))
+  if (lua_pcall(L, argc, 1, 0) == LUA_ERRRUN && lua_isstring(L, -1))
     {
       StackDump(L, "After LuaDispatch\n");
       LuaShowErr(L);
       return 0;
     }
-  return 0;
+  retvalue = lua_tonumber(L, -1);
+  lua_pop(L, 1);
+  return retvalue;
 }
 
 int LuaForeWindowChanged(void)
