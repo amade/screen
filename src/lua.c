@@ -36,6 +36,40 @@
 #include <lauxlib.h>
 #include <lualib.h>
 
+static int StackDump(lua_State *L, const char *message)
+{
+  FILE *f = fopen("/tmp/debug/stack", "ab");
+  int i = lua_gettop(L);
+  if (message)
+    fprintf(f, "%s", message);
+  while (i)
+    {
+      int t = lua_type(L, i);
+      switch (t)
+	{
+	  case LUA_TSTRING:
+	    fprintf(f, "String: %s\n", lua_tostring(L, i));
+	    break;
+
+	  case LUA_TBOOLEAN:
+	    fprintf(f, "Boolean: %s\n", lua_toboolean(L, i) ? "true" : "false");
+	    break;
+
+	  case LUA_TNUMBER:
+	    fprintf(f, "Number: %g\n", lua_tonumber(L, i));
+	    break;
+
+	  default:
+	    fprintf(f, "Type: %s\n", lua_typename(L, t));
+	}
+      i--;
+    }
+  if (message)
+    fprintf(f, "----\n");
+  fclose(f);
+  return 0;
+}
+
 extern struct win *windows, *fore;
 extern struct display *displays, *display;
 extern struct LayFuncs WinLf;
@@ -654,7 +688,6 @@ LuaCallProcess(const char *name, struct fn_def defs[])
 {
   int argc = 0;
 
-  lua_settop(L, 0);
   lua_getfield(L, LUA_GLOBALSINDEX, name);
   if (lua_isnil(L, -1))
     return 0;
@@ -753,7 +786,14 @@ int LuaCall(char *func, char **argv)
   if (!L)
     return 0;
 
+  StackDump(L, "Before LuaCall\n");
   lua_getfield(L, LUA_GLOBALSINDEX, func);
+  if (lua_isnil(L, -1))
+    {
+      lua_pushstring(L, "Could not find the script function\n");
+      LuaShowErr(L);
+      return 0;
+    }
   for (argc = 0; *argv; argv++, argc++)
     {
       lua_pushstring(L, *argv);
@@ -762,7 +802,8 @@ int LuaCall(char *func, char **argv)
     {
       if(lua_isstring(L, -1))
 	{
-          LuaShowErr(L);
+	  StackDump(L, "After LuaCall\n");
+	  LuaShowErr(L);
 	  return 0;
 	}
     }
@@ -775,9 +816,6 @@ LuaDispatch(void *handler, const char *params, va_list va)
   const char *func = handler;
   int argc;
 
-  /*FIXME:Really need this?*/
-  lua_settop(L, 0);
-
   lua_getfield(L, LUA_GLOBALSINDEX, func);
   if (lua_isnil(L, -1))
     return 0;
@@ -785,10 +823,11 @@ LuaDispatch(void *handler, const char *params, va_list va)
 
   if (lua_pcall(L, argc, 0, 0) == LUA_ERRRUN && lua_isstring(L, -1))
     {
+      StackDump(L, "After LuaDispatch\n");
       LuaShowErr(L);
       return 0;
     }
-  return 1;
+  return 0;
 }
 
 int LuaForeWindowChanged(void)
@@ -835,6 +874,8 @@ LuaRegEvent(lua_State *L)
 
   struct script_event *sev;
 
+  StackDump(L, "Before RegEvent\n");
+
   /* Identify the object, if specified */
   if (luaL_getmetafield(L, 1, "_objname"))
     {
@@ -850,6 +891,9 @@ LuaRegEvent(lua_State *L)
   event = luaL_checkstring(L, idx++);
   snprintf(evbuf, SEVNAME_MAX, "%s_%s", objname, event);
   handler = luaL_checkstring(L, idx++);
+
+  StackDump(L, "In RegEvent\n");
+
   if (idx <= argc)
     priv = luaL_checkinteger(L, idx);
 
@@ -874,6 +918,7 @@ LuaRegEvent(lua_State *L)
   else
     return luaL_error(L, "Invalid event specified: %s for object %s", event, objname);
 
+  StackDump(L, "After RegEvent\n");
   return 1;
 }
 
