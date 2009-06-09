@@ -924,7 +924,7 @@ LuaRegEvent(lua_State *L)
   else
     {
       lh.type = LUA_HANDLER_TYPE_N;
-      lh.u.name = luaL_checkstring(L, idx++);
+      lh.u.name = SaveStr(luaL_checkstring(L, idx++));
     }
 
   StackDump(L, "In RegEvent\n");
@@ -965,11 +965,10 @@ LuaRegEvent(lua_State *L)
 static int
 LuaUnRegEvent(lua_State *L)
 {
-  /* signature: release([obj], ticket, handler)
+  /* signature: unhook([obj], ticket)
    *   returns: true of success, false otherwise */
   int idx = 1;
   struct listener *l;
-  const char *handler;
 
   /* If the param is not as expected */
   if (!lua_islightuserdata(L, idx))
@@ -982,21 +981,23 @@ LuaUnRegEvent(lua_State *L)
     }
 
   l = (struct listener*)lua_touserdata(L, idx++);
-  handler = luaL_checkstring(L, idx++);
 
   /* Validate the listener structure */
-  if (!l || !l->handler 
-      || strncmp((char *)handler, (char *)l->handler, SEVNAME_MAX))
+  if (!l || !l->handler)
     {
       /* invalid */
       lua_pushboolean(L,0);
     }
   else
     {
+      struct lua_handler *lh = l->handler;
+      if (lh->type == LUA_HANDLER_TYPE_N)
+	Free(lh->u.name);
+      Free(l->handler);
       unregister_listener(l);
       lua_pushboolean(L, 1);
     }
-  
+
   return 1;
 }
 
