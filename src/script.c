@@ -91,7 +91,10 @@ ScriptSource(int argc, const char **argv)
       if (!bd_select || strcmp(bd_select, binding->name) == 0) {
           /*dynamically initialize the binding*/
           if (!binding->inited)
-            binding->bd_Init();
+	    {
+	      binding->bd_Init();
+	      binding->inited = 1;
+	    }
 
           /*and source the script*/
           if (ret = binding->bd_Source(script, async))
