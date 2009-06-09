@@ -79,6 +79,22 @@ static int LuaDispatch(void *handler, const char *params, va_list va);
 static int LuaRegEvent(lua_State *L);
 static int LuaUnRegEvent(lua_State *L);
 
+enum
+{
+  LUA_HANDLER_TYPE_N = 1,
+  LUA_HANDLER_TYPE_F
+};
+
+struct lua_handler
+{
+  int type;
+  union
+  {
+    char *name;
+    int reference;
+  } u;
+};
+
 /** Template {{{ */
 
 #define CHECK_TYPE(name, type) \
@@ -813,10 +829,14 @@ int LuaCall(char *func, char **argv)
 static int
 LuaDispatch(void *handler, const char *params, va_list va)
 {
-  const char *func = handler;
+  struct lua_handler *lh = handler;
   int argc, retvalue;
 
-  lua_getfield(L, LUA_GLOBALSINDEX, func);
+  if (lh->type == LUA_HANDLER_TYPE_N)
+    lua_getfield(L, LUA_GLOBALSINDEX, lh->u.name);
+  else
+    lua_rawgeti(L, LUA_REGISTRYINDEX, lh->u.reference);
+
   if (lua_isnil(L, -1))
     return 0;
   argc = LuaPushParams(L, params, va);
@@ -867,12 +887,13 @@ LuaRegEvent(lua_State *L)
    *   returns: A ticket for later unregister. */
   int idx = 1, argc = lua_gettop(L);
   int priv = 31; /* Default privilege */
+  struct lua_handler lh;
 
   char *obj = NULL;
   const char *objname = "global";
 
   static char evbuf[SEVNAME_MAX];
-  const char *event, *handler;
+  const char *event;
 
   struct script_event *sev;
 
@@ -892,7 +913,19 @@ LuaRegEvent(lua_State *L)
 
   event = luaL_checkstring(L, idx++);
   snprintf(evbuf, SEVNAME_MAX, "%s_%s", objname, event);
-  handler = luaL_checkstring(L, idx++);
+
+  if (lua_isfunction(L, idx))
+    {
+      lua_pushvalue(L, idx);
+      lh.u.reference = luaL_ref(L, LUA_REGISTRYINDEX);
+      lh.type = LUA_HANDLER_TYPE_F;
+      idx++;
+    }
+  else
+    {
+      lh.type = LUA_HANDLER_TYPE_N;
+      lh.u.name = luaL_checkstring(L, idx++);
+    }
 
   StackDump(L, "In RegEvent\n");
 
@@ -906,15 +939,20 @@ LuaRegEvent(lua_State *L)
       l = (struct listener *)malloc(sizeof(struct listener));
       if (!l)
         return luaL_error(L, "Out of memory");
-      l->handler = (void *)handler;
+      l->handler = &lh;
       l->priv = priv;
       l->dispatcher = LuaDispatch;
       if (register_listener(sev, l))
         {
           free(l);
-          return luaL_error(L, "Handler %s has already been registered", handler);
+	  if (lh.type == LUA_HANDLER_TYPE_N)
+	    return luaL_error(L, "Handler %s has already been registered", lh.u.name);
+	  else
+	    return luaL_error(L, "Handler has already been registered");
         }
-      /*Return the handler for un-register*/
+      /* Return the handler for un-register */
+      l->handler = malloc(sizeof(struct lua_handler));
+      memcpy(l->handler, &lh, sizeof(struct lua_handler));
       lua_pushlightuserdata(L, l);
     }
   else
@@ -946,7 +984,7 @@ LuaUnRegEvent(lua_State *L)
   l = (struct listener*)lua_touserdata(L, idx++);
   handler = luaL_checkstring(L, idx++);
 
-  /*Validate the listener structure*/
+  /* Validate the listener structure */
   if (!l || !l->handler 
       || strncmp((char *)handler, (char *)l->handler, SEVNAME_MAX))
     {
