@@ -42,7 +42,9 @@ register_binding (struct binding *new_binding)
 extern struct binding lua_binding;
 #endif
 
+#ifdef PY_BINDING
 extern struct binding py_binding;
+#endif
 
 void LoadBindings(void)
 {
@@ -50,7 +52,9 @@ void LoadBindings(void)
   register_binding(&lua_binding);
 #endif
 
+#ifdef PY_BINDING
   register_binding(&py_binding);
+#endif
 }
 
 void
