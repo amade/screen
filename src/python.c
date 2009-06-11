@@ -35,8 +35,45 @@
 #include "logfile.h"
 
 #include <Python.h>
+#include <structmember.h>
 
 extern struct win *windows;
+
+/** Window {{{ */
+typedef struct
+{
+  PyObject_HEAD
+  struct win w;
+} PyWindow;
+
+static PyMemberDef py_window_members[] =
+{
+  {"title", T_STRING, offsetof(PyWindow, w) + offsetof(struct win, w_title), 0, "Title of the window"},
+  {"number", T_INT, offsetof(PyWindow, w) + offsetof(struct win, w_number), 0, "The window number"},
+  {NULL}
+};
+
+static PyTypeObject PyWindowType =
+{
+  PyObject_HEAD_INIT(NULL)
+  .ob_size = 0,
+  .tp_name = "screen.window",
+  .tp_basicsize = sizeof(PyWindow),
+  .tp_flags = Py_TPFLAGS_DEFAULT,
+  .tp_doc = "Window object",
+  .tp_methods = NULL,
+  .tp_members = py_window_members
+};
+
+static PyObject *
+PyWindow_FromWindow(struct win *w)
+{
+  PyWindow *obj = PyWindowType.tp_alloc(&PyWindowType, 0);
+  obj->w = *w;
+  return (PyObject *)obj;
+}
+
+/** }}} */
 
 static PyObject *
 screen_windows(PyObject *self)
@@ -49,8 +86,7 @@ screen_windows(PyObject *self)
 
   for (w = windows, count = 0; w; w = w->w_next, ++count)
     {
-      PyObject *name = PyString_FromString(w->w_title);
-      PyTuple_SetItem(tuple, count, name);
+      PyTuple_SetItem(tuple, count, PyWindow_FromWindow(w));
     }
 
   return tuple;
@@ -64,15 +100,23 @@ const PyMethodDef py_methods[] = {
 static int
 SPyInit(void)
 {
+  PyObject *m;
+
   Py_Initialize();
-  Py_InitModule3 ("screen", py_methods, NULL);
+
+  PyType_Ready(&PyWindowType);
+
+  m = Py_InitModule3 ("screen", py_methods, NULL);
+
+  Py_INCREF(&PyWindowType);
+  PyModule_AddObject(m, "Window", (PyObject *)&PyWindowType);
   return 0;
 }
 
 static int
 SPyFinit(void)
 {
-  Py_Finalize();
+  /*Py_Finalize(); // Crashes -- why? */
   return 0;
 }
 
