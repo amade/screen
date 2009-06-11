@@ -61,7 +61,7 @@ FinalizeBindings (void)
     }
 }
 
-void 
+void
 ScriptSource(int argc, const char **argv)
 {
   int ret = 0;
@@ -72,14 +72,16 @@ ScriptSource(int argc, const char **argv)
   /* Parse the commandline options
    * sourcescript [-async|-a] [-binding|-b <binding>] script
    */
-  while (*argv && **argv == '-') {
+  while (*argv && **argv == '-')
+    {
       /* check for (-a | -async) */
-      if ((*argv[1] == 'a' && !*argv[2])
-          || strcmp(*argv, "-async") == 0)
+      const char *arg = *argv;
+      if ((arg[1] == 'a' && !arg[2])
+          || strcmp(arg, "-async") == 0)
         async = 1;
       /* check for (-b | -binding) */
-      else if ((*argv[1] == 'b' && !*argv[2])
-               || strcmp(*argv, "-binding") == 0) {
+      else if ((arg[1] == 'b' && !arg[2])
+               || strcmp(arg, "-binding") == 0) {
           argv++;
           bd_select = *argv;
       }
@@ -268,7 +270,7 @@ trigger_sevent(struct script_event *ev, VA_DOTS)
   struct binding *iter; \
   for (iter = bindings; iter; iter = iter->b_next) \
     { \
-      if (iter->fns->fn && (ret = (iter->fns->fn params)) && stop) \
+      if (iter->fns && iter->fns->fn && (ret = (iter->fns->fn params)) && stop) \
 	break; \
     } \
 } while (0)
