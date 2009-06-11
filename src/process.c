@@ -4438,7 +4438,6 @@ int key;
 #ifdef SCRIPT
   if (nr < RC_LAST)
     trigger_sevent(&globalevents.cmdexecuted, comms[nr].name, args);
-    
 #endif
 
   if (display != odisplay)

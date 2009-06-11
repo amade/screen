@@ -139,7 +139,7 @@ struct gevents globalevents;
  * s: string (char *)
  * S: string array (char **)
  * i: signed int
- * 
+ * d: display
  */
 
 struct sev_description {
@@ -147,8 +147,14 @@ struct sev_description {
     char *params;
     int offset;
 } event_table[] = {
+      /* Global events */
       {"global_cmdexecuted", "sS", offsetof(struct gevents, cmdexecuted)},
-      {"global_detached", "", offsetof(struct gevents, detached)},
+      {"global_detached", "di", offsetof(struct gevents, detached)},
+	  /* The command "detach" triggers both 'cmdexecuted' and 'detached' events.
+	     However, we need the 'detached' event to trigger callbacks from remote detaches.
+	   */
+
+      /* Window events */
       {"window_resize", "", offsetof(struct win, w_sev.resize)},
       {"window_can_resize", "", offsetof(struct win, w_sev.canresize)}
 };

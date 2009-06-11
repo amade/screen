@@ -1904,6 +1904,7 @@ int mode;
     case D_DETACH:
       AddStrSock("detached");
       sign = SIG_BYE;
+      trigger_sevent(&globalevents.detached, display, 0x0);
       break;
 #ifdef BSDJOBS
     case D_STOP:
@@ -1914,6 +1915,7 @@ int mode;
     case D_REMOTE:
       AddStrSock("remote detached");
       sign = SIG_BYE;
+      trigger_sevent(&globalevents.detached, display, 0x1);
       break;
 #endif
 #ifdef POW_DETACH
@@ -1925,6 +1927,7 @@ int mode;
 	  AddStr("\r\n");
 	}
       sign = SIG_POWER_BYE;
+      trigger_sevent(&globalevents.detached, display, 0x2);
       break;
 #ifdef REMOTE_DETACH
     case D_REMOTE_POWER:
@@ -1935,6 +1938,7 @@ int mode;
 	  AddStr("\r\n");
 	}
       sign = SIG_POWER_BYE;
+      trigger_sevent(&globalevents.detached, display, 0x1 | 0x2); /* Remote and power */
       break;
 #endif
 #endif

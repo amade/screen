@@ -789,6 +789,13 @@ LuaPushParams(lua_State *L, const char *params, va_list va)
           break;
         case 'i':
           lua_pushinteger(L, va_arg(va, int));
+	  break;
+	case 'd':
+	  {
+	    struct display *d = va_arg(va, struct display *);
+	    push_display(L, &d);
+	    break;
+	  }
         }
       params++;
       num++;
