@@ -1295,6 +1295,9 @@ PKG_CHECK_MODULES(LUA, [lua5.1], , [
 *** (http://git.savannah.gnu.org/gitweb/?p=screen.git;a=summary).
 ])])
 
+AM_CHECK_PYTHON_HEADERS(, [AC_MSG_ERROR(could not find Python headers.)])
+AC_SUBST(PYTHON_INCLUDES)
+
 AC_SUBST(LUA_CFLAGS)
 AC_SUBST(LUA_LIBS)
 
