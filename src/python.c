@@ -202,7 +202,7 @@ SPyInit(void)
 static int
 SPyFinit(void)
 {
-  /*Py_Finalize(); // Crashes -- why? */
+  Py_Finalize();
   return 0;
 }
 
