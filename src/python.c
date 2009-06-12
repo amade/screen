@@ -37,6 +37,8 @@
 #include <Python.h>
 #include <structmember.h>
 
+#define RETURN_NONE  do { Py_INCREF(Py_None); return Py_None; } while (0)
+
 extern struct win *windows;
 extern struct display *display, *displays;
 extern struct layer *flayer;
@@ -116,8 +118,7 @@ PyString_FromStringSafe(const char *str)
 {
   if (str)
     return PyString_FromString(str);
-  Py_INCREF(Py_None);
-  return Py_None;
+  RETURN_NONE;
 }
 
 /** Window {{{ */
@@ -135,7 +136,22 @@ static SPyClosure wclosures[] =
   SPY_CLOSURE("pid", "Window pid", T_INT, w_pid, NULL),
   {NULL}
 };
-REGISTER_TYPE(window, Window, wclosures, NULL)
+
+static PyObject *
+window_select(PyObject *self)
+{
+  PyWindow *win = self;
+  struct win *w = win->_obj;
+  SwitchWindow(w->w_number);
+  RETURN_NONE;
+}
+
+static PyMethodDef wmethods[] = {
+  {"select", (PyCFunction)window_select, METH_NOARGS, "Select the window."},
+  {NULL},
+};
+
+REGISTER_TYPE(window, Window, wclosures, wmethods)
 #undef SPY_CLOSURE
 /** }}} */
 
@@ -178,11 +194,10 @@ callback_unhook(PyObject *obj)
   unregister_listener(scallback->listener);
   FreeCallback(scallback);
   cb->_obj = NULL;
-  Py_INCREF(Py_None);
-  return Py_None;
+  RETURN_NONE;
 }
 
-static PyMethodDef cmethods[] ={
+static PyMethodDef cmethods[] = {
   {"unhook", (PyCFunction)callback_unhook, METH_NOARGS, "Unhook this event callback."},
   {NULL}
 };
@@ -294,8 +309,7 @@ screen_display(PyObject *self)
 {
   if (!display)
     {
-      Py_INCREF(Py_None);
-      return Py_None;
+      RETURN_NONE;
     }
   return PyObject_FromDisplay(display);
 }
@@ -376,8 +390,7 @@ hook_event(PyObject *self, PyObject *args, PyObject *kw)
 
       LMsg(0, "Hook could not be registered.");
 
-      Py_INCREF(Py_None);
-      return Py_None;
+      RETURN_NONE;
     }
 
   Py_INCREF((PyObject *)l->handler);
@@ -424,8 +437,7 @@ screen_input(PyObject *self, PyObject *args, PyObject *kw)
       LayProcess(&pre, &len);
     }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  RETURN_NONE;
 }
 
 const PyMethodDef py_methods[] = {
