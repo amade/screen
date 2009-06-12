@@ -38,7 +38,7 @@
 #include <structmember.h>
 
 extern struct win *windows;
-extern struct display *display;
+extern struct display *display, *displays;
 
 static PyObject * SPy_Get(PyObject *obj, void *closure);
 static PyObject * SPy_Set(PyObject *obj, PyObject *value, void *closure);
@@ -197,6 +197,21 @@ screen_display(PyObject *self)
 }
 
 static PyObject *
+screen_displays(PyObject *self)
+{
+  struct display *d = displays;
+  int count = 0;
+  for (; d; d = d->d_next)
+    ++count;
+  PyObject *tuple = PyTuple_New(count);
+
+  for (d = displays, count = 0; d; d = d->d_next, ++count)
+    PyTuple_SetItem(tuple, count, PyObject_FromDisplay(d));
+
+  return tuple;
+}
+
+static PyObject *
 screen_windows(PyObject *self)
 {
   struct win *w = windows;
@@ -213,6 +228,7 @@ screen_windows(PyObject *self)
 
 const PyMethodDef py_methods[] = {
   {"display", (PyCFunction)screen_display, METH_NOARGS, NULL},
+  {"displays", (PyCFunction)screen_displays, METH_NOARGS, NULL},
   {"windows", (PyCFunction)screen_windows, METH_NOARGS, NULL},
   {NULL, NULL, 0, NULL}
 };
