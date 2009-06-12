@@ -1,6 +1,9 @@
 /* Lua scripting support
  *
  * Copyright (c) 2008 Sadrul Habib Chowdhury (sadrul@users.sf.net)
+ * Copyright (c) 2009
+ *	Sadrul Habib Chowdhury (sadrul@users.sf.net)
+ *	Rui Guo (firemeteor.guo@gmail.com)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
