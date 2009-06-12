@@ -38,6 +38,7 @@
 #include <structmember.h>
 
 extern struct win *windows;
+extern struct display *display;
 
 static PyObject * SPy_Get(PyObject *obj, void *closure);
 static PyObject * SPy_Set(PyObject *obj, PyObject *value, void *closure);
@@ -130,6 +131,24 @@ REGISTER_TYPE(window, Window, wclosures)
 
 /** }}} */
 
+/** Display {{{ */
+DEFINE_TYPE(struct display, Display)
+
+#define SPY_CLOSURE(name, doc, type, member, func) \
+    {name, doc, type, offsetof(PyDisplay, _obj), offsetof(struct display, member), func}
+static SPyClosure dclosures[] =
+{
+  SPY_CLOSURE("tty", "Display TTY", T_STRING_INPLACE, d_usertty, NULL),
+  SPY_CLOSURE("term", "Display Term", T_STRING_INPLACE, d_termname, NULL),
+  SPY_CLOSURE("fore", "Foreground window of the display", T_OBJECT_EX, d_fore, PyObject_FromWindow),
+  SPY_CLOSURE("width", "Display width", T_INT, d_width, NULL),
+  SPY_CLOSURE("height", "Display height", T_INT, d_height, NULL),
+  {NULL}
+};
+REGISTER_TYPE(display, Display, dclosures)
+#undef SPY_CLOSURE
+/** }}} */
+
 static PyObject *
 SPy_Get(PyObject *obj, void *closure)
 {
@@ -167,6 +186,17 @@ SPy_Set(PyObject *obj, PyObject *value, void *closure)
 }
 
 static PyObject *
+screen_display(PyObject *self)
+{
+  if (!display)
+    {
+      Py_INCREF(Py_None);
+      return Py_None;
+    }
+  return PyObject_FromDisplay(display);
+}
+
+static PyObject *
 screen_windows(PyObject *self)
 {
   struct win *w = windows;
@@ -182,6 +212,7 @@ screen_windows(PyObject *self)
 }
 
 const PyMethodDef py_methods[] = {
+  {"display", (PyCFunction)screen_display, METH_NOARGS, NULL},
   {"windows", (PyCFunction)screen_windows, METH_NOARGS, NULL},
   {NULL, NULL, 0, NULL}
 };
@@ -195,6 +226,7 @@ SPyInit(void)
 
   m = Py_InitModule3 ("screen", py_methods, NULL);
   register_window(m);
+  register_display(m);
 
   return 0;
 }
