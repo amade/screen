@@ -64,6 +64,10 @@ typedef struct
   PyObject * (*conv)(void *);
 } SPyClosure;
 
+
+#define compare_display NULL
+#define compare_callback NULL
+
 #define REGISTER_TYPE(type, Type, closures, methods) \
 static int \
 register_##type(PyObject *module) \
@@ -80,6 +84,7 @@ register_##type(PyObject *module) \
     } \
   PyType##Type.tp_getset = getsets; \
   PyType##Type.tp_methods = methods; \
+  PyType##Type.tp_compare = compare_##type; \
   PyType_Ready(&PyType##Type); \
   Py_INCREF(&PyType##Type); \
   PyModule_AddObject(module, #Type, (PyObject *)&PyType##Type); \
@@ -150,6 +155,15 @@ static PyMethodDef wmethods[] = {
   {"select", (PyCFunction)window_select, METH_NOARGS, "Select the window."},
   {NULL},
 };
+
+static int
+compare_window(PyWindow *one, PyWindow *two)
+{
+  struct win *wone = one->_obj;
+  struct win *wtwo = two->_obj;
+
+  return wtwo->w_number - wone->w_number;
+}
 
 REGISTER_TYPE(window, Window, wclosures, wmethods)
 #undef SPY_CLOSURE
