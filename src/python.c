@@ -39,6 +39,7 @@
 
 extern struct win *windows;
 extern struct display *display, *displays;
+extern struct layer *flayer;
 
 static PyObject * SPy_Get(PyObject *obj, void *closure);
 static PyObject * SPy_Set(PyObject *obj, PyObject *value, void *closure);
@@ -340,7 +341,7 @@ hook_event(PyObject *self, PyObject *args, PyObject *kw)
   struct listener *l;
   SPyCallback *scallback;
 
-  if (!PyArg_ParseTuple(args, "sO:screen.hook", &name, &callback))
+  if (!PyArg_ParseTupleAndKeywords(args, kw, "sO:screen.hook", kwlist, &name, &callback))
     return NULL;   /* Return Py_None instead? */
 
   if (!PyCallable_Check(callback))
@@ -383,10 +384,55 @@ hook_event(PyObject *self, PyObject *args, PyObject *kw)
   return l->handler;
 }
 
+static void
+screen_input_cb(char *buf, int len, char *p)
+{
+  PyObject *callback = p;
+  PyObject *str = PyTuple_New(1);
+  PyTuple_SetItem(str, 0, PyString_FromStringSafe(buf));
+  PyObject_CallObject(callback, str);
+  Py_DECREF(str);
+  Py_DECREF(callback);
+}
+
+static PyObject *
+screen_input(PyObject *self, PyObject *args, PyObject *kw)
+{
+  static char *kwlist[] = {"prompt", "callback", "value (optional)", NULL};
+  char *prompt, *pre = NULL;
+  PyObject *callback;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|s:screen.input", kwlist, &prompt, &callback, &pre))
+    {
+      LMsg(0, "Could not parse all the parameters to screen.input call.");
+      return NULL;
+    }
+
+  if (!PyCallable_Check(callback))
+    {
+      LMsg(0, "Input callback must be a callable object.");
+      return NULL;
+    }
+
+  Py_INCREF(callback);
+  Input(prompt, 100 /* huh? */,
+      INP_COOKED, screen_input_cb, callback, 0);
+
+  if (pre && *pre)
+    {
+      int len = strlen(pre);
+      LayProcess(&pre, &len);
+    }
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
 const PyMethodDef py_methods[] = {
   {"display", (PyCFunction)screen_display, METH_NOARGS, "Get the current display."},
   {"displays", (PyCFunction)screen_displays, METH_NOARGS, "Get the list of displays."},
   {"hook", (PyCFunction)hook_event, METH_VARARGS|METH_KEYWORDS, "Hook a callback to an event."},
+  {"input", (PyCFunction)screen_input, METH_VARARGS|METH_KEYWORDS, "Read user input interactively."},
   {"windows", (PyCFunction)screen_windows, METH_NOARGS, "Get the list of windows."},
   {NULL, NULL, 0, NULL}
 };
