@@ -42,6 +42,7 @@ extern struct display *display, *displays;
 
 static PyObject * SPy_Get(PyObject *obj, void *closure);
 static PyObject * SPy_Set(PyObject *obj, PyObject *value, void *closure);
+static int PyDispatch(void *handler, const char *params, va_list va);
 
 typedef struct
 {
@@ -128,7 +129,6 @@ static SPyClosure wclosures[] =
 };
 REGISTER_TYPE(window, Window, wclosures)
 #undef SPY_CLOSURE
-
 /** }}} */
 
 /** Display {{{ */
@@ -185,6 +185,67 @@ SPy_Set(PyObject *obj, PyObject *value, void *closure)
   return NULL;
 }
 
+static int
+PyDispatch(void *handler, const char *params, va_list va)
+{
+  PyObject *callback = handler;
+  PyObject *args, *ret;
+  int count, retval;
+  char *p;
+
+  for (count = 0, p = params; *p; p++, count++)
+    ;
+  if (count > 0)
+    args = PyTuple_New(count);
+  else
+    args = NULL;
+
+  for (count = 0, p = params; *p; p++, count++)
+    {
+      PyObject *item = NULL;
+      switch (*p)
+	{
+	  case 's':
+	    item = PyString_FromStringSafe(va_arg(va, char *));
+	    break;
+	  case 'S':
+	    {
+	      const char **ls = va_arg(va, char **), **iter;
+	      int c = 0;
+	      for (iter = ls; iter && *iter; iter++, c++)
+		;
+	      if (c == 0)
+		break;
+	      item = PyTuple_New(c);
+	      for (c = 0, iter = ls; iter && *iter; iter++, c++)
+		PyTuple_SetItem(item, c, PyString_FromStringSafe(*iter));
+	    }
+	    break;
+	  case 'i':
+	    item = PyInt_FromLong(va_arg(va, int));
+	    break;
+	  case 'd':
+	    item = PyObject_FromDisplay(va_arg(va, struct display *));
+	    break;
+	}
+
+      if (!item)
+	{
+	  item = Py_None;
+	  Py_INCREF(Py_None);
+	}
+      PyTuple_SetItem(args, count, item);
+    }
+
+  ret = PyObject_CallObject(callback, args);
+  retval = (int)PyInt_AsLong(ret);
+
+  Py_DECREF(args);
+  Py_DECREF(ret);
+  return retval;
+}
+
+/** Screen {{{ */
 static PyObject *
 screen_display(PyObject *self)
 {
@@ -226,12 +287,62 @@ screen_windows(PyObject *self)
   return tuple;
 }
 
+static PyObject *
+hook_event(PyObject *self, PyObject *args, PyObject *kw)
+{
+  static char *kwlist[] = {"event", "callback", NULL};
+  PyObject *callback;
+  char *name;
+
+  struct script_event *sev;
+  struct listener *l;
+
+  if (!PyArg_ParseTuple(args, "sO:screen.hook", &name, &callback))
+    return NULL;   /* Return Py_None instead? */
+
+  if (!PyCallable_Check(callback))
+    {
+      PyErr_SetString(PyExc_TypeError, "The event-callback functions must be callable.");
+      LMsg(0, "The event-callback functions must be callable.");
+      return NULL;
+    }
+
+  sev = object_get_event(NULL, name);
+  if (!sev)
+    {
+      LMsg(0, "No event named '%s'", name);
+      return NULL;
+    }
+
+  l = malloc(sizeof(struct listener));
+
+  l->handler = callback;
+  l->priv = 0;
+  l->dispatcher = PyDispatch;
+  Py_INCREF(callback);
+  if (register_listener(sev, l))
+    {
+      Free(l);
+      Py_DECREF(callback);
+      LMsg(0, "Hook could not be registered.");
+
+      Py_INCREF(Py_None);
+      return Py_None;
+    }
+
+  Py_INCREF(callback);
+  return callback;
+}
+
 const PyMethodDef py_methods[] = {
-  {"display", (PyCFunction)screen_display, METH_NOARGS, NULL},
-  {"displays", (PyCFunction)screen_displays, METH_NOARGS, NULL},
-  {"windows", (PyCFunction)screen_windows, METH_NOARGS, NULL},
+  {"display", (PyCFunction)screen_display, METH_NOARGS, "Get the current display."},
+  {"displays", (PyCFunction)screen_displays, METH_NOARGS, "Get the list of displays."},
+  {"hook", (PyCFunction)hook_event, METH_VARARGS|METH_KEYWORDS, "Hook a callback to an event."},
+  {"windows", (PyCFunction)screen_windows, METH_NOARGS, "Get the list of windows."},
   {NULL, NULL, 0, NULL}
 };
+
+/** }}} */
 
 static int
 SPyInit(void)
