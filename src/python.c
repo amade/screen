@@ -74,43 +74,59 @@ register_##type(PyObject *module) \
   return 1; \
 }
 
-/** Window {{{ */
-typedef struct
-{
-  PyObject_HEAD
-  struct win *_obj;
-} PyWindow;
+#define DEFINE_TYPE(str, Type) \
+typedef struct \
+{ \
+  PyObject_HEAD \
+  str *_obj; \
+} Py##Type; \
+\
+static PyTypeObject PyType##Type = \
+{ \
+  PyObject_HEAD_INIT(NULL) \
+  .ob_size = 0, \
+  .tp_name = "screen." #Type, \
+  .tp_basicsize = sizeof(Py##Type), \
+  .tp_flags = Py_TPFLAGS_DEFAULT, \
+  .tp_doc = #Type " object", \
+  .tp_methods = NULL, \
+  .tp_getset = NULL, \
+}; \
+\
+static PyObject * \
+PyObject_From##Type(str *_obj) \
+{ \
+  Py##Type *obj = PyType##Type.tp_alloc(&PyType##Type, 0); \
+  obj->_obj = _obj; \
+  return (PyObject *)obj; \
+}
 
-static PyTypeObject PyTypeWindow =
+static PyObject *
+PyString_FromStringSafe(const char *str)
 {
-  PyObject_HEAD_INIT(NULL)
-  .ob_size = 0,
-  .tp_name = "screen.window",
-  .tp_basicsize = sizeof(PyWindow),
-  .tp_flags = Py_TPFLAGS_DEFAULT,
-  .tp_doc = "Window object",
-  .tp_methods = NULL,
-  .tp_getset = NULL,
-};
+  if (str)
+    return PyString_FromString(str);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+/** Window {{{ */
+DEFINE_TYPE(struct win, Window)
 
 #define SPY_CLOSURE(name, doc, type, member, func) \
     {name, doc, type, offsetof(PyWindow, _obj), offsetof(struct win, member), func}
 static SPyClosure wclosures[] =
 {
-  SPY_CLOSURE("title", "Window title", T_STRING, w_title, PyString_FromString),
-  SPY_CLOSURE("number", "Window number", T_INT, w_number, PyInt_FromLong),
+  SPY_CLOSURE("title", "Window title", T_STRING, w_title, NULL),
+  SPY_CLOSURE("number", "Window number", T_INT, w_number, NULL),
+  SPY_CLOSURE("dir", "Window directory", T_STRING, w_dir, NULL),
+  SPY_CLOSURE("tty", "TTY belonging to the window", T_STRING_INPLACE, w_tty, NULL),
+  SPY_CLOSURE("group", "The group the window belongs to", T_OBJECT_EX, w_group, PyObject_FromWindow),
+  SPY_CLOSURE("pid", "Window pid", T_INT, w_pid, NULL),
   {NULL}
 };
 REGISTER_TYPE(window, Window, wclosures)
 #undef SPY_CLOSURE
-
-static PyObject *
-PyWindow_FromWindow(struct win *w)
-{
-  PyWindow *obj = PyTypeWindow.tp_alloc(&PyTypeWindow, 0);
-  obj->_obj = w;
-  return (PyObject *)obj;
-}
 
 /** }}} */
 
@@ -120,7 +136,28 @@ SPy_Get(PyObject *obj, void *closure)
   SPyClosure *sc = closure;
   char **first = (char *)obj + sc->offset1;
   char **second = (char *)*first + sc->offset2;
-  return sc->conv(*second);
+  PyObject *(*cb)(void *) = sc->conv;
+  void *data = *second;
+
+  if (!cb)
+    {
+      switch (sc->type)
+	{
+	  case T_STRING:
+	    cb = PyString_FromStringSafe;
+	    data = *second;
+	    break;
+	  case T_STRING_INPLACE:
+	    cb = PyString_FromStringSafe;
+	    data = second;
+	    break;
+	  case T_INT:
+	    cb = PyInt_FromLong;
+	    data = *second;
+	    break;
+	}
+    }
+  return cb(data);
 }
 
 static PyObject *
@@ -139,7 +176,7 @@ screen_windows(PyObject *self)
   PyObject *tuple = PyTuple_New(count);
 
   for (w = windows, count = 0; w; w = w->w_next, ++count)
-    PyTuple_SetItem(tuple, count, PyWindow_FromWindow(w));
+    PyTuple_SetItem(tuple, count, PyObject_FromWindow(w));
 
   return tuple;
 }
