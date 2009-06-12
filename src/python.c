@@ -46,6 +46,12 @@ static int PyDispatch(void *handler, const char *params, va_list va);
 
 typedef struct
 {
+  PyObject *callback;
+  struct listener *listener;
+} SPyCallback;
+
+typedef struct
+{
   char *name;
   char *doc;
 
@@ -55,7 +61,7 @@ typedef struct
   PyObject * (*conv)(void *);
 } SPyClosure;
 
-#define REGISTER_TYPE(type, Type, closures) \
+#define REGISTER_TYPE(type, Type, closures, methods) \
 static int \
 register_##type(PyObject *module) \
 { \
@@ -70,6 +76,7 @@ register_##type(PyObject *module) \
       getsets[i].set = SPy_Set; \
     } \
   PyType##Type.tp_getset = getsets; \
+  PyType##Type.tp_methods = methods; \
   PyType_Ready(&PyType##Type); \
   Py_INCREF(&PyType##Type); \
   PyModule_AddObject(module, #Type, (PyObject *)&PyType##Type); \
@@ -127,7 +134,7 @@ static SPyClosure wclosures[] =
   SPY_CLOSURE("pid", "Window pid", T_INT, w_pid, NULL),
   {NULL}
 };
-REGISTER_TYPE(window, Window, wclosures)
+REGISTER_TYPE(window, Window, wclosures, NULL)
 #undef SPY_CLOSURE
 /** }}} */
 
@@ -145,8 +152,40 @@ static SPyClosure dclosures[] =
   SPY_CLOSURE("height", "Display height", T_INT, d_height, NULL),
   {NULL}
 };
-REGISTER_TYPE(display, Display, dclosures)
+REGISTER_TYPE(display, Display, dclosures, NULL)
 #undef SPY_CLOSURE
+/** }}} */
+
+/** Callback {{{ */
+DEFINE_TYPE(SPyCallback, Callback)
+static SPyClosure cclosures[] = {{NULL}};
+
+static void
+FreeCallback(SPyCallback *scallback)
+{
+  Py_XDECREF(scallback->callback);
+  Free(scallback);
+}
+
+static PyObject *
+callback_unhook(PyObject *obj)
+{
+  PyCallback *cb = obj;
+  SPyCallback *scallback = cb->_obj;
+  if (!scallback)
+    return NULL;
+  unregister_listener(scallback->listener);
+  FreeCallback(scallback);
+  cb->_obj = NULL;
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+static PyMethodDef cmethods[] ={
+  {"unhook", (PyCFunction)callback_unhook, METH_NOARGS, "Unhook this event callback."},
+  {NULL}
+};
+REGISTER_TYPE(callback, Callback, cclosures, cmethods)
 /** }}} */
 
 static PyObject *
@@ -188,10 +227,11 @@ SPy_Set(PyObject *obj, PyObject *value, void *closure)
 static int
 PyDispatch(void *handler, const char *params, va_list va)
 {
-  PyObject *callback = handler;
+  PyCallback *callback = handler;
   PyObject *args, *ret;
   int count, retval;
-  char *p;
+  const char *p;
+  SPyCallback *scallback = callback->_obj;
 
   for (count = 0, p = params; *p; p++, count++)
     ;
@@ -210,7 +250,7 @@ PyDispatch(void *handler, const char *params, va_list va)
 	    break;
 	  case 'S':
 	    {
-	      const char **ls = va_arg(va, char **), **iter;
+	      char **ls = va_arg(va, char **), **iter;
 	      int c = 0;
 	      for (iter = ls; iter && *iter; iter++, c++)
 		;
@@ -237,10 +277,12 @@ PyDispatch(void *handler, const char *params, va_list va)
       PyTuple_SetItem(args, count, item);
     }
 
-  ret = PyObject_CallObject(callback, args);
-  retval = (int)PyInt_AsLong(ret);
-
+  ret = PyObject_CallObject(scallback->callback, args);
   Py_DECREF(args);
+  if (!ret)
+    return 0;
+
+  retval = (int)PyInt_AsLong(ret);
   Py_DECREF(ret);
   return retval;
 }
@@ -296,6 +338,7 @@ hook_event(PyObject *self, PyObject *args, PyObject *kw)
 
   struct script_event *sev;
   struct listener *l;
+  SPyCallback *scallback;
 
   if (!PyArg_ParseTuple(args, "sO:screen.hook", &name, &callback))
     return NULL;   /* Return Py_None instead? */
@@ -316,22 +359,28 @@ hook_event(PyObject *self, PyObject *args, PyObject *kw)
 
   l = malloc(sizeof(struct listener));
 
-  l->handler = callback;
+  scallback = malloc(sizeof(SPyCallback));
+  scallback->callback = callback;
+  scallback->listener = l;
+  Py_INCREF(scallback->callback);
+
+  l->handler = PyObject_FromCallback(scallback);
   l->priv = 0;
   l->dispatcher = PyDispatch;
-  Py_INCREF(callback);
   if (register_listener(sev, l))
     {
+      Py_DECREF((PyObject *)l->handler);
+      FreeCallback(scallback);
       Free(l);
-      Py_DECREF(callback);
+
       LMsg(0, "Hook could not be registered.");
 
       Py_INCREF(Py_None);
       return Py_None;
     }
 
-  Py_INCREF(callback);
-  return callback;
+  Py_INCREF((PyObject *)l->handler);
+  return l->handler;
 }
 
 const PyMethodDef py_methods[] = {
@@ -341,7 +390,6 @@ const PyMethodDef py_methods[] = {
   {"windows", (PyCFunction)screen_windows, METH_NOARGS, "Get the list of windows."},
   {NULL, NULL, 0, NULL}
 };
-
 /** }}} */
 
 static int
@@ -354,6 +402,7 @@ SPyInit(void)
   m = Py_InitModule3 ("screen", py_methods, NULL);
   register_window(m);
   register_display(m);
+  register_callback(m);
 
   return 0;
 }
