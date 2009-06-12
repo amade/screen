@@ -68,6 +68,9 @@ typedef struct
 #define compare_display NULL
 #define compare_callback NULL
 
+#define repr_display NULL
+#define repr_callback NULL
+
 #define REGISTER_TYPE(type, Type, closures, methods) \
 static int \
 register_##type(PyObject *module) \
@@ -85,6 +88,7 @@ register_##type(PyObject *module) \
   PyType##Type.tp_getset = getsets; \
   PyType##Type.tp_methods = methods; \
   PyType##Type.tp_compare = compare_##type; \
+  PyType##Type.tp_repr = repr_##type; \
   PyType_Ready(&PyType##Type); \
   Py_INCREF(&PyType##Type); \
   PyModule_AddObject(module, #Type, (PyObject *)&PyType##Type); \
@@ -163,6 +167,14 @@ compare_window(PyWindow *one, PyWindow *two)
   struct win *wtwo = two->_obj;
 
   return wtwo->w_number - wone->w_number;
+}
+
+static PyObject *
+repr_window(PyObject *obj)
+{
+  PyWindow *w = obj;
+  struct win *win = w->_obj;
+  return PyString_FromFormat("window (title: %s, number: %d)", win->w_title, win->w_number);
 }
 
 REGISTER_TYPE(window, Window, wclosures, wmethods)
