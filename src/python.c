@@ -65,10 +65,7 @@ typedef struct
 } SPyClosure;
 
 
-#define compare_display NULL
 #define compare_callback NULL
-
-#define repr_display NULL
 #define repr_callback NULL
 
 #define REGISTER_TYPE(type, Type, closures, methods) \
@@ -195,7 +192,40 @@ static SPyClosure dclosures[] =
   SPY_CLOSURE("height", "Display height", T_INT, d_height, NULL),
   {NULL}
 };
-REGISTER_TYPE(display, Display, dclosures, NULL)
+
+static PyMethodDef dmethods[] =
+{
+  {NULL}
+};
+
+static int
+compare_display(PyDisplay *one, PyDisplay *two)
+{
+  struct display *done = one->_obj;
+  struct display *dtwo = two->_obj;
+  struct display *iter;
+
+  if (done->d_userpid == dtwo->d_userpid)
+    return 0;
+
+  for (iter = displays; iter; iter = iter->d_next)
+    if (iter == done)
+      return -1;
+    else if (iter == dtwo)
+      return 1;
+
+  return 0;
+}
+
+static PyObject *
+repr_display(PyObject *obj)
+{
+  PyDisplay *d = obj;
+  struct display *disp = d->_obj;
+  return PyString_FromFormat("display (term: %s, tty: %s)", disp->d_termname, disp->d_usertty);
+}
+
+REGISTER_TYPE(display, Display, dclosures, dmethods)
 #undef SPY_CLOSURE
 /** }}} */
 
