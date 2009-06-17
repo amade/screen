@@ -46,6 +46,7 @@ extern struct layer *flayer;
 static PyObject * SPy_Get(PyObject *obj, void *closure);
 static PyObject * SPy_Set(PyObject *obj, PyObject *value, void *closure);
 static int PyDispatch(void *handler, const char *params, va_list va);
+static PyObject * register_event_hook(PyObject *self, PyObject *args, PyObject *kw, void *object);
 
 typedef struct
 {
@@ -82,6 +83,7 @@ register_##type(PyObject *module) \
       getsets[i].get = SPy_Get; \
       getsets[i].set = SPy_Set; \
     } \
+  PyType##Type.tp_base = &ScreenObjectType; \
   PyType##Type.tp_getset = getsets; \
   PyType##Type.tp_methods = methods; \
   PyType##Type.tp_compare = compare_##type; \
@@ -95,7 +97,7 @@ register_##type(PyObject *module) \
 #define DEFINE_TYPE(str, Type) \
 typedef struct \
 { \
-  PyObject_HEAD \
+  ScreenObject __parent; \
   str *_obj; \
 } Py##Type; \
 \
@@ -126,6 +128,48 @@ PyString_FromStringSafe(const char *str)
     return PyString_FromString(str);
   RETURN_NONE;
 }
+
+/** Generic Object {{{ */
+typedef struct
+{
+  PyObject_HEAD
+  char *name;
+} ScreenObject;
+
+static PyObject *
+object_hook(PyObject *self, PyObject *args, PyObject *kw)
+{
+  char *object;
+  object = *(char **)((char *)self + sizeof(ScreenObject));   /* ugliness */
+  return register_event_hook(self, args, kw, object);
+}
+
+static PyMethodDef omethods[] = {
+  {"hook", (PyCFunction)object_hook, METH_VARARGS | METH_KEYWORDS, "Hook to an event on the object."},
+  {NULL}
+};
+
+static PyTypeObject ScreenObjectType =
+{
+  PyObject_HEAD_INIT(NULL)
+  .ob_size = 0,
+  .tp_name = "screen.Object",
+  .tp_basicsize = sizeof(ScreenObject),
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+  .tp_doc = "Generic object",
+  .tp_methods = omethods,
+  .tp_getset = NULL,
+};
+
+static int
+register_object(PyObject *module)
+{
+  PyType_Ready(&ScreenObjectType);
+  Py_INCREF(&ScreenObjectType);
+  PyModule_AddObject(module, "Generic Object", (PyObject *)&ScreenObjectType);
+}
+
+/** }}} */
 
 /** Window {{{ */
 DEFINE_TYPE(struct win, Window)
@@ -359,6 +403,62 @@ PyDispatch(void *handler, const char *params, va_list va)
   return retval;
 }
 
+static PyObject *
+register_event_hook(PyObject *self, PyObject *args, PyObject *kw, void *object)
+{
+  static char *kwlist[] = {"event", "callback", NULL};
+
+  PyObject *callback;
+  char *name;
+
+  struct script_event *sev;
+  struct listener *l;
+  SPyCallback *scallback;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kw, "sO:screen.hook", kwlist, &name, &callback))
+    return NULL;   /* Return Py_None instead? */
+
+  if (!PyCallable_Check(callback))
+    {
+      PyErr_SetString(PyExc_TypeError, "The event-callback functions must be callable.");
+      LMsg(0, "The event-callback functions must be callable.");
+      return NULL;
+    }
+
+  sev = object_get_event(object, name);
+  if (!sev)
+    {
+      LMsg(0, "No event named '%s'", name);
+      return NULL;
+    }
+
+  l = malloc(sizeof(struct listener));
+
+  scallback = malloc(sizeof(SPyCallback));
+  scallback->callback = callback;
+  scallback->listener = l;
+  Py_INCREF(scallback->callback);
+
+  l->handler = PyObject_FromCallback(scallback);
+  l->priv = 0;
+  l->dispatcher = PyDispatch;
+  if (register_listener(sev, l))
+    {
+      Py_DECREF((PyObject *)l->handler);
+      FreeCallback(scallback);
+      Free(l);
+
+      LMsg(0, "Hook could not be registered.");
+
+      RETURN_NONE;
+    }
+
+  Py_INCREF((PyObject *)l->handler);
+  return l->handler;
+
+  RETURN_NONE;
+}
+
 /** Screen {{{ */
 static PyObject *
 screen_display(PyObject *self)
@@ -403,54 +503,7 @@ screen_windows(PyObject *self)
 static PyObject *
 hook_event(PyObject *self, PyObject *args, PyObject *kw)
 {
-  static char *kwlist[] = {"event", "callback", NULL};
-  PyObject *callback;
-  char *name;
-
-  struct script_event *sev;
-  struct listener *l;
-  SPyCallback *scallback;
-
-  if (!PyArg_ParseTupleAndKeywords(args, kw, "sO:screen.hook", kwlist, &name, &callback))
-    return NULL;   /* Return Py_None instead? */
-
-  if (!PyCallable_Check(callback))
-    {
-      PyErr_SetString(PyExc_TypeError, "The event-callback functions must be callable.");
-      LMsg(0, "The event-callback functions must be callable.");
-      return NULL;
-    }
-
-  sev = object_get_event(NULL, name);
-  if (!sev)
-    {
-      LMsg(0, "No event named '%s'", name);
-      return NULL;
-    }
-
-  l = malloc(sizeof(struct listener));
-
-  scallback = malloc(sizeof(SPyCallback));
-  scallback->callback = callback;
-  scallback->listener = l;
-  Py_INCREF(scallback->callback);
-
-  l->handler = PyObject_FromCallback(scallback);
-  l->priv = 0;
-  l->dispatcher = PyDispatch;
-  if (register_listener(sev, l))
-    {
-      Py_DECREF((PyObject *)l->handler);
-      FreeCallback(scallback);
-      Free(l);
-
-      LMsg(0, "Hook could not be registered.");
-
-      RETURN_NONE;
-    }
-
-  Py_INCREF((PyObject *)l->handler);
-  return l->handler;
+  return register_event_hook(self, args, kw, NULL);
 }
 
 static void
@@ -514,6 +567,7 @@ SPyInit(void)
   Py_Initialize();
 
   m = Py_InitModule3 ("screen", py_methods, NULL);
+  register_object(m);
   register_window(m);
   register_display(m);
   register_callback(m);
