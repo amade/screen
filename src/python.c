@@ -44,7 +44,7 @@ extern struct display *display, *displays;
 extern struct layer *flayer;
 
 static PyObject * SPy_Get(PyObject *obj, void *closure);
-static PyObject * SPy_Set(PyObject *obj, PyObject *value, void *closure);
+static int  SPy_Set(PyObject *obj, PyObject *value, void *closure);
 static int PyDispatch(void *handler, const char *params, va_list va);
 static PyObject * register_event_hook(PyObject *self, PyObject *args, PyObject *kw, void *object);
 
@@ -63,6 +63,7 @@ typedef struct
   size_t offset1;
   size_t offset2;
   PyObject * (*conv)(void *);
+  int (*setter)(void *, PyObject *);
 } SPyClosure;
 
 
@@ -174,16 +175,26 @@ register_object(PyObject *module)
 /** Window {{{ */
 DEFINE_TYPE(struct win, Window)
 
-#define SPY_CLOSURE(name, doc, type, member, func) \
-    {name, doc, type, offsetof(PyWindow, _obj), offsetof(struct win, member), func}
+static int
+window_set_title(struct win *win, PyObject *value)
+{
+  char *string = PyString_AsString(value);
+  if (!string || !*string)
+    return -1;
+  ChangeAKA(win, string, strlen(string));
+  return 0;
+}
+
+#define SPY_CLOSURE(name, doc, type, member, func, setter) \
+    {name, doc, type, offsetof(PyWindow, _obj), offsetof(struct win, member), func, setter}
 static SPyClosure wclosures[] =
 {
-  SPY_CLOSURE("title", "Window title", T_STRING, w_title, NULL),
-  SPY_CLOSURE("number", "Window number", T_INT, w_number, NULL),
-  SPY_CLOSURE("dir", "Window directory", T_STRING, w_dir, NULL),
-  SPY_CLOSURE("tty", "TTY belonging to the window", T_STRING_INPLACE, w_tty, NULL),
-  SPY_CLOSURE("group", "The group the window belongs to", T_OBJECT_EX, w_group, PyObject_FromWindow),
-  SPY_CLOSURE("pid", "Window pid", T_INT, w_pid, NULL),
+  SPY_CLOSURE("title", "Window title", T_STRING, w_title, NULL, window_set_title),
+  SPY_CLOSURE("number", "Window number", T_INT, w_number, NULL, NULL),
+  SPY_CLOSURE("dir", "Window directory", T_STRING, w_dir, NULL, NULL),
+  SPY_CLOSURE("tty", "TTY belonging to the window", T_STRING_INPLACE, w_tty, NULL, NULL),
+  SPY_CLOSURE("group", "The group the window belongs to", T_OBJECT_EX, w_group, PyObject_FromWindow, NULL),
+  SPY_CLOSURE("pid", "Window pid", T_INT, w_pid, NULL, NULL),
   {NULL}
 };
 
@@ -334,10 +345,25 @@ SPy_Get(PyObject *obj, void *closure)
   return cb(data);
 }
 
-static PyObject *
+static int
 SPy_Set(PyObject *obj, PyObject *value, void *closure)
 {
-  return NULL;
+  SPyClosure *sc = closure;
+  char **first = (char *)obj + sc->offset1;
+  if (value == NULL)
+    {
+      PyErr_SetString(PyExc_TypeError, "Cannot remove an attribute value.");
+      return -1;
+    }
+  if (sc->setter == NULL)
+    {
+      char str[256];
+      snprintf(str, sizeof(str) - 1, "Cannot change '%s'.", sc->name);
+      PyErr_SetString(PyExc_TypeError, str);
+      return -1;
+    }
+
+  return sc->setter(*(void **)first, value);
 }
 
 static int
@@ -559,6 +585,7 @@ const PyMethodDef py_methods[] = {
 };
 /** }}} */
 
+static PyObject *module;
 static int
 SPyInit(void)
 {
@@ -571,6 +598,7 @@ SPyInit(void)
   register_window(m);
   register_display(m);
   register_callback(m);
+  module = m;
 
   return 0;
 }
@@ -601,6 +629,21 @@ SPySource(const char *file, int async)
   return 1;
 }
 
+static int
+SPyCall(char *func, char **argv)
+{
+  PyObject *dict = PyModule_GetDict(module);
+  PyObject *f = PyDict_GetItemString(dict, func);
+  PyObject *ret;
+  if (!f)
+    {
+      return 0;
+    }
+  ret = PyEval_CallFunction(f, "s", argv[0]);
+  Py_XDECREF(ret);
+  return 1;
+}
+
 struct binding py_binding =
 {
   "python",
@@ -608,7 +651,7 @@ struct binding py_binding =
   0,
   SPyInit,
   SPyFinit,
-  0,
+  SPyCall,
   SPySource,
   0,
   0
