@@ -1313,7 +1313,7 @@ EncodeChar(char *bp, int c, int encoding, int *fontp)
 	  if (bp)
 	    {
 	      *bp++ = 0x8e;
-	      *bp++ = c;
+	      *bp++ = c | 0x80;
 	    }
 	  return 2;
 	}
