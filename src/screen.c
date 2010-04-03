@@ -759,6 +759,7 @@ char **av;
 		  nwin_options.encoding = nwin_options.encoding == -1 ? UTF8 : 0;
 		  break;
 #endif
+#ifdef SCRIPT
 		case 'u':
 		  if (--ac == 0)
 		    exit_with_usage(myname, "Specify lua script file with -u", NULL);
@@ -766,6 +767,7 @@ char **av;
 		    free(script_file);
 		  script_file = SaveStr(*++av);
 		  break;
+#endif
 		default:
 		  exit_with_usage(myname, "Unknown option %s", --ap);
 		}
@@ -1904,6 +1906,9 @@ Hangup()
     Finit(0);
 }
 
+#ifndef SCRIPT
+#define trigger_sevent(x,y,z)
+#endif
 /*
  * Detach now has the following modes:
  *D_DETACH	 SIG_BYE	detach backend and exit attacher
