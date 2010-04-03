@@ -29,11 +29,11 @@ ETCSCREENRC = $(prefix)/etc/screenrc
 SCREENENCODINGS = $(datadir)/screen/utf8encodings
 
 CC = @CC@
-CFLAGS = @CFLAGS@ @LUA_CFLAGS@
+CFLAGS = @CFLAGS@ @LUA_CFLAGS@ @PYTHON_INCLUDES@
 CPPFLAGS = @CPPFLAGS@ -DETCSCREENRC='"$(ETCSCREENRC)"' \
            -DSCREENENCODINGS='"$(SCREENENCODINGS)"'
 LDFLAGS = @LDFLAGS@
-LIBS = @LIBS@ @LUA_LIBS@
+LIBS = @LIBS@ @LUA_LIBS@ @PYTHON_LIBS@
 
 CPP=@CPP@
 CPP_DEPEND=$(CC) -MM
@@ -63,14 +63,14 @@ CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
 	kmapdef.c acls.c braille.c braille_tsi.c logfile.c layer.c \
 	sched.c teln.c nethack.c encoding.c canvas.c layout.c viewport.c \
 	list_display.c list_generic.c list_window.c \
-	lua.c script.c
+	lua.c script.c python.c
 OFILES=	screen.o ansi.o fileio.o mark.o misc.o resize.o socket.o \
 	search.o tty.o term.o window.o utmp.o loadav.o putenv.o help.o \
 	termcap.o input.o attacher.o pty.o process.o display.o comm.o \
 	kmapdef.o acls.o braille.o braille_tsi.o logfile.o layer.o \
 	list_generic.o list_display.o list_window.o \
 	sched.o teln.o nethack.o encoding.o canvas.o layout.o viewport.o \
-	lua.o script.o
+	lua.o script.o python.o
 
 all:	screen
 

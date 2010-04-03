@@ -37,7 +37,7 @@ struct binding
   int registered;
   int (*bd_Init) __P((void));
   int (*bd_Finit) __P((void));
-  int (*bd_call) __P((char *func, char **argv));
+  int (*bd_call) __P((const char *func, const char **argv));
   /*Returns zero on failure, non zero on success*/
   int (*bd_Source) __P((const char *, int));
   struct binding *b_next;

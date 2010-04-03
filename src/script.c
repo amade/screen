@@ -21,6 +21,7 @@
 
 #include "config.h"
 #include "screen.h"
+#include "extern.h"
 #include <stddef.h>
 
 /*Binding structure & functions*/
@@ -42,10 +43,18 @@ register_binding (struct binding *new_binding)
 extern struct binding lua_binding;
 #endif
 
+#ifdef PY_BINDING
+extern struct binding py_binding;
+#endif
+
 void LoadBindings(void)
 {
 #ifdef LUA_BINDING
   register_binding(&lua_binding);
+#endif
+
+#ifdef PY_BINDING
+  register_binding(&py_binding);
 #endif
 }
 
@@ -70,7 +79,7 @@ ScriptSource(int argc, const char **argv)
   struct binding *binding = bindings;
 
   /* Parse the commandline options
-   * sourcescript [-async|-a] [-binding|-b <binding>] script
+   * script source [-async|-a] [-binding|-b <binding>] script
    */
   while (*argv && **argv == '-')
     {
@@ -81,38 +90,75 @@ ScriptSource(int argc, const char **argv)
         async = 1;
       /* check for (-b | -binding) */
       else if ((arg[1] == 'b' && !arg[2])
-               || strcmp(arg, "-binding") == 0) {
+               || strcmp(arg, "-binding") == 0)
+        {
           argv++;
           bd_select = *argv;
-      }
+        }
       argv++;
-  }
+    }
   script = *argv;
 
-  while (binding) {
-      if (!bd_select || strcmp(bd_select, binding->name) == 0) {
+  while (binding)
+    {
+      if (!bd_select || strcmp(bd_select, binding->name) == 0)
+        {
           /*dynamically initialize the binding*/
           if (!binding->inited)
-	    {
-	      binding->bd_Init();
-	      binding->inited = 1;
-	    }
+            {
+              binding->bd_Init();
+              binding->inited = 1;
+            }
 
           /*and source the script*/
-          if (ret = binding->bd_Source(script, async))
+          ret = binding->bd_Source(script, async);
+          if (ret)
             break;
-      }
+        }
       binding = binding->b_next;
-  }
+    }
   if (!ret)
-    LMsg(1, "Could not source specified script %s", script);
+    LMsg(0, "Could not source specified script %s", script);
 }
 
 int
-ScriptCall(const char *func, const char **argv)
+ScriptCall(int argc, const char **argv)
 {
-  /*TODO*/
-  return LuaCall(func, argv);
+  int ret = 0;
+  struct binding *binding = bindings;
+  const char *bd_select = 0, *func;
+  /* Parse the commandline options
+   * script call [-binding|-b <binding>] function
+   */
+  while (*argv && **argv == '-')
+    {
+      const char *arg = *argv;
+      /* check for (-b | -binding) */
+      if ((arg[1] == 'b' && !arg[2])
+          || strcmp(arg, "-binding") == 0)
+        {
+          argv++;
+          bd_select = *argv;
+        }
+      argv++;
+    }
+  func = *argv;
+  argv++;
+
+  while (binding)
+    {
+      if (!bd_select || strcmp(bd_select, binding->name) == 0)
+        {
+          ret = binding->bd_call(func, argv);
+          if (ret)
+            break;
+        }
+      binding = binding->b_next;
+    }
+
+  if (!ret)
+    LMsg(0, "Failed to run specified script coummand '%s'", func);
+  return ret;
 }
 
 void
@@ -121,7 +167,7 @@ ScriptCmd(int argc, const char **argv)
   const char * sub = *argv;
   argv++;argc--;
   if (!strcmp(sub, "call"))
-    ScriptCall(*argv, argv+1);
+    ScriptCall(argc, argv);
   else if (!strcmp(sub, "source"))
     ScriptSource(argc, argv);
 }

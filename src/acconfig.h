@@ -168,6 +168,7 @@
 /*Include the binding you would like to use.*/
 #ifdef SCRIPT
 #define LUA_BINDING
+#define PY_BINDING
 #endif
 
 #undef BUILTIN_TELNET
