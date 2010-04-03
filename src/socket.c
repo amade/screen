@@ -49,6 +49,7 @@
 #endif
 
 #include "extern.h"
+#include "list_generic.h"
 
 static int   CheckPid __P((int));
 static void  ExecCreate __P((struct msg *));
@@ -65,15 +66,17 @@ static void  AskPassword __P((struct msg *));
 extern char *RcFileName, *extra_incap, *extra_outcap;
 extern int ServerSocket, real_uid, real_gid, eff_uid, eff_gid;
 extern int dflag, iflag, rflag, lsflag, quietflag, wipeflag, xflag;
+extern int queryflag;
 extern char *attach_tty, *LoginName, HostName[];
 extern struct display *display, *displays;
-extern struct win *fore, *wtab[], *console_window, *windows;
+extern struct win *fore, **wtab, *console_window, *windows;
 extern struct layer *flayer;
 extern struct layout *layout_attach, *layout_last, layout_last_marker;
 extern struct NewWindow nwin_undef;
 #ifdef MULTIUSER
 extern char *multi;
 #endif
+extern int maxwin;
 
 extern char *getenv();
 
@@ -181,8 +184,21 @@ char *match;
 	  if (strncmp(match, "tty", 3) && strncmp(n, "tty", 3) == 0)
 	    n += 3;
 	  if (strncmp(match, n, matchlen))
-	    continue;
-	  cmatch = (*(n + matchlen) == 0);
+	    {
+	      if (n == name && *match > '0' && *match <= '9')
+		{
+		  while (*n >= '0' && *n <= '9')
+		    n++;
+		  if (*n == '.')
+		    n++;
+		  if (strncmp(match, n, matchlen))
+		    continue;
+		}
+	      else
+		continue;
+	    }
+	  else
+	    cmatch = (*(n + matchlen) == 0);
 	  debug1("  -> matched %s\n", match);
 	}
       sprintf(SockPath + sdirlen, "/%s", name);
@@ -435,7 +451,7 @@ MakeServerSocket()
       if (stat(SockPath, &st) == -1)
 	Panic(errno, "stat");
       if ((int)st.st_uid != real_uid)
-	Panic(0, "Unfortunatelly you are not its owner.");
+	Panic(0, "Unfortunately you are not its owner.");
       if ((st.st_mode & 0700) == 0600)
 	Panic(0, "To resume it, use \"screen -r\"");
       else
@@ -527,7 +543,7 @@ MakeServerSocket()
       if (stat(SockPath, &st) == -1)
 	Panic(errno, "stat");
       if (st.st_uid != real_uid)
-	Panic(0, "Unfortunatelly you are not its owner.");
+	Panic(0, "Unfortunately you are not its owner.");
       if ((st.st_mode & 0700) == 0600)
 	Panic(0, "To resume it, use \"screen -r\"");
       else
@@ -723,7 +739,7 @@ struct msg *mp;
 	  if (*buf)
 	    nwin.aka = buf;
 	  num = atoi(p);
-	  if (num < 0 || num > MAXWIN - 1)
+	  if (num < 0 || num > maxwin - 1)
 	    num = 0;
 	  nwin.StartAt = num;
 	  p += l + 1;
@@ -1156,12 +1172,58 @@ ReceiveMsg()
 	FinishDetach(&m);
       break;
 #endif
+    case MSG_QUERY:
+	{
+	  char *oldSockPath = SaveStr(SockPath);
+	  strcpy(SockPath, m.m.command.writeback);
+	  int s = MakeClientSocket(0);
+	  strcpy(SockPath, oldSockPath);
+	  Free(oldSockPath);
+	  if (s >= 0)
+	    {
+	      queryflag = s;
+	      DoCommandMsg(&m);
+	      close(s);
+	    }
+	  else
+	    queryflag = -1;
+
+	  Kill(m.m.command.apid, (queryflag >= 0) ? SIGCONT : SIG_BYE);	/* Send SIG_BYE if an error happened */
+	  queryflag = -1;
+	}
+      break;
     case MSG_COMMAND:
       DoCommandMsg(&m);
       break;
     default:
       Msg(0, "Invalid message (type %d).", m.type);
     }
+}
+
+void
+ReceiveRaw(s)
+int s;
+{
+  char rd[256];
+  int len = 0;
+#ifdef NAMEDPIPE
+  if (fcntl(s, F_SETFL, 0) == -1)
+    Panic(errno, "BLOCK fcntl");
+#else
+  struct sockaddr_un a;
+  len = sizeof(a);
+  if ((s = accept(s, (struct sockaddr *) &a, (void *)&len)) < 0)
+    {
+      Msg(errno, "accept");
+      return;
+    }
+#endif
+  while ((len = read(s, rd, 255)) > 0)
+    {
+      rd[len] = 0;
+      printf("%s", rd);
+    }
+  close(s);
 }
 
 #if defined(_SEQUENT_) && !defined(NAMEDPIPE)
@@ -1363,6 +1425,7 @@ struct msg *m;
 	  char *na = 0;
 	  newscreen.nr = RC_SCREEN;
 	  newscreen.args = &na;
+	  newscreen.quiet = 0;
 	  DoAction(&newscreen, -1);
 	}
       else
@@ -1378,9 +1441,11 @@ struct msg *m;
       if (!AclCheckPermCmd(D_user, ACL_EXEC, &comms[RC_WINDOWLIST]))
 #endif
 	{
+	  struct display *olddisplay = display;
 	  flayer = D_forecv->c_layer;
-	  display_wlist(1, WLIST_NUM, (struct win *)0);
+	  display_windows(1, WLIST_NUM, (struct win *)0);
 	  noshowwin = 1;
+	  display = olddisplay;	/* display_windows can change display */
 	}
     }
   Activate(0);
@@ -1475,7 +1540,7 @@ struct msg *m;
   ASSERT(display);
   pwdata = (struct pwdata *)malloc(sizeof(struct pwdata));
   if (!pwdata)
-    Panic(0, strnomem);
+    Panic(0, "%s", strnomem);
   pwdata->l = 0;
   pwdata->m = *m;
   D_processinputdata = (char *)pwdata;
@@ -1557,6 +1622,30 @@ int ilen;
 }
 #endif
 
+/* 'end' is exclusive, i.e. you should *not* write in *end */
+static char *
+strncpy_escape_quote(dst, src, end)
+char *dst;
+const char *src, *end;
+{
+  while (*src && dst < end)
+    {
+      if (*src == '"')
+	{
+	  if (dst + 2 < end)	/* \\ \" \0 */
+	    *dst++ = '\\';
+	  else
+	    return NULL;
+	}
+      *dst++ = *src++;
+    }
+  if (dst >= end)
+    return NULL;
+
+  *dst = '\0';
+  return dst;
+}
+
 static void
 DoCommandMsg(mp)
 struct msg *mp;
@@ -1580,20 +1669,30 @@ struct msg *mp;
   for (fc = fullcmd; n > 0; n--)
     {
       int len = strlen(p);
-      strncpy(fc, p, fullcmd + sizeof(fullcmd) - fc - 1);
+      *fc++ = '"';
+      if (!(fc = strncpy_escape_quote(fc, p, fullcmd + sizeof(fullcmd) - 2)))	/* '"' ' ' */
+	{
+	  Msg(0, "Remote command too long.");
+	  queryflag = -1;
+	  return;
+	}
       p += len + 1;
-      fc += len;
+      *fc++ = '"';
       *fc++ = ' ';
     }
   if (fc != fullcmd)
     *--fc = 0;
-  if (Parse(fullcmd, fc - fullcmd, args, argl) <= 0)
-    return;
+  if (Parse(fullcmd, sizeof fullcmd, args, argl) <= 0)
+    {
+      queryflag = -1;
+      return;
+    }
 #ifdef MULTIUSER
   user = *FindUserPtr(mp->m.attach.auser);
   if (user == 0)
     {
       Msg(0, "Unknown user %s tried to send a command!", mp->m.attach.auser);
+      queryflag = -1;
       return;
     }
 #else
@@ -1602,7 +1701,8 @@ struct msg *mp;
 #ifdef PASSWORD
   if (user->u_password && *user->u_password)
     {
-      Msg(0, "User %s has a password, cannot use -X option.", mp->m.attach.auser);
+      Msg(0, "User %s has a password, cannot use remote commands (using -Q or -X option).", mp->m.attach.auser);
+      queryflag = -1;
       return;
     }
 #endif
@@ -1623,7 +1723,15 @@ struct msg *mp;
     {
       int i = -1;
       if (strcmp(mp->m.command.preselect, "-"))
-        i = WindowByNoN(mp->m.command.preselect);
+	{
+	  i = WindowByNoN(mp->m.command.preselect);
+	  if (i < 0 || !wtab[i])
+	    {
+	      Msg(0, "Could not find pre-select window.");
+	      queryflag = -1;
+	      return;
+	    }
+	}
       fore = i >= 0 ? wtab[i] : 0;
     }
   else if (!fore)

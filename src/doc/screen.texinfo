@@ -73,6 +73,9 @@ except that this permission notice may be stated in a translation approved
 by the Foundation.
 @end titlepage
 
+@shortcontents
+@contents
+
 @node Top, Overview, (dir), (dir)
 
 @ifinfo
@@ -175,6 +178,9 @@ run another copy of @code{screen}, but will instead supply the command
 name and its arguments to the window manager (specified in the $STY environment
 variable) who will use it to create the new window.  The above example would 
 start the @code{emacs} editor (editing @file{prog.c}) and switch to its window.
+- Note that you cannot transport environment variables from
+the invoking shell to the application (emacs in this case), because it is
+forked from the parent screen process, not from the invoking shell.
 
 If @file{/etc/utmp} is writable by @code{screen}, an appropriate record
 will be written to this file for each window, and removed when the
@@ -344,12 +350,20 @@ This also starts @code{screen} in @emph{detached} mode, but doesn't fork
 a new process. The command exits if the session terminates.
 @end table
 
-@item -p @var{name_or_number}
+@item -O
+Select a more optimal output mode for your terminal rather than true VT100
+emulation (only affects auto-margin  terminals  without @samp{LP}). This
+can also be set in your @file{.screenrc} by specifying @samp{OP} in the 
+@code{termcap} command.
+
+@item -p @var{name_or_number}|-|=|+
 Preselect a window. This is useful when you want to reattach to a
 specific window or you want to send a command via the @samp{-X}
 option to a specific window. As with screen's select command, @samp{-}
 selects the blank window. As a special case for reattach, @samp{=}
-brings up the windowlist on the blank window.
+brings up the windowlist on the blank window, while a @samp{+} will
+create new window. The command will not be executed if the specified
+window could not be found.
 
 @item -q
 Suppress printing of error messages. In combination with @samp{-ls} the exit 
@@ -360,6 +374,23 @@ In combination with @samp{-r} the exit value is as follows: 10 indicates that
 there is no session to resume. 12 (or more) indicates that there are 2 (or 
 more) sessions to resume and you should specify which one to choose. 
 In all other cases @samp{-q} has no effect.
+
+@item -Q
+Some commands now can be queried from a remote session using this
+flag, e.g. 'screen -Q windows'. The commands will send the
+response to the stdout of the querying process. If there was an
+error in the command, then the querying process will exit with
+a non-zero status.
+
+The commands that can be queried now are:
+ @code{echo}
+ @code{info}
+ @code{lastmsg}
+ @code{number}
+ @code{select}
+ @code{time}
+ @code{title}
+ @code{windows}
 
 @item -r [@var{pid.sessionname}]
 @itemx -r @var{sessionowner}/[@var{pid.sessionname}]
@@ -399,6 +430,10 @@ equivalent to the @code{sessionname} command (@pxref{Session Name}).
 Set the title (name) for the default shell or specified program.
 This option is equivalent to the @code{shelltitle} command
 (@pxref{Shell}).
+
+@item -T @var{term}
+Set the $TERM enviroment varible using the spcified @emph{term} as 
+opposed to the defualt setting of @code{screen}.
 
 @item -U
 Run screen in UTF-8 mode. This option tells screen that your terminal
@@ -620,7 +655,7 @@ Cycle flow among @samp{on}, @samp{off} or @samp{auto}.  @xref{Flow}.
 
 @item @kbd{C-a F}
 (fit)@*
-Resize the window to the current region size.  @xref{Window Size}.
+Resize the window to the current region size.  @xref{Fit}.
 
 @item @kbd{C-a C-g}
 (vbell)@*
@@ -705,7 +740,7 @@ Send a ^S (ASCII XOFF) to the current window.  @xref{XON/XOFF}.
 
 @item @kbd{C-a S}
 (split)@*
-Split the current region into two new ones.  @xref{Regions}.
+Split the current region horizontally into two new ones.  @xref{Regions}.
 
 @item @kbd{C-a t}
 @itemx @kbd{C-a C-t}
@@ -797,15 +832,19 @@ Delete the screen-exchange file.  @xref{Screen Exchange}.
 
 @item @kbd{C-a _}
 (silence)@*
-Start/stop monitoring the current window for inactivity. @xref{Silence},
+Start/stop monitoring the current window for inactivity. @xref{Monitor}.
+
+@item @kbd{C-a |}
+(split -v)@*
+Split the current region vertically into two new ones.  @xref{Regions}.
 
 @item @kbd{C-a ,}
 (license)@*
-Show the copyright page.
+Show the copyright page.  @xref{License}.
 
 @item @kbd{C-a *}
 (displays)@*
-Show the listing of attached displays.
+Show the listing of attached displays.  @xref{Displays}.
 @end table
 
 @node Command Summary,  , Default Key Bindings, Commands
@@ -915,6 +954,8 @@ Select default utmp logging behavior.  @xref{Login}.
 Select default file mode for ptys.  @xref{Mode}.
 @item defmonitor @var{state}
 Select default activity monitoring behavior.  @xref{Monitor}.
+@item defmousetrack @var{on}|@var{off}
+Select the default mouse tracking behavior.  @xref{Mousetrack}.
 @item defnonblock @var{state}|@var{numsecs}
 Select default nonblock mode.  @xref{Nonblock}.
 @item defobuflimit @var{limit}
@@ -924,7 +965,7 @@ Set default lines of scrollback.  @xref{Scrollback}.
 @item defshell @var{command}
 Set the default program for new windows.  @xref{Shell}.
 @item defsilence @var{state}
-Select default idle monitoring behavior.  @xref{Silence}.
+Select default idle monitoring behavior.  @xref{Monitor}.
 @item defslowpaste @var{msec}
 Select the default inter-character timeout when pasting.  @xref{Paste}.
 @item defutf8 @var{state}
@@ -937,8 +978,8 @@ Set default writelock behavior.  @xref{Multiuser Session}.
 Keep dead windows.  @xref{Zombie}.
 @item detach [-h]
 Disconnect @code{screen} from the terminal.  @xref{Detach}.
-@item digraph
-Enter digraph sequence.  @xref{Digraph}.
+@item digraph [@var{preset} [@var{unicode-value}]]
+Enter a digraph sequence.  @xref{Digraph}.
 @item dinfo
 Display terminal information.  @xref{Info}.
 @item displays
@@ -961,8 +1002,12 @@ Change window size to current display size.  @xref{Window Size}.
 Set flow control behavior.  @xref{Flow}.
 @item focus
 Move focus to next region.  @xref{Regions}.
+@item focusminsize
+Force the current region to a certain size.  @xref{Focusminsize}.
 @item gr [@var{state}]
 Change GR charset processing.  @xref{Character Processing}.
+@item group [@var{grouptitle}]
+Change or show the group the current window belongs to.  @xref{Window Groups}.
 @item hardcopy [-h] [@var{file}]
 Write out the contents of the current window.  @xref{Hardcopy}.
 @item hardcopy_append @var{state}
@@ -991,6 +1036,30 @@ Removed, use @code{paste} instead.  @xref{Registers}.
 Destroy the current window.  @xref{Kill}.
 @item lastmsg
 Redisplay the last message.  @xref{Last Message}.
+@item layout new [@var{title}]
+Create a layout.  @xref{Layout}.
+@item layout remove [@var{n}|@var{title}]
+Delete a layout.  @xref{Layout}.
+@item layout next
+Select the next layout.  @xref{Layout}.
+@item layout prev
+Select the previous layout.  @xref{Layout}.
+@item layout select [@var{n}|@var{title}]
+Jump to a layout.  @xref{Layout}.
+@item layout show
+List the available layouts.  @xref{Layout}.
+@item layout title [@var{title}]
+Show or set the title of a layout.  @xref{Layout}.
+@item layout number [@var{n}]
+Show or set the number of a layout.  @xref{Layout}.
+@item layout attach [@var{title}|:last]
+Show or set which layout to reattach to.  @xref{Layout}.
+@item layout save [@var{n}|@var{title}]
+Remember the organization of a layout.  @xref{Layout}.
+@item layout autosave [@var{on}|@var{off}]
+Show or set the status of layout saving.  @xref{Layout}.
+@item layout dump [filename]
+Save the layout arrangement to a file.  @xref{Layout}.
 @item license
 Display licensing information.  @xref{Startup}.
 @item lockscreen
@@ -1007,7 +1076,7 @@ Configure logfile time-stamps.  @xref{Log}.
 Use only the default mapping table for the next keystroke.  @xref{Bindkey Control}.
 @item mapnotnext
 Don't try to do keymapping on the next keystroke.  @xref{Bindkey Control}.
-@item maptimeout @var{timo}
+@item maptimeout @var{n}
 Set the inter-character timeout used for keymapping. @xref{Bindkey Control}.
 @item markkeys @var{string}
 Rebind keys in copy mode.  @xref{Copy Mode Keys}.
@@ -1017,6 +1086,8 @@ Set the maximum window number. @xref{Maxwin}.
 Insert the command character.  @xref{Command Character}.
 @item monitor [@var{state}]
 Monitor activity in window.  @xref{Monitor}.
+@item mousetrack [@var{on}|@var{off}]
+Enable selecting split regions with mouse clicks.  @xref{Mousetrack}.
 @item msgminwait @var{sec}
 Set minimum message wait.  @xref{Message Wait}.
 @item msgwait @var{sec}
@@ -1071,17 +1142,17 @@ Store a string to a register.  @xref{Registers}.
 Kill current region.  @xref{Regions}.
 @item removebuf
 Delete the screen-exchange file.  @xref{Screen Exchange}.
-@item rendition bell | monitor | so @var{attr} [@var{color}]
+@item rendition bell | monitor | silence | so @var{attr} [@var{color}]
 Change text attributes in caption for flagged windows.  @xref{Rendition}.
 @item reset
 Reset the terminal settings for the window.  @xref{Reset}.
 @item resize [(+/-)lines]
 Grow or shrink a region
-@item screen [@var{opts}] [@var{n}] [@var{cmd} [@var{args}]]
+@item screen [@var{opts}] [@var{n}] [@var{cmd} [@var{args}] | //group]
 Create a new window.  @xref{Screen Command}.
 @item scrollback @var{num}
 Set size of scrollback buffer.  @xref{Scrollback}.
-@item select [@var{n}]
+@item select [@var{n}|-|.]
 Switch to a specified window.  @xref{Selecting}.
 @item sessionname [@var{name}]
 Name this session.  @xref{Session Name}.
@@ -1094,9 +1165,9 @@ Set the default program for new windows.  @xref{Shell}.
 @item shelltitle @var{title}
 Set the default name for new windows.  @xref{Shell}.
 @item silence [@var{state}|@var{seconds}]
-Monitor a window for inactivity.  @xref{Silence}.
+Monitor a window for inactivity.  @xref{Monitor}.
 @item silencewait @var{seconds}
-Default timeout to trigger an inactivity notify.  @xref{Silence}.
+Default timeout to trigger an inactivity notify.  @xref{Monitor}.
 @item sleep @var{num}
 Pause during startup.  @xref{Startup}.
 @item slowpaste @var{msec}
@@ -1104,12 +1175,12 @@ Slow down pasting in windows.  @xref{Paste}.
 @item source @var{file}
 Run commands from a file.  @xref{Source}.
 @item sorendition [@var{attr} [@var{color}]]
-Change text highlighting.  @xref{Sorendition}.
+Deprecated. Use @code{rendition so} instead. @xref{Rendition}.
 @item split
 Split region into two parts.  @xref{Regions}.
 @item startup_message @var{state}
 Display copyright notice on startup.  @xref{Startup}.
-@item stuff @var{string}
+@item stuff [@var{string}]
 Stuff a string in the input buffer of a window.  @xref{Paste}.
 @item su [@var{username} [@var{password} [@var{password2}]]]
 Identify a user. @xref{Multiuser Session}.
@@ -1129,6 +1200,8 @@ Display time and load average.  @xref{Time}.
 Set the name of the current window.  @xref{Title Command}.
 @item umask [@var{users}]+/-@var{bits} ...
 Synonym to @code{aclumask}. @xref{Umask}.
+@item unbindall
+Unset all keybindings. @xref{Bind}.
 @item unsetenv @var{var}
 Unset environment variable for new windows.  @xref{Setenv}.
 @item utf8 [@var{state} [@var{dstate}]]
@@ -1145,7 +1218,7 @@ Display @code{screen} version.  @xref{Version}.
 Write a message to all displays.  @xref{Multiuser Session}.
 @item width [@var{cols} [@var{lines}]]
 Set the width of the window.  @xref{Window Size}.
-@item windowlist [-b] | string [@var{string}] | title [@var{title}]
+@item windowlist [[-b] [-m] [-g]] | string [@var{string}] | title [@var{title}]
 Present a list of all windows for selection.  @xref{Windowlist}.
 @item windows
 List active windows.  @xref{Windows}.
@@ -1170,9 +1243,9 @@ Keep dead windows.  @xref{Zombie}.
 
 This section describes the commands for creating a new window for
 running programs.  When a new window is created, the first available
-number from the range 0@dots{}9 is assigned to it.
+number is assigned to it.
 The number of windows is limited at compile-time by the MAXWIN
-configuration parameter.
+configuration parameter (which defaults to 40).
 
 @menu
 * Chdir::                       Change the working directory for new windows.
@@ -1181,6 +1254,7 @@ configuration parameter.
 * Shell::                       Parameters for shell windows.
 * Term::                        Set the terminal type for new windows.
 * Window Types::                Creating different types of windows.
+* Window Groups::               Grouping windows together
 @end menu
 
 @node Chdir, Screen Command,  , New Window
@@ -1205,7 +1279,7 @@ affect all the windows you create interactively.
 @section Screen Command
 @kindex c
 @kindex C-c
-@deffn Command screen [opts] [n] [cmd [args]]
+@deffn Command screen [opts] [n] [cmd [args] @var{| //group}]
 (@kbd{C-a c}, @kbd{C-a C-c})@*
 Establish a new window.  The flow-control options (@samp{-f}, @samp{-fn}
 and @samp{-fa}), title option (@samp{-t}), login options
@@ -1214,11 +1288,13 @@ the all-capability-flag (@samp{-a}) and scrollback option
 (@samp{-h @var{num}}) may be specified with each command. 
 The option (@samp{-M}) turns monitoring on for this window.
 The option (@samp{-L}) turns output logging on for this window.
-If an optional number @var{n} in the range 0@dots{}9 is given,
+If an optional number @var{n} in the range 0@dots{}MAXWIN-1 is given,
 the window number @var{n} is assigned to the newly created window (or,
 if this number is already in-use, the next available number).  If a
 command is specified after @code{screen}, this command (with the given
 arguments) is started in the window; otherwise, a shell is created.
+If @samp{//group} is supplied, a container-type window is created in
+which other windows may be created inside it. @xref{Window Groups}.
 
 Screen has built in some functionality of @samp{cu} and @samp{telnet}.
 @xref{Window Types}.
@@ -1294,7 +1370,7 @@ the next @code{screen rlogin othermachine} command. Use the command
 and resetting the default.
 @end deffn
 
-@node Window Types, , Term, New Window
+@node Window Types, Window Groups, Term, New Window
 @section Window Types
 @cindex window types
 Screen provides three different window types. New windows are created
@@ -1394,6 +1470,37 @@ For telnet windows, the command @code{break} sends the telnet code
 
 @end itemize
 
+@node Window Groups, , Window Types, New Window
+@section Window Groups
+@cindex window groups
+Screen provides a method for grouping windows together. Windows can be
+organized in a hierarchical fashion, resembling a tree structure. New
+screens are created using the @code{screen} command while new groups
+are created using @code{screen //group}. @xref{Screen Command}. 
+
+Once a new group is created, it will act as a container for windows
+and even other groups. When a group is selected, you will see the
+output of the @code{windowlist} command, allowing you to select a
+window inside. If there are no windows inside a group, use the 
+@code{screen} command to create one. Once inside a group, using the
+commands @code{next} and @code{prev} will switch between windows only
+in that group. Using the @code{windowlist} command will give you the
+opportunity to leave the group you are in. @xref{Windowlist}.
+
+@deffn Command group [grouptitle]
+(none)@*
+Change or show the group the current window belongs to. Windows can
+be moved around between different groups by specifying the name of
+the destination group. Without specifying a group, the title of the
+current group is displayed.
+@end deffn
+
+Using groups in combination with layouts will help create a 
+multi-desktop experience. One group can be assigned for each
+layout made. Windows can be made, split, and organized within each
+group as desired. Afterwhich, switching between groups can be as easy
+as switching layouts.
+
 @node Selecting, Session Management, New Window, Top
 @chapter Selecting a Window
 
@@ -1423,8 +1530,10 @@ pressing space.)
 
 @kindex p
 @kindex C-p
+@kindex C-h
+@kindex Backspace
 @deffn Command prev
-(@kbd{C-a p}, @kbd{C-a C-p})@*
+(@kbd{C-a p}, @kbd{C-a C-p}, @kbd{C-a C-h}, @kbd{C-a @key{Backspace}})@*
 Switch to the previous window (the opposite of @kbd{C-a n}).
 @end deffn
 
@@ -1443,7 +1552,7 @@ this command becomes @kbd{]]} (@pxref{Command Character}).
 @section Select
 @kindex 0@dots{}9
 @kindex '
-@deffn Command select [n]
+@deffn Command select [n @var{|-|.}]
 (@kbd{C-a @var{n}}, @kbd{C-a '})@*
 Switch to the window with the number @var{n}.
 If no window number is specified, you get prompted for an 
@@ -1463,19 +1572,80 @@ current window. The latter is useful if used with screen's
 @node Windowlist, , Select, Selecting
 @section Windowlist
 @kindex "
-@deffn Command windowlist [-b] [-m]
+@deffn Command windowlist [-b] [-m] [-g]
 @deffnx Command windowlist string [@var{string}]
 @deffnx Command windowlist title [@var{title}]
 (@kbd{C-a "})@*
 Display all windows in a table for visual window selection.
-The desired window can be selected via the standard
-movement keys (@pxref{Movement}) and activated via
-the return key.  If the @code{-b} option is given, screen will
+If screen was in a window group, screen will
+back out of the group and then display the windows in that
+group. If the @code{-b} option is given, screen will
 switch to the blank window before presenting the list, so
 that the current window is also selectable.
 The @code{-m} option changes the order of the windows, instead of
 sorting by window numbers screen uses its internal most-recently-used
-list.
+list. The @code{-g} option will show the windows inside any groups
+in that level and downwards.
+
+The following keys are used to navigate in @code{windowlist}:
+
+@noindent
+@kbd{k}, @kbd{C-p}, or @kbd{up} Move up one line.
+
+@noindent
+@kbd{j}, @kbd{C-n}, or @kbd{down} Move down one line.
+
+@noindent
+@kbd{C-g} or @kbd{escape} Exit windowlist.
+
+@noindent
+@kbd{C-a} or @kbd{home} Move to the first line.
+
+@noindent
+@kbd{C-e} or @kbd{end} Move to the last line.
+
+@noindent
+@kbd{C-u} or @kbd{C-d} Move one half page up or down.
+
+@noindent
+@kbd{C-b} or @kbd{C-f} Move one full page up or down.
+
+@noindent
+@kbd{mouseclick} Move to the selected line. Available when
+@code{mousetrack} is set to @code{on}.
+
+@noindent
+@kbd{/} Search.
+
+@noindent
+@kbd{n} Repeat search in the forward direction.
+
+@noindent
+@kbd{N} Repeat search in the backward direction.
+
+@noindent
+@kbd{m} Toggle MRU.
+
+@noindent
+@kbd{g} Toggle group nesting.
+
+@noindent
+@kbd{a} All window view.
+
+@noindent
+@kbd{C-h} or @kbd{backspace} Back out the group.
+
+@noindent
+@kbd{,} Switch numbers with the previous window.
+
+@noindent
+@kbd{.} Switch numbers with the next window.
+
+@noindent
+@kbd{K} Kill that window.
+
+@noindent
+@kbd{space} or @kbd{enter} Select that window.
 
 The table format can be changed with the string and title
 option, the title is displayed as table heading, while the
@@ -1484,6 +1654,8 @@ setting is @samp{Num Name%=Flags} for the title and
 @samp{%3n %t%=%f} for the lines. See the string escapes chapter
 (@pxref{String Escapes}) for more codes (e.g. color settings).
 
+@code{Windowlist} needs a region size of at least 10 characters
+wide and 6 characters high in order to display.
 @end deffn
 
 @node Session Management, Regions, Selecting, Top
@@ -1557,7 +1729,7 @@ logout if @code{screen} was started from your login shell.
 The @var{message} specified here is output whenever a power detach is
 performed. It may be used as a replacement for a logout message or to reset 
 baud rate, etc.
-Without parameter, the current message is shown.
+Without a parameter, the current message is shown.
 @end deffn
 
 @node Lock, Multiuser Session, Power Detach, Session Management
@@ -1684,6 +1856,82 @@ all groups the user is in are listed.
 Shows a tabular listing  of  all  currently  connected  user
 front-ends  (displays).   This  is most useful for multiuser
 sessions.
+
+The following keys can be used in @code{displays} list:
+
+@noindent
+@kbd{k}, @kbd{C-p}, or @kbd{up} Move up one line.
+
+@noindent
+@kbd{j}, @kbd{C-n}, or @kbd{down} Move down one line.
+
+@noindent
+@kbd{C-a} or @kbd{home} Move to the first line.
+
+@noindent
+@kbd{C-e} or @kbd{end} Move to the last line.
+
+@noindent
+@kbd{C-u} or @kbd{C-d} Move one half page up or down.
+
+@noindent
+@kbd{C-b} or @kbd{C-f} Move one full page up or down.
+
+@noindent
+@kbd{mouseclick} Move to the selected line. Available when
+@code{mousetrack} is set to @code{on}.
+
+@noindent
+@kbd{space} Refresh the list.
+
+@noindent
+@kbd{d} Detach the selected display.
+
+@noindent
+@kbd{D} Power detach the selected display.
+
+@noindent
+@kbd{C-g}, @kbd{enter}, or @kbd{escape} Exit the list.
+
+
+The following is an example of what @code{displays} could
+look like:
+
+@example
+xterm 80x42   jnweiger@@/dev/ttyp4      0(m11)    &rWx
+facit 80x24   mlschroe@@/dev/ttyhf nb  11(tcsh)    rwx
+xterm 80x42   jnhollma@@/dev/ttyp5      0(m11)    &R.x
+ (A)   (B)       (C)     (D)     (E)  (F)(G)    (H)(I)
+@end example
+
+The legend is as follows:
+@*(A) The terminal type known by @code{screen} for this display.
+@*(B) Displays geometry as width x height.
+@*(C) Username who is logged in at the display.
+@*(D) Device name of the display or the attached device
+@*(E) Display is in blocking or nonblocking mode. The available
+    modes are "nb", "NB", "Z<", "Z>", and  "BL".
+@*(F) Number of the window
+@*(G) Name/title of window
+@*(H) Whether the window is shared
+@*(I) Window permissions. Made up of three characters:
+@display
+(1st character)
+    @samp{-} : no read
+    @samp{r} : read
+    @samp{R} : read only due to foreign wlock
+(2nd character)
+    @samp{-} : no write
+    @samp{.} : write suppressed by foreign wlock
+    @samp{w} : write
+    @samp{W} : own wlock
+(3rd character)
+    @samp{-} : no execute
+    @samp{x} : execute
+@end display
+
+@code{Displays} needs a region size of at least 10 characters
+wide and 5 characters high in order to display.
 @end deffn
 
 @node Umask, Wall, Displays, Multiuser Session
@@ -1762,7 +2010,9 @@ omitted, the name of this session is displayed.@*
 @emph{Caution}: The @code{$STY}
 environment variable will still reflect the old name in pre-existing
 shells. This may result in
-confusion.  The default is constructed from the tty and host names.
+confusion.  Use of this command is generally
+discouraged. Use the @code{-S} command-line option if you want to
+name a new session.The default is constructed from the tty and host names.
 @end deffn
 
 @node Suspend, Quit, Session Name, Session Management
@@ -1803,16 +2053,27 @@ which can contain different windows.
 * Resize::			Grow or shrink a region
 * Caption::			Control the window's caption
 * Fit::				Resize a window to fit the region
+* Focusminsize::		Force a minimum size on a current region
+* Layout::			Manage groups of regions
 @end menu
 
 @node Split, Focus,  , Regions
 @section Split
 @kindex S
-@deffn Command split
-(@kbd{C-a S})@*
+@kindex |
+@deffn Command split [-v]
+(@kbd{C-a S}, @kbd{C-a |})@*
 Split the current region into two new ones. All regions on the
 display are resized to make room for the new region. The blank
-window is displayed on the new region.
+window is displayed on the new region. The default is to create
+a horizontal split, putting the new regions on the top and
+bottom of each other. Using -v will create a vertical split,
+causing the new regions to appear side by side of each other.
+
+With this current implementation of @code{screen}, scrolling data
+will appear much slower in a vertically split region than one
+that is not. This should be taken into consideration if you need
+to use system commands such as @code{cat} or @code{tail -f}.
 @end deffn
 
 @node Focus, Only, Split, Regions
@@ -1885,7 +2146,7 @@ You can mix both forms by providing the string as an additional
 argument.
 @end deffn
 
-@node Fit, , Caption, Regions
+@node Fit, Focusminsize, Caption, Regions
 @section Fit
 @kindex F
 @deffn Command fit
@@ -1893,6 +2154,154 @@ argument.
 Change the window size to the size of the current region. This
 command is needed because screen doesn't adapt the window size
 automatically if the window is displayed more than once.
+@end deffn
+
+@node Focusminsize, Layout, Fit, Regions
+@section Focusminsize
+@deffn Command focusminsize [ (width|@code{max}|@code{_})  (height|@code{max}|@code{_}) ]
+(none)@*
+This forces any currently selected region to be automatically
+resized at least a certain @var{width} and @var{height}. All
+other surrounding regions will be resized in order to accommodate.
+This constraint follows every time the @code{focus} command is
+used. The @code{resize} command can be used to increase either
+dimension of a region, but never below what is set with
+@code{focusminsize}. The underscore @samp{_} is a synonym for
+@code{max}. Setting a @var{width} and @var{height} of @code{0 0}
+(zero zero) will undo any constraints and allow for manual resizing.
+Without any parameters, the minimum width and height is shown.
+@end deffn
+
+@node Layout, , Focusminsize, Regions
+@section Layout
+@cindex layout
+Using regions, and perhaps a large enough terminal, you can give
+@code{screen} more of a desktop feel. By being able to split
+regions horizontally or vertically, you can take advantage of the
+lesser used spaces of your terminal. The catch to these splits has
+been that they're not kept between screen detachments and reattachments.
+
+Layouts will help organize your regions. You can create one
+layout of four horizontal regions and then create a separate layout
+of regions in a two by two array. The regions could contain the same windows,
+but they don't have to. You can easily switch between layouts and keep
+them between detachments and reattachments.
+
+Note that there are several subcommands to @code{layout}.
+
+@deffn Command layout @code{new} [title]
+(none)@*
+Create a new layout. The screen will change to one whole region 
+and be switched to the blank window. From here, you build the 
+regions and the windows they show as you desire. The new layout 
+will be numbered with the smallest available integer, starting 
+with zero. You can optionally give a title to your new layout. 
+Otherwise, it will have a default title of @code{layout}. You 
+can always change the title later by using the command 
+@code{layout title}.
+@end deffn
+
+@deffn Command layout @code{remove} [n|title]
+(none)@*
+Remove, or in other words, delete the specified layout. Either
+the number or the title can be specified. Without either
+specification, @code{screen} will remove the current layout.
+
+Removing a layout does not affect your set windows or regions.
+@end deffn
+
+@deffn Command layout @code{next}
+(none)@*
+Switch to the next layout available
+@end deffn
+
+@deffn Command layout @code{prev}
+(none)@*
+Switch to the previous layout available
+@end deffn
+
+@deffn Command layout @code{select} [n|title]
+(none)@*
+Select the desired layout. Either the number or the title can
+be specified. Without either specification, @code{screen} will
+prompt and ask which screen is desired. To see which layouts are
+available, use the @code{layout show} command.
+@end deffn
+
+@deffn Command layout @code{show}
+(none)@*
+List on the message line the number(s) and title(s) of the available
+layout(s). The current layout is flagged.
+@end deffn
+
+@deffn Command layout @code{title} [title]
+(none)@*
+Change or display the title of the current layout. A string given
+will be used to name the layout. Without any options, the current
+title and number is displayed on the message line.
+@end deffn
+
+@deffn Command layout @code{number} [n]
+(none)@*
+Change or display the number of the current layout. An integer given
+will be used to number the layout. Without any options, the current
+number and title is displayed on the message line.
+@end deffn
+
+@deffn Command layout @code{attach} [title|@code{:last}]
+(none)@*
+Change or display which layout to reattach back to. The default is
+@code{:last}, which tells @code{screen} to reattach back to the last
+used layout just before detachment. By supplying a title, You can
+instruct @code{screen} to reattach to a particular layout regardless
+which one was used at the time of detachment. Without any options,
+the layout to reattach to will be shown in the message line.
+@end deffn
+
+@deffn Command layout @code{save} [n|title]
+(none)@*
+Remember the current arrangement of regions. When used, @code{screen}
+will remember the arrangement of vertically and horizontally split
+regions. This arrangement is restored when a @code{screen} session
+is reattached or switched back from a different layout. If the
+session ends or the @code{screen} process dies, the layout
+arrangements are lost. The @code{layout dump} command should help
+in this siutation. If a number
+or title is supplied, @code{screen} will remember the arrangement of
+that particular layout. Without any options, @code{screen} will
+remember the current layout.
+
+Saving your regions can be done automatically by using the
+@code{layout autosave} command.
+@end deffn
+
+@deffn Command layout @code{autosave} [@code{on}|@code{off}]
+(none)@*
+Change or display the status of automatically saving layouts. The
+default is @code{on}, meaning when @code{screen} is detached or
+changed to a different layout, the arrangement of regions and windows
+will be remembered at the time of change and restored upon return.
+If autosave is set to @code{off}, that arrangement will only be
+restored to either to the last manual save, using @code{layout save},
+or to when the layout was first created, to a single region with
+a single window. Without either an @code{on} or an @code{off}, the
+current status is displayed on the message line.
+@end deffn
+
+@deffn Command layout @code{dump} [filename]
+(none)@*
+Write to a file the order of splits made in the current layout. This
+is useful to recreate the order of your regions used in your current
+layout. Only the current layout is recorded. While the order of the
+regions are recorded, the sizes of those regions and which windows
+correspond to which regions are not. If no filename is specified,
+the default is @file{layout-dump}, saved in the directory that the
+@code{screen} process was started in. If the file already exists,
+@code{layout dump} will append to that file. As an example:
+@example
+layout dump /home/user/.screenrc
+@end example
+will save or append the layout to the user's @file{.screenrc} file.
 @end deffn
 
 @node Window Settings, Virtual Terminal, Regions, Top
@@ -1908,7 +2317,7 @@ terminal emulation itself.
 * Kill::                        Destroy an unwanted window
 * Login::                       Control @file{/etc/utmp} logging
 * Mode::                        Control the file mode of the pty
-* Monitor::                     Watch for activity in a window
+* Monitor::                     Watch for activity or inactivity in a window
 * Windows::			List the active windows
 * Hardstatus::			Set a window's hardstatus line
 @end menu
@@ -2171,6 +2580,29 @@ the window-status display (@pxref{Windows}).  Monitoring defaults to
 @samp{off} for all windows.
 @end deffn
 
+@kindex _
+@deffn Command silence [@var{state}|@var{sec}]
+(@kbd{C-a _})@*
+Toggles silence monitoring of windows. When silence is turned on and an 
+affected window is switched into the background, you will receive the
+silence notification message in the status line after a specified period
+of inactivity (silence). The default timeout can be changed with the
+@code{silencewait} command or by specifying a number of seconds instead of
+@code{on} or @code{off}. Silence is initially off for all windows.
+@end deffn
+
+@deffn Command defsilence state
+(none)@*
+Same as the @code{silence} command except that the default setting for
+new windows is changed.  Initial setting is `off'.
+@end deffn
+
+@deffn Command silencewait @var{seconds}
+(none)@*
+Define the time that all windows monitored for silence should wait
+before displaying a message. Default is 30 seconds.
+@end deffn
+
 @node Windows, Hardstatus, Monitor, Window Settings
 @section Windows
 @kindex w
@@ -2196,7 +2628,7 @@ If this list is too long to fit on the terminal's status line only the
 portion around the current window is displayed.
 @end deffn
 
-@node Hardstatus, , Windows, Window Settings
+@node Hardstatus, Mousetrack, Windows, Window Settings
 @section Hardstatus
 
 @code{Screen} maintains a hardstatus line for every window. If a window
@@ -2225,6 +2657,25 @@ Per default the hardstatus line of new windows is empty.
 @deffn Command hstatus status
 (none)@*
 Changes the current window's hardstatus line to @var{status}.
+@end deffn
+
+@node Mousetrack, , Hardstatus, Miscellaneous
+@section Mousetrack
+
+@deffn Command mousetrack [ @code{on|off} ]
+(none)@*
+This command determines whether @code{screen} will watch for
+mouse clicks. When this command is enabled, regions that have
+been split in various ways can be selected by pointing to them
+with a mouse and left-clicking them. Without specifying @var{on}
+or @var{off}, the current state is displayed. The default state
+is determined by the @code{defmousetrack} command.
+@end deffn
+
+@deffn Command defmousetrack @code{on|off} 
+(none)@*
+This command determines the default state of the @code{mousetrack}
+command, currently defaulting of @var{off}.
 @end deffn
 
 @node Virtual Terminal, Copy and Paste, Window Settings, Top
@@ -2479,8 +2930,8 @@ Keypad enter         fe         stuff \015
 @section Digraph
 
 @kindex C-v
-@deffn Command digraph [preset]
-(none)@*
+@deffn Command digraph [preset [unicode-value]] 
+(@kbd{C-a C-v})@*
 This command prompts the user for a digraph sequence. The next
 two characters typed are looked up in a builtin table and the
 resulting character is inserted in the input stream. For example,
@@ -2490,7 +2941,190 @@ will treat the following characters (up to three) as an octal
 number instead.  The optional argument @var{preset}
 is treated as user input, thus one can create an "umlaut" key.
 For example the command @samp{bindkey ^K digraph '"'} enables the user
-to generate an a-umlaut by typing @samp{CTRL-K a}.
+to generate an a-umlaut by typing @samp{CTRL-K a}. When a non-zero
+@var{unicode-value} is specified, a new  digraph  is  created with the
+specified preset. The digraph is unset if a zero value is provided
+for the @var{unicode-value}.
+
+The following table is the builtin sequences.
+
+@documentencoding ISO-8859-1
+@example
+     Sequence   Octal   Digraph   Unicode Equivalent
+     -----------------------------------------------
+     ' ', ' '    160    (space)         U+00A0
+     'N', 'S'    160    (space)         U+00A0
+     '~', '!'    161       ¡            U+00A1
+     '!', '!'    161       ¡            U+00A1
+     '!', 'I'    161       ¡            U+00A1
+     'c', '|'    162       ¢            U+00A2
+     'c', 't'    162       ¢            U+00A2
+     '$', '$'    163       £            U+00A3
+     'P', 'd'    163       £            U+00A3
+     'o', 'x'    164       ¤            U+00A4
+     'C', 'u'    164       ¤            U+00A4
+     'C', 'u'    164       ¤            U+00A4
+     'E', 'u'    164       ¤            U+00A4
+     'Y', '-'    165       ¥            U+00A5
+     'Y', 'e'    165       ¥            U+00A5
+     '|', '|'    166       ¦            U+00A6
+     'B', 'B'    166       ¦            U+00A6
+     'p', 'a'    167       §            U+00A7
+     'S', 'E'    167       §            U+00A7
+     '"', '"'    168       ¨            U+00A8
+     ''', ':'    168       ¨            U+00A8
+     'c', 'O'    169       ©            U+00A9
+     'C', 'o'    169       ©            U+00A9
+     'a', '-'    170       ª            U+00AA
+     '<', '<'    171       «            U+00AB
+     '-', ','    172       ¬            U+00AC
+     'N', 'O'    172       ¬            U+00AC
+     '-', '-'    173       ­            U+00AD
+     'r', 'O'    174       ®            U+00AE
+     'R', 'g'    174       ®            U+00AE
+     '-', '='    175       ¯            U+00AF
+     ''', 'm'    175       ¯            U+00AF
+     '~', 'o'    176       °            U+00B0
+     'D', 'G'    176       °            U+00B0
+     '+', '-'    177       ±            U+00B1
+     '2', '2'    178       ²            U+00B2
+     '2', 'S'    178       ²            U+00B2
+     '3', '3'    179       ³            U+00B3
+     '3', 'S'    179       ³            U+00B3
+     ''', '''    180       ´            U+00B4
+     'j', 'u'    181       µ            U+00B5
+     'M', 'y'    181       µ            U+00B5
+     'p', 'p'    182       ¶            U+00B6
+     'P', 'I'    182       ¶            U+00B6
+     '~', '.'    183       ·            U+00B7
+     '.', 'M'    183       ·            U+00B7
+     ',', ','    184       ¸            U+00B8
+     ''', ','    184       ¸            U+00B8
+     '1', '1'    185       ¹            U+00B9
+     '1', 'S'    185       ¹            U+00B9
+     'o', '-'    186       º            U+00BA
+     '>', '>'    187       »            U+00BB
+     '1', '4'    188       ¼            U+00BC
+     '1', '2'    189       ½            U+00BD
+     '3', '4'    190       ¾            U+00BE
+     '~', '?'    191       ¿            U+00BF
+     '?', '?'    191       ¿            U+00BF
+     '?', 'I'    191       ¿            U+00BF
+     'A', '`'    192       À            U+00C0
+     'A', '!'    192       À            U+00C0
+     'A', '''    193       Á            U+00C1
+     'A', '^'    194       Â            U+00C2
+     'A', '>'    194       Â            U+00C2
+     'A', '~'    195       Ã            U+00C3
+     'A', '?'    195       Ã            U+00C3
+     'A', '"'    196       Ä            U+00C4
+     'A', ':'    196       Ä            U+00C4
+     'A', '@@'    197       Å            U+00C5
+     'A', 'A'    197       Å            U+00C5
+     'A', 'E'    198       Æ            U+00C6
+     'C', ','    199       Ç            U+00C7
+     'E', '`'    200       È            U+00C8
+     'E', '!'    200       È            U+00C8
+     'E', '''    201       É            U+00C9
+     'E', '^'    202       Ê            U+00CA
+     'E', '>'    202       Ê            U+00CA
+     'E', '"'    203       Ë            U+00CB
+     'E', ':'    203       Ë            U+00CB
+     'I', '`'    204       Ì            U+00CC
+     'I', '!'    204       Ì            U+00CC
+     'I', '''    205       Í            U+00CD
+     'I', '^'    206       Î            U+00CE
+     'I', '>'    206       Î            U+00CE
+     'I', '"'    207       Ï            U+00CF
+     'I', ':'    207       Ï            U+00CF
+     'D', '-'    208       Ð            U+00D0
+     'N', '~'    209       Ñ            U+00D1
+     'N', '?'    209       Ñ            U+00D1
+     'O', '`'    210       Ò            U+00D2
+     'O', '!'    210       Ò            U+00D2
+     'O', '''    211       Ó            U+00D3
+     'O', '^'    212       Ô            U+00D4
+     'O', '>'    212       Ô            U+00D4
+     'O', '~'    213       Õ            U+00D5
+     'O', '?'    213       Õ            U+00D5
+     'O', '"'    214       Ö            U+00D6
+     'O', ':'    214       Ö            U+00D6
+     '/', '\'    215       ×            U+00D7
+     '*', 'x'    215       ×            U+00D7
+     'O', '/'    216       Ø            U+00D8
+     'U', '`'    217       Ù            U+00D9
+     'U', '!'    217       Ù            U+00D9
+     'U', '''    218       Ú            U+00DA
+     'U', '^'    219       Û            U+00DB
+     'U', '>'    219       Û            U+00DB
+     'U', '"'    220       Ü            U+00DC
+     'U', ':'    220       Ü            U+00DC
+     'Y', '''    221       Ý            U+00DD
+     'I', 'p'    222       Þ            U+00DE
+     'T', 'H'    222       Þ            U+00DE
+     's', 's'    223       ß            U+00DF
+     's', '"'    223       ß            U+00DF
+     'a', '`'    224       à            U+00E0
+     'a', '!'    224       à            U+00E0
+     'a', '''    225       á            U+00E1
+     'a', '^'    226       â            U+00E2
+     'a', '>'    226       â            U+00E2
+     'a', '~'    227       ã            U+00E3
+     'a', '?'    227       ã            U+00E3
+     'a', '"'    228       ä            U+00E4
+     'a', ':'    228       ä            U+00E4
+     'a', 'a'    229       å            U+00E5
+     'a', 'e'    230       æ            U+00E6
+     'c', ','    231       ç            U+00E7
+     'e', '`'    232       è            U+00E8
+     'e', '!'    232       è            U+00E8
+     'e', '''    233       é            U+00E9
+     'e', '^'    234       ê            U+00EA
+     'e', '>'    234       ê            U+00EA
+     'e', '"'    235       ë            U+00EB
+     'e', ':'    235       ë            U+00EB
+     'i', '`'    236       ì            U+00EC
+     'i', '!'    236       ì            U+00EC
+     'i', '''    237       í            U+00ED
+     'i', '^'    238       î            U+00EE
+     'i', '>'    238       î            U+00EE
+     'i', '"'    239       ï            U+00EF
+     'i', ':'    239       ï            U+00EF
+     'd', '-'    240       ð            U+00F0
+     'n', '~'    241       ñ            U+00F1
+     'n', '?'    241       ñ            U+00F1
+     'o', '`'    242       ò            U+00F2
+     'o', '!'    242       ò            U+00F2
+     'o', '''    243       ó            U+00F3
+     'o', '^'    244       ô            U+00F4
+     'o', '>'    244       ô            U+00F4
+     'o', '~'    245       õ            U+00F5
+     'o', '?'    245       õ            U+00F5
+     'o', '"'    246       ö            U+00F6
+     'o', ':'    246       ö            U+00F6
+     ':', '-'    247       ÷            U+00F7
+     'o', '/'    248       ø            U+00F8
+     'u', '`'    249       ù            U+00F9
+     'u', '!'    249       ù            U+00F9
+     'u', '''    250       ú            U+00FA
+     'u', '^'    251       û            U+00FB
+     'u', '>'    251       û            U+00FB
+     'u', '"'    252       ü            U+00FC
+     'u', ':'    252       ü            U+00FC
+     'y', '''    253       ý            U+00FD
+     'i', 'p'    254       þ            U+00FE
+     't', 'h'    254       þ            U+00FE
+     'y', '"'    255       ÿ            U+00FF
+     'y', ':'    255       ÿ            U+00FF
+     '"', '['    196       Ä            U+00C4
+     '"', '\'    214       Ö            U+00D6
+     '"', ']'    220       Ü            U+00DC
+     '"', '@{'    228       ä            U+00E4
+     '"', '|'    246       ö            U+00F6
+     '"', '@}'    252       ü            U+00FC
+     '"', '~'    223       ß            U+00DF
+@end example 
+
 @end deffn
 
 @node Bell, Clear, Digraph, Virtual Terminal
@@ -2512,7 +3146,7 @@ The default message is
 
 An empty message can be supplied to the @code{bell_msg} command to suppress
 output of a message line (@code{bell_msg ""}).
-Without parameter, the current message is shown.
+Without a parameter, the current message is shown.
 @end deffn
 
 @kindex C-g
@@ -2536,7 +3170,7 @@ Sets the visual bell message. @var{Message} is printed to the status
 line if the window receives a bell character (^G), @code{vbell} is
 set to @samp{on} and the terminal does not support a visual bell.
 The default message is @samp{Wuff, Wuff!!}.
-Without parameter, the current message is shown.
+Without a parameter, the current message is shown.
 @end deffn
 
 @deffn Command vbellwait sec
@@ -2596,7 +3230,7 @@ For system information use @code{time}.
 
 @deffn Command dinfo
 (none)@*
-Show what screen thinks about your terminal. Useful if you want to know
+Show what @code{screen} thinks about your terminal. Useful if you want to know
 why features like color or the alternate charset don't work.
 @end deffn
 
@@ -2854,7 +3488,7 @@ outlined below.
 @subsection CR/LF
 @deffn Command crlf [state]
 (none)@*
-This affects the copying of text regions with the @kbd{C-a [} command.
+This affects the copying of text regions with the @code{copy} command.
 If it is set to @samp{on}, lines will be separated by the two character
 sequence @samp{CR}/@samp{LF}.  Otherwise only @samp{LF} is used.
 @code{crlf} is off by default.
@@ -2863,6 +3497,7 @@ When no parameter is given, the state is toggled.
 
 @node Scrollback, Copy Mode Keys, Line Termination, Copy
 @subsection Scrollback
+To access and use the contents in the scrollback buffer, use the @code{copy} command. @xref{Copy}.
 @deffn Command defscrollback num
 (none)@*
 Same as the @code{scrollback} command except that the default setting
@@ -2872,7 +3507,7 @@ for new windows is changed.  Defaults to 100.
 @deffn Command scrollback num
 (none)@*
 Set the size of the scrollback buffer for the current window to
-@var{num} lines.  The default scrollback is 100 lines.  Use @kbd{C-a i}
+@var{num} lines.  The default scrollback is 100 lines.  Use @code{info}
 to view the current setting.
 @end deffn
 
@@ -2904,32 +3539,61 @@ in a single statement.
 @subsection Movement Keys
 
 @noindent
-@kbd{h}, @kbd{j}, @kbd{k}, @kbd{l} move the cursor line by line or
-column by column.
+@kbd{h}, @kbd{C-h}, or @kbd{left arrow} move the cursor left.
 
 @noindent
-@kbd{0}, @kbd{^} and @kbd{$} move to the leftmost column or to the first
-or last non-whitespace character on the line.
+@kbd{j}, @kbd{C-n}, or @kbd{down arrow} move the cursor down.
 
 @noindent
-@kbd{H}, @kbd{M} and @kbd{L} move the cursor to the leftmost column
-of the top, center or bottom line of the window. 
+@kbd{k}, @kbd{C-p}, or @kbd{up arrow} move the cursor up.
+
+@noindent
+@kbd{l} ('el'), or @kbd{right arrow} move the cursor right.
+
+@noindent
+@kbd{0} (zero) or @kbd{C-a} move to the leftmost column.
 
 @noindent
 @kbd{+} and @kbd{-} move the cursor to the leftmost column of the next
 or previous line.
 
 @noindent
-@kbd{G} moves to the specified absolute line (default: end of buffer).
- 
+@kbd{H}, @kbd{M} and @kbd{L} move the cursor to the leftmost column
+of the top, center or bottom line of the window. 
+
 @noindent
 @kbd{|} moves to the specified absolute column.
 
 @noindent
-@kbd{w}, @kbd{b}, @kbd{e} move the cursor word by word.
+@kbd{g} or @kbd{home} moves to the beginning of the buffer.
+
+@noindent
+@kbd{G} or @kbd{end} moves to the specified absolute line (default: end of buffer).
+ 
+@noindent
+@kbd{%} jumps to the specified percentage of the buffer.
+
+@noindent
+@kbd{^} or @kbd{$} move to the first
+or last non-whitespace character on the line.
+
+@noindent
+@kbd{w}, @kbd{b}, and @kbd{e} move the cursor word by word.
  
 @noindent
 @kbd{B}, @kbd{E} move the cursor WORD by WORD (as in vi).
+
+@noindent
+@kbd{f}/@kbd{F}, @kbd{t}/@kbd{T} move the cursor forward/backward to the 
+next occurence of the target. (eg, '3fy' will move the cursor to the 3rd 
+'y' to the right.)
+
+@noindent
+@kbd{;} and @kbd{,} Repeat the last f/F/t/T command in the same/opposite direction.
+
+@noindent 
+@kbd{C-e} and @kbd{C-y} scroll the display up/down by one line
+while preserving the cursor position.
 
 @noindent
 @kbd{C-u} and @kbd{C-d} scroll the display up/down by the specified
@@ -2939,12 +3603,6 @@ screenful).
 @noindent
 @kbd{C-b} and @kbd{C-f} move the cursor up/down a full screen.
 
-@noindent
-@kbd{g} moves to the beginning of the buffer.
-
-@noindent
-@kbd{%} jumps to the specified percentage of the buffer.
-
 Note that Emacs-style movement keys can be specified by a .screenrc
 command. (@code{markkeys "h=^B:l=^F:$=^E"}) There is no simple method for
 a full emacs-style keymap, however, as this involves multi-character codes.
@@ -2953,8 +3611,12 @@ a full emacs-style keymap, however, as this involves multi-character codes.
 @subsection Marking
 
 The copy range is specified by setting two marks. The text between these
-marks will be highlighted. Press @kbd{space} to set the first or second
-mark respectively.
+marks will be highlighted. Press:
+
+@noindent
+@kbd{space} or @kbd{enter} to set the first or second mark respectively.
+If @code{mousetrack} is set to @code{on}, marks can also be set using
+@kbd{left mouse click}.
 
 @noindent
 @kbd{Y} and @kbd{y} can be used to mark one whole line or to mark from 
@@ -2968,7 +3630,11 @@ start of line.
 
 Any command in copy mode can be prefixed with a number (by pressing
 digits @kbd{0@dots{}9}) which is taken as a repeat count. Example:
-@kbd{C-a C-[ H 10 j 5 Y} will copy lines 11 to 15 into the paste buffer.
+@example
+@kbd{C-a C-[ H 10 j 5 Y}
+@end example
+@noindent
+will copy lines 11 to 15 into the paste buffer.
 
 @node Searching, Specials, Repeat count, Copy
 @subsection Searching
@@ -2991,25 +3657,35 @@ Tell screen to ignore the case of characters in searches. Default is
 @code{off}.
 @end deffn
 
+@noindent
+@kbd{n} Repeat search in forward direction.
+
+@noindent
+@kbd{N} Repeat search in backward direction.
+
 @node Specials,  , Searching, Copy
 @subsection Specials
 
 There are, however, some keys that act differently here from in
 @code{vi}.  @code{Vi} does not allow to yank rectangular blocks of text,
-but @code{screen} does. Press
+but @code{screen} does. Press:
 
 @noindent
 @kbd{c} or @kbd{C} to set the left or right margin respectively. If no
 repeat count is given, both default to the current cursor position.@*
 Example: Try this on a rather full text screen: 
+@example
 @kbd{C-a [ M 20 l SPACE c 10 l 5 j C SPACE}.
+@end example
 
 @noindent
 This moves one to the middle line of the screen, moves in 20 columns left,
 marks the beginning of the paste buffer, sets the left column, moves 5 columns
 down, sets the right column, and then marks the end of
-the paste buffer. Now try:@*
+the paste buffer. Now try:
+@example
 @kbd{C-a [ M 20 l SPACE 10 l 5 j SPACE}
+@end example
 
 @noindent
 and notice the difference in the amount of text copied.
@@ -3022,11 +3698,11 @@ character with a carriage return character, by issuing a @code{set crlf
 on}.
 
 @noindent
-@kbd{v} is for all the @code{vi} users who use @code{:set numbers} - it
+@kbd{v} or @kbd{V} is for all the @code{vi} users who use @code{:set numbers} - it
 toggles the left margin between column 9 and 1.
 
 @noindent
-@kbd{a} before the final space key turns on append mode. Thus
+@kbd{a} before the final @kbd{space} key turns on append mode. Thus
 the contents of the paste buffer will not be overwritten, but appended to.
 
 @noindent
@@ -3037,14 +3713,20 @@ the contents of the paste buffer will not be overwritten, but appended to.
 to the screen-exchange file (@file{/tmp/screen-exchange} per default)
 once copy-mode is finished.  @xref{Screen Exchange}.@*
 This example demonstrates how to dump the
-whole scrollback buffer to that file: @*@kbd{C-a [ g SPACE G $ >}.
+whole scrollback buffer to that file: 
+@example
+@kbd{C-a [ g SPACE G $ >}.
+@end example
 
 @noindent
 @kbd{C-g} gives information about the current line and column.
 
 @noindent
-@kbd{x} exchanges the first mark and the current cursor position. You
+@kbd{x} or @kbd{o} ('oh') exchanges the first mark and the current cursor position. You
 can use this to adjust an already placed mark.
+
+@noindent
+@kbd{C-l} ('el') will redraw the screen.
 
 @noindent
 @kbd{@@} does nothing.  Absolutely nothing.  Does not even exit copy
@@ -3079,10 +3761,11 @@ display (terminal attached), as the registers are a global resource. The
 paste buffer exists once for every user.
 @end deffn
 
-@deffn Command stuff string
+@deffn Command stuff [string]
 (none)@*
 Stuff the string @var{string} in the input buffer of the current window.
 This is like the @code{paste} command, but with much less overhead.
+Without a paramter, @code{screen} will prompt for a string to stuff.
 You cannot paste large buffers with the @code{stuff} command. It is most
 useful for key bindings. @xref{Bindkey}.
 @end deffn
@@ -3199,8 +3882,9 @@ See also
 @section History
 
 @kindex @{
+@kindex @}
 @deffn Command history
-(@kbd{C-a @{})@*
+(@kbd{C-a @{}, @kbd{C-a @}})@*
 Usually users work with a shell that allows easy access to previous
 commands.  For example, @code{csh} has the command @code{!!} to repeat
 the last command executed.  @code{screen} provides a primitive way of
@@ -3354,9 +4038,17 @@ command to activate a class. Command classes can be used
 to create multiple command keys or multi-character bindings.
 
 By default, most suitable commands are bound to one or more keys
-(@pxref{Default Key Bindings}; for instance, the command to create a
+(@pxref{Default Key Bindings}); for instance, the command to create a
 new window is bound to @kbd{C-c} and @kbd{c}.  The @code{bind} command
 can be used to redefine the key bindings and to define new bindings.
+@end deffn
+
+@deffn Command unbindall
+(none)@*
+Unbind all the bindings. This can be useful when
+screen is used solely for its detaching abilities, such as when
+letting a console application run as a daemon. If, for some reason,
+it is necessary to bind commands after this, use 'screen -X'.
 @end deffn
 
 @node Bind Examples, Command Character, Bind, Key Binding
@@ -3543,10 +4235,10 @@ in the default bindkey table.
 (none)@*
 Like mapdefault, but don't even look in the default bindkey table.
 @end deffn
-@deffn Command maptimeout timo
+@deffn Command maptimeout n
 (none)@*
 Set the inter-character timer for input sequence detection to a timeout
-of @var{timo} ms. The default timeout is 300ms. Maptimeout with no
+of @var{n} ms. The default timeout is 300ms. Maptimeout with no
 arguments shows the current setting.
 @end deffn
 
@@ -3655,7 +4347,7 @@ Send a ^S (ASCII XOFF) to the program in the current window.
 @node Termcap, Message Line, Flow Control, Top
 @chapter Termcap
 
-@code{screen} demands the most out of your terminal so that it can
+@code{Screen} demands the most out of your terminal so that it can
 perform its VT100 emulation most efficiently.  These functions provide
 means for tweaking the termcap entries for both your physical terminal
 and the one simulated by @code{screen}.
@@ -4098,7 +4790,7 @@ template is just @samp{%}, so the mapping is straightforward:
 @chapter The Message Line
 @cindex message line
 
-@code{screen} displays informational messages and other diagnostics in a
+@code{Screen} displays informational messages and other diagnostics in a
 @dfn{message line} at the bottom of the screen.  If your terminal has a
 status line defined in its termcap, screen will use this for displaying
 its messages, otherwise the last line of the screen will be temporarily
@@ -4201,9 +4893,8 @@ This section describes the commands for keeping a record of your session.
 @node Hardcopy, Log,  , Logging
 @section hardcopy
 @kindex h
-@kindex C-h
 @deffn Command hardcopy [-h] [@var{file}]
-(@kbd{C-a h}, @kbd{C-a C-h})@*
+(@kbd{C-a h})@*
 Writes out the currently displayed image to the file @var{file}, or,
 if no filename is specified, to @file{hardcopy.@var{n}}
 in the default directory, where @var{n} is the number of the
@@ -4328,7 +5019,6 @@ categories.
 * Nethack::                     Use @code{nethack}-like error messages.
 * Nonblock::			Disable flow-control to a display.
 * Number::                      Change the current window's number.
-* Silence::			Notify on inactivity.
 * Time::                        Display the time and load average.
 * Verbose::                     Display window creation commands.
 * Version::                     Display the version of @code{screen}.
@@ -4343,6 +5033,7 @@ categories.
 * Backtick::			Program a command for a backtick string escape.
 * Screen Saver::		Define a screen safer.
 * Zmodem::			Define how screen treats zmodem requests.
+* Mousetrack::			Set whether screen should track mouse events.
 @end menu
 
 @node At, Break,  , Miscellaneous
@@ -4381,8 +5072,10 @@ work correctly under @code{at} looping over windows.
 
 @node Break, Debug, At, Miscellaneous
 @section Break
+@kindex b
+@kindex C-b
 @deffn Command break [duration]
-(none)@*
+(@kbd{C-a b}, @kbd{C-a C-b})@*
 Send a break signal for @var{duration}*0.25 seconds to this window.
 For non-Posix systems the time interval is rounded up to full seconds.
 Most useful if a character device is attached to the window rather than
@@ -4390,8 +5083,9 @@ a shell process (@pxref{Window Types}). The maximum duration of
 a break signal is limited to 15 seconds.
 @end deffn
 
+@kindex B
 @deffn Command pow_break
-(none)@*
+(@kbd{C-a B})@*
 Reopen the window's terminal line and send a break condition.
 @end deffn
 
@@ -4431,8 +5125,9 @@ be turned off once and forever.
 
 @node License, Nethack, Debug, Miscellaneous
 @section License
+@kindex ,
 @deffn Command license
-(none)@*
+(@kbd{C-a ,})@*
 Display the disclaimer page. This is done whenever @code{screen} is
 started without options, which should be often enough.
 @end deffn
@@ -4449,7 +5144,8 @@ to read. Anyway, standard messages often tend to be unclear as well.
 This option is only available if @code{screen} was compiled with the
 NETHACK flag defined (@pxref{Installation}). The default setting is then
 determined by the presence of the environment variable
-@code{$NETHACKOPTIONS}.
+@code{$NETHACKOPTIONS} and the file @code{~/.nethackrc} - if either one is
+present, the default is @code{on}.
 @end deffn
 
 @node Nonblock, Number, Nethack, Miscellaneous
@@ -4472,41 +5168,19 @@ Same as the @code{nonblock} command except that the default setting for
 displays is changed. Initial setting is @code{off}.
 @end deffn
 
-@node Number, Silence, Nonblock, Miscellaneous
+@node Number, Time, Nonblock, Miscellaneous
 @section Number
 @kindex N
-@deffn Command number [@var{n}]
+@deffn Command number [[+|-]@var{n}]
 (@kbd{C-a N})@*
 Change the current window's number. If the given number @var{n} is already
 used by another window, both windows exchange their numbers. If no argument is
-specified, the current window number (and title) is shown.
+specified, the current window number (and title) is shown. Using either a
+plus (`+') or minus (`-') will change the window's number by the relative
+amount specified.
 @end deffn
 
-@node Silence, Time, Number, Miscellaneous
-@section Silence
-@deffn Command silence [@var{state}|@var{sec}]
-(none)@*
-Toggles silence monitoring of windows. When silence is turned on and an 
-affected window is switched into the background, you will receive the
-silence notification message in the status line after a specified period
-of inactivity (silence). The default timeout can be changed with the
-@code{silencewait} command or by specifying a number of seconds instead of
-@code{on} or @code{off}. Silence is initially off for all windows.
-@end deffn
-
-@deffn Command defsilence state
-(none)@*
-Same as the @code{silence} command except that the default setting for
-new windows is changed.  Initial setting is `off'.
-@end deffn
-
-@deffn Command silencewait @var{seconds}
-(none)@*
-Define the time that all windows monitored for silence should wait
-before displaying a message. Default is 30 seconds.
-@end deffn
-
-@node Time, Verbose, Silence, Miscellaneous
+@node Time, Verbose, Number, Miscellaneous
 @section Time
 @kindex t
 @kindex C-t
@@ -4524,7 +5198,7 @@ like it is described in the string escapes chapter (@pxref{String Escapes}). Scr
 @deffn Command verbose [on|off]
 If verbose is switched on, the command name is echoed, whenever a window
 is created (or resurrected from zombie state). Default is off.
-Without parameter, the current setting is shown.
+Without a parameter, the current setting is shown.
 @end deffn
 
 @node Version, Zombie, Verbose, Miscellaneous
@@ -4578,27 +5252,22 @@ access to your terminal, they will be able to fire off print commands.
 
 @node Rendition, Sorendition, Printcmd, Miscellaneous
 @section Rendition
-@deffn Command rendition bell | monitor | so @var{attr} [@var{color}]
+@deffn Command rendition bell | monitor | silence | so @var{attr} [@var{color}]
 (none)@*
 Change the way screen renders the titles of windows that have monitor
 or bell flags set in caption or hardstatus or windowlist.
 See the chapter
 about string escapes (@pxref{String Escapes}) for the syntax of
 the modifiers. The default for monitor is currently @samp{=b} (bold,
-active colors), and for bell is @samp{=ub} (underline, bold and
-active colors).
+active colors), for bell @samp{=ub} (underline, bold and active colors), and
+for silence @samp{=u}.
 @end deffn
 
 @node Sorendition, Attrcolor, Rendition, Miscellaneous
 @section Sorendition
 @deffn Command sorendition [@var{attr} [@var{color}]]
 (none)@*
-Change the way screen does highlighting for text marking and printing
-messages.
-See the chapter
-about string escapes (@pxref{String Escapes}) for the syntax of
-the modifiers. The default is currently @samp{=s dd} (standout,
-default colors).
+This command has been deprecated. Use @code{rendition so} instead. 
 @end deffn
 
 @node Attrcolor, Setsid, Sorendition, Miscellaneous
@@ -4611,7 +5280,7 @@ the text. If the attribute
 is in use, the specified attribute/color modifier is also applied. If no
 modifier is given, the current one is deleted. See the chapter
 about string escapes (@pxref{String Escapes}) for the syntax of
-the modifier. Screen understands two pseudo-attributes, @code{i}
+the modifier. @code{Screen} understands two pseudo-attributes, @code{i}
 stands for high-intensity foreground color and @code{I} for
 high-intensity background color.
 
@@ -4634,7 +5303,7 @@ Make bright colored text also bold.
 @section Setsid
 @deffn Command setsid state
 (none)@*
-Normally screen uses different sessions and process groups for
+Normally @code{screen} uses different sessions and process groups for
 the windows. If setsid is turned @code{off}, this is not done
 anymore and all windows will be in the same process group as the
 screen backend process. This also breaks job-control, so be careful.
@@ -4654,7 +5323,8 @@ Parses and executes each argument as separate command.
 @deffn Command maxwin @var{n}
 (none)@*
 Set the maximum window number screen will create. Doesn't affect 
-already existing windows. The number may only be decreased.
+already existing windows. The number can be increased only when there are no
+existing windows.
 @end deffn
 
 @node Backtick, Screen Saver, Maxwin, Miscellaneous
@@ -4710,8 +5380,10 @@ command.
 @end deffn
 
 @deffn Command blankerprg [@var{program args}]
-Defines a blanker program. Disables the blanker program if
-no arguments are given.
+Defines a blanker program. Disables the blanker program if an
+empty argument is given. Shows the currently set blanker program if no
+arguments are given.
+
 @end deffn
 
 @node Zmodem, , Screen Saver, Miscellaneous
@@ -4720,7 +5392,7 @@ no arguments are given.
 @deffnx Command zmodem sendcmd [string]
 @deffnx Command zmodem recvcmd [string]
 (none)@*
-Define zmodem support for screen. Screen understands two
+Define zmodem support for @code{screen}. @code{Screen} understands two
 different modes when it detects a zmodem request: @code{pass}
 and @code{catch}. If the mode is set to @code{pass}, screen will
 relay all data to the attacher until the end of the
@@ -4762,7 +5434,7 @@ day number
 @item D
 weekday name
 @item f
-flags of the window
+flags of the window. @xref{Windows}, for meanings of the various flags.
 @item F
 sets %? to true if the window has the focus
 @item h
@@ -4777,6 +5449,8 @@ month number
 month name
 @item n
 window number
+@item P
+sets %? to true if the current region is in copy/paste mode
 @item s
 seconds
 @item S
@@ -5037,7 +5711,8 @@ Authors @*
 =======
 
 Originally created by Oliver Laumann, this latest version was
-produced by Wayne Davison, Juergen Weigert and Michael Schroeder.
+produced by Juergen Weigert, Michael Schroeder, Micah Cowan and
+Sadrul Habib Chowdhury.
 
 @noindent
 Contributors @*
@@ -5276,7 +5951,5 @@ from the key sequences, since it is the same for all bindings.
 
 @printindex ky
 
-@shortcontents
-@contents
 @bye
 

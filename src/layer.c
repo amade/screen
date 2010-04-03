@@ -86,6 +86,12 @@ int off;
 # define RECODE_MLINE(ml) (ml)
 #endif
 
+#define FOR_EACH_UNPAUSED_CANVAS(l, fn) for (cv = (l)->l_cvlist; cv; cv = cv->c_lnext) \
+  {	\
+    if ((l)->l_pause.d && cv->c_slorient)	\
+      continue;	\
+    fn	\
+  }
 
 void
 LGotoPos(l, x, y)
@@ -96,11 +102,14 @@ int x, y;
   struct viewport *vp;
   int x2, y2;
 
+  if (l->l_pause.d)
+    LayPauseUpdateRegion(l, x, x, y, y);
+
 #ifdef HAVE_BRAILLE
   if (bd.bd_refreshing)
     return;
 #endif
-  for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+  FOR_EACH_UNPAUSED_CANVAS(l,
     {
       display = cv->c_display;
       if (D_blocked)
@@ -128,6 +137,7 @@ int x, y;
 	  break;
 	}
     }
+  );
 }
 
 void
@@ -143,7 +153,9 @@ struct mline *ol;
 
   if (n == 0)
     return;
-  for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+  if (l->l_pause.d)
+    LayPauseUpdateRegion(l, xs, xe, y, y);
+  FOR_EACH_UNPAUSED_CANVAS(l,
     for (vp = cv->c_vplist; vp; vp = vp->v_next)
       {
 	y2 = y + vp->v_yoff;
@@ -180,6 +192,7 @@ struct mline *ol;
 	if (xs2 <= xe2)
 	  RefreshArea(xs2, y2, xe2, y2, 1);
       }
+  );
 }
 
 void
@@ -194,7 +207,9 @@ int bce;
   int ys2, ye2, xs2, xe2;
   if (n == 0)
     return;
-  for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+  if (l->l_pause.d)
+    LayPauseUpdateRegion(l, 0, l->l_width - 1, ys, ye);
+  FOR_EACH_UNPAUSED_CANVAS(l,
     for (vp = cv->c_vplist; vp; vp = vp->v_next)
       {
 	xs2 = vp->v_xoff;
@@ -242,6 +257,7 @@ int bce;
 	if (ys2 <= ye2)
 	  RefreshArea(xs2, ys2, xe2, ye2, 1);
       }
+  );
 }
 
 void
@@ -257,7 +273,9 @@ struct mline *ol;
   struct mchar *c2, cc;
   struct mline *rol;
 
-  for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+  if (l->l_pause.d)
+    LayPauseUpdateRegion(l, x, l->l_width - 1, y, y);
+  FOR_EACH_UNPAUSED_CANVAS(l,
     for (vp = cv->c_vplist; vp; vp = vp->v_next)
       {
 	y2 = y + vp->v_yoff;
@@ -296,6 +314,7 @@ struct mline *ol;
 	if (f)
 	  RefreshArea(xs2, y2, xs2, y2, 1);
       }
+  );
 }
 
 void
@@ -314,7 +333,11 @@ int x, y;
       return;
     }
 #endif
-  for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+
+  if (l->l_pause.d)
+    LayPauseUpdateRegion(l, x, x, y, y);
+
+  FOR_EACH_UNPAUSED_CANVAS(l,
     {
       display = cv->c_display;
       if (D_blocked)
@@ -331,6 +354,7 @@ int x, y;
 	  break;
 	}
     }
+  );
 }
 
 void
@@ -355,7 +379,10 @@ int x, y;
       return;
     }
 #endif
-  for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+  if (l->l_pause.d)
+    LayPauseUpdateRegion(l, x, x + n - 1, y, y);
+
+  FOR_EACH_UNPAUSED_CANVAS(l,
     for (vp = cv->c_vplist; vp; vp = vp->v_next)
       {
 	y2 = y + vp->v_yoff;
@@ -391,6 +418,7 @@ int x, y;
 	while (xs2++ <= xe2)
 	  PUTCHARLP(*s2++);
       }
+  );
 }
 
 void
@@ -415,10 +443,12 @@ int x, y;
       return;
     }
 #endif
+  if (l->l_pause.d)
+    LayPauseUpdateRegion(l, x, x + n - 1, y, y);
   len = strlen(s);
   if (len > n)
     len = n;
-  for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+  FOR_EACH_UNPAUSED_CANVAS(l,
     for (vp = cv->c_vplist; vp; vp = vp->v_next)
       {
 	y2 = y + vp->v_yoff;
@@ -450,6 +480,7 @@ int x, y;
 	while (xs2++ <= xe2)
 	  PUTCHARLP(' ');
       }
+  );
 }
 
 void
@@ -467,7 +498,9 @@ struct mline *ol;
     xs = l->l_width - 1;
   if (xe >= l->l_width)
     xe = l->l_width - 1;
-  for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+  if (l->l_pause.d)
+      LayPauseUpdateRegion(l, xs, xe, y, y);
+  FOR_EACH_UNPAUSED_CANVAS(l,
     for (vp = cv->c_vplist; vp; vp = vp->v_next)
       {
 	xs2 = xs + vp->v_xoff;
@@ -486,6 +519,7 @@ struct mline *ol;
 	  continue;
 	ClearLine(ol ? mloff(RECODE_MLINE(ol), -vp->v_xoff) : (struct mline *)0, y2, xs2, xe2, bce);
       }
+  );
 }
 
 void
@@ -511,7 +545,9 @@ int uself;
     xs = l->l_width - 1;
   if (xe >= l->l_width)
     xe = l->l_width - 1;
-  for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+  if (l->l_pause.d)
+    LayPauseUpdateRegion(l, xs, xe, ys, ye);
+  FOR_EACH_UNPAUSED_CANVAS(l,
     {
       display = cv->c_display;
       if (D_blocked)
@@ -558,9 +594,20 @@ int uself;
 	    xe2 = vp->v_xe;
 	  display = cv->c_display;
 	  ClearArea(xs2, ys2, vp->v_xs, vp->v_xe, xe2, ye2, bce, uself);
+	  if (xe == l->l_width - 1 && xe2 > vp->v_xoff + xe)
+	    {
+	      int y;
+	      SetRendition(&mchar_blank);
+	      for (y = ys2; y <= ye2; y++)
+		{
+		  GotoPos(xe + vp->v_xoff + 1, y);
+		  PUTCHARLP('|');
+		}
+	    }
 #endif
 	}
     }
+  );
 }
 
 void
@@ -580,7 +627,9 @@ int isblank;
       return;
     }
 #endif
-  for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+  if (l->l_pause.d)
+    LayPauseUpdateRegion(l, xs, xe, y, y);
+  FOR_EACH_UNPAUSED_CANVAS(l,
     {
       display = cv->c_display;
       if (D_blocked)
@@ -604,6 +653,7 @@ int isblank;
 	  DisplayLine(isblank ? &mline_blank : &mline_null, mloff(RECODE_MLINE(ml), -vp->v_xoff), y2, xs2, xe2);
 	}
     }
+  );
 }
 
 void
@@ -656,6 +706,10 @@ int ins;
   int yy, y2, yy2, top2, bot2;
   int bce;
 
+  if (l->l_pause.d)
+    /* XXX: 'y'? */
+    LayPauseUpdateRegion(l, 0, l->l_width - 1, top, bot);
+
 #ifdef COLOR
   bce = rend_getbg(c);
 #else
@@ -668,7 +722,7 @@ int ins;
       /* cursor after wrapping */
       yy = y == l->l_height - 1 ? y : y + 1;
 
-      for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+      FOR_EACH_UNPAUSED_CANVAS(l,
 	{
 	  y2 = 0;       /* gcc -Wall */
 	  display = cv->c_display;
@@ -708,12 +762,13 @@ int ins;
 	      WrapChar(RECODE_MCHAR(c), vp->v_xoff + l->l_width, y2, vp->v_xoff, -1, vp->v_xoff + l->l_width - 1, -1, ins);
 	    }
 	}
+      );
     }
   else
     {
       /* hard case: scroll up*/
 
-      for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
+      FOR_EACH_UNPAUSED_CANVAS(l,
 	{
 	  display = cv->c_display;
 	  if (D_blocked)
@@ -761,6 +816,7 @@ int ins;
 	      WrapChar(RECODE_MCHAR(c), vp->v_xoff + l->l_width, bot2, vp->v_xoff, top2, vp->v_xoff + l->l_width - 1, bot2, ins);
 	    }
 	}
+      );
     }
 }
 
@@ -879,11 +935,11 @@ int isblank;
 void
 /*VARARGS2*/
 #if defined(USEVARARGS) && defined(__STDC__)
-LMsg(int err, char *fmt, VA_DOTS)
+LMsg(int err, const char *fmt, VA_DOTS)
 #else
 LMsg(err, fmt, VA_DOTS)
 int err;
-char *fmt;
+const char *fmt;
 VA_DECL
 #endif
 {
@@ -1060,7 +1116,11 @@ ExitOverlayPage()
   debug1("Exiting layer %#x\n", (unsigned int)flayer);
   oldlay = flayer;
   if (oldlay->l_data)
-    free(oldlay->l_data);
+    {
+      if (oldlay->l_layfn->lf_LayFree)
+	LayFree(oldlay->l_data);
+      free(oldlay->l_data);
+    }
 
   p = Layer2Window(flayer);
 
@@ -1111,7 +1171,175 @@ ExitOverlayPage()
       ocv->c_lnext = cv;
     }
   oldlay->l_cvlist = 0;
+  LayerCleanupMemory(oldlay);
   free((char *)oldlay);
   LayRestore();
   LaySetCursor();
+}
+
+int
+LayProcessMouse(struct layer *l, unsigned char ch)
+{
+  /* XXX: Make sure the layer accepts mouse events */
+  int len;
+
+  if (l->l_mouseevent.len >= sizeof(l->l_mouseevent.buffer))
+    return -1;
+
+  len = l->l_mouseevent.len++;
+  l->l_mouseevent.buffer[len] = (len > 0 ? ch - 33 : ch);
+  return (l->l_mouseevent.len == sizeof(l->l_mouseevent.buffer));
+}
+
+int
+LayProcessMouseSwitch(struct layer *l, int s)
+{
+  if ((l->l_mouseevent.start = s))
+    {
+      l->l_mouseevent.len = 0;
+    }
+}
+
+void LayPause(layer, pause)
+struct layer *layer;
+int pause;
+{
+  struct canvas *cv;
+  struct display *olddisplay = display;
+  int line;
+  struct win *win;
+
+  pause = !!pause;
+
+  if (layer->l_pause.d == pause)
+    return;
+
+  if ((layer->l_pause.d = pause))
+    {
+      /* Start pausing */
+      layer->l_pause.top = layer->l_pause.bottom = -1;
+      return;
+    }
+
+  /* Unpause. So refresh the regions in the displays! */
+  if (layer->l_pause.top == -1 &&
+      layer->l_pause.bottom == -1)
+    return;
+
+  if (layer->l_layfn == &WinLf)	/* Currently, this will always be the case! */
+    win = layer->l_data;
+  else
+    win = NULL;
+
+  for (cv = layer->l_cvlist; cv; cv = cv->c_lnext)
+    {
+      struct viewport *vp;
+
+      if (!cv->c_slorient)
+	continue;		/* Wasn't split, so already updated. */
+
+      display = cv->c_display;
+
+      for (vp = cv->c_vplist; vp; vp = vp->v_next)
+	{
+	  for (line = layer->l_pause.top; line <= layer->l_pause.bottom; line++)
+	    {
+	      int xs, xe;
+
+	      if (line + vp->v_yoff >= vp->v_ys && line + vp->v_yoff <= vp->v_ye &&
+		  ((xs = layer->l_pause.left[line]) >= 0) &&
+		  ((xe = layer->l_pause.right[line]) >= 0))
+		{
+		  xs += vp->v_xoff;
+		  xe += vp->v_xoff;
+
+		  if (xs < vp->v_xs) xs = vp->v_xs;
+		  if (xe > vp->v_xe) xe = vp->v_xe;
+
+#if defined(DW_CHARS) && defined(UTF8)
+		  if (layer->l_encoding == UTF8 && xe < vp->v_xe && win)
+		    {
+		      struct mline *ml = win->w_mlines + line;
+		      if (dw_left(ml, xe, UTF8))
+			xe++;
+		    }
+#endif
+
+		  if (xs <= xe)
+		    RefreshLine(line + vp->v_yoff, xs, xe, 0);
+		}
+	    }
+	}
+
+      if (cv == D_forecv)
+	{
+	  int cx = layer->l_x + cv->c_xoff;
+	  int cy = layer->l_y + cv->c_yoff;
+
+	  if (cx < cv->c_xs) cx = cv->c_xs;
+	  if (cy < cv->c_ys) cy = cv->c_ys;
+	  if (cx > cv->c_xe) cx = cv->c_xe;
+	  if (cy > cv->c_ye) cy = cv->c_ye;
+
+	  GotoPos(cx, cy);
+	}
+    }
+
+  for (line = layer->l_pause.top; line <= layer->l_pause.bottom; line++)
+    layer->l_pause.left[line] = layer->l_pause.right[line] = -1;
+  olddisplay = display;
+}
+
+void
+LayPauseUpdateRegion(layer, xs, xe, ys, ye)
+struct layer *layer;
+int xs, xe;
+int ys, ye;
+{
+  if (!layer->l_pause.d)
+    return;
+  if (ys < 0)
+    ys = 0;
+  if (ye >= layer->l_height)
+    ye = layer->l_height - 1;
+  if (xe >= layer->l_width)
+    xe = layer->l_width - 1;
+
+  if (layer->l_pause.top == -1 || layer->l_pause.top > ys)
+    layer->l_pause.top = ys;
+  if (layer->l_pause.bottom < ye)
+    {
+      layer->l_pause.bottom = ye;
+      if (layer->l_pause.lines <= ye)
+	{
+	  int o = layer->l_pause.lines;
+	  layer->l_pause.lines = ye + 32;
+	  layer->l_pause.left = realloc(layer->l_pause.left, sizeof(int) * layer->l_pause.lines);
+	  layer->l_pause.right = realloc(layer->l_pause.right, sizeof(int) * layer->l_pause.lines);
+	  while (o < layer->l_pause.lines)
+	    {
+	      layer->l_pause.left[o] = layer->l_pause.right[o] = -1;
+	      o++;
+	    }
+	}
+    }
+
+  while (ys <= ye)
+    {
+      if (layer->l_pause.left[ys] == -1 || layer->l_pause.left[ys] > xs)
+	layer->l_pause.left[ys] = xs;
+      if (layer->l_pause.right[ys] < xe)
+	layer->l_pause.right[ys] = xe;
+      ys++;
+    }
+}
+
+void
+LayerCleanupMemory(layer)
+struct layer *layer;
+{
+  if (layer->l_pause.left)
+    free(layer->l_pause.left);
+  if (layer->l_pause.right)
+    free(layer->l_pause.right);
 }

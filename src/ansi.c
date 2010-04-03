@@ -78,10 +78,10 @@ struct mchar mchar_null;
 struct mchar mchar_blank = {' ' /* , 0, 0, ... */};
 struct mchar mchar_so    = {' ', A_SO /* , 0, 0, ... */};
 
-int renditions[NUM_RENDS] = {65529 /* =ub */, 65531 /* =b */};
+int renditions[NUM_RENDS] = {65529 /* =ub */, 65531 /* =b */, 65533 /* =u */ };
 
 /* keep string_t and string_t_string in sync! */
-static char *string_t_string[] = 
+static char *string_t_string[] =
 {
   "NONE",
   "DCS",			/* Device control string */
@@ -122,8 +122,8 @@ static void DesignateCharset __P((int, int));
 static void MapCharset __P((int));
 static void MapCharsetR __P((int));
 #endif
-static void SaveCursor __P((void));
-static void RestoreCursor __P((void));
+static void SaveCursor __P((struct cursor *));
+static void RestoreCursor __P((struct cursor *));
 static void BackSpace __P((void));
 static void Return __P((void));
 static void LineFeed __P((int));
@@ -200,7 +200,7 @@ register struct win *p;
   p->w_cursorkeys = 0;
   p->w_top = 0;
   p->w_bot = p->w_height - 1;
-  p->w_saved = 0;
+  p->w_saved.on = 0;
   p->w_x = p->w_y = 0;
   p->w_state = LIT;
   p->w_StringType = NONE;
@@ -322,7 +322,7 @@ register int len;
       curr->w_monitor = MON_FOUND;
     }
 
-  if (cols && rows)
+  if (cols > 0 && rows > 0)
     {
       do
 	{
@@ -940,6 +940,7 @@ register int c;
     case '\n':
       if (curr->w_autoaka)
 	FindAKA();
+    case '\013':	/* Vertical tab is the same as Line Feed */
       LineFeed(0);
       return 1;
     case '\007':
@@ -986,10 +987,10 @@ int c, intermediate;
 	  Report("\033[?%d;%dc", 1, 2);
 	  break;
 	case '7':
-	  SaveCursor();
+	  SaveCursor(&curr->w_saved);
 	  break;
 	case '8':
-	  RestoreCursor();
+	  RestoreCursor(&curr->w_saved);
 	  break;
 	case 'c':
 	  ClearScreen();
@@ -1232,7 +1233,7 @@ int c, intermediate;
 	  LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
 	  break;
 	case 's':
-	  SaveCursor();
+	  SaveCursor(&curr->w_saved);
 	  break;
 	case 't':
 	  switch(a1)
@@ -1273,7 +1274,7 @@ int c, intermediate;
 	    }
 	  break;
 	case 'u':
-	  RestoreCursor();
+	  RestoreCursor(&curr->w_saved);
 	  break;
 	case 'I':
 	  if (!a1)
@@ -1374,6 +1375,9 @@ int c, intermediate;
 	      break;
 	    case 3:	/* COLM: column mode */
 	      i = (i ? Z0width : Z1width);
+	      ClearScreen();
+	      curr->w_x = 0;
+	      curr->w_y = 0;
 	      WChangeSize(curr, i, curr->w_height);
 	      cols = curr->w_width;
 	      rows = curr->w_height;
@@ -1427,14 +1431,27 @@ int c, intermediate;
 	      if (use_altscreen)
 		{
 		  if (i)
-		    EnterAltScreen(curr);
+		    {
+		      if (!curr->w_alt.on)
+			SaveCursor(&curr->w_alt.cursor);
+		      EnterAltScreen(curr);
+		    }
 		  else
-		    LeaveAltScreen(curr);
+		    {
+		      LeaveAltScreen(curr);
+		      RestoreCursor(&curr->w_alt.cursor);
+		    }
 		  if (a1 == 47 && !i)
-		    curr->w_saved = 0;
+		    curr->w_saved.on = 0;
 		  LRefreshAll(&curr->w_layer, 0);
 		  LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
 		}
+	      break;
+	    case 1048:
+	      if (i)
+		SaveCursor(&curr->w_saved);
+	      else
+		RestoreCursor(&curr->w_saved);
 	      break;
 	 /* case 66:	   NKM:  Numeric keypad appl mode */
 	 /* case 68:	   KBUM: Keyboard usage mode (data process) */
@@ -1530,7 +1547,7 @@ StringEnd()
 	}
 #endif
 #ifdef RXVT_OSC
-      if (typ == 0 || typ == 1 || typ == 20 || typ == 39 || typ == 49)
+      if (typ == 0 || typ == 1 || typ == 2 || typ == 20 || typ == 39 || typ == 49)
 	{
 	  int typ2;
 	  typ2 = typ / 10;
@@ -1540,7 +1557,7 @@ StringEnd()
 	    {
 	      strncpy(curr->w_xtermosc[typ2], p, sizeof(curr->w_xtermosc[typ2]) - 1);
 	      curr->w_xtermosc[typ2][sizeof(curr->w_xtermosc[typ2]) - 1] = 0;
-	
+
 	      for (display = displays; display; display = display->d_next)
 		{
 		  if (!D_CXT)
@@ -1674,7 +1691,7 @@ PrintFlush()
       AddCStr(D_PO);
       AddStrn(curr->w_string, curr->w_stringp - curr->w_string);
       AddCStr(D_PF);
-      Flush();
+      Flush(3);
     }
   curr->w_stringp = curr->w_string;
 }
@@ -1751,34 +1768,36 @@ int n;
 #endif /* FONT */
 
 static void
-SaveCursor()
+SaveCursor(cursor)
+struct cursor *cursor;
 {
-  curr->w_saved = 1;
-  curr->w_Saved_x = curr->w_x;
-  curr->w_Saved_y = curr->w_y;
-  curr->w_SavedRend = curr->w_rend;
+  cursor->on = 1;
+  cursor->x = curr->w_x;
+  cursor->y = curr->w_y;
+  cursor->Rend = curr->w_rend;
 #ifdef FONT
-  curr->w_SavedCharset = curr->w_Charset;
-  curr->w_SavedCharsetR = curr->w_CharsetR;
-  bcopy((char *) curr->w_charsets, (char *) curr->w_SavedCharsets,
+  cursor->Charset = curr->w_Charset;
+  cursor->CharsetR = curr->w_CharsetR;
+  bcopy((char *) curr->w_charsets, (char *) cursor->Charsets,
 	4 * sizeof(int));
 #endif
 }
 
 static void
-RestoreCursor()
+RestoreCursor(cursor)
+struct cursor *cursor;
 {
-  if (!curr->w_saved)
+  if (!cursor->on)
     return;
-  LGotoPos(&curr->w_layer, curr->w_Saved_x, curr->w_Saved_y);
-  curr->w_x = curr->w_Saved_x;
-  curr->w_y = curr->w_Saved_y;
-  curr->w_rend = curr->w_SavedRend;
+  LGotoPos(&curr->w_layer, cursor->x, cursor->y);
+  curr->w_x = cursor->x;
+  curr->w_y = cursor->y;
+  curr->w_rend = cursor->Rend;
 #ifdef FONT
-  bcopy((char *) curr->w_SavedCharsets, (char *) curr->w_charsets,
+  bcopy((char *) cursor->Charsets, (char *) curr->w_charsets,
 	4 * sizeof(int));
-  curr->w_Charset = curr->w_SavedCharset;
-  curr->w_CharsetR = curr->w_SavedCharsetR;
+  curr->w_Charset = cursor->Charset;
+  curr->w_CharsetR = cursor->CharsetR;
   curr->w_ss = 0;
   curr->w_FontL = curr->w_charsets[curr->w_Charset];
   curr->w_FontR = curr->w_charsets[curr->w_CharsetR];
@@ -2935,7 +2954,7 @@ char *str;
   extern struct layer *flayer;
   struct layer *oldflayer = flayer;
   flayer = &p->w_layer;
-  LMsg(err, str);
+  LMsg(err, "%s", str);
   flayer = oldflayer;
 }
 
@@ -3070,7 +3089,7 @@ int what;
 	  p = D_fore;
 	  if (inhstr || (inhstrh && p && p->w_hstatus && *p->w_hstatus && WindowChangedCheck(p->w_hstatus, what, (int *)0)))
 	    RefreshHStatus();
-	  if (ox != -1 && ox != -1)
+	  if (ox != -1 && oy != -1)
 	    GotoPos(ox, oy);
 	}
       display = olddisplay;
@@ -3102,7 +3121,7 @@ int what;
 	}
       if (got && inhstr && p == D_fore)
 	RefreshHStatus();
-      if (ox != -1 && ox != -1)
+      if (ox != -1 && oy != -1)
 	GotoPos(ox, oy);
     }
   display = olddisplay;

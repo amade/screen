@@ -1,4 +1,7 @@
-/* Copyright (c) 2008, 2009
+/* Copyright (c) 2010
+ *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
+ *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
+ * Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -41,7 +44,7 @@
 #include "logfile.h"	/* logfopen() */
 
 extern struct display *displays, *display;
-extern struct win *windows, *fore, *wtab[], *console_window;
+extern struct win *windows, *fore, *console_window;
 extern char *ShellArgs[];
 extern char *ShellProg;
 extern char screenterm[];
@@ -93,6 +96,7 @@ static void pseu_readev_fn __P((struct event *, char *));
 static void pseu_writeev_fn __P((struct event *, char *));
 #endif
 static void win_silenceev_fn __P((struct event *, char *));
+static void win_destroyev_fn __P((struct event *, char *));
 
 static int  OpenDevice __P((char **, int, int *, char **));
 static int  ForkWindow __P((struct win *, char **, char *));
@@ -103,6 +107,7 @@ static int  zmodem_parse __P((struct win *, char *, int));
 #endif
 
 
+struct win **wtab;	/* window table */
 
 int VerboseCreate = 0;		/* XXX move this to user.h */
 
@@ -207,7 +212,8 @@ struct LayFuncs WinLf =
   WinClearLine,
   WinRewrite,
   WinResize,
-  WinRestore
+  WinRestore,
+  0
 };
 
 static int
@@ -280,8 +286,7 @@ int *lenp;
       debug2("window %d, user %s: ", fore->w_number, D_user->u_name);
       debug2("writelock %d (wlockuser %s)\n", fore->w_wlock,
 	     fore->w_wlockuser ? fore->w_wlockuser->u_name : "NULL");
-      /* XXX FIXME only display !*/
-      WBell(fore, visual_bell);
+      Msg(0, "write: permission denied (user %s)", D_user->u_name);
       *bufpp += *lenp;
       *lenp = 0;
       return;
@@ -553,6 +558,13 @@ struct NewWindow *newwin;
   extern struct acluser *users;
 #endif
 
+  if (!wtab)
+    {
+      if (!maxwin)
+	maxwin = MAXWIN;
+      wtab = calloc(maxwin, sizeof(struct win *));
+    }
+
   debug1("NewWindow: StartAt %d\n", newwin->StartAt);
   debug1("NewWindow: aka     %s\n", newwin->aka?newwin->aka:"NULL");
   debug1("NewWindow: dir     %s\n", newwin->dir?newwin->dir:"NULL");
@@ -601,7 +613,7 @@ struct NewWindow *newwin;
   if ((p = (struct win *)calloc(1, sizeof(struct win))) == 0)
     {
       close(f);
-      Msg(0, strnomem);
+      Msg(0, "%s", strnomem);
       return -1;
     }
 
@@ -637,7 +649,7 @@ struct NewWindow *newwin;
     {
       free((char *)p);
       close(f);
-      Msg(0, strnomem);
+      Msg(0, "%s", strnomem);
       return -1;
     }
 #endif
@@ -840,6 +852,9 @@ struct NewWindow *newwin;
       SetTimeout(&p->w_silenceev, p->w_silencewait * 1000);
       evenq(&p->w_silenceev);
     }
+  p->w_destroyev.type = EV_TIMEOUT;
+  p->w_destroyev.data = 0;
+  p->w_destroyev.handler = win_destroyev_fn;
 
   SetForeWindow(p);
   Activate(p->w_norefresh);
@@ -1019,6 +1034,7 @@ struct win *wp;
   wp->w_layer.l_cvlist = 0;
   if (flayer == &wp->w_layer)
     flayer = 0;
+  LayerCleanupMemory(&wp->w_layer);
 
 #ifdef MULTIUSER
   FreeWindowAcl(wp);
@@ -1026,6 +1042,7 @@ struct win *wp;
   evdeq(&wp->w_readev);		/* just in case */
   evdeq(&wp->w_writeev);	/* just in case */
   evdeq(&wp->w_silenceev);
+  evdeq(&wp->w_destroyev);
 #ifdef COPY_PASTE
   FreePaster(&wp->w_paster);
 #endif
@@ -1436,6 +1453,7 @@ char **args, *ttyn;
   return pid;
 }
 
+#ifndef HAVE_EXECVPE
 void
 execvpe(prog, args, env)
 char *prog, **args, **env;
@@ -1481,6 +1499,7 @@ char *prog, **args, **env;
   if (eaccess)
     errno = EACCES;
 }
+#endif
 
 #ifdef PSEUDOS
 
@@ -1511,7 +1530,7 @@ char **av;
     }
   if (!(pwin = (struct pseudowin *)calloc(1, sizeof(struct pseudowin))))
     {
-      Msg(0, strnomem);
+      Msg(0, "%s", strnomem);
       return -1;
     }
 
@@ -1906,7 +1925,11 @@ char *data;
       p->w_pwin->p_inlen += len;
     }
 #endif
+
+  LayPause(&p->w_layer, 1);
   WriteString(p, bp, len);
+  LayPause(&p->w_layer, 0);
+
   return;
 }
 
@@ -2046,7 +2069,18 @@ char *data;
 	continue;
 #endif
       Msg(0, "Window %d: silence for %d seconds", p->w_number, p->w_silencewait);
+      p->w_silence = SILENCE_FOUND;
+      WindowChanged(p, 'f');
     }
+}
+
+static void
+win_destroyev_fn(ev, data)
+struct event *ev;
+char *data;
+{
+  struct win *p = (struct win *)ev->data;
+  WindowDied(p, p->w_exitstatus, 1);
 }
 
 #ifdef ZMODEM
@@ -2099,7 +2133,7 @@ int len;
 		  D_readev.condpos = D_readev.condneg = 0;
 		  while (len-- > 0)
 		    AddChar(*bp++);
-		  Flush();
+		  Flush(0);
 		  Activate(D_fore ? D_fore->w_norefresh : 0);
 		  return 1;
 		}
@@ -2233,3 +2267,54 @@ struct display *d;
 }
 
 #endif
+
+int
+WindowChangeNumber(struct win *win, int n)
+{
+  struct win *p;
+  int old = win->w_number;
+
+  if (n < 0 || n >= maxwin)
+    {
+      Msg(0, "Given window position is invalid.");
+      return 0;
+    }
+
+  p = wtab[n];
+  wtab[n] = win;
+  win->w_number = n;
+  wtab[old] = p;
+  if (p)
+    p->w_number = old;
+#ifdef MULTIUSER
+  /* exchange the acls for these windows. */
+  AclWinSwap(old, n);
+#endif
+#ifdef UTMPOK
+  /* exchange the utmp-slots for these windows */
+  if ((win->w_slot != (slot_t) -1) && (win->w_slot != (slot_t) 0))
+    {
+      RemoveUtmp(win);
+      SetUtmp(win);
+    }
+  if (p && (p->w_slot != (slot_t) -1) && (p->w_slot != (slot_t) 0))
+    {
+      /* XXX: first display wins? */
+#if 0
+      /* Does this make more sense? */
+      display = p->w_lastdisp ? p->w_lastdisp : p->w_layer.l_cvlist ? p->w_layer.l_cvlist->c_display : 0;
+#else
+      display = win->w_layer.l_cvlist ? win->w_layer.l_cvlist->c_display : 0;
+#endif
+      RemoveUtmp(p);
+      SetUtmp(p);
+    }
+#endif
+
+  WindowChanged(win, 'n');
+  WindowChanged((struct win *)0, 'w');
+  WindowChanged((struct win *)0, 'W');
+  WindowChanged((struct win *)0, 0);
+  return 1;
+}
+

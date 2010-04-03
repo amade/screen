@@ -65,6 +65,7 @@ struct inpdata
   void (*inpfinfunc) __P((char *buf, int len, char *priv));
   char  *priv;		/* private data for finfunc */
   int  privdata;	/* private data space */
+  char *search; 	/* the search string */
 };
 
 static struct LayFuncs InpLf =
@@ -75,7 +76,8 @@ static struct LayFuncs InpLf =
   DefClearLine,
   DefRewrite,
   DefResize,
-  DefRestore
+  DefRestore,
+  0
 };
 
 /*
@@ -147,6 +149,7 @@ int data;
     }
   if (InitOverlayPage(sizeof(*inpdata), &InpLf, 1))
     return;
+  flayer->l_mode = 1;
   inpdata = (struct inpdata *)flayer->l_data;
   inpdata->inpmaxlen = len;
   inpdata->inpfinfunc = finfunc;
@@ -159,6 +162,7 @@ int data;
   inpdata->priv = priv;
   inpdata->inpstringlen = 0;
   inpdata->inpstring = NULL;
+  inpdata->search = NULL;
   if (istr)
     inp_setprompt(istr, (char *)NULL);
 }
@@ -209,10 +213,12 @@ int *plen;
   char ch;
   struct inpdata *inpdata;
   struct display *inpdisplay;
-  int prev, next;
+  int prev, next, search = 0;
 
   inpdata = (struct inpdata *)flayer->l_data;
   inpdisplay = display;
+
+#define RESET_SEARCH do { if (inpdata->search) Free(inpdata->search); } while (0)
 
   LGotoPos(flayer, inpdata->inpstringlen + (inpdata->inpmode & INP_NOECHO ? 0 : inpdata->inp.pos), INPUTLINE);
   if (ppbuf == 0)
@@ -271,14 +277,16 @@ int *plen;
 		  LGotoPos(flayer, x, INPUTLINE);
 		}
 	    }
+	  RESET_SEARCH;
 	}
       else if ((ch == '\b' || ch == 0177) && inpdata->inp.pos > 0)
 	{
 	  erase_chars(inpdata, p-1, p, x, 1);
+	  RESET_SEARCH;
 	}
       else if (ch == '\025')			/* CTRL-U */
 	{
-  	  x = inpdata->inpstringlen;
+	  x = inpdata->inpstringlen;
 	  if (inpdata->inp.len && !(inpdata->inpmode & INP_NOECHO))
 	    {
 	      LClearArea(flayer, x, INPUTLINE, x + inpdata->inp.len - 1, INPUTLINE, 0, 0);
@@ -288,7 +296,7 @@ int *plen;
 	}
       else if (ch == '\013')			/* CTRL-K */
 	{
-  	  x = inpdata->inpstringlen + inpdata->inp.pos;
+	  x = inpdata->inpstringlen + inpdata->inp.pos;
 	  if (inpdata->inp.len > inpdata->inp.pos && !(inpdata->inpmode & INP_NOECHO))
 	    {
 	      LClearArea(flayer, x, INPUTLINE, x + inpdata->inp.len - inpdata->inp.pos - 1, INPUTLINE, 0, 0);
@@ -304,10 +312,12 @@ int *plen;
 	  while (p > inpdata->inp.buf && *(p - 1) != ' ')
 	    p--;
 	  erase_chars(inpdata, p, oldp, x, 1);
+	  RESET_SEARCH;
 	}
       else if (ch == '\004' && inpdata->inp.pos < inpdata->inp.len)	/* CTRL-D */
 	{
 	  erase_chars(inpdata, p, p+1, x, 0);
+	  RESET_SEARCH;
 	}
       else if (ch == '\001' || (unsigned char)ch == 0201)	/* CTRL-A */
 	{
@@ -332,16 +342,46 @@ int *plen;
       else if ((prev = ((ch == '\020' || (unsigned char)ch == 0220) &&	/* CTRL-P */
 	      inpdata->inp.prev)) ||
 	  (next = ((ch == '\016' || (unsigned char)ch == 0216) &&  /* CTRL-N */
-		   inpdata->inp.next)))
+		   inpdata->inp.next)) ||
+	  (search = ((ch == '\022' || (unsigned char)ch == 0222) && inpdata->inp.prev)))
 	{
 	  struct mchar mc;
+	  struct inpline *sel;
+	  int pos = -1;
+
 	  mc = mchar_so;
+
+	  if (prev)
+	    sel = inpdata->inp.prev;
+	  else if (next)
+	    sel = inpdata->inp.next;
+	  else
+	    {
+	      /* search */
+	      inpdata->inp.buf[inpdata->inp.len] = 0;	/* Remove the ctrl-r from the end */
+	      if (!inpdata->search)
+		inpdata->search = SaveStr(inpdata->inp.buf);
+	      for (sel = inpdata->inp.prev; sel; sel = sel->prev)
+		{
+		  char *f;
+		  if ((f = strstr(sel->buf, inpdata->search)))
+		    {
+		      pos = f - sel->buf;
+		      break;
+		    }
+		}
+	      if (!sel)
+		continue;	/* Did not find a match. Process the next input. */
+	    }
+
 	  if (inpdata->inp.len && !(inpdata->inpmode & INP_NOECHO))
 	    LClearArea(flayer, inpdata->inpstringlen, INPUTLINE, inpdata->inpstringlen + inpdata->inp.len - 1, INPUTLINE, 0, 0);
 
-	  if (prev && !inpdata->inp.next)
+	  if ((prev || search) && !inpdata->inp.next)
 	    inphist = inpdata->inp;
-	  memcpy(&inpdata->inp, prev ? inpdata->inp.prev : inpdata->inp.next, sizeof(struct inpline));
+	  memcpy(&inpdata->inp, sel, sizeof(struct inpline));
+	  if (pos != -1)
+	    inpdata->inp.pos = pos;
 	  if (inpdata->inp.len > inpdata->inpmaxlen)
 	    inpdata->inp.len = inpdata->inpmaxlen;
 	  if (inpdata->inp.pos > inpdata->inp.len)
@@ -408,8 +448,16 @@ int *plen;
             (*inpdata->inpfinfunc)(inpdata->inp.buf, inpdata->inp.len, inpdata->priv);
 	  else
             (*inpdata->inpfinfunc)(pbuf - 1, 0, inpdata->priv);
-	  free((char *)inpdata);
+	  if (inpdata->search)
+	    free(inpdata->search);
+	  free(inpdata);
 	  return;
+	}
+      else
+	{
+	  /* The user was searching, and then pressed some non-control input. So reset
+	   * the search string. */
+	  RESET_SEARCH;
 	}
     }
   if (!(inpdata->inpmode & INP_RAW))
@@ -434,7 +482,7 @@ int y, xs, xe, isblank;
 {
   int q, r, s, l, v;
   struct inpdata *inpdata;
-  
+
   inpdata = (struct inpdata *)flayer->l_data;
   if (y != INPUTLINE)
     {
@@ -476,13 +524,5 @@ int y, xs, xe, isblank;
       LClearArea(flayer, q, y, q + l - 1, y, 0, 0);
       q += l;
     }
-}
-
-int
-InInput()
-{
-  if (flayer && flayer->l_layfn == &InpLf)
-    return 1;
-  return 0;
 }
 

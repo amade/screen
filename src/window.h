@@ -1,4 +1,7 @@
-/* Copyright (c) 2008, 2009
+/* Copyright (c) 2010
+ *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
+ *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
+ * Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -24,9 +27,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
- * $Id$ FAU
+ * $Id$ GNU
  */
 
+#ifndef SCREEN_WINDOW_H
+#define SCREEN_WINDOW_H
 
 /* keep this in sync with the initialisations in window.c */
 struct NewWindow
@@ -128,7 +133,7 @@ struct paster
 struct paster;
 #endif
 
-struct win 
+struct win
 {
   struct win *w_next;		/* next window */
   int    w_type;		/* type of window */
@@ -182,15 +187,17 @@ struct win
   int	 w_CharsetR;		/* charset number GR */
   int	 w_charsets[4];		/* Font = charsets[Charset] */
 #endif
-  int	 w_ss;		
-  int	 w_saved;
-  int	 w_Saved_x, w_Saved_y;
-  struct mchar w_SavedRend;
+  int	 w_ss;
+  struct cursor {
+    int on;
+    int	 x, y;
+    struct mchar Rend;
 #ifdef FONT
-  int	 w_SavedCharset;
-  int	 w_SavedCharsetR;
-  int	 w_SavedCharsets[4];
+    int	 Charset;
+    int	 CharsetR;
+    int	 Charsets[4];
 #endif
+  } w_saved;
   int	 w_top, w_bot;		/* scrollregion */
   int	 w_wrap;		/* autowrap */
   int	 w_origin;		/* origin mode */
@@ -222,7 +229,7 @@ struct win
   int	 w_monitor;		/* monitor status */
   int	 w_silencewait;		/* wait for silencewait secs */
   int	 w_silence;		/* silence status (Lloyd Zusman) */
-  char	 w_vbwait;            
+  char	 w_vbwait;
   char	 w_norefresh;		/* dont redisplay when switching to that win */
 #ifdef RXVT_OSC
   char	 w_xtermosc[4][MAXSTR];	/* special xterm/rxvt escapes */
@@ -241,8 +248,8 @@ struct win
 #else
   int	 w_histheight;		/* always 0 */
 #endif
-  int	 w_pid;			/* process at the other end of ptyfd */	
-  int	 w_deadpid;		/* saved w_pid of a process that closed the ptyfd to us */	
+  int	 w_pid;			/* process at the other end of ptyfd */
+  int	 w_deadpid;		/* saved w_pid of a process that closed the ptyfd to us */
 
   char  *w_cmdargs[MAXARGS];	/* command line argument vector */
   char	*w_dir;			/* directory for chdir */
@@ -271,14 +278,24 @@ struct win
   int    w_telsubidx;
   struct event w_telconnev;
 #endif
-  struct mline *w_alt_mlines;
-  int    w_alt_width;
-  int    w_alt_height;
-  int    w_alt_histheight;
-  int    w_alt_x, w_alt_y;
+  struct {
+    int    on;    /* Is the alternate buffer currently being used? */
+    struct mline *mlines;
+    int    width;
+    int    height;
+    int    histheight;
 #ifdef COPY_PASTE
-  struct mline *w_alt_hlines;
-  int    w_alt_histidx;
+    struct mline *hlines;
+    int    histidx;
+    struct cursor cursor;
+#endif
+  } w_alt;
+
+  struct event w_destroyev;	/* window destroy event */
+#ifdef BSDWAIT
+  union wait w_exitstatus;	/* window exit status */
+#else
+  int w_exitstatus;
 #endif
 #ifdef SCRIPT
   struct
@@ -330,3 +347,8 @@ struct win
     : &fore->w_mlines[y - fore->w_histheight])
 
 #define Layer2Window(l) ((struct win *)(l)->l_bottom->l_data)
+
+int WindowChangeNumber __P((struct win *, int));
+
+#endif /* SCREEN_WINDOW_H */
+

@@ -24,7 +24,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
- * $Id$ FAU
+ * $Id$ GNU
  */
 
 #include "os.h"
@@ -147,6 +147,7 @@ struct mode
 
 /* #include "logfile.h" */	/* (requires stat.h) struct logfile */
 #include "image.h"
+#include "canvas.h"
 #include "display.h"
 #include "window.h"
 
@@ -173,13 +174,18 @@ struct mode
 #define MSG_WINCH	6
 #define MSG_HANGUP	7
 #define MSG_COMMAND	8
+#define MSG_QUERY       9
 
 /*
  * versions of struct msg:
  * 0:	screen version 3.6.6 (version count introduced)
- * 1:	screen version 4.1.0
+ * 1:	screen version 4.1.0devel	(revisions e3fc19a upto 8147d08)
+ * 					 A few revisions after 8147d08 incorrectly
+ * 					 carried version 1, but should have carried 2.
+ * 2:	screen version 4.1.0devel	(revisions 8b46d8a upto YYYYYYY)
  */
-#define MSG_VERSION	1
+#define MSG_VERSION	2
+
 #define MSG_REVISION	(('m'<<24) | ('s'<<16) | ('g'<<8) | MSG_VERSION)
 struct msg
 {
@@ -227,6 +233,8 @@ struct msg
 	  char cmd[MAXPATHLEN];	/* command */
 	  int apid;		/* pid of frontend */
 	  char preselect[20];
+	  char writeback[MAXPATHLEN];  /* The socket to write the result.
+					  Only used for MSG_QUERY */
 	}
       command;
       char message[MAXPATHLEN * 2];
@@ -249,7 +257,7 @@ struct msg
 #define VBELLWAIT	1 /* No. of seconds a vbell will be displayed */
 
 #define BELL_ON		0 /* No bell has occurred in the window */
-#define BELL_FOUND 	1 /* A bell has occurred, but user not yet notified */
+#define BELL_FOUND	1 /* A bell has occurred, but user not yet notified */
 #define BELL_DONE	2 /* A bell has occured, user has been notified */
 
 #define BELL_VISUAL	3 /* A bell has occured in fore win, notify him visually */
@@ -264,8 +272,10 @@ struct msg
 #define DUMP_EXCHANGE	2
 #define DUMP_SCROLLBACK 3
 
-#define SILENCE_OFF	0
-#define SILENCE_ON	1
+#define SILENCE_OFF	0 /* Not checking for silence */
+#define SILENCE_ON	1 /* Window being monitored for silence */
+#define SILENCE_FOUND   2 /* Window is silent */
+#define SILENCE_DONE    3 /* Window is silent and user is notified */
 
 extern char strnomem[];
 

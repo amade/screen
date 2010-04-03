@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
-dnl $Id$ FAU
+dnl $Id$ GNU
 dnl
 dnl Many thanks to David MacKenzie for writing autoconf and
 dnl providing a sample configure.in file for screen.
@@ -283,6 +283,12 @@ seteuid_is_broken(0);
 seteuid(0);
 #endif
 ], AC_DEFINE(HAVE_SETEUID))
+
+dnl execvpe
+AC_CHECKING(execvpe)
+AC_TRY_LINK(,[
+    execvpe(0, 0, 0);
+], AC_DEFINE(HAVE_EXECVPE))
 
 dnl
 dnl    ****  select()  ****

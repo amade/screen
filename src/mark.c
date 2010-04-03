@@ -77,7 +77,8 @@ struct LayFuncs MarkLf =
   DefClearLine,
   MarkRewrite,
   DefResize,
-  DefRestore
+  DefRestore,
+  0
 };
 
 int join_with_cr =  0;
@@ -162,14 +163,18 @@ nextchar(int *xp, int *yp, int direction, char target, int num)
   displayed_line = (char *)WIN(*yp) -> image;
  
   switch(direction) {
-  case 't': adjust = -1; /* fall through */
-  case 'f': step = 1; /* fall through */
-  break;
-  case 'T': adjust = 1; /* fall through */
-  case 'F': step = -1; /* fall through */
-  break;
-  default:
-  ASSERT(0);
+    case 't':
+      adjust = -1; /* fall through */
+    case 'f':
+      step = 1;
+      break;
+    case 'T':
+      adjust = 1; /* fall through */
+    case 'F':
+      step = -1;
+      break;
+    default:
+      ASSERT(0);
   }
  
   x += step;
@@ -498,6 +503,7 @@ MarkRoutine()
   if (InitOverlayPage(sizeof(*markdata), &MarkLf, 1))
     return;
   flayer->l_encoding = fore->w_encoding;
+  flayer->l_mode = 1;
   markdata = (struct markdata *)flayer->l_data;
   markdata->md_user = D_user;	/* XXX: Correct? */
   markdata->md_window = fore;
@@ -556,19 +562,22 @@ int *inlenp;
   in_mark = 1;
   while (in_mark && (inlen /* || extrap */))
     {
-/*
-      if (extrap)
+      unsigned char ch = (unsigned char )*pt++;
+      inlen--;
+      if (flayer->l_mouseevent.start)
 	{
-	  od = *extrap++;
-	  if (*extrap == 0)
-	    extrap = 0;
+	  int r = LayProcessMouse(flayer, ch);
+	  if (r == -1)
+	    LayProcessMouseSwitch(flayer, 0);
+	  else
+	    {
+	      if (r)
+		ch = 0222;
+	      else
+		continue;
+	    }
 	}
-      else
-*/
-	{
-          od = mark_key_tab[(int)(unsigned char)*pt++];
-          inlen--;
-	}
+      od = mark_key_tab[(int)ch];
       rep_cnt = markdata->rep_cnt;
       if (od >= '0' && od <= '9' && !markdata->f_cmd.flag)
         {
@@ -605,49 +614,36 @@ int *inlenp;
 	}
       }
 
-      switch (od) 
+processchar:
+      switch (od)
         {
 	case 'f': /* fall through */
 	case 'F': /* fall through */
 	case 't': /* fall through */
 	case 'T': /* fall through */
-	/* 
-	 * Set f_cmd to do a search on the next key stroke.
-	 * If we break, rep_cnt will be reset, so we
-	 * continue instead. It might be cleaner to
-	 * store the rep_count in f_cmd and
-	 * break here so later followon code will be
-	 * hit. 
-	 */
-	markdata->f_cmd.flag = 1;
-        markdata->f_cmd.direction = od;
-	debug("entering char search\n");
-	continue;
+	  /*
+	   * Set f_cmd to do a search on the next key stroke.
+	   * If we break, rep_cnt will be reset, so we
+	   * continue instead. It might be cleaner to
+	   * store the rep_count in f_cmd and
+	   * break here so later followon code will be
+	   * hit.
+	   */
+	  markdata->f_cmd.flag = 1;
+	  markdata->f_cmd.direction = od;
+	  debug("entering char search\n");
+	  continue;
 	case ';':
+	case ',':
 	  if (!markdata->f_cmd.target)
 	    break;
 	  if (!rep_cnt)
 	    rep_cnt = 1;
-	  nextchar(&cx, &cy, markdata->f_cmd.direction, markdata->f_cmd.target, rep_cnt );
-	  revto(cx, cy);
-	break;
-	case ',': {
-	  int search_dir;
-	  if (!markdata->f_cmd.target)
-	    break;
-	  if (!rep_cnt)
-	    rep_cnt = 1;
-	  switch (markdata->f_cmd.direction) {
-	  case 't': search_dir = 'T'; break;
-	  case 'T': search_dir = 't'; break;
-	  case 'f': search_dir = 'F'; break;
-	  case 'F': search_dir = 'f'; break;
-	  }
-	  nextchar(&cx, &cy, search_dir, markdata->f_cmd.target, rep_cnt );
+	  nextchar(&cx, &cy,
+	      od == ';' ? markdata->f_cmd.direction : (markdata->f_cmd.direction ^ 0x20),
+	      markdata->f_cmd.target, rep_cnt );
 	  revto(cx, cy);
 	  break;
-	  }
-
 	case 'o':
 	case 'x':
 	  if (!markdata->second)
@@ -1040,6 +1036,7 @@ int *inlenp;
 		  LAY_CALL_UP(LRefreshAll(flayer, 0));
 		}
 	      ExitOverlayPage();
+	      WindowChanged(fore, 'P');
 	      if (append_mode)
 		LMsg(0, "Appended %d characters to buffer",
 		    newcopylen);
@@ -1050,6 +1047,39 @@ int *inlenp;
 	      in_mark = 0;
 	      break;
 	    }
+
+	case 0222:
+	  if (flayer->l_mouseevent.start)
+	    {
+	      int button = flayer->l_mouseevent.buffer[0];
+	      if (button == 'a')
+		{
+		  /* Scroll down */
+		  od = 'j';
+		}
+	      else if (button == '`')
+		{
+		  /* Scroll up */
+		  od = 'k';
+		}
+	      else if (button == ' ')
+		{
+		  /* Left click */
+		  cx = flayer->l_mouseevent.buffer[1];
+		  cy = D2W(flayer->l_mouseevent.buffer[2]);
+		  revto(cx, cy);
+		  od = ' ';
+		}
+	      else
+		od = 0;
+	      LayProcessMouseSwitch(flayer, 0);
+	      if (od)
+		goto processchar;
+	    }
+	  else
+	    LayProcessMouseSwitch(flayer, 1);
+	  break;
+
 	default:
 	  MarkAbort();
 	  LMsg(0, "Copy mode aborted");
@@ -1126,6 +1156,8 @@ int tx, ty, line;
 
   if (markdata->second == 0)
     {
+      flayer->l_x = tx;
+      flayer->l_y = W2D(ty);
       LGotoPos(flayer, tx, W2D(ty));
       return;
     }
@@ -1222,6 +1254,8 @@ int tx, ty, line;
 #endif
 	}
     }
+  flayer->l_x = tx;
+  flayer->l_y = W2D(ty);
   LGotoPos(flayer, tx, W2D(ty));
 }
 
@@ -1249,6 +1283,7 @@ MarkAbort()
       rem(markdata->x1, markdata->y1, markdata->cx, markdata->cy, redisp, (char *)0, yend);
     }
   ExitOverlayPage();
+  WindowChanged(fore, 'P');
 }
 
 
@@ -1453,14 +1488,6 @@ int n;
   while (i-- > 0)
     MarkRedisplayLine(i, 0, flayer->l_width - 1, 1);
   return n;
-}
-
-int
-InMark()
-{
-  if (flayer && flayer->l_layfn == &MarkLf)
-    return 1;
-  return 0;
 }
 
 void

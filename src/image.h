@@ -24,7 +24,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
- * $Id$ FAU
+ * $Id$ GNU
  */
 
 
@@ -171,6 +171,7 @@ enum
 {
   REND_BELL = 0,
   REND_MONITOR,
+  REND_SILENCE,
   NUM_RENDS
 };
 

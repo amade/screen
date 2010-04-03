@@ -75,7 +75,7 @@ register char *str1, *str2;
     {
       len2 = strlen(str2);
       if ((cp = realloc(str2, (unsigned) len1 + len2 + add_colon + 1)) == NULL)
-	Panic(0, strnomem);
+	Panic(0, "%s", strnomem);
       bcopy(cp, cp + len1 + add_colon, len2 + 1);
     }
   else
@@ -83,8 +83,8 @@ register char *str1, *str2;
       if (len1 == 0)
 	return 0;
       if ((cp = malloc((unsigned) len1 + add_colon + 1)) == NULL)
-	Panic(0, strnomem);
-      cp[len1 + add_colon] = '\0'; 
+	Panic(0, "%s", strnomem);
+      cp[len1 + add_colon] = '\0';
     }
   bcopy(str1, cp, len1);
   if (add_colon)
@@ -112,7 +112,7 @@ char *rcfile;
           if (!home)
             {
               Msg(0, "%s: source: tilde expansion failed", rc_name);
-              return;
+              return NULL;
             }
           snprintf(rcfilename_tilde_exp, MAXPATHLEN, "%s/%s", home, rcfile+2);
         }
@@ -124,14 +124,14 @@ char *rcfile;
           if (!p)
             {
               Msg(0, "%s: source: tilde expansion failed for user %s", rc_name, rcfile+1);
-              return;
+              return NULL;
             }
           snprintf(rcfilename_tilde_exp, MAXPATHLEN, "%s/%s", p->pw_dir, slash_position+1);
         }
       else
         {
           Msg(0, "%s: source: illegal tilde expression.", rc_name);
-          return;
+          return NULL;
         }
       rcfile = rcfilename_tilde_exp;
     }
@@ -192,21 +192,23 @@ int nopanic;
 
   rc_name = findrcfile(rcfilename);
 
-  if ((fp = secfopen(rc_name, "r")) == NULL)
+  if (rc_name == NULL || (fp = secfopen(rc_name, "r")) == NULL)
     {
-      if (!rc_recursion && RcFileName && !strcmp(RcFileName, rc_name))
+      const char *rc_nonnull = rc_name ? rc_name : rcfilename;
+      if (!rc_recursion && RcFileName && !strcmp(RcFileName, rc_nonnull))
 	{
           /*
            * User explicitly gave us that name,
            * this is the only case, where we get angry, if we can't read
            * the file.
            */
-	  debug3("StartRc: '%s','%s', '%s'\n", RcFileName, rc_name, rcfilename);
-          if (!nopanic) Panic(0, "Unable to open \"%s\".", rc_name);
+	  debug3("StartRc: '%s','%s', '%s'\n", RcFileName, rc_name ? rc_name : "(null)", rcfilename);
+          if (!nopanic) Panic(0, "Unable to open \"%s\".", rc_nonnull);
 	  /* possibly NOTREACHED */
 	}
-      debug1("StartRc: '%s' no good. ignored\n", rc_name);
-      Free(rc_name);
+      debug1("StartRc: '%s' no good. ignored\n", rc_nonnull);
+      if (rc_name)
+	Free(rc_name);
       rc_name = oldrc_name;
       return 1;
     }
@@ -229,7 +231,7 @@ int nopanic;
 	  if (argc != 3)
 	    {
 	      AddStr("\r\n");
-	      Flush();
+	      Flush(0);
 	    }
 	}
       else if (strcmp(args[0], "sleep") == 0)
@@ -302,23 +304,25 @@ char *rcfilename;
 
   rc_name = findrcfile(rcfilename);
 
-  if ((fp = secfopen(rc_name, "r")) == NULL)
+  if (rc_name == NULL || (fp = secfopen(rc_name, "r")) == NULL)
     {
+      const char *rc_nonnull = rc_name ? rc_name : rcfilename;
       if (rc_recursion)
-        Msg(errno, "%s: source %s", oldrc_name, rc_name);
-      else if (RcFileName && !strcmp(RcFileName, rc_name))
+        Msg(errno, "%s: source %s", oldrc_name, rc_nonnull);
+      else if (RcFileName && !strcmp(RcFileName, rc_nonnull))
 	{
     	  /*
  	   * User explicitly gave us that name, 
 	   * this is the only case, where we get angry, if we can't read
 	   * the file.
 	   */
-  	  debug3("FinishRc:'%s','%s','%s'\n", RcFileName, rc_name, rcfilename);
-          Panic(0, "Unable to open \"%s\".", rc_name);
+  	  debug3("FinishRc:'%s','%s','%s'\n", RcFileName, rc_name ? rc_name : "(null)", rcfilename);
+          Panic(0, "Unable to open \"%s\".", rc_nonnull);
 	  /* NOTREACHED */
 	}
-      debug1("FinishRc: '%s' no good. ignored\n", rc_name);
-      Free(rc_name);
+      debug1("FinishRc: '%s' no good. ignored\n", rc_nonnull);
+      if (rc_name)
+	Free(rc_name);
       rc_name = oldrc_name;
       return;
     }
@@ -623,7 +627,7 @@ int *lenp;
   if ((buf = malloc(size)) == NULL)
     {
       close(i);
-      Msg(0, strnomem);
+      Msg(0, "%s", strnomem);
       return NULL;
     }
   errno = 0;

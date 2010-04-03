@@ -19,7 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
- * $Id$ FAU
+ * $Id$ GNU
  */
 
 
@@ -35,7 +35,7 @@
  * Maximum of simultaneously allowed windows per screen session.
  */
 #ifndef MAXWIN
-# define MAXWIN 40
+# define MAXWIN 100
 #endif
 
 /*
@@ -452,6 +452,11 @@
 #undef HAVE_SETEUID
 
 /*
+ * execvpe is now defined in some systems.
+ */
+#undef HAVE_EXECVPE
+
+/*
  * If you want the "time" command to display the current load average
  * define LOADAV. Maybe you must install screen with the needed
  * privileges to read /dev/kmem.
@@ -528,12 +533,12 @@
 #undef USESETENV
 
 /*
- * If setenv() takes 3 arguments sefine HAVE_SETENV_3
+ * If setenv() takes 3 arguments define HAVE_SETENV_3
  */
 #undef HAVE_SETENV_3
 
 /*
- * If setenv() takes 2 arguments sefine HAVE_SETENV_2
+ * If setenv() takes 2 arguments define HAVE_SETENV_2
  */
 #undef HAVE_SETENV_2
 
