@@ -2853,7 +2853,9 @@ int key;
 	  s = args[0];
 	  if (!strncmp(s, "always", 6))
 	    s += 6;
-	  if (!strcmp(s, "lastline"))
+	  if (!strcmp(s, "firstline"))
+	    new_use = HSTATUS_FIRSTLINE;
+	  else if (!strcmp(s, "lastline"))
 	    new_use = HSTATUS_LASTLINE;
 	  else if (!strcmp(s, "ignore"))
 	    new_use = HSTATUS_IGNORE;
@@ -2887,6 +2889,8 @@ int key;
 		  old_use = D_has_hstatus;
 		  D_has_hstatus = new_use;
 		  if ((new_use == HSTATUS_LASTLINE && old_use != HSTATUS_LASTLINE) || (new_use != HSTATUS_LASTLINE && old_use == HSTATUS_LASTLINE))
+		    ChangeScreenSize(D_width, D_height, 1);
+		  if ((new_use == HSTATUS_FIRSTLINE && old_use != HSTATUS_FIRSTLINE) || (new_use != HSTATUS_FIRSTLINE && old_use == HSTATUS_FIRSTLINE))
 		    ChangeScreenSize(D_width, D_height, 1);
 		  RefreshHStatus();
 		}
