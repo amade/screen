@@ -171,6 +171,7 @@ struct canvas *cv;
   if (!D_forecv)
     MakeDefaultCanvas();
   DupLayoutCv(&lay->lay_canvas, &D_canvas, 0);
+  D_canvas.c_ys = (D_has_hstatus == HSTATUS_FIRSTLINE);
   D_canvas.c_ye = D_height - 1 - ((D_canvas.c_slperp && D_canvas.c_slperp->c_slnext) || captionalways) - (D_has_hstatus == HSTATUS_LASTLINE);
   ResizeCanvas(&D_canvas);
   RecreateCanvasChain();
