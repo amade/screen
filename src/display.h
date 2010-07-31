@@ -320,7 +320,8 @@ while (0)
 #define HSTATUS_LASTLINE	1
 #define HSTATUS_MESSAGE		2
 #define HSTATUS_HS		3
-#define HSTATUS_ALWAYS		(1<<2)
+#define HSTATUS_FIRSTLINE	4
+#define HSTATUS_ALWAYS		(1<<3)
 
 #endif /* SCREEN_DISPLAY_H */
 
