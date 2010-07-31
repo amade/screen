@@ -375,7 +375,7 @@ MakeDefaultCanvas()
     return -1;
   cv->c_xs      = 0;
   cv->c_xe      = D_width - 1;
-  cv->c_ys      = 0;
+  cv->c_ys      = (D_has_hstatus == HSTATUS_FIRSTLINE);
   cv->c_ye      = D_height - 1 - (D_has_hstatus == HSTATUS_LASTLINE) - captionalways;
   debug2("MakeDefaultCanvas 0,0 %d,%d\n", cv->c_xe, cv->c_ye);
   cv->c_xoff    = 0;

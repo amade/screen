@@ -162,6 +162,7 @@ int change_fore;
 
   cv = &D_canvas;
   cv->c_xe = wi - 1;
+  cv->c_ys = (D_has_hstatus == HSTATUS_FIRSTLINE);
   cv->c_ye = he - 1 - ((cv->c_slperp && cv->c_slperp->c_slnext) || captionalways) - (D_has_hstatus == HSTATUS_LASTLINE);
   cv->c_blank.l_height = cv->c_ye - cv->c_ys + 1;
   if (cv->c_slperp)

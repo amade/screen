@@ -2242,6 +2242,28 @@ char *str;
       D_hstatus = *str ? 1 : 0;
       SetRendition(&mchar_null);
     }
+  else if (D_has_hstatus == HSTATUS_FIRSTLINE)
+    {
+      debug("ShowHStatus: using first line\n");
+      ox = D_x;
+      oy = D_y;
+      str = str ? str : "";
+      l = strlen(str);
+      if (l > D_width)
+        l = D_width;
+      GotoPos(0, 0);
+      SetRendition(captionalways || D_cvlist == 0 || D_cvlist->c_next ? &mchar_null: &mchar_so);
+      l = PrePutWinMsg(str, 0, l);
+      if (!captionalways || D_cvlist && !D_cvlist->c_next)
+        while (l++ < D_width)
+          PUTCHARLP(' ');
+      if (l < D_width)
+        ClearArea(l, 0, l, D_width - 1, D_width - 1, 0, 0, 0);
+      if (ox != -1 && oy != -1)
+        GotoPos(ox, oy);
+      D_hstatus = *str ? 1 : 0;
+      SetRendition(&mchar_null);
+    }
   else if (str && *str && D_has_hstatus == HSTATUS_MESSAGE)
     {
       debug("ShowHStatus: using message\n");
@@ -2346,7 +2368,7 @@ int y, from, to, isblank;
       isblank = 1;
     }
 
-  if (y == D_height - 1 && D_has_hstatus == HSTATUS_LASTLINE)
+  if (y == D_height - 1 && D_has_hstatus == HSTATUS_LASTLINE || (y == 0 && D_has_hstatus == HSTATUS_FIRSTLINE) )
     {
       RefreshHStatus();
       return;
