@@ -3773,7 +3773,7 @@ int key;
 		  else
 		    {
 		      int t;
-		      unsigned char *s = args[1];
+		      char *s = args[1];
 		      digraphs[i].value = 0;
 		      while (*s)
 			{

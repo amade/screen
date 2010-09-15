@@ -77,6 +77,7 @@ static int
 gl_Display_footer(struct ListData *ldata)
 {
   centerline("[Press Space to refresh; Return to end.]", flayer->l_height - 1);
+  return 0;
 }
 
 static int

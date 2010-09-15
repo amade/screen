@@ -2120,7 +2120,7 @@ RemoveStatusMinWait()
 
 #ifdef UTF8
 static int
-strlen_onscreen(unsigned char *c, unsigned char *end)
+strlen_onscreen(char *c, char *end)
 {
   int len = 0;
   char *s = c;
