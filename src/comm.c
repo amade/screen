@@ -111,6 +111,8 @@ struct comm comms[RC_LAST + 1] =
 #ifdef COPY_PASTE
   { "bufferfile",	ARGS_01 },
 #endif
+  { "bumpleft",		ARGS_0 },
+  { "bumpright",	ARGS_0 },
   { "c1",		NEED_FORE|ARGS_01 },
   { "caption",		ARGS_12 },
 #ifdef MULTIUSER
@@ -122,6 +124,7 @@ struct comm comms[RC_LAST + 1] =
   { "cjkwidth",		ARGS_01 },
 #endif
   { "clear",		NEED_FORE|ARGS_0 },
+  { "collapse",		ARGS_0 },
   { "colon",		NEED_LAYER|ARGS_01 },
   { "command",		NEED_DISPLAY|ARGS_02 },
 #ifdef COPY_PASTE

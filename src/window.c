@@ -2277,49 +2277,43 @@ struct display *d;
 #endif
 
 int
-WindowChangeNumber(struct win *win, int n)
+WindowChangeNumber(int old, int dest)
 {
-  struct win *p;
-  int old = win->w_number;
+  struct win *p, *win_old;
 
-  if (n < 0 || n >= maxwin)
+  if (dest < 0 || dest >= maxwin)
     {
       Msg(0, "Given window position is invalid.");
       return 0;
     }
 
-  p = wtab[n];
-  wtab[n] = win;
-  win->w_number = n;
+  win_old = wtab[old];
+  p = wtab[dest];
+  wtab[dest] = win_old;
+  win_old->w_number = dest;
   wtab[old] = p;
   if (p)
     p->w_number = old;
 #ifdef MULTIUSER
   /* exchange the acls for these windows. */
-  AclWinSwap(old, n);
+  AclWinSwap(old, dest);
 #endif
 #ifdef UTMPOK
   /* exchange the utmp-slots for these windows */
-  if ((win->w_slot != (slot_t) -1) && (win->w_slot != (slot_t) 0))
+  if ((win_old->w_slot != (slot_t) -1) && (win_old->w_slot != (slot_t) 0))
     {
-      RemoveUtmp(win);
-      SetUtmp(win);
+      RemoveUtmp(win_old);
+      SetUtmp(win_old);
     }
   if (p && (p->w_slot != (slot_t) -1) && (p->w_slot != (slot_t) 0))
     {
-      /* XXX: first display wins? */
-#if 0
-      /* Does this make more sense? */
-      display = p->w_lastdisp ? p->w_lastdisp : p->w_layer.l_cvlist ? p->w_layer.l_cvlist->c_display : 0;
-#else
-      display = win->w_layer.l_cvlist ? win->w_layer.l_cvlist->c_display : 0;
-#endif
+      display = win_old->w_layer.l_cvlist ? win_old->w_layer.l_cvlist->c_display : 0;
       RemoveUtmp(p);
       SetUtmp(p);
     }
 #endif
 
-  WindowChanged(win, 'n');
+  WindowChanged(win_old, 'n');
   WindowChanged((struct win *)0, 'w');
   WindowChanged((struct win *)0, 'W');
   WindowChanged((struct win *)0, 0);

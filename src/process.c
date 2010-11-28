@@ -129,6 +129,7 @@ static void SaveAction __P((struct action *, int, char **, int *));
 static int  NextWindow __P((void));
 static int  PreviousWindow __P((void));
 static int  MoreWindows __P((void));
+static void CollapseWindowlist __P((void));
 static void LogToggle __P((int));
 static void ShowInfo __P((void));
 static void ShowDInfo __P((void));
@@ -625,6 +626,10 @@ InitKeytab()
   ktab['<'].nr = RC_READBUF;
   ktab['='].nr = RC_REMOVEBUF;
 #endif
+/* co-opting "^A [<>=]", looking for alternatives */
+  ktab['>'].nr = ktab[Ctrl('.')].nr = RC_BUMPRIGHT;
+  ktab['<'].nr = ktab[Ctrl(',')].nr = RC_BUMPLEFT;
+  ktab['='].nr = RC_COLLAPSE;
 #ifdef POW_DETACH
   ktab['D'].nr = RC_POW_DETACH;
 #endif
@@ -3000,6 +3005,17 @@ int key;
       if (msgok)
 	OutputMsg(0, "silencewait set to %d seconds", SilenceWait);
       break;
+    case RC_BUMPRIGHT:
+      if (fore->w_number < NextWindow())
+        WindowChangeNumber(fore->w_number, NextWindow());
+      break;
+    case RC_BUMPLEFT:
+      if (fore->w_number > PreviousWindow())
+        WindowChangeNumber(fore->w_number, PreviousWindow());
+      break;
+    case RC_COLLAPSE:
+      CollapseWindowlist();
+      break;
     case RC_NUMBER:
       if (*args == 0)
         OutputMsg(0, queryflag >= 0 ? "%d (%s)" : "This is window %d (%s).", fore->w_number, fore->w_title);
@@ -3022,7 +3038,7 @@ int key;
 	    n += old;
 	  else if (rel < 0)
 	    n = old - n;
-	  if (!WindowChangeNumber(fore, n))
+	  if (!WindowChangeNumber(old, n))
 	    {
 	      /* Window number could not be changed. */
 	      queryflag = -1;
@@ -4536,6 +4552,22 @@ int key;
     }
 }
 #undef OutputMsg
+
+void
+CollapseWindowlist()
+/* renumber windows from 0, leaving no gaps */
+{
+  int pos, moveto=0;
+
+  for (pos = 1; pos < MAXWIN; pos++)
+    if (wtab[pos])
+      for (; moveto < pos; moveto++)
+        if (!wtab[moveto])
+          {
+          WindowChangeNumber(pos, moveto);
+          break;
+          }
+}
 
 void
 DoCommand(argv, argl) 
