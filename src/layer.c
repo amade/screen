@@ -493,6 +493,7 @@ void
 LClearLine(l, y, xs, xe, bce, ol)
 struct layer *l;
 int xs, xe, bce;
+int y;
 struct mline *ol;
 {
   struct canvas *cv;
