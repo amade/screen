@@ -2123,7 +2123,6 @@ static int
 strlen_onscreen(char *c, char *end)
 {
   int len = 0;
-  char *s = c;
   while (*c && (!end || c < end))
     {
       int v, dec = 0;
