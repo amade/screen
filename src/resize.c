@@ -327,7 +327,7 @@ kaablamm()
 /* Kills non-resizable layers. */
 #define RESIZE_OR_KILL_LAYERS(l, wi, he) do \
   {	\
-    struct layer *_last = NULL, *_iter;	\
+    struct layer *_last = NULL;	\
     flayer = (l);	\
     while (flayer->l_next)	\
       {	\
