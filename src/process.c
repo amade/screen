@@ -3321,7 +3321,7 @@ int key;
           int newnr, fl = 0, kf = 0, af = 0, df = 0, mf = 0;
 	  struct display *odisp = display;
 	  int used = 0;
-          struct kmap_ext *kme;
+          struct kmap_ext *kme = NULL;
 
 	  for (; *args && **args == '-'; args++, argl++)
 	    {
