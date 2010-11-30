@@ -446,7 +446,7 @@ extern void  LSetFlow __P((struct layer *, int));
 extern void  LKeypadMode __P((struct layer *, int));
 extern void  LCursorkeysMode __P((struct layer *, int));
 extern void  LMouseMode __P((struct layer *, int));
-#ifdef USEVARARGS
+#if defined(USEVARARGS)
 extern void  LMsg __P((int, const char *, ...)) __attribute__((format(printf, 2, 3)));
 #else
 extern void  LMsg __P(());
@@ -503,3 +503,7 @@ extern int   PrepareEncodedChar __P((int));
 # endif
 #endif
 extern int   EncodeChar __P((char *, int, int, int *));
+
+/* layout.c */
+extern void  RemoveLayout __P((struct layout *));
+extern int   LayoutDumpCanvas __P((struct canvas *, char *));
