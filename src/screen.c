@@ -1286,7 +1286,7 @@ char **av;
     {
       if (attach_fd == -1)
 	{
-	  if ((n = secopen(attach_tty, O_RDWR, 0)) < 0)
+	  if ((n = secopen(attach_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
 	    Panic(0, "Cannot reopen '%s' - please check.", attach_tty);
 	}
       else
