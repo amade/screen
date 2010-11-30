@@ -34,6 +34,7 @@
 #include "config.h"
 
 #include "screen.h"
+#include "extern.h"
 #include "list_generic.h"
 
 #ifdef MULTI
