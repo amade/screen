@@ -2517,7 +2517,7 @@ int rec;
   int truncpos = -1;
   int truncper = 0;
   int trunclong = 0;
-  struct backtick *bt;
+  struct backtick *bt = NULL;
  
   if (winmsg_numrend >= 0)
     winmsg_numrend = 0;
