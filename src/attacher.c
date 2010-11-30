@@ -257,10 +257,17 @@ int how;
 	    return 0;
 	  if (quietflag)
 	    eexit(10);
-	  Panic(0, SockMatch && *SockMatch ? "There is no screen to be %sed matching %s." : "There is no screen to be %sed.",
+	  if (SockMatch && *SockMatch) {
+	    Panic(0, "There is no screen to be %sed matching %s.",
 		xflag ? "attach" :
 		dflag ? "detach" :
                         "resum", SockMatch);
+          } else {
+            Panic(0, "There is no screen to be %sed.",
+	        xflag ? "attach" :
+		dflag ? "detach" :
+                        "resum");
+          }
 	  /* NOTREACHED */
 	case 1:
 	  break;
