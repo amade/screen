@@ -51,7 +51,6 @@ static void disp_writeev_eagain __P((struct event *, char *));
 static void disp_status_fn __P((struct event *, char *));
 static void disp_hstatus_fn __P((struct event *, char *));
 static void disp_blocked_fn __P((struct event *, char *));
-static void cv_winid_fn __P((struct event *, char *));
 #ifdef MAPKEYS
 static void disp_map_fn __P((struct event *, char *));
 #endif

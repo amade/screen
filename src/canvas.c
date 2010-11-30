@@ -342,29 +342,6 @@ struct win *wi;
     }
 }
 
-static void
-cv_winid_fn(ev, data)
-struct event *ev;
-char *data;
-{
-  int ox, oy;
-  struct canvas *cv = (struct canvas *)data;
-
-  display = cv->c_display;
-  if (D_status == STATUS_ON_WIN)
-    {
-      SetTimeout(ev, 1);
-      evenq(ev);
-      return;
-    }
-  ox = D_x;
-  oy = D_y;
-  if (cv->c_ye + 1 < D_height)
-    RefreshLine(cv->c_ye + 1, 0, D_width - 1, 0);
-  if (ox != -1 && oy != -1)
-    GotoPos(ox, oy);
-}
-
 int
 MakeDefaultCanvas()
 {
@@ -396,7 +373,7 @@ MakeDefaultCanvas()
   cv->c_slorient = SLICE_UNKN;
   cv->c_captev.type = EV_TIMEOUT;
   cv->c_captev.data = (char *)cv;
-  cv->c_captev.handler = cv_winid_fn;
+  cv->c_captev.handler = NULL;
 
   CanvasInitBlank(cv);
   cv->c_lnext = 0;
@@ -739,7 +716,7 @@ int orient;
   cv->c_vplist  = 0;
   cv->c_captev.type = EV_TIMEOUT;
   cv->c_captev.data = (char *)cv;
-  cv->c_captev.handler = cv_winid_fn;
+  cv->c_captev.handler = NULL;
 
   CanvasInitBlank(cv);
   cv->c_lnext = 0;
@@ -865,7 +842,7 @@ int save;
 	    {
 	      cvt->c_captev.type = EV_TIMEOUT;
 	      cvt->c_captev.data = (char *)cvt;
-	      cvt->c_captev.handler = cv_winid_fn;
+	      cvt->c_captev.handler = NULL;
 	      cvt->c_blank.l_cvlist = 0;
 	      cvt->c_blank.l_layfn = &BlankLf;
 	      cvt->c_blank.l_bottom = &cvt->c_blank;
