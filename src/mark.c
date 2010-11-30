@@ -157,11 +157,12 @@ nextchar(int *xp, int *yp, int direction, char target, int num)
  
   debug("nextchar\n");
  
+  step = 0;
   x = *xp;
   adjust = 0;
   width = fore->w_width;
   displayed_line = (char *)WIN(*yp) -> image;
- 
+
   switch(direction) {
     case 't':
       adjust = -1; /* fall through */
