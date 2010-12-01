@@ -83,19 +83,19 @@ extern int real_uid, eff_uid;
 #ifdef UTMPOK
 
 
-static slot_t TtyNameSlot __P((char *));
-static void makeuser __P((struct utmp *, char *, char *, int));
-static void makedead __P((struct utmp *));
-static int  pututslot __P((slot_t, struct utmp *, char *, struct win *));
-static struct utmp *getutslot __P((slot_t));
+static slot_t TtyNameSlot (char *);
+static void makeuser (struct utmp *, char *, char *, int);
+static void makedead (struct utmp *);
+static int  pututslot (slot_t, struct utmp *, char *, struct win *);
+static struct utmp *getutslot (slot_t);
 #ifndef GETUTENT
-static struct utmp *getutent __P((void));
-static void endutent __P((void));
-static int  initutmp __P((void));
-static void setutent __P((void));
+static struct utmp *getutent (void);
+static void endutent (void);
+static int  initutmp (void);
+static void setutent (void);
 #endif
 #if defined(linux) && defined(GETUTENT)
-static struct utmp *xpututline __P((struct utmp *utmp));
+static struct utmp *xpututline (struct utmp *utmp);
 # define pututline xpututline
 #endif
 
@@ -126,8 +126,8 @@ extern char *ut_find_host();
 #   include <ttyent.h>
 #  else
 struct ttyent { char *ty_name; };
-static void           setttyent __P((void));
-static struct ttyent *getttyent __P((void));
+static void           setttyent (void);
+static struct ttyent *getttyent (void);
 #  endif
 # endif /* !GETUTENT && !UT_UNSORTED */
 

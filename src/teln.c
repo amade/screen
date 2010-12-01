@@ -45,9 +45,9 @@ extern int visual_bell;
 extern char screenterm[];
 extern int af;
 
-static void TelReply __P((struct win *, char *, int));
-static void TelDocmd __P((struct win *, int, int));
-static void TelDosub __P((struct win *));
+static void TelReply (struct win *, char *, int);
+static void TelDocmd (struct win *, int, int);
+static void TelDosub (struct win *);
 
 // why TEL_DEFPORT has "
 #define TEL_DEFPORT     "23"

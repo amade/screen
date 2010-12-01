@@ -37,9 +37,9 @@
 #ifdef HAVE_BRAILLE
 
 
-extern int bd_init_powerbraille_40 __P((void));
-extern int bd_init_powerbraille_80 __P((void));
-extern int bd_init_navigator_40 __P((void));
+extern int bd_init_powerbraille_40 (void);
+extern int bd_init_powerbraille_80 (void);
+extern int bd_init_navigator_40 (void);
 
 extern struct layer *flayer;
 extern struct display *displays, *display; 
@@ -54,7 +54,7 @@ struct braille_display bd;
 
 struct bd_type {
   char *name;
-  int (*init) __P((void));
+  int (*init) (void);
 };
 
 static struct bd_type bd_typelist[] = 
@@ -64,24 +64,24 @@ static struct bd_type bd_typelist[] =
   {"navigator_40"   , bd_init_navigator_40}
 };
 
-static void position_braille_cursor __P((void));
-static int  initialize_braille_display_type __P((char *));
-static int  open_braille_device __P(());
-static int  load_braille_table __P((char *));
-static void bd_signal __P((void));
-static void bd_bc_left __P((void));
-static void bd_bc_right __P((void));
-static void bd_bc_up __P((void));
-static void bd_bc_down __P((void));
-static void bd_upper_left __P((void));
-static void bd_upper_right __P((void));
-static void bd_lower_left __P((void));
-static void bd_lower_right __P((void));
-static int  bd_do_search __P((int, int, int));
-static void bd_normalize __P((int, int));
-static void bd_readev_fn __P((struct event *, char *));
-static void bd_writeev_fn __P((struct event *, char *));
-static void bd_selectev_fn __P((struct event *, char *));
+static void position_braille_cursor (void);
+static int  initialize_braille_display_type (char *);
+static int  open_braille_device ();
+static int  load_braille_table (char *);
+static void bd_signal (void);
+static void bd_bc_left (void);
+static void bd_bc_right (void);
+static void bd_bc_up (void);
+static void bd_bc_down (void);
+static void bd_upper_left (void);
+static void bd_upper_right (void);
+static void bd_lower_left (void);
+static void bd_lower_right (void);
+static int  bd_do_search (int, int, int);
+static void bd_normalize (int, int);
+static void bd_readev_fn (struct event *, char *);
+static void bd_writeev_fn (struct event *, char *);
+static void bd_selectev_fn (struct event *, char *);
 
 static unsigned char btable_local [] = 
 {

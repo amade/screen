@@ -94,7 +94,7 @@ static char TtyProto[] = "/dev/ttyXY";
 # endif /* hpux */
 #endif
 
-static void initmaster __P((int));
+static void initmaster (int);
 
 #if defined(sun)
 /* sun's utmp_update program opens the salve side, thus corrupting
@@ -199,7 +199,7 @@ char **ttyn;
 {
   int f;
   char *name, *_getpty(); 
-  sigret_t (*sigcld)__P(SIGPROTOARG);
+  sigret_t (*sigcld)SIGPROTOARG;
 
   /*
    * SIGCHLD set to SIG_DFL for _getpty() because it may fork() and
@@ -253,11 +253,11 @@ char **ttyn;
 {
   register int f;
   char *m, *ptsname();
-  int unlockpt __P((int)), grantpt __P((int));
+  int unlockpt (int), grantpt (int);
 #if defined(HAVE_GETPT) && defined(linux)
-  int getpt __P((void));
+  int getpt (void);
 #endif
-  sigret_t (*sigcld)__P(SIGPROTOARG);
+  sigret_t (*sigcld)SIGPROTOARG;
 
   strcpy(PtyName, "/dev/ptmx");
 #if defined(HAVE_GETPT) && (defined(linux) || defined(__GLIBC__))

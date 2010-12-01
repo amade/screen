@@ -44,7 +44,7 @@ extern struct LayFuncs WinLf;
 extern struct LayFuncs BlankLf;
 
 
-static struct mline *mloff __P((struct mline *, int));
+static struct mline *mloff (struct mline *, int);
 
 /*
  * Layer subsystem.

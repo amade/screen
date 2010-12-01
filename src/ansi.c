@@ -108,64 +108,64 @@ static char *state_t_string[] =
   "PRIN4"			/* CSI 4 seen in printer mode */
 };
 
-static int  Special __P((int));
-static void DoESC __P((int, int));
-static void DoCSI __P((int, int));
-static void StringStart __P((enum string_t));
-static void StringChar __P((int));
-static int  StringEnd __P((void));
-static void PrintStart __P((void));
-static void PrintChar __P((int));
-static void PrintFlush __P((void));
+static int  Special (int);
+static void DoESC (int, int);
+static void DoCSI (int, int);
+static void StringStart (enum string_t);
+static void StringChar (int);
+static int  StringEnd (void);
+static void PrintStart (void);
+static void PrintChar (int);
+static void PrintFlush (void);
 #ifdef FONT
-static void DesignateCharset __P((int, int));
-static void MapCharset __P((int));
-static void MapCharsetR __P((int));
+static void DesignateCharset (int, int);
+static void MapCharset (int);
+static void MapCharsetR (int);
 #endif
-static void SaveCursor __P((struct cursor *));
-static void RestoreCursor __P((struct cursor *));
-static void BackSpace __P((void));
-static void Return __P((void));
-static void LineFeed __P((int));
-static void ReverseLineFeed __P((void));
-static void InsertChar __P((int));
-static void DeleteChar __P((int));
-static void DeleteLine __P((int));
-static void InsertLine __P((int));
-static void Scroll __P((char *, int, int, char *));
-static void ForwardTab __P((void));
-static void BackwardTab __P((void));
-static void ClearScreen __P((void));
-static void ClearFromBOS __P((void));
-static void ClearToEOS __P((void));
-static void ClearLineRegion __P((int, int));
-static void CursorRight __P((int));
-static void CursorUp __P((int));
-static void CursorDown __P((int));
-static void CursorLeft __P((int));
-static void ASetMode __P((int));
-static void SelectRendition __P((void));
-static void RestorePosRendition __P((void));
-static void FillWithEs __P((void));
-static void FindAKA __P((void));
-static void Report __P((char *, int, int));
-static void ScrollRegion __P((int));
+static void SaveCursor (struct cursor *);
+static void RestoreCursor (struct cursor *);
+static void BackSpace (void);
+static void Return (void);
+static void LineFeed (int);
+static void ReverseLineFeed (void);
+static void InsertChar (int);
+static void DeleteChar (int);
+static void DeleteLine (int);
+static void InsertLine (int);
+static void Scroll (char *, int, int, char *);
+static void ForwardTab (void);
+static void BackwardTab (void);
+static void ClearScreen (void);
+static void ClearFromBOS (void);
+static void ClearToEOS (void);
+static void ClearLineRegion (int, int);
+static void CursorRight (int);
+static void CursorUp (int);
+static void CursorDown (int);
+static void CursorLeft (int);
+static void ASetMode (int);
+static void SelectRendition (void);
+static void RestorePosRendition (void);
+static void FillWithEs (void);
+static void FindAKA (void);
+static void Report (char *, int, int);
+static void ScrollRegion (int);
 #ifdef COPY_PASTE
-static void WAddLineToHist __P((struct win *, struct mline *));
+static void WAddLineToHist (struct win *, struct mline *);
 #endif
-static void WLogString __P((struct win *, char *, int));
-static void WReverseVideo __P((struct win *, int));
-static int  WindowChangedCheck __P((char *, int, int *));
-static void MFixLine __P((struct win *, int, struct mchar *));
-static void MScrollH __P((struct win *, int, int, int, int, int));
-static void MScrollV __P((struct win *, int, int, int, int));
-static void MClearArea __P((struct win *, int, int, int, int, int));
-static void MInsChar __P((struct win *, struct mchar *, int, int));
-static void MPutChar __P((struct win *, struct mchar *, int, int));
-static void MPutStr __P((struct win *, char *, int, struct mchar *, int, int));
-static void MWrapChar __P((struct win *, struct mchar *, int, int, int, int));
+static void WLogString (struct win *, char *, int);
+static void WReverseVideo (struct win *, int);
+static int  WindowChangedCheck (char *, int, int *);
+static void MFixLine (struct win *, int, struct mchar *);
+static void MScrollH (struct win *, int, int, int, int, int);
+static void MScrollV (struct win *, int, int, int, int);
+static void MClearArea (struct win *, int, int, int, int, int);
+static void MInsChar (struct win *, struct mchar *, int, int);
+static void MPutChar (struct win *, struct mchar *, int, int);
+static void MPutStr (struct win *, char *, int, struct mchar *, int, int);
+static void MWrapChar (struct win *, struct mchar *, int, int, int, int);
 #ifdef COLOR
-static void MBceLine __P((struct win *, int, int, int, int));
+static void MBceLine (struct win *, int, int, int, int);
 #endif
 
 #ifdef COLOR

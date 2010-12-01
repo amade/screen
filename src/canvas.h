@@ -64,21 +64,21 @@ struct canvas
 
 struct win;			/* forward declaration */
 
-extern void  SetCanvasWindow __P((struct canvas *, struct win *));
-extern void  SetForeCanvas __P((struct display *, struct canvas *));
-extern struct canvas *FindCanvas __P((int, int));
-extern int   MakeDefaultCanvas __P((void));
-extern int   AddCanvas __P((int));
-extern void  RemCanvas __P((void));
-extern void  OneCanvas __P((void));
-extern void  FreeCanvas __P((struct canvas *));
-extern void  ResizeCanvas __P((struct canvas *));
-extern void  RecreateCanvasChain __P((void));
-extern void  RethinkViewportOffsets __P((struct canvas *));
-extern int   CountCanvasPerp __P((struct canvas *));
-extern void  EqualizeCanvas __P((struct canvas *, int));
-extern void  DupLayoutCv __P((struct canvas *, struct canvas *, int));
-extern void  PutWindowCv __P((struct canvas *));
+extern void  SetCanvasWindow (struct canvas *, struct win *);
+extern void  SetForeCanvas (struct display *, struct canvas *);
+extern struct canvas *FindCanvas (int, int);
+extern int   MakeDefaultCanvas (void);
+extern int   AddCanvas (int);
+extern void  RemCanvas (void);
+extern void  OneCanvas (void);
+extern void  FreeCanvas (struct canvas *);
+extern void  ResizeCanvas (struct canvas *);
+extern void  RecreateCanvasChain (void);
+extern void  RethinkViewportOffsets (struct canvas *);
+extern int   CountCanvasPerp (struct canvas *);
+extern void  EqualizeCanvas (struct canvas *, int);
+extern void  DupLayoutCv (struct canvas *, struct canvas *, int);
+extern void  PutWindowCv (struct canvas *);
 
 #define CV_CALL(cv, cmd)			\
 {						\

@@ -66,7 +66,7 @@ struct display
   struct canvas *d_cvlist;	/* the canvases of this display */
   struct canvas *d_forecv;	/* current input focus */
   struct layout *d_layout;	/* layout we're using */
-  void (*d_processinput) __P((char *, int));
+  void (*d_processinput) (char *, int);
   char *d_processinputdata;	/* data for processinput */
   int d_vpxmin, d_vpxmax;	/* min/max used position on display */
   struct win *d_fore;		/* pointer to fore window */
