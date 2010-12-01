@@ -42,13 +42,13 @@
 #include "screen.h"
 #include "extern.h"
 
-static void CheckMaxSize __P((int));
-static void FreeMline  __P((struct mline *));
-static int  AllocMline __P((struct mline *ml, int));
-static void MakeBlankLine __P((unsigned char *, int));
-static void kaablamm __P((void));
-static int  BcopyMline __P((struct mline *, int, struct mline *, int, int, int));
-static void SwapAltScreen __P((struct win *));
+static void CheckMaxSize (int);
+static void FreeMline  (struct mline *);
+static int  AllocMline (struct mline *ml, int);
+static void MakeBlankLine (unsigned char *, int);
+static void kaablamm (void);
+static int  BcopyMline (struct mline *, int, struct mline *, int, int, int);
+static void SwapAltScreen (struct win *);
 
 extern struct layer *flayer;
 extern struct display *display, *displays;

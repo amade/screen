@@ -30,7 +30,7 @@
 struct event
 {
   struct event *next;
-  void (*handler) __P((struct event *, char *));
+  void (*handler) (struct event *, char *);
   char *data;
   int fd;
   int type;

@@ -30,14 +30,14 @@
 
 extern struct layer *flayer;
 
-static void ListProcess __P((char **, int *));
-static void ListAbort __P((void));
-static void ListRedisplayLine __P((int, int, int, int));
-static void ListClearLine __P((int, int, int, int));
-static int  ListRewrite __P((int, int, int, struct mchar *, int));
-static int  ListResize __P((int, int));
-static void ListRestore __P((void));
-static void ListFree __P((void *));
+static void ListProcess (char **, int *);
+static void ListAbort (void);
+static void ListRedisplayLine (int, int, int, int);
+static void ListClearLine (int, int, int, int);
+static int  ListRewrite (int, int, int, struct mchar *, int);
+static int  ListResize (int, int);
+static void ListRestore (void);
+static void ListFree (void *);
 
 struct LayFuncs ListLf =
 {

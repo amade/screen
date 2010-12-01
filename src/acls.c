@@ -90,12 +90,12 @@ static char default_c_bit[ACL_BITS_PER_CMD] =
  * static AclBits default_c_userbits[ACL_BITS_PER_CMD];
  */
 
-static int GrowBitfield __P((AclBits *, int, int, int));
-static struct aclusergroup **FindGroupPtr __P((struct aclusergroup **, struct acluser *, int));
-static int AclSetPermCmd __P((struct acluser *, char *, struct comm *));
-static int AclSetPermWin __P((struct acluser *, struct acluser *, char *, struct win *));
-static int UserAcl __P((struct acluser *, struct acluser **, int, char **));
-static int UserAclCopy __P((struct acluser **, struct acluser **));
+static int GrowBitfield (AclBits *, int, int, int);
+static struct aclusergroup **FindGroupPtr (struct aclusergroup **, struct acluser *, int);
+static int AclSetPermCmd (struct acluser *, char *, struct comm *);
+static int AclSetPermWin (struct acluser *, struct acluser *, char *, struct win *);
+static int UserAcl (struct acluser *, struct acluser **, int, char **);
+static int UserAclCopy (struct acluser **, struct acluser **);
 
 
 static int

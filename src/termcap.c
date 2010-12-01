@@ -49,21 +49,21 @@ extern int DefaultEsc;
 #endif
 
 
-static void  AddCap __P((char *));
-static void  MakeString __P((char *, char *, int, char *));
-static char *findcap __P((char *, char **, int));
-static int   copyarg __P((char **, char *));
-static int   e_tgetent __P((char *, char *));
-static char *e_tgetstr __P((char *, char **));
-static int   e_tgetflag __P((char *));
-static int   e_tgetnum __P((char *));
+static void  AddCap (char *);
+static void  MakeString (char *, char *, int, char *);
+static char *findcap (char *, char **, int);
+static int   copyarg (char **, char *);
+static int   e_tgetent (char *, char *);
+static char *e_tgetstr (char *, char **);
+static int   e_tgetflag (char *);
+static int   e_tgetnum (char *);
 #ifdef MAPKEYS
-static int   findseq_ge __P((char *, int, unsigned char **));
-static void  setseqoff __P((unsigned char *, int, int));
-static int   addmapseq __P((char *, int, int));
-static int   remmapseq __P((char *, int));
+static int   findseq_ge (char *, int, unsigned char **);
+static void  setseqoff (unsigned char *, int, int);
+static int   addmapseq (char *, int, int);
+static int   remmapseq (char *, int);
 #ifdef DEBUGG
-static void  dumpmap __P((void));
+static void  dumpmap (void);
 #endif
 #endif
 

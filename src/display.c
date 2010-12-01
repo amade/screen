@@ -39,32 +39,32 @@
 #include "braille.h"
 #include "canvas.h"
 
-static int  CountChars __P((int));
-static int  DoAddChar __P((int));
-static int  BlankResize __P((int, int));
-static int  CallRewrite __P((int, int, int, int));
-static void disp_readev_fn __P((struct event *, char *));
-static void disp_writeev_fn __P((struct event *, char *));
+static int  CountChars (int);
+static int  DoAddChar (int);
+static int  BlankResize (int, int);
+static int  CallRewrite (int, int, int, int);
+static void disp_readev_fn (struct event *, char *);
+static void disp_writeev_fn (struct event *, char *);
 #ifdef linux
-static void disp_writeev_eagain __P((struct event *, char *));
+static void disp_writeev_eagain (struct event *, char *);
 #endif
-static void disp_status_fn __P((struct event *, char *));
-static void disp_hstatus_fn __P((struct event *, char *));
-static void disp_blocked_fn __P((struct event *, char *));
+static void disp_status_fn (struct event *, char *);
+static void disp_hstatus_fn (struct event *, char *);
+static void disp_blocked_fn (struct event *, char *);
 #ifdef MAPKEYS
-static void disp_map_fn __P((struct event *, char *));
+static void disp_map_fn (struct event *, char *);
 #endif
-static void disp_idle_fn __P((struct event *, char *));
+static void disp_idle_fn (struct event *, char *);
 #ifdef BLANKER_PRG
-static void disp_blanker_fn __P((struct event *, char *));
+static void disp_blanker_fn (struct event *, char *);
 #endif
-static void WriteLP __P((int, int));
-static void INSERTCHAR __P((int));
-static void RAW_PUTCHAR __P((int));
+static void WriteLP (int, int);
+static void INSERTCHAR (int);
+static void RAW_PUTCHAR (int);
 #ifdef COLOR
-static void SetBackColor __P((int));
+static void SetBackColor (int);
 #endif
-static void RemoveStatusMinWait __P((void));
+static void RemoveStatusMinWait (void);
 
 
 extern struct layer *flayer;

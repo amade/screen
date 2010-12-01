@@ -51,16 +51,16 @@
 #include "extern.h"
 #include "list_generic.h"
 
-static int   CheckPid __P((int));
-static void  ExecCreate __P((struct msg *));
-static void  DoCommandMsg __P((struct msg *));
+static int   CheckPid (int);
+static void  ExecCreate (struct msg *);
+static void  DoCommandMsg (struct msg *);
 #if defined(_SEQUENT_) && !defined(NAMEDPIPE)
 # define connect sconnect	/* _SEQUENT_ has braindamaged connect */
-static int   sconnect __P((int, struct sockaddr *, int));
+static int   sconnect (int, struct sockaddr *, int);
 #endif
-static void  FinishAttach __P((struct msg *));
-static void  FinishDetach __P((struct msg *));
-static void  AskPassword __P((struct msg *));
+static void  FinishAttach (struct msg *);
+static void  FinishDetach (struct msg *);
+static void  AskPassword (struct msg *);
 
 
 extern char *RcFileName, *extra_incap, *extra_outcap;
@@ -1524,7 +1524,7 @@ struct msg *m;
 }
 
 #ifdef PASSWORD
-static void PasswordProcessInput __P((char *, int));
+static void PasswordProcessInput (char *, int);
 
 struct pwdata {
   int l;

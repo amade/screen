@@ -36,9 +36,9 @@
 #include "extern.h"
 #include "logfile.h"
 
-static void changed_logfile __P((struct logfile *));
-static struct logfile *lookup_logfile __P((char *));
-static int stolen_logfile __P((struct logfile *));
+static void changed_logfile (struct logfile *);
+static struct logfile *lookup_logfile (char *);
+static int stolen_logfile (struct logfile *);
 
 static struct logfile *logroot = NULL;
 
@@ -116,7 +116,7 @@ static int (* lf_reopen_fn)() = logfile_reopen;
  */
 void
 logreopen_register(fn)
-int (*fn) __P((char *, int, struct logfile *));
+int (*fn) (char *, int, struct logfile *);
 {
   lf_reopen_fn = fn ? fn : logfile_reopen;
 }

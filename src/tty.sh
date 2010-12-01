@@ -96,13 +96,13 @@ extern struct display *display, *displays;
 extern int iflag;
 #if (!defined(TIOCCONS) && defined(SRIOCSREDIR)) || defined(linux)
 extern struct win *console_window;
-static void consredir_readev_fn __P((struct event *, char *));
+static void consredir_readev_fn (struct event *, char *);
 #endif
 
 int separate_sids = 1;
 
-static void DoSendBreak __P((int, int, int));
-static sigret_t SigAlrmDummy __P(SIGPROTOARG);
+static void DoSendBreak (int, int, int);
+static sigret_t SigAlrmDummy SIGPROTOARG;
 
 
 /* Frank Schulz (fschulz@pyramid.com):
@@ -146,7 +146,7 @@ char *line, *opt;
 {
   int f;
   struct mode Mode;
-  sigret_t (*sigalrm)__P(SIGPROTOARG);
+  sigret_t (*sigalrm)SIGPROTOARG;
 
   sigalrm = signal(SIGALRM, SigAlrmDummy);
   alarm(2);
@@ -978,7 +978,7 @@ SendBreak(wp, n, closeopen)
 struct win *wp;
 int n, closeopen;
 {
-  sigret_t (*sigalrm)__P(SIGPROTOARG);
+  sigret_t (*sigalrm)SIGPROTOARG;
 
 #ifdef BUILTIN_TELNET
   if (wp->w_type == W_TYPE_TELNET)

@@ -39,14 +39,14 @@ extern char *screenencodings;
 extern int cjkwidth;
 #endif
 
-static int  encmatch __P((char *, char *));
+static int  encmatch (char *, char *);
 # ifdef UTF8
-static int   recode_char __P((int, int, int));
-static int   recode_char_to_encoding __P((int, int));
-static void  comb_tofront __P((int, int));
+static int   recode_char (int, int, int);
+static int   recode_char_to_encoding (int, int);
+static void  comb_tofront (int, int);
 #  ifdef DW_CHARS
-static int   recode_char_dw __P((int, int *, int, int));
-static int   recode_char_dw_to_encoding __P((int, int *, int));
+static int   recode_char_dw (int, int *, int, int);
+static int   recode_char_dw_to_encoding (int, int *, int);
 #  endif
 # endif
 

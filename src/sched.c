@@ -41,9 +41,9 @@ static struct event *tevs;
 static struct event *nextev;
 static int calctimeout;
 
-static struct event *calctimo __P((void));
+static struct event *calctimo (void);
 #if (defined(sgi) && defined(SVR4)) || defined(__osf__) || defined(M_UNIX)
-static int sgihack __P((void));
+static int sgihack (void);
 #endif
 
 void

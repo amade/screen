@@ -77,33 +77,33 @@ extern struct winsize glwz;
 extern int separate_sids;
 #endif
 
-static void WinProcess __P((char **, int *));
-static void WinRedisplayLine __P((int, int, int, int));
-static void WinClearLine __P((int, int, int, int));
-static int  WinRewrite __P((int, int, int, struct mchar *, int));
-static int  WinResize __P((int, int));
-static void WinRestore __P((void));
-static int  DoAutolf __P((char *, int *, int));
-static void ZombieProcess __P((char **, int *));
-static void win_readev_fn __P((struct event *, char *));
-static void win_writeev_fn __P((struct event *, char *));
-static int  muchpending __P((struct win *, struct event *));
+static void WinProcess (char **, int *);
+static void WinRedisplayLine (int, int, int, int);
+static void WinClearLine (int, int, int, int);
+static int  WinRewrite (int, int, int, struct mchar *, int);
+static int  WinResize (int, int);
+static void WinRestore (void);
+static int  DoAutolf (char *, int *, int);
+static void ZombieProcess (char **, int *);
+static void win_readev_fn (struct event *, char *);
+static void win_writeev_fn (struct event *, char *);
+static int  muchpending (struct win *, struct event *);
 #ifdef COPY_PASTE
-static void paste_slowev_fn __P((struct event *, char *));
+static void paste_slowev_fn (struct event *, char *);
 #endif
 #ifdef PSEUDOS
-static void pseu_readev_fn __P((struct event *, char *));
-static void pseu_writeev_fn __P((struct event *, char *));
+static void pseu_readev_fn (struct event *, char *);
+static void pseu_writeev_fn (struct event *, char *);
 #endif
-static void win_silenceev_fn __P((struct event *, char *));
-static void win_destroyev_fn __P((struct event *, char *));
+static void win_silenceev_fn (struct event *, char *);
+static void win_destroyev_fn (struct event *, char *);
 
-static int  OpenDevice __P((char **, int, int *, char **));
-static int  ForkWindow __P((struct win *, char **, char *));
+static int  OpenDevice (char **, int, int *, char **);
+static int  ForkWindow (struct win *, char **, char *);
 #ifdef ZMODEM
-static void zmodem_found __P((struct win *, int, char *, int));
-static void zmodem_fin __P((char *, int, char *));
-static int  zmodem_parse __P((struct win *, char *, int));
+static void zmodem_found (struct win *, int, char *, int);
+static void zmodem_fin (char *, int, char *);
+static int  zmodem_parse (struct win *, char *, int);
 #endif
 
 

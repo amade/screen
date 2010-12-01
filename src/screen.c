@@ -143,25 +143,25 @@ char *ShellArgs[2];
 extern struct NewWindow nwin_undef, nwin_default, nwin_options;
 struct backtick;
 
-static struct passwd *getpwbyname __P((char *, struct passwd *));
-static void  SigChldHandler __P((void));
-static sigret_t SigChld __P(SIGPROTOARG);
-static sigret_t SigInt __P(SIGPROTOARG);
-static sigret_t CoreDump __P(SIGPROTOARG);
-static sigret_t FinitHandler __P(SIGPROTOARG);
-static void  DoWait __P((void));
-static void  serv_read_fn __P((struct event *, char *));
-static void  serv_select_fn __P((struct event *, char *));
-static void  logflush_fn __P((struct event *, char *));
-static void  backtick_filter __P((struct backtick *));
-static void  backtick_fn __P((struct event *, char *));
-static char *runbacktick __P((struct backtick *, int *, time_t));
-static int   IsSymbol __P((char *, char *));
-static char *ParseChar __P((char *, char *));
-static int   ParseEscape __P((char *));
-static char *pad_expand __P((char *, char *, int, int));
+static struct passwd *getpwbyname (char *, struct passwd *);
+static void  SigChldHandler (void);
+static sigret_t SigChld SIGPROTOARG;
+static sigret_t SigInt SIGPROTOARG;
+static sigret_t CoreDump SIGPROTOARG;
+static sigret_t FinitHandler SIGPROTOARG;
+static void  DoWait (void);
+static void  serv_read_fn (struct event *, char *);
+static void  serv_select_fn (struct event *, char *);
+static void  logflush_fn (struct event *, char *);
+static void  backtick_filter (struct backtick *);
+static void  backtick_fn (struct event *, char *);
+static char *runbacktick (struct backtick *, int *, time_t);
+static int   IsSymbol (char *, char *);
+static char *ParseChar (char *, char *);
+static int   ParseEscape (char *);
+static char *pad_expand (char *, char *, int, int);
 #ifdef DEBUG
-static void  fds __P((void));
+static void  fds (void);
 #endif
 
 int nversion;	/* numerical version, used for secondary DA */

@@ -53,8 +53,8 @@ extern char *BufferFile;
 extern int hardcopy_append;
 extern char *hardcopydir;
 
-static char *CatExtra __P((char *, char *));
-static char *findrcfile __P((char *));
+static char *CatExtra (char *, char *);
+static char *findrcfile (char *);
 
 
 char *rc_name = "";
