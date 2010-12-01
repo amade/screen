@@ -33,151 +33,150 @@
 #endif
 
 /* screen.c */
-extern int   main __P((int, char **));
-extern sigret_t SigHup __P(SIGPROTOARG);
-extern void  eexit __P((int)) __attribute__((__noreturn__));
-extern void  Detach __P((int));
-extern void  Hangup __P((void));
-extern void  Kill __P((int, int));
+extern int   main (int, char **);
+extern sigret_t SigHup SIGPROTOARG;
+extern void  eexit (int) __attribute__((__noreturn__));
+extern void  Detach (int);
+extern void  Hangup (void);
+extern void  Kill (int, int);
 #ifdef USEVARARGS
-extern void  Msg __P((int, const char *, ...)) __attribute__((format(printf, 2, 3)));
-extern void  Panic __P((int, const char *, ...)) __attribute__((format(printf, 2, 3))) __attribute__((__noreturn__));
-extern void  QueryMsg __P((int, const char *, ...)) __attribute__((format(printf, 2, 3)));
-extern void  Dummy __P((int, const char *, ...)) __attribute__((format(printf, 2, 3)));
+extern void  Msg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
+extern void  Panic (int, const char *, ...) __attribute__((format(printf, 2, 3))) __attribute__((__noreturn__));
+extern void  QueryMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
+extern void  Dummy (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 #else
-extern void  Msg __P(());
-extern void  Panic __P(());
-extern void  QueryMsg __P(());
-extern void  Dummy __P(());
+extern void  Msg ();
+extern void  Panic ();
+extern void  QueryMsg ();
+extern void  Dummy ();
 #endif
-extern void  Finit __P((int));
-extern void  MakeNewEnv __P((void));
-extern char *MakeWinMsg __P((char *, struct win *, int));
-extern char *MakeWinMsgEv __P((char *, struct win *, int, int, struct event *, int));
-extern int   AddWinMsgRend __P((const char *, int));
-extern void  PutWinMsg __P((char *, int, int));
+extern void  Finit (int);
+extern void  MakeNewEnv (void);
+extern char *MakeWinMsg (char *, struct win *, int);
+extern char *MakeWinMsgEv (char *, struct win *, int, int, struct event *, int);
+extern int   AddWinMsgRend (const char *, int);
+extern void  PutWinMsg (char *, int, int);
 #ifdef BSDWAIT
-extern void  WindowDied __P((struct win *, union wait, int));
+extern void  WindowDied (struct win *, union wait, int);
 #else
-extern void  WindowDied __P((struct win *, int, int));
+extern void  WindowDied (struct win *, int, int);
 #endif
-extern void  setbacktick __P((int, int, int, char **));
+extern void  setbacktick (int, int, int, char **);
 
 /* ansi.c */
-extern void  ResetAnsiState __P((struct win *));
-extern void  ResetWindow __P((struct win *));
-extern void  ResetCharsets __P((struct win *));
-extern void  WriteString __P((struct win *, char *, int));
-extern void  ChangeAKA __P((struct win *, char *, int));
-extern void  SetCharsets __P((struct win *, char *));
-extern int   GetAnsiStatus __P((struct win *, char *));
-extern void  WNewAutoFlow __P((struct win *, int));
-extern void  WBell __P((struct win *, int));
-extern void  WMsg __P((struct win *, int, char *));
-extern void  WChangeSize __P((struct win *, int, int));
-extern void  WindowChanged __P((struct win *, int));
-extern int   MFindUsedLine __P((struct win *, int, int));
+extern void  ResetAnsiState (struct win *);
+extern void  ResetWindow (struct win *);
+extern void  ResetCharsets (struct win *);
+extern void  WriteString (struct win *, char *, int);
+extern void  ChangeAKA (struct win *, char *, int);
+extern void  SetCharsets (struct win *, char *);
+extern int   GetAnsiStatus (struct win *, char *);
+extern void  WNewAutoFlow (struct win *, int);
+extern void  WBell (struct win *, int);
+extern void  WMsg (struct win *, int, char *);
+extern void  WChangeSize (struct win *, int, int);
+extern void  WindowChanged (struct win *, int);
+extern int   MFindUsedLine (struct win *, int, int);
 
 /* fileio.c */
-extern int   StartRc __P((char *, int));
-extern void  FinishRc __P((char *));
-extern void  RcLine __P((char *, int));
-extern FILE *secfopen __P((char *, char *));
-extern int   secopen __P((char *, int, int));
-extern void  WriteFile __P((struct acluser *, char *, int));
-extern char *ReadFile __P((char *, int *));
-extern void  KillBuffers __P((void));
-extern int   printpipe __P((struct win *, char *));
-extern int   readpipe __P((char **));
-extern void  RunBlanker __P((char **));
-extern void  do_source __P((char *));
+extern int   StartRc (char *, int);
+extern void  FinishRc (char *);
+extern void  RcLine (char *, int);
+extern FILE *secfopen (char *, char *);
+extern int   secopen (char *, int, int);
+extern void  WriteFile (struct acluser *, char *, int);
+extern char *ReadFile (char *, int *);
+extern void  KillBuffers (void);
+extern int   printpipe (struct win *, char *);
+extern int   readpipe (char **);
+extern void  RunBlanker (char **);
+extern void  do_source (char *);
 
 /* tty.c */
-extern int   OpenTTY __P((char *, char *));
-extern void  InitTTY __P((struct mode *, int));
-extern void  GetTTY __P((int, struct mode *));
-extern void  SetTTY __P((int, struct mode *));
-extern void  SetMode __P((struct mode *, struct mode *, int, int));
-extern void  SetFlow __P((int));
-extern void  SendBreak __P((struct win *, int, int));
-extern int   TtyGrabConsole __P((int, int, char *));
-extern char *TtyGetModemStatus __P((int, char *));
+extern int   OpenTTY (char *, char *);
+extern void  InitTTY (struct mode *, int);
+extern void  GetTTY (int, struct mode *);
+extern void  SetTTY (int, struct mode *);
+extern void  SetMode (struct mode *, struct mode *, int, int);
+extern void  SetFlow (int);
+extern void  SendBreak (struct win *, int, int);
+extern int   TtyGrabConsole (int, int, char *);
+extern char *TtyGetModemStatus (int, char *);
 #ifdef DEBUG
-extern void  DebugTTY __P((struct mode *));
+extern void  DebugTTY (struct mode *);
 #endif /* DEBUG */
-extern int   fgtty __P((int));
-extern void  brktty __P((int));
-extern struct baud_values *lookup_baud __P((int bps));
-extern int   SetBaud __P((struct mode *, int, int));
-extern int   SttyMode __P((struct mode *, char *));
-extern int   CheckTtyname __P((char *));
-
+extern int   fgtty (int);
+extern void  brktty (int);
+extern struct baud_values *lookup_baud (int bps);
+extern int   SetBaud (struct mode *, int, int);
+extern int   SttyMode (struct mode *, char *);
+extern int   CheckTtyname (char *);
 
 /* mark.c */
-extern int   GetHistory __P((void));
-extern void  MarkRoutine __P((void));
-extern void  revto_line __P((int, int, int));
-extern void  revto __P((int, int));
-extern int   InMark __P((void));
-extern void  MakePaster __P((struct paster *, char *, int, int));
-extern void  FreePaster __P((struct paster *));
+extern int   GetHistory (void);
+extern void  MarkRoutine (void);
+extern void  revto_line (int, int, int);
+extern void  revto (int, int);
+extern int   InMark (void);
+extern void  MakePaster (struct paster *, char *, int, int);
+extern void  FreePaster (struct paster *);
 
 /* search.c */
-extern void  Search __P((int));
-extern void  ISearch __P((int));
+extern void  Search (int);
+extern void  ISearch (int);
 
 /* input.c */
-extern void  inp_setprompt __P((char *, char *));
-extern void  Input __P((char *, int, int, void (*)(char *, int, char *), char *, int));
-extern int   InInput __P((void));
+extern void  inp_setprompt (char *, char *);
+extern void  Input (char *, int, int, void (*)(char *, int, char *), char *, int);
+extern int   InInput (void);
 
 /* help.c */
-extern void  exit_with_usage __P((char *, char *, char *));
-extern void  display_help __P((char *, struct action *));
-extern void  display_copyright __P((void));
-extern void  display_displays __P((void));
-extern void  display_bindkey __P((char *, struct action *));
-extern int   InWList __P((void));
-extern void  WListUpdatecv __P((struct canvas *, struct win *));
-extern void  WListLinkChanged __P((void));
+extern void  exit_with_usage (char *, char *, char *);
+extern void  display_help (char *, struct action *);
+extern void  display_copyright (void);
+extern void  display_displays (void);
+extern void  display_bindkey (char *, struct action *);
+extern int   InWList (void);
+extern void  WListUpdatecv (struct canvas *, struct win *);
+extern void  WListLinkChanged (void);
 #ifdef ZMODEM
-extern void  ZmodemPage __P((void));
+extern void  ZmodemPage (void);
 #endif
 
 /* window.c */
-extern int   MakeWindow __P((struct NewWindow *));
-extern int   RemakeWindow __P((struct win *));
-extern void  FreeWindow __P((struct win *));
+extern int   MakeWindow (struct NewWindow *);
+extern int   RemakeWindow (struct win *);
+extern void  FreeWindow (struct win *);
 #ifdef PSEUDOS
-extern int   winexec __P((char **));
-extern void  FreePseudowin __P((struct win *));
+extern int   winexec (char **);
+extern void  FreePseudowin (struct win *);
 #endif
-extern void  nwin_compose __P((struct NewWindow *, struct NewWindow *, struct NewWindow *));
-extern int   DoStartLog __P((struct win *, char *, int));
-extern int   ReleaseAutoWritelock __P((struct display *, struct win *));
-extern int   ObtainAutoWritelock __P((struct display *, struct win *));
-extern void  CloseDevice __P((struct win *));
+extern void  nwin_compose (struct NewWindow *, struct NewWindow *, struct NewWindow *);
+extern int   DoStartLog (struct win *, char *, int);
+extern int   ReleaseAutoWritelock (struct display *, struct win *);
+extern int   ObtainAutoWritelock (struct display *, struct win *);
+extern void  CloseDevice (struct win *);
 #ifdef ZMODEM
-extern void  zmodem_abort __P((struct win *, struct display *));
+extern void  zmodem_abort (struct win *, struct display *);
 #endif
 #ifndef HAVE_EXECVPE
-extern void  execvpe __P((char *, char **, char **));
+extern void  execvpe (char *, char **, char **);
 #endif
 
 /* utmp.c */
 #ifdef UTMPOK
-extern void  InitUtmp __P((void));
-extern void  RemoveLoginSlot __P((void));
-extern void  RestoreLoginSlot __P((void));
-extern int   SetUtmp __P((struct win *));
-extern int   RemoveUtmp __P((struct win *));
+extern void  InitUtmp (void);
+extern void  RemoveLoginSlot (void);
+extern void  RestoreLoginSlot (void);
+extern int   SetUtmp (struct win *);
+extern int   RemoveUtmp (struct win *);
 #endif /* UTMPOK */
-extern void  SlotToggle __P((int));
+extern void  SlotToggle (int);
 #ifdef USRLIMIT
-extern int   CountUsers __P((void));
+extern int   CountUsers (void);
 #endif
 #ifdef CAREFULUTMP
-extern void   CarefulUtmp __P((void));
+extern void   CarefulUtmp (void);
 #else
 # define CarefulUtmp()  /* nothing */
 #endif /* CAREFULUTMP */
@@ -185,325 +184,325 @@ extern void   CarefulUtmp __P((void));
 
 /* loadav.c */
 #ifdef LOADAV
-extern void  InitLoadav __P((void));
-extern void  AddLoadav __P((char *));
+extern void  InitLoadav (void);
+extern void  AddLoadav (char *);
 #endif
 
 /* pty.c */
-extern int   OpenPTY __P((char **));
-extern void  InitPTY __P((int));
+extern int   OpenPTY (char **);
+extern void  InitPTY (int);
 
 /* process.c */
-extern void  InitKeytab __P((void));
-extern void  ProcessInput __P((char *, int));
+extern void  InitKeytab (void);
+extern void  ProcessInput (char *, int);
 #ifdef MAPKEYS
-extern void  ProcessInput2 __P((char *, int));
+extern void  ProcessInput2 (char *, int);
 #endif
-extern void  DoProcess __P((struct win *, char **, int *, struct paster *));
-extern void  DoAction  __P((struct action *, int));
-extern int   FindCommnr __P((const char *));
-extern void  DoCommand __P((char **, int *));
-extern void  Activate __P((int));
-extern void  KillWindow __P((struct win *));
-extern void  SetForeWindow __P((struct win *));
-extern int   Parse __P((char *, int, char **, int *));
-extern void  SetEscape __P((struct acluser *, int, int));
-extern void  DoScreen __P((char *, char **));
-extern int   IsNumColon __P((char *, int, char *, int));
-extern void  ShowWindows __P((int));
-extern char *AddWindows __P((char *, int, int, int));
-extern char *AddWindowFlags __P((char *, int, struct win *));
-extern char *AddOtherUsers __P((char *, int, struct win *));
-extern int   WindowByNoN __P((char *));
-extern struct win *FindNiceWindow __P((struct win *, char *));
+extern void  DoProcess (struct win *, char **, int *, struct paster *);
+extern void  DoAction  (struct action *, int);
+extern int   FindCommnr (const char *);
+extern void  DoCommand (char **, int *);
+extern void  Activate (int);
+extern void  KillWindow (struct win *);
+extern void  SetForeWindow (struct win *);
+extern int   Parse (char *, int, char **, int *);
+extern void  SetEscape (struct acluser *, int, int);
+extern void  DoScreen (char *, char **);
+extern int   IsNumColon (char *, int, char *, int);
+extern void  ShowWindows (int);
+extern char *AddWindows (char *, int, int, int);
+extern char *AddWindowFlags (char *, int, struct win *);
+extern char *AddOtherUsers (char *, int, struct win *);
+extern int   WindowByNoN (char *);
+extern struct win *FindNiceWindow (struct win *, char *);
 #ifdef COPY_PASTE
-extern int   CompileKeys __P((char *, int, unsigned char *));
+extern int   CompileKeys (char *, int, unsigned char *);
 #endif
 #ifdef RXVT_OSC
-extern void  RefreshXtermOSC __P((void));
+extern void  RefreshXtermOSC (void);
 #endif
-extern int   ParseSaveStr __P((struct action *act, char **));
-extern int   ParseNum __P((struct action *act, int *));
-extern int   ParseSwitch __P((struct action *, int *));
-extern int   ParseAttrColor __P((char *, char *, int));
-extern void  ApplyAttrColor __P((int, struct mchar *));
-extern void  SwitchWindow __P((int));
-extern int   StuffKey __P((int));
+extern int   ParseSaveStr (struct action *act, char **);
+extern int   ParseNum (struct action *act, int *);
+extern int   ParseSwitch (struct action *, int *);
+extern int   ParseAttrColor (char *, char *, int);
+extern void  ApplyAttrColor (int, struct mchar *);
+extern void  SwitchWindow (int);
+extern int   StuffKey (int);
 
 /* termcap.c */
-extern int   InitTermcap __P((int, int));
-extern char *MakeTermcap __P((int));
-extern char *gettermcapstring __P((char *));
+extern int   InitTermcap (int, int);
+extern char *MakeTermcap (int);
+extern char *gettermcapstring (char *);
 #ifdef MAPKEYS
-extern int   remap __P((int, int));
-extern void  CheckEscape __P((void));
+extern int   remap (int, int);
+extern void  CheckEscape (void);
 #endif
-extern int   CreateTransTable __P((char *));
-extern void  FreeTransTable __P((void));
+extern int   CreateTransTable (char *);
+extern void  FreeTransTable (void);
 
 /* attacher.c */
-extern int   Attach __P((int));
-extern void  Attacher __P((void));
-extern sigret_t AttacherFinit __P(SIGPROTOARG);
-extern void  SendCmdMessage __P((char *, char *, char **, int));
+extern int   Attach (int);
+extern void  Attacher (void);
+extern sigret_t AttacherFinit SIGPROTOARG;
+extern void  SendCmdMessage (char *, char *, char **, int);
 
 /* display.c */
-extern struct display *MakeDisplay __P((char *, char *, char *, int, int, struct mode *));
-extern void  FreeDisplay __P((void));
-extern void  DefProcess __P((char **, int *));
-extern void  DefRedisplayLine __P((int, int, int, int));
-extern void  DefClearLine __P((int, int, int, int));
-extern int   DefRewrite __P((int, int, int, struct mchar *, int));
-extern int   DefResize __P((int, int));
-extern void  DefRestore __P((void));
-extern void  AddCStr __P((char *));
-extern void  AddCStr2 __P((char *, int));
-extern void  InitTerm __P((int));
-extern void  FinitTerm __P((void));
-extern void  PUTCHAR __P((int));
-extern void  PUTCHARLP __P((int));
-extern void  ClearAll __P((void));
-extern void  ClearArea __P((int, int, int, int, int, int, int, int));
-extern void  ClearLine __P((struct mline *, int, int, int, int));
-extern void  RefreshAll __P((int));
-extern void  RefreshArea __P((int, int, int, int, int));
-extern void  RefreshLine __P((int, int, int, int));
-extern void  Redisplay __P((int));
-extern void  RedisplayDisplays __P((int));
-extern void  ShowHStatus __P((char *));
-extern void  RefreshHStatus __P((void));
-extern void  DisplayLine __P((struct mline *, struct mline *, int, int, int));
-extern void  GotoPos __P((int, int));
-extern int   CalcCost __P((char *));
-extern void  ScrollH __P((int, int, int, int, int, struct mline *));
-extern void  ScrollV __P((int, int, int, int, int, int));
-extern void  PutChar __P((struct mchar *, int, int));
-extern void  InsChar __P((struct mchar *, int, int, int, struct mline *));
-extern void  WrapChar __P((struct mchar *, int, int, int, int, int, int, int));
-extern void  ChangeScrollRegion __P((int, int));
-extern void  InsertMode __P((int));
-extern void  KeypadMode __P((int));
-extern void  CursorkeysMode __P((int));
-extern void  ReverseVideo __P((int));
-extern void  CursorVisibility __P((int));
-extern void  MouseMode __P((int));
-extern void  SetFont __P((int));
-extern void  SetAttr __P((int));
-extern void  SetColor __P((int, int));
-extern void  SetRendition __P((struct mchar *));
-extern void  SetRenditionMline __P((struct mline *, int));
-extern void  MakeStatus __P((char *));
-extern void  RemoveStatus __P((void));
-extern int   ResizeDisplay __P((int, int));
-extern void  AddStr __P((char *));
-extern void  AddStrn __P((char *, int));
-extern void  Flush __P((int));
-extern void  freetty __P((void));
-extern void  Resize_obuf __P((void));
+extern struct display *MakeDisplay (char *, char *, char *, int, int, struct mode *);
+extern void  FreeDisplay (void);
+extern void  DefProcess (char **, int *);
+extern void  DefRedisplayLine (int, int, int, int);
+extern void  DefClearLine (int, int, int, int);
+extern int   DefRewrite (int, int, int, struct mchar *, int);
+extern int   DefResize (int, int);
+extern void  DefRestore (void);
+extern void  AddCStr (char *);
+extern void  AddCStr2 (char *, int);
+extern void  InitTerm (int);
+extern void  FinitTerm (void);
+extern void  PUTCHAR (int);
+extern void  PUTCHARLP (int);
+extern void  ClearAll (void);
+extern void  ClearArea (int, int, int, int, int, int, int, int);
+extern void  ClearLine (struct mline *, int, int, int, int);
+extern void  RefreshAll (int);
+extern void  RefreshArea (int, int, int, int, int);
+extern void  RefreshLine (int, int, int, int);
+extern void  Redisplay (int);
+extern void  RedisplayDisplays (int);
+extern void  ShowHStatus (char *);
+extern void  RefreshHStatus (void);
+extern void  DisplayLine (struct mline *, struct mline *, int, int, int);
+extern void  GotoPos (int, int);
+extern int   CalcCost (char *);
+extern void  ScrollH (int, int, int, int, int, struct mline *);
+extern void  ScrollV (int, int, int, int, int, int);
+extern void  PutChar (struct mchar *, int, int);
+extern void  InsChar (struct mchar *, int, int, int, struct mline *);
+extern void  WrapChar (struct mchar *, int, int, int, int, int, int, int);
+extern void  ChangeScrollRegion (int, int);
+extern void  InsertMode (int);
+extern void  KeypadMode (int);
+extern void  CursorkeysMode (int);
+extern void  ReverseVideo (int);
+extern void  CursorVisibility (int);
+extern void  MouseMode (int);
+extern void  SetFont (int);
+extern void  SetAttr (int);
+extern void  SetColor (int, int);
+extern void  SetRendition (struct mchar *);
+extern void  SetRenditionMline (struct mline *, int);
+extern void  MakeStatus (char *);
+extern void  RemoveStatus (void);
+extern int   ResizeDisplay (int, int);
+extern void  AddStr (char *);
+extern void  AddStrn (char *, int);
+extern void  Flush (int);
+extern void  freetty (void);
+extern void  Resize_obuf (void);
 #ifdef AUTO_NUKE
-extern void  NukePending __P((void));
+extern void  NukePending (void);
 #endif
 #ifdef RXVT_OSC
-extern void  ClearAllXtermOSC __P((void));
-extern void  SetXtermOSC __P((int, char *));
+extern void  ClearAllXtermOSC (void);
+extern void  SetXtermOSC (int, char *);
 #endif
 #ifdef COLOR
-extern int   color256to16 __P((int));
+extern int   color256to16 (int);
 # ifdef COLORS256
-extern int   color256to88 __P((int));
+extern int   color256to88 (int);
 # endif
 #endif
-extern void  ResetIdle __P((void));
-extern void  KillBlanker __P((void));
-extern void  DisplaySleep1000 __P((int, int));
+extern void  ResetIdle (void);
+extern void  KillBlanker (void);
+extern void  DisplaySleep1000 (int, int);
 
 /* resize.c */
-extern int   ChangeWindowSize __P((struct win *, int, int, int));
-extern void  ChangeScreenSize __P((int, int, int));
-extern void  CheckScreenSize __P((int));
-extern char *xrealloc __P((char *, int));
-extern void  ResizeLayersToCanvases __P((void));
-extern void  ResizeLayer __P((struct layer *, int, int, struct display *));
-extern int   MayResizeLayer __P((struct layer *));
-extern void  FreeAltScreen __P((struct win *));
-extern void  EnterAltScreen __P((struct win *));
-extern void  LeaveAltScreen __P((struct win *));
+extern int   ChangeWindowSize (struct win *, int, int, int);
+extern void  ChangeScreenSize (int, int, int);
+extern void  CheckScreenSize (int);
+extern char *xrealloc (char *, int);
+extern void  ResizeLayersToCanvases (void);
+extern void  ResizeLayer (struct layer *, int, int, struct display *);
+extern int   MayResizeLayer (struct layer *);
+extern void  FreeAltScreen (struct win *);
+extern void  EnterAltScreen (struct win *);
+extern void  LeaveAltScreen (struct win *);
 
 /* sched.c */
-extern void  evenq __P((struct event *));
-extern void  evdeq __P((struct event *));
-extern void  SetTimeout __P((struct event *, int));
-extern void  sched __P((void));
+extern void  evenq (struct event *);
+extern void  evdeq (struct event *);
+extern void  SetTimeout (struct event *, int);
+extern void  sched (void);
 
 /* socket.c */
-extern int   FindSocket __P((int *, int *, int *, char *));
-extern int   MakeClientSocket __P((int));
-extern int   MakeServerSocket __P((void));
-extern int   RecoverSocket __P((void));
-extern int   chsock __P((void));
-extern void  ReceiveMsg __P((void));
-extern void  SendCreateMsg __P((char *, struct NewWindow *));
-extern int   SendErrorMsg __P((char *, char *));
-extern int   SendAttachMsg __P((int, struct msg *, int));
-extern void  ReceiveRaw __P((int));
+extern int   FindSocket (int *, int *, int *, char *);
+extern int   MakeClientSocket (int);
+extern int   MakeServerSocket (void);
+extern int   RecoverSocket (void);
+extern int   chsock (void);
+extern void  ReceiveMsg (void);
+extern void  SendCreateMsg (char *, struct NewWindow *);
+extern int   SendErrorMsg (char *, char *);
+extern int   SendAttachMsg (int, struct msg *, int);
+extern void  ReceiveRaw (int);
 
 /* misc.c */
-extern char *SaveStr __P((const char *));
-extern char *SaveStrn __P((const char *, int));
-extern char *InStr __P((char *, const char *));
+extern char *SaveStr (const char *);
+extern char *SaveStrn (const char *, int);
+extern char *InStr (char *, const char *);
 #ifndef HAVE_STRERROR
-extern char *strerror __P((int));
+extern char *strerror (int);
 #endif
-extern void  centerline __P((char *, int));
-extern void  leftline __P((char *, int, struct mchar *));
-extern char *Filename __P((char *));
-extern char *stripdev __P((char *));
+extern void  centerline (char *, int);
+extern void  leftline (char *, int, struct mchar *);
+extern char *Filename (char *);
+extern char *stripdev (char *);
 #ifdef NEED_OWN_BCOPY
-extern void  xbcopy __P((char *, char *, int));
+extern void  xbcopy (char *, char *, int);
 #endif
-extern void  bclear __P((char *, int));
-extern void  closeallfiles __P((int));
-extern int   UserContext __P((void));
-extern void  UserReturn __P((int));
-extern int   UserStatus __P((void));
+extern void  bclear (char *, int);
+extern void  closeallfiles (int);
+extern int   UserContext (void);
+extern void  UserReturn (int);
+extern int   UserStatus (void);
 #if defined(POSIX) || defined(hpux)
-extern void (*xsignal __P((int, void (*)SIGPROTOARG))) __P(SIGPROTOARG);
+extern void (*xsignal (int, void (*)SIGPROTOARG)) SIGPROTOARG;
 #endif
 #ifndef HAVE_RENAME
-extern int   rename __P((char *, char *));
+extern int   rename (char *, char *);
 #endif
 #if defined(HAVE_SETEUID) || defined(HAVE_SETREUID)
-extern void  xseteuid  __P((int));
-extern void  xsetegid  __P((int));
+extern void  xseteuid  (int);
+extern void  xsetegid  (int);
 #endif
-extern int   AddXChar __P((char *, int));
-extern int   AddXChars __P((char *, int, char *));
-extern void  xsetenv  __P((char *, char *));
-extern void  sleep1000 __P((int));
+extern int   AddXChar (char *, int);
+extern int   AddXChars (char *, int, char *);
+extern void  xsetenv  (char *, char *);
+extern void  sleep1000 (int);
 #ifdef DEBUG
-extern void  opendebug __P((int, int));
+extern void  opendebug (int, int);
 #endif
 #ifdef USEVARARGS
 # ifndef HAVE_VSNPRINTF
-extern int   xvsnprintf __P((char *, int, char *, va_list));
+extern int   xvsnprintf (char *, int, char *, va_list);
 # endif
 #else
-extern int   xsnprintf __P(());
+extern int   xsnprintf ();
 #endif
 
 
 /* acl.c */
 #ifdef MULTIUSER
-extern int   AclCheckPermWin __P((struct acluser *, int, struct win *));
-extern int   AclCheckPermCmd __P((struct acluser *, int, struct comm *));
-extern int   AclSetPerm __P((struct acluser *, struct acluser *, char *, char *));
-extern int   AclUmask __P((struct acluser *, char *, char **));
-extern int   UsersAcl __P((struct acluser *, int, char **));
-extern void  AclWinSwap __P((int, int));
-extern int   NewWindowAcl __P((struct win *, struct acluser *));
-extern void  FreeWindowAcl __P((struct win *));
-extern char *DoSu __P((struct acluser **, char *, char *, char *));
-extern int   AclLinkUser __P((char *, char *));
+extern int   AclCheckPermWin (struct acluser *, int, struct win *);
+extern int   AclCheckPermCmd (struct acluser *, int, struct comm *);
+extern int   AclSetPerm (struct acluser *, struct acluser *, char *, char *);
+extern int   AclUmask (struct acluser *, char *, char **);
+extern int   UsersAcl (struct acluser *, int, char **);
+extern void  AclWinSwap (int, int);
+extern int   NewWindowAcl (struct win *, struct acluser *);
+extern void  FreeWindowAcl (struct win *);
+extern char *DoSu (struct acluser **, char *, char *, char *);
+extern int   AclLinkUser (char *, char *);
 #endif /* MULTIUSER */
-extern int   UserFreeCopyBuffer __P((struct acluser *));
-extern struct acluser **FindUserPtr __P((char *));
-extern int   UserAdd __P((char *, char *, struct acluser **));
-extern int   UserDel __P((char *, struct acluser **));
+extern int   UserFreeCopyBuffer (struct acluser *);
+extern struct acluser **FindUserPtr (char *);
+extern int   UserAdd (char *, char *, struct acluser **);
+extern int   UserDel (char *, struct acluser **);
 
 
 /* braile.c */
 #ifdef HAVE_BRAILLE
-extern void  InitBraille __P((void));
-extern void  RefreshBraille __P((void));
-extern void  DoBrailleAction __P((struct action *, int));
-extern void  BGotoPos __P((struct layer *, int, int));
-extern void  BPutChar __P((struct layer *, struct mchar *, int, int));
-extern void  BPutStr __P((struct layer *, char *, int, struct mchar *, int, int));
-extern void  BCDisplayLine __P((struct layer *, struct mline *, int, int, int, int));
+extern void  InitBraille (void);
+extern void  RefreshBraille (void);
+extern void  DoBrailleAction (struct action *, int);
+extern void  BGotoPos (struct layer *, int, int);
+extern void  BPutChar (struct layer *, struct mchar *, int, int);
+extern void  BPutStr (struct layer *, char *, int, struct mchar *, int, int);
+extern void  BCDisplayLine (struct layer *, struct mline *, int, int, int, int);
 #endif
 
 
 
 
 /* layer.c */
-extern void  LGotoPos __P((struct layer *, int, int));
-extern void  LPutChar __P((struct layer *, struct mchar *, int, int));
-extern void  LInsChar __P((struct layer *, struct mchar *, int, int, struct mline *));
-extern void  LPutStr __P((struct layer *, char *, int, struct mchar *, int, int));
-extern void  LPutWinMsg __P((struct layer *, char *, int, struct mchar *, int, int));
-extern void  LScrollH __P((struct layer *, int, int, int, int, int, struct mline *));
-extern void  LScrollV __P((struct layer *, int, int, int, int));
-extern void  LClearAll __P((struct layer *, int));
-extern void  LClearArea __P((struct layer *, int, int, int, int, int, int));
-extern void  LClearLine __P((struct layer *, int, int, int, int, struct mline *));
-extern void  LRefreshAll __P((struct layer *, int));
-extern void  LCDisplayLine __P((struct layer *, struct mline *, int, int, int, int));
-extern void  LCDisplayLineWrap __P((struct layer *, struct mline *, int, int, int, int));
-extern void  LSetRendition __P((struct layer *, struct mchar *));
-extern void  LWrapChar  __P((struct layer *, struct mchar *, int, int, int, int));
-extern void  LCursorVisibility __P((struct layer *, int));
-extern void  LSetFlow __P((struct layer *, int));
-extern void  LKeypadMode __P((struct layer *, int));
-extern void  LCursorkeysMode __P((struct layer *, int));
-extern void  LMouseMode __P((struct layer *, int));
+extern void  LGotoPos (struct layer *, int, int);
+extern void  LPutChar (struct layer *, struct mchar *, int, int);
+extern void  LInsChar (struct layer *, struct mchar *, int, int, struct mline *);
+extern void  LPutStr (struct layer *, char *, int, struct mchar *, int, int);
+extern void  LPutWinMsg (struct layer *, char *, int, struct mchar *, int, int);
+extern void  LScrollH (struct layer *, int, int, int, int, int, struct mline *);
+extern void  LScrollV (struct layer *, int, int, int, int);
+extern void  LClearAll (struct layer *, int);
+extern void  LClearArea (struct layer *, int, int, int, int, int, int);
+extern void  LClearLine (struct layer *, int, int, int, int, struct mline *);
+extern void  LRefreshAll (struct layer *, int);
+extern void  LCDisplayLine (struct layer *, struct mline *, int, int, int, int);
+extern void  LCDisplayLineWrap (struct layer *, struct mline *, int, int, int, int);
+extern void  LSetRendition (struct layer *, struct mchar *);
+extern void  LWrapChar  (struct layer *, struct mchar *, int, int, int, int);
+extern void  LCursorVisibility (struct layer *, int);
+extern void  LSetFlow (struct layer *, int);
+extern void  LKeypadMode (struct layer *, int);
+extern void  LCursorkeysMode (struct layer *, int);
+extern void  LMouseMode (struct layer *, int);
 #if defined(USEVARARGS)
-extern void  LMsg __P((int, const char *, ...)) __attribute__((format(printf, 2, 3)));
+extern void  LMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 #else
-extern void  LMsg __P(());
+extern void  LMsg ();
 #endif
-extern void  KillLayerChain __P((struct layer *));
-extern int   InitOverlayPage __P((int, struct LayFuncs *, int));
-extern void  ExitOverlayPage __P((void));
-extern int   LayProcessMouse __P((struct layer *, unsigned char));
-extern void  LayProcessMouseSwitch __P((struct layer *, int));
+extern void  KillLayerChain (struct layer *);
+extern int   InitOverlayPage (int, struct LayFuncs *, int);
+extern void  ExitOverlayPage (void);
+extern int   LayProcessMouse (struct layer *, unsigned char);
+extern void  LayProcessMouseSwitch (struct layer *, int);
 
 /* teln.c */
 #ifdef BUILTIN_TELNET
-extern int   TelOpen __P((char **));
-extern int   TelConnect __P((struct win *));
-extern int   TelIsline __P((struct win *p));
-extern void  TelProcessLine __P((char **, int *));
-extern int   DoTelnet __P((char *, int *, int));
-extern int   TelIn __P((struct win *, char *, int, int));
-extern void  TelBreak __P((struct win *));
-extern void  TelWindowSize __P((struct win *));
-extern void  TelStatus __P((struct win *, char *, int));
+extern int   TelOpen (char **);
+extern int   TelConnect (struct win *);
+extern int   TelIsline (struct win *p);
+extern void  TelProcessLine (char **, int *);
+extern int   DoTelnet (char *, int *, int);
+extern int   TelIn (struct win *, char *, int, int);
+extern void  TelBreak (struct win *);
+extern void  TelWindowSize (struct win *);
+extern void  TelStatus (struct win *, char *, int);
 #endif
 
 /* nethack.c */
-extern const char *DoNLS __P((const char *));
+extern const char *DoNLS (const char *);
 
 /* encoding.c */
 #ifdef ENCODINGS
 # ifdef UTF8
-extern void  InitBuiltinTabs __P((void));
-extern struct mchar *recode_mchar __P((struct mchar *, int, int));
-extern struct mline *recode_mline __P((struct mline *, int, int, int));
-extern int   FromUtf8 __P((int, int *));
-extern void  AddUtf8 __P((int));
-extern int   ToUtf8 __P((char *, int));
-extern int   ToUtf8_comb __P((char *, int));
-extern int   utf8_isdouble __P((int));
-extern int   utf8_iscomb __P((int));
-extern void  utf8_handle_comb __P((int, struct mchar *));
-extern int   ContainsSpecialDeffont __P((struct mline *, int, int, int));
-extern int   LoadFontTranslation __P((int, char *));
-extern void  LoadFontTranslationsForEncoding __P((int));
+extern void  InitBuiltinTabs (void);
+extern struct mchar *recode_mchar (struct mchar *, int, int);
+extern struct mline *recode_mline (struct mline *, int, int, int);
+extern int   FromUtf8 (int, int *);
+extern void  AddUtf8 (int);
+extern int   ToUtf8 (char *, int);
+extern int   ToUtf8_comb (char *, int);
+extern int   utf8_isdouble (int);
+extern int   utf8_iscomb (int);
+extern void  utf8_handle_comb (int, struct mchar *);
+extern int   ContainsSpecialDeffont (struct mline *, int, int, int);
+extern int   LoadFontTranslation (int, char *);
+extern void  LoadFontTranslationsForEncoding (int);
 # endif	/* UTF8 */
-extern void  WinSwitchEncoding __P((struct win *, int));
-extern int   FindEncoding __P((char *));
-extern char *EncodingName __P((int));
-extern int   EncodingDefFont __P((int));
-extern void  ResetEncoding __P((struct win *));
-extern int   CanEncodeFont __P((int, int));
-extern int   DecodeChar __P((int, int, int *));
-extern int   RecodeBuf __P((unsigned char *, int, int, int, unsigned char *));
+extern void  WinSwitchEncoding (struct win *, int);
+extern int   FindEncoding (char *);
+extern char *EncodingName (int);
+extern int   EncodingDefFont (int);
+extern void  ResetEncoding (struct win *);
+extern int   CanEncodeFont (int, int);
+extern int   DecodeChar (int, int, int *);
+extern int   RecodeBuf (unsigned char *, int, int, int, unsigned char *);
 # ifdef DW_CHARS
-extern int   PrepareEncodedChar __P((int));
+extern int   PrepareEncodedChar (int);
 # endif
 #endif
-extern int   EncodeChar __P((char *, int, int, int *));
+extern int   EncodeChar (char *, int, int, int *);
 
 /* layout.c */
-extern void  RemoveLayout __P((struct layout *));
-extern int   LayoutDumpCanvas __P((struct canvas *, char *));
+extern void  RemoveLayout (struct layout *);
+extern int   LayoutDumpCanvas (struct canvas *, char *);

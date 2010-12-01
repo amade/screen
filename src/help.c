@@ -55,7 +55,7 @@ extern struct term term[];
 
 extern struct LayFuncs ListLf;
 
-static void PadStr __P((char *, int, int, int));
+static void PadStr (char *, int, int, int);
 
 extern char *wliststr;
 extern char *wlisttit;
@@ -121,12 +121,12 @@ char *myname, *message, *arg;
 extern struct comm comms[];
 extern struct action ktab[];
 
-static void HelpProcess __P((char **, int *));
-static void HelpAbort __P((void));
-static void HelpRedisplayLine __P((int, int, int, int));
-static void add_key_to_buf __P((char *, int));
-static void AddAction __P((struct action *, int, int));
-static int  helppage __P((void));
+static void HelpProcess (char **, int *);
+static void HelpAbort (void);
+static void HelpRedisplayLine (int, int, int, int);
+static void add_key_to_buf (char *, int);
+static void AddAction (struct action *, int, int);
+static int  helppage (void);
 
 struct helpdata
 {
@@ -488,10 +488,10 @@ int y, xs, xe, isblank;
 **
 */
 
-static void CopyrightProcess __P((char **, int *));
-static void CopyrightRedisplayLine __P((int, int, int, int));
-static void CopyrightAbort __P((void));
-static void copypage __P((void));
+static void CopyrightProcess (char **, int *);
+static void CopyrightRedisplayLine (int, int, int, int);
+static void CopyrightAbort (void);
+static void copypage (void);
 
 struct copydata
 {
@@ -772,10 +772,10 @@ extern struct action dmtab[];
 extern struct action mmtab[];
 
 
-static void BindkeyProcess __P((char **, int *));
-static void BindkeyAbort __P((void));
-static void BindkeyRedisplayLine __P((int, int, int, int));
-static void bindkeypage __P((void));
+static void BindkeyProcess (char **, int *);
+static void BindkeyAbort (void);
+static void BindkeyRedisplayLine (int, int, int, int);
+static void bindkeypage (void);
 
 struct bindkeydata
 {
@@ -982,8 +982,8 @@ int y, xs, xe, isblank;
 
 #ifdef ZMODEM
 
-static void ZmodemRedisplayLine __P((int, int, int, int));
-static int  ZmodemResize __P((int, int));
+static void ZmodemRedisplayLine (int, int, int, int);
+static int  ZmodemResize (int, int);
 
 static struct LayFuncs ZmodemLf =
 {

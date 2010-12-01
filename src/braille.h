@@ -27,7 +27,7 @@
 
 #ifdef HAVE_BRAILLE
 
-extern void StartBraille __P((void));
+extern void StartBraille (void);
 
 struct braille_display
 {
@@ -58,9 +58,9 @@ struct braille_display
   char  bd_btable[256];	/* braille translation table */
 
   /* functions which communicate with braille displays */
-  int (*write_line_braille) __P((char [],int, int));
-  void (*buttonpress) __P((void));
-  int (*bd_response_test) __P((void));
+  int (*write_line_braille) (char [],int, int);
+  void (*buttonpress) (void);
+  int (*bd_response_test) (void);
 
   int   bd_refreshing;	/* are we doing a refresh? */
   char  bd_line[40+1];	/* bd_ncells chars displayed on braille */

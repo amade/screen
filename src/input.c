@@ -33,9 +33,9 @@
 
 #define INPUTLINE (flayer->l_height - 1)
 
-static void InpProcess __P((char **, int *));
-static void InpAbort __P((void));
-static void InpRedisplayLine __P((int, int, int, int));
+static void InpProcess (char **, int *);
+static void InpAbort (void);
+static void InpRedisplayLine (int, int, int, int);
 
 extern struct layer *flayer;
 extern struct display *display;
@@ -62,7 +62,7 @@ struct inpdata
   char *inpstring;	/* the prompt */
   int  inpstringlen;	/* length of the prompt */
   int  inpmode;		/* INP_NOECHO, INP_RAW, INP_EVERY */
-  void (*inpfinfunc) __P((char *buf, int len, char *priv));
+  void (*inpfinfunc) (char *buf, int len, char *priv);
   char  *priv;		/* private data for finfunc */
   int  privdata;	/* private data space */
   char *search; 	/* the search string */
@@ -124,7 +124,7 @@ Input(istr, len, mode, finfunc, priv, data)
 char *istr;
 int len;
 int mode;
-void (*finfunc) __P((char *buf, int len, char *priv));
+void (*finfunc) (char *buf, int len, char *priv);
 char *priv;
 int data;
 {

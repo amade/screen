@@ -44,27 +44,27 @@ struct logfile
  * otherwise.
  * example: l = logfopen(name, islogfile(name) : NULL ? fopen(name, "a"));
  */
-struct logfile *logfopen __P((char *name, FILE *fp));
+struct logfile *logfopen (char *name, FILE *fp);
 
 /*
  * lookup a logfile by name. This is useful, so that we can provide
  * logfopen with a nonzero second argument, exactly when needed. 
  * islogfile(NULL); returns nonzero if there are any open logfiles at all.
  */
-int islogfile __P((char *name));
+int islogfile (char *name);
 
 /* 
  * logfclose does free()
  */
-int logfclose __P((struct logfile *));
-int logfwrite __P((struct logfile *, char *, int));
+int logfclose (struct logfile *);
+int logfwrite (struct logfile *, char *, int);
 
 /* 
  * logfflush should be called periodically. If no argument is passed,
  * all logfiles are flushed, else the specified file
  * the number of flushed filepointers is returned
  */
-int logfflush __P((struct logfile *ifany));
+int logfflush (struct logfile *ifany);
 
 /* 
  * a reopen function may be registered here, in case you want to bring your 
@@ -74,7 +74,7 @@ int logfflush __P((struct logfile *ifany));
  * if you provide NULL as parameter to logreopen_register, the builtin
  * reopen function will be reactivated.
  */
-void logreopen_register __P((int (*fn) __P((char *, int, struct logfile *)) ));
+void logreopen_register (int (*fn) (char *, int, struct logfile *) );
 
 /* 
  * Your custom reopen function is required to reuse the exact
@@ -84,4 +84,4 @@ void logreopen_register __P((int (*fn) __P((char *, int, struct logfile *)) ));
  * lf_move_fd may help you here, if you do not have dup2(2).
  * It closes fd and opens wantfd to access whatever fd accessed.
  */
-int lf_move_fd __P((int fd, int wantfd));
+int lf_move_fd (int fd, int wantfd);

@@ -123,54 +123,54 @@ extern char *screenencodings;
 extern int cjkwidth;
 #endif
 
-static int  CheckArgNum __P((int, char **));
-static void ClearAction __P((struct action *));
-static void SaveAction __P((struct action *, int, char **, int *));
-static int  NextWindow __P((void));
-static int  PreviousWindow __P((void));
-static int  MoreWindows __P((void));
-static void CollapseWindowlist __P((void));
-static void LogToggle __P((int));
-static void ShowInfo __P((void));
-static void ShowDInfo __P((void));
-static struct win *WindowByName __P((char *));
-static int  WindowByNumber __P((char *));
-static int  ParseOnOff __P((struct action *, int *));
-static int  ParseWinNum __P((struct action *, int *));
-static int  ParseBase __P((struct action *, char *, int *, int, char *));
-static int  ParseNum1000 __P((struct action *, int *));
-static char **SaveArgs __P((char **));
-static int  IsNum __P((char *, int));
-static void Colonfin __P((char *, int, char *));
-static void InputSelect __P((void));
-static void InputSetenv __P((char *));
-static void InputAKA __P((void));
+static int  CheckArgNum (int, char **);
+static void ClearAction (struct action *);
+static void SaveAction (struct action *, int, char **, int *);
+static int  NextWindow (void);
+static int  PreviousWindow (void);
+static int  MoreWindows (void);
+static void CollapseWindowlist (void);
+static void LogToggle (int);
+static void ShowInfo (void);
+static void ShowDInfo (void);
+static struct win *WindowByName (char *);
+static int  WindowByNumber (char *);
+static int  ParseOnOff (struct action *, int *);
+static int  ParseWinNum (struct action *, int *);
+static int  ParseBase (struct action *, char *, int *, int, char *);
+static int  ParseNum1000 (struct action *, int *);
+static char **SaveArgs (char **);
+static int  IsNum (char *, int);
+static void Colonfin (char *, int, char *);
+static void InputSelect (void);
+static void InputSetenv (char *);
+static void InputAKA (void);
 #ifdef MULTIUSER
-static int  InputSu __P((struct win *, struct acluser **, char *));
-static void su_fin __P((char *, int, char *));
+static int  InputSu (struct win *, struct acluser **, char *);
+static void su_fin (char *, int, char *);
 #endif
-static void AKAfin __P((char *, int, char *));
+static void AKAfin (char *, int, char *);
 #ifdef COPY_PASTE
-static void copy_reg_fn __P((char *, int, char *));
-static void ins_reg_fn __P((char *, int, char *));
+static void copy_reg_fn (char *, int, char *);
+static void ins_reg_fn (char *, int, char *);
 #endif
-static void process_fn __P((char *, int, char *));
+static void process_fn (char *, int, char *);
 #ifdef PASSWORD
-static void pass1 __P((char *, int, char *));
-static void pass2 __P((char *, int, char *));
+static void pass1 (char *, int, char *);
+static void pass2 (char *, int, char *);
 #endif
 #ifdef POW_DETACH
-static void pow_detach_fn __P((char *, int, char *));
+static void pow_detach_fn (char *, int, char *);
 #endif
-static void digraph_fn __P((char *, int, char *));
-static int  digraph_find __P((const char *buf));
-static void confirm_fn __P((char *, int, char *));
-static int  IsOnDisplay __P((struct win *));
-static void ResizeRegions __P((char *, int));
-static void ResizeFin __P((char *, int, char *));
-static struct action *FindKtab __P((char *, int));
-static void SelectFin __P((char *, int, char *));
-static void SelectLayoutFin __P((char *, int, char *));
+static void digraph_fn (char *, int, char *);
+static int  digraph_find (const char *buf);
+static void confirm_fn (char *, int, char *);
+static int  IsOnDisplay (struct win *);
+static void ResizeRegions (char *, int);
+static void ResizeFin (char *, int, char *);
+static struct action *FindKtab (char *, int);
+static void SelectFin (char *, int, char *);
+static void SelectLayoutFin (char *, int, char *);
 
 
 extern struct layer *flayer;
@@ -7815,7 +7815,7 @@ static int ncommtab;
 void
 AddComms(cos, hand)
 struct comm *cos;
-void (*hand) __P((struct comm *, char **, int));
+void (*hand) (struct comm *, char **, int);
 {
   int n, i, j, r;
   for (n = 0; cos[n].name; n++)

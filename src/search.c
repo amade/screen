@@ -46,9 +46,9 @@ int search_ic;
  *  VI style Search
  */
 
-static int  matchword __P((char *, int, int, int));
-static void searchend __P((char *, int, char *));
-static void backsearchend __P((char *, int, char *));
+static int  matchword (char *, int, int, int);
+static void searchend (char *, int, char *);
+static void backsearchend (char *, int, char *);
 
 void
 Search(dir)
@@ -177,9 +177,9 @@ static char *isprompts[] = {
 };
 
 
-static int  is_redo __P((struct markdata *));
-static void is_process __P((char *, int, char *));
-static int  is_bm __P((char *, int, int, int, int));
+static int  is_redo (struct markdata *);
+static void is_process (char *, int, char *);
+static int  is_bm (char *, int, int, int, int);
 
 
 static int

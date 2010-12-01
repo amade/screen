@@ -37,21 +37,21 @@
 
 #include <pwd.h>
 
-static int WriteMessage __P((int, struct msg *));
-static sigret_t AttacherSigInt __P(SIGPROTOARG);
+static int WriteMessage (int, struct msg *);
+static sigret_t AttacherSigInt SIGPROTOARG;
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
-static sigret_t AttacherWinch __P(SIGPROTOARG);
+static sigret_t AttacherWinch SIGPROTOARG;
 #endif
 #ifdef LOCK
-static sigret_t DoLock __P(SIGPROTOARG);
-static void  LockTerminal __P((void));
-static sigret_t LockHup __P(SIGPROTOARG);
-static void  screen_builtin_lck __P((void));
+static sigret_t DoLock SIGPROTOARG;
+static void  LockTerminal (void);
+static sigret_t LockHup SIGPROTOARG;
+static void  screen_builtin_lck (void);
 #endif
 #ifdef DEBUG
-static sigret_t AttacherChld __P(SIGPROTOARG);
+static sigret_t AttacherChld SIGPROTOARG;
 #endif
-static sigret_t AttachSigCont __P(SIGPROTOARG);
+static sigret_t AttachSigCont SIGPROTOARG;
 
 extern int real_uid, real_gid, eff_uid, eff_gid;
 extern char *SockName, *SockMatch, SockPath[];
@@ -713,7 +713,7 @@ LockTerminal()
 {
   char *prg;
   int sig, pid;
-  sigret_t (*sigs[NSIG])__P(SIGPROTOARG);
+  sigret_t (*sigs[NSIG])SIGPROTOARG;
 
   for (sig = 1; sig < NSIG; sig++)
     sigs[sig] = signal(sig, sig == SIGCHLD ? SIG_DFL : SIG_IGN);
@@ -795,7 +795,7 @@ LockTerminal()
   /* reset signals */
   for (sig = 1; sig < NSIG; sig++)
     {
-      if (sigs[sig] != (sigret_t(*)__P(SIGPROTOARG)) -1)
+      if (sigs[sig] != (sigret_t(*)SIGPROTOARG) -1)
 	signal(sig, sigs[sig]);
     }
 }				/* LockTerminal */
@@ -808,7 +808,7 @@ LockTerminal()
 
 #include <security/pam_appl.h>
 
-static int PAM_conv __P((int, const struct pam_message **, struct pam_response **, void *));
+static int PAM_conv (int, const struct pam_message **, struct pam_response **, void *);
 
 static int
 PAM_conv(num_msg, msg, resp, appdata_ptr)

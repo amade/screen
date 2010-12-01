@@ -45,19 +45,19 @@
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 
-static int  is_letter __P((int));
-static void nextword __P((int *, int *, int, int));
-static int  linestart __P((int));
-static int  lineend __P((int));
-static int  rem __P((int, int , int , int , int , char *, int));
-static int  eq __P((int, int ));
-static int  MarkScrollDownDisplay __P((int));
-static int  MarkScrollUpDisplay __P((int));
+static int  is_letter (int);
+static void nextword (int *, int *, int, int);
+static int  linestart (int);
+static int  lineend (int);
+static int  rem (int, int , int , int , int , char *, int);
+static int  eq (int, int );
+static int  MarkScrollDownDisplay (int);
+static int  MarkScrollUpDisplay (int);
 
-static void MarkProcess __P((char **, int *));
-static void MarkAbort __P((void));
-static void MarkRedisplayLine __P((int, int, int, int));
-static int  MarkRewrite __P((int, int, int, struct mchar *, int));
+static void MarkProcess (char **, int *);
+static void MarkAbort (void);
+static void MarkRedisplayLine (int, int, int, int);
+static int  MarkRewrite (int, int, int, struct mchar *, int);
 
 extern struct layer *flayer;
 extern struct display *display, *displays;

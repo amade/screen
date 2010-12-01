@@ -48,12 +48,12 @@ static int tsi_ctype = 1;        /* cursor type, 0,1,2 */
 static int tsi_line_type; /* indicates number of cells on powerbraille
                           display 01=20 cells 02=40 cells 03=80 cells */
 
-static int  display_status_tsi __P((void));
-static int  write_line_tsi __P((char *, int, int));
-static void buttonpress_tsi __P((struct key2rc *));
-static void buttonpress_navigator_40 __P((void));
-static void buttonpress_powerbraille_40 __P((void));
-static void buttonpress_powerbraille_80 __P((void));
+static int  display_status_tsi (void);
+static int  write_line_tsi (char *, int, int);
+static void buttonpress_tsi (struct key2rc *);
+static void buttonpress_navigator_40 (void);
+static void buttonpress_powerbraille_40 (void);
+static void buttonpress_powerbraille_80 (void);
 
 int
 bd_init_powerbraille_40()
