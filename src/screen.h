@@ -29,8 +29,6 @@
 
 #include "os.h"
 
-#include "osdef.h"
-
 #include "ansi.h"
 #include "sched.h"
 #include "acls.h"
