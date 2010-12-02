@@ -47,8 +47,8 @@ int search_ic;
  */
 
 static int  matchword (char *, int, int, int);
-static void searchend (char *, int, char *);
-static void backsearchend (char *, int, char *);
+static void searchend (char *, int);
+static void backsearchend (char *, int);
 
 void
 Search(dir)
@@ -59,9 +59,9 @@ int dir;
     {
       markdata = (struct markdata *)flayer->l_data;
       if (markdata->isdir > 0)
-	searchend(0, 0, NULL);
+	searchend(0, 0);
       else if (markdata->isdir < 0)
-	backsearchend(0, 0, NULL);
+	backsearchend(0, 0);
       else
 	LMsg(0, "No previous pattern");
     }
@@ -71,10 +71,9 @@ int dir;
 }
 
 static void
-searchend(buf, len, data)
+searchend(buf, len)
 char *buf;
 int len;
-char *data;	/* dummy */
 {
   int x = 0, sx, ex, y;
   struct markdata *markdata;
@@ -102,10 +101,9 @@ char *data;	/* dummy */
 }
 
 static void
-backsearchend(buf, len, data)
+backsearchend(buf, len)
 char *buf;
 int len;
-char *data;	/* dummy */
 {
   int sx, ex, x = -1, y;
   struct markdata *markdata;
