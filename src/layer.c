@@ -940,15 +940,7 @@ int isblank;
 }
 
 void
-/*VARARGS2*/
-#if defined(USEVARARGS) && defined(__STDC__)
 LMsg(int err, const char *fmt, VA_DOTS)
-#else
-LMsg(err, fmt, VA_DOTS)
-int err;
-const char *fmt;
-VA_DECL
-#endif
 {
   VA_LIST(ap)
   char buf[MAXPATHLEN*2];

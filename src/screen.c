@@ -2107,14 +2107,7 @@ MakeNewEnv()
   *np = 0;
 }
 
-#if defined(USEVARARGS) && defined(__STDC__)
-  #define DEFINE_VARARGS_FN(fnname)	void fnname (int err, const char *fmt, VA_DOTS)
-#else
-  #define DEFINE_VARARGS_FN(fnname)	void fnname(err, fmt, VA_DOTS) \
-  int err;	\
-  const char *fmt;	\
-  VA_DECL
-#endif
+#define DEFINE_VARARGS_FN(fnname)	void fnname (int err, const char *fmt, VA_DOTS)
 
 #define	PROCESS_MESSAGE(B) do { \
     char *p = B;	\
