@@ -39,17 +39,10 @@ extern void  eexit (int) __attribute__((__noreturn__));
 extern void  Detach (int);
 extern void  Hangup (void);
 extern void  Kill (int, int);
-#ifdef USEVARARGS
 extern void  Msg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 extern void  Panic (int, const char *, ...) __attribute__((format(printf, 2, 3))) __attribute__((__noreturn__));
 extern void  QueryMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 extern void  Dummy (int, const char *, ...) __attribute__((format(printf, 2, 3)));
-#else
-extern void  Msg ();
-extern void  Panic ();
-extern void  QueryMsg ();
-extern void  Dummy ();
-#endif
 extern void  Finit (int);
 extern void  MakeNewEnv (void);
 extern char *MakeWinMsg (char *, struct win *, int);
@@ -382,13 +375,6 @@ extern void  sleep1000 (int);
 #ifdef DEBUG
 extern void  opendebug (int, int);
 #endif
-#ifdef USEVARARGS
-# ifndef HAVE_VSNPRINTF
-extern int   xvsnprintf (char *, int, char *, va_list);
-# endif
-#else
-extern int   xsnprintf ();
-#endif
 
 
 /* acl.c */
@@ -445,11 +431,7 @@ extern void  LSetFlow (struct layer *, int);
 extern void  LKeypadMode (struct layer *, int);
 extern void  LCursorkeysMode (struct layer *, int);
 extern void  LMouseMode (struct layer *, int);
-#if defined(USEVARARGS)
 extern void  LMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
-#else
-extern void  LMsg ();
-#endif
 extern void  KillLayerChain (struct layer *);
 extern int   InitOverlayPage (int, struct LayFuncs *, int);
 extern void  ExitOverlayPage (void);
