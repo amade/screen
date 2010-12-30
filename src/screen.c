@@ -2848,6 +2848,13 @@ int rec;
 	    }
 #endif
 	  break;
+	case 'E':
+	  p--;
+	  if (display && D_ESCseen)
+	    {
+	      qmflag = 1;
+	    }
+	  break;
 	case '>':
 	  truncpos = p - winmsg_buf;
 	  truncper = num > 100 ? 100 : num;
