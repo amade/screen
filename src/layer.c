@@ -56,9 +56,7 @@ static struct mline *mloff (struct mline *, int);
  */
 
 static struct mline *
-mloff(ml, off)
-struct mline *ml;
-int off;
+mloff(struct mline *ml, int off)
 {
   static struct mline mml;
 
@@ -94,9 +92,7 @@ int off;
   }
 
 void
-LGotoPos(l, x, y)
-struct layer *l;
-int x, y;
+LGotoPos(struct layer *l, int x, int y)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -141,11 +137,7 @@ int x, y;
 }
 
 void
-LScrollH(l, n, y, xs, xe, bce, ol)
-struct layer *l;
-int n, y, xs, xe;
-int bce;
-struct mline *ol;
+LScrollH(struct layer *l, int n, int y, int xs, int xe, int bce, struct mline *ol)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -196,11 +188,7 @@ struct mline *ol;
 }
 
 void
-LScrollV(l, n, ys, ye, bce)
-struct layer *l;
-int n;
-int ys, ye;
-int bce;
+LScrollV(struct layer *l, int n, int ys, int ye, int bce)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -261,11 +249,7 @@ int bce;
 }
 
 void
-LInsChar(l, c, x, y, ol)
-struct layer *l;
-struct mchar *c;
-int x, y;
-struct mline *ol;
+LInsChar(struct layer *l, struct mchar *c, int x, int y, struct mline *ol)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -318,10 +302,7 @@ struct mline *ol;
 }
 
 void
-LPutChar(l, c, x, y)
-struct layer *l;
-struct mchar *c;
-int x, y;
+LPutChar(struct layer *l, struct mchar *c, int x, int y)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -364,12 +345,7 @@ int x, y;
 }
 
 void
-LPutStr(l, s, n, r, x, y)
-struct layer *l;
-char *s;
-int n;
-struct mchar *r;
-int x, y;
+LPutStr(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -428,12 +404,7 @@ int x, y;
 }
 
 void
-LPutWinMsg(l, s, n, r, x, y)
-struct layer *l;
-char *s;
-int n;
-struct mchar *r;
-int x, y;
+LPutWinMsg(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -490,11 +461,7 @@ int x, y;
 }
 
 void
-LClearLine(l, y, xs, xe, bce, ol)
-struct layer *l;
-int xs, xe, bce;
-int y;
-struct mline *ol;
+LClearLine(struct layer *l, int y, int xs, int xe, int bce, struct mline *ol)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -530,11 +497,7 @@ struct mline *ol;
 }
 
 void
-LClearArea(l, xs, ys, xe, ye, bce, uself)
-struct layer *l;
-int xs, ys, xe, ye;
-int bce;
-int uself;
+LClearArea(struct layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -618,11 +581,7 @@ int uself;
 }
 
 void
-LCDisplayLine(l, ml, y, xs, xe, isblank)
-struct layer *l;
-struct mline *ml;
-int y, xs, xe;
-int isblank;
+LCDisplayLine(struct layer *l, struct mline *ml, int y, int xs, int xe, int isblank)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -664,11 +623,7 @@ int isblank;
 }
 
 void
-LCDisplayLineWrap(l, ml, y, from, to, isblank)
-struct layer *l;
-struct mline *ml;
-int y, from, to;
-int isblank;
+LCDisplayLineWrap(struct layer *l, struct mline *ml, int y, int from, int to, int isblank)
 {
   struct mchar nc;
   copy_mline2mchar(&nc, ml, 0);
@@ -686,9 +641,7 @@ int isblank;
 }
 
 void
-LSetRendition(l, r)
-struct layer *l;
-struct mchar *r;
+LSetRendition(struct layer *l, struct mchar *r)
 {
   struct canvas *cv;
 
@@ -702,11 +655,7 @@ struct mchar *r;
 }
 
 void
-LWrapChar(l, c, y, top, bot, ins)
-struct layer *l;
-struct mchar *c;
-int y, top, bot;
-int ins;
+LWrapChar(struct layer *l, struct mchar *c, int y, int top, int bot, int ins)
 {
   struct canvas *cv, *cvlist, *cvlnext;
   struct viewport *vp, *evp, **vpp;
@@ -829,9 +778,7 @@ int ins;
 
 
 void
-LCursorVisibility(l, vis)
-struct layer *l;
-int vis;
+LCursorVisibility(struct layer *l, int vis)
 {
   struct canvas *cv;
   for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
@@ -846,9 +793,7 @@ int vis;
 }
 
 void
-LSetFlow(l, flow)
-struct layer *l;
-int flow;
+LSetFlow(struct layer *l, int flow)
 {
   struct canvas *cv;
   for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
@@ -861,9 +806,7 @@ int flow;
 }
 
 void
-LKeypadMode(l, on)
-struct layer *l;
-int on;
+LKeypadMode(struct layer *l, int on)
 {
   struct canvas *cv;
   for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
@@ -878,9 +821,7 @@ int on;
 }
 
 void
-LCursorkeysMode(l, on)
-struct layer *l;
-int on;
+LCursorkeysMode(struct layer *l, int on)
 {
   struct canvas *cv;
   for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
@@ -895,9 +836,7 @@ int on;
 }
 
 void
-LMouseMode(l, on)
-struct layer *l;
-int on;
+LMouseMode(struct layer *l, int on)
 {
   struct canvas *cv;
   for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
@@ -912,17 +851,13 @@ int on;
 }
 
 void
-LClearAll(l, uself)
-struct layer *l;
-int uself;
+LClearAll(struct layer *l, int uself)
 {
   LClearArea(l, 0, 0, l->l_width - 1, l->l_height - 1, 0, uself);
 }
 
 void
-LRefreshAll(l, isblank)
-struct layer *l;
-int isblank;
+LRefreshAll(struct layer *l, int isblank)
 {
   struct layer *oldflayer;
   int y;
@@ -980,8 +915,7 @@ LMsg(int err, const char *fmt, VA_DOTS)
  */
 
 void
-KillLayerChain(lay)
-struct layer *lay;
+KillLayerChain(struct layer *lay)
 {
   struct canvas *cv, *ncv;
   struct layer *l, *oldflayer;
@@ -1011,10 +945,7 @@ struct layer *lay;
 
 
 int
-InitOverlayPage(datasize, lf, block)
-int datasize;
-struct LayFuncs *lf;
-int block;
+InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
 {
   char *data;
   struct layer *newlay;
@@ -1199,9 +1130,7 @@ LayProcessMouseSwitch(struct layer *l, int s)
     }
 }
 
-void LayPause(layer, pause)
-struct layer *layer;
-int pause;
+void LayPause(struct layer *layer, int pause)
 {
   struct canvas *cv;
   struct display *olddisplay = display;
@@ -1290,10 +1219,7 @@ int pause;
 }
 
 void
-LayPauseUpdateRegion(layer, xs, xe, ys, ye)
-struct layer *layer;
-int xs, xe;
-int ys, ye;
+LayPauseUpdateRegion(struct layer *layer, int xs, int xe, int ys, int ye)
 {
   if (!layer->l_pause.d)
     return;
@@ -1334,8 +1260,7 @@ int ys, ye;
 }
 
 void
-LayerCleanupMemory(layer)
-struct layer *layer;
+LayerCleanupMemory(struct layer *layer)
 {
   if (layer->l_pause.left)
     free(layer->l_pause.left);

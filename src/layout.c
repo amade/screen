@@ -40,8 +40,7 @@ struct layout *layout_last, layout_last_marker;
 struct layout *layout_attach = &layout_last_marker;
 
 void
-FreeLayoutCv(cv)
-struct canvas *cv;
+FreeLayoutCv(struct canvas *cv)
 {
   struct canvas *cnext, *c = cv;
   for (; cv; cv = cnext)
@@ -60,9 +59,7 @@ struct canvas *cv;
 }
 
 struct layout *
-CreateLayout(title, startat)
-char *title;
-int startat;
+CreateLayout(char *title, int startat)
 {
   struct layout *lay, **pl;
   int i;
@@ -96,9 +93,7 @@ int startat;
 }
 
 void
-SaveLayout(name, cv)
-char *name;
-struct canvas *cv;
+SaveLayout(char *name, struct canvas *cv)
 {
   struct layout *lay;
   struct canvas *fcv;
@@ -119,8 +114,7 @@ struct canvas *cv;
 }
 
 void
-AutosaveLayout(lay)
-struct layout *lay;
+AutosaveLayout(struct layout *lay)
 {
   struct canvas *fcv;
   if (!lay || !lay->lay_autosave)
@@ -133,8 +127,7 @@ struct layout *lay;
 }
 
 struct layout *
-FindLayout(name)
-char *name;
+FindLayout(char *name)
 {
   struct layout *lay;
   char *s;
@@ -150,9 +143,7 @@ char *name;
 }
 
 void
-LoadLayout(lay, cv)
-struct layout *lay;
-struct canvas *cv;
+LoadLayout(struct layout *lay, struct canvas *cv)
 {
   AutosaveLayout(D_layout);
   if (!lay)
@@ -180,9 +171,7 @@ struct canvas *cv;
 }
 
 void
-NewLayout(title, startat)
-char *title;
-int startat;
+NewLayout(char *title, int startat)
 {
   struct layout *lay;
   struct canvas *fcv;
@@ -201,10 +190,7 @@ int startat;
 
 
 static char *
-AddLayoutsInfo(buf, len, where)
-char *buf;
-int len;
-int where;
+AddLayoutsInfo(char *buf, int len, int where)
 {
   char *s, *ss, *t;
   struct layout *p, **pp;
@@ -243,8 +229,7 @@ int where;
 }
 
 void
-ShowLayouts(where)
-int where;
+ShowLayouts(int where)
 {
   char buf[1024];
   char *s, *ss;
@@ -276,8 +261,7 @@ int where;
 }
 
 void
-RemoveLayout(lay)
-struct layout *lay;
+RemoveLayout(struct layout *lay)
 {
   struct layout **layp = &layouts;
 
@@ -307,9 +291,7 @@ struct layout *lay;
 }
 
 void
-UpdateLayoutCanvas(cv, wi)
-struct canvas *cv;
-struct win *wi;
+UpdateLayoutCanvas(struct canvas *cv, struct win *wi)
 {
   for (; cv; cv = cv->c_slnext)
     {
@@ -338,9 +320,7 @@ struct win *wi;
 
 
 static void
-dump_canvas(cv, file)
-struct canvas *cv;
-FILE *file;
+dump_canvas(struct canvas *cv, FILE *file)
 {
   struct canvas *c;
   for (c = cv->c_slperp; c && c->c_slnext; c = c->c_slnext)
@@ -358,9 +338,7 @@ FILE *file;
 }
 
 int
-LayoutDumpCanvas(cv, filename)
-struct canvas *cv;
-char *filename;
+LayoutDumpCanvas(struct canvas *cv, char *filename)
 {
   FILE *file = secfopen(filename, "a");
   if (!file)

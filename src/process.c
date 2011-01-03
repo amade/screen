@@ -1591,10 +1591,7 @@ static char *resizeprompts[] = {
 };
 
 static int
-parse_input_int(buf, len, val)
-const char *buf;
-int len;
-int *val;
+parse_input_int(const char *buf, int len, int *val)
 {
   int x = 0, i;
   if (len >= 1 && ((*buf == 'U' && buf[1] == '+') || (*buf == '0' && (buf[1] == 'x' || buf[1] == 'X'))))
@@ -1823,9 +1820,7 @@ InitKeytab()
 }
 
 static struct action *
-FindKtab(class, create)
-char *class;
-int create;
+FindKtab(char *class, int create)
 {
   struct kclass *kp, **kpp;
   int i;
@@ -1865,8 +1860,7 @@ int create;
 }
 
 static void
-ClearAction(act)
-struct action *act;
+ClearAction(struct action *act)
 {
   char **p;
 
@@ -1895,9 +1889,7 @@ struct action *act;
  */
 
 void
-ProcessInput(ibuf, ilen)
-char *ibuf;
-int ilen;
+ProcessInput(char *ibuf, int ilen)
 {
   int ch, slen;
   unsigned char *s, *q;
@@ -2036,9 +2028,7 @@ int ilen;
  */
 
 void
-ProcessInput2(ibuf, ilen)
-char *ibuf;
-int ilen;
+ProcessInput2(char *ibuf, int ilen)
 {
   char *s;
   int ch, slen;
@@ -2098,11 +2088,7 @@ int ilen;
 }
 
 void
-DoProcess(p, bufp, lenp, pa)
-struct win *p;
-char **bufp;
-int *lenp;
-struct paster *pa;
+DoProcess(struct win *p, char **bufp, int *lenp, struct paster *pa)
 {
   int oldlen;
   struct display *d = display;
@@ -2159,8 +2145,7 @@ struct paster *pa;
 }
 
 int
-FindCommnr(str)
-const char *str;
+FindCommnr(const char *str)
 {
   int x, m, l = 0, r = RC_LAST;
   while (l <= r)
@@ -2178,9 +2163,7 @@ const char *str;
 }
 
 static int
-CheckArgNum(nr, args)
-int nr;
-char **args;
+CheckArgNum(int nr, char **args)
 {
   int i, n;
   static char *argss[] = {"no", "one", "two", "three", "four", "OOPS"};
@@ -2281,10 +2264,7 @@ char **args;
 }
 
 static void
-StuffFin(buf, len, data)
-char *buf;
-int len;
-char *data;
+StuffFin(char *buf, int len, char *data)
 {
   if (!flayer)
     return;
@@ -2304,9 +2284,7 @@ char *data;
 
 /*ARGSUSED*/
 void
-DoAction(act, key)
-struct action *act;
-int key;
+DoAction(struct action *act, int key)
 {
   int nr = act->nr;
   char **args = act->args;
@@ -5673,9 +5651,7 @@ CollapseWindowlist()
 }
 
 void
-DoCommand(argv, argl) 
-char **argv;
-int *argl;
+DoCommand(char **argv, int *argl) 
 {
   struct action act;
   const char *cmd = *argv;
@@ -5706,11 +5682,7 @@ int *argl;
 }
 
 static void
-SaveAction(act, nr, args, argl)
-struct action *act;
-int nr;
-char **args;
-int *argl;
+SaveAction(struct action *act, int nr, char **args, int *argl)
 {
   register int argc = 0;
   char **pp;
@@ -5742,8 +5714,7 @@ int *argl;
 }
 
 static char **
-SaveArgs(args)
-char **args;
+SaveArgs(char **args)
 {
   register char **ap, **pp;
   register int argc = 0;
@@ -5769,9 +5740,7 @@ char **args;
  * argc is returned.
  */
 int 
-Parse(buf, bufl, args, argl)
-char *buf, **args;
-int bufl, *argl;
+Parse(char *buf, int bufl, char **args, int *argl)
 {
   register char *p = buf, **ap = args, *pp;
   register int delim, argc;
@@ -5962,9 +5931,7 @@ int bufl, *argl;
 }
 
 void
-SetEscape(u, e, me)
-struct acluser *u;
-int e, me;
+SetEscape(struct acluser *u, int e, int me)
 {
   if (u)
     {
@@ -5999,9 +5966,7 @@ int e, me;
 }
 
 int
-ParseSwitch(act, var)
-struct action *act;
-int *var;
+ParseSwitch(struct action *act, int *var)
 {
   if (*act->args == 0)
     {
@@ -6012,9 +5977,7 @@ int *var;
 }
 
 static int
-ParseOnOff(act, var)
-struct action *act;
-int *var;
+ParseOnOff(struct action *act, int *var)
 {
   register int num = -1;
   char **args = act->args;
@@ -6036,9 +5999,7 @@ int *var;
 }
 
 int
-ParseSaveStr(act, var)
-struct action *act;
-char **var;
+ParseSaveStr(struct action *act, char **var)
 {
   char **args = act->args;
   if (*args == 0 || args[1])
@@ -6053,9 +6014,7 @@ char **var;
 }
 
 int
-ParseNum(act, var)
-struct action *act;
-int *var;
+ParseNum(struct action *act, int *var)
 {
   int i;
   char *p, **args = act->args;
@@ -6086,9 +6045,7 @@ int *var;
 }
 
 static int
-ParseNum1000(act, var)
-struct action *act;
-int *var;
+ParseNum1000(struct action *act, int *var)
 {
   int i;
   char *p, **args = act->args;
@@ -6136,8 +6093,7 @@ int *var;
 }
 
 static struct win *
-WindowByName(s)
-char *s;
+WindowByName(char *s)
 {
   struct win *p;
 
@@ -6151,8 +6107,7 @@ char *s;
 }
 
 static int
-WindowByNumber(str)
-char *str;
+WindowByNumber(char *str)
 {
   int i;
   char *s;
@@ -6172,8 +6127,7 @@ char *str;
  * Be careful when assigning numeric strings as WindowTitles.
  */
 int
-WindowByNoN(str)
-char *str;
+WindowByNoN(char *str)
 {
   int i;
   struct win *p;
@@ -6188,9 +6142,7 @@ char *str;
 }
 
 static int
-ParseWinNum(act, var)
-struct action *act;
-int *var;
+ParseWinNum(struct action *act, int *var)
 {
   char **args = act->args;
   int i = 0;
@@ -6214,12 +6166,7 @@ int *var;
 }
 
 static int
-ParseBase(act, p, var, base, bname)
-struct action *act;
-char *p;
-int *var;
-int base;
-char *bname;
+ParseBase(struct action *act, char *p, int *var, int base, char *bname)
 {
   int i = 0;
   int c;
@@ -6249,9 +6196,7 @@ char *bname;
 }
 
 static int
-IsNum(s, base)
-register char *s;
-register int base;
+IsNum(register char *s, register int base)
 {
   for (base += '0'; *s; ++s)
     if (*s < '0' || *s > base)
@@ -6260,9 +6205,7 @@ register int base;
 }
 
 int
-IsNumColon(s, base, p, psize)
-int base, psize;
-char *s, *p;
+IsNumColon(char *s, int base, char *p, int psize)
 {
   char *q;
   if ((q = rindex(s, ':')) != 0)
@@ -6277,8 +6220,7 @@ char *s, *p;
 }
 
 void
-SwitchWindow(n)
-int n;
+SwitchWindow(int n)
 {
   struct win *p;
 
@@ -6319,8 +6261,7 @@ int n;
  * Puts window wi in canvas display->d_forecv.
  */
 void
-SetForeWindow(wi)
-struct win *wi;
+SetForeWindow(struct win *wi)
 {
   struct win *p;
   if (display == 0)
@@ -6346,8 +6287,7 @@ struct win *wi;
  *  norefresh = -1 forces a refresh, disregard all_norefresh then.
  */
 void
-Activate(norefresh)
-int norefresh;
+Activate(int norefresh)
 {
   debug1("Activate(%d)\n", norefresh);
   if (display == 0)
@@ -6443,8 +6383,7 @@ MoreWindows()
 }
 
 void
-KillWindow(wi)
-struct win *wi;
+KillWindow(struct win *wi)
 {
   struct win **pp, *p;
   struct canvas *cv;
@@ -6506,8 +6445,7 @@ struct win *wi;
 }
 
 static void
-LogToggle(on)
-int on;
+LogToggle(int on)
 {
   char buf[1024];
 
@@ -6538,11 +6476,7 @@ int on;
 }
 
 char *
-AddWindows(buf, len, flags, where)
-char *buf;
-int len;
-int flags;
-int where;
+AddWindows(char *buf, int len, int flags, int where)
 {
   register char *s, *ss;
   register struct win **pp, *p;
@@ -6616,10 +6550,7 @@ int where;
 }
 
 char *
-AddWindowFlags(buf, len, p)
-char *buf;
-int len;
-struct win *p;
+AddWindowFlags(char *buf, int len, struct win *p)
 {
   char *s = buf;
   if (p == 0 || len < 12)
@@ -6659,10 +6590,7 @@ struct win *p;
 }
 
 char *
-AddOtherUsers(buf, len, p)
-char *buf;
-int len;
-struct win *p;
+AddOtherUsers(char *buf, int len, struct win *p)
 {
   struct display *d, *olddisplay = display;
   struct canvas *cv;
@@ -6702,8 +6630,7 @@ struct win *p;
 }
 
 void
-ShowWindows(where)
-int where;
+ShowWindows(int where)
 {
   char buf[1024];
   char *s, *ss;
@@ -6881,10 +6808,7 @@ ShowDInfo()
 }
 
 static void
-AKAfin(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+AKAfin(char *buf, int len, char *data)
 {
   ASSERT(display);
   if (len && fore)
@@ -6911,10 +6835,7 @@ InputAKA()
 }
 
 static void
-Colonfin(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+Colonfin(char *buf, int len, char *data)
 {
   char mbuf[256];
 
@@ -6984,10 +6905,7 @@ char *data;	/* dummy */
 }
 
 static void
-SelectFin(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+SelectFin(char *buf, int len, char *data)
 {
   int n;
 
@@ -7005,10 +6923,7 @@ char *data;	/* dummy */
 }
 
 static void
-SelectLayoutFin(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+SelectLayoutFin(char *buf, int len, char *data)
 {
   struct layout *lay;
 
@@ -7043,10 +6958,7 @@ static char setenv_var[31];
 
 
 static void
-SetenvFin1(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+SetenvFin1(char *buf, int len, char *data)
 {
   if (!len || !display)
     return;
@@ -7054,10 +6966,7 @@ char *data;	/* dummy */
 }
   
 static void
-SetenvFin2(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+SetenvFin2(char *buf, int len, char *data)
 {
   if (!len || !display)
     return;
@@ -7067,8 +6976,7 @@ char *data;	/* dummy */
 }
 
 static void
-InputSetenv(arg)
-char *arg;
+InputSetenv(char *arg)
 {
   static char setenv_buf[50 + sizeof(setenv_var)];	/* need to be static here, cannot be freed */
 
@@ -7090,8 +6998,7 @@ char *arg;
  * -a, -M, -L
  */
 void
-DoScreen(fn, av)
-char *fn, **av;
+DoScreen(char *fn, char **av)
 {
   struct NewWindow nwin;
   register int num;
@@ -7220,10 +7127,7 @@ char *fn, **av;
  * l (left), r (right). placing a mark will now be done with ".".
  */
 int
-CompileKeys(s, sl, array)
-char *s;
-int sl;
-unsigned char *array;
+CompileKeys(char *s, int sl, unsigned char *array)
 {
   int i;
   unsigned char key, value;
@@ -7265,10 +7169,7 @@ unsigned char *array;
 
 #if defined(DETACH) && defined(POW_DETACH)
 static void
-pow_detach_fn(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+pow_detach_fn(char *buf, int len, char *data)
 {
   debug("pow_detach_fn called\n");
   if (len)
@@ -7289,10 +7190,7 @@ char *data;	/* dummy */
 
 #ifdef COPY_PASTE
 static void
-copy_reg_fn(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+copy_reg_fn(char *buf, int len, char *data)
 {
   struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
@@ -7322,10 +7220,7 @@ char *data;	/* dummy */
 }
 
 static void
-ins_reg_fn(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+ins_reg_fn(char *buf, int len, char *data)
 {
   struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
@@ -7348,10 +7243,7 @@ char *data;	/* dummy */
 #endif /* COPY_PASTE */
 
 static void
-process_fn(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+process_fn(char *buf, int len, char *data)
 {
   struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
@@ -7369,10 +7261,7 @@ char *data;	/* dummy */
 }
 
 static void
-confirm_fn(buf, len, data)
-char *buf;
-int len;
-char *data;
+confirm_fn(char *buf, int len, char *data)
 {
   struct action act;
 
@@ -7398,10 +7287,7 @@ struct inputsu
 };
 
 static void
-su_fin(buf, len, data)
-char *buf;
-int len;
-char *data;
+su_fin(char *buf, int len, char *data)
 {
   struct inputsu *i = (struct inputsu *)data;
   char *p;
@@ -7430,10 +7316,7 @@ char *data;
 }
  
 static int
-InputSu(w, up, name)
-struct win *w;
-struct acluser **up;
-char *name;
+InputSu(struct win *w, struct acluser **up, char *name)
 {
   struct inputsu *i;
 
@@ -7452,10 +7335,7 @@ char *name;
 #ifdef PASSWORD
 
 static void
-pass1(buf, len, data)
-char *buf;
-int len;
-char *data;
+pass1(char *buf, int len, char *data)
 {
   struct acluser *u = (struct acluser *)data;
 
@@ -7470,10 +7350,7 @@ char *data;
 }
 
 static void
-pass2(buf, len, data)
-char *buf;
-int len;
-char *data;
+pass2(char *buf, int len, char *data)
 {
   int st;
   char salt[3];
@@ -7529,8 +7406,7 @@ char *data;
 #endif /* PASSWORD */
 
 static int
-digraph_find(buf)
-const char *buf;
+digraph_find(const char *buf)
 {
   int i;
   for (i = 0; i < sizeof(digraphs) && digraphs[i].d[0]; i++)
@@ -7540,10 +7416,7 @@ const char *buf;
 }
 
 static void
-digraph_fn(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+digraph_fn(char *buf, int len, char *data)
 {
   int ch, i, x;
 
@@ -7611,8 +7484,7 @@ char *data;	/* dummy */
 
 #ifdef MAPKEYS
 int
-StuffKey(i)
-int i;
+StuffKey(int i)
 {
   struct action *act;
   int discard = 0;
@@ -7673,8 +7545,7 @@ int i;
 
 
 static int
-IsOnDisplay(wi)
-struct win *wi;
+IsOnDisplay(struct win *wi)
 {
   struct canvas *cv;
   ASSERT(display);
@@ -7685,9 +7556,7 @@ struct win *wi;
 }
 
 struct win *
-FindNiceWindow(wi, presel)
-struct win *wi;
-char *presel;
+FindNiceWindow(struct win *wi, char *presel)
 {
   int i;
 
@@ -7804,9 +7673,7 @@ char *str;
 #endif
 
 static int
-CalcSlicePercent(cv, percent)
-struct canvas *cv;
-int percent;
+CalcSlicePercent(struct canvas *cv, int percent)
 {
   int w, wsum, up;
   if (!cv || !cv->c_slback)
@@ -7821,12 +7688,12 @@ int percent;
 }
 
 static int
-ChangeCanvasSize(fcv, abs, diff, gflag, percent)
-struct canvas *fcv;	/* make this canvas bigger */
-int abs;		/* mode: 0:rel 1:abs 2:max */
-int diff;		/* change this much */
-int gflag;		/* go up if neccessary */
-int percent;
+ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, int percent)
+//struct canvas *fcv;	/* make this canvas bigger */
+//int abs;		/* mode: 0:rel 1:abs 2:max */
+//int diff;		/* change this much */
+//int gflag;		/* go up if neccessary */
+//int percent;
 {
   struct canvas *cv;
   int done, have, m, dir;
@@ -7952,9 +7819,7 @@ int percent;
 }
 
 static void
-ResizeRegions(arg, flags)
-char *arg;
-int flags;
+ResizeRegions(char *arg, int flags)
 {
   struct canvas *cv;
   int diff, l;
@@ -8103,10 +7968,7 @@ int flags;
 }
 
 static void
-ResizeFin(buf, len, data)
-char *buf;
-int len;
-char *data;
+ResizeFin(char *buf, int len, char *data)
 {
   int ch;
   int flags = *(int *)data;
@@ -8134,9 +7996,7 @@ char *data;
 }
 
 void
-SetForeCanvas(d, cv)
-struct display *d;
-struct canvas *cv;
+SetForeCanvas(struct display *d, struct canvas *cv)
 {
   struct display *odisplay = display;
   if (d->d_forecv == cv)
@@ -8190,9 +8050,7 @@ RefreshXtermOSC()
 #endif
 
 int
-ParseAttrColor(s1, s2, msgok)
-char *s1, *s2;
-int msgok;
+ParseAttrColor(char *s1, char *s2, int msgok)
 {
   int i, n;
   char *s, *ss;
@@ -8372,9 +8230,7 @@ int msgok;
  *  Intensity is encoded into bits 17(fg) and 18(bg).
  */
 void
-ApplyAttrColor(i, mc)
-int i;
-struct mchar *mc;
+ApplyAttrColor(int i, struct mchar *mc)
 {
   debug1("ApplyAttrColor %06x\n", i);
   mc->attr |= i >> 8 & 255;

@@ -43,8 +43,7 @@ static int stolen_logfile (struct logfile *);
 static struct logfile *logroot = NULL;
 
 static void
-changed_logfile(l)
-struct logfile *l;
+changed_logfile(struct logfile *l)
 {
   struct stat o, *s = l->st;
 
@@ -66,8 +65,7 @@ struct logfile *l;
  * need_fd is returned on success, else -1 is returned.
  */
 int
-lf_move_fd(fd, need_fd)
-int need_fd, fd;
+lf_move_fd(int fd, int need_fd)
 {
   int r = -1;
   
@@ -80,10 +78,7 @@ int need_fd, fd;
 }
 
 static int
-logfile_reopen(name, wantfd, l)
-char *name;
-int wantfd;
-struct logfile *l;
+logfile_reopen(char *name, int wantfd, struct logfile *l)
 {
   int got_fd;
 
@@ -115,8 +110,7 @@ static int (* lf_reopen_fn)() = logfile_reopen;
  * d) return 0 on success.
  */
 void
-logreopen_register(fn)
-int (*fn) (char *, int, struct logfile *);
+logreopen_register(int (*fn) (char *, int, struct logfile *))
 {
   lf_reopen_fn = fn ? fn : logfile_reopen;
 }
@@ -128,8 +122,7 @@ int (*fn) (char *, int, struct logfile *);
  * on every call.
  */
 static int
-stolen_logfile(l)
-struct logfile *l;
+stolen_logfile(struct logfile *l)
 {
   struct stat o, *s = l->st;
 
@@ -164,8 +157,7 @@ struct logfile *l;
 }
 
 static struct logfile *
-lookup_logfile(name)
-char *name;
+lookup_logfile(char *name)
 {
   struct logfile *l;
 
@@ -176,9 +168,7 @@ char *name;
 }
 
 struct logfile *
-logfopen(name, fp)
-char *name;
-FILE *fp;
+logfopen(char *name, FILE *fp)
 {
   struct logfile *l;
 
@@ -216,8 +206,7 @@ FILE *fp;
 }
 
 int
-islogfile(name)
-char *name;
+islogfile(char *name)
 {
   if (!name)
     return logroot ? 1 : 0;
@@ -225,8 +214,7 @@ char *name;
 }
 
 int
-logfclose(l)
-struct logfile *l;
+logfclose(struct logfile *l)
 {
   struct logfile **lp;
 
@@ -255,10 +243,7 @@ struct logfile *l;
  * or changed, re-open it.
  */
 int
-logfwrite(l, buf, n)
-struct logfile *l;
-char *buf;
-int n;
+logfwrite(struct logfile *l, char *buf, int n)
 {
   int r;
 
@@ -272,8 +257,7 @@ int n;
 }
 
 int
-logfflush(l)
-struct logfile *l;
+logfflush(struct logfile *l)
 {
   int r = 0;
 

@@ -339,8 +339,7 @@ GetLoadav()
 #endif
 
 void
-AddLoadav(p)
-char *p;
+AddLoadav(char *p)
 {
   int i, j;
   if (loadok == 0)

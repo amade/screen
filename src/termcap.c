@@ -83,8 +83,7 @@ static const char TermcapConst[] = "\\\n\
 \t:le=^H:bl=^G:cr=^M:it#8:ho=\\E[H:nw=\\EE:ta=^I:is=\\E)0:";
 
 char *
-gettermcapstring(s)
-char *s;
+gettermcapstring(char *s)
 {
   int i;
 
@@ -106,9 +105,7 @@ char *s;
  * Effect: display initialisation.
  */
 int
-InitTermcap(wi, he)
-int wi;
-int he;
+InitTermcap(int wi, int he)
 {
   register char *s;
   int i;
@@ -495,9 +492,7 @@ int he;
 #ifdef MAPKEYS
 
 int
-remap(n, map)
-int n;
-int map;
+remap(int n, int map)
 {
   char *s = 0;
   int fl = 0, domap = 0;
@@ -613,10 +608,7 @@ CheckEscape()
 }
 
 static int
-findseq_ge(seq, k, sp)
-char *seq;
-int k;
-unsigned char **sp;
+findseq_ge(char *seq, int k, unsigned char **sp)
 {
   unsigned char *p;
   int j, l;
@@ -648,10 +640,7 @@ unsigned char **sp;
 }
 
 static void
-setseqoff(p, i, o)
-unsigned char *p;
-int i;
-int o;
+setseqoff(unsigned char *p, int i, int o)
 {
   unsigned char *q;
   int l, k;
@@ -675,10 +664,7 @@ int o;
 }
 
 static int
-addmapseq(seq, k, nr)
-char *seq;
-int k;
-int nr;
+addmapseq(char *seq, int k, int nr)
 {
   int i, j, l, mo, m;
   unsigned char *p, *q;
@@ -749,9 +735,7 @@ int nr;
 }
 
 static int
-remmapseq(seq, k)
-char *seq;
-int k;
+remmapseq(char *seq, int k)
 {
   int j, l;
   unsigned char *p, *q;
@@ -821,8 +805,7 @@ dumpmap()
  * Appends to the static variable Termcap
  */
 static void
-AddCap(s)
-char *s;
+AddCap(char *s)
 {
   register int n;
 
@@ -847,8 +830,7 @@ char *s;
  * global buffer "Termcap". A pointer to this buffer is returned.
  */
 char *
-MakeTermcap(aflag)
-int aflag;
+MakeTermcap(int aflag)
 {
   char buf[TERMCAP_BUFSIZE];
   register char *p, *cp, *s, ch, *tname;
@@ -1129,10 +1111,7 @@ int aflag;
 }
 
 static void
-MakeString(cap, buf, buflen, s)
-char *cap, *buf;
-int buflen;
-char *s;
+MakeString(char *cap, char *buf, int buflen, char *s)
 {
   register char *p, *pmax;
   register unsigned int c;
@@ -1185,8 +1164,7 @@ char *s;
 
 #ifdef FONT
 int
-CreateTransTable(s)
-char *s;
+CreateTransTable(char *s)
 {
   int curchar;
   char *templ, *arg;
@@ -1300,8 +1278,7 @@ FreeTransTable()
 #endif /* FONT */
 
 static int
-copyarg(pp, s)
-char **pp, *s;
+copyarg(char **pp, char *s)
 {
   int l;
   char *p;
@@ -1328,8 +1305,7 @@ char **pp, *s;
 */
 
 static int
-e_tgetent(bp, name)
-char *bp, *name;
+e_tgetent(char *bp, char *name)
 {
   int r;
 
@@ -1353,10 +1329,7 @@ char *bp, *name;
  */
 
 static char *
-findcap(cap, tepp, n)
-char *cap;
-char **tepp;
-int n;
+findcap(char *cap, char **tepp, int n)
 {
   char *tep;
   char c, *p, *cp;
@@ -1465,9 +1438,7 @@ int n;
 }
 
 static char *
-e_tgetstr(cap, tepp)
-char *cap;
-char **tepp;
+e_tgetstr(char *cap, char **tepp)
 {
   char *tep;
   if ((tep = findcap(cap, tepp, 0)))
@@ -1476,8 +1447,7 @@ char **tepp;
 }
 
 static int
-e_tgetflag(cap)
-char *cap;
+e_tgetflag(char *cap)
 {
   char buf[2], *bufp;
   char *tep;
@@ -1488,8 +1458,7 @@ char *cap;
 }
 
 static int
-e_tgetnum(cap)
-char *cap;
+e_tgetnum(char *cap)
 {
   char buf[20], *bufp;
   char *tep, c;

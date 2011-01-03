@@ -99,9 +99,7 @@ static int UserAclCopy (struct acluser **, struct acluser **);
 
 
 static int
-GrowBitfield(bfp, len, delta, defaultbit)
-AclBits *bfp;
-int len, delta, defaultbit;
+GrowBitfield(AclBits *bfp, int len, int delta, int defaultbit)
 {
   AclBits n, o = *bfp;
   int i;
@@ -127,8 +125,7 @@ int len, delta, defaultbit;
  * or NULL which may be replaced by a User-ptr to create the entry.
  */
 struct acluser **
-FindUserPtr(name)
-char *name;
+FindUserPtr(char *name)
 {
   struct acluser **u;
 
@@ -153,9 +150,7 @@ int DefaultMetaEsc = -1;
  * He has default rights, determined by umask.
  */
 int
-UserAdd(name, pass, up)
-char *name, *pass;
-struct acluser **up;
+UserAdd(char *name, char *pass, struct acluser **up)
 {
 #ifdef MULTIUSER
   int j;
@@ -329,9 +324,7 @@ struct acluser **up;
  * Destroy all his permissions and completely detach him from the session.
  */
 int 
-UserDel(name, up)
-char *name;
-struct acluser **up;
+UserDel(char *name, struct acluser **up)
 {
   struct acluser *u;
 #ifdef MULTIUSER
@@ -405,8 +398,7 @@ struct acluser **up;
  * Also removes any references into the users copybuffer
  */
 int
-UserFreeCopyBuffer(u)
-struct acluser *u;
+UserFreeCopyBuffer(struct acluser *u)
 {
   struct win *w;
   struct paster *pa;
@@ -435,10 +427,7 @@ struct acluser *u;
  * the last next pointer is returned. This address will contain NULL.
  */ 
 static struct aclusergroup **
-FindGroupPtr(gp, u, recursive)
-struct aclusergroup **gp;
-struct acluser *u;
-int recursive;
+FindGroupPtr(struct aclusergroup **gp, struct acluser *u, int recursive)
 {
   struct aclusergroup **g;
   
@@ -461,8 +450,7 @@ int recursive;
  * Cyclic links are prevented.
  */
 int
-AclLinkUser(from, to)
-char *from, *to;
+AclLinkUser(char *from, char *to)
 {
   struct acluser **u1, **u2;
   struct aclusergroup **g;
@@ -490,9 +478,7 @@ char *from, *to;
  * returns NULL if successfull, an static error string otherwise
  */
 char *
-DoSu(up, name, pw1, pw2)
-struct acluser **up;
-char *name, *pw1, *pw2;
+DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 {
   struct acluser *u;
   int sorry = 0;
@@ -601,9 +587,7 @@ char *name, *pw1, *pw2;
 
 /* This gives the users default rights to the new window w created by u */
 int
-NewWindowAcl(w, u)
-struct win *w;
-struct acluser *u;
+NewWindowAcl(struct win *w, struct acluser *u)
 {
   int i, j;
 
@@ -634,8 +618,7 @@ struct acluser *u;
 }
 
 void
-FreeWindowAcl(w)
-struct win *w;
+FreeWindowAcl(struct win *w)
 {
   int i;
 
@@ -652,10 +635,7 @@ struct win *w;
  * AclSetPermWin, try to merge both functions. 
  */
 static int
-AclSetPermCmd(u, mode, cmd)
-struct acluser *u;
-char *mode;
-struct comm *cmd;
+AclSetPermCmd(struct acluser *u, char *mode, struct comm *cmd)
 {
   int neg = 0;
   char *m = mode;
@@ -697,10 +677,7 @@ struct comm *cmd;
  * uu should be NULL, except if you want to change his umask.
  */
 static int
-AclSetPermWin(uu, u, mode, win)
-struct acluser *u, *uu;
-char *mode;
-struct win *win;
+AclSetPermWin(struct acluser *uu, struct acluser *u, char *mode, struct win *win)
 {
   int neg = 0;
   int bit, bits;
@@ -797,9 +774,7 @@ struct win *win;
  * uu should be NULL, except if you want to change his umask.
  */
 int
-AclSetPerm(uu, u, mode, s)
-struct acluser *uu, *u;
-char *mode, *s;
+AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
 {
   struct win *w;
   int i;
@@ -861,10 +836,7 @@ char *mode, *s;
  * uu should be NULL, except if you want to change his umask.
  */
 static int
-UserAcl(uu, u, argc, argv)
-struct acluser *uu, **u;
-int argc;
-char **argv;
+UserAcl(struct acluser *uu, struct acluser **u, int argc, char **argv)
 {
   if ((*u && !strcmp((*u)->u_name, "nobody")) ||
       (argc > 1 && !strcmp(argv[0], "nobody")))
@@ -893,8 +865,7 @@ char **argv;
 }
 
 static int
-UserAclCopy(to_up, from_up)
-struct acluser **to_up, **from_up;
+UserAclCopy(struct acluser **to_up, struct acluser **from_up)
 {
   struct win *w;
   int i, j, to_id, from_id;
@@ -948,10 +919,7 @@ struct acluser **to_up, **from_up;
  * uu should be NULL, except if you want to change his umask.
  */
 int
-UsersAcl(uu, argc, argv)
-struct acluser *uu;
-int argc;
-char **argv;
+UsersAcl(struct acluser *uu, int argc, char **argv)
 {
   char *s;
   int r;
@@ -1009,10 +977,7 @@ char **argv;
  * default_c_bits		umask ??±rwxn
  */
 int 
-AclUmask(u, str, errp)
-struct acluser *u;
-char *str;
-char **errp;
+AclUmask(struct acluser *u, char *str, char **errp)
 {
   char mode[16]; 
   char *av[3];
@@ -1053,8 +1018,7 @@ char **errp;
 }
 
 void
-AclWinSwap(a, b)
-int a, b;
+AclWinSwap(int a, int b)
 {
   debug2("AclWinSwap(%d, %d) NOP.\n", a, b);
 }
@@ -1062,10 +1026,7 @@ int a, b;
 struct acluser *EffectiveAclUser = NULL;	/* hook for AT command permission */
 
 int 
-AclCheckPermWin(u, mode, w)
-struct acluser *u;
-int mode;
-struct win *w;
+AclCheckPermWin(struct acluser *u, int mode, struct win *w)
 {
   int ok;
 
@@ -1100,10 +1061,7 @@ struct win *w;
 }
 
 int 
-AclCheckPermCmd(u, mode, c)
-struct acluser *u;
-int mode;
-struct comm *c;
+AclCheckPermCmd(struct acluser *u, int mode, struct comm *c)
 {
   int ok;
 

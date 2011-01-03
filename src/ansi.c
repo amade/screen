@@ -175,16 +175,14 @@ static void MBceLine (struct win *, int, int, int, int);
 #endif
 
 void
-ResetAnsiState(p)
-struct win *p;
+ResetAnsiState(struct win *p)
 {
   p->w_state = LIT;
   p->w_StringType = NONE;
 }
 
 void
-ResetWindow(p)
-register struct win *p;
+ResetWindow(register struct win *p)
 {
   register int i;
 
@@ -218,9 +216,7 @@ register struct win *p;
 
 /* adds max 22 bytes */
 int
-GetAnsiStatus(w, buf)
-struct win *w;
-char *buf;
+GetAnsiStatus(struct win *w, char *buf)
 {
   char *p = buf;
 
@@ -247,8 +243,7 @@ char *buf;
 #ifdef FONT
 
 void
-ResetCharsets(p)
-struct win *p;
+ResetCharsets(struct win *p)
 {
   p->w_gr = nwin_default.gr;
   p->w_c1 = nwin_default.c1;
@@ -261,9 +256,7 @@ struct win *p;
 }
 
 void
-SetCharsets(p, s)
-struct win *p;
-char *s;
+SetCharsets(struct win *p, char *s)
 {
   int i;
 
@@ -292,10 +285,7 @@ char *s;
  *
  */
 void
-WriteString(wp, buf, len)
-struct win *wp;
-register char *buf;
-register int len;
+WriteString(struct win *wp, register char *buf, register int len)
 {
   register int c;
 #ifdef FONT
@@ -902,10 +892,7 @@ register int len;
 }
 
 static void
-WLogString(p, buf, len)
-struct win *p;
-char *buf;
-int len;
+WLogString(struct win *p, char *buf, int len)
 {
   if (!p->w_log)
     return;
@@ -926,8 +913,7 @@ int len;
 }
 
 static int
-Special(c)
-register int c;
+Special(register int c)
 {
   switch (c)
     {
@@ -962,8 +948,7 @@ register int c;
 }
 
 static void
-DoESC(c, intermediate)
-int c, intermediate;
+DoESC(int c, int intermediate)
 {
   debug2("DoESC: %x - inter = %x\n", c, intermediate);
   switch (intermediate)
@@ -1104,8 +1089,7 @@ int c, intermediate;
 }
 
 static void
-DoCSI(c, intermediate)
-int c, intermediate;
+DoCSI(int c, int intermediate)
 {
   register int i, a1 = curr->w_args[0], a2 = curr->w_args[1];
 
@@ -1479,8 +1463,7 @@ int c, intermediate;
 
 
 static void
-StringStart(type)
-enum string_t type;
+StringStart(enum string_t type)
 {
   curr->w_StringType = type;
   curr->w_stringp = curr->w_string;
@@ -1488,8 +1471,7 @@ enum string_t type;
 }
 
 static void
-StringChar(c)
-int c;
+StringChar(int c)
 {
   if (curr->w_stringp >= curr->w_string + MAXSTR - 1)
     curr->w_state = LIT;
@@ -1655,8 +1637,7 @@ PrintStart()
 }
 
 static void
-PrintChar(c)
-int c;
+PrintChar(int c)
 {
   if (curr->w_stringp >= curr->w_string + MAXSTR - 1)
     PrintFlush();
@@ -1698,9 +1679,7 @@ PrintFlush()
 
 
 void
-WNewAutoFlow(win, on)
-struct win *win;
-int on;
+WNewAutoFlow(struct win *win, int on)
 {
   debug1("WNewAutoFlow: %d\n", on);
   if (win->w_flow & FLOW_AUTOFLAG)
@@ -1714,8 +1693,7 @@ int on;
 #ifdef FONT
 
 static void
-DesignateCharset(c, n)
-int c, n;
+DesignateCharset(int c, int n)
 {
   curr->w_ss = 0;
 # ifdef ENCODINGS
@@ -1739,8 +1717,7 @@ int c, n;
 }
 
 static void
-MapCharset(n)
-int n;
+MapCharset(int n)
 {
   curr->w_ss = 0;
   if (curr->w_Charset != n)
@@ -1753,8 +1730,7 @@ int n;
 }
 
 static void
-MapCharsetR(n)
-int n;
+MapCharsetR(int n)
 {
   curr->w_ss = 0;
   if (curr->w_CharsetR != n)
@@ -1768,8 +1744,7 @@ int n;
 #endif /* FONT */
 
 static void
-SaveCursor(cursor)
-struct cursor *cursor;
+SaveCursor(struct cursor *cursor)
 {
   cursor->on = 1;
   cursor->x = curr->w_x;
@@ -1784,8 +1759,7 @@ struct cursor *cursor;
 }
 
 static void
-RestoreCursor(cursor)
-struct cursor *cursor;
+RestoreCursor(struct cursor *cursor)
 {
   if (!cursor->on)
     return;
@@ -1830,8 +1804,7 @@ Return()
 }
 
 static void
-LineFeed(out_mode)
-int out_mode;
+LineFeed(int out_mode)
 {
   /* out_mode: 0=lf, 1=cr+lf */
   if (out_mode)
@@ -1864,8 +1837,7 @@ ReverseLineFeed()
 }
 
 static void
-InsertChar(n)
-int n;
+InsertChar(int n)
 {
   register int y = curr->w_y, x = curr->w_x;
 
@@ -1880,8 +1852,7 @@ int n;
 }
 
 static void
-DeleteChar(n)
-int n;
+DeleteChar(int n)
 {
   register int y = curr->w_y, x = curr->w_x;
 
@@ -1894,8 +1865,7 @@ int n;
 }
 
 static void
-DeleteLine(n)
-int n;
+DeleteLine(int n)
 {
   if (curr->w_y < curr->w_top || curr->w_y > curr->w_bot)
     return;
@@ -1907,8 +1877,7 @@ int n;
 }
 
 static void
-InsertLine(n)
-int n;
+InsertLine(int n)
 {
   if (curr->w_y < curr->w_top || curr->w_y > curr->w_bot)
     return;
@@ -1920,8 +1889,7 @@ int n;
 }
 
 static void
-ScrollRegion(n)
-int n;
+ScrollRegion(int n)
 {
   MScrollV(curr, n, curr->w_top, curr->w_bot, CURR_BCE);
   LScrollV(&curr->w_layer, n, curr->w_top, curr->w_bot, CURR_BCE);
@@ -1998,8 +1966,7 @@ ClearToEOS()
 }
 
 static void
-ClearLineRegion(from, to)
-int from, to;
+ClearLineRegion(int from, int to)
 {
   register int y = curr->w_y;
   LClearArea(&curr->w_layer, from, y, to, y, CURR_BCE, 1);
@@ -2008,8 +1975,7 @@ int from, to;
 }
 
 static void
-CursorRight(n)
-register int n;
+CursorRight(register int n)
 {
   register int x = curr->w_x;
 
@@ -2024,8 +1990,7 @@ register int n;
 }
 
 static void
-CursorUp(n)
-register int n;
+CursorUp(register int n)
 {
   if (curr->w_y < curr->w_top)		/* if above scrolling rgn, */
     {
@@ -2039,8 +2004,7 @@ register int n;
 }
 
 static void
-CursorDown(n)
-register int n;
+CursorDown(register int n)
 {
   if (curr->w_y > curr->w_bot)		/* if below scrolling rgn, */
     {
@@ -2054,8 +2018,7 @@ register int n;
 }
 
 static void
-CursorLeft(n)
-register int n;
+CursorLeft(register int n)
 {
   if ((curr->w_x -= n) < 0)
     curr->w_x = 0;
@@ -2063,8 +2026,7 @@ register int n;
 }
 
 static void
-ASetMode(on)
-int on;
+ASetMode(int on)
 {
   register int i;
 
@@ -2225,10 +2187,7 @@ FillWithEs()
  */
 
 void
-ChangeAKA(p, s, l)
-struct win *p;
-char *s;
-int l;
+ChangeAKA(struct win *p, char *s, int l)
 {
   int i, c;
 
@@ -2311,9 +2270,7 @@ RestorePosRendition()
 
 /* Send a terminal report as if it were typed. */ 
 static void
-Report(fmt, n1, n2)
-char *fmt;
-int n1, n2;
+Report(char *fmt, int n1, int n2)
 {
   register int len;
   char rbuf[40];	/* enough room for all replys */
@@ -2355,10 +2312,7 @@ int n1, n2;
  */
 
 static void
-MFixLine(p, y, mc)
-struct win *p;
-int y;
-struct mchar *mc;
+MFixLine(struct win *p, int y, struct mchar *mc)
 {
   struct mline *ml = &p->w_mlines[y];
   if (mc->attr && ml->attr == null)
@@ -2430,9 +2384,7 @@ struct mchar *mc;
 #endif
 
 static void
-MScrollH(p, n, y, xs, xe, bce)
-struct win *p;
-int n, y, xs, xe, bce;
+MScrollH(struct win *p, int n, int y, int xs, int xe, int bce)
 {
   struct mline *ml;
 
@@ -2475,9 +2427,7 @@ int n, y, xs, xe, bce;
 }
 
 static void
-MScrollV(p, n, ys, ye, bce)
-struct win *p;
-int n, ys, ye, bce;
+MScrollV(struct win *p, int n, int ys, int ye, int bce)
 {
   int i, cnt1, cnt2;
   struct mline tmp[256];
@@ -2589,9 +2539,7 @@ int n, ys, ye, bce;
 }
 
 static void
-Scroll(cp, cnt1, cnt2, tmp)
-char *cp, *tmp;
-int cnt1, cnt2;
+Scroll(char *cp, int cnt1, int cnt2, char *tmp)
 {
   if (!cnt1 || !cnt2)
     return;
@@ -2610,9 +2558,7 @@ int cnt1, cnt2;
 }
 
 static void
-MClearArea(p, xs, ys, xe, ye, bce)
-struct win *p;
-int xs, ys, xe, ye, bce;
+MClearArea(struct win *p, int xs, int ys, int xe, int ye, int bce)
 {
   int n, y;
   int xxe;
@@ -2647,10 +2593,7 @@ int xs, ys, xe, ye, bce;
 }
 
 static void
-MInsChar(p, c, x, y)
-struct win *p;
-struct mchar *c;
-int x, y;
+MInsChar(struct win *p, struct mchar *c, int x, int y)
 {
   int n;
   struct mline *ml;
@@ -2689,10 +2632,7 @@ int x, y;
 }
 
 static void
-MPutChar(p, c, x, y)
-struct win *p;
-struct mchar *c;
-int x, y;
+MPutChar(struct win *p, struct mchar *c, int x, int y)
 {
   struct mline *ml;
 
@@ -2721,11 +2661,7 @@ int x, y;
 
 
 static void
-MWrapChar(p, c, y, top, bot, ins)
-struct win *p;
-struct mchar *c;
-int y, top, bot;
-int ins;
+MWrapChar(struct win *p, struct mchar *c, int y, int top, int bot, int ins)
 {
   struct mline *ml;
   int bce;
@@ -2749,12 +2685,7 @@ int ins;
 }
 
 static void
-MPutStr(p, s, n, r, x, y)
-struct win *p;
-char *s;
-int n;
-struct mchar *r;
-int x, y;
+MPutStr(struct win *p, char *s, int n, struct mchar *r, int x, int y)
 {
   struct mline *ml;
   int i;
@@ -2789,9 +2720,7 @@ int x, y;
 
 #ifdef COLOR
 static void
-MBceLine(p, y, xs, xe, bce)
-struct win *p;
-int y, xs, xe, bce;
+MBceLine(struct win *p, int y, int xs, int xe, int bce)
 {
   struct mchar mc;
   struct mline *ml;
@@ -2820,9 +2749,7 @@ int y, xs, xe, bce;
 
 #ifdef COPY_PASTE
 static void
-WAddLineToHist(wp, ml)
-struct win *wp;
-struct mline *ml;
+WAddLineToHist(struct win *wp, struct mline *ml)
 {
   register unsigned char *q, *o;
   struct mline *hml;
@@ -2859,9 +2786,7 @@ struct mline *ml;
 #endif
 
 int
-MFindUsedLine(p, ye, ys)
-struct win *p;
-int ys, ye;
+MFindUsedLine(struct win *p, int ye, int ys)
 {
   int y;
   struct mline *ml = p->w_mlines + ye;
@@ -2897,9 +2822,7 @@ int ys, ye;
  * more than once.
  */
 void
-WBell(p, visual)
-struct win *p;
-int visual;
+WBell(struct win *p, int visual)
 {
   struct canvas *cv;
   for (display = displays; display; display = display->d_next)
@@ -2924,9 +2847,7 @@ int visual;
  * (screen uses \Eg as special vbell sequence)
  */
 static void
-WReverseVideo(p, on)
-struct win *p;
-int on;
+WReverseVideo(struct win *p, int on)
 {
   struct canvas *cv;
   for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext)
@@ -2946,10 +2867,7 @@ int on;
 }
 
 void
-WMsg(p, err, str)
-struct win *p;
-int err;
-char *str;
+WMsg(struct win *p, int err, char *str)
 {
   extern struct layer *flayer;
   struct layer *oldflayer = flayer;
@@ -2959,9 +2877,7 @@ char *str;
 }
 
 void
-WChangeSize(p, w, h)
-struct win *p;
-int w, h;
+WChangeSize(struct win *p, int w, int h)
 {
   int wok = 0;
   struct canvas *cv;
@@ -3007,10 +2923,7 @@ int w, h;
 }
 
 static int
-WindowChangedCheck(s, what, hp)
-char *s;
-int what;
-int *hp;
+WindowChangedCheck(char *s, int what, int *hp)
 {
   int h = 0;
   int l;
@@ -3041,9 +2954,7 @@ int *hp;
 }
 
 void
-WindowChanged(p, what)
-struct win *p;
-int what;
+WindowChanged(struct win *p, int what)
 {
   int inwstr, inhstr, inlstr;
   int inwstrh = 0, inhstrh = 0, inlstrh = 0;

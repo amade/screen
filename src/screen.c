@@ -263,10 +263,7 @@ static int InterruptPlease;
 static int GotSigChld;
 
 static int 
-lf_secreopen(name, wantfd, l)
-char *name;
-int wantfd;
-struct logfile *l;
+lf_secreopen(char *name, int wantfd, struct logfile *l)
 {
   int got_fd;
 
@@ -289,9 +286,7 @@ struct logfile *l;
 
 
 static struct passwd *
-getpwbyname(name, ppp)
-char *name;
-struct passwd *ppp;
+getpwbyname(char *name, struct passwd *ppp)
 {
   int n;
 #ifdef SHADOWPW
@@ -363,9 +358,7 @@ locale_name(void)
 }
 
 int
-main(ac, av)
-int ac;
-char **av;
+main(int ac, char **av)
 {
   register int n;
   char *ap;
@@ -1466,15 +1459,13 @@ char **av;
   return 0;
 }
 
-void
-WindowDied(p, wstat, wstat_valid)
-struct win *p;
 #ifdef BSDWAIT
-  union wait wstat;
+void
+WindowDied(struct win *p, union wait wstat, int wstat_valid)
 #else
-  int wstat;
+void
+WindowDied(struct win *p, int wstat, int wstat_valid)
 #endif
-int wstat_valid;
 {
   int killit = 0;
 
@@ -1797,8 +1788,7 @@ FinitHandler SIGDEFARG
 }
 
 void
-Finit(i)
-int i;
+Finit(int i)
 {
   signal(SIGCHLD, SIG_DFL);
   signal(SIGHUP, SIG_IGN);
@@ -1845,8 +1835,7 @@ int i;
 }
 
 void
-eexit(e)
-int e;
+eexit(int e)
 {
   debug("eexit\n");
   if (ServerSocket != -1)
@@ -1890,8 +1879,7 @@ Hangup()
  * Note: Take extra care here, we may be called by interrupt!
  */
 void
-Detach(mode)
-int mode;
+Detach(int mode)
 {
   int sign = 0, pid;
   struct canvas *cv;
@@ -2031,8 +2019,7 @@ int mode;
 }
 
 static int
-IsSymbol(e, s)
-char *e, *s;
+IsSymbol(char *e, char *s)
 {
   register int l;
 
@@ -2223,11 +2210,7 @@ static int winmsg_rendpos[MAX_WINMSG_REND];
 static int winmsg_numrend;
 
 static char *
-pad_expand(buf, p, numpad, padlen)
-char *buf;
-char *p;
-int numpad;
-int padlen;
+pad_expand(char *buf, char *p, int numpad, int padlen)
 {
   char *pn, *pn2;
   int i, r;
@@ -2276,8 +2259,7 @@ struct backtick {
 struct backtick *backticks;
 
 static void
-backtick_filter(bt)
-struct backtick *bt;
+backtick_filter(struct backtick *bt)
 {
   char *p, *q;
   int c;
@@ -2293,9 +2275,7 @@ struct backtick *bt;
 }
 
 static void
-backtick_fn(ev, data)
-struct event *ev;
-char *data;
+backtick_fn(struct event *ev, char *data)
 {
   struct backtick *bt;
   int i, j, k, l;
@@ -2343,11 +2323,7 @@ char *data;
 }
 
 void
-setbacktick(num, lifespan, tick, cmdv)
-int num;
-int lifespan;
-int tick;
-char **cmdv;
+setbacktick(int num, int lifespan, int tick, char **cmdv)
 {
   struct backtick **btp, *bt;
   char **v;
@@ -2416,10 +2392,7 @@ char **cmdv;
 }
 
 static char *
-runbacktick(bt, tickp, now)
-struct backtick *bt;
-int *tickp;
-time_t now;
+runbacktick(struct backtick *bt, int *tickp, time_t now)
 {
   int f, i, l, j;
   time_t now2;
@@ -2467,9 +2440,7 @@ time_t now;
 }
 
 int
-AddWinMsgRend(str, r)
-const char *str;
-int r;
+AddWinMsgRend(const char *str, int r)
 {
   if (winmsg_numrend >= MAX_WINMSG_REND || str < winmsg_buf ||
       str >= winmsg_buf + MAXSTR)
@@ -2483,13 +2454,7 @@ int r;
 }
 
 char *
-MakeWinMsgEv(str, win, esc, padlen, ev, rec)
-char *str;
-struct win *win;
-int esc;
-int padlen;
-struct event *ev;
-int rec;
+MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, int rec)
 {
   static int tick;
   char *s = str;
@@ -3025,18 +2990,13 @@ int rec;
 }
 
 char *
-MakeWinMsg(s, win, esc)
-char *s;
-struct win *win;
-int esc;
+MakeWinMsg(char *s, struct win *win, int esc)
 {
   return MakeWinMsgEv(s, win, esc, 0, (struct event *)0, 0);
 }
 
 void
-PutWinMsg(s, start, max)
-char *s;
-int start, max;
+PutWinMsg(char *s, int start, int max)
 {
   int i, p, l, r, n;
   struct mchar rend;
@@ -3110,8 +3070,7 @@ int start, max;
 
 #ifdef DEBUG
 static void
-fds1(i, j)
-int i, j;
+fds1(int i, int j)
 {
   while (i < j)
     {
@@ -3140,18 +3099,14 @@ fds()
 #endif
 
 static void
-serv_read_fn(ev, data)
-struct event *ev;
-char *data;
+serv_read_fn(struct event *ev, char *data)
 {
   debug("Knock - knock!\n");
   ReceiveMsg();
 }
 
 static void
-serv_select_fn(ev, data)
-struct event *ev;
-char *data;
+serv_select_fn(struct event *ev, char *data)
 {
   struct win *p;
 
@@ -3354,9 +3309,7 @@ char *data;
 }
 
 static void
-logflush_fn(ev, data)
-struct event *ev;
-char *data;
+logflush_fn(struct event *ev, char *data)
 {
   struct win *p;
   char *buf;
@@ -3396,8 +3349,7 @@ char *data;
  * returned. 
  */
 static char *
-ParseChar(p, cp)
-char *p, *cp;
+ParseChar(char *p, char *cp)
 {
   if (*p == 0)
     return 0;
@@ -3424,8 +3376,7 @@ char *p, *cp;
 }
 
 static int 
-ParseEscape(p)
-char *p;
+ParseEscape(char *p)
 {
   unsigned char buf[2];
 

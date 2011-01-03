@@ -113,10 +113,7 @@ extern struct comm comms[];
  */
 
 int
-FindSocket(fdp, nfoundp, notherp, match)
-int *fdp;
-int *nfoundp, *notherp;
-char *match;
+FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 {
   DIR *dirp;
   struct dirent *dp;
@@ -491,8 +488,7 @@ MakeServerSocket()
 
 
 int
-MakeClientSocket(err)
-int err;
+MakeClientSocket(int err)
 {
   register int s = 0;
 
@@ -585,8 +581,7 @@ MakeServerSocket()
 }
 
 int
-MakeClientSocket(err)
-int err;
+MakeClientSocket(int err)
 {
   register int s;
   struct sockaddr_un a;
@@ -633,9 +628,7 @@ int err;
 */
 
 void
-SendCreateMsg(sty, nwin)
-char *sty;
-struct NewWindow *nwin;
+SendCreateMsg(char *sty, struct NewWindow *nwin)
 {
   int s;
   struct msg m;
@@ -693,8 +686,7 @@ struct NewWindow *nwin;
 }
 
 int
-SendErrorMsg(tty, buf)
-char *tty, *buf;
+SendErrorMsg(char *tty, char *buf)
 {
   int s;
   struct msg m;
@@ -715,8 +707,7 @@ char *tty, *buf;
 }
 
 static void
-ExecCreate(mp)
-struct msg *mp;
+ExecCreate(struct msg *mp)
 {
   struct NewWindow nwin;
   char *args[MAXARGS];
@@ -768,8 +759,7 @@ struct msg *mp;
 }
 
 static int
-CheckPid(pid)
-int pid;
+CheckPid(int pid)
 {
   debug1("Checking pid %d\n", pid);
   if (pid < 2)
@@ -796,8 +786,7 @@ int pid;
  * Earlier versions seemed to work -- wonder what they did.
  */
 static int
-ttycmp(s1, s2)
-char *s1, *s2;
+ttycmp(char *s1, char *s2)
 {
   if (strlen(s1) > 5) s1 += strlen(s1) - 5;
   if (strlen(s2) > 5) s2 += strlen(s2) - 5;
@@ -809,10 +798,7 @@ char *s1, *s2;
 #endif
 
 static int
-CreateTempDisplay(m, recvfd, wi)
-struct msg *m;
-int recvfd;
-struct win *wi;
+CreateTempDisplay(struct msg *m, int recvfd, struct win *wi)
 {
   int pid;
   int attach;
@@ -1201,8 +1187,7 @@ ReceiveMsg()
 }
 
 void
-ReceiveRaw(s)
-int s;
+ReceiveRaw(int s)
 {
   char rd[256];
   int len = 0;
@@ -1232,9 +1217,7 @@ int s;
  *  sequent_ptx socket emulation must have mode 000 on the socket!
  */
 static int
-sconnect(s, sapp, len)
-int s, len;
-struct sockaddr *sapp;
+sconnect(int s, struct sockaddr *sapp, int len)
 {
   register struct sockaddr_un *sap;
   struct stat st;
@@ -1302,8 +1285,7 @@ RecoverSocket()
 
 
 static void
-FinishAttach(m)
-struct msg *m;
+FinishAttach(struct msg *m)
 {
   char *p;
   int pid;
@@ -1470,8 +1452,7 @@ struct msg *m;
 }
 
 static void
-FinishDetach(m)
-struct msg *m;
+FinishDetach(struct msg *m)
 {
   struct display *next, **d, *det;
   int pid;
@@ -1533,8 +1514,7 @@ struct pwdata {
 };
 
 static void
-AskPassword(m)
-struct msg *m;
+AskPassword(struct msg *m)
 {
   struct pwdata *pwdata;
   ASSERT(display);
@@ -1549,9 +1529,7 @@ struct msg *m;
 }
 
 static void
-PasswordProcessInput(ibuf, ilen)
-char *ibuf;
-int ilen;
+PasswordProcessInput(char *ibuf, int ilen)
 {
   struct pwdata *pwdata;
   int c, l;
@@ -1624,9 +1602,7 @@ int ilen;
 
 /* 'end' is exclusive, i.e. you should *not* write in *end */
 static char *
-strncpy_escape_quote(dst, src, end)
-char *dst;
-const char *src, *end;
+strncpy_escape_quote(char *dst, const char *src, const char *end)
 {
   while (*src && dst < end)
     {
@@ -1647,8 +1623,7 @@ const char *src, *end;
 }
 
 static void
-DoCommandMsg(mp)
-struct msg *mp;
+DoCommandMsg(struct msg *mp)
 {
   char *args[MAXARGS];
   int argl[MAXARGS];
@@ -1768,10 +1743,7 @@ struct msg *mp;
 #ifndef NAMEDPIPE
 
 int
-SendAttachMsg(s, m, fd)
-int s;
-struct msg *m;
-int fd;
+SendAttachMsg(int s, struct msg *m, int fd)
 {
   int r;
   struct msghdr msg;
