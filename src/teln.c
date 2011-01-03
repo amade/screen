@@ -418,10 +418,6 @@ TelDocmd(struct win *p, int cmd, int opt)
       if (!p->w_telropts[opt] || opt == TO_TM)
 	return;
       repl = TC_DONT;
-#if 0
-      if (opt == TO_ECHO || opt == TO_SGA)
-	setcon();
-#endif
       p->w_telropts[opt] = 0;
       break;
     case TC_DO:

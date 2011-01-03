@@ -212,9 +212,6 @@ struct win
   int	 w_gr;			/* enable GR flag */
   int	 w_c1;			/* enable C1 flag */
   int	 w_bce;			/* enable backcol erase */
-#if 0
-  int    w_encoding;		/* for input and paste */
-#endif
   int    w_decodestate;		/* state of our input decoder */
 #ifdef DW_CHARS
   int    w_mbcs;		/* saved char for multibytes charset */

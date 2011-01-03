@@ -118,15 +118,6 @@ CheckScreenSize(int change_flag)
   
   debug2("CheckScreenSize: screen is (%d,%d)\n", wi, he);
 
-#if 0 /* XXX: Fixme */
-  if (change_flag == 2)
-    {
-      debug("Trying to adapt all windows (-A)\n");
-      for (p = windows; p; p = p->w_next)
-	if (p->w_display == 0 || p->w_display == display)
-          ChangeWindowSize(p, wi, he, p->w_histheight);
-    }
-#endif
   if (D_width == wi && D_height == he)
     {
       debug("CheckScreenSize: No change -> return.\n");
@@ -137,11 +128,6 @@ CheckScreenSize(int change_flag)
 #endif
   ResetIdle();
   ChangeScreenSize(wi, he, change_flag);
-/* XXX Redisplay logic */
-#if 0
-  if (change_flag == 1)
-    Redisplay(D_fore ? D_fore->w_norefresh : 0);
-#endif
 }
 
 void
@@ -198,20 +184,8 @@ ChangeScreenSize(int wi, int he, int change_fore)
         {
           debug1("Trying to change window %d.\n", p->w_number);
           wwi = wi;
-#if 0
-          if (D_CZ0 && p->w_width != wi && (wi == Z0width || wi == Z1width))
-	    {
-	      if (p->w_width > (Z0width + Z1width) / 2)
-		wwi = Z0width;
-	      else
-		wwi = Z1width;
-	    }
-#endif
 	  if (p->w_savelayer && p->w_savelayer->l_cvlist == 0)
 	    ResizeLayer(p->w_savelayer, wwi, he, 0);
-#if 0
-          ChangeWindowSize(p, wwi, he, p->w_histheight);
-#endif
         }
     }
 }
@@ -653,16 +627,6 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
     }
 
   CheckMaxSize(wi);
-
-  /* XXX */
-#if 0
-  /* just in case ... */
-  if (wi && (p->w_width != wi || p->w_height != he) && p->w_lay != &p->w_winlay)
-    {
-      debug("ChangeWindowSize: No resize because of overlay?\n");
-      return -1;
-    }
-#endif
 
   debug("ChangeWindowSize");
   debug3(" from (%d,%d)+%d", p->w_width, p->w_height, p->w_histheight);

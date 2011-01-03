@@ -300,25 +300,6 @@ UserAdd(char *name, char *pass, struct acluser **up)
   return 0;
 }
 
-#if 0
-/* change user's password */
-int 
-UserSetPass(name, pass, up)
-char *name, *pass;
-struct acluser **up;
-{
-  if (!up)
-    up = FindUserPtr(name);
-  if (!*up)
-    return UserAdd(name, pass, up);
-  if (!strcmp(name, "nobody"))		/* he remains without password */
-    return -1;
-  strncpy((*up)->u_password, pass ? pass : "", 20);
-  (*up)->u_password[20] = '\0';
-  return 0;
-}
-#endif
-
 /* 
  * Remove a user from the list. 
  * Destroy all his permissions and completely detach him from the session.
