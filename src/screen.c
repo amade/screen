@@ -2062,8 +2062,6 @@ MakeNewEnv()
   *np = 0;
 }
 
-#define DEFINE_VARARGS_FN(fnname)	void fnname (int err, const char *fmt, VA_DOTS)
-
 #define	PROCESS_MESSAGE(B) do { \
     char *p = B;	\
     VA_LIST(ap)	\
@@ -2081,7 +2079,8 @@ MakeNewEnv()
       }	\
   } while (0)
 
-DEFINE_VARARGS_FN(Msg)
+void Msg(int err, const char *fmt, VA_DOTS)
+
 {
   char buf[MAXPATHLEN*2];
   PROCESS_MESSAGE(buf);
@@ -2116,7 +2115,8 @@ DEFINE_VARARGS_FN(Msg)
 /*
  * Call FinitTerm for all displays, write a message to each and call eexit();
  */
-DEFINE_VARARGS_FN(Panic)
+void Panic(int err, const char *fmt, VA_DOTS)
+
 {
   char buf[MAXPATHLEN*2];
   PROCESS_MESSAGE(buf);
@@ -2173,7 +2173,7 @@ DEFINE_VARARGS_FN(Panic)
   eexit(1);
 }
 
-DEFINE_VARARGS_FN(QueryMsg)
+void QueryMsg(int err, const char *fmt, VA_DOTS)
 {
   char buf[MAXPATHLEN*2];
 
@@ -2184,11 +2184,10 @@ DEFINE_VARARGS_FN(QueryMsg)
   write(queryflag, buf, strlen(buf));
 }
 
-DEFINE_VARARGS_FN(Dummy)
+void Dummy (int err, const char *fmt, VA_DOTS)
 {}
 
 #undef PROCESS_MESSAGE
-#undef DEFINE_VARARGS_FN
 
 /*
  * '^' is allowed as an escape mechanism for control characters. jw.
