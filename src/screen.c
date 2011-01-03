@@ -2516,11 +2516,6 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	    {
 	      switch (*s)
 		{
-#if 0
-		case '~':
-		  *p = BELL;
-		  break;
-#endif
 		case '^':
 		  ctrl = 1;
 		  *p-- = '^';

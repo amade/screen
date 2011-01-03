@@ -2561,9 +2561,6 @@ DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 #endif
   for (x = from; x <= to; x++)
     {
-#if 0	/* no longer needed */
-      if (x || D_x != D_width || D_y != y - 1)
-#endif
         {
 	  if (ml != NULL && (x < to || x != D_width - 1 || ml->image[x + 1]))
 	    if (cmp_mline(oml, ml, x))
@@ -2587,11 +2584,6 @@ DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
         PUTCHAR(ml->image[++x]);
 #endif
     }
-#if 0	/* not needed any longer */
-  /* compare != 0 because ' ' can happen when clipping occures */
-  if (to == D_width - 1 && y < D_height - 1 && D_x == D_width && ml->image[to + 1])
-    GotoPos(0, y + 1);
-#endif
   if (last2flag)
     {
       GotoPos(x, y);

@@ -6357,15 +6357,6 @@ Activate(int norefresh)
 	fore->w_monitor = MON_ON;
       fore->w_bell = BELL_ON;
       WindowChanged(fore, 'f');
-
-#if 0
-      if (ResizeDisplay(fore->w_width, fore->w_height))
-	{
-	  debug2("Cannot resize from (%d,%d)", D_width, D_height);
-	  debug2(" to (%d,%d) -> resize window\n", fore->w_width, fore->w_height);
-	  DoResize(D_width, D_height);
-	}
-#endif
     }
   Redisplay(norefresh + all_norefresh);
 }
@@ -6606,12 +6597,6 @@ AddWindowFlags(char *buf, int len, struct win *p)
       *s = 0;
       return s;
     }
-#if 0
-  if (display && p == D_fore)
-    *s++ = '*';
-  if (display && p == D_other)
-    *s++ = '-';
-#endif
   if (p->w_layer.l_cvlist && p->w_layer.l_cvlist->c_lnext)
     *s++ = '&';
   if (p->w_monitor == MON_DONE
@@ -7675,68 +7660,6 @@ FindNiceWindow(struct win *win, char *presel)
   return win;
 }
 
-#if 0
-
-/* sorted list of all commands */
-static struct comm **commtab;
-static int ncommtab;
-
-void
-AddComms(cos, hand)
-struct comm *cos;
-void (*hand) (struct comm *, char **, int);
-{
-  int n, i, j, r;
-  for (n = 0; cos[n].name; n++)
-    ;
-  if (n == 0)
-    return;
-  if (commtab)
-    commtab = (struct commt *)realloc(commtab, sizeof(*commtab) * (ncommtab + n));
-  else
-    commtab = (struct commt *)malloc(sizeof(*commtab) * (ncommtab + n));
-  if (!commtab)
-    Panic(0, strnomem);
-  for (i = 0; i < n; i++)
-    {
-      for (j = 0; j < ncommtab; j++)
-	{
-	  r = strcmp(cos[i].name, commtab[j]->name);
-	  if (r == 0)
-	    Panic(0, "Duplicate command: %s\n", cos[i].name);
-	  if (r < 0)
-	    break;
-	}
-      for (r = ncommtab; r > j; r--)
-	commtab[r] = commtab[r - 1];
-      commtab[j] = cos + i;
-      cos[i].handler = hand;
-      bzero(cos[i].userbits, sizeof(cos[i].userbits));
-      ncommtab++;
-    }
-}
-
-struct comm *
-FindComm(str)
-char *str;
-{
-  int x, m, l = 0, r = ncommtab - 1;
-  while (l <= r)
-    {
-      m = (l + r) / 2;
-      x = strcmp(str, commtab[m]->name);
-      if (x > 0)
-	l = m + 1;
-      else if (x < 0)
-	r = m - 1;
-      else
-	return commtab[m];
-    }
-  return 0;
-}
-
-#endif
-
 static int
 CalcSlicePercent(struct canvas *cv, int percent)
 {
@@ -7969,67 +7892,6 @@ ResizeRegions(char *arg, int flags)
   RethinkDisplayViewports();
   ResizeLayersToCanvases();
   return;
-
-#if 0
-
-  if (siz + diff < 1)
-    diff = 1 - siz;
-  if (siz + diff > dsize - (nreg - 1) * 2 - 1)
-    diff = dsize - (nreg - 1) * 2 - 1 - siz;
-  if (diff == 0 || siz + diff < 1)
-    return;
-
-  if (diff < 0)
-    {
-      if (D_forecv->c_next)
-	{
-	  D_forecv->c_ye += diff;
-	  D_forecv->c_next->c_ys += diff;
-	  D_forecv->c_next->c_yoff += diff;
-	}
-      else
-	{
-	  for (cv = D_cvlist; cv; cv = cv->c_next)
-	    if (cv->c_next == D_forecv)
-	      break;
-	  ASSERT(cv);
-	  cv->c_ye -= diff;
-	  D_forecv->c_ys -= diff;
-	  D_forecv->c_yoff -= diff;
-	}
-    }
-  else
-    {
-      int s, i = 0, found = 0, di = diff, d2;
-      s = dsize - (nreg - 1) * 2 - 1 - siz;
-      for (cv = D_cvlist; cv; i = cv->c_ye + 2, cv = cv->c_next)
-	{
-	  if (cv == D_forecv)
-	    {
-	      cv->c_ye = i + (cv->c_ye - cv->c_ys) + diff;
-	      cv->c_yoff -= cv->c_ys - i;
-	      cv->c_ys = i;
-	      found = 1;
-	      continue;
-	    }
-	  s -= cv->c_ye - cv->c_ys;
-	  if (!found)
-	    {
-	      if (s >= di)
-		continue;
-	      d2 = di - s;
-	    }
-	  else
-	    d2 = di > cv->c_ye - cv->c_ys ? cv->c_ye - cv->c_ys : di;
-	  di -= d2;
-	  cv->c_ye = i + (cv->c_ye - cv->c_ys) - d2;
-	  cv->c_yoff -= cv->c_ys - i;
-	  cv->c_ys = i;
-        }
-    }
-  RethinkDisplayViewports();
-  ResizeLayersToCanvases();
-#endif
 }
 
 static void

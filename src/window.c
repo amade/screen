@@ -703,16 +703,6 @@ MakeWindow(struct NewWindow *newwin)
   p->w_norefresh = 0;
   strncpy(p->w_tty, TtyName, MAXSTR - 1);
 
-#if 0
-  /* XXX Fixme display resize */
-  if (ChangeWindowSize(p, display ? D_defwidth : 80,
-		       display ? D_defheight : 24, 
-		       nwin.histheight))
-    {
-      FreeWindow(p);
-      return -1;
-    }
-#else
   if (ChangeWindowSize(p, display ? D_forecv->c_xe - D_forecv->c_xs + 1: 80,
 		       display ? D_forecv->c_ye - D_forecv->c_ys + 1 : 24, 
 		       nwin.histheight))
@@ -720,7 +710,6 @@ MakeWindow(struct NewWindow *newwin)
       FreeWindow(p);
       return -1;
     }
-#endif
 
   p->w_encoding = nwin.encoding;
   ResetWindow(p);	/* sets w_wrap, w_c1, w_gr, w_bce */

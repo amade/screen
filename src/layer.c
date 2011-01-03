@@ -218,11 +218,7 @@ LScrollV(struct layer *l, int n, int ys, int ye, int bce)
 	display = cv->c_display;
 	if (D_blocked)
 	  continue;
-#if 0
-	ScrollV(xs2, ys2, xe2, ye2, n, bce);
-#else
 	ScrollV(vp->v_xs, ys2, vp->v_xe, ye2, n, bce);
-#endif
 	debug2("LScrollV: %d %d", ys, ye);
 	debug2(" -> %d %d\n", ys2, ye2);
 	if (ye2 - ys2 == ye - ys)
@@ -543,22 +539,6 @@ LClearArea(struct layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
 	    ye2 = vp->v_ye;
 	  if (ys2 > ye2)
 	    continue;
-#if 0
-	  xcs = vp->v_xoff;
-	  xce = l->l_width - 1 + vp->v_xoff;
-	  if (xcs < vp->v_xs)
-	    xcs = vp->v_xs;
-	  if (xce > vp->v_xe)
-	    xce = vp->v_xe;
-	  if (xcs > xce)
-	    continue;
-	  if (ys2 != ys + vp->v_yoff)
-	    xs2 = xcs;
-	  if (ye2 != ye + vp->v_yoff)
-	    xe2 = xce;
-	  display = cv->c_display;
-	  ClearArea(xs2, ys2, xcs, xce, xe2, ye2, bce, uself);
-#else
 	  if (xs == 0 || ys2 != ys + vp->v_yoff)
 	    xs2 = vp->v_xs;
 	  if (xe == l->l_width - 1 || ye2 != ye + vp->v_yoff)
@@ -575,7 +555,6 @@ LClearArea(struct layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
 		  PUTCHARLP('|');
 		}
 	    }
-#endif
 	}
     }
   );
