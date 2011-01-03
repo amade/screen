@@ -359,14 +359,14 @@ locale_name(void)
 }
 
 int
-main(int ac, char **av)
+main(int argc, char **argv)
 {
   register int n;
   char *ap;
   char *av0;
   char socknamebuf[2 * MAXSTR];
   int mflag = 0;
-  char *myname = (ac == 0) ? "screen" : av[0];
+  char *myname = (argc == 0) ? "screen" : argv[0];
   char *SockDir;
   struct stat st;
 #ifdef _MODE_T			/* (jw) */
@@ -474,7 +474,7 @@ main(int ac, char **av)
 #ifdef POW_DETACH
   PowDetachString = 0;
 #endif
-  default_startup = (ac > 1) ? 0 : 1;
+  default_startup = (argc > 1) ? 0 : 1;
   adaptflag = 0;
   VBellWait = VBELLWAIT * 1000;
   MsgWait = MSGWAIT * 1000;
@@ -507,7 +507,7 @@ main(int ac, char **av)
 
   logreopen_register(lf_secreopen);
 
-  av0 = *av;
+  av0 = *argv;
   /* if this is a login screen, assume -RR */
   if (*av0 == '-')
     {
@@ -519,15 +519,15 @@ main(int ac, char **av)
 #endif
       ShellProg = SaveStr(DefaultShell); /* to prevent nasty circles */
     }
-  while (ac > 0)
+  while (argc > 0)
     {
-      ap = *++av;
-      if (--ac > 0 && *ap == '-')
+      ap = *++argv;
+      if (--argc > 0 && *ap == '-')
 	{
 	  if (ap[1] == '-' && ap[2] == 0)
 	    {
-	      av++;
-	      ac--;
+	      argv++;
+	      argc--;
 	      break;
 	    }
 	  if (ap[1] == '-' && !strcmp(ap, "--version"))
@@ -557,9 +557,9 @@ main(int ac, char **av)
 		    preselect = ap;
 		  else
 		    {
-		      if (!--ac)
+		      if (!--argc)
 			exit_with_usage(myname, "Specify a window to preselect with -p", NULL);
-		      preselect = *++av;
+		      preselect = *++argv;
 		    }
 		  ap = NULL;
 		  break;
@@ -573,18 +573,18 @@ main(int ac, char **av)
 		    RcFileName = ap;
 		  else
 		    {
-		      if (--ac == 0)
+		      if (--argc == 0)
 			exit_with_usage(myname, "Specify an alternate rc-filename with -c", NULL);
-		      RcFileName = *++av;
+		      RcFileName = *++argv;
 		    }
 		  ap = NULL;
 		  break;
 		case 'e':
 		  if (!*++ap)
 		    {
-		      if (--ac == 0)
+		      if (--argc == 0)
 			exit_with_usage(myname, "Specify command characters with -e", NULL);
-		      ap = *++av;
+		      ap = *++argv;
 		    }
 		  if (ParseEscape(ap))
 		    Panic(0, "Two characters are required with -e option, not '%s'.", ap);
@@ -613,19 +613,19 @@ main(int ac, char **av)
 		    }
 		  break;
 		case 'h':
-		  if (--ac == 0)
+		  if (--argc == 0)
 		    exit_with_usage(myname, NULL, NULL);
-		  nwin_options.histheight = atoi(*++av);
+		  nwin_options.histheight = atoi(*++argv);
 		  if (nwin_options.histheight < 0)
-		    exit_with_usage(myname, "-h: %s: negative scrollback size?", *av);
+		    exit_with_usage(myname, "-h: %s: negative scrollback size?", *argv);
 		  break;
 		case 'i':
 		  iflag = 1;
 		  break;
 		case 't': /* title, the former AkA == -k */
-		  if (--ac == 0)
+		  if (--argc == 0)
 		    exit_with_usage(myname, "Specify a new window-name with -t", NULL);
-		  nwin_options.aka = *++av;
+		  nwin_options.aka = *++argv;
 		  break;
 		case 'l':
 		  ap++;
@@ -648,10 +648,10 @@ main(int ac, char **av)
 		    case 's':	/* -ls */
 		    case 'i':	/* -list */
 		      lsflag = 1;
-		      if (ac > 1 && !SockMatch)
+		      if (argc > 1 && !SockMatch)
 			{
-			  SockMatch = *++av;
-			  ac--;
+			  SockMatch = *++argv;
+			  argc--;
 			}
 		      ap = NULL;
 		      break;
@@ -664,10 +664,10 @@ main(int ac, char **av)
 		    exit_with_usage(myname, "Unknown option %s", --ap);
 		  lsflag = 1;
 		  wipeflag = 1;
-		  if (ac > 1 && !SockMatch)
+		  if (argc > 1 && !SockMatch)
 		    {
-		      SockMatch = *++av;
-		      ac--;
+		      SockMatch = *++argv;
+		      argc--;
 		    }
 		  break;
 		case 'L':
@@ -680,10 +680,10 @@ main(int ac, char **av)
 		  force_vt = 0;
 		  break;
 		case 'T':
-		  if (--ac == 0)
+		  if (--argc == 0)
 		    exit_with_usage(myname, "Specify terminal-type with -T", NULL);
-		  if (strlen(*++av) < 20)
-		    strcpy(screenterm, *av);
+		  if (strlen(*++argv) < 20)
+		    strcpy(screenterm, *argv);
 		  else
 		    Panic(0, "-T: terminal name too long. (max. 20 char)");
 		  nwin_options.term = screenterm;
@@ -700,10 +700,10 @@ main(int ac, char **av)
 #ifdef MULTI
 		case 'x':
 #endif
-		  if (ac > 1 && *av[1] != '-' && !SockMatch)
+		  if (argc > 1 && *argv[1] != '-' && !SockMatch)
 		    {
-		      SockMatch = *++av;
-		      ac--;
+		      SockMatch = *++argv;
+		      argc--;
 		      debug2("rflag=%d, SockMatch=%s\n", dflag, SockMatch);
 		    }
 #ifdef MULTI
@@ -721,31 +721,31 @@ main(int ac, char **av)
 		case 'D':
 		  if (!dflag)
 		    dflag = 2;
-		  if (ac == 2)
+		  if (argc == 2)
 		    {
-		      if (*av[1] != '-' && !SockMatch)
+		      if (*argv[1] != '-' && !SockMatch)
 			{
-			  SockMatch = *++av;
-			  ac--;
+			  SockMatch = *++argv;
+			  argc--;
 			  debug2("dflag=%d, SockMatch=%s\n", dflag, SockMatch);
 			}
 		    }
 		  break;
 #endif
 		case 's':
-		  if (--ac == 0)
+		  if (--argc == 0)
 		    exit_with_usage(myname, "Specify shell with -s", NULL);
 		  if (ShellProg)
 		    free(ShellProg);
-		  ShellProg = SaveStr(*++av);
+		  ShellProg = SaveStr(*++argv);
 		  debug1("ShellProg: '%s'\n", ShellProg);
 		  break;
 		case 'S':
 		  if (!SockMatch)
 		    {
-		      if (--ac == 0)
+		      if (--argc == 0)
 			exit_with_usage(myname, "Specify session-name with -S", NULL);
-		      SockMatch = *++av;
+		      SockMatch = *++argv;
 		    }
 		  if (!*SockMatch)
 		    exit_with_usage(myname, "Empty session-name?", NULL);
@@ -851,8 +851,8 @@ main(int ac, char **av)
 #ifdef ENCODINGS
   nwin.encoding = nwin_undef.encoding;	/* let screenrc overwrite it */
 #endif
-  if (ac)
-    nwin.args = av;
+  if (argc)
+    nwin.args = argv;
 
   /* make the write() calls return -1 on all errors */
 #ifdef SIGXFSZ
@@ -1195,10 +1195,10 @@ main(int ac, char **av)
     {
       /* attach_tty is not mandatory */
       SET_TTYNAME(0);
-      if (!*av)
+      if (!*argv)
 	Panic(0, "Please specify a command.");
       SET_GUID();
-      SendCmdMessage(sty, SockMatch, av, queryflag >= 0);
+      SendCmdMessage(sty, SockMatch, argv, queryflag >= 0);
       exit(0);
     }
   else if (rflag || xflag)
@@ -1228,7 +1228,7 @@ main(int ac, char **av)
       /* attach_tty is not mandatory */
       SET_TTYNAME(0);
       SET_GUID();
-      nwin_options.args = av;
+      nwin_options.args = argv;
       SendCreateMsg(sty, &nwin);
       exit(0);
       /* NOTREACHED */
@@ -1449,7 +1449,7 @@ main(int ac, char **av)
 	  /* NOTREACHED */
 	}
     }
-  else if (ac) /* Screen was invoked with a command */
+  else if (argc) /* Screen was invoked with a command */
     {
       MakeWindow(&nwin);
     }
