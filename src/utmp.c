@@ -401,7 +401,7 @@ RestoreLoginSlot()
  */ 
 
 int
-SetUtmp(struct win *wi)
+SetUtmp(struct win *win)
 {
   register slot_t slot;
   struct utmp u;
@@ -413,23 +413,23 @@ SetUtmp(struct win *wi)
   char *host = 0;
 #endif /* UTHOST */
 
-  wi->w_slot = (slot_t)0;
-  if (!utmpok || wi->w_type != W_TYPE_PTY)
+  win->w_slot = (slot_t)0;
+  if (!utmpok || win->w_type != W_TYPE_PTY)
     return -1;
-  if ((slot = TtyNameSlot(wi->w_tty)) == (slot_t)0)
+  if ((slot = TtyNameSlot(win->w_tty)) == (slot_t)0)
     {
-      debug1("SetUtmp failed (tty %s).\n",wi->w_tty);
+      debug1("SetUtmp failed (tty %s).\n",win->w_tty);
       return -1;
     }
-  debug2("SetUtmp %d will get slot %d...\n", wi->w_number, (int)slot);
+  debug2("SetUtmp %d will get slot %d...\n", win->w_number, (int)slot);
 
   bzero((char *)&u, sizeof(u));
-  if ((saved_ut = bcmp((char *) &wi->w_savut, (char *)&u, sizeof(u))))
+  if ((saved_ut = bcmp((char *) &win->w_savut, (char *)&u, sizeof(u))))
     /* restore original, of which we will adopt all fields but ut_host */
-    bcopy((char *)&wi->w_savut, (char *) &u, sizeof(u));
+    bcopy((char *)&win->w_savut, (char *) &u, sizeof(u));
 
   if (!saved_ut)
-    makeuser(&u, stripdev(wi->w_tty), LoginName, wi->w_pid);
+    makeuser(&u, stripdev(win->w_tty), LoginName, win->w_pid);
 
 #ifdef UTHOST
   host[sizeof(host) - 15] = '\0';
@@ -468,7 +468,7 @@ SetUtmp(struct win *wi)
   else
     strncpy(host, "local", sizeof(host) - 15);
 
-  sprintf(host + strlen(host), ":S.%d", wi->w_number);
+  sprintf(host + strlen(host), ":S.%d", win->w_number);
   debug1("rlogin hostname: '%s'\n", host);
 
 # if !defined(_SEQUENT_) && !defined(sequent)
@@ -476,15 +476,15 @@ SetUtmp(struct win *wi)
 # endif
 #endif /* UTHOST */
 
-  if (pututslot(slot, &u, host, wi) == 0)
+  if (pututslot(slot, &u, host, win) == 0)
     {
       Msg(errno,"Could not write %s", UtmpName);
       UT_CLOSE;
       return -1;
     }
   debug("SetUtmp successful\n");
-  wi->w_slot = slot;
-  bcopy((char *)&u, (char *)&wi->w_savut, sizeof(u));
+  win->w_slot = slot;
+  bcopy((char *)&u, (char *)&win->w_savut, sizeof(u));
   UT_CLOSE;
   return 0;
 }
@@ -495,23 +495,23 @@ SetUtmp(struct win *wi)
  */
 
 int
-RemoveUtmp(struct win *wi)
+RemoveUtmp(struct win *win)
 {
   struct utmp u, *uu;
   slot_t slot;
 
-  slot = wi->w_slot;
+  slot = win->w_slot;
   debug1("RemoveUtmp slot=%#x\n", slot);
   if (!utmpok)
     return -1;
   if (slot == (slot_t)0 || slot == (slot_t)-1)
     {
-      wi->w_slot = (slot_t)-1;
+      win->w_slot = (slot_t)-1;
       return 0;
     }
   bzero((char *) &u, sizeof(u));
 #ifdef sgi
-  bcopy((char *)&wi->w_savut, (char *)&u, sizeof(u));
+  bcopy((char *)&win->w_savut, (char *)&u, sizeof(u));
   uu  = &u;
 #else
   if ((uu = getutslot(slot)) == 0)
@@ -519,18 +519,18 @@ RemoveUtmp(struct win *wi)
       Msg(0, "Utmp slot not found -> not removed");
       return -1;
     }
-  bcopy((char *)uu, (char *)&wi->w_savut, sizeof(wi->w_savut));
+  bcopy((char *)uu, (char *)&win->w_savut, sizeof(win->w_savut));
 #endif
   u = *uu;
   makedead(&u);
-  if (pututslot(slot, &u, (char *)0, wi) == 0)
+  if (pututslot(slot, &u, (char *)0, win) == 0)
     {
       Msg(errno,"Could not write %s", UtmpName);
       UT_CLOSE;
       return -1;
     }
   debug("RemoveUtmp successfull\n");
-  wi->w_slot = (slot_t)-1;
+  win->w_slot = (slot_t)-1;
   UT_CLOSE;
   return 0;
 }
@@ -557,7 +557,7 @@ getutslot(slot_t slot)
 }
 
 static int
-pututslot(slot_t slot, struct utmp *u, char *host, struct win *wi)
+pututslot(slot_t slot, struct utmp *u, char *host, struct win *win)
 {
 #ifdef _SEQUENT_
   if (SLOT_USED(u) && host && *host)
@@ -566,13 +566,13 @@ pututslot(slot_t slot, struct utmp *u, char *host, struct win *wi)
     return ut_delete_user(slot, u.ut_pid, 0, 0) != 0;
 #endif
 #ifdef HAVE_UTEMPTER
-  if (eff_uid && wi && wi->w_ptyfd != -1)
+  if (eff_uid && win && win->w_ptyfd != -1)
     {
       /* sigh, linux hackers made the helper functions void */
       if (SLOT_USED(u))
-	addToUtmp(wi->w_tty, host, wi->w_ptyfd);
+	addToUtmp(win->w_tty, host, win->w_ptyfd);
       else
-	removeLineFromUtmp(wi->w_tty, wi->w_ptyfd);
+	removeLineFromUtmp(win->w_tty, win->w_ptyfd);
       return 1;	/* pray for success */
     }
 #endif
@@ -684,7 +684,7 @@ getutslot(slot_t slot)
 }
 
 static int
-pututslot(slot_t slot, struct utmp *u, char *host, struct win *wi)
+pututslot(slot_t slot, struct utmp *u, char *host, struct win *win)
 {
 #ifdef sequent
   if (SLOT_USED(u))

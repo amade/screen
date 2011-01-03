@@ -6309,20 +6309,20 @@ SwitchWindow(int n)
  * Puts window wi in canvas display->d_forecv.
  */
 void
-SetForeWindow(struct win *wi)
+SetForeWindow(struct win *win)
 {
   struct win *p;
   if (display == 0)
     {
-      fore = wi;
+      fore = win;
       return;
     }
   p = Layer2Window(D_forecv->c_layer);
-  SetCanvasWindow(D_forecv, wi);
+  SetCanvasWindow(D_forecv, win);
   if (p)
     WindowChanged(p, 'u');
-  if (wi)
-    WindowChanged(wi, 'u');
+  if (win)
+    WindowChanged(win, 'u');
   flayer = D_forecv->c_layer;
   /* Activate called afterwards, so no RefreshHStatus needed */
 }
@@ -6431,7 +6431,7 @@ MoreWindows()
 }
 
 void
-KillWindow(struct win *wi)
+KillWindow(struct win *win)
 {
   struct win **pp, *p;
   struct canvas *cv;
@@ -6442,16 +6442,16 @@ KillWindow(struct win *wi)
    * Remove window from linked list.
    */
   for (pp = &windows; (p = *pp); pp = &p->w_next)
-    if (p == wi)
+    if (p == win)
       break;
   ASSERT(p);
   *pp = p->w_next;
-  wi->w_inlen = 0;
-  wtab[wi->w_number] = 0;
+  win->w_inlen = 0;
+  wtab[win->w_number] = 0;
 
   if (windows == 0)
     {
-      FreeWindow(wi);
+      FreeWindow(win);
       Finit(0);
     }
 
@@ -6463,7 +6463,7 @@ KillWindow(struct win *wi)
       gotone = 0;
       for (cv = D_cvlist; cv; cv = cv->c_next)
 	{
-	  if (Layer2Window(cv->c_layer) != wi)
+	  if (Layer2Window(cv->c_layer) != win)
 	    continue;
 	  /* switch to other window */
 	  SetCanvasWindow(cv, FindNiceWindow(D_other, 0));
@@ -6472,7 +6472,7 @@ KillWindow(struct win *wi)
       if (gotone)
 	{
 #ifdef ZMODEM
-	  if (wi->w_zdisplay == display)
+	  if (win->w_zdisplay == display)
 	    {
 	      D_blocked = 0;
 	      D_readev.condpos = D_readev.condneg = 0;
@@ -6484,9 +6484,9 @@ KillWindow(struct win *wi)
 
   /* do the same for the layouts */
   for (lay = layouts; lay; lay = lay->lay_next)
-    UpdateLayoutCanvas(&lay->lay_canvas, wi);
+    UpdateLayoutCanvas(&lay->lay_canvas, win);
 
-  FreeWindow(wi);
+  FreeWindow(win);
   WindowChanged((struct win *)0, 'w');
   WindowChanged((struct win *)0, 'W');
   WindowChanged((struct win *)0, 0);
@@ -7371,7 +7371,7 @@ su_fin(char *buf, int len, char *data)
 }
  
 static int
-InputSu(struct win *w, struct acluser **up, char *name)
+InputSu(struct win *win, struct acluser **up, char *name)
 {
   struct inputsu *i;
 
@@ -7610,69 +7610,69 @@ StuffKey(int i)
 
 
 static int
-IsOnDisplay(struct win *wi)
+IsOnDisplay(struct win *win)
 {
   struct canvas *cv;
   ASSERT(display);
   for (cv = D_cvlist; cv; cv = cv->c_next)
-    if (Layer2Window(cv->c_layer) == wi)
+    if (Layer2Window(cv->c_layer) == win)
       return 1;
   return 0;
 }
 
 struct win *
-FindNiceWindow(struct win *wi, char *presel)
+FindNiceWindow(struct win *win, char *presel)
 {
   int i;
 
-  debug2("FindNiceWindow %d %s\n", wi ? wi->w_number : -1 , presel ? presel : "NULL");
+  debug2("FindNiceWindow %d %s\n", win ? win->w_number : -1 , presel ? presel : "NULL");
   if (presel)
     {
       i = WindowByNoN(presel);
       if (i >= 0)
-	wi = wtab[i];
+	win = wtab[i];
     }
   if (!display)
-    return wi;
+    return win;
 #ifdef MULTIUSER
-  if (wi && AclCheckPermWin(D_user, ACL_READ, wi))
-    wi = 0;
+  if (win && AclCheckPermWin(D_user, ACL_READ, win))
+    win = 0;
 #endif
-  if (!wi || (IsOnDisplay(wi) && !presel))
+  if (!win || (IsOnDisplay(win) && !presel))
     {
       /* try to get another window */
-      wi = 0;
+      win = 0;
 #ifdef MULTIUSER
-      for (wi = windows; wi; wi = wi->w_next)
-	if (!wi->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_WRITE, wi))
+      for (win = windows; win; win = win->w_next)
+	if (!win->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_WRITE, win))
 	  break;
-      if (!wi)
-        for (wi = windows; wi; wi = wi->w_next)
-	  if (wi->w_layer.l_cvlist && !IsOnDisplay(wi) && !AclCheckPermWin(D_user, ACL_WRITE, wi))
+      if (!win)
+        for (win = windows; win; win = win->w_next)
+	  if (win->w_layer.l_cvlist && !IsOnDisplay(win) && !AclCheckPermWin(D_user, ACL_WRITE, win))
 	    break;
-      if (!wi)
-	for (wi = windows; wi; wi = wi->w_next)
-	  if (!wi->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_READ, wi))
+      if (!win)
+	for (win = windows; win; win = win->w_next)
+	  if (!win->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_READ, win))
 	    break;
-      if (!wi)
-	for (wi = windows; wi; wi = wi->w_next)
-	  if (wi->w_layer.l_cvlist && !IsOnDisplay(wi) && !AclCheckPermWin(D_user, ACL_READ, wi))
+      if (!win)
+	for (win = windows; win; win = win->w_next)
+	  if (win->w_layer.l_cvlist && !IsOnDisplay(win) && !AclCheckPermWin(D_user, ACL_READ, win))
 	    break;
 #endif
-      if (!wi)
-	for (wi = windows; wi; wi = wi->w_next)
-	  if (!wi->w_layer.l_cvlist)
+      if (!win)
+	for (win = windows; win; win = win->w_next)
+	  if (!win->w_layer.l_cvlist)
 	    break;
-      if (!wi)
-	for (wi = windows; wi; wi = wi->w_next)
-	  if (wi->w_layer.l_cvlist && !IsOnDisplay(wi))
+      if (!win)
+	for (win = windows; win; win = win->w_next)
+	  if (win->w_layer.l_cvlist && !IsOnDisplay(win))
 	    break;
     }
 #ifdef MULTIUSER
-  if (wi && AclCheckPermWin(D_user, ACL_READ, wi))
-    wi = 0;
+  if (win && AclCheckPermWin(D_user, ACL_READ, win))
+    win = 0;
 #endif
-  return wi;
+  return win;
 }
 
 #if 0

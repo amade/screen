@@ -810,7 +810,7 @@ ttycmp(char *s1, char *s2)
 #endif
 
 static int
-CreateTempDisplay(struct msg *m, int recvfd, struct win *wi)
+CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
 {
   int pid;
   int attach;
@@ -877,7 +877,7 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *wi)
 
   if (attach)
     {
-      if (display || wi)
+      if (display || win)
 	{
 	  write(i, "Attaching from inside of screen?\n", 33);
 	  close(i);
