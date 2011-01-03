@@ -835,9 +835,6 @@ MakeTermcap(int aflag)
   char buf[TERMCAP_BUFSIZE];
   register char *p, *cp, *s, ch, *tname;
   int i, wi, he;
-#if 0
-  int found;
-#endif
 
   if (display)
     {
@@ -867,9 +864,6 @@ MakeTermcap(int aflag)
       debug("MakeTermcap sets screenterm=screen\n");
       strcpy(screenterm, "screen");
     }
-#if 0
-  found = 1;
-#endif
   do
     {
       strcpy(Term, "TERM=");
@@ -900,25 +894,8 @@ MakeTermcap(int aflag)
       if (e_tgetent(buf, p) == 1)
 	break;
       strcpy(p, "vt100");
-#if 0
-      found = 0;
-#endif
     }
   while (0);		/* Goto free programming... */
-
-#if 0
-#ifndef TERMINFO
-  /* check for compatibility problems, displays == 0 after fork */
-  if (found)
-    {
-      char xbuf[TERMCAP_BUFSIZE], *xbp = xbuf;
-      if (tgetstr("im", &xbp) && tgetstr("ic", &xbp) && displays)
-	{
-	  Msg(0, "Warning: im and ic set in %s termcap entry", p);
-	}
-    }
-#endif
-#endif
 
   tcLineLen = 100;	/* Force NL */
   if (strlen(Term) > TERMCAP_BUFSIZE - 40)
