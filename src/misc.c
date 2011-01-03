@@ -51,8 +51,7 @@ static int close_func (void *, int);
 #endif
 
 char *
-SaveStr(str)
-register const char *str;
+SaveStr(register const char *str)
 {
   register char *cp;
 
@@ -64,9 +63,7 @@ register const char *str;
 }
 
 char *
-SaveStrn(str, n)
-register const char *str;
-int n;
+SaveStrn(register const char *str, int n)
 {
   register char *cp;
 
@@ -82,9 +79,7 @@ int n;
 
 /* cheap strstr replacement */
 char *
-InStr(str, pat)
-char *str;
-const char *pat;
+InStr(char *str, const char *pat)
 {
   int npat = strlen(pat);
   for (;*str; str++)
@@ -95,8 +90,7 @@ const char *pat;
 
 #ifndef HAVE_STRERROR
 char *
-strerror(err)
-int err;
+strerror(int err)
 {
   extern int sys_nerr;
   extern char *sys_errlist[];
@@ -110,9 +104,7 @@ int err;
 #endif
 
 void
-centerline(str, y)
-char *str;
-int y;
+centerline(char *str, int y)
 {
   int l, n;
 
@@ -125,10 +117,7 @@ int y;
 }
 
 void
-leftline(str, y, rend)
-char *str;
-int y;
-struct mchar *rend;
+leftline(char *str, int y, struct mchar *rend)
 {
   int l, n;
   struct mchar mchar_dol;
@@ -147,8 +136,7 @@ struct mchar *rend;
 
 
 char *
-Filename(s)
-char *s;
+Filename(char *s)
 {
   register char *p = s;
 
@@ -160,8 +148,7 @@ char *s;
 }
 
 char *
-stripdev(nam)
-char *nam;
+stripdev(char *nam)
 {
 #ifdef apollo
   char *p;
@@ -246,8 +233,7 @@ void (*func) SIGPROTOARG;
 #ifdef HAVE_SETEUID
 
 void
-xseteuid(euid)
-int euid;
+xseteuid(int euid)
 {
   if (seteuid(euid) == 0)
     return;
@@ -257,8 +243,7 @@ int euid;
 }
 
 void
-xsetegid(egid)
-int egid;
+xsetegid(int egid)
 {
   if (setegid(egid))
     Panic(errno, "setegid");
@@ -268,8 +253,7 @@ int egid;
 # ifdef HAVE_SETREUID
 
 void
-xseteuid(euid)
-int euid;
+xseteuid(int euid)
 {
   int oeuid;
 
@@ -283,8 +267,7 @@ int euid;
 }
 
 void
-xsetegid(egid)
-int egid;
+xsetegid(int egid)
 {
   int oegid;
 
@@ -304,9 +287,7 @@ int egid;
 
 #ifdef NEED_OWN_BCOPY
 void
-xbcopy(s1, s2, len)
-register char *s1, *s2;
-register int len;
+xbcopy(register char *s1, register char *s2, register int len)
 {
   if (s1 < s2 && s2 < s1 + len)
     {
@@ -322,17 +303,14 @@ register int len;
 #endif	/* NEED_OWN_BCOPY */
 
 void
-bclear(p, n)
-char *p;
-int n;
+bclear(char *p, int n)
 {
   bcopy((char *)blank, p, n);
 }
 
 
 void
-Kill(pid, sig)
-int pid, sig;
+Kill(int pid, int sig)
 {
   if (pid < 2)
     return;
@@ -346,9 +324,7 @@ int pid, sig;
  * the default file descriptor limit has risen to 65k.
  */
 static int
-close_func(cb_data, fd)
-void *cb_data;
-int fd;
+close_func(void *cb_data, int fd)
 {
   int except = *(int *)cb_data;
   if (fd > 2 && fd != except)
@@ -357,8 +333,7 @@ int fd;
 }
 
 void
-closeallfiles(except)
-int except;
+closeallfiles(int except)
 {
   (void)fdwalk(close_func, &except);
 }
@@ -366,8 +341,7 @@ int except;
 #else /* HAVE_FDWALK */
 
 void
-closeallfiles(except)
-int except;
+closeallfiles(int except)
 {
   int f;
 #ifdef SVR4
@@ -436,8 +410,7 @@ UserContext()
 }
 
 void
-UserReturn(val)
-int val;
+UserReturn(int val)
 {
 #ifndef USE_SETEUID
   if (eff_uid == real_uid && eff_gid == real_gid)
@@ -480,9 +453,7 @@ UserStatus()
 
 #ifndef HAVE_RENAME
 int
-rename (old, new)
-char *old;
-char *new;
+rename (char *old, char *new)
 {
   if (link(old, new) < 0)
     return -1;
@@ -492,9 +463,7 @@ char *new;
 
 
 int
-AddXChar(buf, ch)
-char *buf;
-int ch;
+AddXChar(char *buf, int ch)
 {
   char *p = buf;
 
@@ -516,9 +485,7 @@ int ch;
 }
 
 int
-AddXChars(buf, len, str)
-char *buf, *str;
-int len;
+AddXChars(char *buf, int len, char *str)
 {
   char *p;
 
@@ -542,8 +509,7 @@ int len;
 
 #ifdef DEBUG
 void
-opendebug(new, shout)
-int new, shout;
+opendebug(int new, int shout)
 {
   char buf[256];
 
@@ -568,9 +534,7 @@ int new, shout;
 #endif /* DEBUG */
 
 void
-sleep1000(msec)
-int msec;
-
+sleep1000(int msec)
 {
   struct timeval t;
 
@@ -585,9 +549,7 @@ int msec;
  * to free the buffer after putenv(), unless it it the one found in putenv.c
  */
 void
-xsetenv(var, value)
-char *var;
-char *value;
+xsetenv(char *var, char *value)
 {
 #ifndef USESETENV
   char *buf;
@@ -633,9 +595,7 @@ char *value;
  * emulation of libcurses, which ignores ospeed.
  */
 int
-_delay(delay, outc)
-register int delay;
-int (*outc) (int);
+_delay(register int delay, int (*outc) (int))
 {
   int pad;
   extern short ospeed;

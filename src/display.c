@@ -134,42 +134,35 @@ int focusminwidth, focusminheight;
  */
 
 void
-DefProcess(bufp, lenp)
-char **bufp;
-int *lenp;
+DefProcess(char **bufp, int *lenp)
 {
   *bufp += *lenp;
   *lenp = 0;
 }
 
 void
-DefRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+DefRedisplayLine(int y, int xs, int xe, int isblank)
 {
   if (isblank == 0 && y >= 0)
     DefClearLine(y, xs, xe, 0);
 }
 
 void
-DefClearLine(y, xs, xe, bce)
-int y, xs, xe, bce;
+DefClearLine(int y, int xs, int xe, int bce)
 {
   LClearLine(flayer, y, xs, xe, bce, (struct mline *)0);
 }
 
 /*ARGSUSED*/
 int
-DefRewrite(y, xs, xe, rend, doit)
-int y, xs, xe, doit;
-struct mchar *rend;
+DefRewrite(int y, int xs, int xe, struct mchar *rend, int doit)
 {
   return EXPENSIVE;
 }
 
 /*ARGSUSED*/
 int
-DefResize(wi, he)
-int wi, he;
+DefResize(int wi, int he)
 {
   return -1;
 }
@@ -205,8 +198,7 @@ struct LayFuncs BlankLf =
 
 /*ARGSUSED*/
 static int
-BlankResize(wi, he)
-int wi, he;
+BlankResize(int wi, int he)
 {
   flayer->l_width = wi;
   flayer->l_height = he;
@@ -221,10 +213,7 @@ int wi, he;
  */
 
 struct display *
-MakeDisplay(uname, utty, term, fd, pid, Mode)
-char *uname, *utty, *term;
-int fd, pid;
-struct mode *Mode;
+MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struct mode *Mode)
 {
   struct acluser **u;
   struct baud_values *b;
@@ -428,8 +417,7 @@ FreeDisplay()
  * we may try to restore our old window sizes.
  */
 void
-InitTerm(adapt)
-int adapt;
+InitTerm(int adapt)
 {
   ASSERT(display);
   ASSERT(D_tcinited);
@@ -509,8 +497,7 @@ FinitTerm()
 
 
 static void
-INSERTCHAR(c)
-int c;
+INSERTCHAR(int c)
 {
   ASSERT(display);
   if (!D_insert && D_x < D_width - 1)
@@ -535,8 +522,7 @@ int c;
 }
 
 void
-PUTCHAR(c)
-int c;
+PUTCHAR(int c)
 {
   ASSERT(display);
   if (D_insert && D_x < D_width - 1)
@@ -545,8 +531,7 @@ int c;
 }
 
 void
-PUTCHARLP(c)
-int c;
+PUTCHARLP(int c)
 {
   if (D_x < D_width - 1)
     {
@@ -585,8 +570,7 @@ int c;
  */
 
 STATIC void
-RAW_PUTCHAR(c)
-int c;
+RAW_PUTCHAR(int c)
 {
   ASSERT(display);
 
@@ -686,8 +670,7 @@ addedutf8:
 }
 
 static int
-DoAddChar(c)
-int c;
+DoAddChar(int c)
 {
   /* this is for ESC-sequences only (AddChar is a macro) */
   AddChar(c);
@@ -695,8 +678,7 @@ int c;
 }
 
 void
-AddCStr(s)
-char *s;
+AddCStr(char *s)
 {
   if (display && s && *s)
     {
@@ -706,9 +688,7 @@ char *s;
 }
 
 void
-AddCStr2(s, c)
-char *s;
-int c;
+AddCStr2(char *s, int c)
 {
   if (display && s && *s)
     {
@@ -721,8 +701,7 @@ int c;
 /* Insert mode is a toggle on some terminals, so we need this hack:
  */
 void
-InsertMode(on)
-int on;
+InsertMode(int on)
 {
   if (display && on != D_insert && D_IM)
     {
@@ -737,8 +716,7 @@ int on;
 /* ...and maybe keypad application mode is a toggle, too:
  */
 void
-KeypadMode(on)
-int on;
+KeypadMode(int on)
 {
 #ifdef MAPKEYS
   if (display)
@@ -756,8 +734,7 @@ int on;
 }
 
 void
-CursorkeysMode(on)
-int on;
+CursorkeysMode(int on)
 {
 #ifdef MAPKEYS
   if (display)
@@ -775,8 +752,7 @@ int on;
 }
 
 void
-ReverseVideo(on)
-int on;
+ReverseVideo(int on)
 {
   if (display && D_revvid != on && D_CVR)
     {
@@ -789,8 +765,7 @@ int on;
 }
 
 void
-CursorVisibility(v)
-int v;
+CursorVisibility(int v)
 {
   if (display && D_curvis != v)
     {
@@ -808,8 +783,7 @@ int v;
 }
 
 void
-MouseMode(mode)
-int mode;
+MouseMode(int mode)
 {
   if (!display)
     return;
@@ -840,16 +814,14 @@ static int StrCost;
 
 /* ARGSUSED */
 static int
-CountChars(c)
-int c;
+CountChars(int c)
 {
   StrCost++;
   return c;
 }
 
 int
-CalcCost(s)
-register char *s;
+CalcCost(register char *s)
 {
   ASSERT(display);
   if (s)
@@ -864,8 +836,7 @@ register char *s;
 }
 
 static int
-CallRewrite(y, xs, xe, doit)
-int y, xs, xe, doit;
+CallRewrite(int y, int xs, int xe, int doit)
 {
   struct canvas *cv, *cvlist, *cvlnext;
   struct viewport *vp;
@@ -925,8 +896,7 @@ int y, xs, xe, doit;
 
 
 void
-GotoPos(x2, y2)
-int x2, y2;
+GotoPos(int x2, int y2)
 {
   register int dy, dx, x1, y1;
   register int costx, costy;
@@ -1131,8 +1101,7 @@ ClearAll()
 }
 
 void
-ClearArea(x1, y1, xs, xe, x2, y2, bce, uselayfn)
-int x1, y1, xs, xe, x2, y2, bce, uselayfn;
+ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int uselayfn)
 {
   int y, xxe;
   struct canvas *cv;
@@ -1249,8 +1218,7 @@ int x1, y1, xs, xe, x2, y2, bce, uselayfn;
  * too expensive over a low baud line.
  */
 void
-Redisplay(cur_only)
-int cur_only;
+Redisplay(int cur_only)
 {
   ASSERT(display);
 
@@ -1277,8 +1245,7 @@ int cur_only;
 }
 
 void
-RedisplayDisplays(cur_only)
-int cur_only;
+RedisplayDisplays(int cur_only)
 {
   struct display *olddisplay = display;
   for (display = displays; display; display = display->d_next)
@@ -1289,9 +1256,7 @@ int cur_only;
 
 /* XXX: use oml! */
 void
-ScrollH(y, xs, xe, n, bce, oml)
-int y, xs, xe, n, bce;
-struct mline *oml;
+ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
 {
   int i;
 
@@ -1386,8 +1351,7 @@ struct mline *oml;
 }
 
 void
-ScrollV(xs, ys, xe, ye, n, bce)
-int xs, ys, xe, ye, n, bce;
+ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 {
   int i;
   int up;
@@ -1525,8 +1489,7 @@ int xs, ys, xe, ye, n, bce;
 }
 
 void
-SetAttr(new)
-register int new;
+SetAttr(register int new)
 {
   register int i, j, old, typ;
 
@@ -1603,8 +1566,7 @@ register int new;
 
 #ifdef FONT
 void
-SetFont(new)
-int new;
+SetFont(int new)
 {
   int old = D_rend.font;
   if (!display || old == new)
@@ -1650,8 +1612,7 @@ int new;
 #ifdef COLOR
 
 int
-color256to16(jj)
-int jj;
+color256to16(int jj)
 {
   int min, max;
   int r, g, b;
@@ -1680,8 +1641,7 @@ min) / (max - min) | (max > 3 ? 8 : 0);
 
 #ifdef COLORS256
 int
-color256to88(jj)
-int jj;
+color256to88(int jj)
 {
   int r, g, b;
 
@@ -1700,8 +1660,7 @@ int jj;
 #endif
 
 void
-SetColor(f, b)
-int f, b;
+SetColor(int f, int b)
 {
   int of, ob;
   static unsigned char sftrans[8] = {0,4,2,6,1,5,3,7};
@@ -1815,8 +1774,7 @@ int f, b;
 }
 
 static void
-SetBackColor(new)
-int new;
+SetBackColor(int new)
 {
   if (!display)
     return;
@@ -1825,8 +1783,7 @@ int new;
 #endif /* COLOR */
 
 void
-SetRendition(mc)
-struct mchar *mc;
+SetRendition(struct mchar *mc)
 {
   if (!display)
     return;
@@ -1890,9 +1847,7 @@ struct mchar *mc;
 }
 
 void
-SetRenditionMline(ml, x)
-struct mline *ml;
-int x;
+SetRenditionMline(struct mline *ml, int x)
 {
   if (!display)
     return;
@@ -1946,8 +1901,7 @@ int x;
 }
 
 void
-MakeStatus(msg)
-char *msg;
+MakeStatus(char *msg)
 {
   register char *s, *t;
   register int max;
@@ -2152,9 +2106,7 @@ strlen_onscreen(unsigned char *c, unsigned char *end)
 }
 
 static int
-PrePutWinMsg(s, start, max)
-char *s;
-int start, max;
+PrePutWinMsg(char *s, int start, int max)
 {
   /* Avoid double-encoding problem for a UTF-8 message on a UTF-8 locale.
      Ideally, this would not be necessary. But fixing it the Right Way will
@@ -2178,7 +2130,7 @@ int start, max;
 }
 #else
 static int
-PrePutWinMsg(s, start, max)
+PrePutWinMsg(char *s, int start, int max)
 char *s;
 int start, max;
 {
@@ -2189,8 +2141,7 @@ int start, max;
 
 /* refresh the display's hstatus line */
 void
-ShowHStatus(str)
-char *str;
+ShowHStatus(char *str)
 {
   int l, ox, oy, max;
 
@@ -2304,8 +2255,7 @@ RefreshHStatus()
  */
 
 void
-RefreshAll(isblank)
-int isblank;
+RefreshAll(int isblank)
 {
   struct canvas *cv;
 
@@ -2320,8 +2270,7 @@ int isblank;
 }
 
 void
-RefreshArea(xs, ys, xe, ye, isblank)
-int xs, ys, xe, ye, isblank;
+RefreshArea(int xs, int ys, int xe, int ye, int isblank)
 {
   int y;
   ASSERT(display);
@@ -2337,8 +2286,7 @@ int xs, ys, xe, ye, isblank;
 }
 
 void
-RefreshLine(y, from, to, isblank)
-int y, from, to, isblank;
+RefreshLine(int y, int from, int to, int isblank)
 {
   struct viewport *vp, *lvp;
   struct canvas *cv, *lcv, *cvlist, *cvlnext;
@@ -2494,8 +2442,7 @@ int y, from, to, isblank;
  * position must be safe.
  */
 static void
-WriteLP(x2, y2)
-int x2, y2;
+WriteLP(int x2, int y2)
 {
   struct mchar oldrend;
 
@@ -2525,9 +2472,7 @@ int x2, y2;
 }
 
 void
-ClearLine(oml, y, from, to, bce)
-struct mline *oml;
-int from, to, y, bce;
+ClearLine(struct mline *oml, int y, int from, int to, int bce)
 {
   int x;
 #ifdef COLOR
@@ -2572,9 +2517,7 @@ int from, to, y, bce;
 }
 
 void
-DisplayLine(oml, ml, y, from, to)
-struct mline *oml, *ml;
-int from, to, y;
+DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 {
   register int x;
   int last2flag = 0, delete_lp = 0;
@@ -2672,9 +2615,7 @@ int from, to, y;
 }
 
 void
-PutChar(c, x, y)
-struct mchar *c;
-int x, y;
+PutChar(struct mchar *c, int x, int y)
 {
   GotoPos(x, y);
   SetRendition(c);
@@ -2692,10 +2633,7 @@ int x, y;
 }
 
 void
-InsChar(c, x, xe, y, oml)
-struct mchar *c;
-int x, xe, y;
-struct mline *oml;
+InsChar(struct mchar *c, int x, int xe, int y, struct mline *oml)
 {
   GotoPos(x, y);
   if (y == D_bot && !D_CLP)
@@ -2757,11 +2695,7 @@ struct mline *oml;
 }
 
 void
-WrapChar(c, x, y, xs, ys, xe, ye, ins)
-struct mchar *c;
-int x, y;
-int xs, ys, xe, ye;
-int ins;
+WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int ins)
 {
   int bce;
 
@@ -2841,8 +2775,7 @@ int ins;
 }
 
 int
-ResizeDisplay(wi, he)
-int wi, he;
+ResizeDisplay(int wi, int he)
 {
   ASSERT(display);
   debug2("ResizeDisplay: to (%d,%d).\n", wi, he);
@@ -2869,8 +2802,7 @@ int wi, he;
 }
 
 void
-ChangeScrollRegion(newtop, newbot)
-int newtop, newbot;
+ChangeScrollRegion(int newtop, int newbot)
 {
   if (display == 0)
     return;
@@ -2899,9 +2831,7 @@ int newtop, newbot;
 #define WT_FLAG "2"	/* change to "0" to set both title and icon */
 
 void
-SetXtermOSC(i, s)
-int i;
-char *s;
+SetXtermOSC(int i, char *s)
 {
   static char *oscs[][2] = {
     { WT_FLAG ";", "screen" }, /* set window title */
@@ -2945,8 +2875,7 @@ ClearAllXtermOSC()
  */
 
 void
-AddStr(str)
-char *str;
+AddStr(char *str)
 {
   register char c;
 
@@ -2965,9 +2894,7 @@ char *str;
 }
 
 void
-AddStrn(str, n)
-char *str;
-int n;
+AddStrn(char *str, int n)
 {
   register char c;
 
@@ -2987,8 +2914,7 @@ int n;
 }
 
 void
-Flush(progress)
-int progress;
+Flush(int progress)
 {
   register int l;
   int wr;
@@ -3121,9 +3047,7 @@ Resize_obuf()
 }
 
 void
-DisplaySleep1000(n, eat)
-int n;
-int eat;
+DisplaySleep1000(int n, int eat)
 {
   char buf;
   fd_set r;
@@ -3240,9 +3164,7 @@ NukePending()
  * we get EAGAIN
  */
 static void
-disp_writeev_eagain(ev, data)
-struct event *ev;
-char *data;
+disp_writeev_eagain(struct event *ev, char *data)
 {
   display = (struct display *)data;
   evdeq(&D_writeev);
@@ -3253,9 +3175,7 @@ char *data;
 #endif
 
 static void
-disp_writeev_fn(ev, data)
-struct event *ev;
-char *data;
+disp_writeev_fn(struct event *ev, char *data)
 {
   int len, size = OUTPUT_BLOCK_SIZE;
 
@@ -3351,9 +3271,7 @@ char *data;
 }
 
 static void
-disp_readev_fn(ev, data)
-struct event *ev;
-char *data;
+disp_readev_fn(struct event *ev, char *data)
 {
   int size;
   char buf[IOSIZE];
@@ -3533,9 +3451,7 @@ char *data;
 }
 
 static void
-disp_status_fn(ev, data)
-struct event *ev;
-char *data;
+disp_status_fn(struct event *ev, char *data)
 {
   display = (struct display *)data;
   debug1("disp_status_fn for display %x\n", (int)display);
@@ -3544,9 +3460,7 @@ char *data;
 }
 
 static void
-disp_hstatus_fn(ev, data)
-struct event *ev;
-char *data;
+disp_hstatus_fn(struct event *ev, char *data)
 {
   display = (struct display *)data;
   if (D_status == STATUS_ON_HS)
@@ -3559,9 +3473,7 @@ char *data;
 }
 
 static void
-disp_blocked_fn(ev, data)
-struct event *ev;
-char *data;
+disp_blocked_fn(struct event *ev, char *data)
 {
   struct win *p;
 
@@ -3583,9 +3495,7 @@ char *data;
 
 #ifdef MAPKEYS
 static void
-disp_map_fn(ev, data)
-struct event *ev;
-char *data;
+disp_map_fn(struct event *ev, char *data)
 {
   char *p;
   int l, i;
@@ -3618,9 +3528,7 @@ char *data;
 #endif
 
 static void
-disp_idle_fn(ev, data)
-struct event *ev;
-char *data;
+disp_idle_fn(struct event *ev, char *data)
 {
   struct display *olddisplay;
   display = (struct display *)data;
@@ -3657,9 +3565,7 @@ ResetIdle()
 #ifdef BLANKER_PRG
 
 static void
-disp_blanker_fn(ev, data)
-struct event *ev;
-char *data;
+disp_blanker_fn(struct event *ev, char *data)
 {
   char buf[IOSIZE], *b;
   int size;
@@ -3719,8 +3625,7 @@ KillBlanker()
 }
 
 void
-RunBlanker(cmdv)
-char **cmdv;
+RunBlanker(char **cmdv)
 {
   char *m;
   int pid;

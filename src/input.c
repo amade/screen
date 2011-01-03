@@ -86,8 +86,7 @@ static struct LayFuncs InpLf =
 
 /* called once, after InitOverlayPage in Input() or Isearch() */
 void
-inp_setprompt(p, s)
-char *p, *s;
+inp_setprompt(char *p, char *s)
 {
   struct inpdata *inpdata;
   
@@ -120,13 +119,7 @@ char *p, *s;
  * INP_EVERY  == digraph mode.
  */
 void
-Input(istr, len, mode, finfunc, priv, data)
-char *istr;
-int len;
-int mode;
-void (*finfunc) (char *buf, int len, char *priv);
-char *priv;
-int data;
+Input(char *istr, int len, int mode, void (*finfunc) (char *buf, int len, char *priv), char *priv, int data)
 {
   int maxlen;
   struct inpdata *inpdata;
@@ -168,12 +161,7 @@ int data;
 }
 
 static void
-erase_chars(inpdata, from, to, x, mv)
-struct inpdata *inpdata;
-char *from;
-char *to;
-int x;
-int mv;
+erase_chars(struct inpdata *inpdata, char *from, char *to, int x, int mv)
 {
   int chng;
   ASSERT(from < to);
@@ -204,9 +192,7 @@ int mv;
 }
 
 static void
-InpProcess(ppbuf, plen)
-char **ppbuf;
-int *plen;
+InpProcess(char **ppbuf, int *plen)
 {
   int len, x;
   char *pbuf;
@@ -477,8 +463,7 @@ InpAbort()
 }
 
 static void
-InpRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+InpRedisplayLine(int y, int xs, int xe, int isblank)
 {
   int q, r, s, l, v;
   struct inpdata *inpdata;

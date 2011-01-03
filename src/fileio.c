@@ -61,8 +61,7 @@ char *rc_name = "";
 int rc_recursion = 0;
 
 static char *
-CatExtra(str1, str2)
-register char *str1, *str2;
+CatExtra(register char *str1, register char *str2)
 {
   register char *cp;
   register int len1, len2, add_colon;
@@ -92,8 +91,7 @@ register char *str1, *str2;
 }
 
 static char *
-findrcfile(rcfile)
-char *rcfile;
+findrcfile(char *rcfile)
 {
   char buf[256];
   char *p;
@@ -169,9 +167,7 @@ char *rcfile;
  * 2) rcfilename = RcFileName
  */
 int
-StartRc(rcfilename, nopanic)
-char *rcfilename;
-int nopanic;
+StartRc(char *rcfilename, int nopanic)
 {
   register int argc, len;
   register char *p, *cp;
@@ -293,8 +289,7 @@ int nopanic;
 }
 
 void
-FinishRc(rcfilename)
-char *rcfilename;
+FinishRc(char *rcfilename)
 {
   char buf[2048];
   FILE *fp;
@@ -334,8 +329,7 @@ char *rcfilename;
 }
 
 void
-do_source(rcfilename)
-char *rcfilename;
+do_source(char *rcfilename)
 {
   if (rc_recursion > 10)
     {
@@ -354,9 +348,7 @@ char *rcfilename;
  * This is bad when we run detached.
  */
 void
-RcLine(ubuf, ubufl)
-char *ubuf;
-int ubufl;
+RcLine(char *ubuf, int ubufl)
 {
   char *args[MAXARGS];
   int argl[MAXARGS];
@@ -392,10 +384,7 @@ int ubufl;
  * needs display for copybuffer access and termcap dumping
  */
 void
-WriteFile(user, fn, dump)
-struct acluser *user;
-char *fn;
-int dump;
+WriteFile(struct acluser *user, char *fn, int dump)
 {
   /* dump==0:	create .termcap,
    * dump==1:	hardcopy,
@@ -593,9 +582,7 @@ int dump;
  * stored.
  */
 char *
-ReadFile(fn, lenp)
-char *fn;
-int *lenp;
+ReadFile(char *fn, int *lenp)
 {
   int i, l, size;
   char c, *bp, *buf;
@@ -661,9 +648,7 @@ KillBuffers()
  */
 
 FILE *
-secfopen(name, mode)
-char *name;
-char *mode;
+secfopen(char *name, char *mode)
 {
   FILE *fi;
 #ifndef USE_SETEUID
@@ -707,10 +692,7 @@ char *mode;
 
 
 int
-secopen(name, flags, mode)
-char *name;
-int flags;
-int mode;
+secopen(char *name, int flags, int mode)
 {
   int fd;
 #ifndef USE_SETEUID
@@ -790,9 +772,7 @@ int mode;
 
 
 int
-printpipe(p, cmd)
-struct win *p;
-char *cmd;
+printpipe(struct win *p, char *cmd)
 {
   int pi[2];
   if (pipe(pi))
@@ -830,8 +810,7 @@ char *cmd;
 }
 
 int
-readpipe(cmdv)
-char **cmdv;
+readpipe(char **cmdv)
 {
   int pi[2];
 

@@ -110,9 +110,7 @@ QueryResultFail SIGDEFARG
  */
 
 static int
-WriteMessage(s, m)
-int s;
-struct msg *m;
+WriteMessage(int s, struct msg *m)
 {
   int r, l = sizeof(*m);
 
@@ -135,8 +133,7 @@ struct msg *m;
 
 
 int
-Attach(how)
-int how;
+Attach(int how)
 {
   int n, lasts;
   struct msg m;
@@ -811,11 +808,7 @@ LockTerminal()
 static int PAM_conv (int, const struct pam_message **, struct pam_response **, void *);
 
 static int
-PAM_conv(num_msg, msg, resp, appdata_ptr)
-int num_msg;
-const struct pam_message **msg;
-struct pam_response **resp;
-void *appdata_ptr;
+PAM_conv(int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr)
 {
   int replies = 0;
   struct pam_response *reply = NULL;
@@ -987,11 +980,7 @@ screen_builtin_lck()
 
 
 void
-SendCmdMessage(sty, match, av, query)
-char *sty;
-char *match;
-char **av;
-int query;
+SendCmdMessage(char *sty, char *match, char **av, int query)
 {
   int i, s;
   struct msg m;

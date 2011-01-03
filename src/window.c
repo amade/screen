@@ -173,8 +173,7 @@ static int const_IOSIZE = IOSIZE;
 static int const_one = 1;
 
 void
-nwin_compose(def, new, res)
-struct NewWindow *def, *new, *res;
+nwin_compose(struct NewWindow *def, struct NewWindow *new, struct NewWindow *res)
 {
 #define COMPOSE(x) res->x = new->x != nwin_undef.x ? new->x : def->x
   COMPOSE(StartAt);
@@ -219,10 +218,7 @@ struct LayFuncs WinLf =
 };
 
 static int
-DoAutolf(buf, lenp, fr)
-char *buf;
-int *lenp;
-int fr;
+DoAutolf(char *buf, int *lenp, int fr)
 {
   char *p;
   int len = *lenp;
@@ -247,9 +243,7 @@ int fr;
 }
 
 static void
-WinProcess(bufpp, lenp)
-char **bufpp;
-int *lenp;
+WinProcess(char **bufpp, int *lenp)
 {
   int l2 = 0, f, *ilen, l = *lenp, trunc;
   char *ibuf;
@@ -346,9 +340,7 @@ int *lenp;
 }
 
 static void
-ZombieProcess(bufpp, lenp)
-char **bufpp;
-int *lenp;
+ZombieProcess(char **bufpp, int *lenp)
 {
   int l = *lenp;
   char *buf = *bufpp, b1[10], b2[10];
@@ -381,8 +373,7 @@ int *lenp;
 }
 
 static void
-WinRedisplayLine(y, from, to, isblank)
-int y, from, to, isblank;
+WinRedisplayLine(int y, int from, int to, int isblank)
 {
   debug3("WinRedisplayLine %d %d %d\n", y, from, to);
   if (y < 0)
@@ -395,9 +386,7 @@ int y, from, to, isblank;
 }
 
 static int
-WinRewrite(y, x1, x2, rend, doit)
-int y, x1, x2, doit;
-struct mchar *rend;
+WinRewrite(int y, int x1, int x2, struct mchar *rend, int doit)
 {
   register int cost, dx;
   register unsigned char *p, *i;
@@ -466,8 +455,7 @@ struct mchar *rend;
 }
 
 static void
-WinClearLine(y, xs, xe, bce)
-int y, xs, xe, bce;
+WinClearLine(int y, int xs, int xe, int bce)
 {
   fore = (struct win *)flayer->l_data;
   debug3("WinClearLine %d %d-%d\n", y, xs, xe);
@@ -475,8 +463,7 @@ int y, xs, xe, bce;
 }
 
 static int
-WinResize(wi, he)
-int wi, he;
+WinResize(int wi, int he)
 {
   fore = (struct win *)flayer->l_data;
   ChangeWindowSize(fore, wi, he, fore->w_histheight);
@@ -515,10 +502,7 @@ WinRestore()
  * returns 0 on success.
  */
 int
-DoStartLog(w, buf, bufsize)
-struct win *w;
-char *buf;
-int bufsize;
+DoStartLog(struct win *w, char *buf, int bufsize)
 {
   int n;
   if (!w || !buf)
@@ -551,8 +535,7 @@ int bufsize;
  * The display d (if specified) switches to that window.
  */
 int
-MakeWindow(newwin)
-struct NewWindow *newwin;
+MakeWindow(struct NewWindow *newwin)
 {
   register struct win **pp, *p;
   register int n, i;
@@ -877,8 +860,7 @@ struct NewWindow *newwin;
  * working directory is lost.
  */
 int
-RemakeWindow(p)
-struct win *p;
+RemakeWindow(struct win *p)
 {
   char *TtyName;
   int lflag, f;
@@ -941,8 +923,7 @@ struct win *p;
 }
 
 void
-CloseDevice(wp)
-struct win *wp;
+CloseDevice(struct win *wp)
 {
   if (wp->w_ptyfd < 0)
     return;
@@ -964,8 +945,7 @@ struct win *wp;
 }
 
 void
-FreeWindow(wp)
-struct win *wp;
+FreeWindow(struct win *wp)
 {
   struct display *d;
   int i;
@@ -1058,11 +1038,7 @@ struct win *wp;
 }
 
 static int
-OpenDevice(args, lflag, typep, namep)
-char **args;
-int lflag;
-int *typep;
-char **namep;
+OpenDevice(char **args, int lflag, int *typep, char **namep)
 {
   char *arg = args[0];
   struct stat st;
@@ -1185,9 +1161,7 @@ char **namep;
  *
  */
 static int
-ForkWindow(win, args, ttyn)
-struct win *win;
-char **args, *ttyn;
+ForkWindow(struct win *win, char **args, char *ttyn)
 {
   int pid;
   char tebuf[25];
@@ -1463,8 +1437,7 @@ char **args, *ttyn;
 
 #ifndef HAVE_EXECVPE
 void
-execvpe(prog, args, env)
-char *prog, **args, **env;
+execvpe(char *prog, char **args, char **env)
 {
   register char *path = NULL, *p;
   char buf[1024];
@@ -1512,8 +1485,7 @@ char *prog, **args, **env;
 #ifdef PSEUDOS
 
 int
-winexec(av)
-char **av;
+winexec(char **av)
 {
   char **pp;
   char *p, *s, *t;
@@ -1661,8 +1633,7 @@ char **av;
 }
 
 void
-FreePseudowin(w)
-struct win *w;
+FreePseudowin(struct win *w)
 {
   struct pseudowin *pwin = w->w_pwin;
 
@@ -1699,9 +1670,7 @@ struct win *w;
  * returns 0, if the lock really has been released
  */
 int
-ReleaseAutoWritelock(dis, w)
-struct display *dis;
-struct win *w;
+ReleaseAutoWritelock(struct display *dis, struct win *w)
 {
   debug2("ReleaseAutoWritelock: user %s, window %d\n",
          dis->d_user->u_name, w->w_number);
@@ -1729,9 +1698,7 @@ struct win *w;
  * returns 0, if the lock really could be obtained
  */
 int
-ObtainAutoWritelock(d, w)
-struct display *d;
-struct win *w;
+ObtainAutoWritelock(struct display *d, struct win *w)
 {
   if ((w->w_wlock == WLOCK_AUTO) &&
        !AclCheckPermWin(d->d_user, ACL_WRITE, w) &&
@@ -1753,9 +1720,7 @@ struct win *w;
 
 #ifdef COPY_PASTE
 static void
-paste_slowev_fn(ev, data)
-struct event *ev;
-char *data;
+paste_slowev_fn(struct event *ev, char *data)
 {
   struct paster *pa = (struct paster *)data;
   struct win *p;
@@ -1779,9 +1744,7 @@ char *data;
 
 
 static int
-muchpending(p, ev)
-struct win *p;
-struct event *ev;
+muchpending(struct win *p, struct event *ev)
 {
   struct canvas *cv;
   for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext)
@@ -1823,9 +1786,7 @@ struct event *ev;
 }
 
 static void
-win_readev_fn(ev, data)
-struct event *ev;
-char *data;
+win_readev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)data;
   char buf[IOSIZE], *bp;
@@ -1943,9 +1904,7 @@ char *data;
 
 
 static void
-win_writeev_fn(ev, data)
-struct event *ev;
-char *data;
+win_writeev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)data;
   int len;
@@ -1974,9 +1933,7 @@ char *data;
 #ifdef PSEUDOS
 
 static void
-pseu_readev_fn(ev, data)
-struct event *ev;
-char *data;
+pseu_readev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)data;
   char buf[IOSIZE];
@@ -2037,9 +1994,7 @@ char *data;
 }
 
 static void
-pseu_writeev_fn(ev, data)
-struct event *ev;
-char *data;
+pseu_writeev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)data;
   struct pseudowin *pw = p->w_pwin;
@@ -2058,9 +2013,7 @@ char *data;
 #endif /* PSEUDOS */
 
 static void
-win_silenceev_fn(ev, data)
-struct event *ev;
-char *data;
+win_silenceev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)data;
   struct canvas *cv;
@@ -2083,9 +2036,7 @@ char *data;
 }
 
 static void
-win_destroyev_fn(ev, data)
-struct event *ev;
-char *data;
+win_destroyev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)ev->data;
   WindowDied(p, p->w_exitstatus, 1);
@@ -2094,10 +2045,7 @@ char *data;
 #ifdef ZMODEM
 
 static int
-zmodem_parse(p, bp, len)
-struct win *p;
-char *bp;
-int len;
+zmodem_parse(struct win *p, char *bp, int len)
 {
   int i;
   char *b2 = bp;
@@ -2164,10 +2112,7 @@ int len;
 }
 
 static void
-zmodem_fin(buf, len, data)
-char *buf;
-int len;
-char *data;
+zmodem_fin(char *buf, int len, char *data)
 {
   char *s;
   int n;
@@ -2183,11 +2128,7 @@ char *data;
 }
 
 static void
-zmodem_found(p, send, bp, len)
-struct win *p;
-int send;
-char *bp;
-int len;
+zmodem_found(struct win *p, int send, char *bp, int len)
 {
   char *s;
   int i, n;
@@ -2244,9 +2185,7 @@ int len;
 }
 
 void
-zmodem_abort(p, d)
-struct win *p;
-struct display *d;
+zmodem_abort(struct win *p, struct display *d)
 {
   struct display *olddisplay = display;
   struct layer *oldflayer = flayer;

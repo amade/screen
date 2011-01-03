@@ -47,8 +47,7 @@ static int sgihack (void);
 #endif
 
 void
-evenq(ev)
-struct event *ev;
+evenq(struct event *ev)
 {
   struct event *evp, **evpp;
   debug3("New event fd %d type %d queued %d\n", ev->fd, ev->type, ev->queued);
@@ -69,8 +68,7 @@ struct event *ev;
 }
 
 void
-evdeq(ev)
-struct event *ev;
+evdeq(struct event *ev)
 {
   struct event *evp, **evpp;
   debug3("Deq event fd %d type %d queued %d\n", ev->fd, ev->type, ev->queued);
@@ -240,9 +238,7 @@ sched()
 }
 
 void
-SetTimeout(ev, timo)
-struct event *ev;
-int timo;
+SetTimeout(struct event *ev, int timo)
 {
   ASSERT(ev->type == EV_TIMEOUT);
   debug2("event %x new timeout %d ms\n", ev, timo);

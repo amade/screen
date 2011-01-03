@@ -94,8 +94,7 @@ static struct markdata *markdata;
  *                    1 - letter
  *		      2 - other
  */
-static int is_letter(c)
-char c;
+static int is_letter(int c)
 {
   if ((c >= 'a' && c <= 'z') ||
       (c >= 'A' && c <= 'Z') ||
@@ -112,8 +111,7 @@ char c;
 }
 
 static int
-linestart(y)
-int y;
+linestart(int y)
 {
   register int x;
   register unsigned char *i;
@@ -127,8 +125,7 @@ int y;
 }
 
 static int
-lineend(y)
-int y;
+lineend(int y)
 {
   register int x;
   register unsigned char *i;
@@ -212,8 +209,7 @@ nextchar(int *xp, int *yp, int direction, char target, int num)
 
 
 static void
-nextword(xp, yp, flags, num)
-int *xp, *yp, flags, num;
+nextword(int *xp, int *yp, int flags, int num)
 {
   int xx = fore->w_width, yy = fore->w_histheight + fore->w_height;
   register int sx, oq, q, x, y;
@@ -274,9 +270,7 @@ int *xp, *yp, flags, num;
  */
 
 static int
-rem(x1, y1, x2, y2, redisplay, pt, yend)
-int x1, y1, x2, y2, redisplay, yend;
-char *pt;
+rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend)
 {
   int i, j, from, to, ry, c;
   int l = 0;
@@ -427,8 +421,7 @@ char *pt;
  */
 
 static int
-eq(a, b)
-int a, b;
+eq(int a, int b)
 {
   if (a == b)
     return 1;
@@ -533,9 +526,7 @@ MarkRoutine()
 }
 
 static void
-MarkProcess(inbufp,inlenp)
-char **inbufp;
-int *inlenp;
+MarkProcess(char **inbufp, int *inlenp)
 {
   char *inbuf, *pt;
   int inlen;
@@ -1101,15 +1092,13 @@ processchar:
   *inlenp = inlen;
 }
 
-void revto(tx, ty)
-int tx, ty;
+void revto(int tx, int ty)
 {
   revto_line(tx, ty, -1);
 }
 
 /* tx, ty: WINDOW,  line: DISPLAY */
-void revto_line(tx, ty, line)
-int tx, ty, line;
+void revto_line(int tx, int ty, int line)
 {
   int fx, fy;
   int x, y, t, revst, reven, qq, ff, tt, st, en, ce = 0;
@@ -1294,10 +1283,8 @@ MarkAbort()
 
 
 static void
-MarkRedisplayLine(y, xs, xe, isblank)
-int y;	/* NOTE: y is in DISPLAY coords system! */
-int xs, xe;
-int isblank;
+MarkRedisplayLine(int y, int xs, int xe, int isblank)
+/* NOTE: y is in DISPLAY coords system! */
 {
   int wy, x, i, rm;
   int sta, sto, cp;	/* NOTE: these 3 are in WINDOW coords system */
@@ -1388,9 +1375,7 @@ int isblank;
  * This ugly routine is to speed up GotoPos()
  */
 static int
-MarkRewrite(ry, xs, xe, rend, doit)
-int ry, xs, xe, doit;
-struct mchar *rend;
+MarkRewrite(int ry, int xs, int xe, struct mchar *rend, int doit)
 {
   int dx, x, y, st, en, t, rm;
   unsigned char *i;
@@ -1465,8 +1450,7 @@ struct mchar *rend;
 /*
  * scroll the screen contents up/down.
  */
-static int MarkScrollUpDisplay(n)
-int n;
+static int MarkScrollUpDisplay(int n)
 {
   int i;
 
@@ -1484,8 +1468,7 @@ int n;
 }
 
 static int
-MarkScrollDownDisplay(n)
-int n;
+MarkScrollDownDisplay(int n)
 {
   int i;
 
@@ -1503,11 +1486,7 @@ int n;
 }
 
 void
-MakePaster(pa, buf, len, bufiscopy)
-struct paster *pa;
-char *buf;
-int len;
-int bufiscopy;
+MakePaster(struct paster *pa, char *buf, int len, int bufiscopy)
 {
   FreePaster(pa);
   pa->pa_pasteptr = buf;
@@ -1519,8 +1498,7 @@ int bufiscopy;
 }
 
 void
-FreePaster(pa)
-struct paster *pa;
+FreePaster(struct paster *pa)
 {
   if (pa->pa_pastebuf)
     free(pa->pa_pastebuf);

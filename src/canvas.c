@@ -40,8 +40,7 @@ extern struct LayFuncs BlankLf;
 extern int focusminwidth, focusminheight;
 
 static void
-CanvasInitBlank(cv)
-struct canvas *cv;
+CanvasInitBlank(struct canvas *cv)
 {
   cv->c_blank.l_cvlist = cv;
   cv->c_blank.l_width = cv->c_xe - cv->c_xs + 1;
@@ -56,8 +55,7 @@ struct canvas *cv;
 }
 
 static void
-FreePerp(pcv)
-struct canvas *pcv;
+FreePerp(struct canvas *pcv)
 {
   struct canvas *cv;
 
@@ -87,8 +85,7 @@ struct canvas *pcv;
 }
 
 void
-FreeCanvas(cv)
-struct canvas *cv;
+FreeCanvas(struct canvas *cv)
 {
   struct viewport *vp, *nvp;
   struct canvas **cvp;
@@ -141,8 +138,7 @@ struct canvas *cv;
 }
 
 int
-CountCanvas(cv)
-struct canvas *cv;
+CountCanvas(struct canvas *cv)
 {
   int num = 0;
   for (; cv; cv = cv->c_slnext)
@@ -167,8 +163,7 @@ struct canvas *cv;
 }
 
 int
-CountCanvasPerp(cv)
-struct canvas *cv;
+CountCanvasPerp(struct canvas *cv)
 {
   struct canvas *cvp;
   int num = 1, n;
@@ -183,8 +178,7 @@ struct canvas *cv;
 }
 
 struct canvas *
-FindCanvas(x, y)
-int x, y;
+FindCanvas(int x, int y)
 {
   struct canvas *cv, *mcv = 0;
   int m, mm = 0;
@@ -233,9 +227,7 @@ int x, y;
 }
 
 void
-SetCanvasWindow(cv, wi)
-struct canvas *cv;
-struct win *wi;
+SetCanvasWindow(struct canvas *cv, struct win *wi)
 {
   struct win *p = 0, **pp;
   struct layer *l;
@@ -408,9 +400,7 @@ MakeDefaultCanvas()
 }
 
 static struct canvas **
-CreateCanvasChainRec(cv, cvp)
-struct canvas *cv;
-struct canvas **cvp;
+CreateCanvasChainRec(struct canvas *cv, struct canvas **cvp)
 {
   for (; cv; cv = cv->c_slnext)
     {
@@ -434,9 +424,7 @@ RecreateCanvasChain()
 }
 
 void
-EqualizeCanvas(cv, gflag)
-struct canvas *cv;
-int gflag;
+EqualizeCanvas(struct canvas *cv, int gflag)
 {
   struct canvas *cv2;
   for (; cv; cv = cv->c_slnext)
@@ -454,8 +442,7 @@ int gflag;
 }
 
 void
-ResizeCanvas(cv)
-struct canvas *cv;
+ResizeCanvas(struct canvas *cv)
 {
   struct canvas *cv2, *cvn, *fcv;
   int nh, i, maxi, hh, m, w, wsum;
@@ -642,8 +629,7 @@ struct canvas *cv;
 }
 
 static struct canvas *
-AddPerp(cv)
-struct canvas *cv;
+AddPerp(struct canvas *cv)
 {
   struct canvas *pcv;
   debug("Creating new perp node\n");
@@ -681,8 +667,7 @@ struct canvas *cv;
 }
 
 int
-AddCanvas(orient)
-int orient;
+AddCanvas(int orient)
 {
   struct canvas *cv;
   int xs, xe, ys, ye;
@@ -848,9 +833,7 @@ OneCanvas()
 }
 
 void
-DupLayoutCv(cvf, cvt, save)
-struct canvas *cvf, *cvt;
-int save;
+DupLayoutCv(struct canvas *cvf, struct canvas *cvt, int save)
 {
   while(cvf)
     {
@@ -897,8 +880,7 @@ int save;
 }
 
 void
-PutWindowCv(cv)
-struct canvas *cv;
+PutWindowCv(struct canvas *cv)
 {
   struct win *p;
   for (; cv; cv = cv->c_slnext)
