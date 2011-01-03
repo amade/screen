@@ -227,7 +227,7 @@ FindCanvas(int x, int y)
 }
 
 void
-SetCanvasWindow(struct canvas *cv, struct win *wi)
+SetCanvasWindow(struct canvas *cv, struct win *win)
 {
   struct win *p = 0, **pp;
   struct layer *l;
@@ -267,17 +267,17 @@ SetCanvasWindow(struct canvas *cv, struct win *wi)
     }
 
   /* find right layer to display on canvas */
-  if (wi && wi->w_type != W_TYPE_GROUP)
+  if (win && win->w_type != W_TYPE_GROUP)
     {
-      l = &wi->w_layer;
-      if (wi->w_savelayer && (wi->w_blocked || wi->w_savelayer->l_cvlist == 0))
-	l = wi->w_savelayer;
+      l = &win->w_layer;
+      if (win->w_savelayer && (win->w_blocked || win->w_savelayer->l_cvlist == 0))
+	l = win->w_savelayer;
     }
   else
     {
       l = &cv->c_blank;
-      if (wi)
-	l->l_data = (char *)wi;
+      if (win)
+	l->l_data = (char *)win;
       else
 	l->l_data = 0;
     }
@@ -294,35 +294,35 @@ SetCanvasWindow(struct canvas *cv, struct win *wi)
   if (flayer == 0)
     flayer = l;
 
-  if (wi && wi->w_type == W_TYPE_GROUP)
+  if (win && win->w_type == W_TYPE_GROUP)
     {
       /* auto-start windowlist on groups */
       struct display *d = display;
       struct layer *oldflayer = flayer;
       flayer = l;
-      display_windows(0, 0, wi);
+      display_windows(0, 0, win);
       flayer = oldflayer;
       display = d;
     }
 
-  if (wi && D_other == wi)
-    D_other = wi->w_next;	/* Might be 0, but that's OK. */
+  if (win && D_other == win)
+    D_other = win->w_next;	/* Might be 0, but that's OK. */
   if (cv == D_forecv)
     {
-      D_fore = wi;
+      D_fore = win;
       fore = D_fore;	/* XXX ? */
-      if (wi)
+      if (win)
 	{
 #ifdef MULTIUSER
-	  ObtainAutoWritelock(display, wi);
+	  ObtainAutoWritelock(display, win);
 #endif
 	  /*
 	   * Place the window at the head of the most-recently-used list
 	   */
-	  if (windows != wi)
+	  if (windows != win)
 	    {
 	      for (pp = &windows; (p = *pp); pp = &p->w_next)
-		if (p == wi)
+		if (p == win)
 		  break;
 	      ASSERT(p);
 	      *pp = p->w_next;
