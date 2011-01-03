@@ -89,8 +89,7 @@ static struct mline mline_zero = {
  */
 
 void
-CheckScreenSize(change_flag)
-int change_flag;
+CheckScreenSize(int change_flag)
 {
   int wi, he;
 
@@ -149,9 +148,7 @@ int change_flag;
 }
 
 void
-ChangeScreenSize(wi, he, change_fore)
-int wi, he;
-int change_fore;
+ChangeScreenSize(int wi, int he, int change_fore)
 {
   struct win *p;
   struct canvas *cv;
@@ -296,8 +293,7 @@ ResizeLayersToCanvases()
 }
 
 int
-MayResizeLayer(l)
-struct layer *l;
+MayResizeLayer(struct layer *l)
 {
   int cvs = 0;
   debug("MayResizeLayer:\n");
@@ -356,10 +352,7 @@ kaablamm()
   } while (0)
 
 void
-ResizeLayer(l, wi, he, norefdisp)
-struct layer *l;
-int wi, he;
-struct display *norefdisp;
+ResizeLayer(struct layer *l, int wi, int he, struct display *norefdisp)
 {
   struct win *p;
   struct canvas *cv;
@@ -422,8 +415,7 @@ struct display *norefdisp;
 }
 
 static void
-FreeMline(ml)
-struct mline *ml;
+FreeMline(struct mline *ml)
 {
   if (ml->image)
     free(ml->image);
@@ -447,9 +439,7 @@ struct mline *ml;
 }
 
 static int
-AllocMline(ml, w)
-struct mline *ml;
-int w;
+AllocMline(struct mline *ml, int w)
 {
   ml->image = malloc(w);
   ml->attr  = null;
@@ -470,9 +460,7 @@ int w;
 
 
 static int
-BcopyMline(mlf, xf, mlt, xt, l, w)
-struct mline *mlf, *mlt;
-int xf, xt, l, w;
+BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int l, int w)
 {
   int r = 0;
 
@@ -525,8 +513,7 @@ int xf, xt, l, w;
 static int maxwidth;
 
 static void
-CheckMaxSize(wi)
-int wi;
+CheckMaxSize(int wi)
 {
   unsigned char *oldnull = null;
   unsigned char *oldblank = blank;
@@ -613,9 +600,7 @@ int wi;
 
 
 char *
-xrealloc(mem, len)
-char *mem;
-int len;
+xrealloc(char *mem, int len)
 {
   register char *nmem;
 
@@ -628,9 +613,7 @@ int len;
 }
 
 static void
-MakeBlankLine(p, n)
-register unsigned char *p;
-register int n;
+MakeBlankLine(register unsigned char *p, register int n)
 {
   while (n--)
     *p++ = ' ';
@@ -656,9 +639,7 @@ register int n;
 
 
 int
-ChangeWindowSize(p, wi, he, hi)
-struct win *p;
-int wi, he, hi;
+ChangeWindowSize(struct win *p, int wi, int he, int hi)
 {
   struct mline *mlf = 0, *mlt = 0, *ml, *nmlines, *nhlines;
   int fy, ty, l, lx, lf, lt, yy, oty, addone;
@@ -1051,8 +1032,7 @@ int wi, he, hi;
 }
 
 void
-FreeAltScreen(p)
-struct win *p;
+FreeAltScreen(struct win *p)
 {
   int i;
 
@@ -1079,8 +1059,7 @@ struct win *p;
 }
 
 static void
-SwapAltScreen(p)
-struct win *p;
+SwapAltScreen(struct win *p)
 {
   struct mline *ml;
   int t;
@@ -1100,8 +1079,7 @@ struct win *p;
 }
 
 void
-EnterAltScreen(p)
-struct win *p;
+EnterAltScreen(struct win *p)
 {
   if (!p->w_alt.on)
     {
@@ -1122,8 +1100,7 @@ struct win *p;
 }
 
 void
-LeaveAltScreen(p)
-struct win *p;
+LeaveAltScreen(struct win *p)
 {
   if (!p->w_alt.on)
     return;

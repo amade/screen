@@ -51,8 +51,7 @@ static void searchend (char *, int);
 static void backsearchend (char *, int);
 
 void
-Search(dir)
-int dir;
+Search(int dir)
 {
   struct markdata *markdata;
   if (dir == 0)
@@ -71,9 +70,7 @@ int dir;
 }
 
 static void
-searchend(buf, len)
-char *buf;
-int len;
+searchend(char *buf, int len)
 {
   int x = 0, sx, ex, y;
   struct markdata *markdata;
@@ -101,9 +98,7 @@ int len;
 }
 
 static void
-backsearchend(buf, len)
-char *buf;
-int len;
+backsearchend(char *buf, int len)
 {
   int sx, ex, x = -1, y;
   struct markdata *markdata;
@@ -131,9 +126,7 @@ int len;
 }
 
 static int
-matchword(pattern, y, sx, ex)
-char *pattern;
-int y, sx, ex;
+matchword(char *pattern, int y, int sx, int ex)
 {
   unsigned char *ip, *ipe, *cp, *pp;
   struct mline *ml;
@@ -181,9 +174,7 @@ static int  is_bm (char *, int, int, int, int);
 
 
 static int
-is_bm(str, l, p, end, dir)
-char *str;
-int l, p, end, dir;
+is_bm(char *str, int l, int p, int end, int dir)
 {
   int tab[256];
   int i, q;
@@ -236,10 +227,7 @@ int l, p, end, dir;
 
 /*ARGSUSED*/
 static void
-is_process(p, n, data)	/* i-search */
-char *p;
-int n;
-char *data;	/* dummy */
+is_process(char *p, int n, char *data)	/* i-search */
 {
   int pos, x, y, dir;
   struct markdata *markdata;
@@ -324,8 +312,7 @@ char *data;	/* dummy */
 }
 
 static int
-is_redo(markdata)
-struct markdata *markdata;
+is_redo(struct markdata *markdata)
 {
   int i, pos, npos, dir;
   char c;
@@ -355,8 +342,7 @@ struct markdata *markdata;
 }
 
 void
-ISearch(dir)
-int dir;
+ISearch(int dir)
 {
   struct markdata *markdata;
 

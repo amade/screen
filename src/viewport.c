@@ -125,8 +125,7 @@ RethinkDisplayViewports()
 }
 
 void
-RethinkViewportOffsets(cv)
-struct canvas *cv;
+RethinkViewportOffsets(struct canvas *cv)
 {
   struct viewport *vp;
 

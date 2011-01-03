@@ -79,8 +79,7 @@ static int  newenv (void)	/* copy env. from stack to heap */
 static int  moreenv (void)	/* incr. size of env. */
 
 int
-unsetenv(name)
-char *name;
+unsetenv(char *name)
 {
   register int i;
   
@@ -102,8 +101,7 @@ char *name;
 }
 
 int
-putenv(string)
-char *string;
+putenv(char *string)
 { 
   register int  i;
   register char *p;
@@ -142,8 +140,7 @@ char *string;
 }
 
 static int
-findenv(name)
-char *name;
+findenv(char *name)
 {
   register char *namechar, *envchar;
   register int  i, found;

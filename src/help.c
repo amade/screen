@@ -61,8 +61,7 @@ extern char *wliststr;
 extern char *wlisttit;
 
 void
-exit_with_usage(myname, message, arg)
-char *myname, *message, *arg;
+exit_with_usage(char *myname, char *message, char *arg)
 {
   printf("Use: %s [-opts] [cmd [args]]\n", myname);
   printf(" or: %s -r [host.tty]\n\nOptions:\n", myname);
@@ -160,9 +159,7 @@ static struct LayFuncs HelpLf =
 
 
 void
-display_help(class, ktabp)
-char *class;
-struct action *ktabp;
+display_help(char *class, struct action *ktabp)
 {
   int i, n, key, mcom, mkey, l;
   struct helpdata *helpdata;
@@ -246,9 +243,7 @@ struct action *ktabp;
 }
 
 static void
-HelpProcess(ppbuf, plen)
-char **ppbuf;
-int *plen;
+HelpProcess(char **ppbuf, int *plen)
 {
   int done = 0;
 
@@ -377,9 +372,7 @@ helppage()
 }
 
 static void
-AddAction(act, x, y)
-struct action *act;
-int x, y;
+AddAction(struct action *act, int x, int y)
 {
   char buf[256];
   int del, l;
@@ -440,9 +433,7 @@ int x, y;
 }
 
 static void
-add_key_to_buf(buf, key)
-char *buf;
-int key;
+add_key_to_buf(char *buf, int key)
 {
   buf += strlen(buf);
   if (key < 0)
@@ -466,8 +457,7 @@ int key;
 
 
 static void
-HelpRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+HelpRedisplayLine(int y, int xs, int xe, int isblank)
 {
   if (y < 0)
     {
@@ -610,9 +600,7 @@ screen-devel@gnu.org\n\n\n"
 ;
 
 static void
-CopyrightProcess(ppbuf, plen)
-char **ppbuf;
-int *plen;
+CopyrightProcess(char **ppbuf, int *plen)
 {
   int done = 0;
   struct copydata *copydata;
@@ -741,8 +729,7 @@ copypage()
 }
 
 static void
-CopyrightRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+CopyrightRedisplayLine(int y, int xs, int xe, int isblank)
 {
   ASSERT(flayer);
   if (y < 0)
@@ -805,9 +792,7 @@ static struct LayFuncs BindkeyLf =
 
 
 void
-display_bindkey(title, tab)
-char *title;
-struct action *tab;
+display_bindkey(char *title, struct action *tab)
 {
   struct bindkeydata *bindkeydata;
   int i, n;
@@ -925,9 +910,7 @@ bindkeypage()
 }
  
 static void
-BindkeyProcess(ppbuf, plen)
-char **ppbuf;
-int *plen;
+BindkeyProcess(char **ppbuf, int *plen)
 {
   int done = 0;
   struct bindkeydata *bindkeydata;
@@ -961,8 +944,7 @@ int *plen;
 }
 
 static void
-BindkeyRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+BindkeyRedisplayLine(int y, int xs, int xe, int isblank)
 {
   if (y < 0)
     {
@@ -1003,8 +985,7 @@ static struct LayFuncs ZmodemLf =
 
 /*ARGSUSED*/
 static int
-ZmodemResize(wi, he)
-int wi, he; 
+ZmodemResize(int wi, int he)
 {
   flayer->l_width = wi;
   flayer->l_height = he;
@@ -1013,8 +994,7 @@ int wi, he;
 }
 
 static void
-ZmodemRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+ZmodemRedisplayLine(int y, int xs, int xe, int isblank)
 {
   DefRedisplayLine(y, xs, xe, isblank);
   if (y == 0 && xs == 0)
@@ -1036,9 +1016,7 @@ ZmodemPage()
 
 
 static void
-PadStr(str, n, x, y)
-char *str;
-int n, x, y;
+PadStr(char *str, int n, int x, int y)
 {
   int l;
 

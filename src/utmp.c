@@ -157,8 +157,7 @@ static struct ttyent *getttyent (void);
 
 #ifndef UTMPOK
 void
-SlotToggle(how)
-int how;
+SlotToggle(int how)
 {
   debug1("SlotToggle (!UTMPOK) %d\n", how);
 # ifdef UTMPFILE
@@ -174,8 +173,7 @@ int how;
 #ifdef UTMPOK
 
 void
-SlotToggle(how)
-int how;
+SlotToggle(int how)
 {
   debug1("SlotToggle %d\n", how);
   if (fore->w_type != W_TYPE_PTY)
@@ -403,8 +401,7 @@ RestoreLoginSlot()
  */ 
 
 int
-SetUtmp(wi)
-struct win *wi;
+SetUtmp(struct win *wi)
 {
   register slot_t slot;
   struct utmp u;
@@ -498,8 +495,7 @@ struct win *wi;
  */
 
 int
-RemoveUtmp(wi)
-struct win *wi;
+RemoveUtmp(struct win *wi)
 {
   struct utmp u, *uu;
   slot_t slot;
@@ -551,8 +547,7 @@ struct win *wi;
 #define SLOT_USED(u) (u->ut_type == USER_PROCESS)
 
 static struct utmp *
-getutslot(slot)
-slot_t slot;
+getutslot(slot_t slot)
 {
   struct utmp u;
   bzero((char *)&u, sizeof(u));
@@ -562,11 +557,7 @@ slot_t slot;
 }
 
 static int
-pututslot(slot, u, host, wi)
-slot_t slot;
-struct utmp *u;
-char *host;
-struct win *wi;
+pututslot(slot_t slot, struct utmp *u, char *host, struct win *wi)
 {
 #ifdef _SEQUENT_
   if (SLOT_USED(u) && host && *host)
@@ -594,8 +585,7 @@ struct win *wi;
 }
 
 static void
-makedead(u)
-struct utmp *u;
+makedead(struct utmp *u)
 {
   u->ut_type = DEAD_PROCESS;
 #if (!defined(linux) || defined(EMPTY)) && !defined(__CYGWIN__)
@@ -608,10 +598,7 @@ struct utmp *u;
 }
 
 static void
-makeuser(u, line, user, pid)
-struct utmp *u;
-char *line, *user;
-int pid;
+makeuser(struct utmp *u, char *line, char *user, int pid)
 {
   time_t now;
   u->ut_type = USER_PROCESS;
@@ -635,8 +622,7 @@ int pid;
 }
 
 static slot_t
-TtyNameSlot(nam)
-char *nam;
+TtyNameSlot(char *nam)
 {
   return stripdev(nam);
 }
@@ -687,8 +673,7 @@ getutent()
 }
 
 static struct utmp *
-getutslot(slot)
-slot_t slot;
+getutslot(slot_t slot)
 {
   if (utmpfd < 0 && !initutmp())
     return 0;
@@ -699,11 +684,7 @@ slot_t slot;
 }
 
 static int
-pututslot(slot, u, host, wi)
-slot_t slot;
-struct utmp *u;
-char *host;
-struct win *wi;
+pututslot(slot_t slot, struct utmp *u, char *host, struct win *wi)
 {
 #ifdef sequent
   if (SLOT_USED(u))
@@ -719,8 +700,7 @@ struct win *wi;
 
 
 static void
-makedead(u)
-struct utmp *u;
+makedead(struct utmp *u)
 {
 #ifdef UT_UNSORTED
   bzero(u->ut_name, sizeof(u->ut_name));
@@ -734,10 +714,7 @@ struct utmp *u;
 
 
 static void
-makeuser(u, line, user, pid)
-struct utmp *u;
-char *line, *user;
-int pid;
+makeuser(struct utmp *u, char *line, char *user, int pid)
 {
   time_t now;
   strncpy(u->ut_line, line, sizeof(u->ut_line));
@@ -747,8 +724,7 @@ int pid;
 }
 
 static slot_t
-TtyNameSlot(nam)
-char *nam;
+TtyNameSlot(char *nam)
 {
   slot_t slot;
   char *line;
@@ -878,8 +854,7 @@ getlogin()
 
 /* aargh, linux' pututline returns void! */
 struct utmp *
-xpututline(u)
-struct utmp *u;
+xpututline(struct utmp *u)
 {
   struct utmp *u2;
   pututline(u);

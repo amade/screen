@@ -668,9 +668,7 @@ WListUpdate(struct win *p, struct ListData *ldata)
 }
 
 void
-WListUpdatecv(cv, p)
-struct canvas *cv;
-struct win *p;
+WListUpdatecv(struct canvas *cv, struct win *p)
 {
   struct ListData *ldata;
   struct gl_Window_Data *wdata;
