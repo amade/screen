@@ -36,7 +36,6 @@
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
-#include "braille.h"
 #include "canvas.h"
 
 static int  CountChars (int);
@@ -358,13 +357,6 @@ FreeDisplay()
   evdeq(&D_idleev);
 #ifdef BLANKER_PRG
   evdeq(&D_blankerev);
-#endif
-#ifdef HAVE_BRAILLE
-  if (bd.bd_dpy == display)
-    {
-      bd.bd_start_braille = 0;
-      StartBraille();
-    }
 #endif
 
 #ifdef MULTI
@@ -3208,9 +3200,6 @@ disp_writeev_fn(struct event *ev, char *data)
 	      gettimeofday(&D_status_time, NULL);
 	      SetTimeout(&D_statusev, MsgWait);
 	      evenq(&D_statusev);
-#ifdef HAVE_BRAILLE
-	      RefreshBraille();     /* let user see multiple Msg()s */
-#endif
 	    }
 	}
       if (D_blocked_fuzz)

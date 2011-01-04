@@ -10,16 +10,6 @@
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  * Copyright (c) 1987 Oliver Laumann
-#ifdef HAVE_BRAILLE
- * Modified by:
- *      Authors:  Hadi Bargi Rangin  bargi@dots.physics.orst.edu
- *                Bill Barry         barryb@dots.physics.orst.edu
- *                Randy Lundquist    randyl@dots.physics.orst.edu
- *
- * Modifications Copyright (c) 1995 by
- * Science Access Project, Oregon State University.
-#endif
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
@@ -87,9 +77,6 @@
 #endif
 
 #include "screen.h"
-#ifdef HAVE_BRAILLE
-# include "braille.h"
-#endif
 
 #include "patchlevel.h"
 
@@ -480,9 +467,6 @@ main(int argc, char **argv)
   MsgWait = MSGWAIT * 1000;
   MsgMinWait = MSGMINWAIT * 1000;
   SilenceWait = SILENCEWAIT;
-#ifdef HAVE_BRAILLE
-  InitBraille();
-#endif
 #ifdef ZMODEM
   zmodem_sendcmd = SaveStr("!!! sz -vv -b ");
   zmodem_recvcmd = SaveStr("!!! rz -vv -b -E");
@@ -563,11 +547,6 @@ main(int argc, char **argv)
 		    }
 		  ap = NULL;
 		  break;
-#ifdef HAVE_BRAILLE
-		case 'B':
-		  bd.bd_start_braille = 1;
-		  break;
-#endif
 		case 'c':
 		  if (*++ap)
 		    RcFileName = ap;
@@ -1454,10 +1433,6 @@ main(int argc, char **argv)
       MakeWindow(&nwin);
     }
 
-#ifdef HAVE_BRAILLE
-  StartBraille();
-#endif
-  
   if (display && default_startup)
     display_copyright();
   signal(SIGINT, SigInt);

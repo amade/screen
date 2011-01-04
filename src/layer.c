@@ -32,7 +32,6 @@
 #include "screen.h"
 #include "mark.h"
 #include "extern.h"
-#include "braille.h"
 
 extern struct display *display, *displays;
 
@@ -102,10 +101,6 @@ LGotoPos(struct layer *l, int x, int y)
   if (l->l_pause.d)
     LayPauseUpdateRegion(l, x, x, y, y);
 
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    return;
-#endif
   FOR_EACH_UNPAUSED_CANVAS(l,
     {
       display = cv->c_display;
@@ -304,13 +299,6 @@ LPutChar(struct layer *l, struct mchar *c, int x, int y)
   struct canvas *cv;
   struct viewport *vp;
   int x2, y2;
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    {
-      BPutChar(l, c, x, y);
-      return;
-    }
-#endif
 
   if (l->l_pause.d)
     LayPauseUpdateRegion(l, x,
@@ -351,13 +339,6 @@ LPutStr(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 
   if (x + n > l->l_width)
     n = l->l_width - x;
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    {
-      BPutStr(l, s, n, r, x, y);
-      return;
-    }
-#endif
   if (l->l_pause.d)
     LayPauseUpdateRegion(l, x, x + n - 1, y, y);
 
@@ -410,13 +391,6 @@ LPutWinMsg(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 
   if (x + n > l->l_width)
     n = l->l_width - x;
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    {
-      BPutStr(l, s, n, r, x, y);
-      return;
-    }
-#endif
   if (l->l_pause.d)
     LayPauseUpdateRegion(l, x, x + n - 1, y, y);
   len = strlen(s);
@@ -499,10 +473,6 @@ LClearArea(struct layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
   struct canvas *cv;
   struct viewport *vp;
   int xs2, ys2, xe2, ye2;
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    return;
-#endif
   /* Check for zero-height window */
   if (ys < 0 || ye < ys)
     return;
@@ -566,13 +536,6 @@ LCDisplayLine(struct layer *l, struct mline *ml, int y, int xs, int xe, int isbl
   struct canvas *cv;
   struct viewport *vp;
   int xs2, xe2, y2;
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    {
-      BCDisplayLine(l, ml, y, xs, xe, isblank);
-      return;
-    }
-#endif
   if (l->l_pause.d)
     LayPauseUpdateRegion(l, xs, xe, y, y);
   FOR_EACH_UNPAUSED_CANVAS(l,
