@@ -76,8 +76,6 @@ extern struct NewWindow nwin_undef;
 extern char *multi;
 extern int maxwin;
 
-extern char *getenv();
-
 extern char SockPath[];
 extern struct event serv_read;
 extern char *rc_name;
