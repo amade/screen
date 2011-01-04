@@ -34,7 +34,6 @@
 
 #include "config.h"
 #include "screen.h"
-#include "braille.h"
 #include "extern.h"
 #include "logfile.h"
 

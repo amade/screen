@@ -396,20 +396,6 @@ extern int   UserAdd (char *, char *, struct acluser **);
 extern int   UserDel (char *, struct acluser **);
 
 
-/* braile.c */
-#ifdef HAVE_BRAILLE
-extern void  InitBraille (void);
-extern void  RefreshBraille (void);
-extern void  DoBrailleAction (struct action *, int);
-extern void  BGotoPos (struct layer *, int, int);
-extern void  BPutChar (struct layer *, struct mchar *, int, int);
-extern void  BPutStr (struct layer *, char *, int, struct mchar *, int, int);
-extern void  BCDisplayLine (struct layer *, struct mline *, int, int, int, int);
-#endif
-
-
-
-
 /* layer.c */
 extern void  LGotoPos (struct layer *, int, int);
 extern void  LPutChar (struct layer *, struct mchar *, int, int);
