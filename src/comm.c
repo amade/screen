@@ -8,14 +8,6 @@
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  * Copyright (c) 1987 Oliver Laumann
  *
-#ifdef HAVE_BRAILLE
- * Modified by:
- *      Authors:  Hadi Bargi Rangin  bargi@dots.physics.orst.edu
- *                Bill Barry         barryb@dots.physics.orst.edu
- *
- * Modifications Copyright (c) 1995 by
- * Science Access Project, Oregon State University.
-#endif
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,31 +63,6 @@ struct comm comms[RC_LAST + 1] =
 #ifdef COLOR
   { "bce",		NEED_FORE|ARGS_01 },
 #endif
-
-#ifdef HAVE_BRAILLE
-/* keywords for braille display (bd) */
-  { "bd_bc_down",	ARGS_0 },
-  { "bd_bc_left",	ARGS_0 },
-  { "bd_bc_right",	ARGS_0 },
-  { "bd_bc_up",		ARGS_0 },
-  { "bd_bell",		ARGS_01 },
-  { "bd_braille_table",	ARGS_01 },
-  { "bd_eightdot",	ARGS_01 },
-  { "bd_info",		ARGS_01 },
-  { "bd_link",		ARGS_01 },
-  { "bd_lower_left",	ARGS_0 },
-  { "bd_lower_right",	ARGS_0 },
-  { "bd_ncrc",		ARGS_01 },
-  { "bd_port",		ARGS_01 },
-  { "bd_scroll",	ARGS_01 },
-  { "bd_skip",		ARGS_01 },
-  { "bd_start_braille",	ARGS_01 },
-  { "bd_type",		ARGS_01 },
-  { "bd_upper_left",	ARGS_0 },
-  { "bd_upper_right",	ARGS_0 },
-  { "bd_width",		ARGS_01 },
-#endif
-
   { "bell",		ARGS_01 },
   { "bell_msg",		ARGS_01 },
   { "bind",		ARGS_1|ARGS_ORMORE },

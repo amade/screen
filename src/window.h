@@ -232,9 +232,6 @@ struct win
   char	 w_xtermosc[4][MAXSTR];	/* special xterm/rxvt escapes */
 #endif
   int    w_mouse;		/* mouse mode 0,9,1000 */
-#ifdef HAVE_BRAILLE
-  int	 w_bd_x, w_bd_y;	/* Braille cursor position */
-#endif
 
 #ifdef COPY_PASTE
   int    w_slowpaste;		/* do careful writes to the window */

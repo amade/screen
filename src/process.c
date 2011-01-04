@@ -5667,10 +5667,6 @@ DoAction(struct action *act, int key)
       break;
 #endif
     default:
-#ifdef HAVE_BRAILLE
-      /* key == -2: input from braille keybord, msgok always 0 */
-      DoBrailleAction(act, key == -2 ? 0 : msgok);
-#endif
       break;
     }
   if (display != odisplay)
