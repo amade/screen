@@ -406,7 +406,7 @@ main(int argc, char **argv)
   snprintf(version, 59, "%d.%.2d.%.2d%s (%s%s) %s", REV, VERS,
 	  PATCHLEVEL, STATE, ORIGIN, GIT_REV, DATE);
   nversion = REV * 10000 + VERS * 100 + PATCHLEVEL;
-  debug2("-- screen debug started %s (%s)\n", *av, version);
+  debug2("-- screen debug started %s (%s)\n", *argv, version);
 #ifdef POSIX
   debug("POSIX\n");
 #endif
