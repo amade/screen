@@ -31,31 +31,15 @@
 #undef IFFONT
 #undef IFCOLOR
 
-#ifdef FONT
-# define IFFONT(x) x
-# define IFFONTX(x) x
-#else
-# define IFFONT(x)
-# define IFFONTX(x)
-#endif
+#define IFFONT(x) x
 
-#ifdef COLOR
-# define IFCOLOR(x) x
-#else
-# define IFCOLOR(x)
-#endif
+#define IFFONTX(x) x
 
-#if defined(COLOR) && defined(COLORS16) && defined(COLORS256)
-# define IFCOLORX(x) x
-#else
-# define IFCOLORX(x)
-#endif
+#define IFCOLOR(x) x
 
-#ifdef DW_CHARS
-# define IFDWCHAR(x) x
-#else
-# define IFDWCHAR(x)
-#endif
+#define IFCOLORX(x) x
+
+#define IFDWCHAR(x) x
 
 struct mchar {
 	 unsigned char image;
@@ -151,34 +135,14 @@ IFCOLORX((mc)->colorx = (ml)->colorx[x];		      ) \
 IFDWCHAR((mc)->mbcs  = 0;				      ) \
 } while (0)
 
-#ifdef COLOR
-# ifdef COLORS16
-#  ifdef COLORS256
-#   define rend_getbg(mc) (((mc)->color & 0xf0) >> 4 | ((mc)->attr & A_BBG ? 0x100 : 0) | ((mc)->colorx & 0xf0))
-#   define rend_setbg(mc, c) ((mc)->color = ((mc)->color & 0x0f) | (c << 4 & 0xf0), (mc)->colorx = ((mc)->colorx & 0x0f) | (c & 0xf0), (mc)->attr = ((mc)->attr | A_BBG) ^ (c & 0x100 ? 0 : A_BBG))
-#   define rend_getfg(mc) (((mc)->color & 0x0f) | ((mc)->attr & A_BFG ? 0x100 : 0) | (((mc)->colorx & 0x0f) << 4))
-#   define rend_setfg(mc, c) ((mc)->color = ((mc)->color & 0xf0) | (c & 0x0f), (mc)->colorx = ((mc)->colorx & 0xf0) | ((c & 0xf0) >> 4), (mc)->attr = ((mc)->attr | A_BFG) ^ (c & 0x100 ? 0 : A_BFG))
-#   define rend_setdefault(mc) ((mc)->color = (mc)->colorx = 0, (mc)->attr &= ~(A_BBG|A_BFG))
-#  else
-#   define rend_getbg(mc) (((mc)->color & 0xf0) >> 4 | ((mc)->attr & A_BBG ? 0x100 : 0))
-#   define rend_setbg(mc, c) ((mc)->color = ((mc)->color & 0x0f) | (c << 4 & 0xf0), (mc)->attr = ((mc)->attr | A_BBG) ^ (c & 0x100 ? 0 : A_BBG))
-#   define rend_getfg(mc) (((mc)->color & 0x0f) | ((mc)->attr & A_BFG ? 0x100 : 0))
-#   define rend_setfg(mc, c) ((mc)->color = ((mc)->color & 0xf0) | (c & 0x0f), (mc)->attr = ((mc)->attr | A_BFG) ^ (c & 0x100 ? 0 : A_BFG))
-#   define rend_setdefault(mc) ((mc)->color = 0, (mc)->attr &= ~(A_BBG|A_BFG))
-#  endif
-#  define coli2e(c) ((((c) & 0x1f8) == 0x108 ? (c) ^ 0x108 : (c & 0xff)) ^ 9)
-#  define cole2i(c) ((c) >= 8 && (c) < 16 ? (c) ^ 0x109 : (c) ^ 9)
-# else
-#  define rend_getbg(mc) (((mc)->color & 0xf0) >> 4)
-#  define rend_setbg(mc, c) ((mc)->color = ((mc)->color & 0x0f) | (c << 4 & 0xf0))
-#  define rend_getfg(mc) ((mc)->color & 0x0f)
-#  define rend_setfg(mc, c) ((mc)->color = ((mc)->color & 0xf0) | (c & 0x0f))
-#  define rend_setdefault(mc) ((mc)->color = 0)
-#  define coli2e(c) ((c) ^ 9)
-#  define cole2i(c) ((c) ^ 9)
-# endif
-#endif
+#define rend_getbg(mc) (((mc)->color & 0xf0) >> 4 | ((mc)->attr & A_BBG ? 0x100 : 0) | ((mc)->colorx & 0xf0))
+#define rend_setbg(mc, c) ((mc)->color = ((mc)->color & 0x0f) | (c << 4 & 0xf0), (mc)->colorx = ((mc)->colorx & 0x0f) | (c & 0xf0), (mc)->attr = ((mc)->attr | A_BBG) ^ (c & 0x100 ? 0 : A_BBG))
+#define rend_getfg(mc) (((mc)->color & 0x0f) | ((mc)->attr & A_BFG ? 0x100 : 0) | (((mc)->colorx & 0x0f) << 4))
+#define rend_setfg(mc, c) ((mc)->color = ((mc)->color & 0xf0) | (c & 0x0f), (mc)->colorx = ((mc)->colorx & 0xf0) | ((c & 0xf0) >> 4), (mc)->attr = ((mc)->attr | A_BFG) ^ (c & 0x100 ? 0 : A_BFG))
+#define rend_setdefault(mc) ((mc)->color = (mc)->colorx = 0, (mc)->attr &= ~(A_BBG|A_BFG))
 
+#define coli2e(c) ((((c) & 0x1f8) == 0x108 ? (c) ^ 0x108 : (c & 0xff)) ^ 9)
+#define cole2i(c) ((c) >= 8 && (c) < 16 ? (c) ^ 0x109 : (c) ^ 9)
 enum
 {
   REND_BELL = 0,

@@ -38,7 +38,6 @@
 extern struct layer *flayer;
 extern struct win *fore;
 
-#ifdef COPY_PASTE
 
 int search_ic;
 
@@ -359,4 +358,3 @@ ISearch(int dir)
   flayer->l_y = W2D(markdata->cy);
 }
 
-#endif /* COPY_PASTE */

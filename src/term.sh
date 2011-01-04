@@ -83,14 +83,12 @@ nolist = 1;
 nolist = 0;
 }
 END {
-  printf "\n#ifdef MAPKEYS\n"
   printf "#  define KMAPDEFSTART %d\n", min
   printf "#  define NKMAPDEF %d\n", max-min+1
   printf "#  define KMAPADEFSTART %d\n", amin
   printf "#  define NKMAPADEF %d\n", amax-amin+1
   printf "#  define KMAPMDEFSTART %d\n", mmin
   printf "#  define NKMAPMDEF %d\n", mmax-mmin+1
-  printf "#endif\n"
 }
 ' | sed -e s/NUM/num/ -e s/STR/str/ -e s/FLG/flg/ \
 >> term.h
@@ -103,7 +101,6 @@ cat << EOF > kmapdef.c
 
 #include "config.h"
 
-#ifdef MAPKEYS
 
 EOF
 
@@ -167,7 +164,7 @@ END {
     else
       printf "\n"
   }
-  printf "};\n\n#endif\n"
+  printf "};\n"
 }
 ' >> kmapdef.c
 

@@ -1280,14 +1280,6 @@ AC_ARG_ENABLE(telnet, [  --enable-telnet         enable builtin telnet])
 if test "$enable_telnet" = "yes"; then
   AC_DEFINE(BUILTIN_TELNET)
 fi
-AC_ARG_ENABLE(colors256, [  --enable-colors256      enable support for 256 colors])
-if test "$enable_colors256" = "yes"; then
-  AC_DEFINE(COLORS256)
-fi
-AC_ARG_ENABLE(rxvt_osc, [  --enable-rxvt_osc       enable support for rxvt OSC codes])
-if test "$enable_rxvt_osc" = "yes"; then
-  AC_DEFINE(RXVT_OSC)
-fi
 
 dnl
 dnl    ****  the end  ****

@@ -276,13 +276,11 @@ extern char strnomem[];
 #define INP_EVERY	4
 
 
-#ifdef MULTIUSER
 struct acl
 {
   struct acl *next;
   char *name;
 };
-#endif
 
 /* register list */
 #define MAX_PLOP_DEFS 256

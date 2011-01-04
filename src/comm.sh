@@ -23,9 +23,7 @@ struct comm
 {
   char *name;
   int flags;
-#ifdef MULTIUSER
   AclBits userbits[ACL_BITS_PER_CMD];
-#endif
 };
 
 #define ARGS_MASK	(3)
