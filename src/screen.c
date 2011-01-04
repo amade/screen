@@ -696,9 +696,7 @@ main(int argc, char **argv)
 		  if (*ap == 'x')
 		    xflag = 1;
 #endif
-		  if (rflag)
-		    rflag = 2;
-		  rflag += (*ap == 'R') ? 2 : 1;
+		  rflag = (*ap == 'R') ? 4 : 3;
 		  break;
 #ifdef REMOTE_DETACH
 		case 'd':
