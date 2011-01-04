@@ -289,14 +289,6 @@ WinProcess(char **bufpp, int *lenp)
     }
 #endif /* MULTIUSER */
 
-#ifdef BUILTIN_TELNET
-  if (fore->w_type == W_TYPE_TELNET && TelIsline(fore) && *bufpp != fore->w_telbuf)
-    {
-      TelProcessLine(bufpp, lenp);
-      return;
-    }
-#endif
-
 #ifdef PSEUDOS
   if (W_UWP(fore))
     {
@@ -314,24 +306,12 @@ WinProcess(char **bufpp, int *lenp)
 
   if (l > f)
     l = f;
-#ifdef BUILTIN_TELNET
-  while (l > 0)
-#else
   if (l > 0)
-#endif
     {
       l2 = l;
       bcopy(*bufpp, ibuf + *ilen, l2);
       if (fore->w_autolf && (trunc = DoAutolf(ibuf + *ilen, &l2, f - l2)))
 	l -= trunc;
-#ifdef BUILTIN_TELNET
-      if (fore->w_type == W_TYPE_TELNET && (trunc = DoTelnet(ibuf + *ilen, &l2, f - l2)))
-	{
-	  l -= trunc;
-	  if (fore->w_autolf)
-	    continue;		/* need exact value */
-	}
-#endif
       *ilen += l2;
       *bufpp += l;
       *lenp -= l;
@@ -737,17 +717,6 @@ MakeWindow(struct NewWindow *newwin)
   p->w_pwin = 0;
 #endif
 
-#ifdef BUILTIN_TELNET
-  if (type == W_TYPE_TELNET)
-    {
-      if (TelConnect(p))
-	{
-	  FreeWindow(p);
-	  return -1;
-	}
-    }
-  else
-#endif
   if (type == W_TYPE_PTY)
     {
       p->w_pid = ForkWindow(p, nwin.args, TtyName);
@@ -879,14 +848,6 @@ RemakeWindow(struct win *p)
 
   p->w_deadpid = 0;
   p->w_pid = 0;
-#ifdef BUILTIN_TELNET
-  if (p->w_type == W_TYPE_TELNET)
-    {
-      if (TelConnect(p))
-        return -1;
-    }
-  else
-#endif
   if (p->w_type == W_TYPE_PTY)
     {
       p->w_pid = ForkWindow(p, p->w_cmdargs, TtyName);
@@ -921,9 +882,6 @@ CloseDevice(struct win *wp)
   wp->w_tty[0] = 0;
   evdeq(&wp->w_readev);
   evdeq(&wp->w_writeev);
-#ifdef BUILTIN_TELNET
-  evdeq(&wp->w_telconnev);
-#endif
   wp->w_readev.fd = wp->w_writeev.fd = -1;
 }
 
@@ -1035,16 +993,6 @@ OpenDevice(char **args, int lflag, int *typep, char **namep)
       *namep = "telnet";
       return 0;
     }
-#ifdef BUILTIN_TELNET
-  if (strcmp(arg, "//telnet") == 0)
-    {
-      f = TelOpen(args + 1);
-      lflag = 0;
-      *typep = W_TYPE_TELNET;
-      *namep = "telnet";
-    }
-  else
-#endif
   if (strncmp(arg, "//", 2) == 0)
     {
       Msg(0, "Invalid argument '%s'", arg);
@@ -1858,10 +1806,6 @@ win_readev_fn(struct event *ev, char *data)
       bp++;
       len--;
     }
-#endif
-#ifdef BUILTIN_TELNET
-  if (p->w_type == W_TYPE_TELNET)
-    len = TelIn(p, bp, len, buf + sizeof(buf) - (bp + len));
 #endif
   if (len == 0)
     return;

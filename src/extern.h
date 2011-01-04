@@ -424,19 +424,6 @@ extern void  ExitOverlayPage (void);
 extern int   LayProcessMouse (struct layer *, unsigned char);
 extern void  LayProcessMouseSwitch (struct layer *, int);
 
-/* teln.c */
-#ifdef BUILTIN_TELNET
-extern int   TelOpen (char **);
-extern int   TelConnect (struct win *);
-extern int   TelIsline (struct win *p);
-extern void  TelProcessLine (char **, int *);
-extern int   DoTelnet (char *, int *, int);
-extern int   TelIn (struct win *, char *, int, int);
-extern void  TelBreak (struct win *);
-extern void  TelWindowSize (struct win *);
-extern void  TelStatus (struct win *, char *, int);
-#endif
-
 /* nethack.c */
 extern const char *DoNLS (const char *);
 

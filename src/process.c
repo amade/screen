@@ -6734,13 +6734,6 @@ ShowInfo()
       *p++ = ' ';
       TtyGetModemStatus(wp->w_ptyfd, p);
     }
-#ifdef BUILTIN_TELNET
-  else if (wp->w_type == W_TYPE_TELNET)
-    {
-      *p++ = ' ';
-      TelStatus(wp, p, sizeof(buf) - 1 - (p - buf));
-    }
-#endif
   Msg(0, "%s %d(%s)", buf, wp->w_number, wp->w_title);
 }
 

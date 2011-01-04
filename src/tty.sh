@@ -980,13 +980,6 @@ int n, closeopen;
 {
   sigret_t (*sigalrm)SIGPROTOARG;
 
-#ifdef BUILTIN_TELNET
-  if (wp->w_type == W_TYPE_TELNET)
-    {
-      TelBreak(wp);
-      return;
-    }
-#endif
   if (wp->w_type != W_TYPE_PLAIN)
     return;
 

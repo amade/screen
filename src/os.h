@@ -160,11 +160,6 @@ extern int errno;
 # define vsnprintf xvsnprintf
 #endif
 
-#ifdef BUILTIN_TELNET
-# include <netinet/in.h>
-# include <arpa/inet.h>
-#endif
-
 #if defined(USE_LOCALE) && (!defined(HAVE_SETLOCALE) || !defined(HAVE_STRFTIME))
 # undef USE_LOCALE
 #endif

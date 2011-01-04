@@ -944,11 +944,6 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
   p->w_histheight = hi;
 #endif
 
-#ifdef BUILTIN_TELNET
-  if (p->w_type == W_TYPE_TELNET)
-    TelWindowSize(p);
-#endif
-
 #ifdef DEBUG
   /* Test if everything was ok */
   for (fy = 0; fy < p->w_height + p->w_histheight; fy++)

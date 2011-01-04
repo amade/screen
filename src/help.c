@@ -585,12 +585,6 @@ screen-devel@gnu.org\n\n\n"
 #else
 "-rxvt "
 #endif
-
-#ifdef BUILTIN_TELNET
-"+builtin-telnet "
-#else
-"-builtin-telnet "
-#endif
 ;
 
 static void

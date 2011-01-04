@@ -136,8 +136,6 @@
  *        Needs FONT and ENCODINGS to work.
  * define COLORS16 if you want 16 colors.
  *        Needs COLOR to work.
- * define BUILTIN_TELNET to add telnet support to screen.
- *        Syntax: screen //telnet host [port]
  * define RXVT_OSC if you want support for rxvts special
  *        change fgcolor/bgcolor/bgpicture sequences
  */
@@ -163,7 +161,6 @@
 # define BLANKER_PRG
 #endif /* SIMPLESCREEN */
 
-#undef BUILTIN_TELNET
 #undef RXVT_OSC
 #undef COLORS256
 

@@ -261,17 +261,6 @@ struct win
 #ifdef ZMODEM
   struct display *w_zdisplay;
 #endif
-#ifdef BUILTIN_TELNET
-  struct sockaddr_in w_telsa;
-  char   w_telbuf[IOSIZE];
-  int    w_telbufl;
-  char   w_telmopts[256];
-  char   w_telropts[256];
-  int    w_telstate;
-  char   w_telsubbuf[128];
-  int    w_telsubidx;
-  struct event w_telconnev;
-#endif
   struct {
     int    on;    /* Is the alternate buffer currently being used? */
     struct mline *mlines;
