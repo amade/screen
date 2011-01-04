@@ -69,10 +69,10 @@
 #if (defined(AUX) || defined(_AUX_SOURCE)) && defined(POSIX)
 # include <compat.h>
 #endif
-#if defined(USE_LOCALE) || defined(ENCODINGS)
+#if defined(USE_LOCALE)
 # include <locale.h>
 #endif
-#if defined(HAVE_NL_LANGINFO) && defined(ENCODINGS)
+#if defined(HAVE_NL_LANGINFO)
 # include <langinfo.h>
 #endif
 
@@ -85,9 +85,7 @@
  *  builtin lock is used. Therefore disable SHADOWPW if
  *  we do not really need it (kind of security thing).
  */
-#ifndef LOCK
-# undef SHADOWPW
-#endif
+#undef SHADOWPW
 
 #include <pwd.h>
 #ifdef SHADOWPW
@@ -112,15 +110,11 @@ extern struct LayFuncs MarkLf;
 
 
 extern int visual_bell;
-#ifdef COPY_PASTE
 extern unsigned char mark_key_tab[];
-#endif
 extern char version[];
 extern char DefaultShell[];
-#ifdef ZMODEM
 extern char *zmodem_sendcmd;
 extern char *zmodem_recvcmd;
-#endif
 extern struct layout *layout_last;
 
 
@@ -183,12 +177,8 @@ char *hardcopydir = NULL;
 char *BellString;
 char *VisualBellString;
 char *ActivityString;
-#ifdef COPY_PASTE
 char *BufferFile;
-#endif
-#ifdef POW_DETACH
 char *PowDetachString;
-#endif
 char *hstatusstring;
 char *captionstring;
 char *timestring;
@@ -200,7 +190,6 @@ int cmdflag;
 int queryflag = -1;
 int adaptflag;
 
-#ifdef MULTIUSER
 char *multi;
 char *multi_home;
 int multi_uid;
@@ -208,7 +197,6 @@ int own_uid;
 int multiattach;
 int tty_mode;
 int tty_oldmode = -1;
-#endif
 
 char HostName[MAXSTR];
 int MasterPid, PanicPid;
@@ -217,13 +205,9 @@ int default_startup;
 int ZombieKey_destroy, ZombieKey_resurrect, ZombieKey_onerror;
 char *preselect = NULL;		/* only used in Attach() */
 
-#ifdef UTF8
 char *screenencodings;
-#endif
 
-#ifdef DW_CHARS
 int cjkwidth;
-#endif
 
 #ifdef NETHACK
 int nethackflag = 0;
@@ -365,9 +349,7 @@ main(int argc, char **argv)
 #endif
   struct NewWindow nwin;
   int detached = 0;		/* start up detached */
-#ifdef MULTIUSER
   char *sockp;
-#endif
   char *sty = 0;
 
 #if (defined(AUX) || defined(_AUX_SOURCE)) && defined(POSIX)
@@ -453,34 +435,22 @@ main(int argc, char **argv)
   timestring = SaveStr("%c:%s %M %d %H%? %l%?");
   wlisttit = SaveStr(" Num Name%=Flags");
   wliststr = SaveStr("%4n %t%=%f");
-#ifdef COPY_PASTE
   BufferFile = SaveStr(DEFAULT_BUFFERFILE);
-#endif
   ShellProg = NULL;
-#ifdef POW_DETACH
   PowDetachString = 0;
-#endif
   default_startup = (argc > 1) ? 0 : 1;
   adaptflag = 0;
   VBellWait = VBELLWAIT * 1000;
   MsgWait = MSGWAIT * 1000;
   MsgMinWait = MSGMINWAIT * 1000;
   SilenceWait = SILENCEWAIT;
-#ifdef ZMODEM
   zmodem_sendcmd = SaveStr("!!! sz -vv -b ");
   zmodem_recvcmd = SaveStr("!!! rz -vv -b -E");
-#endif
 
-#ifdef COPY_PASTE
   CompileKeys((char *)0, 0, mark_key_tab);
-#endif
-#ifdef UTF8
   InitBuiltinTabs();
   screenencodings = SaveStr(SCREENENCODINGS);
-#endif
-#ifdef DW_CHARS
   cjkwidth = 0;
-#endif
   nwin = nwin_undef;
   nwin_options = nwin_undef;
   strcpy(screenterm, "screen");
@@ -492,11 +462,7 @@ main(int argc, char **argv)
   if (*av0 == '-')
     {
       rflag = 4;
-#ifdef MULTI
       xflag = 1;
-#else
-      dflag = 1;
-#endif
       ShellProg = SaveStr(DefaultShell); /* to prevent nasty circles */
     }
   while (argc > 0)
@@ -664,24 +630,19 @@ main(int argc, char **argv)
 		  break;
 		case 'r':
 		case 'R':
-#ifdef MULTI
 		case 'x':
-#endif
 		  if (argc > 1 && *argv[1] != '-' && !SockMatch)
 		    {
 		      SockMatch = *++argv;
 		      argc--;
 		      debug2("rflag=%d, SockMatch=%s\n", dflag, SockMatch);
 		    }
-#ifdef MULTI
 		  if (*ap == 'x')
 		    xflag = 1;
-#endif
 		  if (rflag)
 		    rflag = 2;
 		  rflag += (*ap == 'R') ? 2 : 1;
 		  break;
-#ifdef REMOTE_DETACH
 		case 'd':
 		  dflag = 1;
 		  /* FALLTHROUGH */
@@ -698,7 +659,6 @@ main(int argc, char **argv)
 			}
 		    }
 		  break;
-#endif
 		case 's':
 		  if (--argc == 0)
 		    exit_with_usage(myname, "Specify shell with -s", NULL);
@@ -723,11 +683,9 @@ main(int argc, char **argv)
 		case 'v':
 		  Panic(0, "Screen version %s", version);
 		  /* NOTREACHED */
-#ifdef UTF8
 		case 'U':
 		  nwin_options.encoding = nwin_options.encoding == -1 ? UTF8 : 0;
 		  break;
-#endif
 		default:
 		  exit_with_usage(myname, "Unknown option %s", --ap);
 		}
@@ -751,7 +709,6 @@ main(int argc, char **argv)
 #ifdef USE_LOCALE
   setlocale(LC_ALL, "");
 #endif
-#ifdef ENCODINGS
   if (nwin_options.encoding == -1)
     {
       /* ask locale if we should start in UTF-8 mode */
@@ -762,15 +719,12 @@ main(int argc, char **argv)
       nwin_options.encoding = FindEncoding(nl_langinfo(CODESET));
       debug1("locale says encoding = %d\n", nwin_options.encoding);
 # else
-#  ifdef UTF8
       char *s;
       if ((s = locale_name()) && InStr(s, "UTF-8"))
         nwin_options.encoding = UTF8;
-#  endif
       debug1("environment says encoding=%d\n", nwin_options.encoding);
 #endif
     }
-# ifdef DW_CHARS
   {
     char *s;
     if ((s = locale_name()))
@@ -781,11 +735,8 @@ main(int argc, char **argv)
       }
     }
   }
-#endif
-#endif
   if (nwin_options.aka)
     {
-#ifdef ENCODINGS
       if (nwin_options.encoding > 0)
         {
           size_t len = strlen(nwin_options.aka);
@@ -799,7 +750,6 @@ main(int argc, char **argv)
           nwin_options.aka = newbuf;
         }
       else
-#endif
         {
           /* If we just use the original value from av,
              subsequent shelltitle invocations will attempt to free
@@ -815,9 +765,7 @@ main(int argc, char **argv)
   if (!cmdflag && dflag && mflag && !(rflag || xflag))
     detached = 1;
   nwin = nwin_options;
-#ifdef ENCODINGS
   nwin.encoding = nwin_undef.encoding;	/* let screenrc overwrite it */
-#endif
   if (argc)
     nwin.args = argv;
 
@@ -868,7 +816,6 @@ main(int argc, char **argv)
     }
 #endif
 
-#ifdef MULTIUSER
   own_uid = multi_uid = real_uid;
   if (SockMatch && (sockp = index(SockMatch, '/')))
     {
@@ -884,11 +831,9 @@ main(int argc, char **argv)
 	  multi_home = SaveStr(mppp->pw_dir);
           if (strlen(multi_home) > MAXPATHLEN - 10)
 	    Panic(0, "home directory path too long");
-# ifdef MULTI
           /* always fake multi attach mode */
 	  if (rflag || lsflag)
 	    xflag = 1;
-# endif /* MULTI */
 	  detached = 0;
 	  multiattach = 1;
 	}
@@ -898,7 +843,6 @@ main(int argc, char **argv)
     }
   if (SockMatch && *SockMatch == 0)
     SockMatch = 0;
-#endif /* MULTIUSER */
 
   if ((LoginName = getlogin()) && LoginName[0] != '\0')
     {
@@ -919,7 +863,7 @@ main(int argc, char **argv)
 
   ppp = getpwbyname(LoginName, ppp);
 
-#if !defined(SOCKDIR) && defined(MULTIUSER)
+#if !defined(SOCKDIR)
   if (multi && !multiattach)
     {
       if (home && strcmp(home, ppp->pw_dir))
@@ -959,10 +903,8 @@ main(int argc, char **argv)
     home = ppp->pw_dir;
   if (strlen(LoginName) > MAXLOGINLEN)
     Panic(0, "LoginName too long - sorry.");
-#ifdef MULTIUSER
   if (multi && strlen(multi) > MAXLOGINLEN)
     Panic(0, "Screen owner name too long - sorry.");
-#endif
   if (strlen(home) > MAXPATHLEN - 25)
     Panic(0, "$HOME too long - sorry.");
 
@@ -975,9 +917,7 @@ main(int argc, char **argv)
 
       /* ttyname implies isatty */
       SET_TTYNAME(1);
-#ifdef MULTIUSER
       tty_mode = (int)st.st_mode & 0777;
-#endif
 
 #ifndef NAMEDPIPE
       fl = fcntl(0, F_GETFL, 0);
@@ -1013,12 +953,9 @@ main(int argc, char **argv)
     {
       if (strlen(SockDir) >= MAXPATHLEN - 1)
 	Panic(0, "Ridiculously long $SCREENDIR - try again.");
-#ifdef MULTIUSER
       if (multi)
 	Panic(0, "No $SCREENDIR with multi screens, please.");
-#endif
     }
-#ifdef MULTIUSER
   if (multiattach)
     {
 # ifndef SOCKDIR
@@ -1030,7 +967,6 @@ main(int argc, char **argv)
 # endif
     }
   else
-#endif
     {
 #ifndef SOCKDIR
       if (SockDir == 0)
@@ -1100,14 +1036,12 @@ main(int argc, char **argv)
   else
   if (!S_ISDIR(st.st_mode))
     Panic(0, "%s is not a directory.", SockPath);
-#ifdef MULTIUSER
   if (multi)
     {
       if ((int)st.st_uid != multi_uid)
 	Panic(0, "%s is not the owner of %s.", multi, SockPath);
     }
   else
-#endif
     {
 #ifdef SOCKDIR /* if SOCKDIR is not defined, the socket is in $HOME.
                   in that case it does not make sense to compare uids. */
@@ -1140,10 +1074,8 @@ main(int argc, char **argv)
     {
       int i, fo, oth;
 
-#ifdef MULTIUSER
       if (multi)
 	real_uid = multi_uid;
-#endif
       SET_GUID();
       i = FindSocket((int *)NULL, &fo, &oth, SockMatch);
       if (quietflag) {
@@ -1176,10 +1108,8 @@ main(int argc, char **argv)
 	  Attacher();
 	  /* NOTREACHED */
 	}
-#ifdef MULTIUSER
       if (multiattach)
 	Panic(0, "Can't create sessions of other users.");
-#endif
       debug("screen -r: backend not responding -- still crying\n");
     }
   else if (dflag && !mflag)
@@ -1301,10 +1231,8 @@ main(int argc, char **argv)
       if (MakeDisplay(LoginName, attach_tty, attach_term, n, getppid(), &attach_Mode) == 0)
 	Panic(0, "Could not alloc display");
       PanicPid = 0;
-#ifdef ENCODINGS
       D_encoding = nwin_options.encoding > 0 ? nwin_options.encoding : 0;
       debug1("D_encoding = %d\n", D_encoding);
-#endif
     }
 
   if (SockMatch)
@@ -1747,14 +1675,12 @@ DoWait()
 		}
 	      break;
 	    }
-#ifdef PSEUDOS
 	  if (p->w_pwin && pid == p->w_pwin->p_pid)
 	    {
 	      debug2("pseudo of win Nr %d died. pid == %d\n", p->w_number, p->w_pwin->p_pid);
 	      FreePseudowin(p);
 	      break;
 	    }
-#endif
 	}
       if (p == 0)
 	{
@@ -1909,13 +1835,10 @@ Detach(int mode)
       sign = SIG_STOP;
       break;
 #endif
-#ifdef REMOTE_DETACH
     case D_REMOTE:
       AddStrSock("remote detached");
       sign = SIG_BYE;
       break;
-#endif
-#ifdef POW_DETACH
     case D_POWER:
       AddStrSock("power detached");
       if (PowDetachString)
@@ -1925,7 +1848,6 @@ Detach(int mode)
 	}
       sign = SIG_POWER_BYE;
       break;
-#ifdef REMOTE_DETACH
     case D_REMOTE_POWER:
       AddStrSock("remote power detached");
       if (PowDetachString)
@@ -1935,8 +1857,6 @@ Detach(int mode)
 	}
       sign = SIG_POWER_BYE;
       break;
-#endif
-#endif
     case D_LOCK:
       ClearAll();
       sign = SIG_LOCK;
@@ -1973,9 +1893,7 @@ Detach(int mode)
     }
   if (D_fore)
     {
-#ifdef MULTIUSER
       ReleaseAutoWritelock(display, D_fore);
-#endif
       D_user->u_detachwin = D_fore->w_number;
       D_user->u_detachotherwin = D_other ? D_other->w_number : -1;
     }
@@ -2146,7 +2064,6 @@ void Panic(int err, const char *fmt, VA_DOTS)
 	if (D_userpid)
 	  Kill(D_userpid, SIG_BYE);
       }
-#ifdef MULTIUSER
   if (tty_oldmode >= 0)
     {
 # ifdef USE_SETEUID
@@ -2158,7 +2075,6 @@ void Panic(int err, const char *fmt, VA_DOTS)
       debug1("Panic: changing back modes from %s\n", attach_tty);
       chmod(attach_tty, tty_oldmode);
     }
-#endif
   eexit(1);
 }
 
@@ -2786,7 +2702,6 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	  break;
 	case 'P':
 	  p--;
-#ifdef COPY_PASTE
 	  if (display && ev && ev != &D_hstatusev)	/* Hack */
 	    {
 	      /* Is the layer in the current canvas in copy mode? */
@@ -2794,7 +2709,6 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	      if (ev == &cv->c_captev && cv->c_layer->l_layfn == &MarkLf)
 		qmflag = 1;
 	    }
-#endif
 	  break;
 	case 'E':
 	  p--;
@@ -3109,15 +3023,10 @@ serv_select_fn(struct event *ev, char *data)
 #else
 	  char ibuf = displays->d_OldMode.m_tchars.t_intrc;
 #endif
-#ifdef PSEUDOS
 	  write(W_UWP(fore) ? fore->w_pwin->p_ptyfd : fore->w_ptyfd, 
 		&ibuf, 1);
 	  debug1("Backend wrote interrupt to %d", fore->w_number);
 	  debug1("%s\n", W_UWP(fore) ? " (pseudowin)" : "");
-#else
-	  write(fore->w_ptyfd, &ibuf, 1);
-	  debug1("Backend wrote interrupt to %d\n", fore->w_number);
-#endif
 	}
       InterruptPlease = 0;
     }
@@ -3166,10 +3075,8 @@ serv_select_fn(struct event *ev, char *data)
 		  break;
 	      if (cv)
 		continue;	/* user already sees window */
-#ifdef MULTIUSER
 	      if (!(ACLBYTE(p->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id)))
 		continue;	/* user doesn't care */
-#endif
 	      Msg(0, "%s", MakeWinMsg(ActivityString, p, '%'));
 	      p->w_monitor = MON_DONE;
 	    }

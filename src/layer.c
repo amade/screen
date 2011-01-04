@@ -63,26 +63,15 @@ mloff(struct mline *ml, int off)
     return 0;
   mml.image = ml->image + off;
   mml.attr  = ml->attr  + off;
-#ifdef FONT
   mml.font  = ml->font  + off;
   mml.fontx  = ml->fontx  + off;
-#endif
-#ifdef COLOR
   mml.color = ml->color + off;
-# ifdef COLORS256
   mml.colorx = ml->colorx + off;
-# endif
-#endif
   return &mml;
 }
 
-#ifdef UTF8
 # define RECODE_MCHAR(mc) ((l->l_encoding == UTF8) != (D_encoding == UTF8) ? recode_mchar(mc, l->l_encoding, D_encoding) : (mc))
 # define RECODE_MLINE(ml) ((l->l_encoding == UTF8) != (D_encoding == UTF8) ? recode_mline(ml, l->l_width, l->l_encoding, D_encoding) : (ml))
-#else
-# define RECODE_MCHAR(mc) (mc)
-# define RECODE_MLINE(ml) (ml)
-#endif
 
 #define FOR_EACH_UNPAUSED_CANVAS(l, fn) for (cv = (l)->l_cvlist; cv; cv = cv->c_lnext) \
   {	\
@@ -302,11 +291,7 @@ LPutChar(struct layer *l, struct mchar *c, int x, int y)
 
   if (l->l_pause.d)
     LayPauseUpdateRegion(l, x,
-#ifdef DW_CHARS
 	x + (c->mbcs ? 1 : 0)
-#else
-	x
-#endif
 	, y, y);
 
   FOR_EACH_UNPAUSED_CANVAS(l,
@@ -362,7 +347,6 @@ LPutStr(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 	GotoPos(xs2, y2);
 	SetRendition(r);
 	s2 = s + xs2 - x - vp->v_xoff;
-#ifdef UTF8
 	if (D_encoding == UTF8 && l->l_encoding != UTF8 && (r->font || r->fontx || l->l_encoding))
 	  {
 	    struct mchar mc;
@@ -374,7 +358,6 @@ LPutStr(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 	      }
 	    continue;
 	  }
-#endif
 	while (xs2++ <= xe2)
 	  PUTCHARLP(*s2++);
       }
@@ -570,13 +553,11 @@ LCDisplayLineWrap(struct layer *l, struct mline *ml, int y, int from, int to, in
 {
   struct mchar nc;
   copy_mline2mchar(&nc, ml, 0);
-#ifdef DW_CHARS
   if (dw_left(ml, 0, l->l_encoding))
     {
       nc.mbcs = ml->image[1];
       from++;
     }
-#endif
   LWrapChar(l, &nc, y - 1, -1, -1, 0);
   from++;
   if (from <= to)
@@ -609,11 +590,7 @@ LWrapChar(struct layer *l, struct mchar *c, int y, int top, int bot, int ins)
     /* XXX: 'y'? */
     LayPauseUpdateRegion(l, 0, l->l_width - 1, top, bot);
 
-#ifdef COLOR
   bce = rend_getbg(c);
-#else
-  bce = 0;
-#endif
   if (y != bot)
     {
       /* simple case: no scrolling */
@@ -1017,10 +994,8 @@ ExitOverlayPage()
     }
   if (p && p->w_savelayer == oldlay)
     p->w_savelayer = flayer;
-#ifdef COPY_PASTE
   if (p && oldlay == p->w_paster.pa_pastelayer)
     p->w_paster.pa_pastelayer = 0;
-#endif
 
   for (lay = layouts; lay; lay = lay->lay_next)
     for (cv = lay->lay_cvlist; cv; cv = cv->c_next)
@@ -1127,14 +1102,12 @@ void LayPause(struct layer *layer, int pause)
 		  if (xs < vp->v_xs) xs = vp->v_xs;
 		  if (xe > vp->v_xe) xe = vp->v_xe;
 
-#if defined(DW_CHARS) && defined(UTF8)
 		  if (layer->l_encoding == UTF8 && xe < vp->v_xe && win)
 		    {
 		      struct mline *ml = win->w_mlines + line;
 		      if (dw_left(ml, xe, UTF8))
 			xe++;
 		    }
-#endif
 
 		  if (xs <= xe)
 		    RefreshLine(line + vp->v_yoff, xs, xe, 0);

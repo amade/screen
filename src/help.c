@@ -49,9 +49,7 @@ extern struct mchar mchar_blank, mchar_so;
 extern int renditions[];
 extern unsigned char *blank;
 extern struct win **wtab;
-#ifdef MAPKEYS
 extern struct term term[];
-#endif
 
 extern struct LayFuncs ListLf;
 
@@ -68,12 +66,10 @@ exit_with_usage(char *myname, char *message, char *arg)
   printf("-a            Force all capabilities into each window's termcap.\n");
   printf("-A -[r|R]     Adapt all windows to the new display width & height.\n");
   printf("-c file       Read configuration file instead of '.screenrc'.\n");
-#ifdef REMOTE_DETACH
   printf("-d (-r)       Detach the elsewhere running screen (and reattach here).\n");
   printf("-dmS name     Start as daemon: Screen session in detached mode.\n");
   printf("-D (-r)       Detach and logout remote (and reattach here).\n");
   printf("-D -RR        Do whatever is needed to get a screen session.\n");
-#endif
   printf("-e xy         Change command characters.\n");
   printf("-f            Flow control on, -fn = off, -fa = auto.\n");
   printf("-h lines      Set the size of the scrollback history buffer.\n");
@@ -95,14 +91,10 @@ exit_with_usage(char *myname, char *message, char *arg)
   printf("-S sockname   Name this session <pid>.sockname instead of <pid>.<tty>.<host>.\n");
   printf("-t title      Set title. (window's name).\n");
   printf("-T term       Use term as $TERM for windows, rather than \"screen\".\n");
-#ifdef UTF8
   printf("-U            Tell screen to use UTF-8 encoding.\n");
-#endif
   printf("-v            Print \"Screen version %s\".\n", version);
   printf("-wipe [match] Do nothing, just clean up SockDir [on possible matches].\n");
-#ifdef MULTI
   printf("-x            Attach to a not detached screen. (Multi display mode).\n");
-#endif /* MULTI */
   printf("-X            Execute <cmd> as a screen command in the specified session.\n");
   if (message && *message)
     {
@@ -436,7 +428,6 @@ add_key_to_buf(char *buf, int key)
     strcpy(buf, "unset");
   else if (key == ' ')
     strcpy(buf, "sp");
-#ifdef MAPKEYS
   else if (key >= 256)
     {
       key = key - 256 + T_CAPS;
@@ -446,7 +437,6 @@ add_key_to_buf(char *buf, int key)
       buf[3] = ':';
       buf[4] = 0;
     }
-#endif
   else
     buf[AddXChar(buf, key)] = 0;
 }
@@ -527,66 +517,6 @@ http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc., \
 \n\
 Send bugreports, fixes, enhancements, t-shirts, money, beer & pizza to \
 screen-devel@gnu.org\n\n\n"
-
-"Capabilities:\n"
-
-#ifdef COPY_PASTE
-"+copy "
-#else
-"-copy "
-#endif
-
-#ifdef REMOTE_DETACH
-"+remote-detach "
-#else
-"-remote-detach "
-#endif
-
-#ifdef POW_DETACH
-"+power-detach "
-#else
-"-power-detach "
-#endif
-
-#ifdef MULTI
-"+multi-attach "
-#else
-"-multi-attach "
-#endif
-
-#ifdef MULTIUSER
-"+multi-user "
-#else
-"-multi-user "
-#endif
-
-#ifdef FONT
-"+font "
-#else
-"-font "
-#endif
-
-#ifdef COLORS256
-"+color-256 "
-#elif defined(COLORS16)
-"+color-16 "
-#elif defined(COLOR)
-"+color "
-#else
-"-color "
-#endif
-
-#ifdef UTF8
-"+utf8 "
-#else
-"-utf8 "
-#endif
-
-#ifdef RXVT_OSC
-"+rxvt "
-#else
-"-rxvt "
-#endif
 
 #ifdef BUILTIN_TELNET
 "+builtin-telnet "
@@ -752,7 +682,6 @@ CopyrightRedisplayLine(int y, int xs, int xe, int isblank)
 **
 */
 
-#ifdef MAPKEYS
 extern struct kmap_ext *kmap_exts;
 extern int kmap_extn;
 extern struct action dmtab[];
@@ -953,7 +882,6 @@ BindkeyRedisplayLine(int y, int xs, int xe, int isblank)
     LClearArea(flayer, xs, y, xe, y, 0, 0);
 }
 
-#endif /* MAPKEYS */
 
 
 /*
@@ -962,7 +890,6 @@ BindkeyRedisplayLine(int y, int xs, int xe, int isblank)
 **
 */
 
-#ifdef ZMODEM
 
 static void ZmodemRedisplayLine (int, int, int, int);
 static int  ZmodemResize (int, int);
@@ -1007,7 +934,6 @@ ZmodemPage()
   flayer->l_y = 0;
 }
 
-#endif
 
 
 

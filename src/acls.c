@@ -61,7 +61,6 @@ extern char SockPath[];
 extern struct display *display, *displays;
 struct acluser *users;
 
-#ifdef MULTIUSER
 int maxusercount = 0;	/* used in process.c: RC_MONITOR, RC_SILENCE */
 
 /* record given user ids here */
@@ -118,7 +117,6 @@ GrowBitfield(AclBits *bfp, int len, int delta, int defaultbit)
   return 0;
 }
 
-#endif /* MULTIUSER */
 
 /* 
  * Returns an nonzero Address. Its contents is either a User-ptr, 
@@ -132,12 +130,8 @@ FindUserPtr(char *name)
   for (u = &users; *u; u = &(*u)->u_next)
     if (!strcmp((*u)->u_name, name))
       break;
-#ifdef MULTIUSER
   debug3("FindUserPtr %s %sfound, id %d\n", name, (*u)?"":"not ", 
          (*u)?(*u)->u_id:-1);
-#else /* MULTIUSER */
-  debug2("FindUserPtr %s %sfound\n", name, (*u)?"":"not ");
-#endif /* MULTIUSER */
   return u;
 }
 
@@ -152,9 +146,7 @@ int DefaultMetaEsc = -1;
 int
 UserAdd(char *name, char *pass, struct acluser **up)
 {
-#ifdef MULTIUSER
   int j;
-#endif
 
   if (!up)
     up = FindUserPtr(name);
@@ -168,13 +160,9 @@ UserAdd(char *name, char *pass, struct acluser **up)
     *up = (struct acluser *)calloc(1, sizeof(struct acluser));
   if (!*up)
     return -1;		/* he still does not exist */
-#ifdef COPY_PASTE
   (*up)->u_plop.buf = NULL;
   (*up)->u_plop.len = 0;
-# ifdef ENCODINGS
   (*up)->u_plop.enc = 0;
-# endif
-#endif
   (*up)->u_Esc = DefaultEsc;
   (*up)->u_MetaEsc = DefaultMetaEsc;
   strncpy((*up)->u_name, name, MAXLOGINLEN);
@@ -186,7 +174,6 @@ UserAdd(char *name, char *pass, struct acluser **up)
   (*up)->u_detachwin = -1;
   (*up)->u_detachotherwin = -1;
 
-#ifdef MULTIUSER
   (*up)->u_group = NULL;
   /* now find an unused index */
   for ((*up)->u_id = 0; (*up)->u_id < maxusercount; (*up)->u_id++)
@@ -294,9 +281,6 @@ UserAdd(char *name, char *pass, struct acluser **up)
         }
       ACLBYTE((*up)->u_umask_w_bits[j], (*up)->u_id) |= ACLBIT((*up)->u_id);
     }
-#else /* MULTIUSER */
-  debug1("UserAdd %s\n", name);
-#endif /* MULTIUSER */
   return 0;
 }
 
@@ -308,9 +292,7 @@ int
 UserDel(char *name, struct acluser **up)
 {
   struct acluser *u;
-#ifdef MULTIUSER
   int i;
-#endif
   struct display *old, *next;
 
   if (!up)
@@ -330,7 +312,6 @@ UserDel(char *name, struct acluser **up)
   display = old;
   *up = u->u_next;
 
-#ifdef MULTIUSER
   for (up = &users; *up; up = &(*up)->u_next)
     {
       /* unlink all group references to this user */
@@ -357,11 +338,8 @@ UserDel(char *name, struct acluser **up)
   AclSetPerm(NULL, u, default_c_bit[ACL_EXEC] ? "+x" : "-x", "?");
   for (i = 0; i < ACL_BITS_PER_WIN; i++)
     free((char *)u->u_umask_w_bits[i]);
-#endif /* MULTIUSER */
   debug1("FREEING user structure for %s\n", u->u_name);
-#ifdef COPY_PASTE
   UserFreeCopyBuffer(u);
-#endif
   free((char *)u);
   if (!users)
     {
@@ -372,7 +350,6 @@ UserDel(char *name, struct acluser **up)
 }
 
 
-#ifdef COPY_PASTE
 
 /*
  * returns 0 if the copy buffer was really deleted.
@@ -398,9 +375,7 @@ UserFreeCopyBuffer(struct acluser *u)
   u->u_plop.buf = 0;
   return 0;
 }
-#endif	/* COPY_PASTE */
 
-#ifdef MULTIUSER
 /*
  * Traverses group nodes. It searches for a node that references user u. 
  * If recursive is true, nodes found in the users are also searched using 
@@ -565,14 +540,12 @@ DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
     *up = u;	/* substitute user now */
   return NULL;
 }
-#endif /* MULTIUSER */
 
 /************************************************************************
  *                     end of user managing code                        *
  ************************************************************************/
 
 
-#ifdef MULTIUSER
 
 /* This gives the users default rights to the new window w created by u */
 int
@@ -1083,4 +1056,3 @@ AclCheckPermCmd(struct acluser *u, int mode, struct comm *c)
   return !ok;
 }
 
-#endif /* MULTIUSER */

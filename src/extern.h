@@ -132,26 +132,20 @@ extern void  display_bindkey (char *, struct action *);
 extern int   InWList (void);
 extern void  WListUpdatecv (struct canvas *, struct win *);
 extern void  WListLinkChanged (void);
-#ifdef ZMODEM
 extern void  ZmodemPage (void);
-#endif
 
 /* window.c */
 extern int   MakeWindow (struct NewWindow *);
 extern int   RemakeWindow (struct win *);
 extern void  FreeWindow (struct win *);
-#ifdef PSEUDOS
 extern int   winexec (char **);
 extern void  FreePseudowin (struct win *);
-#endif
 extern void  nwin_compose (struct NewWindow *, struct NewWindow *, struct NewWindow *);
 extern int   DoStartLog (struct win *, char *, int);
 extern int   ReleaseAutoWritelock (struct display *, struct win *);
 extern int   ObtainAutoWritelock (struct display *, struct win *);
 extern void  CloseDevice (struct win *);
-#ifdef ZMODEM
 extern void  zmodem_abort (struct win *, struct display *);
-#endif
 #ifndef HAVE_EXECVPE
 extern void  execvpe (char *, char **, char **);
 #endif
@@ -188,9 +182,7 @@ extern void  InitPTY (int);
 /* process.c */
 extern void  InitKeytab (void);
 extern void  ProcessInput (char *, int);
-#ifdef MAPKEYS
 extern void  ProcessInput2 (char *, int);
-#endif
 extern void  DoProcess (struct win *, char **, int *, struct paster *);
 extern void  DoAction  (struct action *, int);
 extern int   FindCommnr (const char *);
@@ -208,12 +200,8 @@ extern char *AddWindowFlags (char *, int, struct win *);
 extern char *AddOtherUsers (char *, int, struct win *);
 extern int   WindowByNoN (char *);
 extern struct win *FindNiceWindow (struct win *, char *);
-#ifdef COPY_PASTE
 extern int   CompileKeys (char *, int, unsigned char *);
-#endif
-#ifdef RXVT_OSC
 extern void  RefreshXtermOSC (void);
-#endif
 extern int   ParseSaveStr (struct action *act, char **);
 extern int   ParseNum (struct action *act, int *);
 extern int   ParseSwitch (struct action *, int *);
@@ -226,10 +214,8 @@ extern int   StuffKey (int);
 extern int   InitTermcap (int, int);
 extern char *MakeTermcap (int);
 extern char *gettermcapstring (char *);
-#ifdef MAPKEYS
 extern int   remap (int, int);
 extern void  CheckEscape (void);
-#endif
 extern int   CreateTransTable (char *);
 extern void  FreeTransTable (void);
 
@@ -292,19 +278,11 @@ extern void  AddStrn (char *, int);
 extern void  Flush (int);
 extern void  freetty (void);
 extern void  Resize_obuf (void);
-#ifdef AUTO_NUKE
 extern void  NukePending (void);
-#endif
-#ifdef RXVT_OSC
 extern void  ClearAllXtermOSC (void);
 extern void  SetXtermOSC (int, char *);
-#endif
-#ifdef COLOR
 extern int   color256to16 (int);
-# ifdef COLORS256
 extern int   color256to88 (int);
-# endif
-#endif
 extern void  ResetIdle (void);
 extern void  KillBlanker (void);
 extern void  DisplaySleep1000 (int, int);
@@ -378,7 +356,6 @@ extern void  opendebug (int, int);
 
 
 /* acl.c */
-#ifdef MULTIUSER
 extern int   AclCheckPermWin (struct acluser *, int, struct win *);
 extern int   AclCheckPermCmd (struct acluser *, int, struct comm *);
 extern int   AclSetPerm (struct acluser *, struct acluser *, char *, char *);
@@ -389,7 +366,6 @@ extern int   NewWindowAcl (struct win *, struct acluser *);
 extern void  FreeWindowAcl (struct win *);
 extern char *DoSu (struct acluser **, char *, char *, char *);
 extern int   AclLinkUser (char *, char *);
-#endif /* MULTIUSER */
 extern int   UserFreeCopyBuffer (struct acluser *);
 extern struct acluser **FindUserPtr (char *);
 extern int   UserAdd (char *, char *, struct acluser **);
@@ -441,8 +417,6 @@ extern void  TelStatus (struct win *, char *, int);
 extern const char *DoNLS (const char *);
 
 /* encoding.c */
-#ifdef ENCODINGS
-# ifdef UTF8
 extern void  InitBuiltinTabs (void);
 extern struct mchar *recode_mchar (struct mchar *, int, int);
 extern struct mline *recode_mline (struct mline *, int, int, int);
@@ -456,7 +430,6 @@ extern void  utf8_handle_comb (int, struct mchar *);
 extern int   ContainsSpecialDeffont (struct mline *, int, int, int);
 extern int   LoadFontTranslation (int, char *);
 extern void  LoadFontTranslationsForEncoding (int);
-# endif	/* UTF8 */
 extern void  WinSwitchEncoding (struct win *, int);
 extern int   FindEncoding (char *);
 extern char *EncodingName (int);
@@ -465,10 +438,7 @@ extern void  ResetEncoding (struct win *);
 extern int   CanEncodeFont (int, int);
 extern int   DecodeChar (int, int, int *);
 extern int   RecodeBuf (unsigned char *, int, int, int, unsigned char *);
-# ifdef DW_CHARS
 extern int   PrepareEncodedChar (int);
-# endif
-#endif
 extern int   EncodeChar (char *, int, int, int *);
 
 /* layout.c */

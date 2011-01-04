@@ -38,90 +38,58 @@
 
 struct comm comms[RC_LAST + 1] =
 {
-#ifdef MULTIUSER
   { "acladd",		ARGS_1234 },
   { "aclchg",		ARGS_23 },
   { "acldel",		ARGS_1 },
   { "aclgrp",		ARGS_12 },
   { "aclumask",		ARGS_1|ARGS_ORMORE },
-#endif
   { "activity",		ARGS_1 },
-#ifdef MULTIUSER
   { "addacl",		ARGS_1234 },
-#endif
   { "allpartial",	NEED_DISPLAY|ARGS_1 },
   { "altscreen",	ARGS_01 },
   { "at",		ARGS_2|ARGS_ORMORE },
-#ifdef COLOR
   { "attrcolor",	ARGS_12 },
-#endif
   { "autodetach",	ARGS_1 },
-#ifdef AUTO_NUKE
   { "autonuke",		NEED_DISPLAY|ARGS_1 },
-#endif
   { "backtick",		ARGS_1|ARGS_ORMORE },
-#ifdef COLOR
   { "bce",		NEED_FORE|ARGS_01 },
-#endif
   { "bell",		ARGS_01 },
   { "bell_msg",		ARGS_01 },
   { "bind",		ARGS_1|ARGS_ORMORE },
-#ifdef MAPKEYS
   { "bindkey",		ARGS_0|ARGS_ORMORE },
-#endif
   { "blanker",		NEED_DISPLAY|ARGS_0},
-#ifdef BLANKER_PRG
   { "blankerprg",	ARGS_0|ARGS_ORMORE },
-#endif
   { "break",		NEED_FORE|ARGS_01 },
   { "breaktype",	NEED_FORE|ARGS_01 },
-#ifdef COPY_PASTE
   { "bufferfile",	ARGS_01 },
-#endif
   { "bumpleft",		ARGS_0 },
   { "bumpright",	ARGS_0 },
   { "c1",		NEED_FORE|ARGS_01 },
   { "caption",		ARGS_12 },
-#ifdef MULTIUSER
   { "chacl",		ARGS_23 },
-#endif
   { "charset",          NEED_FORE|ARGS_1 },
   { "chdir",		ARGS_01 },
-#ifdef DW_CHARS
   { "cjkwidth",		ARGS_01 },
-#endif
   { "clear",		NEED_FORE|ARGS_0 },
   { "collapse",		ARGS_0 },
   { "colon",		NEED_LAYER|ARGS_01 },
   { "command",		NEED_DISPLAY|ARGS_02 },
-#ifdef COPY_PASTE
   { "compacthist",	ARGS_01 },
-#endif
   { "console",		NEED_FORE|ARGS_01 },
-#ifdef COPY_PASTE
   { "copy",		NEED_FORE|NEED_DISPLAY|ARGS_0 },
   { "crlf",		ARGS_01 },
-#endif
   { "debug",		ARGS_01 },
-#ifdef AUTO_NUKE
   { "defautonuke",	ARGS_1 },
-#endif
-#ifdef COLOR
   { "defbce",		ARGS_1 },
-#endif
   { "defbreaktype",	ARGS_01 },
   { "defc1",		ARGS_1 },
   { "defcharset",       ARGS_01 },
-#ifdef ENCODINGS
   { "defencoding",	ARGS_1 },
-#endif
   { "defescape",	ARGS_1 },
   { "defflow",		ARGS_12 },
   { "defgr",		ARGS_1 },
   { "defhstatus",	ARGS_01 },
-#ifdef ENCODINGS
   { "defkanji",		ARGS_1 },
-#endif
   { "deflog",		ARGS_1 },
 #if defined(UTMPOK) && defined(LOGOUTOK)
   { "deflogin",		ARGS_1 },
@@ -129,37 +97,25 @@ struct comm comms[RC_LAST + 1] =
   { "defmode",		ARGS_1 },
   { "defmonitor",	ARGS_1 },
   { "defmousetrack",	ARGS_1 },
-#ifdef MULTI
   { "defnonblock",	ARGS_1 },
-#endif
   { "defobuflimit",	ARGS_1 },
-#ifdef COPY_PASTE
   { "defscrollback",	ARGS_1 },
-#endif
   { "defshell",		ARGS_1 },
   { "defsilence",	ARGS_1 },
   { "defslowpaste",	ARGS_1 },
-#ifdef UTF8
   { "defutf8",		ARGS_1 },
-#endif
   { "defwrap",		ARGS_1 },
   { "defwritelock",	ARGS_1 },
-#ifdef DETACH
   { "detach",		NEED_DISPLAY|ARGS_01 },
-#endif
   { "digraph",		NEED_LAYER|ARGS_012 },
   { "dinfo",		NEED_DISPLAY|ARGS_0 },
   { "displays",		NEED_LAYER|ARGS_0 },
   { "dumptermcap",	NEED_FORE|ARGS_0 },
   { "echo",		CAN_QUERY|ARGS_12 },
-#ifdef ENCODINGS
   { "encoding",		ARGS_12 },
-#endif
   { "escape",		ARGS_1 },
   { "eval",		ARGS_1|ARGS_ORMORE },
-#ifdef PSEUDOS
   { "exec",		ARGS_0|ARGS_ORMORE },
-#endif
   { "fit",		NEED_DISPLAY|ARGS_0 },
   { "flow",		NEED_FORE|ARGS_01 },
   { "focus",		NEED_DISPLAY|ARGS_01 },
@@ -172,89 +128,63 @@ struct comm comms[RC_LAST + 1] =
   { "hardstatus",	ARGS_012 },
   { "height",		ARGS_0123 },
   { "help",		NEED_LAYER|ARGS_02 },
-#ifdef COPY_PASTE
   { "history",		NEED_DISPLAY|NEED_FORE|ARGS_0 },
-#endif
   { "hstatus",		NEED_FORE|ARGS_1 },
   { "idle",		ARGS_0|ARGS_ORMORE },
   { "ignorecase",	ARGS_01 },
   { "info",		CAN_QUERY|NEED_LAYER|ARGS_0 },
-#ifdef ENCODINGS
   { "kanji",		NEED_FORE|ARGS_12 },
-#endif
   { "kill",		NEED_FORE|ARGS_0 },
   { "lastmsg",		CAN_QUERY|NEED_DISPLAY|ARGS_0 },
   { "layout",           ARGS_1|ARGS_ORMORE},
   { "license",		NEED_LAYER|ARGS_0 },
-#ifdef LOCK
   { "lockscreen",	NEED_DISPLAY|ARGS_0 },
-#endif
   { "log",		NEED_FORE|ARGS_01 },
   { "logfile",		ARGS_012 },
 #if defined(UTMPOK) && defined(LOGOUTOK)
   { "login",		NEED_FORE|ARGS_01 },
 #endif
   { "logtstamp",	ARGS_012 },
-#ifdef MAPKEYS
   { "mapdefault",	NEED_DISPLAY|ARGS_0 },
   { "mapnotnext",	NEED_DISPLAY|ARGS_0 },
   { "maptimeout",	ARGS_01 },
-#endif
-#ifdef COPY_PASTE
   { "markkeys",		ARGS_1 },
-#endif
   { "maxwin",		ARGS_01 },
   { "meta",		NEED_LAYER|ARGS_0 },
   { "monitor",		NEED_FORE|ARGS_01 },
   { "mousetrack",	NEED_DISPLAY | ARGS_01 },
   { "msgminwait",	ARGS_1 },
   { "msgwait",		ARGS_1 },
-#ifdef MULTIUSER
   { "multiuser",	ARGS_1 },
-#endif
   { "nethack",		ARGS_1 },
   { "next",		ARGS_0 },
-#ifdef MULTI
   { "nonblock",		NEED_DISPLAY|ARGS_01 },
-#endif
   { "number",		CAN_QUERY|NEED_FORE|ARGS_01 },
   { "obuflimit",	NEED_DISPLAY|ARGS_01 },
   { "only",		NEED_DISPLAY|ARGS_0 },
   { "other",		ARGS_0 },
   { "partial",		NEED_FORE|ARGS_01 },
-#ifdef PASSWORD
   { "password",		ARGS_01 },
-#endif
-#ifdef COPY_PASTE
   { "paste",		NEED_LAYER|ARGS_012 },
   { "pastefont",	ARGS_01 },
-#endif
   { "pow_break",	NEED_FORE|ARGS_01 },
-#if defined(DETACH) && defined(POW_DETACH)
   { "pow_detach",	NEED_DISPLAY|ARGS_0 },
   { "pow_detach_msg",	ARGS_01 },
-#endif
   { "prev",		ARGS_0 },
   { "printcmd",		ARGS_01 },
   { "process",		NEED_DISPLAY|ARGS_01 },
   { "quit",		ARGS_0 },
-#ifdef COPY_PASTE
   { "readbuf",		ARGS_0123 },
-#endif
   { "readreg",          ARGS_0|ARGS_ORMORE },
   { "redisplay",	NEED_DISPLAY|ARGS_0 },
   { "register",		ARGS_24 },
   { "remove",		NEED_DISPLAY|ARGS_0 },
-#ifdef COPY_PASTE
   { "removebuf",	ARGS_0 },
-#endif
   { "rendition",	ARGS_23 },
   { "reset",		NEED_FORE|ARGS_0 },
   { "resize",		NEED_DISPLAY|ARGS_0|ARGS_ORMORE },
   { "screen",		ARGS_0|ARGS_ORMORE },
-#ifdef COPY_PASTE
   { "scrollback",	NEED_FORE|ARGS_1 },
-#endif
   { "select",		CAN_QUERY|ARGS_01 },
   { "sessionname",	ARGS_01 },
   { "setenv",		ARGS_012 },
@@ -270,9 +200,7 @@ struct comm comms[RC_LAST + 1] =
   { "split",		NEED_DISPLAY|ARGS_01 },
   { "startup_message",	ARGS_1 },
   { "stuff",		NEED_LAYER|ARGS_012 },
-#ifdef MULTIUSER
   { "su",		NEED_DISPLAY|ARGS_012 },
-#endif
 #ifdef BSDJOBS
   { "suspend",		NEED_DISPLAY|ARGS_0 },
 #endif
@@ -285,9 +213,7 @@ struct comm comms[RC_LAST + 1] =
   { "umask",		ARGS_1|ARGS_ORMORE },
   { "unbindall",	ARGS_0 },
   { "unsetenv",		ARGS_1 },
-#ifdef UTF8
   { "utf8",		NEED_FORE|ARGS_012 },
-#endif
   { "vbell",		ARGS_01 },
   { "vbell_msg",	ARGS_01 },
   { "vbellwait",	ARGS_1 },
@@ -298,14 +224,10 @@ struct comm comms[RC_LAST + 1] =
   { "windowlist",	ARGS_012 },
   { "windows",		CAN_QUERY|ARGS_0 },
   { "wrap",		NEED_FORE|ARGS_01 },
-#ifdef COPY_PASTE
   { "writebuf",		ARGS_0123 },
-#endif
   { "writelock",	NEED_FORE|ARGS_01 },
   { "xoff",		NEED_LAYER|ARGS_0 },
   { "xon",		NEED_LAYER|ARGS_0 },
-#ifdef ZMODEM
   { "zmodem",		ARGS_012 },
-#endif
   { "zombie",		ARGS_012 }
 };

@@ -47,9 +47,7 @@ extern int real_gid, eff_gid;
 extern char *extra_incap, *extra_outcap;
 extern char *home, *RcFileName;
 extern char SockPath[], *SockName;
-#ifdef COPY_PASTE
 extern char *BufferFile;
-#endif
 extern int hardcopy_append;
 extern char *hardcopydir;
 
@@ -352,10 +350,8 @@ RcLine(char *ubuf, int ubufl)
 {
   char *args[MAXARGS];
   int argl[MAXARGS];
-#ifdef MULTIUSER
   extern struct acluser *EffectiveAclUser;	/* acl.c */
   extern struct acluser *users;		/* acl.c */
-#endif
 
   if (display)
     {
@@ -366,18 +362,14 @@ RcLine(char *ubuf, int ubufl)
     flayer = fore ? fore->w_savelayer : 0;
   if (Parse(ubuf, ubufl, args, argl) <= 0)
     return;
-#ifdef MULTIUSER
   if (!display)
     {
       /* the session owner does it, when there is no display here */
       EffectiveAclUser = users;        
       debug("RcLine: WARNING, no display no user! Session owner executes command\n");
     }
-#endif
   DoCommand(args, argl);
-#ifdef MULTIUSER
   EffectiveAclUser = 0;
-#endif
 }
 
 /*
@@ -388,9 +380,7 @@ WriteFile(struct acluser *user, char *fn, int dump)
 {
   /* dump==0:	create .termcap,
    * dump==1:	hardcopy,
-   * #ifdef COPY_PASTE
    * dump==2:	BUFFERFILE
-   * #endif COPY_PASTE 
    * dump==1:	scrollback,
    */
   register int i, j, k;
@@ -398,12 +388,10 @@ WriteFile(struct acluser *user, char *fn, int dump)
   register FILE *f;
   char fnbuf[1024];
   char *mode = "w";
-#ifdef COPY_PASTE
   int public = 0;
-# ifdef HAVE_LSTAT
+#ifdef HAVE_LSTAT
   struct stat stb, stb2;
   int fd, exists = 0;
-# endif
 #endif
 
   switch (dump)
@@ -434,7 +422,6 @@ WriteFile(struct acluser *user, char *fn, int dump)
       if (hardcopy_append && !access(fn, W_OK))
 	mode = "a";
       break;
-#ifdef COPY_PASTE
     case DUMP_EXCHANGE:
       if (fn == 0)
 	{
@@ -443,26 +430,24 @@ WriteFile(struct acluser *user, char *fn, int dump)
 	  fn = fnbuf;
 	}
       public = !strcmp(fn, DEFAULT_BUFFERFILE);
-# ifdef HAVE_LSTAT
+#ifdef HAVE_LSTAT
       exists = !lstat(fn, &stb);
       if (public && exists && (S_ISLNK(stb.st_mode) || stb.st_nlink > 1))
 	{
 	  Msg(0, "No write to links, please.");
 	  return;
 	}
-# endif
-      break;
 #endif
+      break;
     }
 
   debug2("WriteFile(%d) %s\n", dump, fn);
   if (UserContext() > 0)
     {
       debug("Writefile: usercontext\n");
-#ifdef COPY_PASTE
       if (dump == DUMP_EXCHANGE && public)
 	{
-# ifdef HAVE_LSTAT
+#ifdef HAVE_LSTAT
 	  if (exists)
 	    {
 	      if ((fd = open(fn, O_WRONLY, 0666)) >= 0)
@@ -479,12 +464,11 @@ WriteFile(struct acluser *user, char *fn, int dump)
 	  else
 	    fd = open(fn, O_WRONLY|O_CREAT|O_EXCL, 0666);
 	  f = fd >= 0 ? fdopen(fd, mode) : 0;
-# else
+#else
           f = fopen(fn, mode);
-# endif
+#endif
 	}
       else
-#endif /* COPY_PASTE */
         f = fopen(fn, mode);
       if (f == NULL)
 	{
@@ -508,7 +492,6 @@ WriteFile(struct acluser *user, char *fn, int dump)
 		}
 	      if (dump == DUMP_SCROLLBACK)
 		{
-#ifdef COPY_PASTE
 		  for (i = 0; i < fore->w_histheight; i++)
 		    {
 		      p = (char *)(WIN(i)->image);
@@ -518,7 +501,6 @@ WriteFile(struct acluser *user, char *fn, int dump)
 			putc(p[j], f);
 		      putc('\n', f);
 		    }
-#endif
 		}
 	      for (i = 0; i < fore->w_height; i++)
 		{
@@ -537,7 +519,6 @@ WriteFile(struct acluser *user, char *fn, int dump)
 		  putc('\n', f);
 		}
 	      break;
-#ifdef COPY_PASTE
 	    case DUMP_EXCHANGE:
 	      p = user->u_plop.buf;
 	      for (i = user->u_plop.len; i-- > 0; p++)
@@ -546,7 +527,6 @@ WriteFile(struct acluser *user, char *fn, int dump)
 		else
 		  putc(*p, f);
 	      break;
-#endif
 	    }
 	  (void) fclose(f);
 	  UserReturn(1);
@@ -566,15 +546,12 @@ WriteFile(struct acluser *user, char *fn, int dump)
 	  Msg(0, "Screen image %s to \"%s\".",
 	      (*mode == 'a') ? "appended" : "written", fn);
 	  break;
-#ifdef COPY_PASTE
 	case DUMP_EXCHANGE:
 	  Msg(0, "Copybuffer written to \"%s\".", fn);
-#endif
 	}
     }
 }
 
-#ifdef COPY_PASTE
 
 /*
  * returns an allocated buffer which holds a copy of the file named fn.
@@ -640,7 +617,6 @@ KillBuffers()
   errno = UserStatus();
   Msg(errno, "%s %sremoved", BufferFile, errno ? "not " : "");
 }
-#endif	/* COPY_PASTE */
 
 
 /*

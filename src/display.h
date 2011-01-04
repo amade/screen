@@ -34,8 +34,6 @@
 #include "canvas.h"
 #include "viewport.h"
 
-#ifdef MAPKEYS
-
 #define KMAP_KEYS (T_OCAPS-T_CAPS)
 #define KMAP_AKEYS (T_OCAPS-T_CURSOR)
 
@@ -50,11 +48,6 @@ struct kmap_ext
   struct action mm;
 };
 
-#else
-
-#define KMAP_KEYS 0
-
-#endif
 
 struct win;			/* forward declaration */
 
@@ -83,14 +76,10 @@ struct display
   struct mchar d_rend;		/* current rendition */
   int   d_col16change;		/* the 16col bits changed in attr */
   char	d_atyp;			/* current attribute types */
-#ifdef DW_CHARS
   int   d_mbcs;			/* saved char for multibytes charset */
-#endif
-#ifdef ENCODINGS
   int   d_encoding;		/* what encoding type the display is */
   int   d_decodestate;		/* state of our decoder */
   int   d_realfont;		/* real font of terminal */
-#endif
   int	d_insert;		/* insert mode flag */
   int	d_keypad;		/* application keypad flag */
   int	d_cursorkeys;		/* application cursorkeys flag */
@@ -102,9 +91,7 @@ struct display
   int   d_mouse;		/* mouse mode */
   int	d_mousetrack;		/* set when user wants to use mouse even when the window
 				   does not */
-#ifdef RXVT_OSC
   int   d_xtermosc[4];		/* osc used */
-#endif
   struct mchar d_lpchar;	/* missing char */
   struct timeval d_status_time;	/* time of status display */
   int   d_status;		/* is status displayed? */
@@ -137,10 +124,7 @@ struct display
   int	d_obuflenmax;		/* len - max */
   char *d_obufp;		/* pointer in buffer */
   int   d_obuffree;		/* free bytes in buffer */
-#ifdef AUTO_NUKE
   int	d_auto_nuke;		/* autonuke flag */
-#endif
-#ifdef MAPKEYS
   int	d_nseqs;		/* number of valid mappings */
   int	d_aseqs;		/* number of allocated mappings */
   unsigned char  *d_kmaps;	/* keymaps */
@@ -150,16 +134,13 @@ struct display
   struct event d_mapev;		/* timeout event */
   int	d_dontmap;		/* do not map next */
   int	d_mapdefault;		/* do map next to default */
-#endif
   union	tcu d_tcs[T_N];		/* terminal capabilities */
   char *d_attrtab[NATTR];	/* attrib emulation table */
   char  d_attrtyp[NATTR];	/* attrib group table */
   int   d_hascolor;		/* do we support color */
   short	d_dospeed;		/* baudrate of tty */
-#ifdef FONT
   char	d_c0_tab[256];		/* conversion for C0 */
   char ***d_xtable;		/* char translation table */
-#endif
   int	d_UPcost, d_DOcost, d_LEcost, d_NDcost;
   int	d_CRcost, d_IMcost, d_EIcost, d_NLcost;
   int   d_printfd;		/* fd for vt100 print sequence */
@@ -174,18 +155,11 @@ struct display
   int   d_blocked;
   int   d_blocked_fuzz;
   struct event d_idleev;	/* screen blanker */
-#ifdef BLANKER_PRG
   int   d_blankerpid;
   struct event d_blankerev;
-#endif
 };
 
-#ifdef MULTI
-# define DISPLAY(x) display->x
-#else
-extern struct display TheDisplay;
-# define DISPLAY(x) TheDisplay.x
-#endif
+#define DISPLAY(x) display->x
 
 #define D_user		DISPLAY(d_user)
 #define D_username	(DISPLAY(d_user) ? DISPLAY(d_user)->u_name : 0)

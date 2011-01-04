@@ -48,12 +48,8 @@ extern char *logtstamp_string;
 extern char *captionstring;
 extern char *hstatusstring;
 extern char *wliststr;
-#ifdef COPY_PASTE
 extern int compacthist;
-#endif
-#ifdef MULTIUSER
 extern struct acluser *EffectiveAclUser;
-#endif
 
 int Z0width, Z1width;		/* widths for Z0/Z1 switching */
 
@@ -116,11 +112,9 @@ static int  StringEnd (void);
 static void PrintStart (void);
 static void PrintChar (int);
 static void PrintFlush (void);
-#ifdef FONT
 static void DesignateCharset (int, int);
 static void MapCharset (int);
 static void MapCharsetR (int);
-#endif
 static void SaveCursor (struct cursor *);
 static void RestoreCursor (struct cursor *);
 static void BackSpace (void);
@@ -149,9 +143,7 @@ static void FillWithEs (void);
 static void FindAKA (void);
 static void Report (char *, int, int);
 static void ScrollRegion (int);
-#ifdef COPY_PASTE
 static void WAddLineToHist (struct win *, struct mline *);
-#endif
 static void WLogString (struct win *, char *, int);
 static void WReverseVideo (struct win *, int);
 static int  WindowChangedCheck (char *, int, int *);
@@ -163,15 +155,9 @@ static void MInsChar (struct win *, struct mchar *, int, int);
 static void MPutChar (struct win *, struct mchar *, int, int);
 static void MPutStr (struct win *, char *, int, struct mchar *, int, int);
 static void MWrapChar (struct win *, struct mchar *, int, int, int, int);
-#ifdef COLOR
 static void MBceLine (struct win *, int, int, int, int);
-#endif
 
-#ifdef COLOR
-# define CURR_BCE (curr->w_bce ? rend_getbg(&curr->w_rend) : 0)
-#else
-# define CURR_BCE 0
-#endif
+#define CURR_BCE (curr->w_bce ? rend_getbg(&curr->w_rend) : 0)
 
 void
 ResetAnsiState(struct win *p)
@@ -205,12 +191,8 @@ ResetWindow(register struct win *p)
   for (i = 8; i < p->w_width; i += 8)
     p->w_tabs[i] = 1;
   p->w_rend = mchar_null;
-#ifdef FONT
   ResetCharsets(p);
-#endif
-#ifdef COLOR
   p->w_bce = nwin_default.bce;
-#endif
 }
 
 /* adds max 22 bytes */
@@ -239,7 +221,6 @@ GetAnsiStatus(struct win *w, char *buf)
 }
 
 
-#ifdef FONT
 
 void
 ResetCharsets(struct win *p)
@@ -249,9 +230,7 @@ ResetCharsets(struct win *p)
   SetCharsets(p, "BBBB02");
   if (nwin_default.charset)
     SetCharsets(p, nwin_default.charset);
-#ifdef ENCODINGS
   ResetEncoding(p);
-#endif
 }
 
 void
@@ -270,7 +249,6 @@ SetCharsets(struct win *p, char *s)
   p->w_FontL = p->w_charsets[p->w_Charset];
   p->w_FontR = p->w_charsets[p->w_CharsetR];
 }
-#endif	/* FONT */
 
 /*****************************************************************/
 
@@ -287,9 +265,7 @@ void
 WriteString(struct win *wp, register char *buf, register int len)
 {
   register int c;
-#ifdef FONT
   register int font;
-#endif
   struct canvas *cv;
 
   if (!len)
@@ -316,27 +292,15 @@ WriteString(struct win *wp, register char *buf, register int len)
       do
 	{
 	  c = (unsigned char)*buf++;
-#ifdef FONT
-# ifdef DW_CHARS
 	  if (!curr->w_mbcs)
-# endif
 	    curr->w_rend.font = curr->w_FontL;	/* Default: GL */
-#endif
 
 	  /* The next part is only for speedup */
 	  if (curr->w_state == LIT &&
-#ifdef UTF8
 	      curr->w_encoding != UTF8 &&
-#endif
-#ifdef DW_CHARS
 	      !is_dw_font(curr->w_rend.font) &&
-# ifdef ENCODINGS
 	      curr->w_rend.font != KANA && !curr->w_mbcs &&
-# endif
-#endif
-#ifdef FONT
 	      curr->w_rend.font != '<' &&
-#endif
 	      c >= ' ' && c != 0x7f &&
 	      ((c & 0x80) == 0 || ((c >= 0xa0 || !curr->w_c1) && !curr->w_gr)) && !curr->w_ss &&
 	      !curr->w_insert && curr->w_x < cols - 1)
@@ -365,7 +329,6 @@ WriteString(struct win *wp, register char *buf, register int len)
 	    }
 	  /* end of speedup code */
 
-#ifdef UTF8
 	  if (curr->w_encoding == UTF8)
 	    {
 	      c = FromUtf8(c, &curr->w_decodestate);
@@ -381,7 +344,6 @@ WriteString(struct win *wp, register char *buf, register int len)
 	      if (c > 0xff)
 		debug1("read UNICODE %04x\n", c);
 	    }
-#endif
 
 	tryagain:
 	  switch (curr->w_state)
@@ -531,11 +493,9 @@ WriteString(struct win *wp, register char *buf, register int len)
 		    {
 		      if (curr->w_intermediate)
 			{
-#ifdef DW_CHARS
 			  if (curr->w_intermediate == '$')
 			    c |= '$' << 8;
 			  else
-#endif
 			  c = -1;
 			}
 		      curr->w_intermediate = c;
@@ -591,11 +551,9 @@ WriteString(struct win *wp, register char *buf, register int len)
 	      break;
 	    case LIT:
 	    default:
-#ifdef DW_CHARS
 	      if (curr->w_mbcs)
 		if (c <= ' ' || c == 0x7f || (c >= 0x80 && c < 0xa0 && curr->w_c1))
 		  curr->w_mbcs = 0;
-#endif
 	      if (c < ' ')
 		{
 		  if (c == '\033')
@@ -610,13 +568,9 @@ WriteString(struct win *wp, register char *buf, register int len)
 		  break;
 		}
 	      if (c >= 0x80 && c < 0xa0 && curr->w_c1)
-#ifdef FONT
 		if ((curr->w_FontR & 0xf0) != 0x20
-# ifdef UTF8
 		       || curr->w_encoding == UTF8
-# endif
 		   )
-#endif
 		{
 		  switch (c)
 		    {
@@ -645,23 +599,15 @@ WriteString(struct win *wp, register char *buf, register int len)
 		  break;
 		}
 
-#ifdef FONT
-# ifdef DW_CHARS
 	      if (!curr->w_mbcs)
 		{
-# endif
 		  if (c < 0x80 || curr->w_gr == 0)
 		    curr->w_rend.font = curr->w_FontL;
-# ifdef ENCODINGS
 		  else if (curr->w_gr == 2 && !curr->w_ss)
 		    curr->w_rend.font = curr->w_FontE;
-# endif
 		  else
 		    curr->w_rend.font = curr->w_FontR;
-# ifdef DW_CHARS
 		}
-# endif
-# ifdef UTF8
 	      if (curr->w_encoding == UTF8)
 		{
 		  if (curr->w_rend.font == '0')
@@ -679,10 +625,8 @@ WriteString(struct win *wp, register char *buf, register int len)
 		    }
 		  curr->w_rend.font = 0;
 		}
-#  ifdef DW_CHARS
 	      if (curr->w_encoding == UTF8 && utf8_isdouble(c))
 		curr->w_mbcs = 0xff;
-#  endif
 	      if (curr->w_encoding == UTF8 && c >= 0x0300 && utf8_iscomb(c))
 		{
 		  int ox, oy;
@@ -718,9 +662,6 @@ WriteString(struct win *wp, register char *buf, register int len)
 		  break;
 		}
 	      font = curr->w_rend.font;
-# endif
-# ifdef DW_CHARS
-#  ifdef ENCODINGS
 	      if (font == KANA && curr->w_encoding == SJIS && curr->w_mbcs == 0)
 		{
 		  /* Lets see if it is the first byte of a kanji */
@@ -732,7 +673,6 @@ WriteString(struct win *wp, register char *buf, register int len)
 		      break;
 		    }
 		}
-#  endif
 	      if (font == 031 && c == 0x80 && !curr->w_mbcs)
 		font = curr->w_rend.font = 0;
 	      if (is_dw_font(font) && c == ' ')
@@ -750,12 +690,9 @@ WriteString(struct win *wp, register char *buf, register int len)
 		      curr->w_x += curr->w_wrap ? 1 : -1;
 		      debug1("Patched w_x to %d\n", curr->w_x);
 		    }
-#  ifdef UTF8
 		  if (curr->w_encoding != UTF8)
-#  endif
 		    {
 		      c = curr->w_mbcs;
-#  ifdef ENCODINGS
 		      if (font == KANA && curr->w_encoding == SJIS)
 			{
 			  debug2("SJIS !! %x %x\n", c, t);
@@ -786,7 +723,6 @@ WriteString(struct win *wp, register char *buf, register int len)
 			    }
 			  debug2("SJIS after %x %x\n", c, t);
 			}
-#  endif
 		      if (t && curr->w_gr && font != 030 && font != 031)
 			{
 			  t &= 0x7f;
@@ -798,45 +734,29 @@ WriteString(struct win *wp, register char *buf, register int len)
 		      curr->w_mbcs = t;
 		    }
 		}
-# endif	/* DW_CHARS */
 	      if (font == '<' && c >= ' ')
 		{
 		  font = curr->w_rend.font = 0;
 		  c |= 0x80;
 		}
-# ifdef UTF8
 	      else if (curr->w_gr && curr->w_encoding != UTF8)
-# else
-	      else if (curr->w_gr)
-# endif
 		{
-#ifdef ENCODINGS
 		  if (c == 0x80 && font == 0 && curr->w_encoding == GBK)
 		    c = 0xa4;
 		  else
 		    c &= 0x7f;
 		  if (c < ' ' && font != 031)
 		    goto tryagain;
-#else
-		  c &= 0x7f;
-		  if (c < ' ')	/* this is ugly but kanji support */
-		    goto tryagain;	/* prevents nicer programming */
-#endif
 		}
-#endif /* FONT */
 	      if (c == '\177')
 		break;
 	      curr->w_rend.image = c;
-#ifdef UTF8
 	      if (curr->w_encoding == UTF8)
 		{
 		  curr->w_rend.font = c >> 8;
 		  curr->w_rend.fontx = c >> 16;
 		}
-#endif
-#ifdef DW_CHARS
 	      curr->w_rend.mbcs = curr->w_mbcs;
-#endif
 	      if (curr->w_x < cols - 1)
 		{
 		  if (curr->w_insert)
@@ -868,14 +788,11 @@ WriteString(struct win *wp, register char *buf, register int len)
 		    curr->w_y++;
 		  curr->w_x = 1;
 		}
-#ifdef FONT
-# ifdef DW_CHARS
 	      if (curr->w_mbcs)
 		{
 		  curr->w_rend.mbcs = curr->w_mbcs = 0;
 		  curr->w_x++;
 		}
-# endif
 	      if (curr->w_ss)
 		{
 		  curr->w_FontL = curr->w_charsets[curr->w_Charset];
@@ -884,7 +801,6 @@ WriteString(struct win *wp, register char *buf, register int len)
 		  LSetRendition(&curr->w_layer, &curr->w_rend);
 		  curr->w_ss = 0;
 		}
-#endif /* FONT */
 	      break;
 	    }
 	}
@@ -938,14 +854,12 @@ Special(register int c)
     case '\t':
       ForwardTab();
       return 1;
-#ifdef FONT
     case '\017':		/* SI */
       MapCharset(G0);
       return 1;
     case '\016':		/* SO */
       MapCharset(G1);
       return 1;
-#endif
     }
   return 0;
 }
@@ -1007,7 +921,6 @@ DoESC(int c, int intermediate)
 	  WNewAutoFlow(curr, 1);
 #endif /* !TIOCPKT */
 	  break;
-#ifdef FONT
 	case 'n':		/* LS2 */
 	  MapCharset(G2);
 	  break;
@@ -1038,7 +951,6 @@ DoESC(int c, int intermediate)
 	  else
 	    curr->w_ss = 0;
 	  break;
-#endif /* FONT */
         case 'g':		/* VBELL, private screen sequence */
 	  WBell(curr, 1);
           break;
@@ -1052,7 +964,6 @@ DoESC(int c, int intermediate)
 	  break;
 	}
       break;
-#ifdef FONT
     case '(':
       DesignateCharset(c, G0);
       break;
@@ -1065,7 +976,6 @@ DoESC(int c, int intermediate)
     case '+':
       DesignateCharset(c, G3);
       break;
-# ifdef DW_CHARS
 /*
  * ESC $ ( Fn: invoke multi-byte charset, Fn, to G0
  * ESC $ Fn: same as above.  (old sequence)
@@ -1086,8 +996,6 @@ DoESC(int c, int intermediate)
     case '$'<<8 | '+':
       DesignateCharset(c & 037, G3);
       break;
-# endif
-#endif /* FONT */
     }
 }
 
@@ -1346,18 +1254,14 @@ DoCSI(int c, int intermediate)
 	    case 2:	/* ANM:  ansi/vt52 mode */
 	      if (i)
 		{
-#ifdef FONT
-# ifdef ENCODINGS
 		  if (curr->w_encoding)
 		    break;
-# endif
 		  curr->w_charsets[0] = curr->w_charsets[1] =
 		    curr->w_charsets[2] = curr->w_charsets[3] =
 		    curr->w_FontL = curr->w_FontR = ASCII;
 		  curr->w_Charset = 0;
 		  curr->w_CharsetR = 2;
 		  curr->w_ss = 0;
-#endif
 		}
 	      break;
 	    case 3:	/* COLM: column mode */
@@ -1505,7 +1409,6 @@ StringEnd()
 	break;
       typ = atoi(curr->w_string);
       p++;
-#ifdef MULTIUSER
       if (typ == 83)	/* 83 = 'S' */
 	{
 	  /* special execute commands sequence */
@@ -1533,8 +1436,6 @@ StringEnd()
 	    }
 	  break;
 	}
-#endif
-#ifdef RXVT_OSC
       if (typ == 0 || typ == 1 || typ == 2 || typ == 20 || typ == 39 || typ == 49)
 	{
 	  int typ2;
@@ -1559,10 +1460,6 @@ StringEnd()
 	}
       if (typ != 0 && typ != 2)
 	break;
-#else
-      if (typ < 0 || typ > 2)
-	break;
-#endif
       
       curr->w_stringp -= p - curr->w_string;
       if (curr->w_stringp > curr->w_string)
@@ -1696,16 +1593,13 @@ WNewAutoFlow(struct win *win, int on)
 }
 
 
-#ifdef FONT
 
 static void
 DesignateCharset(int c, int n)
 {
   curr->w_ss = 0;
-# ifdef ENCODINGS
   if (c == ('@' & 037))		/* map JIS 6226 to 0208 */
     c = KANJI;
-# endif
   if (c == 'B')
     c = ASCII;
   if (curr->w_charsets[n] != c)
@@ -1747,7 +1641,6 @@ MapCharsetR(int n)
   curr->w_gr = 1;
 }
 
-#endif /* FONT */
 
 static void
 SaveCursor(struct cursor *cursor)
@@ -1756,12 +1649,10 @@ SaveCursor(struct cursor *cursor)
   cursor->x = curr->w_x;
   cursor->y = curr->w_y;
   cursor->Rend = curr->w_rend;
-#ifdef FONT
   cursor->Charset = curr->w_Charset;
   cursor->CharsetR = curr->w_CharsetR;
   bcopy((char *) curr->w_charsets, (char *) cursor->Charsets,
 	4 * sizeof(int));
-#endif
 }
 
 static void
@@ -1773,7 +1664,6 @@ RestoreCursor(struct cursor *cursor)
   curr->w_x = cursor->x;
   curr->w_y = cursor->y;
   curr->w_rend = cursor->Rend;
-#ifdef FONT
   bcopy((char *) cursor->Charsets, (char *) curr->w_charsets,
 	4 * sizeof(int));
   curr->w_Charset = cursor->Charset;
@@ -1781,7 +1671,6 @@ RestoreCursor(struct cursor *cursor)
   curr->w_ss = 0;
   curr->w_FontL = curr->w_charsets[curr->w_Charset];
   curr->w_FontR = curr->w_charsets[curr->w_CharsetR];
-#endif
   LSetRendition(&curr->w_layer, &curr->w_rend);
 }
 
@@ -1938,11 +1827,7 @@ static void
 ClearScreen()
 {
   LClearArea(&curr->w_layer, 0, 0, curr->w_width - 1, curr->w_height - 1, CURR_BCE, 1);
-#ifdef COPY_PASTE
   MScrollV(curr, curr->w_height, 0, curr->w_height - 1, CURR_BCE);
-#else
-  MClearArea(curr, 0, 0, curr->w_width - 1, curr->w_height - 1, CURR_BCE);
-#endif
 }
 
 static void
@@ -2069,19 +1954,12 @@ static char rendlist[] =
 static void
 SelectRendition()
 {
-#ifdef COLOR
   register int j, i = 0, a = curr->w_rend.attr, c = curr->w_rend.color;
-# ifdef COLORS256
   int cx = curr->w_rend.colorx;
-# endif
-#else
-  register int j, i = 0, a = curr->w_rend.attr;
-#endif
 
   do
     {
       j = curr->w_args[i];
-#ifdef COLOR
       if ((j == 38 || j == 48) && i + 2 < curr->w_NumArgs && curr->w_args[i + 1] == 5)
 	{
 	  int jj;
@@ -2090,7 +1968,6 @@ SelectRendition()
 	  jj = curr->w_args[i];
 	  if (jj < 0 || jj > 255)
 	    continue;
-# ifdef COLORS256
 	  if (j == 38)
 	    {
 	      c = (c & 0xf0) | ((jj & 0x0f) ^ 9);
@@ -2113,14 +1990,7 @@ SelectRendition()
 	      cx = (cx & 0x0f) | (jj & 0xf0);
 	    }
 	  continue;
-# else
-	  jj = color256to16(jj) + 30;
-	  if (jj >= 38)
-	    jj += 60 - 8;
-	  j = j == 38 ? jj : jj + 10;
-# endif
 	}
-# ifdef COLORS16
       if (j == 0 || (j >= 30 && j <= 39 && j != 38))
 	a &= 0xbf;
       if (j == 0 || (j >= 40 && j <= 49 && j != 48))
@@ -2129,7 +1999,6 @@ SelectRendition()
 	a |= 0x40;
       if (j >= 100 && j <= 107)
 	a |= 0x80;
-# endif
       if (j >= 90 && j <= 97)
 	j -= 60;
       if (j >= 100 && j <= 107)
@@ -2140,13 +2009,10 @@ SelectRendition()
 	c = (c & 0x0f) | (((j - 40) ^ 9) << 4);
       if (j == 0)
 	c = 0;
-# ifdef COLORS256
       if (j == 0 || (j >= 30 && j <= 39 && j != 38))
 	cx &= 0xf0;
       if (j == 0 || (j >= 40 && j <= 49 && j != 48))
 	cx &= 0x0f;
-# endif
-#endif
       if (j < 0 || j >= (int)(sizeof(rendlist)/sizeof(*rendlist)))
 	continue;
       j = rendlist[j];
@@ -2157,12 +2023,8 @@ SelectRendition()
     }
   while (++i < curr->w_NumArgs);
   curr->w_rend.attr = a;
-#ifdef COLOR
   curr->w_rend.color = c;
-# ifdef COLORS256
   curr->w_rend.colorx = cx;
-# endif
-#endif
   LSetRendition(&curr->w_layer, &curr->w_rend);
 }
 
@@ -2284,7 +2146,6 @@ Report(char *fmt, int n1, int n2)
   sprintf(rbuf, fmt, n1, n2);
   len = strlen(rbuf);
 
-#ifdef PSEUDOS
   if (W_UWP(curr))
     {
       if ((unsigned)(curr->w_pwin->p_inlen + len) <= sizeof(curr->w_pwin->p_inbuf))
@@ -2294,7 +2155,6 @@ Report(char *fmt, int n1, int n2)
 	}
     }
   else
-#endif
     {
       if ((unsigned)(curr->w_inlen + len) <= sizeof(curr->w_inbuf))
 	{
@@ -2330,7 +2190,6 @@ MFixLine(struct win *p, int y, struct mchar *mc)
 	  WMsg(p, 0, "Warning: no space for attr - turned off");
 	}
     }
-#ifdef FONT
   if (mc->font && ml->font == null)
     {
       if ((ml->font = (unsigned char *)calloc(p->w_width + 1, 1)) == 0)
@@ -2350,8 +2209,6 @@ MFixLine(struct win *p, int y, struct mchar *mc)
 	  mc->fontx = 0;
 	}
     }
-#endif
-#ifdef COLOR
   if (mc->color && ml->color == null)
     {
       if ((ml->color = (unsigned char *)calloc(p->w_width + 1, 1)) == 0)
@@ -2361,7 +2218,6 @@ MFixLine(struct win *p, int y, struct mchar *mc)
 	  WMsg(p, 0, "Warning: no space for color - turned off");
 	}
     }
-# ifdef COLORS256
   if (mc->colorx && ml->colorx == null)
     {
       if ((ml->colorx = (unsigned char *)calloc(p->w_width + 1, 1)) == 0)
@@ -2371,13 +2227,10 @@ MFixLine(struct win *p, int y, struct mchar *mc)
 	  WMsg(p, 0, "Warning: no space for extended colors - turned off");
 	}
     }
-# endif
-#endif
 }
 
 /*****************************************************************/
 
-#ifdef DW_CHARS
 # define MKillDwRight(p, ml, x)					\
   if (dw_right(ml, x, p->w_encoding))				\
     {								\
@@ -2392,10 +2245,6 @@ MFixLine(struct win *p, int y, struct mchar *mc)
       copy_mchar2mline(&mchar_blank, ml, x);			\
       copy_mchar2mline(&mchar_blank, ml, x + 1);		\
     }
-#else
-# define MKillDwRight(p, ml, x) ;
-# define MKillDwLeft(p, ml, x) ;
-#endif
 
 static void
 MScrollH(struct win *p, int n, int y, int xs, int xe, int bce)
@@ -2417,10 +2266,8 @@ MScrollH(struct win *p, int n, int y, int xs, int xe, int bce)
       else
 	n = xe - xs + 1;
       clear_mline(ml, xe + 1 - n, n);
-#ifdef COLOR
       if (bce)
         MBceLine(p, y, xe + 1 - n, n, bce);
-#endif
     }
   else
     {
@@ -2433,10 +2280,8 @@ MScrollH(struct win *p, int n, int y, int xs, int xe, int bce)
       else
 	n = xe - xs + 1;
       clear_mline(ml, xs, n);
-#ifdef COLOR
       if (bce)
         MBceLine(p, y, xs, n, bce);
-#endif
     }
 }
 
@@ -2458,7 +2303,6 @@ MScrollV(struct win *p, int n, int ys, int ye, int bce)
 	}
       if (ye - ys + 1 < n)
 	n = ye - ys + 1;
-#ifdef COPY_PASTE
       if (compacthist)
 	{
 	  ye = MFindUsedLine(p, ye, ys);
@@ -2467,41 +2311,30 @@ MScrollV(struct win *p, int n, int ys, int ye, int bce)
 	  if (n <= 0)
 	    return;
 	}
-#endif
       /* Clear lines */
       ml = p->w_mlines + ys;
       for (i = ys; i < ys + n; i++, ml++)
 	{
-#ifdef COPY_PASTE
 	  if (ys == p->w_top)
 	    WAddLineToHist(p, ml);
-#endif
 	  if (ml->attr != null)
 	    free(ml->attr);
 	  ml->attr = null;
-#ifdef FONT
 	  if (ml->font != null)
 	    free(ml->font);
 	  ml->font = null;
 	  if (ml->fontx != null)
 	    free(ml->fontx);
 	  ml->fontx = null;
-#endif
-#ifdef COLOR
 	  if (ml->color != null)
 	    free(ml->color);
 	  ml->color = null;
-# ifdef COLORS256
 	  if (ml->colorx != null)
 	    free(ml->colorx);
 	  ml->colorx = null;
-# endif
-#endif
 	  bclear((char *)ml->image, p->w_width + 1);
-#ifdef COLOR
 	  if (bce)
 	    MBceLine(p, i, 0, p->w_width, bce);
-#endif
 	}
       /* switch 'em over */
       cnt1 = n * sizeof(struct mline);
@@ -2527,29 +2360,21 @@ MScrollV(struct win *p, int n, int ys, int ye, int bce)
 	  if (ml->attr != null)
 	    free(ml->attr);
 	  ml->attr = null;
-#ifdef FONT
 	  if (ml->font != null)
 	    free(ml->font);
 	  ml->font = null;
 	  if (ml->fontx != null)
 	    free(ml->fontx);
 	  ml->fontx = null;
-#endif
-#ifdef COLOR
 	  if (ml->color != null)
 	    free(ml->color);
 	  ml->color = null;
-# ifdef COLORS256
 	  if (ml->colorx != null)
 	    free(ml->colorx);
 	  ml->colorx = null;
-# endif
-#endif
 	  bclear((char *)ml->image, p->w_width + 1);
-#ifdef COLOR
 	  if (bce)
 	    MBceLine(p, i, 0, p->w_width, bce);
-#endif
 	}
       cnt1 = n * sizeof(struct mline);
       cnt2 = (ye - ys + 1 - n) * sizeof(struct mline);
@@ -2604,10 +2429,8 @@ MClearArea(struct win *p, int xs, int ys, int xe, int ye, int bce)
       n = xxe - xs + 1;
       if (n > 0)
 	clear_mline(ml, xs, n);
-#ifdef COLOR
       if (n > 0 && bce)
 	MBceLine(p, y, xs, xs + n - 1, bce);
-#endif
       xs = 0;
     }
 }
@@ -2629,7 +2452,6 @@ MInsChar(struct win *p, struct mchar *c, int x, int y)
       bcopy_mline(ml, x, x + 1, n);
     }
   copy_mchar2mline(c, ml, x);
-#ifdef DW_CHARS
   if (c->mbcs)
     {
       if (--n > 0)
@@ -2639,7 +2461,6 @@ MInsChar(struct win *p, struct mchar *c, int x, int y)
 	}
       copy_mchar2mline(c, ml, x + 1);
       ml->image[x + 1] = c->mbcs;
-# ifdef UTF8
       if (p->w_encoding != UTF8)
 	ml->font[x + 1] |= 0x80;
       else if (p->w_encoding == UTF8 && c->mbcs)
@@ -2647,11 +2468,7 @@ MInsChar(struct win *p, struct mchar *c, int x, int y)
 	  ml->font[x + 1] = c->mbcs;
 	  ml->fontx[x + 1] = 0;
 	}
-# else
-      ml->font[x + 1] |= 0x80;
-# endif
     }
-#endif
 }
 
 static void
@@ -2664,13 +2481,11 @@ MPutChar(struct win *p, struct mchar *c, int x, int y)
   MKillDwRight(p, ml, x);
   MKillDwLeft(p, ml, x);
   copy_mchar2mline(c, ml, x);
-#ifdef DW_CHARS
   if (c->mbcs)
     {
       MKillDwLeft(p, ml, x + 1);
       copy_mchar2mline(c, ml, x + 1);
       ml->image[x + 1] = c->mbcs;
-# ifdef UTF8
       if (p->w_encoding != UTF8)
 	ml->font[x + 1] |= 0x80;
       else if (p->w_encoding == UTF8 && c->mbcs)
@@ -2678,11 +2493,7 @@ MPutChar(struct win *p, struct mchar *c, int x, int y)
 	  ml->font[x + 1] = c->mbcs;
 	  ml->fontx[x + 1] = 0;
 	}
-# else
-      ml->font[x + 1] |= 0x80;
-# endif
     }
-#endif
 }
 
 
@@ -2692,11 +2503,7 @@ MWrapChar(struct win *p, struct mchar *c, int y, int top, int bot, int ins)
   struct mline *ml;
   int bce;
 
-#ifdef COLOR
   bce = rend_getbg(c);
-#else
-  bce = 0;
-#endif
   MFixLine(p, y, c);
   ml = &p->w_mlines[y];
   copy_mchar2mline(&mchar_null, ml, p->w_width);
@@ -2730,7 +2537,6 @@ MPutStr(struct win *p, char *s, int n, struct mchar *r, int x, int y)
       for (i = n; i-- > 0;)
 	*b++ = r->attr;
     }
-#ifdef FONT
   if (ml->font != null)
     {
       b = ml->font + x;
@@ -2743,26 +2549,20 @@ MPutStr(struct win *p, char *s, int n, struct mchar *r, int x, int y)
       for (i = n; i-- > 0;)
 	*b++ = r->fontx;
     }
-#endif
-#ifdef COLOR
   if (ml->color != null)
     {
       b = ml->color + x;
       for (i = n; i-- > 0;)
 	*b++ = r->color;
     }
-# ifdef COLORS256
   if (ml->colorx != null)
     {
       b = ml->colorx + x;
       for (i = n; i-- > 0;)
 	*b++ = r->colorx;
     }
-# endif
-#endif
 }
 
-#ifdef COLOR
 static void
 MBceLine(struct win *p, int y, int xs, int xe, int bce)
 {
@@ -2774,24 +2574,18 @@ MBceLine(struct win *p, int y, int xs, int xe, int bce)
   rend_setbg(&mc, bce);
   MFixLine(p, y, &mc);
   ml = p->w_mlines + y;
-# ifdef COLORS16
   if (mc.attr)
     for (x = xs; x <= xe; x++)
       ml->attr[x] = mc.attr;
-# endif
   if (mc.color)
     for (x = xs; x <= xe; x++)
       ml->color[x] = mc.color;
-# ifdef COLORS256
   if (mc.colorx)
     for (x = xs; x <= xe; x++)
       ml->colorx[x] = mc.colorx;
-# endif
 }
-#endif
 
 
-#ifdef COPY_PASTE
 static void
 WAddLineToHist(struct win *wp, struct mline *ml)
 {
@@ -2807,30 +2601,22 @@ WAddLineToHist(struct win *wp, struct mline *ml)
   if (o != null)
     free(o);
  
-#ifdef FONT
   q = ml->font; o = hml->font; hml->font = q; ml->font = null;
   if (o != null)
     free(o);
   q = ml->fontx; o = hml->fontx; hml->fontx = q; ml->fontx = null;
   if (o != null)
     free(o);
-#endif
-
-#ifdef COLOR
   q = ml->color; o = hml->color; hml->color = q; ml->color = null;
   if (o != null)
     free(o);
-# ifdef COLORS256
   q = ml->colorx; o = hml->colorx; hml->colorx = q; ml->colorx = null;
   if (o != null)
     free(o);
-# endif
-#endif
 
   if (++wp->w_histidx >= wp->w_histheight)
     wp->w_histidx = 0;
 }
-#endif
 
 int
 MFindUsedLine(struct win *p, int ye, int ys)
@@ -2845,15 +2631,10 @@ MFindUsedLine(struct win *p, int ye, int ys)
 	break;
       if (ml->attr != null && bcmp((char*)ml->attr, null, p->w_width))
 	break;
-#ifdef COLOR
       if (ml->color != null && bcmp((char*)ml->color, null, p->w_width))
 	break;
-# ifdef COLORS256
       if (ml->colorx != null && bcmp((char*)ml->colorx, null, p->w_width))
 	break;
-# endif
-#endif
-#ifdef UTF8
       if (p->w_encoding == UTF8)
 	{
 	  if (ml->font != null && bcmp((char*)ml->font, null, p->w_width))
@@ -2861,7 +2642,6 @@ MFindUsedLine(struct win *p, int ye, int ys)
 	  if (ml->fontx != null && bcmp((char*)ml->fontx, null, p->w_width))
 	    break;
 	}
-#endif
     }
   debug1("MFindUsedLine returning  %d\n", y);
   return y;

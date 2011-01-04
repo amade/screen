@@ -38,7 +38,6 @@ extern struct NewWindow nwin_undef, nwin_default, nwin_options;
 extern int force_vt;
 extern int Z0width, Z1width;
 extern int hardstatusemu;
-#ifdef MAPKEYS
 extern struct action umtab[];
 extern struct action mmtab[];
 extern struct action dmtab[];
@@ -46,7 +45,6 @@ extern struct action ktab[];
 extern struct kmap_ext *kmap_exts;
 extern int kmap_extn;
 extern int DefaultEsc;
-#endif
 
 
 static void  AddCap (char *);
@@ -57,14 +55,12 @@ static int   e_tgetent (char *, char *);
 static char *e_tgetstr (char *, char **);
 static int   e_tgetflag (char *);
 static int   e_tgetnum (char *);
-#ifdef MAPKEYS
 static int   findseq_ge (char *, int, unsigned char **);
 static void  setseqoff (unsigned char *, int, int);
 static int   addmapseq (char *, int, int);
 static int   remmapseq (char *, int);
 #ifdef DEBUGG
 static void  dumpmap (void);
-#endif
 #endif
 
 
@@ -353,7 +349,6 @@ InitTermcap(int wi, int he)
   if (D_CCE == 0)
     D_CCS = 0;
 
-#ifdef FONT
   if (D_CG0)
     {
       if (D_CS0 == 0)
@@ -393,16 +388,13 @@ InitTermcap(int wi, int he)
     for (i = strlen(D_CC0) & ~1; i >= 0; i -= 2)
       D_c0_tab[(int)(unsigned char)D_CC0[i]] = D_CC0[i + 1];
   debug1("ISO2022 = %d\n", D_CG0);
-#endif /* FONT */
   if (D_PF == 0)
     D_PO = 0;
   debug2("terminal size is %d, %d (says TERMCAP)\n", D_CO, D_LI);
 
-#ifdef FONT
   if (D_CXC)
     if (CreateTransTable(D_CXC))
       return -1;
-#endif
 
   /* Termcap fields Z0 & Z1 contain width-changing sequences. */
   if (D_CZ1 == 0)
@@ -424,14 +416,12 @@ InitTermcap(int wi, int he)
   if (D_HS && !(hardstatusemu & HSTATUS_ALWAYS))
     D_has_hstatus = HSTATUS_HS;
 
-#ifdef ENCODINGS
   if (D_CKJ)
     {
       int enc = FindEncoding(D_CKJ);
       if (enc != -1)
 	D_encoding = enc;
     }
-#endif
   if (!D_tcs[T_NAVIGATE].str && D_tcs[T_NAVIGATE + 1].str)
     D_tcs[T_NAVIGATE].str = D_tcs[T_NAVIGATE + 1].str;  /* kh = @1 */
   if (!D_tcs[T_NAVIGATE + 2].str && D_tcs[T_NAVIGATE + 3].str)
@@ -446,13 +436,11 @@ InitTermcap(int wi, int he)
   D_IMcost = CalcCost(D_IM);
   D_EIcost = CalcCost(D_EI);
 
-#ifdef AUTO_NUKE
   if (D_CAN)
     {
       debug("termcap has AN, setting autonuke\n");
       D_auto_nuke = 1;
     }
-#endif
   if (D_COL > 0)
     {
       debug1("termcap has OL (%d), setting limit\n", D_COL);
@@ -470,7 +458,6 @@ InitTermcap(int wi, int he)
   if (D_tcs[T_CURSOR + 3].str && !strcmp(D_tcs[T_CURSOR + 3].str, "\008"))
     D_tcs[T_CURSOR + 3].str = 0;
 
-#ifdef MAPKEYS
   D_nseqs = 0;
   for (i = 0; i < T_OCAPS - T_CAPS; i++)
     remap(i, 1);
@@ -479,17 +466,13 @@ InitTermcap(int wi, int he)
   D_seqp = D_kmaps + 3;
   D_seql = 0;
   D_seqh = 0;
-#endif
 
   D_tcinited = 1;
   MakeTermcap(0);
-#ifdef MAPKEYS
   CheckEscape();
-#endif
   return 0;
 }
 
-#ifdef MAPKEYS
 
 int
 remap(int n, int map)
@@ -799,7 +782,6 @@ dumpmap()
 }
 #endif /* DEBUGG */
 
-#endif /* MAPKEYS */
 
 /*
  * Appends to the static variable Termcap
@@ -874,14 +856,12 @@ MakeTermcap(int aflag)
 	  if (e_tgetent(buf, p) == 1)
 	    break;
 	}
-#ifdef COLOR
       if (nwin_default.bce)
 	{
 	  sprintf(p, "%s-bce", screenterm);
           if (e_tgetent(buf, p) == 1)
 	    break;
 	}
-#endif
 #ifdef CHECK_SCREEN_W
       if (wi >= 132)
 	{
@@ -956,10 +936,8 @@ MakeTermcap(int aflag)
       AddCap("mi:");
       AddCap("IC=\\E[%d@:");
     }
-#ifdef MAPKEYS
   AddCap("ks=\\E[?1h\\E=:");
   AddCap("ke=\\E[?1l\\E>:");
-#endif
   AddCap("vi=\\E[?25l:");
   AddCap("ve=\\E[34h\\E[?25h:");
   AddCap("vs=\\E[34l:");
@@ -991,18 +969,6 @@ MakeTermcap(int aflag)
 	AddCap("Co#8:pa#64:AF=\\E[3%dm:AB=\\E[4%dm:op=\\E[39;49m:AX:");
       if (D_VB)
 	AddCap("vb=\\Eg:");
-#ifndef MAPKEYS
-      if (D_KS)
-	{
-	  AddCap("ks=\\E=:");
-	  AddCap("ke=\\E>:");
-	}
-      if (D_CCS)
-	{
-	  AddCap("CS=\\E[?1h:");
-	  AddCap("CE=\\E[?1l:");
-	}
-#endif
       if (D_CG0)
 	AddCap("G0:");
       if (D_CC0 || (D_CS0 && *D_CS0))
@@ -1027,7 +993,6 @@ MakeTermcap(int aflag)
     }
   for (i = T_CAPS; i < T_ECAPS; i++)
     {
-#ifdef MAPKEYS
       struct action *act;
       if (i < T_OCAPS)
 	{
@@ -1062,7 +1027,6 @@ MakeTermcap(int aflag)
 	      continue;
 	    }
 	}
-#endif
       if (display == 0)
 	continue;
       switch(term[i].type)
@@ -1139,7 +1103,6 @@ MakeString(char *cap, char *buf, int buflen, char *s)
 #define QUOTES(p) \
   (*p == '\\' && (p[1] == '\\' || p[1] == ',' || p[1] == '%'))
 
-#ifdef FONT
 int
 CreateTransTable(char *s)
 {
@@ -1252,7 +1215,6 @@ FreeTransTable()
     }
   free(D_xtable);
 }
-#endif /* FONT */
 
 static int
 copyarg(char **pp, char *s)

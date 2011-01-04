@@ -415,7 +415,7 @@ IF{LCRTBS}	| LCRTBS
 # endif /* TERMIO */
 #endif /* POSIX */
 
-#if defined(ENCODINGS) && defined(TIOCKSET)
+#if defined(TIOCKSET)
   m->m_jtchars.t_ascii = 'J';
   m->m_jtchars.t_kanji = 'B';
   m->m_knjmode = KM_ASCII | KM_SYSSJIS;
@@ -453,7 +453,7 @@ struct mode *mp;
   ioctl(fd, TIOCSLTC, (char *)&mp->m_ltchars); /* moved here for apollo. jw */
 # endif
 #endif
-#if defined(ENCODINGS) && defined(TIOCKSET)
+#if defined(TIOCKSET)
   ioctl(fd, TIOCKSETC, &mp->m_jtchars);
   ioctl(fd, TIOCKSET, &mp->m_knjmode);
 #endif
@@ -497,7 +497,7 @@ struct mode *mp;
   ioctl(fd, TIOCGETD, (char *)&mp->m_ldisc);
 # endif
 #endif
-#if defined(ENCODINGS) && defined(TIOCKSET)
+#if defined(TIOCKSET)
   ioctl(fd, TIOCKGETC, &mp->m_jtchars);
   ioctl(fd, TIOCKGET, &mp->m_knjmode);
 #endif

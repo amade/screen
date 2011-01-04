@@ -76,9 +76,7 @@ extern struct win *fore, **wtab, *console_window, *windows;
 extern struct layer *flayer;
 extern struct layout *layout_attach, *layout_last, layout_last_marker;
 extern struct NewWindow nwin_undef;
-#ifdef MULTIUSER
 extern char *multi;
-#endif
 extern int maxwin;
 
 extern char *getenv();
@@ -88,11 +86,7 @@ extern struct event serv_read;
 extern char *rc_name;
 extern struct comm comms[];
 
-#ifdef MULTIUSER
-# define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0) | (multi ? 1 : 0))
-#else
-# define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0))
-#endif
+#define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0) | (multi ? 1 : 0))
 
 
 /*
@@ -237,7 +231,6 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 #endif
       mode = (int)st.st_mode & 0777;
       debug1("  has mode 0%03o\n", mode);
-#ifdef MULTIUSER 
       if (multi && ((mode & 0677) != 0601))
         {
 	  debug("  is not a MULTI-USER session");
@@ -251,7 +244,6 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	      debug(", but it is our own session.\n");
 	    }
 	}
-#endif
       debug("  store it.\n");
       if ((sent = (struct sent *)malloc(sizeof(struct sent))) == 0)
 	continue;
@@ -367,14 +359,12 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	    case 0600:
 	      printf("\t%s\t(Detached)\n", sent->name);
 	      break;
-#ifdef MULTIUSER
 	    case 0701:
 	      printf("\t%s\t(Multi, attached)\n", sent->name);
 	      break;
 	    case 0601:
 	      printf("\t%s\t(Multi, detached)\n", sent->name);
 	      break;
-#endif
 	    case -1:
 	      /* No trigraphs here! */
 	      printf("\t%s\t(Dead ?%c?)\n", sent->name, '?');
@@ -827,16 +817,12 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
 	user = m->m.attach.auser;
 	attach = 1;
 	break;
-#ifdef REMOTE_DETACH
       case MSG_DETACH:
-# ifdef POW_DETACH
       case MSG_POW_DETACH:
-# endif				/* POW_DETACH */
 	pid = m->m.detach.dpid;
 	user = m->m.detach.duser;
 	attach = 0;
 	break;
-#endif
       default:
 	return -1;
     }
@@ -866,10 +852,8 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
       Kill(pid, SIG_BYE);
       return -1;
     }
-#ifdef MULTIUSER
   if (attach)
     Kill(pid, SIGCONT);
-#endif
 
 #if defined(ultrix) || defined(pyr) || defined(NeXT)
   brktty(i);	/* for some strange reason this must be done */
@@ -886,7 +870,6 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
 	  return -1;
 	}
 
-#ifdef MULTIUSER
       if (strcmp(user, LoginName))
 	if (*FindUserPtr(user) == 0)
 	  {
@@ -896,18 +879,8 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
 	      Msg(0, "Attach: access denied for user %s.", user);
 	      return -1;
 	  }
-#endif
 
       debug2("RecMsg: apid %d is o.k. and we just opened '%s'\n", pid, m->m_tty);
-#ifndef MULTI
-      if (displays)
-	{
-	  write(i, "Screen session in use.\n", 23);
-	  close(i);
-	  Kill(pid, SIG_BYE);
-	  return -1;
-	}
-#endif
     }
 
   /* create new display */
@@ -920,18 +893,12 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
       Kill(pid, SIG_BYE);
       return -1;
     }
-#ifdef ENCODINGS
   if (attach)
     {
-# ifdef UTF8
       D_encoding = m->m.attach.encoding == 1 ? UTF8 : m->m.attach.encoding ? m->m.attach.encoding - 1 : 0;
-# else
-      D_encoding = m->m.attach.encoding ? m->m.attach.encoding - 1 : 0;
-# endif
       if (D_encoding < 0 || !EncodingName(D_encoding))
 	D_encoding = 0;
     }
-#endif
 
   if (iflag && olddisplays)
     {
@@ -1138,11 +1105,9 @@ ReceiveMsg()
     case MSG_ATTACH:
       if (CreateTempDisplay(&m, recvfd, wi))
 	break;
-#ifdef PASSWORD
       if (D_user->u_password && *D_user->u_password)
 	AskPassword(&m);
       else
-#endif
         FinishAttach(&m);
       break;
     case MSG_ERROR:
@@ -1152,12 +1117,8 @@ ReceiveMsg()
       if (!wi)		/* ignore hangups from inside */
         Hangup();
       break;
-#ifdef REMOTE_DETACH
     case MSG_DETACH:
-# ifdef POW_DETACH
     case MSG_POW_DETACH:
-# endif				/* POW_DETACH */
-#ifdef PASSWORD
       user = *FindUserPtr(m.m.detach.duser);
       if (user && user->u_password && *user->u_password)
 	{
@@ -1166,10 +1127,8 @@ ReceiveMsg()
 	  AskPassword(&m);
 	}
       else
-#endif /* PASSWORD */
 	FinishDetach(&m);
       break;
-#endif
     case MSG_QUERY:
 	{
 	  char *oldSockPath = SaveStr(SockPath);
@@ -1307,14 +1266,10 @@ FinishAttach(struct msg *m)
   ASSERT(display);
   pid = D_userpid;
 
-#ifdef REMOTE_DETACH
   if (m->m.attach.detachfirst == MSG_DETACH
-# ifdef POW_DETACH
       || m->m.attach.detachfirst == MSG_POW_DETACH
-# endif
      )
     FinishDetach(m);
-#endif
 
 #if defined(pyr) || defined(xelos) || defined(sequent)
   /*
@@ -1431,9 +1386,7 @@ FinishAttach(struct msg *m)
     SetForeWindow(fore);
   else if (!noshowwin)
     {
-#ifdef MULTIUSER
       if (!AclCheckPermCmd(D_user, ACL_EXEC, &comms[RC_WINDOWLIST]))
-#endif
 	{
 	  struct display *olddisplay = display;
 	  flayer = D_forecv->c_layer;
@@ -1489,20 +1442,16 @@ FinishDetach(struct msg *m)
   for (display = displays; display; display = next)
     {
       next = display->d_next;
-# ifdef POW_DETACH
       if (m->type == MSG_POW_DETACH)
 	Detach(D_REMOTE_POWER);
       else
-# endif				/* POW_DETACH */
       if (m->type == MSG_DETACH)
 	Detach(D_REMOTE);
       else if (m->type == MSG_ATTACH)
 	{
-#ifdef POW_DETACH
 	  if (m->m.attach.detachfirst == MSG_POW_DETACH)
 	    Detach(D_REMOTE_POWER);
 	  else
-#endif
 	  if (m->m.attach.detachfirst == MSG_DETACH)
 	    Detach(D_REMOTE);
 	}
@@ -1516,7 +1465,6 @@ FinishDetach(struct msg *m)
     }
 }
 
-#ifdef PASSWORD
 static void PasswordProcessInput (char *, int);
 
 struct pwdata {
@@ -1579,15 +1527,11 @@ PasswordProcessInput(char *ibuf, int ilen)
 	  AddStr("\r\n");
 	  D_processinputdata = 0;
 	  D_processinput = ProcessInput;
-#ifdef REMOTE_DETACH
 	  if (pwdata->m.type == MSG_DETACH
-# ifdef POW_DETACH
 	      || pwdata->m.type == MSG_POW_DETACH
-# endif
 	     )
 	    FinishDetach(&pwdata->m);
 	  else
-#endif
 	    FinishAttach(&pwdata->m);
 	  free(pwdata);
 	  return;
@@ -1615,7 +1559,6 @@ PasswordProcessInput(char *ibuf, int ilen)
     }
   pwdata->l = l;
 }
-#endif
 
 /* 'end' is exclusive, i.e. you should *not* write in *end */
 static char *
@@ -1649,11 +1592,7 @@ DoCommandMsg(struct msg *mp)
   int n;
   register char *p = mp->m.command.cmd;
   struct acluser *user;
-#ifdef MULTIUSER
   extern struct acluser *EffectiveAclUser;	/* acls.c */
-#else
-  extern struct acluser *users;			/* acls.c */
-#endif
 
   n = mp->m.command.nargs;
   if (n > MAXARGS - 1)
@@ -1679,7 +1618,6 @@ DoCommandMsg(struct msg *mp)
       queryflag = -1;
       return;
     }
-#ifdef MULTIUSER
   user = *FindUserPtr(mp->m.attach.auser);
   if (user == 0)
     {
@@ -1687,17 +1625,12 @@ DoCommandMsg(struct msg *mp)
       queryflag = -1;
       return;
     }
-#else
-  user = users;
-#endif
-#ifdef PASSWORD
   if (user->u_password && *user->u_password)
     {
       Msg(0, "User %s has a password, cannot use remote commands (using -Q or -X option).", mp->m.attach.auser);
       queryflag = -1;
       return;
     }
-#endif
   if (!display)
     for (display = displays; display; display = display->d_next)
       if (D_user == user)
@@ -1745,9 +1678,7 @@ DoCommandMsg(struct msg *mp)
     }
   if (!fore)
     fore = windows;		/* sigh */
-#ifdef MULTIUSER
   EffectiveAclUser = user;
-#endif
   if (*args)
     {
       char *oldrcname = rc_name;
@@ -1759,9 +1690,7 @@ DoCommandMsg(struct msg *mp)
       DoCommand(args, argl);
       rc_name = oldrcname;
     }
-#ifdef MULTIUSER
   EffectiveAclUser = 0;
-#endif
 }
 
 #ifndef NAMEDPIPE

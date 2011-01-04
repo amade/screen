@@ -48,13 +48,11 @@
 #define ATYP_S		(1<<1)
 #define ATYP_U		(1<<2)
 
-#ifdef COLORS16
 /* pseudo attributes */
 # define ATTR_BFG	6	/* bright foreground */
 # define ATTR_BBG	7	/* bright background */
 # define A_BFG	(1<<ATTR_BFG)
 # define A_BBG	(1<<ATTR_BBG)
-#endif
 
 /*
  *  Parser state
@@ -119,7 +117,6 @@ enum move_t {
 #define STATLINE	 (D_height-1)
 #endif
 
-#ifdef ENCODINGS
 
 #define KANJI		('B' & 037)
 #define KANJI0212	('D' & 037)
@@ -136,23 +133,15 @@ enum move_t {
 
 #define EUC	EUC_JP
 
-#endif
 
-#ifdef UTF8
-#undef UTF8
 #define UTF8	8
-#endif
 
-#ifdef UTF8
 # define UCS_REPL    0xfffd  /* character for illegal codes */
 # define UCS_REPL_DW 0xff1f  /* character for illegal codes */
 # define UCS_HIDDEN 0xffff
-#endif
 
-#ifdef DW_CHARS
 # define is_dw_font(f) ((f) && ((f) & 0x60) == 0)
 
-# ifdef UTF8
 #  define dw_left(ml, x, enc) ((enc == UTF8) ? \
 	(unsigned char)(ml)->font[(x) + 1] == 0xff && (unsigned char)(ml)->image[(x) + 1] == 0xff : \
 	((unsigned char)(ml)->font[x] & 0x1f) != 0 && ((unsigned char)(ml)->font[x] & 0xe0) == 0 \
@@ -161,15 +150,4 @@ enum move_t {
 	(unsigned char)(ml)->font[x] == 0xff && (unsigned char)(ml)->image[x] == 0xff : \
 	((unsigned char)(ml)->font[x] & 0xe0) == 0x80 \
 	)
-# else
-#  define dw_left(ml, x, enc) ( \
-	((unsigned char)(ml)->font[x] & 0x1f) != 0 && ((unsigned char)(ml)->font[x] & 0xe0) == 0 \
-	)
-#  define dw_right(ml, x, enc) ( \
-	((unsigned char)(ml)->font[x] & 0xe0) == 0x80 \
-	)
-# endif /* UTF8 */
-#else
-# define dw_left(ml, x, enc) 0
-# define dw_right(ml, x, enc) 0
-#endif
+
