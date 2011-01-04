@@ -34,7 +34,6 @@
 #include "mark.h"
 #include "extern.h"
 
-#ifdef COPY_PASTE
 
 /*
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -65,9 +64,7 @@ extern struct win *fore;
 extern struct mline mline_blank, mline_null;
 extern struct mchar mchar_so;
 
-#ifdef FONT
 int pastefont = 1;
-#endif
 
 struct LayFuncs MarkLf =
 {
@@ -276,10 +273,8 @@ rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend)
   int l = 0;
   unsigned char *im;
   struct mline *ml;
-#ifdef FONT
   int cf, font;
   unsigned char *fo;
-#endif
 
   markdata->second = 0;
   if (y2 < y1 || ((y2 == y1) && (x2 < x1)))
@@ -319,21 +314,15 @@ rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend)
       if (redisplay != 2 && pt == 0)	/* don't count/copy */
 	continue;
       j = from;
-#ifdef DW_CHARS
       if (dw_right(ml, j, fore->w_encoding))
 	j--;
-#endif
       im = ml->image + j;
-#ifdef FONT
       fo = ml->font + j;
       font = ASCII;
-#endif
       for (; j <= to; j++)
 	{
 	  c = (unsigned char)*im++;
-#ifdef FONT
 	  cf = (unsigned char)*fo++;
-# ifdef UTF8
 	  if (fore->w_encoding == UTF8)
 	    {
 	      c |= cf << 8;
@@ -345,15 +334,12 @@ rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend)
 	        pt += c;
 	      continue;
 	    }
-# endif
-# ifdef DW_CHARS
 	  if (is_dw_font(cf))
 	    {
 	      c = c << 8 | (unsigned char)*im++;
 	      fo++;
 	      j++;
 	    }
-# endif
 	  if (pastefont)
 	    {
 	      c = EncodeChar(pt, c | cf << 16, fore->w_encoding, &font);
@@ -362,12 +348,10 @@ rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend)
 		pt += c;
 	      continue;
 	    }
-#endif /* FONT */
 	  if (pt)
 	    *pt++ = c;
 	  l++;
 	}
-#ifdef FONT
       if (pastefont && font != ASCII)
 	{
 	  if (pt)
@@ -377,7 +361,6 @@ rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend)
 	    }
 	  l += 3;
 	}
-#endif
       if (i != y2 && (to != fore->w_width - 1 || ml->image[to + 1] == ' '))
 	{
 	  /*
@@ -475,9 +458,7 @@ GetHistory()	/* return value 1 if copybuffer changed */
     }
   bcopy((char *)linep - i + x + 1, D_user->u_plop.buf, i - x + 1);
   D_user->u_plop.len = i - x + 1;
-#ifdef ENCODINGS
   D_user->u_plop.enc = fore->w_encoding;
-#endif
   return 1;
 }
 
@@ -1019,9 +1000,7 @@ processchar:
 		  md_user->u_plop.len += rem(markdata->x1, markdata->y1, x2, y2,
 		    markdata->hist_offset == fore->w_histheight,
 		    md_user->u_plop.buf + md_user->u_plop.len, yend);
-#ifdef ENCODINGS
 		  md_user->u_plop.enc = fore->w_encoding;
-#endif
 		}
 	      if (markdata->hist_offset != fore->w_histheight)
 		{
@@ -1117,14 +1096,12 @@ void revto_line(int tx, int ty, int line)
 
   fx = markdata->cx; fy = markdata->cy;
 
-#ifdef DW_CHARS
   /* don't just move inside of a kanji, the user wants to see something */
   ml = WIN(ty);
   if (ty == fy && fx + 1 == tx && dw_right(ml, tx, fore->w_encoding) && tx < D_width - 1)
     tx++;
   if (ty == fy && fx - 1 == tx && dw_right(ml, fx, fore->w_encoding) && tx)
     tx--;
-#endif
 
   markdata->cx = tx; markdata->cy = ty;
 
@@ -1209,7 +1186,6 @@ void revto_line(int tx, int ty, int line)
 	}
       if (x <= ce && x >= markdata->left_mar && x <= markdata->right_mar)
 	{
-#ifdef DW_CHARS
 	  if (dw_right(ml, x, fore->w_encoding))
 	      {
 		if (t == revst)
@@ -1217,31 +1193,24 @@ void revto_line(int tx, int ty, int line)
 	        t--;
 		x--;
 	      }
-#endif
 	  if (t >= revst && t <= reven)
 	    {
 	      mc = mchar_so;
-#ifdef FONT
 	      if (pastefont)
 		mc.font = ml->font[x];
-#endif
 	      mc.image = ml->image[x];
 	    }
 	  else
 	    copy_mline2mchar(&mc, ml, x);
-#ifdef DW_CHARS
 	  if (dw_left(ml, x, fore->w_encoding))
 	    {
 	      mc.mbcs = ml->image[x + 1];
 	      LPutChar(flayer, &mc, x, W2D(y));
 	      t++;
 	    }
-#endif
 	  LPutChar(flayer, &mc, x, W2D(y));
-#ifdef DW_CHARS
 	  if (dw_left(ml, x, fore->w_encoding))
 	    x++;
-#endif
 	}
     }
   flayer->l_x = tx;
@@ -1329,34 +1298,26 @@ MarkRedisplayLine(int y, int xs, int xe, int isblank)
   for (x = xs; x <= xe; x++, cp++)
     if (cp >= sta && x >= markdata->left_mar)
       break;
-#ifdef DW_CHARS
   if (dw_right(ml, x, fore->w_encoding))
     x--;
-#endif
   if (x > xs)
     LCDisplayLine(flayer, ml, y, xs, x - 1, isblank);
   for (; x <= xe; x++, cp++)
     {
       if (cp > sto || x > rm)
 	break;
-#ifdef FONT
       if (pastefont)
 	mchar_marked.font = ml->font[x];
-#endif
       mchar_marked.image = ml->image[x];
-#ifdef DW_CHARS
       mchar_marked.mbcs = 0;
       if (dw_left(ml, x, fore->w_encoding))
 	{
 	  mchar_marked.mbcs = ml->image[x + 1];
 	  cp++;
 	}
-#endif
       LPutChar(flayer, &mchar_marked, x, y);
-#ifdef DW_CHARS
       if (dw_left(ml, x, fore->w_encoding))
 	x++;
-#endif
     }
   if (x <= xe)
     LCDisplayLine(flayer, ml, y, x, xe, isblank);
@@ -1381,10 +1342,8 @@ MarkRewrite(int ry, int xs, int xe, struct mchar *rend, int doit)
   fore = markdata->md_window;
   y = D2W(ry);
   ml = WIN(y);
-#ifdef UTF8
   if (fore->w_encoding && fore->w_encoding != UTF8 && D_encoding == UTF8 && ContainsSpecialDeffont(ml, xs, xe, fore->w_encoding))
     return EXPENSIVE;
-#endif
   dx = xe - xs + 1;
   if (doit)
     {
@@ -1416,10 +1375,8 @@ MarkRewrite(int ry, int xs, int xe, struct mchar *rend, int doit)
     {
       if (t >= st && t <= en && x >= markdata->left_mar && x <= rm)
         {
-#ifdef FONT
 	  if (pastefont)
 	    mchar_marked.font = ml->font[x];
-#endif
 	  rend->image = mchar_marked.image;
 	  if (!cmp_mchar(rend, &mchar_marked))
 	    return EXPENSIVE;
@@ -1498,5 +1455,4 @@ FreePaster(struct paster *pa)
   evdeq(&pa->pa_slowev);
 }
 
-#endif /* COPY_PASTE */
 

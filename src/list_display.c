@@ -37,7 +37,6 @@
 #include "extern.h"
 #include "list_generic.h"
 
-#ifdef MULTI
 
 extern struct layer *flayer;
 extern struct display *display, *displays;
@@ -111,7 +110,6 @@ gl_Display_row(struct ListData *ldata, struct ListRow *lrow)
 	   *            write, own wlock
 	   * -,x	no execute, execute
 	   */
-#ifdef MULTIUSER
 	  (AclCheckPermWin(d->d_user, ACL_READ, w) ? '-' :
 	   ((w->w_wlock == WLOCK_OFF || d->d_user == w->w_wlockuser) ?
 	    'r' : 'R')),
@@ -119,9 +117,6 @@ gl_Display_row(struct ListData *ldata, struct ListRow *lrow)
 	   ((w->w_wlock == WLOCK_OFF) ? 'w' :
 	    ((d->d_user == w->w_wlockuser) ? 'W' : 'v'))),
 	  (AclCheckPermWin(d->d_user, ACL_READ, w) ? '-' : 'x')
-#else
-	  'r', 'w', 'x'
-#endif
 	  );
     }
   leftline(tbuf, lrow->y, lrow == ldata->selected ? &mchar_so : d == display ? &m_current : 0);
@@ -171,24 +166,18 @@ gl_Display_input(struct ListData *ldata, char **inp, int *len)
       *len = 0;
       break;
 
-#ifdef REMOTE_DETACH
     case 'd': /* Detach */
     case 'D': /* Power detach */
       display = ldata->selected->data;
       if (display == cd)	/* We do not allow detaching the current display */
 	break;
       Detach(
-#ifdef POW_DETACH
 	  ch == 'D' ? D_REMOTE_POWER : D_REMOTE
-#else
-	  D_REMOTE
-#endif
 	  );
       display = cd;
       glist_remove_rows(ldata);
       gl_Display_rebuild(ldata);
       break;
-#endif
 
     default:
       /* We didn't actually process the input. */
@@ -241,5 +230,4 @@ display_displays()
   gl_Display_rebuild(ldata);
 }
 
-#endif /* MULTI */
 

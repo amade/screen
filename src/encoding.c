@@ -27,7 +27,6 @@
 #include "screen.h"
 #include "extern.h"
 
-#ifdef ENCODINGS
 
 extern unsigned char *null;
 extern struct display *display, *displays;
@@ -35,20 +34,14 @@ extern struct layer *flayer;
 
 extern char *screenencodings;
 
-#ifdef DW_CHARS
 extern int cjkwidth;
-#endif
 
 static int  encmatch (char *, char *);
-# ifdef UTF8
 static int   recode_char (int, int, int);
 static int   recode_char_to_encoding (int, int);
 static void  comb_tofront (int, int);
-#  ifdef DW_CHARS
 static int   recode_char_dw (int, int *, int, int);
 static int   recode_char_dw_to_encoding (int, int *, int);
-#  endif
-# endif
 
 struct encoding {
   char *name;
@@ -87,7 +80,6 @@ struct encoding encodings[] = {
   { "GBK",		"B\031BB01",	0x80|'b',	1, 1, "\031" }
 };
 
-#ifdef UTF8
 
 static unsigned short builtin_tabs[][2] = {
   { 0x30, 0 },		/* 0: special graphics (line drawing) */
@@ -388,7 +380,6 @@ recode_char(int c, int to_utf, int font)
 }
 
 
-#ifdef DW_CHARS
 static int
 recode_char_dw(int c, int *c2p, int to_utf, int font)
 {
@@ -410,10 +401,8 @@ recode_char_dw(int c, int *c2p, int to_utf, int font)
         for (; (*p)[0]; p++)
 	  if ((*p)[0] == c)
 	    {
-#ifdef DW_CHARS
 	      if (!utf8_isdouble((*p)[1]))
 		*c2p = ' ';
-#endif
 	      return (*p)[1];
 	    }
       return UCS_REPL_DW;
@@ -452,7 +441,6 @@ recode_char_dw(int c, int *c2p, int to_utf, int font)
     }
   return -1;
 }
-#endif
 
 static int
 recode_char_to_encoding(int c, int encoding)
@@ -472,7 +460,6 @@ recode_char_to_encoding(int c, int encoding)
   return recode_char(c, 0, -1);
 }
 
-#ifdef DW_CHARS
 static int
 recode_char_dw_to_encoding(int c, int *c2p, int encoding)
 {
@@ -490,7 +477,6 @@ recode_char_dw_to_encoding(int c, int *c2p, int encoding)
       return x;
   return recode_char_dw(c, c2p, 0, -1);
 }
-#endif
 
 
 struct mchar *
@@ -508,7 +494,6 @@ recode_mchar(struct mchar *mc, int from, int to)
   if (rmc.font == 0)	/* latin1 is the same in unicode */
     return mc;
   c = rmc.image | (rmc.font << 8);
-#ifdef DW_CHARS
   if (rmc.mbcs)
     {
       int c2 = rmc.mbcs;
@@ -516,7 +501,6 @@ recode_mchar(struct mchar *mc, int from, int to)
       rmc.mbcs = c2;
     }
   else
-#endif
     c = recode_char_to_encoding(c, to);
   rmc.image = c & 255;
   rmc.font = c >> 8 & 255;
@@ -572,18 +556,13 @@ recode_mline(struct mline *ml, int w, int from, int to)
 
   rl = rml + last;
   rl->attr = ml->attr;
-#ifdef COLOR
   rl->color = ml->color;
-# ifdef COLORS256
   rl->colorx = ml->colorx;
-# endif
-#endif
   for (i = 0; i < w; i++)
     {
       c = ml->image[i] | (ml->font[i] << 8);
       if (from != UTF8 && c < 256)
 	c |= encodings[from].deffont << 8;
-#ifdef DW_CHARS
       if ((from != UTF8 && (c & 0x1f00) != 0 && (c & 0xe000) == 0) || (from == UTF8 && utf8_isdouble(c)))
 	{
 	  if (i + 1 == w)
@@ -600,7 +579,6 @@ recode_mline(struct mline *ml, int w, int from, int to)
 	    }
 	}
       else
-#endif
         c = recode_char_to_encoding(c, to);
       rl->image[i] = c & 255;
       rl->font[i] = c >> 8 & 255;
@@ -781,11 +759,7 @@ WinSwitchEncoding(struct win *p, int encoding)
   flayer = oldflayer;
   for (j = 0; j < p->w_height + p->w_histheight; j++)
     {
-#ifdef COPY_PASTE
       ml = j < p->w_height ? &p->w_mlines[j] : &p->w_hlines[j - p->w_height];
-#else
-      ml = &p->w_mlines[j];
-#endif
       if (ml->font == null && encodings[p->w_encoding].deffont == 0)
 	continue;
       for (i = 0; i < p->w_width; i++)
@@ -803,7 +777,6 @@ WinSwitchEncoding(struct win *p, int encoding)
 		  break;
 		}
 	    }
-#ifdef DW_CHARS
 	  if ((p->w_encoding != UTF8 && (c & 0x1f00) != 0 && (c & 0xe000) == 0) || (p->w_encoding == UTF8 && utf8_isdouble(c)))
 	    {
 	      if (i + 1 == p->w_width)
@@ -820,7 +793,6 @@ WinSwitchEncoding(struct win *p, int encoding)
 		}
 	    }
 	  else
-#endif
 	    c = recode_char_to_encoding(c, encoding);
 	  ml->image[i] = c & 255;
 	  ml->font[i] = c >> 8 & 255;
@@ -830,7 +802,6 @@ WinSwitchEncoding(struct win *p, int encoding)
   return;
 }
 
-#ifdef DW_CHARS
 struct interval {
   int first;
   int last;
@@ -932,7 +903,6 @@ utf8_isdouble(int c)
            bisearch(c, ambiguous,
 	            sizeof(ambiguous) / sizeof(struct interval) - 1)));
 }
-#endif
 
 int
 utf8_iscomb(int c)
@@ -1084,17 +1054,6 @@ utf8_handle_comb(int c, struct mchar *mc)
   comb_tofront(root, i);
 }
 
-#else /* !UTF8 */
-
-void
-WinSwitchEncoding(struct win *p, int encoding)
-{
-  p->w_encoding = encoding;
-  return;
-}
-
-#endif /* UTF8 */
-
 static int
 encmatch(char *s1, char *s2)
 {
@@ -1138,16 +1097,10 @@ FindEncoding(char *name)
     name = "eucJP";
   if (encmatch(name, "off") || encmatch(name, "iso8859-1"))
     return 0;
-#ifndef UTF8
-  if (encmatch(name, "UTF-8"))
-    return -1;
-#endif
   for (encoding = 0; encoding < (int)(sizeof(encodings)/sizeof(*encodings)); encoding++)
     if (encmatch(name, encodings[encoding].name))
       {
-#ifdef UTF8
 	LoadFontTranslationsForEncoding(encoding);
-#endif
         return encoding;
       }
   return -1;
@@ -1176,9 +1129,7 @@ ResetEncoding(struct win *p)
   c = encodings[encoding].charsets;
   if (c)
     SetCharsets(p, c);
-#ifdef UTF8
   LoadFontTranslationsForEncoding(encoding);
-#endif
   if (encodings[encoding].usegr)
     {
       p->w_gr = 2;
@@ -1196,10 +1147,8 @@ DecodeChar(int c, int encoding, int *statep)
   int t;
 
   debug2("Decoding char %02x for encoding %d\n", c, encoding);
-#ifdef UTF8
   if (encoding == UTF8)
     return FromUtf8(c, statep);
-#endif
   if (encoding == SJIS)
     {
       if (!*statep)
@@ -1310,12 +1259,10 @@ EncodeChar(char *bp, int c, int encoding, int *fontp)
     }
   f = c >> 16;
 
-#ifdef UTF8
   if (encoding == UTF8)
     {
       if (f)
 	{
-# ifdef DW_CHARS
 	  if (is_dw_font(f))
 	    {
 	      int c2 = c & 0xff;
@@ -1323,7 +1270,6 @@ EncodeChar(char *bp, int c, int encoding, int *fontp)
 	      c = recode_char_dw_to_encoding(c, &c2, encoding);
 	    }
 	  else
-# endif
 	    {
 	      c = (c & 0xff) | (f << 8);
 	      c = recode_char_to_encoding(c, encoding);
@@ -1333,7 +1279,6 @@ EncodeChar(char *bp, int c, int encoding, int *fontp)
     }
   if ((c & 0xff00) && f == 0)	/* is_utf8? */
     {
-# ifdef DW_CHARS
       if (utf8_isdouble(c))
 	{
 	  int c2 = 0xffff;
@@ -1341,7 +1286,6 @@ EncodeChar(char *bp, int c, int encoding, int *fontp)
 	  c = (c << 8) | (c2 & 0xff);
 	}
       else
-# endif
 	{
 	  c = recode_char_to_encoding(c, encoding);
 	  c = ((c & 0xff00) << 8) | (c & 0xff);
@@ -1349,7 +1293,6 @@ EncodeChar(char *bp, int c, int encoding, int *fontp)
       debug1("Encode: char mapped from utf8 to %x\n", c);
       f = c >> 16;
     }
-#endif
   if (f & 0x80)		/* map special 96-fonts to latin1 */
     f = 0;
 
@@ -1467,10 +1410,8 @@ CanEncodeFont(int encoding, int f)
 {
   switch(encoding)
     {
-#ifdef UTF8
     case UTF8:
       return 1;
-#endif
     case SJIS:
       return f == KANJI || f == KANA;
     case EUC:
@@ -1489,7 +1430,6 @@ CanEncodeFont(int encoding, int f)
   return 0;
 }
 
-#ifdef DW_CHARS
 int
 PrepareEncodedChar(int c)
 {
@@ -1540,7 +1480,6 @@ PrepareEncodedChar(int c)
     return c | 0x80;
   return c;
 }
-#endif
 
 int
 RecodeBuf(unsigned char *fbuf, int flen, int fenc, int tenc, unsigned char *tbuf)
@@ -1562,7 +1501,6 @@ RecodeBuf(unsigned char *fbuf, int flen, int fenc, int tenc, unsigned char *tbuf
   return j;
 }
 
-#ifdef UTF8
 int
 ContainsSpecialDeffont(struct mline *ml, int xs, int xe, int encoding)
 {
@@ -1696,58 +1634,3 @@ LoadFontTranslationsForEncoding(int encoding)
     LoadFontTranslation(f, 0);
 }
 
-#endif /* UTF8 */
-
-#else /* !ENCODINGS */
-
-/* Simple version of EncodeChar to encode font changes for
- * copy/paste mode
- */
-int
-EncodeChar(char *bp, int c, int encoding, int *fontp)
-{
-  int f, l;
-  f = (c == -1) ? 0 : c >> 16;
-  l = 0;
-  if (fontp && f != *fontp)
-    {
-      *fontp = f;
-      if (f && f < ' ')
-	{
-	  if (bp)
-	   {
-	     *bp++ = 033;
-	     *bp++ = '$';
-	     if (f > 2)
-	       *bp++ = '(';
-	     *bp++ = '@' + f;
-	   }
-	  l += f > 2 ? 4 : 3;
-	}
-      else if (f < 128)
-	{
-	  if (f == 0)
-	    f = 'B';
-	  if (bp)
-	    {
-	      *bp++ = 033;
-	      *bp++ = '(';
-	      *bp++ = f;
-	    }
-	  l += 3;
-	}
-    }
-  if (c == -1)
-    return l;
-  if (c & 0xff00)
-    {
-      if (bp)
-	*bp++ = c >> 8;
-      l++;
-    }
-  if (bp)
-    *bp++ = c;
-  return l + 1;
-}
-
-#endif /* ENCODINGS */

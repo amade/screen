@@ -42,12 +42,10 @@ static sigret_t AttacherSigInt SIGPROTOARG;
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 static sigret_t AttacherWinch SIGPROTOARG;
 #endif
-#ifdef LOCK
 static sigret_t DoLock SIGPROTOARG;
 static void  LockTerminal (void);
 static sigret_t LockHup SIGPROTOARG;
 static void  screen_builtin_lck (void);
-#endif
 #ifdef DEBUG
 static sigret_t AttacherChld SIGPROTOARG;
 #endif
@@ -63,14 +61,12 @@ extern struct mode attach_Mode;
 extern struct NewWindow nwin_options;
 extern int MasterPid, attach_fd;
 
-#ifdef MULTIUSER
 extern char *multi;
 extern int multiattach, multi_uid, own_uid;
 extern int tty_mode, tty_oldmode;
 # ifndef USE_SETEUID
 static int multipipe[2];
 # endif
-#endif
 
 
 static int ContinuePlease;
@@ -141,7 +137,6 @@ Attach(int how)
   char *s;
 
   debug2("Attach: how=%d, tty=%s\n", how, attach_tty);
-#ifdef MULTIUSER
 # ifndef USE_SETEUID
   while ((how == MSG_ATTACH || how == MSG_CONT) && multiattach)
     {
@@ -169,11 +164,9 @@ Attach(int how)
 	      tty_oldmode = -1;
 	    }
 	  ret = UserStatus();
-#ifdef LOCK
 	  if (ret == SIG_LOCK)
 	    LockTerminal();
 	  else
-#endif
 #ifdef SIGTSTP
 	  if (ret == SIG_STOP)
 	    kill(getpid(), SIGTSTP);
@@ -191,9 +184,7 @@ Attach(int how)
 	  else
             exit(ret);
 	  dflag = 0;
-#ifdef MULTI
 	  xflag = 1;
-#endif
 	  how = MSG_ATTACH;
 	  continue;
 	}
@@ -218,7 +209,6 @@ Attach(int how)
       tty_oldmode = tty_mode;
     }
 # endif /* USE_SETEUID */
-#endif /* MULTIUSER */
 
   bzero((char *) &m, sizeof(m));
   m.type = how;
@@ -283,11 +273,9 @@ Attach(int how)
    * when things go wrong. Any disadvantages? jw.
    * Do this before the attach to prevent races!
    */
-#ifdef MULTIUSER
   if (!multiattach)
-#endif
     setuid(real_uid);
-#if defined(MULTIUSER) && defined(USE_SETEUID)
+#if defined(USE_SETEUID)
   else
     {
       /* This call to xsetuid should also set the saved uid */
@@ -325,18 +313,15 @@ Attach(int how)
    */
   if ((dflag || !xflag) && (st.st_mode & 0700) != (dflag ? 0700 : 0600))
     Panic(0, "That screen is %sdetached.", dflag ? "already " : "not ");
-#ifdef REMOTE_DETACH
   if (dflag &&
       (how == MSG_DETACH || how == MSG_POW_DETACH))
     {
       m.m.detach.dpid = getpid();
       strncpy(m.m.detach.duser, LoginName, sizeof(m.m.detach.duser) - 1); 
       m.m.detach.duser[sizeof(m.m.detach.duser) - 1] = 0;
-# ifdef POW_DETACH
       if (dflag == 2)
 	m.type = MSG_POW_DETACH;
       else
-# endif
 	m.type = MSG_DETACH;
       /* If there is no password for the session, or the user enters the correct
        * password, then we get a SIGCONT. Otherwise we get a SIG_BYE */
@@ -355,7 +340,6 @@ Attach(int how)
 	Panic(0, "Cannot contact screen again. Sigh.");
       m.type = how;
     }
-#endif
   ASSERT(how == MSG_ATTACH || how == MSG_CONT);
   strncpy(m.m.attach.envterm, attach_term, sizeof(m.m.attach.envterm) - 1);
   m.m.attach.envterm[sizeof(m.m.attach.envterm) - 1] = 0;
@@ -376,29 +360,22 @@ Attach(int how)
     m.m.attach.columns = atoi(s);
   m.m.attach.encoding = nwin_options.encoding > 0 ? nwin_options.encoding + 1 : 0;
 
-#ifdef REMOTE_DETACH
-#ifdef POW_DETACH
   if (dflag == 2)
     m.m.attach.detachfirst = MSG_POW_DETACH;
   else
-#endif
   if (dflag)
     m.m.attach.detachfirst = MSG_DETACH;
   else
-#endif
     m.m.attach.detachfirst = MSG_ATTACH;
 
-#ifdef MULTIUSER
   /* setup CONT signal handler to repair the terminal mode */
   if (multi && (how == MSG_ATTACH || how == MSG_CONT))
     signal(SIGCONT, AttachSigCont);
-#endif
 
   if (WriteMessage(lasts, &m))
     Panic(errno, "WriteMessage");
   close(lasts);
   debug1("Attach(%d): sent\n", m.type);
-#ifdef MULTIUSER
   if (multi && (how == MSG_ATTACH || how == MSG_CONT))
     {
       while (!ContinuePlease)
@@ -416,7 +393,6 @@ Attach(int how)
       xseteuid(real_uid);
 # endif
     }
-#endif
   rflag = 0;
   return 1;
 }
@@ -487,40 +463,32 @@ AttacherFinit SIGDEFARG
 	  close(s);
 	}
     }
-#ifdef MULTIUSER
   if (tty_oldmode >= 0)
     {
       setuid(own_uid);
       chmod(attach_tty, tty_oldmode);
     }
-#endif
   exit(0);
   SIGRETURN;
 }
 
-#ifdef POW_DETACH
 static sigret_t
 AttacherFinitBye SIGDEFARG
 {
   int ppid;
   debug("AttacherFintBye()\n");
-#if defined(MULTIUSER) && !defined(USE_SETEUID)
+#if !defined(USE_SETEUID)
   if (multiattach)
     exit(SIG_POWER_BYE);
 #endif
   setgid(real_gid);
-#ifdef MULTIUSER
   setuid(own_uid);
-#else
-  setuid(real_uid);
-#endif
   /* we don't want to disturb init (even if we were root), eh? jw */
   if ((ppid = getppid()) > 1)
     Kill(ppid, SIGHUP);		/* carefully say good bye. jw. */
   exit(0);
   SIGRETURN;
 }
-#endif
 
 #if defined(DEBUG) && defined(SIG_NODEBUG)
 static sigret_t
@@ -549,7 +517,6 @@ SigStop SIGDEFARG
   SIGRETURN;
 }
 
-#ifdef LOCK
 static int LockPlease;
 
 static sigret_t
@@ -562,7 +529,6 @@ DoLock SIGDEFARG
   LockPlease = 1;
   SIGRETURN;
 }
-#endif
 
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 static int SigWinchPlease;
@@ -586,15 +552,11 @@ Attacher()
 {
   signal(SIGHUP, AttacherFinit);
   signal(SIG_BYE, AttacherFinit);
-#ifdef POW_DETACH
   signal(SIG_POWER_BYE, AttacherFinitBye);
-#endif
 #if defined(DEBUG) && defined(SIG_NODEBUG)
   signal(SIG_NODEBUG, AttacherNoDebug);
 #endif
-#ifdef LOCK
   signal(SIG_LOCK, DoLock);
-#endif
   signal(SIGINT, AttacherSigInt);
 #ifdef BSDJOBS
   signal(SIG_STOP, SigStop);
@@ -607,9 +569,7 @@ Attacher()
 #endif
   debug("attacher: going for a nap.\n");
   dflag = 0;
-#ifdef MULTI
   xflag = 1;
-#endif
   for (;;)
     {
       signal(SIGALRM, AttacherSigAlarm);
@@ -632,7 +592,7 @@ Attacher()
       if (SuspendPlease)
 	{
 	  SuspendPlease = 0;
-#if defined(MULTIUSER) && !defined(USE_SETEUID)
+#if !defined(USE_SETEUID)
 	  if (multiattach)
 	    exit(SIG_STOP);
 #endif
@@ -644,11 +604,10 @@ Attacher()
 	  (void) Attach(MSG_CONT);
 	}
 #endif
-#ifdef LOCK
       if (LockPlease)
 	{
 	  LockPlease = 0;
-#if defined(MULTIUSER) && !defined(USE_SETEUID)
+#if !defined(USE_SETEUID)
 	  if (multiattach)
 	    exit(SIG_LOCK);
 #endif
@@ -658,7 +617,6 @@ Attacher()
 # endif
 	  (void) Attach(MSG_CONT);
 	}
-#endif	/* LOCK */
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
       if (SigWinchPlease)
 	{
@@ -672,7 +630,6 @@ Attacher()
     }
 }
 
-#ifdef LOCK
 
 /* ADDED by Rainer Pruy 10/15/87 */
 /* POLISHED by mls. 03/10/91 */
@@ -684,11 +641,7 @@ LockHup SIGDEFARG
 {
   int ppid = getppid();
   setgid(real_gid);
-#ifdef MULTIUSER
   setuid(own_uid);
-#else
-  setuid(real_uid);
-#endif
   if (ppid > 1)
     Kill(ppid, SIGHUP);
   exit(0);
@@ -715,11 +668,7 @@ LockTerminal()
         {
           /* Child */
           setgid(real_gid);
-#ifdef MULTIUSER
           setuid(own_uid);
-#else
-          setuid(real_uid);	/* this should be done already */
-#endif
           closeallfiles(0);	/* important: /etc/shadow may be open */
           execl(prg, "SCREEN-LOCK", NULL);
           exit(errno);
@@ -934,7 +883,6 @@ screen_builtin_lck()
   debug("password ok.\n");
 }
 
-#endif	/* LOCK */
 
 
 void

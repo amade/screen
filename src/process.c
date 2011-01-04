@@ -73,10 +73,8 @@ extern int TtyMode, auto_detach, use_altscreen;
 extern int iflag, maxwin;
 extern int focusminwidth, focusminheight;
 extern int use_hardstatus, visual_bell;
-#ifdef COLOR
 extern int attr2color[][4];
 extern int nattr2color;
-#endif
 extern int hardstatusemu;
 extern char *printcmd;
 extern int default_startup;
@@ -86,42 +84,26 @@ extern int defmousetrack;
 extern int ZombieKey_destroy;
 extern int ZombieKey_resurrect;
 extern int ZombieKey_onerror;
-#ifdef AUTO_NUKE
 extern int defautonuke;
-#endif
 extern int separate_sids;
 extern struct NewWindow nwin_default, nwin_undef;
-#ifdef COPY_PASTE
 extern int join_with_cr;
 extern int compacthist;
 extern int search_ic;
-# ifdef FONT
 extern int pastefont;
-# endif
 extern unsigned char mark_key_tab[];
 extern char *BufferFile;
-#endif
-#ifdef POW_DETACH
 extern char *BufferFile, *PowDetachString;
-#endif
-#ifdef MULTIUSER
 extern struct acluser *EffectiveAclUser;	/* acl.c */
-#endif
 extern struct term term[];      /* terminal capabilities */
-#ifdef MAPKEYS
 extern char *kmapdef[];
 extern char *kmapadef[];
 extern char *kmapmdef[];
-#endif
 extern struct mchar mchar_so, mchar_null;
 extern int renditions[];
 extern int VerboseCreate;
-#ifdef UTF8
 extern char *screenencodings;
-#endif
-#ifdef DW_CHARS
 extern int cjkwidth;
-#endif
 
 static int  CheckArgNum (int, char **);
 static void ClearAction (struct action *);
@@ -145,23 +127,15 @@ static void Colonfin (char *, int, char *);
 static void InputSelect (void);
 static void InputSetenv (char *);
 static void InputAKA (void);
-#ifdef MULTIUSER
 static int  InputSu (struct win *, struct acluser **, char *);
 static void su_fin (char *, int, char *);
-#endif
 static void AKAfin (char *, int, char *);
-#ifdef COPY_PASTE
 static void copy_reg_fn (char *, int, char *);
 static void ins_reg_fn (char *, int, char *);
-#endif
 static void process_fn (char *, int, char *);
-#ifdef PASSWORD
 static void pass1 (char *, int, char *);
 static void pass2 (char *, int, char *);
-#endif
-#ifdef POW_DETACH
 static void pow_detach_fn (char *, int, char *);
-#endif
 static void digraph_fn (char *, int, char *);
 static int  digraph_find (const char *buf);
 static void confirm_fn (char *, int, char *);
@@ -194,10 +168,8 @@ extern int nethackflag;
 
 extern struct win **wtab;
 
-#ifdef MULTIUSER
 extern char *multi;
 extern int maxusercount;
-#endif
 char NullStr[] = "";
 
 struct plop plop_tab[MAX_PLOP_DEFS];
@@ -209,18 +181,14 @@ struct plop plop_tab[MAX_PLOP_DEFS];
 int TtyMode = PTYMODE;
 int hardcopy_append = 0;
 int all_norefresh = 0;
-#ifdef ZMODEM
 int zmodem_mode = 0;
 char *zmodem_sendcmd;
 char *zmodem_recvcmd;
 static char *zmodes[4] = {"off", "auto", "catch", "pass"};
-#endif
 
 int idletimo;
 struct action idleaction;
-#ifdef BLANKER_PRG
 char **blankerprg;
-#endif
 
 struct action ktab[256 + KMAP_KEYS];	/* command key translation table */
 struct kclass {
@@ -230,14 +198,12 @@ struct kclass {
 };
 struct kclass *kclasses;
 
-#ifdef MAPKEYS
 struct action umtab[KMAP_KEYS+KMAP_AKEYS];
 struct action dmtab[KMAP_KEYS+KMAP_AKEYS];
 struct action mmtab[KMAP_KEYS+KMAP_AKEYS];
 struct kmap_ext *kmap_exts;
 int kmap_extn;
 static int maptimeout = 300;
-#endif
 
 struct digraph
 {
@@ -1631,9 +1597,7 @@ void
 InitKeytab()
 {
   register unsigned int i;
-#ifdef MAPKEYS
   char *argarr[2];
-#endif
 
   for (i = 0; i < sizeof(ktab)/sizeof(*ktab); i++)
     {
@@ -1641,7 +1605,6 @@ InitKeytab()
       ktab[i].args = noargs;
       ktab[i].argl = 0;
     }
-#ifdef MAPKEYS
   for (i = 0; i < KMAP_KEYS+KMAP_AKEYS; i++)
     {
       umtab[i].nr = RC_ILLEGAL;
@@ -1689,7 +1652,6 @@ InitKeytab()
       argarr[1] = 0;
       SaveAction(mmtab + i + (KMAPMDEFSTART - T_CAPS), RC_STUFF, argarr, 0);
     }
-#endif
 
   ktab['h'].nr = RC_HARDCOPY;
 #ifdef BSDJOBS
@@ -1718,12 +1680,8 @@ InitKeytab()
   ktab['W'].nr = RC_WIDTH;
   ktab['.'].nr = RC_DUMPTERMCAP;
   ktab[Ctrl('\\')].nr = RC_QUIT;
-#ifdef DETACH
   ktab['d'].nr = ktab[Ctrl('d')].nr = RC_DETACH;
-# ifdef POW_DETACH
   ktab['D'].nr = RC_POW_DETACH;
-# endif
-#endif
   ktab['r'].nr = ktab[Ctrl('r')].nr = RC_WRAP;
   ktab['f'].nr = ktab[Ctrl('f')].nr = RC_FLOW;
   ktab['C'].nr = RC_CLEAR;
@@ -1731,9 +1689,7 @@ InitKeytab()
   ktab['H'].nr = RC_LOG;
   ktab['M'].nr = RC_MONITOR;
   ktab['?'].nr = RC_HELP;
-#ifdef MULTI
   ktab['*'].nr = RC_DISPLAYS;
-#endif
   {
     char *args[2];
     args[0] = "-";
@@ -1757,7 +1713,6 @@ InitKeytab()
   }
   ktab[Ctrl('G')].nr = RC_VBELL;
   ktab[':'].nr = RC_COLON;
-#ifdef COPY_PASTE
   ktab['['].nr = ktab[Ctrl('[')].nr = RC_COPY;
   {
     char *args[2];
@@ -1771,17 +1726,12 @@ InitKeytab()
   ktab['>'].nr = RC_WRITEBUF;
   ktab['<'].nr = RC_READBUF;
   ktab['='].nr = RC_REMOVEBUF;
-#endif
 /* co-opting "^A [<>=]", looking for alternatives */
   ktab['>'].nr = ktab[Ctrl('.')].nr = RC_BUMPRIGHT;
   ktab['<'].nr = ktab[Ctrl(',')].nr = RC_BUMPLEFT;
   ktab['='].nr = RC_COLLAPSE;
-#ifdef POW_DETACH
   ktab['D'].nr = RC_POW_DETACH;
-#endif
-#ifdef LOCK
   ktab['x'].nr = ktab[Ctrl('x')].nr = RC_LOCKSCREEN;
-#endif
   ktab['b'].nr = ktab[Ctrl('b')].nr = RC_BREAK;
   ktab['B'].nr = RC_POW_BREAK;
   ktab['_'].nr = RC_SILENCE;
@@ -1881,7 +1831,6 @@ ClearAction(struct action *act)
  * the layer on canvas D_forecv.
  */
 
-#ifdef MAPKEYS
 
 /*
  *  This ProcessInput just does the keybindings and passes
@@ -2018,9 +1967,6 @@ ProcessInput(char *ibuf, int ilen)
   ProcessInput2(ibuf, slen);
 }
 
-#else
-# define ProcessInput2 ProcessInput
-#endif
 
 
 /*
@@ -2093,7 +2039,6 @@ DoProcess(struct win *p, char **bufp, int *lenp, struct paster *pa)
   int oldlen;
   struct display *d = display;
 
-#ifdef COPY_PASTE
   /* XXX -> PasteStart */
   if (pa && *lenp > 1 && p && p->w_slowpaste)
     {
@@ -2102,10 +2047,8 @@ DoProcess(struct win *p, char **bufp, int *lenp, struct paster *pa)
       evenq(&p->w_paster.pa_slowev);
       return;
     }
-#endif
   while (flayer && *lenp)
     {
-#ifdef COPY_PASTE
       if (!pa && p && p->w_paster.pa_pastelen && flayer == p->w_paster.pa_pastelayer)
 	{
 	  debug("layer is busy - beep!\n");
@@ -2115,13 +2058,10 @@ DoProcess(struct win *p, char **bufp, int *lenp, struct paster *pa)
 	  display = d;
 	  return;
 	}
-#endif
       oldlen = *lenp;
       LayProcess(bufp, lenp);
-#ifdef COPY_PASTE
       if (pa && !pa->pa_pastelayer)
 	break;		/* flush rest of paste */
-#endif
       if (*lenp == oldlen)
 	{
 	  if (pa)
@@ -2138,10 +2078,8 @@ DoProcess(struct win *p, char **bufp, int *lenp, struct paster *pa)
   *bufp += *lenp;
   *lenp = 0;
   display = d;
-#ifdef COPY_PASTE
   if (pa && pa->pa_pastelen == 0)
     FreePaster(pa);
-#endif
 }
 
 int
@@ -2336,7 +2274,6 @@ DoAction(struct action *act, int key)
     }
   if ((argc = CheckArgNum(nr, args)) < 0)
     return;
-#ifdef MULTIUSER
   if (display)
     {
       if (AclCheckPermCmd(D_user, ACL_EXEC, &comms[nr]))
@@ -2347,7 +2284,6 @@ DoAction(struct action *act, int key)
 	  return;
 	}
     }
-#endif /* MULTIUSER */
 
   msgok = display && !*rc_name;
   switch(nr)
@@ -2378,7 +2314,6 @@ DoAction(struct action *act, int key)
       else if (queryflag >= 0)
 	queryflag = -1;	/* ParseWinNum already prints out an appropriate error message. */
       break;
-#ifdef AUTO_NUKE
     case RC_DEFAUTONUKE:
       if (ParseOnOff(act, &defautonuke) == 0 && msgok)
 	OutputMsg(0, "Default autonuke turned %s", defautonuke ? "on" : "off");
@@ -2389,7 +2324,6 @@ DoAction(struct action *act, int key)
       if (ParseOnOff(act, &D_auto_nuke) == 0 && msgok)
 	OutputMsg(0, "Autonuke turned %s", D_auto_nuke ? "on" : "off");
       break;
-#endif
     case RC_DEFOBUFLIMIT:
       if (ParseNum(act, &defobuflimit) == 0 && msgok)
 	OutputMsg(0, "Default limit set to %d", defobuflimit);
@@ -2462,22 +2396,16 @@ DoAction(struct action *act, int key)
 
 	if (key >= 0)
 	  {
-#ifdef PSEUDOS
 	    Input(fore->w_pwin ? "Really kill this filter [y/n]" : "Really kill this window [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_KILL);
-#else
-	    Input("Really kill this window [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_KILL);
-#endif
 	    break;
 	  }
 	n = fore->w_number;
-#ifdef PSEUDOS
 	if (fore->w_pwin)
 	  {
 	    FreePseudowin(fore);
 	    OutputMsg(0, "Filter removed.");
 	    break;
 	  }
-#endif
 	name = SaveStr(fore->w_title);
 	KillWindow(fore);
 	OutputMsg(0, "Window %d (%s) killed.", n, name);
@@ -2493,14 +2421,12 @@ DoAction(struct action *act, int key)
 	}
       Finit(0);
       /* NOTREACHED */
-#ifdef DETACH
     case RC_DETACH:
       if (*args && !strcmp(*args, "-h"))
         Hangup();
       else
         Detach(D_DETACH);
       break;
-# ifdef POW_DETACH
     case RC_POW_DETACH:
       if (key >= 0)
 	{
@@ -2512,8 +2438,6 @@ DoAction(struct action *act, int key)
       else
         Detach(D_POWER); /* detach and kill Attacher's parent */
       break;
-# endif
-#endif
     case RC_DEBUG:
 #ifdef DEBUG
       if (!*args)
@@ -2542,7 +2466,6 @@ DoAction(struct action *act, int key)
         OutputMsg(0, "Sorry, screen was compiled without -DDEBUG option.");
 #endif
       break;
-#ifdef ZMODEM
     case RC_ZMODEM:
       if (*args && !strcmp(*args, "sendcmd"))
 	{
@@ -2583,7 +2506,6 @@ DoAction(struct action *act, int key)
       if (msgok)
 	OutputMsg(0, "zmodem mode is %s", zmodes[zmodem_mode]);
       break;
-#endif
     case RC_UNBINDALL:
       {
         register unsigned int i;
@@ -2621,11 +2543,7 @@ DoAction(struct action *act, int key)
       }
       break;
     case RC_WALL:
-#ifdef MULTIUSER
       s = D_user->u_name;
-#else
-      s = D_usertty;
-#endif
         {
 	  struct display *olddisplay = display;
           display = 0;		/* no display will cause a broadcast */
@@ -2637,13 +2555,9 @@ DoAction(struct action *act, int key)
       /* where this AT command comes from: */
       if (!user)
 	break;
-#ifdef MULTIUSER
       s = SaveStr(user->u_name);
       /* DO NOT RETURN FROM HERE WITHOUT RESETTING THIS: */
       EffectiveAclUser = user;
-#else
-      s = SaveStr(display ? D_usertty : user->u_name);
-#endif
       n = strlen(args[0]);
       if (n) n--;
       /*
@@ -2795,14 +2709,10 @@ DoAction(struct action *act, int key)
 	  }
 	}
       free(s);
-#ifdef MULTIUSER
       EffectiveAclUser = NULL;
-#endif
       break;
 
-#ifdef COPY_PASTE
     case RC_READREG:
-#ifdef ENCODINGS
       i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
       if (args[0] && args[1] && !strcmp(args[0], "-e"))
 	{
@@ -2814,7 +2724,6 @@ DoAction(struct action *act, int key)
 	    }
 	  args += 2;
 	}
-#endif
       /* 
        * Without arguments we prompt for a destination register.
        * It will receive the copybuffer contents.
@@ -2850,9 +2759,7 @@ DoAction(struct action *act, int key)
 		free(pp->buf);
 	      pp->buf = s;
 	      pp->len = n;
-#ifdef ENCODINGS
 	      pp->enc = i;
-#endif
 	    }
 	}
       else
@@ -2863,9 +2770,7 @@ DoAction(struct action *act, int key)
 	 */
         copy_reg_fn(&ch, 0, NULL);
       break;
-#endif
     case RC_REGISTER:
-#ifdef ENCODINGS
       i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
       if (args[0] && args[1] && !strcmp(args[0], "-e"))
 	{
@@ -2878,7 +2783,6 @@ DoAction(struct action *act, int key)
 	  args += 2;
 	  argc -= 2;
 	}
-#endif
       if (argc != 2)
 	{
 	  OutputMsg(0, "%s: register: illegal number of arguments.", rc_name);
@@ -2890,7 +2794,6 @@ DoAction(struct action *act, int key)
 	  break;
 	}
       ch = args[0][0];
-#ifdef COPY_PASTE
       if (ch == '.')
 	{
 	  if (user->u_plop.buf != NULL)
@@ -2899,13 +2802,10 @@ DoAction(struct action *act, int key)
 	    {
 	      user->u_plop.buf = SaveStrn(args[1], argl[1]);
 	      user->u_plop.len = argl[1];
-#ifdef ENCODINGS
 	      user->u_plop.enc = i;
-#endif
 	    }
 	}
       else
-#endif
 	{
 	  struct plop *plp = plop_tab + (int)(unsigned char)ch;
 
@@ -2913,9 +2813,7 @@ DoAction(struct action *act, int key)
 	    free(plp->buf);
 	  plp->buf = SaveStrn(args[1], argl[1]);
 	  plp->len = argl[1];
-#ifdef ENCODINGS
 	  plp->enc = i;
-#endif
 	}
       break;
     case RC_PROCESS:
@@ -2956,10 +2854,8 @@ DoAction(struct action *act, int key)
 	      OutputMsg(0, "%s: stuff: unknown key '%s'", rc_name, s);
 	      break;
 	    }
-#ifdef MAPKEYS
 	  if (StuffKey(i - T_CAPS) == 0)
 	    break;
-#endif
 	  s = display ? D_tcs[i].str : 0;
 	  if (s == 0)
 	    break;
@@ -3083,11 +2979,9 @@ DoAction(struct action *act, int key)
 	break;
       SendBreak(fore, n, nr == RC_POW_BREAK);
       break;
-#ifdef LOCK
     case RC_LOCKSCREEN:
       Detach(D_LOCK);
       break;
-#endif
     case RC_WIDTH:
     case RC_HEIGHT:
       {
@@ -3278,7 +3172,6 @@ DoAction(struct action *act, int key)
 	OutputMsg(0, "%cflow%s", (fore->w_flow & FLOW_NOW) ? '+' : '-',
 	    (fore->w_flow & FLOW_AUTOFLAG) ? "(auto)" : "");
       break;
-#ifdef MULTIUSER
     case RC_DEFWRITELOCK:
       if (args[0][0] == 'a')
 	nwin_default.wlock = WLOCK_AUTO;
@@ -3312,43 +3205,35 @@ DoAction(struct action *act, int key)
       OutputMsg(0, "writelock %s", (fore->w_wlock == WLOCK_AUTO) ? "auto" :
 	  ((fore->w_wlock == WLOCK_OFF) ? "off" : "on"));
       break;
-#endif
     case RC_CLEAR:
       ResetAnsiState(fore);
       WriteString(fore, "\033[H\033[J", 6);
       break;
     case RC_RESET:
       ResetAnsiState(fore);
-#ifdef ZMODEM
       if (fore->w_zdisplay)
         zmodem_abort(fore, fore->w_zdisplay);
-#endif
       WriteString(fore, "\033c", 2);
       break;
     case RC_MONITOR:
       n = fore->w_monitor != MON_OFF;
-#ifdef MULTIUSER
       if (display)
 	n = n && (ACLBYTE(fore->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id));
-#endif
       if (ParseSwitch(act, &n))
 	break;
       if (n)
 	{
-#ifdef MULTIUSER
 	  if (display)	/* we tell only this user */
 	    ACLBYTE(fore->w_mon_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
 	  else
 	    for (i = 0; i < maxusercount; i++)
 	      ACLBYTE(fore->w_mon_notify, i) |= ACLBIT(i);
-#endif
 	  if (fore->w_monitor == MON_OFF)
 	    fore->w_monitor = MON_ON;
 	  OutputMsg(0, "Window %d (%s) is now being monitored for all activity.", fore->w_number, fore->w_title);
 	}
       else
 	{
-#ifdef MULTIUSER
 	  if (display) /* we remove only this user */
 	    ACLBYTE(fore->w_mon_notify, D_user->u_id) 
 	      &= ~ACLBIT(D_user->u_id);
@@ -3359,16 +3244,13 @@ DoAction(struct action *act, int key)
 	    if (ACLBYTE(fore->w_mon_notify, i))
 	      break;
 	  if (i < 0)
-#endif
 	    fore->w_monitor = MON_OFF;
 	  OutputMsg(0, "Window %d (%s) is no longer being monitored for activity.", fore->w_number, fore->w_title);
 	}
       break;
-#ifdef MULTI
     case RC_DISPLAYS:
       display_displays();
       break;
-#endif
     case RC_WINDOWLIST:
       if (!*args)
         display_windows(0, WLIST_NUM, (struct win *)0);
@@ -3433,7 +3315,6 @@ DoAction(struct action *act, int key)
     case RC_LICENSE:
       display_copyright();
       break;
-#ifdef COPY_PASTE
     case RC_COPY:
       if (flayer->l_layfn != &WinLf)
 	{
@@ -3465,9 +3346,7 @@ DoAction(struct action *act, int key)
       {
         char *ss, *dbuf, dch;
         int l = 0;
-# ifdef ENCODINGS
 	int enc = -1;
-# endif
 
 	/*
 	 * without args we prompt for one(!) register to be pasted in the window
@@ -3489,10 +3368,8 @@ DoAction(struct action *act, int key)
 		rc_name);
 	    break;
 	  }
-# ifdef ENCODINGS
         else if (fore)
 	  enc = fore->w_encoding;
-# endif
 
 	/*
 	 * measure length of needed buffer 
@@ -3501,24 +3378,20 @@ DoAction(struct action *act, int key)
           {
 	    if (ch == '.')
 	      {
-# ifdef ENCODINGS
 		if (enc == -1)
 		  enc = user->u_plop.enc;
 		if (enc != user->u_plop.enc)
 		  l += RecodeBuf((unsigned char *)user->u_plop.buf, user->u_plop.len, user->u_plop.enc, enc, (unsigned char *)0);
 		else
-# endif
 		  l += user->u_plop.len;
 	      }
 	    else
 	      {
-# ifdef ENCODINGS
 		if (enc == -1)
 		  enc = plop_tab[(int)(unsigned char)ch].enc;
 		if (enc != plop_tab[(int)(unsigned char)ch].enc)
 		  l += RecodeBuf((unsigned char *)plop_tab[(int)(unsigned char)ch].buf, plop_tab[(int)(unsigned char)ch].len, plop_tab[(int)(unsigned char)ch].enc, enc, (unsigned char *)0);
 		else
-# endif
                   l += plop_tab[(int)(unsigned char)ch].len;
 	      }
           }
@@ -3533,9 +3406,7 @@ DoAction(struct action *act, int key)
 	 * pass a pointer rather than duplicating the buffer.
 	 */
         if (s[1] == 0 && args[1] == 0)
-# ifdef ENCODINGS
 	  if (enc == (*s == '.' ? user->u_plop.enc : plop_tab[(int)(unsigned char)*s].enc))
-# endif
             {
 	      MakePaster(&fore->w_paster, *s == '.' ? user->u_plop.buf : plop_tab[(int)(unsigned char)*s].buf, l, 0);
 	      break;
@@ -3556,13 +3427,11 @@ DoAction(struct action *act, int key)
         for (ss = s; (ch = *ss); ss++)
           {
 	    struct plop *pp = (ch == '.' ? &user->u_plop : &plop_tab[(int)(unsigned char)ch]);
-#ifdef ENCODINGS
 	    if (pp->enc != enc)
 	      {
 		l += RecodeBuf((unsigned char *)pp->buf, pp->len, pp->enc, enc, (unsigned char *)dbuf + l);
 		continue;
 	      }
-#endif
 	    bcopy(pp->buf, dbuf + l, pp->len);
 	    l += pp->len;
           }
@@ -3586,9 +3455,7 @@ DoAction(struct action *act, int key)
 	          UserFreeCopyBuffer(user);
 		user->u_plop.buf = dbuf;
 		user->u_plop.len = l;
-#ifdef ENCODINGS
 		user->u_plop.enc = enc;
-#endif
 	      }
 	    else
 	      {
@@ -3597,9 +3464,7 @@ DoAction(struct action *act, int key)
 		  free(pp->buf);
 		pp->buf = dbuf;
 		pp->len = l;
-#ifdef ENCODINGS
 		pp->enc = enc;
-#endif
 	      }
 	  }
         break;
@@ -3610,7 +3475,6 @@ DoAction(struct action *act, int key)
 	  OutputMsg(0, "empty buffer");
 	  break;
 	}
-#ifdef ENCODINGS
 	{
 	  struct plop oldplop;
 
@@ -3641,20 +3505,16 @@ DoAction(struct action *act, int key)
 		}
 	      args += 2;
 	    }
-#endif
 	  if (args[0] && args[1])
 	    OutputMsg(0, "%s: writebuf: too many arguments", rc_name);
 	  else
 	    WriteFile(user, args[0], DUMP_EXCHANGE);
-#ifdef ENCODINGS
 	  if (user->u_plop.buf != oldplop.buf)
 	    free(user->u_plop.buf);
 	  user->u_plop = oldplop;
 	}
-#endif
       break;
     case RC_READBUF:
-#ifdef ENCODINGS
       i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
       if (args[0] && args[1] && !strcmp(args[0], "-e"))
 	{
@@ -3666,7 +3526,6 @@ DoAction(struct action *act, int key)
 	    }
 	  args += 2;
 	}
-#endif
       if (args[0] && args[1])
 	{
 	  OutputMsg(0, "%s: readbuf: too many arguments", rc_name);
@@ -3678,9 +3537,7 @@ DoAction(struct action *act, int key)
 	    UserFreeCopyBuffer(user);
 	  user->u_plop.len = n;
 	  user->u_plop.buf = s;
-#ifdef ENCODINGS
 	  user->u_plop.enc = i;
-#endif
 	}
       break;
     case RC_REMOVEBUF:
@@ -3691,7 +3548,6 @@ DoAction(struct action *act, int key)
       if (msgok)
         OutputMsg(0, "Will %signore case in searches", search_ic ? "" : "not ");
       break;
-#endif				/* COPY_PASTE */
     case RC_ESCAPE:
       if (*argl == 0)
 	SetEscape(user, -1, -1);
@@ -3718,9 +3574,7 @@ DoAction(struct action *act, int key)
 	  OutputMsg(0, "%s: two characters required after defescape.", rc_name);
 	  break;
 	}
-#ifdef MAPKEYS
       CheckEscape();
-#endif
       break;
     case RC_CHDIR:
       s = *args ? *args : home;
@@ -3850,7 +3704,6 @@ DoAction(struct action *act, int key)
 	}
       (void)ParseSaveStr(act, &BellString);
       break;
-#ifdef COPY_PASTE
     case RC_BUFFERFILE:
       if (*args == 0)
 	BufferFile = SaveStr(DEFAULT_BUFFERFILE);
@@ -3859,11 +3712,9 @@ DoAction(struct action *act, int key)
       if (msgok)
         OutputMsg(0, "Bufferfile is now '%s'", BufferFile);
       break;
-#endif
     case RC_ACTIVITY:
       (void)ParseSaveStr(act, &ActivityString);
       break;
-#if defined(DETACH) && defined(POW_DETACH)
     case RC_POW_DETACH_MSG:
       if (*args == 0)
         {
@@ -3874,7 +3725,6 @@ DoAction(struct action *act, int key)
 	}
       (void)ParseSaveStr(act, &PowDetachString);
       break;
-#endif
 #if defined(UTMPOK) && defined(LOGOUTOK)
     case RC_LOGIN:
       n = fore->w_slot != (slot_t)-1;
@@ -3932,11 +3782,9 @@ DoAction(struct action *act, int key)
     case RC_DEFC1:
       (void)ParseOnOff(act, &nwin_default.c1);
       break;
-#ifdef COLOR
     case RC_DEFBCE:
       (void)ParseOnOff(act, &nwin_default.bce);
       break;
-#endif
     case RC_DEFGR:
       (void)ParseOnOff(act, &nwin_default.gr);
       break;
@@ -4186,13 +4034,11 @@ DoAction(struct action *act, int key)
         break;
       if (n)
         {
-#ifdef MULTIUSER
 	  if (display)	/* we tell only this user */
 	    ACLBYTE(fore->w_lio_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
 	  else
 	    for (n = 0; n < maxusercount; n++)
 	      ACLBYTE(fore->w_lio_notify, n) |= ACLBIT(n);
-#endif
 	  fore->w_silencewait = i;
 	  fore->w_silence = SILENCE_ON;
 	  SetTimeout(&fore->w_silenceev, fore->w_silencewait * 1000);
@@ -4204,7 +4050,6 @@ DoAction(struct action *act, int key)
 	}
       else
         {
-#ifdef MULTIUSER
 	  if (display) /* we remove only this user */
 	    ACLBYTE(fore->w_lio_notify, D_user->u_id) 
 	      &= ~ACLBIT(D_user->u_id);
@@ -4215,7 +4060,6 @@ DoAction(struct action *act, int key)
 	    if (ACLBYTE(fore->w_lio_notify, i))
 	      break;
 	  if (i < 0)
-#endif
 	    {
 	      fore->w_silence = SILENCE_OFF;
 	      evdeq(&fore->w_silenceev);
@@ -4225,7 +4069,6 @@ DoAction(struct action *act, int key)
 	  OutputMsg(0, "The window is no longer being monitored for silence.");
 	}
       break;
-#ifdef COPY_PASTE
     case RC_DEFSCROLLBACK:
       (void)ParseNum(act, &nwin_default.histheight);
       break;
@@ -4240,7 +4083,6 @@ DoAction(struct action *act, int key)
       if (msgok)
 	OutputMsg(0, "scrollback set to %d", fore->w_histheight);
       break;
-#endif
     case RC_SESSIONNAME:
       if (*args == 0)
 	OutputMsg(0, "This session is named '%s'\n", SockName);
@@ -4292,7 +4134,6 @@ DoAction(struct action *act, int key)
       unsetenv(*args);
       MakeNewEnv();
       break;
-#ifdef COPY_PASTE
     case RC_DEFSLOWPASTE:
       (void)ParseNum(act, &nwin_default.slow);
       break;
@@ -4316,12 +4157,10 @@ DoAction(struct action *act, int key)
 	}
       debug1("markkeys %s\n", *args);
       break;
-# ifdef FONT
     case RC_PASTEFONT:
       if (ParseSwitch(act, &pastefont) == 0 && msgok)
         OutputMsg(0, "Will %spaste font settings", pastefont ? "" : "not ");
       break;
-# endif
     case RC_CRLF:
       (void)ParseSwitch(act, &join_with_cr);
       break;
@@ -4329,7 +4168,6 @@ DoAction(struct action *act, int key)
       if (ParseSwitch(act, &compacthist) == 0 && msgok)
 	OutputMsg(0, "%scompacting history lines", compacthist ? "" : "not ");
       break;
-#endif
 #ifdef NETHACK
     case RC_NETHACK:
       (void)ParseOnOff(act, &nethackflag);
@@ -4367,7 +4205,6 @@ DoAction(struct action *act, int key)
     case RC_STARTUP_MESSAGE:
       (void)ParseOnOff(act, &default_startup);
       break;
-#ifdef PASSWORD
     case RC_PASSWORD:
       if (*args)
 	{
@@ -4392,7 +4229,6 @@ DoAction(struct action *act, int key)
 	  Input("New screen password:", 100, INP_NOECHO, pass1, display ? (char *)D_user : (char *)users, 0);
 	}
       break;
-#endif				/* PASSWORD */
     case RC_BIND:
 	{
 	  struct action *ktabp = ktab;
@@ -4419,7 +4255,6 @@ DoAction(struct action *act, int key)
 	      else
 	        break;
 	    }
-#ifdef MAPKEYS
           if (kflag)
 	    {
 	      for (n = 0; n < KMAP_KEYS; n++)
@@ -4433,7 +4268,6 @@ DoAction(struct action *act, int key)
 	      n += 256;
 	    }
 	  else
-#endif
 	  if (*argl != 1)
 	    {
 	      OutputMsg(0, "%s: bind: character, ^x, or (octal) \\032 expected.", rc_name);
@@ -4458,7 +4292,6 @@ DoAction(struct action *act, int key)
 	    ClearAction(&ktabp[n]);
 	}
       break;
-#ifdef MAPKEYS
     case RC_BINDKEY:
 	{
 	  struct action *newact;
@@ -4629,8 +4462,6 @@ DoAction(struct action *act, int key)
     case RC_MAPDEFAULT:
       D_mapdefault = 1;
       break;
-#endif
-#ifdef MULTIUSER
     case RC_ACLCHG:
     case RC_ACLADD:
     case RC_ADDACL:
@@ -4719,13 +4550,9 @@ DoAction(struct action *act, int key)
       if (msgok)
 	OutputMsg(0, "Multiuser mode %s", multi ? "enabled" : "disabled");
       break;
-#endif /* MULTIUSER */
-#ifdef PSEUDOS
     case RC_EXEC:
       winexec(args);
       break;
-#endif
-#ifdef MULTI
     case RC_NONBLOCK:
       i = D_nonblock >= 0;
       if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.'))
@@ -4764,33 +4591,24 @@ DoAction(struct action *act, int key)
 	    evdeq(&D_blockedev);
 	}
       break;
-#endif
     case RC_GR:
-#ifdef ENCODINGS
       if (fore->w_gr == 2)
 	fore->w_gr = 0;
-#endif
       if (ParseSwitch(act, &fore->w_gr) == 0 && msgok)
         OutputMsg(0, "Will %suse GR", fore->w_gr ? "" : "not ");
-#ifdef ENCODINGS
       if (fore->w_gr == 0 && fore->w_FontE)
 	fore->w_gr = 2;
-#endif
       break;
     case RC_C1:
       if (ParseSwitch(act, &fore->w_c1) == 0 && msgok)
         OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
       break;
-#ifdef COLOR
     case RC_BCE:
       if (ParseSwitch(act, &fore->w_bce) == 0 && msgok)
         OutputMsg(0, "Will %serase with background color", fore->w_bce ? "" : "not ");
       break;
-#endif
-#ifdef ENCODINGS
     case RC_KANJI:
     case RC_ENCODING:
-#ifdef UTF8
       if (*args && !strcmp(args[0], "-d"))
 	{
 	  if (!args[1])
@@ -4812,14 +4630,6 @@ DoAction(struct action *act, int key)
 	    OutputMsg(0, "encoding: utf8 encoding file loaded");
 	  break;
 	}
-#else
-      if (*args && (!strcmp(args[0], "-l") || !strcmp(args[0], "-d")))
-	{
-	  if (msgok)
-	    OutputMsg(0, "encoding: screen is not compiled for UTF-8.");
-	  break;
-	}
-#endif
       for (i = 0; i < 2; i++)
 	{
 	  if (args[i] == 0)
@@ -4851,9 +4661,6 @@ DoAction(struct action *act, int key)
 	}
       nwin_default.encoding = n;
       break;
-#endif
-
-#ifdef UTF8
     case RC_DEFUTF8:
       n = nwin_default.encoding == UTF8;
       if (ParseSwitch(act, &n) == 0)
@@ -4891,8 +4698,6 @@ DoAction(struct action *act, int key)
 	    break;
 	}
       break;
-#endif
-
     case RC_PRINTCMD:
       if (*args)
 	{
@@ -4929,7 +4734,6 @@ DoAction(struct action *act, int key)
 		{
 		  if (!args[1][1])
 		    digraphs[i].value = (int)args[1][0];
-#ifdef UTF8
 		  else
 		    {
 		      int t;
@@ -4947,7 +4751,6 @@ DoAction(struct action *act, int key)
 			  break;
 			}
 		    }
-#endif
 		}
 	    }
 	  break;
@@ -4988,7 +4791,6 @@ DoAction(struct action *act, int key)
       WindowChanged(fore, 'h');
       break;
 
-#ifdef FONT
     case RC_DEFCHARSET:
     case RC_CHARSET:
       if (*args == 0)
@@ -5022,8 +4824,6 @@ DoAction(struct action *act, int key)
 	free(nwin_default.charset);
       nwin_default.charset = SaveStr(*args);
       break;
-#endif
-#ifdef COLOR
     case RC_ATTRCOLOR:
       s = args[0];
       if (*s >= '0' && *s <= '9')
@@ -5063,7 +4863,6 @@ DoAction(struct action *act, int key)
 	  n |= 1 << i;
       nattr2color = n;
       break;
-#endif
     case RC_RENDITION:
       i = -1;
       if (strcmp(args[0], "bell") == 0)
@@ -5110,18 +4909,13 @@ DoAction(struct action *act, int key)
 	  debug2("--> %x %x\n", mchar_so.attr, mchar_so.color);
 	}
       if (msgok)
-#ifdef COLOR
         OutputMsg(0, "Standout attributes 0x%02x  color 0x%02x", (unsigned char)mchar_so.attr, 0x99 ^ (unsigned char)mchar_so.color);
-#else
-        OutputMsg(0, "Standout attributes 0x%02x ", (unsigned char)mchar_so.attr);
-#endif
       break;
 
       case RC_SOURCE:
 	do_source(*args);
 	break;
 
-#ifdef MULTIUSER
     case RC_SU:
       s = NULL;
       if (!*args)
@@ -5138,7 +4932,6 @@ DoAction(struct action *act, int key)
       if (s)
         OutputMsg(0, "%s", s);
       break;
-#endif /* MULTIUSER */
     case RC_SPLIT:
       s = args[0];
       if (s && !strcmp(s, "-v"))
@@ -5289,18 +5082,15 @@ DoAction(struct action *act, int key)
       WindowChanged(0, '`');
       break;
     case RC_BLANKER:
-#ifdef BLANKER_PRG
       if (blankerprg)
 	{
           RunBlanker(blankerprg);
 	  break;
 	}
-#endif
       ClearAll();
       CursorVisibility(-1);
       D_blocked = 4;
       break;
-#ifdef BLANKER_PRG
     case RC_BLANKERPRG:
       if (!args[0])
 	{
@@ -5328,7 +5118,6 @@ DoAction(struct action *act, int key)
       if (args[0][0])
 	blankerprg = SaveArgs(args);
       break;
-#endif
     case RC_IDLE:
       if (*args)
 	{
@@ -5609,7 +5398,6 @@ DoAction(struct action *act, int key)
       else
 	OutputMsg(0, "unknown layout subcommand");
       break;
-#ifdef DW_CHARS
     case RC_CJKWIDTH:
       if(ParseSwitch(act, &cjkwidth) == 0)
       {
@@ -5617,7 +5405,6 @@ DoAction(struct action *act, int key)
           OutputMsg(0, "Treat ambiguous width characters as %s width", cjkwidth ? "full" : "half");
       }
       break;
-#endif
     default:
       break;
     }
@@ -5751,7 +5538,6 @@ Parse(char *buf, int bufl, char **args, int *argl)
       *lp = 0;
       while (*p && (*p == ' ' || *p == '\t'))
 	++p;
-#ifdef PSEUDOS
       if (argc == 0 && *p == '!')
 	{
 	  *ap++ = "exec";
@@ -5760,7 +5546,6 @@ Parse(char *buf, int bufl, char **args, int *argl)
 	  argc++;
 	  continue;
         }
-#endif
       if (*p == '\0' || *p == '#' || *p == '\n')
 	{
 	  *p = '\0';
@@ -6241,13 +6026,11 @@ SwitchWindow(int n)
       Msg(0, "This IS window %d (%s).", n, p->w_title);
       return;
     }
-#ifdef MULTIUSER
   if (AclCheckPermWin(D_user, ACL_READ, p))
     {
       Msg(0, "Access to window %d denied.", p->w_number);
       return;
     }
-#endif
   SetForeWindow(p);
   Activate(fore->w_norefresh);  
 }
@@ -6410,13 +6193,11 @@ KillWindow(struct win *win)
 	}
       if (gotone)
 	{
-#ifdef ZMODEM
 	  if (win->w_zdisplay == display)
 	    {
 	      D_blocked = 0;
 	      D_readev.condpos = D_readev.condneg = 0;
 	    }
-#endif
 	  Activate(-1);
 	}
     }
@@ -6548,9 +6329,7 @@ AddWindowFlags(char *buf, int len, struct win *p)
   if (p->w_layer.l_cvlist && p->w_layer.l_cvlist->c_lnext)
     *s++ = '&';
   if (p->w_monitor == MON_DONE
-#ifdef MULTIUSER
       && (ACLBYTE(p->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id))
-#endif
      )
     *s++ = '@';
   if (p->w_bell == BELL_DONE)
@@ -6652,9 +6431,7 @@ ShowInfo()
     *p++ = ' ';
   sprintf(p, "(%d,%d)/(%d,%d)",
     wp->w_x + 1, wp->w_y + 1, wp->w_width, wp->w_height);
-#ifdef COPY_PASTE
   sprintf(p += strlen(p), "+%d", wp->w_histheight);
-#endif
   sprintf(p += strlen(p), " %c%sflow",
   	  (wp->w_flow & FLOW_NOW) ? '+' : '-',
 	  (wp->w_flow & FLOW_AUTOFLAG) ? "" : 
@@ -6665,31 +6442,22 @@ ShowInfo()
   if (wp->w_keypad) sprintf(p += strlen(p), " app");
   if (wp->w_log)    sprintf(p += strlen(p), " log");
   if (wp->w_monitor != MON_OFF
-#ifdef MULTIUSER
       && (ACLBYTE(wp->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id))
-#endif
      )
     sprintf(p += strlen(p), " mon");
   if (wp->w_mouse) sprintf(p += strlen(p), " mouse");
-#ifdef COLOR
   if (wp->w_bce) sprintf(p += strlen(p), " bce");
-#endif
   if (!wp->w_c1) sprintf(p += strlen(p), " -c1");
   if (wp->w_norefresh) sprintf(p += strlen(p), " nored");
 
   p += strlen(p);
-#ifdef FONT
-# ifdef ENCODINGS
   if (wp->w_encoding && (display == 0 || D_encoding != wp->w_encoding || EncodingDefFont(wp->w_encoding) <= 0))
     {
       *p++ = ' ';
       strcpy(p, EncodingName(wp->w_encoding));
       p += strlen(p);
     }
-#  ifdef UTF8
   if (wp->w_encoding != UTF8)
-#  endif
-# endif
     if (D_CC0 || (D_CS0 && *D_CS0))
       {
 	if (wp->w_gr == 2)
@@ -6726,7 +6494,6 @@ ShowInfo()
 	*p++ = ']';
 	*p = 0;
       }
-#endif
 
   if (wp->w_type == W_TYPE_PLAIN)
     {
@@ -6746,27 +6513,22 @@ ShowDInfo()
   p = buf;
   sprintf(p, "(%d,%d)", D_width, D_height),
   p += strlen(p);
-#ifdef ENCODINGS
   if (D_encoding)
     {
       *p++ = ' ';
       strcpy(p, EncodingName(D_encoding));
       p += strlen(p);
     }
-#endif
   if (D_CXT)
     {
       strcpy(p, " xterm");
       p += strlen(p);
     }
-#ifdef COLOR
   if (D_hascolor)
     {
       strcpy(p, " color");
       p += strlen(p);
     }
-#endif
-#ifdef FONT
   if (D_CG0)
     {
       strcpy(p, " iso2022");
@@ -6777,7 +6539,6 @@ ShowDInfo()
       strcpy(p, " altchar");
       p += strlen(p);
     }
-#endif
   Msg(0, "%s", buf);
 }
 
@@ -7090,7 +6851,6 @@ DoScreen(char *fn, char **av)
   MakeWindow(&nwin);
 }
 
-#ifdef COPY_PASTE
 /*
  * CompileKeys must be called before Markroutine is first used.
  * to initialise the keys with defaults, call CompileKeys(NULL, mark_key_tab);
@@ -7135,13 +6895,11 @@ CompileKeys(char *s, int sl, unsigned char *array)
     }
   return 0;
 }
-#endif /* COPY_PASTE */
 
 /*
  *  Asynchronous input functions
  */
 
-#if defined(DETACH) && defined(POW_DETACH)
 static void
 pow_detach_fn(char *buf, int len, char *data)
 {
@@ -7160,9 +6918,7 @@ pow_detach_fn(char *buf, int len, char *data)
   else
     Detach(D_POWER);
 }
-#endif /* POW_DETACH */
 
-#ifdef COPY_PASTE
 static void
 copy_reg_fn(char *buf, int len, char *data)
 {
@@ -7187,9 +6943,7 @@ copy_reg_fn(char *buf, int len, char *data)
       bcopy(D_user->u_plop.buf, pp->buf, D_user->u_plop.len);
     }
   pp->len = D_user->u_plop.len;
-#ifdef ENCODINGS
   pp->enc = D_user->u_plop.enc;
-#endif
   Msg(0, "Copied %d characters into register %c", D_user->u_plop.len, *buf);
 }
 
@@ -7214,7 +6968,6 @@ ins_reg_fn(char *buf, int len, char *data)
     }
   Msg(0, "Empty register.");
 }
-#endif /* COPY_PASTE */
 
 static void
 process_fn(char *buf, int len, char *data)
@@ -7251,7 +7004,6 @@ confirm_fn(char *buf, int len, char *data)
   DoAction(&act, -1);
 }
 
-#ifdef MULTIUSER
 struct inputsu
 {
   struct acluser **up;
@@ -7304,9 +7056,6 @@ InputSu(struct win *win, struct acluser **up, char *name)
     su_fin((char *)0, 0, (char *)i);
   return 0;
 }
-#endif	/* MULTIUSER */
-
-#ifdef PASSWORD
 
 static void
 pass1(char *buf, int len, char *data)
@@ -7358,13 +7107,10 @@ pass2(char *buf, int len, char *data)
       free((char *)u->u_password);
       u->u_password = SaveStr(buf);
       bzero(buf, strlen(buf));
-#ifdef COPY_PASTE
       if (u->u_plop.buf)
 	UserFreeCopyBuffer(u);
       u->u_plop.len = strlen(u->u_password);
-# ifdef ENCODINGS
       u->u_plop.enc = 0;
-#endif
       if (!(u->u_plop.buf = SaveStr(u->u_password)))
 	{
 	  Msg(0, "%s", strnomem);
@@ -7372,12 +7118,8 @@ pass2(char *buf, int len, char *data)
 	}
       else
 	Msg(0, "[ Password moved into copybuffer ]");
-#else				/* COPY_PASTE */
-      Msg(0, "[ Crypted password is \"%s\" ]", u->u_password);
-#endif				/* COPY_PASTE */
     }
 }
-#endif /* PASSWORD */
 
 static int
 digraph_find(const char *buf)
@@ -7448,15 +7190,12 @@ digraph_fn(char *buf, int len, char *data)
     }
   i = 1;
   *buf = x;
-#ifdef UTF8
   if (flayer->l_encoding == UTF8)
     i = ToUtf8(buf, x);	/* buf is big enough for all UTF-8 codes */
-#endif
   while(i)
     LayProcess(&buf, &i);
 }
 
-#ifdef MAPKEYS
 int
 StuffKey(int i)
 {
@@ -7490,10 +7229,8 @@ StuffKey(int i)
   flayer = D_forecv->c_layer;
   fore = D_fore;
   act = 0;
-#ifdef COPY_PASTE
   if (flayer && flayer->l_mode == 1)
     act = i < KMAP_KEYS+KMAP_AKEYS ? &mmtab[i] : &kmap_exts[i - (KMAP_KEYS+KMAP_AKEYS)].mm;
-#endif
   if ((!act || act->nr == RC_ILLEGAL) && !D_mapdefault)
     act = i < KMAP_KEYS+KMAP_AKEYS ? &umtab[i] : &kmap_exts[i - (KMAP_KEYS+KMAP_AKEYS)].um;
   if (!act || act->nr == RC_ILLEGAL)
@@ -7515,7 +7252,6 @@ StuffKey(int i)
   DoAction(act, 0);
   return 0;
 }
-#endif
 
 
 static int
@@ -7543,15 +7279,12 @@ FindNiceWindow(struct win *win, char *presel)
     }
   if (!display)
     return win;
-#ifdef MULTIUSER
   if (win && AclCheckPermWin(D_user, ACL_READ, win))
     win = 0;
-#endif
   if (!win || (IsOnDisplay(win) && !presel))
     {
       /* try to get another window */
       win = 0;
-#ifdef MULTIUSER
       for (win = windows; win; win = win->w_next)
 	if (!win->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_WRITE, win))
 	  break;
@@ -7567,7 +7300,6 @@ FindNiceWindow(struct win *win, char *presel)
 	for (win = windows; win; win = win->w_next)
 	  if (win->w_layer.l_cvlist && !IsOnDisplay(win) && !AclCheckPermWin(D_user, ACL_READ, win))
 	    break;
-#endif
       if (!win)
 	for (win = windows; win; win = win->w_next)
 	  if (!win->w_layer.l_cvlist)
@@ -7577,10 +7309,8 @@ FindNiceWindow(struct win *win, char *presel)
 	  if (win->w_layer.l_cvlist && !IsOnDisplay(win))
 	    break;
     }
-#ifdef MULTIUSER
   if (win && AclCheckPermWin(D_user, ACL_READ, win))
     win = 0;
-#endif
   return win;
 }
 
@@ -7867,18 +7597,14 @@ SetForeCanvas(struct display *d, struct canvas *cv)
   if (D_other == fore)
     D_other = 0;
   flayer = D_forecv->c_layer;
-#ifdef RXVT_OSC
   if (D_xtermosc[2] || D_xtermosc[3])
     {
       Activate(-1);
     }
   else
-#endif
     {
       RefreshHStatus();
-#ifdef RXVT_OSC
       RefreshXtermOSC();
-#endif
       flayer = D_forecv->c_layer;
       CV_CALL(D_forecv, LayRestore();LaySetCursor());
       WindowChanged(0, 'F');
@@ -7887,7 +7613,6 @@ SetForeCanvas(struct display *d, struct canvas *cv)
   display = odisplay;
 }
 
-#ifdef RXVT_OSC
 void
 RefreshXtermOSC()
 {
@@ -7898,7 +7623,6 @@ RefreshXtermOSC()
   for (i = 3; i >=0; i--)
     SetXtermOSC(i, p ? p->w_xtermosc[i] : 0);
 }
-#endif
 
 int
 ParseAttrColor(char *s1, char *s2, int msgok)
@@ -8007,7 +7731,6 @@ ParseAttrColor(char *s1, char *s2, int msgok)
 	s++;
     }
 
-#ifdef COLOR
   if (*s)
     {
       static char costr[] = "krgybmcw d    i.01234567 9     f               FKRGYBMCW      I ";
@@ -8033,18 +7756,14 @@ ParseAttrColor(char *s1, char *s2, int msgok)
 	    }
 	  numco++;
 	  n = n << 4 | (i & 15);
-#ifdef COLORS16
 	  if (i >= 48)
 	    n = (n & 0x20ff) | 0x200;
-#endif
 	  s++;
 	}
       if ((n & 0xf00) == 0xf00)
         n ^= 0xf00;	/* clear superflous bits */
-#ifdef COLORS16
       if (n & 0x2000)
 	n ^= 0x2400;	/* shift bit into right position */
-#endif
       if (numco == 1)
 	n |= 0xf0;	/* don't change bg color */
       if (numco != 2 && n != 0xff)
@@ -8058,7 +7777,6 @@ ParseAttrColor(char *s1, char *s2, int msgok)
       n ^= 0xff;
       r |= n << 16;
     }
-#endif
 
   while (*s && *s == ' ')
     s++;
@@ -8086,24 +7804,17 @@ ApplyAttrColor(int i, struct mchar *mc)
   debug1("ApplyAttrColor %06x\n", i);
   mc->attr |= i >> 8 & 255;
   mc->attr ^= i & 255;
-#ifdef COLOR
   i = (i >> 16) ^ 0xff;
   if ((i & 0x100) != 0)
     {
       i &= 0xeff;
       if (mc->attr & (A_SO|A_RV))
-# ifdef COLORS16
         i = ((i & 0x0f) << 4) | ((i & 0xf0) >> 4) | ((i & 0x200) << 1) | ((i & 0x400) >> 1);
-# else
-        i = ((i & 0x0f) << 4) | ((i & 0xf0) >> 4);
-# endif
     }
-# ifdef COLORS16
   if ((i & 0x0f) != 0x0f)
     mc->attr = (mc->attr & 0xbf) | ((i >> 3) & 0x40);
   if ((i & 0xf0) != 0xf0)
     mc->attr = (mc->attr & 0x7f) | ((i >> 3) & 0x80);
-# endif
   mc->color = 0x99 ^ mc->color;
   if ((i & 0x0e) == 0x0e)
     i = (i & 0xf0) | (mc->color & 0x0f);
@@ -8111,5 +7822,4 @@ ApplyAttrColor(int i, struct mchar *mc)
     i = (i & 0x0f) | (mc->color & 0xf0);
   mc->color = 0x99 ^ i;
   debug2("ApplyAttrColor - %02x %02x\n", mc->attr, i);
-#endif
 }

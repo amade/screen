@@ -64,16 +64,10 @@ struct winsize glwz;
 
 static struct mline mline_zero = {
  (unsigned char *)0,
+ (unsigned char *)0,
+ (unsigned char *)0,
+ (unsigned char *)0,
  (unsigned char *)0
-#ifdef FONT
- ,(unsigned char *)0
-#endif
-#ifdef COLOR
- ,(unsigned char *)0
-# ifdef COLORS256
- ,(unsigned char *)0
-# endif
-#endif
 };
 
 /*
@@ -123,9 +117,7 @@ CheckScreenSize(int change_flag)
       debug("CheckScreenSize: No change -> return.\n");
       return;
     }
-#ifdef BLANKER_PRG
   KillBlanker();
-#endif
   ResetIdle();
   ChangeScreenSize(wi, he, change_flag);
 }
@@ -392,18 +384,12 @@ FreeMline(struct mline *ml)
     free(ml->image);
   if (ml->attr && ml->attr != null)
     free(ml->attr);
-#ifdef FONT
   if (ml->font && ml->font != null)
     free(ml->font);
-#endif
-#ifdef COLOR
   if (ml->color && ml->color != null)
     free(ml->color);
-# ifdef COLORS256
   if (ml->colorx && ml->colorx != null)
     free(ml->colorx);
-# endif
-#endif
   *ml = mline_zero;
 }
 
@@ -412,15 +398,9 @@ AllocMline(struct mline *ml, int w)
 {
   ml->image = malloc(w);
   ml->attr  = null;
-#ifdef FONT
   ml->font  = null;
-#endif
-#ifdef COLOR
   ml->color = null;
-# ifdef COLORS256
   ml->colorx = null;
-# endif
-#endif
   if (ml->image == 0)
     return -1;
   return 0;
@@ -440,7 +420,6 @@ BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int l, int w)
     }
   if (mlt->attr != null)
     bcopy((char *)mlf->attr + xf, (char *)mlt->attr + xt, l);
-#ifdef FONT
   if (mlf->font != null && mlt->font == null)
     {
       if ((mlt->font = (unsigned char *)calloc(w, 1)) == 0)
@@ -448,8 +427,6 @@ BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int l, int w)
     }
   if (mlt->font != null)
     bcopy((char *)mlf->font + xf, (char *)mlt->font + xt, l);
-#endif
-#ifdef COLOR
   if (mlf->color != null && mlt->color == null)
     {
       if ((mlt->color = (unsigned char *)calloc(w, 1)) == 0)
@@ -457,7 +434,6 @@ BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int l, int w)
     }
   if (mlt->color != null)
     bcopy((char *)mlf->color + xf, (char *)mlt->color + xt, l);
-# ifdef COLORS256
   if (mlf->colorx != null && mlt->colorx == null)
     {
       if ((mlt->colorx = (unsigned char *)calloc(w, 1)) == 0)
@@ -465,8 +441,6 @@ BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int l, int w)
     }
   if (mlt->colorx != null)
     bcopy((char *)mlf->colorx + xf, (char *)mlt->colorx + xt, l);
-# endif
-#endif
   return r;
 }
 
@@ -491,15 +465,9 @@ CheckMaxSize(int wi)
   null = (unsigned char *)xrealloc((char *)null, maxwidth);
   mline_old.image = (unsigned char *)xrealloc((char *)mline_old.image, maxwidth);
   mline_old.attr = (unsigned char *)xrealloc((char *)mline_old.attr, maxwidth);
-#ifdef FONT
   mline_old.font = (unsigned char *)xrealloc((char *)mline_old.font, maxwidth);
-#endif
-#ifdef COLOR
   mline_old.color = (unsigned char *)xrealloc((char *)mline_old.color, maxwidth);
-# ifdef COLORS256
   mline_old.colorx = (unsigned char *)xrealloc((char *)mline_old.colorx, maxwidth);
-# endif
-#endif
   if (!(blank && null && mline_old.image && mline_old.attr IFFONT(&& mline_old.font) IFCOLOR(&& mline_old.color) IFCOLORX(&& mline_old.colorx)))
     Panic(0, "%s", strnomem);
 
@@ -510,18 +478,12 @@ CheckMaxSize(int wi)
   mline_blank.attr  = null;
   mline_null.image = null;
   mline_null.attr  = null;
-#ifdef FONT
   mline_blank.font  = null;
   mline_null.font  = null;
-#endif
-#ifdef COLOR
   mline_blank.color = null;
   mline_null.color = null;
-# ifdef COLORS256
   mline_blank.colorx = null;
   mline_null.colorx = null;
-# endif
-#endif
 
 #define RESET_AFC(x, bl) do { if (x == old##bl) x = bl; } while (0)
 
@@ -545,10 +507,8 @@ CheckMaxSize(int wi)
     {
       RESET_LINES(p->w_mlines, p->w_height);
 
-#ifdef COPY_PASTE
       RESET_LINES(p->w_hlines, p->w_histheight);
       RESET_LINES(p->w_alt.hlines, p->w_alt.histheight);
-#endif
 
       RESET_LINES(p->w_alt.mlines, p->w_alt.height);
     }
@@ -576,23 +536,12 @@ MakeBlankLine(register unsigned char *p, register int n)
 }
 
 
-
-
-#ifdef COPY_PASTE
-
 #define OLDWIN(y) ((y < p->w_histheight) \
         ? &p->w_hlines[(p->w_histidx + y) % p->w_histheight] \
         : &p->w_mlines[y - p->w_histheight])
 
 #define NEWWIN(y) ((y < hi) ? &nhlines[y] : &nmlines[y - hi])
 	
-#else
-
-#define OLDWIN(y) (&p->w_mlines[y])
-#define NEWWIN(y) (&nmlines[y])
-
-#endif
-
 
 int
 ChangeWindowSize(struct win *p, int wi, int he, int hi)
@@ -662,7 +611,6 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
 	  naka = p->w_autoaka;
 	}
     }
-#ifdef COPY_PASTE
   if (hi)
     {
       if ((nhlines = (struct mline *)calloc(hi, sizeof(struct mline))) == 0)
@@ -672,7 +620,6 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
 	  ty = he - 1;
 	}
     }
-#endif
 
   /* special case: cursor is at magic margin position */
   addone = 0;
@@ -848,11 +795,9 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
   if (p->w_mlines && p->w_mlines != nmlines)
     free((char *)p->w_mlines);
   p->w_mlines = nmlines;
-#ifdef COPY_PASTE
   if (p->w_hlines && p->w_hlines != nhlines)
     free((char *)p->w_hlines);
   p->w_hlines = nhlines;
-#endif
   nmlines = nhlines = 0;
 
   /* change tabs */
@@ -874,10 +819,8 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
 		    }
 		  if (nmlines && p->w_mlines != nmlines)
 		    free((char *)nmlines);
-#ifdef COPY_PASTE
 		  if (nhlines && p->w_hlines != nhlines)
 		    free((char *)nhlines);
-#endif
 		}
 	      KillWindow(p);
 	      Msg(0, "%s", strnomem);
@@ -939,10 +882,8 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
   /* store new size */
   p->w_width = wi;
   p->w_height = he;
-#ifdef COPY_PASTE
   p->w_histidx = 0;
   p->w_histheight = hi;
-#endif
 
 #ifdef DEBUG
   /* Test if everything was ok */
@@ -950,14 +891,12 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
     {
       ml = OLDWIN(fy);
       ASSERT(ml->image);
-# ifdef UTF8
       if (p->w_encoding == UTF8)
 	{
 	  for (l = 0; l < p->w_width; l++)
 	    ASSERT(ml->image[l] >= ' ' || ml->font[l]);
 	}
       else
-#endif
         for (l = 0; l < p->w_width; l++)
           ASSERT(ml->image[l] >= ' ');
     }
@@ -979,7 +918,6 @@ FreeAltScreen(struct win *p)
   p->w_alt.mlines = 0;
   p->w_alt.width = 0;
   p->w_alt.height = 0;
-#ifdef COPY_PASTE
   if (p->w_alt.hlines)
     {
       for (i = 0; i < p->w_alt.histheight; i++)
@@ -989,7 +927,6 @@ FreeAltScreen(struct win *p)
   p->w_alt.hlines = 0;
   p->w_alt.histidx = 0;
   p->w_alt.histheight = 0;
-#endif
 }
 
 static void
@@ -1004,11 +941,9 @@ SwapAltScreen(struct win *p)
   SWAP(width, t);
   SWAP(height, t);
 
-#ifdef COPY_PASTE
   SWAP(histheight, t);
   SWAP(hlines, ml);
   SWAP(histidx, t);
-#endif
 #undef SWAP
 }
 
