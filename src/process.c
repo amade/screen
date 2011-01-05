@@ -2547,10 +2547,7 @@ DoAction(struct action *act, int key)
     case RC_WALL:
       s = D_user->u_name;
         {
-	  struct display *olddisplay = display;
-          display = 0;		/* no display will cause a broadcast */
           OutputMsg(0, "%s: %s", s, *args);
-	  display = olddisplay;
         }
       break;
     case RC_AT:
