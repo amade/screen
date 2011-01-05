@@ -187,7 +187,7 @@ ResetWindow(register struct win *p)
   p->w_x = p->w_y = 0;
   p->w_state = LIT;
   p->w_StringType = NONE;
-  bzero(p->w_tabs, p->w_width);
+  memset(p->w_tabs, 0, p->w_width);
   for (i = 8; i < p->w_width; i += 8)
     p->w_tabs[i] = 1;
   p->w_rend = mchar_null;
@@ -460,7 +460,7 @@ WriteString(struct win *wp, register char *buf, register int len)
 		case '[':
 		  curr->w_NumArgs = 0;
 		  curr->w_intermediate = 0;
-		  bzero((char *) curr->w_args, MAXARGS * sizeof(int));
+		  memset((char *) curr->w_args, 0, MAXARGS * sizeof(int));
 		  curr->w_state = CSI;
 		  break;
 		case ']':
@@ -587,7 +587,7 @@ WriteString(struct win *wp, register char *buf, register int len)
 			curr->w_autoaka = 0;
 		      curr->w_NumArgs = 0;
 		      curr->w_intermediate = 0;
-		      bzero((char *) curr->w_args, MAXARGS * sizeof(int));
+		      memset((char *) curr->w_args, 0, MAXARGS * sizeof(int));
 		      curr->w_state = CSI;
 		      break;
 		    case 0xc0 ^ 'P':
@@ -1106,7 +1106,7 @@ DoCSI(int c, int intermediate)
 	  if (a1 == 0)
 	    curr->w_tabs[curr->w_x] = 0;
 	  else if (a1 == 3)
-	    bzero(curr->w_tabs, cols);
+	    memset(curr->w_tabs, 0, cols);
 	  break;
 	case 'r':
 	  if (!a1)

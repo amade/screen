@@ -423,7 +423,7 @@ SetUtmp(struct win *win)
     }
   debug2("SetUtmp %d will get slot %d...\n", win->w_number, (int)slot);
 
-  bzero((char *)&u, sizeof(u));
+  memset((char *)&u, 0, sizeof(u));
   if ((saved_ut = bcmp((char *) &win->w_savut, (char *)&u, sizeof(u))))
     /* restore original, of which we will adopt all fields but ut_host */
     bcopy((char *)&win->w_savut, (char *) &u, sizeof(u));
@@ -509,7 +509,7 @@ RemoveUtmp(struct win *win)
       win->w_slot = (slot_t)-1;
       return 0;
     }
-  bzero((char *) &u, sizeof(u));
+  memset((char *) &u, 0, sizeof(u));
 #ifdef sgi
   bcopy((char *)&win->w_savut, (char *)&u, sizeof(u));
   uu  = &u;
@@ -550,7 +550,7 @@ static struct utmp *
 getutslot(slot_t slot)
 {
   struct utmp u;
-  bzero((char *)&u, sizeof(u));
+  memset((char *)&u, 0, sizeof(u));
   strncpy(u.ut_line, slot, sizeof(u.ut_line));
   setutent();
   return getutline(&u);
@@ -703,12 +703,12 @@ static void
 makedead(struct utmp *u)
 {
 #ifdef UT_UNSORTED
-  bzero(u->ut_name, sizeof(u->ut_name));
+  memset(u->ut_name, 0, sizeof(u->ut_name));
 # ifdef UTHOST
-  bzero(u->ut_host, sizeof(u->ut_host));
+  memset(u->ut_host, 0, sizeof(u->ut_host));
 # endif
 #else
-  bzero((char *)u, sizeof(*u));
+  memset((char *)u, 0, sizeof(*u));
 #endif
 }
 

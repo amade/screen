@@ -109,7 +109,7 @@ InitTermcap(int wi, int he)
   int t, xue, xse, xme;
 
   ASSERT(display);
-  bzero(tbuf, sizeof(tbuf));
+  memset(tbuf, 0, sizeof(tbuf));
   debug1("InitTermcap: looking for tgetent('%s')\n", D_termname);
   if (*D_termname == 0 || e_tgetent(tbuf, D_termname) != 1)
     {
@@ -678,7 +678,7 @@ addmapseq(char *seq, int k, int nr)
   p[1] = nr;
   p[2] = k;
   bcopy(seq, (char *)p + 3, k);
-  bzero(p + k + 3, k + 1);
+  memset(p + k + 3, 0, k + 1);
   D_nseqs += 2 * k + 4;
   if (j > 0)
     {
