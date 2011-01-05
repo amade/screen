@@ -2627,13 +2627,13 @@ MFindUsedLine(struct win *p, int ye, int ys)
   debug2("MFindUsedLine: %d %d\n", ye, ys);
   for (y = ye; y >= ys; y--, ml--)
     {
-      if (bcmp((char*)ml->image, blank, p->w_width))
+      if (memcmp((char*)ml->image, blank, p->w_width))
 	break;
-      if (ml->attr != null && bcmp((char*)ml->attr, null, p->w_width))
+      if (ml->attr != null && memcmp((char*)ml->attr, null, p->w_width))
 	break;
-      if (ml->color != null && bcmp((char*)ml->color, null, p->w_width))
+      if (ml->color != null && memcmp((char*)ml->color, null, p->w_width))
 	break;
-      if (ml->colorx != null && bcmp((char*)ml->colorx, null, p->w_width))
+      if (ml->colorx != null && memcmp((char*)ml->colorx, null, p->w_width))
 	break;
       if (p->w_encoding == UTF8)
 	{
