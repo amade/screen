@@ -485,7 +485,7 @@ MakeWindow(struct NewWindow *newwin)
   struct NewWindow nwin;
   int type, startat;
   char *TtyName;
-  extern struct acluser *users;
+  struct acluser *users;
 
   if (!wtab)
     {
@@ -1948,7 +1948,7 @@ zmodem_found(struct win *p, int send, char *bp, int len)
 {
   char *s;
   int i, n;
-  extern int zmodem_mode;
+  int zmodem_mode;
 
   /* check for abort sequence */
   n = 0;

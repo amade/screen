@@ -1580,7 +1580,7 @@ DoCommandMsg(struct msg *mp)
   int n;
   register char *p = mp->m.command.cmd;
   struct acluser *user;
-  extern struct acluser *EffectiveAclUser;	/* acls.c */
+  struct acluser *EffectiveAclUser;	/* acls.c */
 
   n = mp->m.command.nargs;
   if (n > MAXARGS - 1)

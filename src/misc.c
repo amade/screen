@@ -598,7 +598,7 @@ int
 _delay(register int delay, int (*outc) (int))
 {
   int pad;
-  extern short ospeed;
+  short ospeed;
   static short osp2pad[] = {
     0,2000,1333,909,743,666,500,333,166,83,55,41,20,10,5,2,1,1
   };
