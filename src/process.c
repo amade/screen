@@ -3279,7 +3279,7 @@ DoAction(struct action *act, int key)
 		  kmap_extn += 8;
 		  kmap_exts = (struct kmap_ext *)xrealloc((char *)kmap_exts, kmap_extn * sizeof(*kmap_exts));
 		  kme = kmap_exts + i;
-		  bzero((char *)kme, 8 * sizeof(*kmap_exts));
+		  memset((char *)kme, 0, 8 * sizeof(*kmap_exts));
 		  for (; i < kmap_extn; i++, kme++)
 		    {
 		      kme->str = 0;
@@ -6054,7 +6054,7 @@ pass1(char *buf, int len, char *data)
   if (u->u_password != NullStr)
     free((char *)u->u_password);
   u->u_password = SaveStr(buf);
-  bzero(buf, strlen(buf));
+  memset(buf, 0, strlen(buf));
   Input("Retype new password:", 100, INP_NOECHO, pass2, data, 0);
 }
 
@@ -6071,7 +6071,7 @@ pass2(char *buf, int len, char *data)
       Msg(0, "[ Passwords don't match - checking turned off ]");
       if (u->u_password != NullStr)
         {
-          bzero(u->u_password, strlen(u->u_password));
+          memset(u->u_password, 0, strlen(u->u_password));
           free((char *)u->u_password);
 	}
       u->u_password = NullStr;
@@ -6080,7 +6080,7 @@ pass2(char *buf, int len, char *data)
     {
       Msg(0, "[ No password - no secure ]");
       if (buf)
-        bzero(buf, strlen(buf));
+        memset(buf, 0, strlen(buf));
     }
   
   if (u->u_password != NullStr)
@@ -6089,7 +6089,7 @@ pass2(char *buf, int len, char *data)
 	salt[st] = 'A' + (int)((time(0) >> 6 * st) % 26);
       salt[2] = 0;
       buf = crypt(u->u_password, salt);
-      bzero(u->u_password, strlen(u->u_password));
+      memset(u->u_password, 0, strlen(u->u_password));
       free((char *)u->u_password);
       if (!buf)
 	{
@@ -6098,7 +6098,7 @@ pass2(char *buf, int len, char *data)
 	  return;
 	}
       u->u_password = SaveStr(buf);
-      bzero(buf, strlen(buf));
+      memset(buf, 0, strlen(buf));
       if (u->u_plop.buf)
 	UserFreeCopyBuffer(u);
       u->u_plop.len = strlen(u->u_password);

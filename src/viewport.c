@@ -46,7 +46,7 @@ RethinkDisplayViewports()
 	{
 	  vp->v_canvas = 0;
 	  vpn = vp->v_next;
-          bzero((char *)vp, sizeof(*vp));
+          memset((char *)vp, 0, sizeof(*vp));
           free(vp);
 	}
       cv->c_vplist = 0;

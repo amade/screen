@@ -82,11 +82,11 @@ IFCOLORX(bcopy((char *)(ml)->colorx + (xf), (char *)(ml)->colorx + (xt), (n));) 
 
 #define clear_mline(ml, x, n) do {					       \
 	 bclear((char *)(ml)->image + (x), (n));			       \
-	 if ((ml)->attr != null) bzero((char *)(ml)->attr  + (x), (n));	       \
-IFFONT(  if ((ml)->font != null) bzero((char *)(ml)->font  + (x), (n));      ) \
-IFFONTX( if ((ml)->fontx != null) bzero((char *)(ml)->fontx + (x), (n));      ) \
-IFCOLOR( if ((ml)->color!= null) bzero((char *)(ml)->color + (x), (n));      ) \
-IFCOLORX(if ((ml)->colorx!= null) bzero((char *)(ml)->colorx + (x), (n));    ) \
+	 if ((ml)->attr != null) memset((char *)(ml)->attr  + (x), 0, (n));     \
+IFFONT(  if ((ml)->font != null) memset((char *)(ml)->font  + (x), 0, (n));   ) \
+IFFONTX( if ((ml)->fontx != null) memset((char *)(ml)->font  + (x), 0, (n));  ) \
+IFCOLOR( if ((ml)->color!= null) memset((char *)(ml)->color + (x), 0, (n));   ) \
+IFCOLORX(if ((ml)->colorx!= null) memset((char *)(ml)->colorx + (x), 0, (n)); ) \
 } while (0)
 
 #define cmp_mline(ml1, ml2, x) (				\

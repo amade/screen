@@ -233,7 +233,7 @@ InitTTY(m, ttyflag)
 struct mode *m;
 int ttyflag;
 {
-  bzero((char *)m, sizeof(*m));
+  memset((char *)m, 0, sizeof(*m));
 #ifdef POSIX
   /* struct termios tio 
    * defaults, as seen on SunOS 4.1.3
