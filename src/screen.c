@@ -2578,14 +2578,13 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	case 'W':
 	  {
 	    struct win *oldfore = 0;
-	    char *ss;
 
 	    if (display)
 	      {
 		oldfore = D_fore;
 		D_fore = win;
 	      }
-	    ss = AddWindows(p, l - 1, (*s == 'w' ? 0 : 1) | (longflg ? 0 : 2) | (plusflg ? 4 : 0) | (minusflg ? 8 : 0), win ? win->w_number : -1);
+	    AddWindows(p, l - 1, (*s == 'w' ? 0 : 1) | (longflg ? 0 : 2) | (plusflg ? 4 : 0) | (minusflg ? 8 : 0), win ? win->w_number : -1);
 	    if (display)
 	      D_fore = oldfore;
 	  }
