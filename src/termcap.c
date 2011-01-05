@@ -885,7 +885,7 @@ MakeTermcap(int aflag)
   debug1("MakeTermcap decided '%s'\n", p);
   if (extra_outcap && *extra_outcap)
     {
-      for (cp = extra_outcap; (p = index(cp, ':')); cp = p)
+      for (cp = extra_outcap; (p = strchr(cp, ':')); cp = p)
 	{
 	  ch = *++p;
 	  *p = '\0';
