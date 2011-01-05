@@ -2247,7 +2247,7 @@ setbacktick(int num, int lifespan, int tick, char **cmdv)
 	  Msg(0, "%s", strnomem);
           return;
 	}
-      bzero(bt, sizeof(*bt));
+      memset(bt, 0, sizeof(*bt));
       bt->next = 0;
       *btp = bt;
     }

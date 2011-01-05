@@ -634,7 +634,7 @@ SendCreateMsg(char *sty, struct NewWindow *nwin)
   if ((s = MakeClientSocket(1)) == -1)
     exit(1);
   debug1("SendCreateMsg() to '%s'\n", SockPath);
-  bzero((char *)&m, sizeof(m));
+  memset((char *)&m, 0, sizeof(m));
   m.type = MSG_CREATE;
   strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
   m.m_tty[sizeof(m.m_tty) - 1] = 0;
@@ -944,7 +944,7 @@ ReceiveMsg()
 
   p = (char *) &m;
   left = sizeof(m);
-  bzero(&msg, sizeof(msg));
+  memset(&msg, 0, sizeof(msg));
   iov.iov_base = &m;
   iov.iov_len = left;
   msg.msg_iov = &iov;
@@ -1501,7 +1501,7 @@ PasswordProcessInput(char *ibuf, int ilen)
 	  if (strncmp(crypt(pwdata->buf, up), up, strlen(up)))
 	    {
 	      /* uh oh, user failed */
-	      bzero(pwdata->buf, sizeof(pwdata->buf));
+	      memset(pwdata->buf, 0, sizeof(pwdata->buf));
 	      AddStr("\r\nPassword incorrect.\r\n");
 	      D_processinputdata = 0;	/* otherwise freed by FreeDis */
 	      FreeDisplay();
@@ -1511,7 +1511,7 @@ PasswordProcessInput(char *ibuf, int ilen)
 	      return;
 	    }
 	  /* great, pw matched, all is fine */
-	  bzero(pwdata->buf, sizeof(pwdata->buf));
+	  memset(pwdata->buf, 0, sizeof(pwdata->buf));
 	  AddStr("\r\n");
 	  D_processinputdata = 0;
 	  D_processinput = ProcessInput;
@@ -1687,7 +1687,7 @@ SendAttachMsg(int s, struct msg *m, int fd)
 
   iov.iov_base = (char *)m;
   iov.iov_len = sizeof(*m);
-  bzero(&msg, sizeof(msg));
+  memset(&msg, 0, sizeof(msg));
   msg.msg_name = 0;
   msg.msg_namelen = 0;
   msg.msg_iov = &iov; 

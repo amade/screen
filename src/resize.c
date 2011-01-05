@@ -472,7 +472,7 @@ CheckMaxSize(int wi)
     Panic(0, "%s", strnomem);
 
   MakeBlankLine(blank, maxwidth);
-  bzero((char *)null, maxwidth);
+  memset((char *)null, 0, maxwidth);
 
   mline_blank.image = blank;
   mline_blank.attr  = null;
