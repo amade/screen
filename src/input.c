@@ -166,7 +166,7 @@ erase_chars(struct inpdata *inpdata, char *from, char *to, int x, int mv)
   int chng;
   ASSERT(from < to);
   if (inpdata->inp.len > to - inpdata->inp.buf)
-    bcopy(to, from, inpdata->inp.len - (to - inpdata->inp.buf));
+    memmove(from, to, inpdata->inp.len - (to - inpdata->inp.buf));
   chng = to - from;
   if (mv)
     {
@@ -241,7 +241,7 @@ InpProcess(char **ppbuf, int *plen)
       if (((unsigned char)ch & 0177) >= ' ' && ch != 0177 && inpdata->inp.len < inpdata->inpmaxlen)
 	{
 	  if (inpdata->inp.len > inpdata->inp.pos)
-	    bcopy(p, p+1, inpdata->inp.len - inpdata->inp.pos);
+	    memmove(p+1, p, inpdata->inp.len - inpdata->inp.pos);
 	  inpdata->inp.buf[inpdata->inp.pos++] = ch;
 	  inpdata->inp.len++;
 

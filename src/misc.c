@@ -71,7 +71,7 @@ SaveStrn(register const char *str, int n)
     Panic(0, "%s", strnomem);
   else
     {
-      bcopy((char *)str, cp, n);
+      memmove(cp, (char *)str, n);
       cp[n] = 0;
     }
   return cp;
@@ -305,7 +305,7 @@ xbcopy(register char *s1, register char *s2, register int len)
 void
 bclear(char *p, int n)
 {
-  bcopy((char *)blank, p, n);
+  memmove(p, (char *)blank, n);
 }
 
 

@@ -458,7 +458,7 @@ GetHistory()	/* return value 1 if copybuffer changed */
       LMsg(0, "Not enough memory... Sorry.");
       return 0;
     }
-  bcopy((char *)linep - i + x + 1, D_user->u_plop.buf, i - x + 1);
+  memmove(D_user->u_plop.buf, (char *)linep - i + x + 1, i - x + 1);
   D_user->u_plop.len = i - x + 1;
   D_user->u_plop.enc = fore->w_encoding;
   return 1;

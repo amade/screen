@@ -2920,7 +2920,7 @@ disp_writeev_fn(struct event *ev, char *data)
       len -= size;
       if (len)
 	{
-	  bcopy(D_obuf + size, D_obuf, len);
+	  memmove(D_obuf, D_obuf + size, len);
 	  debug2("ASYNC: wrote %d - remaining %d\n", size, len);
 	}
       D_obufp -= size;
@@ -3126,12 +3126,12 @@ disp_readev_fn(struct event *ev, char *data)
 	    }
 	  if (bp[0] == '[')
 	    {
-	      bcopy((char *)bp + 1, (char *)bp, i);
+	      memmove((char *)bp, (char *)bp + 1, i);
 	      bp--;
 	      size--;
 	    }
 	  if (i > 5)
-	    bcopy((char *)bp + 5, (char *)bp, i - 5);
+	    memmove((char *)bp, (char *)bp + 5, i - 5);
 	  bp--;
 	  i -= 4;
 	  size -= 5;

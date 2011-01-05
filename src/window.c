@@ -227,7 +227,7 @@ DoAutolf(char *buf, int *lenp, int fr)
 	}
       if (len == 0)
 	break;
-      bcopy(p, p + 1, len++);
+      memmove(p + 1, p, len++);
       p[1] = '\n';
     }
   *lenp = p - buf;
@@ -309,7 +309,7 @@ WinProcess(char **bufpp, int *lenp)
 #endif
     {
       l2 = l;
-      bcopy(*bufpp, ibuf + *ilen, l2);
+      memmove(ibuf + *ilen, *bufpp, l2);
       if (fore->w_autolf && (trunc = DoAutolf(ibuf + *ilen, &l2, f - l2)))
 	l -= trunc;
 #ifdef BUILTIN_TELNET
@@ -1311,8 +1311,8 @@ ForkWindow(struct win *win, char **args, char *ttyn)
 		{
 		  if (strlen(NewEnv[2]) - (s2 - s1) + tl < 1024)
 		    {
-		      bcopy(s2, s1 + tl, strlen(s2) + 1);
-		      bcopy(win->w_term, s1, tl);
+		      memmove(s1 + tl, s2, strlen(s2) + 1);
+		      memmove(s1, win->w_term, tl);
 		    }
 		}
 	    }
@@ -1776,7 +1776,7 @@ win_readev_fn(struct event *ev, char *data)
   if (wtop)
     {
       debug("sending input to pwin\n");
-      bcopy(bp, p->w_pwin->p_inbuf + p->w_pwin->p_inlen, len);
+      memmove(p->w_pwin->p_inbuf + p->w_pwin->p_inlen, bp, len);
       p->w_pwin->p_inlen += len;
     }
 
@@ -1799,7 +1799,7 @@ win_writeev_fn(struct event *ev, char *data)
       if ((len = write(ev->fd, p->w_inbuf, p->w_inlen)) <= 0)
 	len = p->w_inlen;	/* dead window */
       if ((p->w_inlen -= len))
-	bcopy(p->w_inbuf + len, p->w_inbuf, p->w_inlen);
+	memmove(p->w_inbuf, p->w_inbuf + len, p->w_inlen);
     }
   if (p->w_paster.pa_pastelen && !p->w_slowpaste)
     {
@@ -1868,7 +1868,7 @@ pseu_readev_fn(struct event *ev, char *data)
   /* no packet mode on pseudos! */
   if (ptow)
     {
-      bcopy(buf, p->w_inbuf + p->w_inlen, len);
+      memmove(p->w_inbuf + p->w_inlen, buf, len);
       p->w_inlen += len;
     }
   WriteString(p, buf, len);
@@ -1888,7 +1888,7 @@ pseu_writeev_fn(struct event *ev, char *data)
   if ((len = write(ev->fd, pw->p_inbuf, pw->p_inlen)) <= 0)
     len = pw->p_inlen;		/* dead pseudo */
   if ((p->w_pwin->p_inlen -= len))
-    bcopy(p->w_pwin->p_inbuf + len, p->w_pwin->p_inbuf, p->w_pwin->p_inlen);
+    memmove(p->w_pwin->p_inbuf, p->w_pwin->p_inbuf + len, p->w_pwin->p_inlen);
 }
 
 

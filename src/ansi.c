@@ -440,7 +440,7 @@ WriteString(struct win *wp, register char *buf, register int len)
 		      if (len > IOSIZE + 1)
 			len = IOSIZE + 1;
 		      curr->w_outlen = len - 1;
-		      bcopy(buf, curr->w_outbuf, len - 1);
+		      memmove(curr->w_outbuf, buf, len - 1);
 		      return;	/* wait till status is gone */
 		    }
 		  break;
@@ -1146,9 +1146,9 @@ DoCSI(int c, int intermediate)
 	      a1 = strlen(curr->w_title);
 	      if ((unsigned)(curr->w_inlen + 5 + a1) <= sizeof(curr->w_inbuf))
 		{
-		  bcopy("\033]l", curr->w_inbuf + curr->w_inlen, 3);
-		  bcopy(curr->w_title, curr->w_inbuf + curr->w_inlen + 3, a1);
-		  bcopy("\033\\", curr->w_inbuf + curr->w_inlen + 3 + a1, 2);
+		  memmove(curr->w_inbuf + curr->w_inlen, "\033]l", 3);
+		  memmove(curr->w_inbuf + curr->w_inlen + 3, curr->w_title, a1);
+		  memmove(curr->w_inbuf + curr->w_inlen + 3 + a1, "\033\\", 2);
 		  curr->w_inlen += 5 + a1;
 		}
 	      break;
@@ -1463,7 +1463,7 @@ StringEnd()
       
       curr->w_stringp -= p - curr->w_string;
       if (curr->w_stringp > curr->w_string)
-	bcopy(p, curr->w_string, curr->w_stringp - curr->w_string);
+	memmove(curr->w_string, p, curr->w_stringp - curr->w_string);
       *curr->w_stringp = '\0';
       /* FALLTHROUGH */
     case APC:
@@ -1651,7 +1651,7 @@ SaveCursor(struct cursor *cursor)
   cursor->Rend = curr->w_rend;
   cursor->Charset = curr->w_Charset;
   cursor->CharsetR = curr->w_CharsetR;
-  bcopy((char *) curr->w_charsets, (char *) cursor->Charsets,
+  memmove((char *) cursor->Charsets, (char *) curr->w_charsets,
 	4 * sizeof(int));
 }
 
@@ -1664,8 +1664,8 @@ RestoreCursor(struct cursor *cursor)
   curr->w_x = cursor->x;
   curr->w_y = cursor->y;
   curr->w_rend = cursor->Rend;
-  bcopy((char *) cursor->Charsets, (char *) curr->w_charsets,
-	4 * sizeof(int));
+  memmove((char *) curr->w_charsets, (char *) cursor->Charsets,
+  	4 * sizeof(int));
   curr->w_Charset = cursor->Charset;
   curr->w_CharsetR = cursor->CharsetR;
   curr->w_ss = 0;
@@ -2150,7 +2150,7 @@ Report(char *fmt, int n1, int n2)
     {
       if ((unsigned)(curr->w_pwin->p_inlen + len) <= sizeof(curr->w_pwin->p_inbuf))
 	{
-	  bcopy(rbuf, curr->w_pwin->p_inbuf + curr->w_pwin->p_inlen, len);
+	  memmove(curr->w_pwin->p_inbuf + curr->w_pwin->p_inlen, rbuf, len);
 	  curr->w_pwin->p_inlen += len;
 	}
     }
@@ -2158,7 +2158,7 @@ Report(char *fmt, int n1, int n2)
     {
       if ((unsigned)(curr->w_inlen + len) <= sizeof(curr->w_inbuf))
 	{
-	  bcopy(rbuf, curr->w_inbuf + curr->w_inlen, len);
+	  memmove(curr->w_inbuf + curr->w_inlen, rbuf, len);
 	  curr->w_inlen += len;
 	}
     }
@@ -2390,15 +2390,15 @@ Scroll(char *cp, int cnt1, int cnt2, char *tmp)
     return;
   if (cnt1 <= cnt2)
     {
-      bcopy(cp, tmp, cnt1);
-      bcopy(cp + cnt1, cp, cnt2);
-      bcopy(tmp, cp + cnt2, cnt1);
+      memmove(tmp, cp, cnt1);
+      memmove(cp, cp + cnt1, cnt2);
+      memmove(cp + cnt2, tmp, cnt1);
     }
   else
     {
-      bcopy(cp + cnt1, tmp, cnt2);
-      bcopy(cp, cp + cnt2, cnt1);
-      bcopy(tmp, cp, cnt2);
+      memmove(tmp, cp + cnt1, cnt2);
+      memmove(cp + cnt2, cp, cnt1);
+      memmove(cp, tmp, cnt2);
     }
 }
 
@@ -2530,7 +2530,7 @@ MPutStr(struct win *p, char *s, int n, struct mchar *r, int x, int y)
   ml = &p->w_mlines[y];
   MKillDwRight(p, ml, x);
   MKillDwLeft(p, ml, x + n - 1);
-  bcopy(s, (char *)ml->image + x, n);
+  memmove((char *)ml->image + x, s, n);
   if (ml->attr != null)
     {
       b = ml->attr + x;
