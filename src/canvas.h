@@ -72,6 +72,7 @@ extern int   AddCanvas (int);
 extern void  RemCanvas (void);
 extern void  OneCanvas (void);
 extern void  FreeCanvas (struct canvas *);
+extern int   CountCanvas (struct canvas *);
 extern void  ResizeCanvas (struct canvas *);
 extern void  RecreateCanvasChain (void);
 extern void  RethinkViewportOffsets (struct canvas *);

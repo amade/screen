@@ -45,6 +45,8 @@ struct layout
   int              lay_autosave;
 };
 
+extern void  FreeLayoutCv(struct canvas *c);
+extern struct layout *CreateLayout(char *, int);
 extern void  AutosaveLayout (struct layout *);
 extern void  LoadLayout (struct layout *, struct canvas *);
 extern void  NewLayout (char *, int);
