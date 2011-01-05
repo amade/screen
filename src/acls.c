@@ -884,7 +884,6 @@ int
 UsersAcl(struct acluser *uu, int argc, char **argv)
 {
   char *s;
-  int r;
   struct acluser **cf_u = NULL;
 
   if (argc == 1)
@@ -909,8 +908,8 @@ UsersAcl(struct acluser *uu, int argc, char **argv)
       for (u = &users; *u; u = &(*u)->u_next)
 	if (strcmp("nobody", (*u)->u_name) && 
 	    ((cf_u) ?
-	     ((r = UserAclCopy(u, cf_u)) < 0) :
-	     ((r = UserAcl(uu, u, argc, argv)) < 0)))
+	     ((UserAclCopy(u, cf_u)) < 0) :
+	     ((UserAcl(uu, u, argc, argv)) < 0)))
 	  return -1;
       return 0;
     } 
@@ -922,8 +921,8 @@ UsersAcl(struct acluser *uu, int argc, char **argv)
       *s ? (*s++ = '\0') : (*s = '\0');
       debug2("UsersAcl(uu, \"%s\", argc=%d)\n", argv[0], argc);
       if ((cf_u) ?
-	  ((r = UserAclCopy(FindUserPtr(argv[0]), cf_u)) < 0) :
-	  ((r = UserAcl(uu, FindUserPtr(argv[0]), argc, argv)) < 0))
+	  ((UserAclCopy(FindUserPtr(argv[0]), cf_u)) < 0) :
+	  ((UserAcl(uu, FindUserPtr(argv[0]), argc, argv)) < 0))
         return -1;
     } while (*(argv[0] = s));
   return 0;
