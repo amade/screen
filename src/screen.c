@@ -1322,7 +1322,7 @@ main(int argc, char **argv)
 	  FD_SET(0, &rfd);
 
 	  Msg(0, "Sorry, could not find a PTY or TTY.");
-	  // allow user to exit early by pressing any key.
+	  /* allow user to exit early by pressing any key. */
 	  select(1, &rfd, NULL, NULL, &tv);
 	  Finit(0);
 	  /* NOTREACHED */
