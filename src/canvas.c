@@ -758,7 +758,7 @@ int orient;
 void
 RemCanvas()
 {
-  int xs, xe, ys, ye;
+  int ye;
   struct canvas *cv;
 
   debug("RemCanvas\n");
@@ -777,9 +777,6 @@ RemCanvas()
       FreePerp(cv->c_slprev ? cv->c_slprev : cv->c_slnext);
       FreePerp(cv->c_slback);
     }
-  xs = cv->c_slback->c_xs;
-  xe = cv->c_slback->c_xe;
-  ys = cv->c_slback->c_ys;
   ye = cv->c_slback->c_ye;
   /* free canvas */
   cv = D_forecv;
