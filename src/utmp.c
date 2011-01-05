@@ -424,7 +424,7 @@ SetUtmp(struct win *win)
   debug2("SetUtmp %d will get slot %d...\n", win->w_number, (int)slot);
 
   memset((char *)&u, 0, sizeof(u));
-  if ((saved_ut = bcmp((char *) &win->w_savut, (char *)&u, sizeof(u))))
+  if ((saved_ut = memcmp((char *) &win->w_savut, (char *)&u, sizeof(u))))
     /* restore original, of which we will adopt all fields but ut_host */
     memmove((char *) &u, (char *)&win->w_savut, sizeof(u));
 
