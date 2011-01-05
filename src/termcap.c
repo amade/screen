@@ -673,11 +673,11 @@ addmapseq(char *seq, int k, int nr)
   D_seqh = 0;
   evdeq(&D_mapev);
   if (j > 0)
-    bcopy((char *)p, (char *)p + 2 * k + 4, D_nseqs - i);
+    memmove((char *)p + 2 * k + 4, (char *)p, D_nseqs - i);
   p[0] = nr >> 8;
   p[1] = nr;
   p[2] = k;
-  bcopy(seq, (char *)p + 3, k);
+  memmove((char *)p + 3, seq, k);
   memset(p + k + 3, 0, k + 1);
   D_nseqs += 2 * k + 4;
   if (j > 0)
@@ -737,7 +737,7 @@ remmapseq(char *seq, int k)
         }
     }
   if (D_kmaps + D_nseqs > p + 2 * k + 4)
-    bcopy((char *)p + 2 * k + 4, (char *)p, (D_kmaps + D_nseqs) - (p + 2 * k + 4));
+    memmove((char *)p, (char *)p + 2 * k + 4, (D_kmaps + D_nseqs) - (p + 2 * k + 4));
   D_nseqs -= 2 * k + 4;
   D_seqp = D_kmaps + 3;
   D_seql = 0;

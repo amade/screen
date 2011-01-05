@@ -2281,7 +2281,7 @@ DoAction(struct action *act, int key)
 		l += RecodeBuf((unsigned char *)pp->buf, pp->len, pp->enc, enc, (unsigned char *)dbuf + l);
 		continue;
 	      }
-	    bcopy(pp->buf, dbuf + l, pp->len);
+	    memmove(dbuf + l, pp->buf, pp->len);
 	    l += pp->len;
           }
 	/*
@@ -4624,7 +4624,7 @@ Parse(char *buf, int bufl, char **args, int *argl)
 		      int right = buf + bufl - (p + strlen(p) + 1);
 		      if (right > 0)
 			{
-			  bcopy(p, p + right, strlen(p) + 1);
+			  memmove(p + right, p, strlen(p) + 1);
 			  p += right;
 			}
 		    }
@@ -4633,7 +4633,7 @@ Parse(char *buf, int bufl, char **args, int *argl)
 		      Msg(0, "%s: no space left for variable expansion.", rc_name);
 		      return 0;
 		    }
-		  bcopy(v, pp, vl);
+		  memmove(pp, v, vl);
 		  pp += vl;
 		}
 	      continue;
@@ -5620,7 +5620,7 @@ Colonfin(char *buf, int len, char *data)
     RcLine(buf, len);
   else
     {
-      bcopy(buf, mbuf, len);
+      memmove(mbuf, buf, len);
       RcLine(mbuf, sizeof mbuf);
     }
 }
@@ -5926,7 +5926,7 @@ copy_reg_fn(char *buf, int len, char *data)
 	  Msg(0, "%s", strnomem);
 	  return;
 	}
-      bcopy(D_user->u_plop.buf, pp->buf, D_user->u_plop.len);
+      memmove(pp->buf, D_user->u_plop.buf, D_user->u_plop.len);
     }
   pp->len = D_user->u_plop.len;
   pp->enc = D_user->u_plop.enc;

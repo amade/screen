@@ -73,7 +73,7 @@ CatExtra(register char *str1, register char *str2)
       len2 = strlen(str2);
       if ((cp = realloc(str2, (unsigned) len1 + len2 + add_colon + 1)) == NULL)
 	Panic(0, "%s", strnomem);
-      bcopy(cp, cp + len1 + add_colon, len2 + 1);
+      memmove(cp + len1 + add_colon, cp, len2 + 1);
     }
   else
     {
@@ -81,7 +81,7 @@ CatExtra(register char *str1, register char *str2)
 	Panic(0, "%s", strnomem);
       cp[len1 + add_colon] = '\0';
     }
-  bcopy(str1, cp, len1);
+  memmove(cp, str1, len1);
   if (add_colon)
     cp[len1] = ':';
 

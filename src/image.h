@@ -63,21 +63,21 @@ IFCOLORX(unsigned char *colorx; )
 
 
 #define save_mline(ml, n) do {						\
-	 bcopy((char *)(ml)->image, (char *)mline_old.image, (n));	\
-	 bcopy((char *)(ml)->attr,  (char *)mline_old.attr,  (n));	\
-IFFONT(	 bcopy((char *)(ml)->font,  (char *)mline_old.font,  (n));    ) \
-IFFONTX( bcopy((char *)(ml)->fontx, (char *)mline_old.fontx, (n));    ) \
-IFCOLOR( bcopy((char *)(ml)->color, (char *)mline_old.color, (n));    ) \
-IFCOLORX(bcopy((char *)(ml)->colorx, (char *)mline_old.colorx, (n));  ) \
+	 memmove((char *)mline_old.image, (char *)(ml)->image, (n));	\
+	 memmove((char *)mline_old.attr,  (char *)(ml)->attr,  (n));	\
+IFFONT(	 memmove((char *)mline_old.font,  (char *)(ml)->font,  (n));    ) \
+IFFONTX( memmove((char *)mline_old.fontx, (char *)(ml)->font,  (n));    ) \
+IFCOLOR( memmove((char *)mline_old.color, (char *)(ml)->color, (n));    ) \
+IFCOLORX(memmove((char *)mline_old.colorx,(char *)(ml)->colorx,(n));  ) \
 } while (0)
 
 #define bcopy_mline(ml, xf, xt, n) do {					       \
-	 bcopy((char *)(ml)->image + (xf), (char *)(ml)->image + (xt), (n));   \
-	 bcopy((char *)(ml)->attr  + (xf), (char *)(ml)->attr  + (xt), (n));   \
-IFFONT(	 bcopy((char *)(ml)->font  + (xf), (char *)(ml)->font  + (xt), (n)); ) \
-IFFONTX( bcopy((char *)(ml)->fontx + (xf), (char *)(ml)->fontx + (xt), (n)); ) \
-IFCOLOR( bcopy((char *)(ml)->color + (xf), (char *)(ml)->color + (xt), (n)); ) \
-IFCOLORX(bcopy((char *)(ml)->colorx + (xf), (char *)(ml)->colorx + (xt), (n));) \
+	 memmove((char *)(ml)->image + (xt), (char *)(ml)->image + (xf), (n));   \
+	 memmove((char *)(ml)->attr  + (xt), (char *)(ml)->attr  + (xf), (n));   \
+IFFONT(	 memmove((char *)(ml)->font  + (xt), (char *)(ml)->font  + (xf), (n)); ) \
+IFFONTX( memmove((char *)(ml)->fontx + (xt), (char *)(ml)->font  + (xf), (n)); ) \
+IFCOLOR( memmove((char *)(ml)->color + (xt), (char *)(ml)->color + (xf), (n)); ) \
+IFCOLORX(memmove((char *)(ml)->colorx + (xt),(char *)(ml)->colorx + (xf),(n));) \
 } while (0)
 
 #define clear_mline(ml, x, n) do {					       \

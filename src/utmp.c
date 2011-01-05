@@ -426,7 +426,7 @@ SetUtmp(struct win *win)
   memset((char *)&u, 0, sizeof(u));
   if ((saved_ut = bcmp((char *) &win->w_savut, (char *)&u, sizeof(u))))
     /* restore original, of which we will adopt all fields but ut_host */
-    bcopy((char *)&win->w_savut, (char *) &u, sizeof(u));
+    memmove((char *) &u, (char *)&win->w_savut, sizeof(u));
 
   if (!saved_ut)
     makeuser(&u, stripdev(win->w_tty), LoginName, win->w_pid);
@@ -484,7 +484,7 @@ SetUtmp(struct win *win)
     }
   debug("SetUtmp successful\n");
   win->w_slot = slot;
-  bcopy((char *)&u, (char *)&win->w_savut, sizeof(u));
+  memmove((char *)&win->w_savut, (char *)&u, sizeof(u));
   UT_CLOSE;
   return 0;
 }
@@ -511,7 +511,7 @@ RemoveUtmp(struct win *win)
     }
   memset((char *) &u, 0, sizeof(u));
 #ifdef sgi
-  bcopy((char *)&win->w_savut, (char *)&u, sizeof(u));
+  memmove((char *)&u, (char *)&win->w_savut, sizeof(u));
   uu  = &u;
 #else
   if ((uu = getutslot(slot)) == 0)
@@ -519,7 +519,7 @@ RemoveUtmp(struct win *win)
       Msg(0, "Utmp slot not found -> not removed");
       return -1;
     }
-  bcopy((char *)uu, (char *)&win->w_savut, sizeof(win->w_savut));
+  memmove((char *)&win->w_savut, (char *)uu, sizeof(win->w_savut));
 #endif
   u = *uu;
   makedead(&u);
