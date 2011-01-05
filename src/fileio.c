@@ -627,7 +627,6 @@ int *lenp;
       if (l < 0) 
         l = 0;
       Msg(errno, "Got only %d bytes from %s", l, fn);
-      close(i);
     }
   else
     {
