@@ -7400,11 +7400,11 @@ CalcSlicePercent(struct canvas *cv, int percent)
 
 static int
 ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, int percent)
-//struct canvas *fcv;	/* make this canvas bigger */
-//int abs;		/* mode: 0:rel 1:abs 2:max */
-//int diff;		/* change this much */
-//int gflag;		/* go up if neccessary */
-//int percent;
+/* struct canvas *fcv;	 make this canvas bigger
+   int abs;		 mode: 0:rel 1:abs 2:max
+   int diff;		 change this much
+   int gflag;		 go up if neccessary
+   int percent; */
 {
   struct canvas *cv;
   int done, have, m, dir;
