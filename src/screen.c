@@ -829,7 +829,7 @@ main(int argc, char **argv)
 #endif
 
   own_uid = multi_uid = real_uid;
-  if (SockMatch && (sockp = index(SockMatch, '/')))
+  if (SockMatch && (sockp = strchr(SockMatch, '/')))
     {
       *sockp = 0;
       multi = SockMatch;
@@ -1063,7 +1063,7 @@ main(int argc, char **argv)
     }
   if ((st.st_mode & 0777) != 0700)
     Panic(0, "Directory %s must have mode 700.", SockPath);
-  if (SockMatch && index(SockMatch, '/'))
+  if (SockMatch && strchr(SockMatch, '/'))
     Panic(0, "Bad session name '%s'", SockMatch);
   SockName = SockPath + strlen(SockPath) + 1;
   *SockName = 0;
@@ -1079,7 +1079,7 @@ main(int argc, char **argv)
   (void) gethostname(HostName, MAXSTR);
   HostName[MAXSTR - 1] = '\0';
 #endif
-  if ((ap = index(HostName, '.')) != NULL)
+  if ((ap = strchr(HostName, '.')) != NULL)
     *ap = '\0';
 
   if (lsflag)

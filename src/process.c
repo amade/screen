@@ -2998,7 +2998,7 @@ DoAction(struct action *act, int key)
 	  s = 0;
 	  if (ParseSaveStr(act, &s))
 	    break;
-	  if (!*s || strlen(s) + (SockName - SockPath) > MAXPATHLEN - 13 || index(s, '/'))
+	  if (!*s || strlen(s) + (SockName - SockPath) > MAXPATHLEN - 13 || strchr(s, '/'))
 	    {
 	      OutputMsg(0, "%s: bad session name '%s'\n", rc_name, s);
 	      free(s);
@@ -4943,7 +4943,7 @@ int
 IsNumColon(char *s, int base, char *p, int psize)
 {
   char *q;
-  if ((q = rindex(s, ':')) != 0)
+  if ((q = strrchr(s, ':')) != 0)
     {
       strncpy(p, q + 1, psize - 1);
       p[psize - 1] = '\0';

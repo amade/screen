@@ -671,7 +671,7 @@ char *opt;
 
   while (*opt)
     {
-      while (index(sep, *opt)) opt++;
+      while (strchr(sep, *opt)) opt++;
       if (*opt >= '0' && *opt <= '9')
         {
 	  if (SetBaud(m, atoi(opt), atoi(opt)))
@@ -757,7 +757,7 @@ char *opt;
 	}
       else
         return -1;
-      while (*opt && !index(sep, *opt)) opt++;
+      while (*opt && !strchr(sep, *opt)) opt++;
     }
   return 0;
 }
