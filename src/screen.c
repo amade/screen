@@ -2191,7 +2191,7 @@ backtick_fn(struct event *ev, char *data)
 	if (bt->buf[k] == '\n')
 	  break;
       k++;
-      bcopy(bt->buf + k, bt->result, i - j - k);
+      memmove(bt->result, bt->buf + k, i - j - k);
       bt->result[i - j - k - 1] = 0;
       backtick_filter(bt);
       WindowChanged(0, '`');
@@ -2204,7 +2204,7 @@ backtick_fn(struct event *ev, char *data)
   if (j < l)
     {
       if (j)
-        bcopy(bt->buf + i - j, bt->buf, j);
+        memmove(bt->buf, bt->buf + i - j, j);
       i = j;
     }
   bt->bufi = i;
@@ -2311,7 +2311,7 @@ runbacktick(struct backtick *bt, int *tickp, time_t now)
 	}
       if (j < l)
 	{
-	  bcopy(bt->result + i - j, bt->result, j);
+	  memmove(bt->result, bt->result + i - j, j);
 	  i = j;
 	}
     }
@@ -2764,7 +2764,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 		      if (left + lastpad > p - winmsg_buf)
 			left = p - winmsg_buf - lastpad;
 		      if (p - winmsg_buf - lastpad - left > 0)
-		        bcopy(winmsg_buf + lastpad + left, winmsg_buf + lastpad,  p - winmsg_buf - lastpad - left);
+		        memmove(winmsg_buf + lastpad, winmsg_buf + lastpad + left, p - winmsg_buf - lastpad - left);
 		      p -= left;
 		      r = winmsg_numrend;
 		      while (r && winmsg_rendpos[r - 1] > lastpad)

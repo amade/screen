@@ -976,7 +976,7 @@ ReceiveMsg()
 	      while(cl >= CMSG_LEN(sizeof(int)))
 		{
 		  int passedfd;
-		  bcopy(cp, &passedfd, sizeof(int));
+		  memmove(&passedfd, cp, sizeof(int));
 		  if (recvfd >= 0 && passedfd != recvfd)
 		    close(recvfd);
 		  recvfd = passedfd;
@@ -1698,7 +1698,7 @@ SendAttachMsg(int s, struct msg *m, int fd)
   cmsg->cmsg_level = SOL_SOCKET;
   cmsg->cmsg_type = SCM_RIGHTS; 
   cmsg->cmsg_len = CMSG_LEN(sizeof(int));
-  bcopy(&fd, CMSG_DATA(cmsg), sizeof(int));
+  memmove(CMSG_DATA(cmsg), &fd, sizeof(int));
   msg.msg_controllen = cmsg->cmsg_len;
   while(1)
     {

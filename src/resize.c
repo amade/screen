@@ -412,35 +412,35 @@ BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int l, int w)
 {
   int r = 0;
 
-  bcopy((char *)mlf->image + xf, (char *)mlt->image + xt, l);
+  memmove((char *)mlt->image + xt, (char *)mlf->image + xf, l);
   if (mlf->attr != null && mlt->attr == null)
     {
       if ((mlt->attr = (unsigned char *)calloc(w, 1)) == 0)
 	mlt->attr = null, r = -1;
     }
   if (mlt->attr != null)
-    bcopy((char *)mlf->attr + xf, (char *)mlt->attr + xt, l);
+    memmove((char *)mlt->attr + xt, (char *)mlf->attr + xf, l);
   if (mlf->font != null && mlt->font == null)
     {
       if ((mlt->font = (unsigned char *)calloc(w, 1)) == 0)
 	mlt->font = null, r = -1;
     }
   if (mlt->font != null)
-    bcopy((char *)mlf->font + xf, (char *)mlt->font + xt, l);
+    memmove((char *)mlt->font + xt, (char *)mlf->font + xf, l);
   if (mlf->color != null && mlt->color == null)
     {
       if ((mlt->color = (unsigned char *)calloc(w, 1)) == 0)
 	mlt->color = null, r = -1;
     }
   if (mlt->color != null)
-    bcopy((char *)mlf->color + xf, (char *)mlt->color + xt, l);
+    memmove((char *)mlt->color + xt, (char *)mlf->color + xf, l);
   if (mlf->colorx != null && mlt->colorx == null)
     {
       if ((mlt->colorx = (unsigned char *)calloc(w, 1)) == 0)
 	mlt->colorx = null, r = -1;
     }
   if (mlt->colorx != null)
-    bcopy((char *)mlf->colorx + xf, (char *)mlt->colorx + xt, l);
+    memmove((char *)mlt->colorx + xt, (char *)mlf->colorx + xf, l);
   return r;
 }
 
