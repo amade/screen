@@ -391,9 +391,9 @@ AddAction(struct action *act, int x, int y)
       del = 0;
       bp = buf;
       ll = *lp++;
-      if (!ll || (index(cp, ' ') != NULL))
+      if (!ll || (strchr(cp, ' ') != NULL))
 	{
-	  if (index(cp, '\'') != NULL)
+	  if (strchr(cp, '\'') != NULL)
 	    *bp++ = del = '"';
 	  else
 	    *bp++ = del = '\'';

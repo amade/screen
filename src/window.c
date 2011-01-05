@@ -621,7 +621,7 @@ MakeWindow(struct NewWindow *newwin)
   if (!nwin.aka)
     nwin.aka = Filename(nwin.args[0]);
   strncpy(p->w_akabuf, nwin.aka, sizeof(p->w_akabuf) - 1);
-  if ((nwin.aka = rindex(p->w_akabuf, '|')) != NULL)
+  if ((nwin.aka = strrchr(p->w_akabuf, '|')) != NULL)
     {
       p->w_autoaka = 0;
       *nwin.aka++ = 0;
@@ -1305,9 +1305,9 @@ ForkWindow(struct win *win, char **args, char *ttyn)
 	  debug2("Makewindow %d with %s\n", win->w_number, tebuf);
 	  tl = strlen(win->w_term);
 	  NewEnv[1] = tebuf;
-	  if ((s1 = index(NewEnv[2], '|')))
+	  if ((s1 = strchr(NewEnv[2], '|')))
 	    {
-	      if ((s2 = index(++s1, '|')))
+	      if ((s2 = strchr(++s1, '|')))
 		{
 		  if (strlen(NewEnv[2]) - (s2 - s1) + tl < 1024)
 		    {
@@ -1345,7 +1345,7 @@ execvpe(char *prog, char **args, char **env)
   char *shargs[MAXARGS + 1];
   register int i, eaccess = 0;
 
-  if (rindex(prog, '/'))
+  if (strrchr(prog, '/'))
     path = "";
   if (!path && !(path = getenv("PATH")))
     path = DefaultPath;

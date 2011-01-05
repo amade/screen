@@ -132,7 +132,7 @@ findrcfile(char *rcfile)
 
   if (rcfile)
     {
-      char *rcend = rindex(rc_name, '/');
+      char *rcend = strrchr(rc_name, '/');
       if (*rcfile != '/' && rcend && (rcend - rc_name) + strlen(rcfile) + 2 < sizeof(buf))
 	{
 	  strncpy(buf, rc_name, rcend - rc_name + 1);
@@ -206,7 +206,7 @@ StartRc(char *rcfilename, int nopanic)
     }
   while (fgets(buf, sizeof buf, fp) != NULL)
     {
-      if ((p = rindex(buf, '\n')) != NULL)
+      if ((p = strrchr(buf, '\n')) != NULL)
 	*p = '\0';
       if ((argc = Parse(buf, sizeof buf, args, argl)) == 0)
 	continue;
@@ -253,7 +253,7 @@ StartRc(char *rcfilename, int nopanic)
 	    }
 	  for (p = args[1]; p && *p; p = cp)
 	    {
-	      if ((cp = index(p, '|')) != 0)
+	      if ((cp = strchr(p, '|')) != 0)
 		*cp++ = '\0';
 	      len = strlen(p);
 	      if (p[len - 1] == '*')
@@ -513,7 +513,7 @@ WriteFile(struct acluser *user, char *fn, int dump)
 		}
 	      break;
 	    case DUMP_TERMCAP:
-	      if ((p = index(MakeTermcap(fore->w_aflag), '=')) != NULL)
+	      if ((p = strchr(MakeTermcap(fore->w_aflag), '=')) != NULL)
 		{
 		  fputs(++p, f);
 		  putc('\n', f);

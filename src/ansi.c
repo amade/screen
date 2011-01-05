@@ -1405,7 +1405,7 @@ StringEnd()
   switch (curr->w_StringType)
     {
     case OSC:	/* special xterm compatibility hack */
-      if (curr->w_string[0] == ';' || (p = index(curr->w_string, ';')) == 0)
+      if (curr->w_string[0] == ';' || (p = strchr(curr->w_string, ';')) == 0)
 	break;
       typ = atoi(curr->w_string);
       p++;

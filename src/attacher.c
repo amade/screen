@@ -863,9 +863,9 @@ screen_builtin_lck()
   strncpy(fullname, ppp->pw_gecos, sizeof(fullname) - 9);
   fullname[sizeof(fullname) - 9] = 0;
 
-  if ((cp1 = index(fullname, ',')) != NULL)
+  if ((cp1 = strchr(fullname, ',')) != NULL)
     *cp1 = '\0';
-  if ((cp1 = index(fullname, '&')) != NULL)
+  if ((cp1 = strchr(fullname, '&')) != NULL)
     {
       strncpy(cp1, ppp->pw_name, 8);
       cp1[8] = 0;
