@@ -350,8 +350,8 @@ RcLine(char *ubuf, int ubufl)
 {
   char *args[MAXARGS];
   int argl[MAXARGS];
-  extern struct acluser *EffectiveAclUser;	/* acl.c */
-  extern struct acluser *users;		/* acl.c */
+  struct acluser *EffectiveAclUser;	/* acl.c */
+  struct acluser *users;		/* acl.c */
 
   if (display)
     {

@@ -2941,7 +2941,7 @@ DoAction(struct action *act, int key)
     case RC_BREAKTYPE:
 	{
 	  static char *types[] = { "TIOCSBRK", "TCSBRK", "tcsendbreak", NULL };
-	  extern int breaktype;
+	  int breaktype;
 
 	  if (*args)
 	    {
