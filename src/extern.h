@@ -353,6 +353,12 @@ extern void  sleep1000 (int);
 #ifdef DEBUG
 extern void  opendebug (int, int);
 #endif
+#ifndef HAVE_STRLCPY
+extern size_t strlcpy(char *, const char *, size_t);
+#endif
+#ifndef HAVE_STRLCAT
+extern size_t strlcat(char *, const char *, size_t);
+#endif
 
 
 /* acl.c */
