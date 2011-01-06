@@ -453,7 +453,7 @@ main(int argc, char **argv)
   cjkwidth = 0;
   nwin = nwin_undef;
   nwin_options = nwin_undef;
-  strcpy(screenterm, "screen");
+  strncpy(screenterm, "screen", 20);
 
   logreopen_register(lf_secreopen);
 
@@ -616,7 +616,7 @@ main(int argc, char **argv)
 		  if (--argc == 0)
 		    exit_with_usage(myname, "Specify terminal-type with -T", NULL);
 		  if (strlen(*++argv) < 20)
-		    strcpy(screenterm, *argv);
+		    strncpy(screenterm, *argv, 20);
 		  else
 		    Panic(0, "-T: terminal name too long. (max. 20 char)");
 		  nwin_options.term = screenterm;
@@ -2574,7 +2574,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	      int oldnumrend = winmsg_numrend;
 
 	      *p = 0;
-	      strcpy(savebuf, winmsg_buf);
+	      strncpy(savebuf, winmsg_buf, sizeof(winmsg_buf));
 	      winmsg_numrend = -winmsg_numrend;
 	      MakeWinMsgEv(*s == 'h' ? win->w_hstatus : runbacktick(bt, &oldtick, now.tv_sec), win, '\005', 0, (struct event *)0, rec + 1);
 	      debug2("oldtick=%d tick=%d\n", oldtick, tick);
@@ -2582,7 +2582,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 		tick = oldtick;
 	      if ((int)strlen(winmsg_buf) < l)
 		strcat(savebuf, winmsg_buf);
-	      strcpy(winmsg_buf, savebuf);
+	      strncpy(winmsg_buf, savebuf, sizeof(winmsg_buf));
 	      while (oldnumrend < winmsg_numrend)
 		winmsg_rendpos[oldnumrend++] += p - winmsg_buf;
 	      if (*p)

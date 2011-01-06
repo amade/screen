@@ -136,7 +136,7 @@ findrcfile(char *rcfile)
       if (*rcfile != '/' && rcend && (rcend - rc_name) + strlen(rcfile) + 2 < sizeof(buf))
 	{
 	  strncpy(buf, rc_name, rcend - rc_name + 1);
-	  strcpy(buf + (rcend - rc_name) + 1, rcfile);
+	  strncpy(buf + (rcend - rc_name) + 1, rcfile, 256 - (rcend - rc_name));
 	  if (access(buf, R_OK) == 0)
 	    return SaveStr(buf);
 	}
@@ -403,7 +403,7 @@ WriteFile(struct acluser *user, char *fn, int dump)
 	  if (i > (int)sizeof(fnbuf) - 9)
 	    i = 0;
 	  strncpy(fnbuf, SockPath, i);
-	  strcpy(fnbuf + i, ".termcap");
+	  strncpy(fnbuf + i, ".termcap", 9);
 	  fn = fnbuf;
 	}
       break;

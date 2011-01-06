@@ -3657,7 +3657,7 @@ DoAction(struct action *act, int key)
 	  free(s);
 	  break;
 	}
-      strcpy(screenterm, s);
+      strncpy(screenterm, s, 20);
       free(s);
       debug1("screenterm set to %s\n", screenterm);
       MakeTermcap((display == 0));
@@ -5172,7 +5172,7 @@ DoAction(struct action *act, int key)
 	    {
 	      n = i == 0 ? focusminwidth : focusminheight;
 	      if (n == -1)
-		strcpy(b[i], "max");
+		strncpy(b[i], "max", 20);
 	      else
 		sprintf(b[i], "%d", n);
 	    }
