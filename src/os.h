@@ -45,6 +45,16 @@
 #define FILENAME_MAX 14
 #endif
 
+#include <limits.h>
+
+#ifndef NAME_MAX
+# ifndef MAXNAMELEN
+#  define NAME_MAX 255
+# else
+#  define NAME_MAX MAXNAMELEN
+# endif
+#endif
+
 #ifdef ISC
 # ifdef ENAMETOOLONG
 #  undef ENAMETOOLONG

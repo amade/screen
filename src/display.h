@@ -34,17 +34,6 @@
 #include "canvas.h"
 #include "viewport.h"
 
-#include <limits.h>
-
-#ifndef NAME_MAX
-# ifndef MAXNAMELEN
-#  define NAME_MAX 255
-# else
-#  define NAME_MAX MAXNAMELEN
-# endif
-#endif
-
-
 #define KMAP_KEYS (T_OCAPS-T_CAPS)
 #define KMAP_AKEYS (T_OCAPS-T_CURSOR)
 
