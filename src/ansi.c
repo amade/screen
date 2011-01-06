@@ -2651,7 +2651,6 @@ WReverseVideo(struct win *p, int on)
 void
 WMsg(struct win *p, int err, char *str)
 {
-  struct layer *flayer;
   struct layer *oldflayer = flayer;
   flayer = &p->w_layer;
   LMsg(err, "%s", str);
