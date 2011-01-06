@@ -222,7 +222,7 @@ OpenPTY(char **ttyn)
   register int f;
   struct stat buf;
    
-  strcpy(PtyName, "/dev/ptc");
+  strlcpy(PtyName, "/dev/ptc", 32);
   if ((f = open(PtyName, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0)
     return -1;
   if (fstat(f, &buf) < 0)
@@ -252,7 +252,7 @@ OpenPTY(char **ttyn)
 #endif
   sigret_t (*sigcld)SIGPROTOARG;
 
-  strcpy(PtyName, "/dev/ptmx");
+  strlcpy(PtyName, "/dev/ptmx", 32);
 #if defined(HAVE_GETPT) && defined(linux)
   if ((f = getpt()) == -1)
 #else
@@ -290,7 +290,7 @@ OpenPTY(char **ttyn)
   register int f;
 
   /* a dumb looking loop replaced by mycrofts code: */
-  strcpy (PtyName, "/dev/ptc");
+  strlcpy (PtyName, "/dev/ptc", 32);
   if ((f = open (PtyName, O_RDWR | O_NOCTTY)) < 0)
     return -1;
   strncpy(TtyName, ttyname(f), sizeof(TtyName));
@@ -336,8 +336,8 @@ OpenPTY(char **ttyn)
   register int f;
 
   debug("OpenPTY: Using BSD style ptys.\n");
-  strcpy(PtyName, PtyProto);
-  strcpy(TtyName, TtyProto);
+  strlcpy(PtyName, PtyProto, 32);
+  strlcpy(TtyName, TtyProto, 32);
   for (p = PtyName; *p != 'X'; p++)
     ;
   for (q = TtyName; *q != 'X'; q++)

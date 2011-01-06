@@ -927,7 +927,7 @@ SendCmdMessage(char *sty, char *match, char **av, int query)
       len = strlen(*av) + 1;
       if (p + len >= m.m.command.cmd + sizeof(m.m.command.cmd) - 1)
 	break;
-      strcpy(p, *av);
+      strlcpy(p, *av, MAXPATHLEN);
       p += len;
     }
   *p = 0;
@@ -949,7 +949,7 @@ SendCmdMessage(char *sty, char *match, char **av, int query)
       for (c = 'A'; c <= 'Z'; c++)
 	{
 	  query[6] = c;
-	  strcpy(sp, query);	/* XXX: strncpy? */
+	  strlcpy(sp, query, strlen(SockPath));
 	  if ((r = MakeServerSocket()) >= 0)
 	    break;
 	}
@@ -958,7 +958,7 @@ SendCmdMessage(char *sty, char *match, char **av, int query)
 	  for (c = '0'; c <= '9'; c++)
 	    {
 	      query[6] = c;
-	      strcpy(sp, query);
+	      strlcpy(sp, query, strlen(SockPath));
 	      if ((r = MakeServerSocket()) >= 0)
 		break;
 	    }

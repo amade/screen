@@ -356,7 +356,7 @@ rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend)
 	{
 	  if (pt)
 	    {
-	      strcpy(pt, "\033(B");
+	      strlcpy(pt, "\033(B", 4);
 	      pt += 3;
 	    }
 	  l += 3;
