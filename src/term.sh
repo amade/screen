@@ -21,6 +21,7 @@ cat << EOF > term.h
 #define T_STR 2
 
 extern char *tgoto(const char *, int, int);
+extern char *tgetstr(char *, char **);
 
 struct term
 {
