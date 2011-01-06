@@ -165,7 +165,7 @@ UserAdd(char *name, char *pass, struct acluser **up)
   (*up)->u_plop.enc = 0;
   (*up)->u_Esc = DefaultEsc;
   (*up)->u_MetaEsc = DefaultMetaEsc;
-  strncpy((*up)->u_name, name, 20);
+  strncpy((*up)->u_name, name, MAXSTR);
   (*up)->u_password = NULL;
   if (pass)
     (*up)->u_password = SaveStr(pass);

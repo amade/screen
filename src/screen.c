@@ -892,11 +892,11 @@ main(int argc, char **argv)
 
   if (home == 0 || *home == '\0')
     home = ppp->pw_dir;
-  if (strlen(LoginName) > 20)
+  if (strlen(LoginName) > NAME_MAX)
     Panic(0, "LoginName too long - sorry.");
-  if (multi && strlen(multi) > 20)
+  if (multi && strlen(multi) > NAME_MAX)
     Panic(0, "Screen owner name too long - sorry.");
-  if (strlen(home) > MAXPATHLEN - 25)
+  if (strlen(home) > MAXPATHLEN - NAME_MAX)
     Panic(0, "$HOME too long - sorry.");
 
   attach_tty = "";

@@ -73,8 +73,8 @@ struct plop
  */
 typedef struct acluser
 {
-  struct acluser *u_next;		/* continue the main user list */
-  char u_name[20+1];		/* login name how he showed up */
+  struct acluser *u_next;	/* continue the main user list */
+  char u_name[NAME_MAX + 1];	/* login name how he showed up */
   char *u_password;		/* his password (may be NullStr). */
   int  u_checkpassword;		/* nonzero if this u_password is valid */
   int  u_detachwin;		/* the window where he last detached */
