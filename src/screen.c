@@ -421,8 +421,8 @@ main(int argc, char **argv)
 #ifdef SHADOWPW
   debug("SHADOWPW\n");
 #endif
-#ifdef NAME_MAX
-  debug1("NAME_MAX = %d\n", NAME_MAX);
+#ifdef FILENAME_MAX
+  debug1("FILENAME_MAX = %d\n", FILENAME_MAX);
 #endif
 
   BellString = SaveStr("Bell in window %n");
@@ -1138,9 +1138,9 @@ main(int argc, char **argv)
       for (ap = socknamebuf; *ap; ap++)
 	if (*ap == '/')
 	  *ap = '-';
-#ifdef NAME_MAX
-      if (strlen(socknamebuf) > NAME_MAX)
-        socknamebuf[NAME_MAX] = 0;
+#ifdef FILENAME_MAX
+      if (strlen(socknamebuf) > FILENAME_MAX)
+        socknamebuf[FILENAME_MAX] = 0;
 #endif
       sprintf(SockPath + strlen(SockPath), "/%s", socknamebuf);
       SET_GUID();
@@ -1232,11 +1232,11 @@ main(int argc, char **argv)
   for (ap = socknamebuf; *ap; ap++)
     if (*ap == '/')
       *ap = '-';
-#ifdef NAME_MAX
-  if (strlen(socknamebuf) > NAME_MAX)
+#ifdef FILENAME_MAX
+  if (strlen(socknamebuf) > FILENAME_MAX)
     {
-      debug2("Socketname %s truncated to %d chars\n", socknamebuf, NAME_MAX);
-      socknamebuf[NAME_MAX] = 0;
+      debug2("Socketname %s truncated to %d chars\n", socknamebuf, FILENAME_MAX);
+      socknamebuf[FILENAME_MAX] = 0;
     }
 #endif
   sprintf(SockPath + strlen(SockPath), "/%s", socknamebuf);
