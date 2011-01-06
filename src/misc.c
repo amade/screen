@@ -58,7 +58,7 @@ SaveStr(register const char *str)
   if ((cp = malloc(strlen(str) + 1)) == NULL)
     Panic(0, "%s", strnomem);
   else
-    strcpy(cp, str);
+    strncpy(cp, str, strlen(str) + 1);
   return cp;
 }
 
@@ -561,9 +561,9 @@ xsetenv(char *var, char *value)
       Msg(0, strnomem);
       return;
     }
-  strcpy(buf, var);
+  strncpy(buf, var, strlen(var) + 1);
   buf[l] = '=';
-  strcpy(buf + l + 1, value);
+  strncpy(buf + l + 1, value, strlen(value) + 1);
   putenv(buf);
 # ifdef NEEDPUTENV
   /*

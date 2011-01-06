@@ -218,7 +218,7 @@ struct msg
 	{
 	  char auser[MAXLOGINLEN + 1];	/* username */
 	  int nargs;
-	  char cmd[MAXPATHLEN];	/* command */
+	  char cmd[MAXPATHLEN + 1];	/* command */
 	  int apid;		/* pid of frontend */
 	  char preselect[20];
 	  char writeback[MAXPATHLEN];  /* The socket to write the result.

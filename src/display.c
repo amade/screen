@@ -1774,7 +1774,7 @@ MakeStatus(char *msg)
 	}
     }
   if (t - msg < D_status_buflen)
-    strcpy(D_status_lastmsg, msg);
+    strncpy(D_status_lastmsg, msg, D_status_buflen);
   D_status_len = t - msg;
   D_status_lastx = D_x;
   D_status_lasty = D_y;
@@ -3342,13 +3342,13 @@ RunBlanker(char **cmdv)
   char *m;
   int pid;
   int slave = -1;
-  char termname[30];
+  char termname[NAME_MAX + 1];
 #ifndef TIOCSWINSZ
   char libuf[20], cobuf[20];
 #endif
   char **np;
 
-  strcpy(termname, "TERM=");
+  strncpy(termname, "TERM=", 6);
   strncpy(termname + 5, D_termname, sizeof(termname) - 6);
   termname[sizeof(termname) - 1] = 0;
   KillBlanker();
