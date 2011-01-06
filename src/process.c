@@ -5988,8 +5988,7 @@ IsNumColon(char *s, int base, char *p, int psize)
   char *q;
   if ((q = strrchr(s, ':')) != 0)
     {
-      strncpy(p, q + 1, psize - 1);
-      p[psize - 1] = '\0';
+      strlcpy(p, q + 1, psize - 1);
       *q = '\0';
     }
   else

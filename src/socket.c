@@ -505,8 +505,7 @@ MakeServerSocket()
   if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
     Panic(errno, "socket");
   a.sun_family = AF_UNIX;
-  strncpy(a.sun_path, SockPath, sizeof(a.sun_path));
-  a.sun_path[sizeof(a.sun_path) - 1] = 0;
+  strlcpy(a.sun_path, SockPath, sizeof(a.sun_path));
 # ifdef USE_SETEUID
   xseteuid(real_uid);
   xsetegid(real_gid);
@@ -577,8 +576,7 @@ MakeClientSocket(int err)
   if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
     Panic(errno, "socket");
   a.sun_family = AF_UNIX;
-  strncpy(a.sun_path, SockPath, sizeof(a.sun_path));
-  a.sun_path[sizeof(a.sun_path) - 1] = 0;
+  strlcpy(a.sun_path, SockPath, sizeof(a.sun_path));
 # ifdef USE_SETEUID
   xseteuid(real_uid);
   xsetegid(real_gid);
@@ -636,8 +634,7 @@ SendCreateMsg(char *sty, struct NewWindow *nwin)
   debug1("SendCreateMsg() to '%s'\n", SockPath);
   memset((char *)&m, 0, sizeof(m));
   m.type = MSG_CREATE;
-  strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
-  m.m_tty[sizeof(m.m_tty) - 1] = 0;
+  strlcpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
   p = m.m.create.line;
   n = 0;
   if (nwin->args != nwin_undef.args)
@@ -664,8 +661,7 @@ SendCreateMsg(char *sty, struct NewWindow *nwin)
       return;
     }
   if (nwin->term != nwin_undef.term)
-    strncpy(m.m.create.screenterm, nwin->term, 19);
-  m.m.create.screenterm[19] = '\0';
+    strlcpy(m.m.create.screenterm, nwin->term, 19);
   m.protocol_revision = MSG_REVISION;
   debug1("SendCreateMsg writing '%s'\n", m.m.create.line);
   if (write(s, (char *) &m, sizeof m) != sizeof m)
@@ -679,14 +675,12 @@ SendErrorMsg(char *tty, char *buf)
   int s;
   struct msg m;
 
-  strncpy(m.m.message, buf, sizeof(m.m.message) - 1);
-  m.m.message[sizeof(m.m.message) - 1] = 0;
+  strlcpy(m.m.message, buf, sizeof(m.m.message) - 1);
   s = MakeClientSocket(0);
   if (s < 0)
     return -1;
   m.type = MSG_ERROR;
-  strncpy(m.m_tty, tty, sizeof(m.m_tty) - 1);
-  m.m_tty[sizeof(m.m_tty) - 1] = 0;
+  strlcpy(m.m_tty, tty, sizeof(m.m_tty) - 1);
   m.protocol_revision = MSG_REVISION;
   debug1("SendErrorMsg(): writing to '%s'\n", SockPath);
   (void) write(s, (char *) &m, sizeof m);

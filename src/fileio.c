@@ -432,8 +432,7 @@ WriteFile(struct acluser *user, char *fn, int dump)
     case DUMP_EXCHANGE:
       if (fn == 0)
 	{
-	  strncpy(fnbuf, BufferFile, sizeof(fnbuf) - 1);
-	  fnbuf[sizeof(fnbuf) - 1] = 0;
+	  strlcpy(fnbuf, BufferFile, sizeof(fnbuf) - 1);
 	  fn = fnbuf;
 	}
       public = !strcmp(fn, DEFAULT_BUFFERFILE);

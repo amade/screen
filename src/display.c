@@ -268,10 +268,8 @@ MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struct mode *M
 #endif
   debug1("New displays ospeed = %d\n", D_dospeed);
 
-  strncpy(D_usertty, utty, sizeof(D_usertty) - 1);
-  D_usertty[sizeof(D_usertty) - 1] = 0;
-  strncpy(D_termname, term, sizeof(D_termname) - 1);
-  D_termname[sizeof(D_termname) - 1] = 0;
+  strlcpy(D_usertty, utty, sizeof(D_usertty) - 1);
+  strlcpy(D_termname, term, sizeof(D_termname) - 1);
   D_user = *u;
   D_processinput = ProcessInput;
   D_mousetrack = defmousetrack;

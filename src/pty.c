@@ -177,8 +177,8 @@ OpenPTY(char **ttyn)
 #ifdef _SEQUENT_
   fvhangup(s);
 #endif
-  strncpy(PtyName, m, sizeof(PtyName));
-  strncpy(TtyName, s, sizeof(TtyName));
+  strlcpy(PtyName, m, sizeof(PtyName));
+  strlcpy(TtyName, s, sizeof(TtyName));
   initmaster(f);
   *ttyn = TtyName;
   return f;
@@ -272,7 +272,7 @@ OpenPTY(char **ttyn)
       return -1;
     } 
   signal(SIGCHLD, sigcld);
-  strncpy(TtyName, m, sizeof(TtyName));
+  strlcpy(TtyName, m, sizeof(TtyName));
   initmaster(f);
   *ttyn = TtyName;
   return f;
@@ -293,7 +293,7 @@ OpenPTY(char **ttyn)
   strlcpy (PtyName, "/dev/ptc", 32);
   if ((f = open (PtyName, O_RDWR | O_NOCTTY)) < 0)
     return -1;
-  strncpy(TtyName, ttyname(f), sizeof(TtyName));
+  strlcpy(TtyName, ttyname(f), sizeof(TtyName));
   if (eff_uid && access(TtyName, R_OK | W_OK))
     {
       close(f);

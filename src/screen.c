@@ -1049,8 +1049,7 @@ main(int argc, char **argv)
 #if defined(SYSV) && !defined(ISC)
   if (uname(&utsnam) == -1)
     Panic(errno, "uname");
-  strncpy(HostName, utsnam.nodename, sizeof(utsnam.nodename) < MAXSTR ? sizeof(utsnam.nodename) : MAXSTR - 1);
-  HostName[sizeof(utsnam.nodename) < MAXSTR ? sizeof(utsnam.nodename) : MAXSTR - 1] = '\0';
+  strlcpy(HostName, utsnam.nodename, sizeof(utsnam.nodename) < MAXSTR ? sizeof(utsnam.nodename) : MAXSTR - 1);
 #else
   (void) gethostname(HostName, MAXSTR);
   HostName[MAXSTR - 1] = '\0';
@@ -1971,7 +1970,6 @@ MakeNewEnv()
   } while (0)
 
 void Msg(int err, const char *fmt, VA_DOTS)
-
 {
   char buf[MAXPATHLEN*2];
   PROCESS_MESSAGE(buf);

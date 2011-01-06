@@ -810,8 +810,7 @@ LMsg(int err, const char *fmt, VA_DOTS)
       p += strlen(p);
       *p++ = ':';
       *p++ = ' ';
-      strncpy(p, strerror(err), buf + sizeof(buf) - p - 1);
-      buf[sizeof(buf) - 1] = 0;
+      strlcpy(p, strerror(err), buf + sizeof(buf) - p - 1);
     }
   debug2("LMsg('%s') (%#x);\n", buf, (unsigned int)flayer);
   for (display = displays; display; display = display->d_next)

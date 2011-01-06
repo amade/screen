@@ -213,8 +213,7 @@ Attach(int how)
   memset((char *) &m, 0, sizeof(m));
   m.type = how;
   m.protocol_revision = MSG_REVISION;
-  strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
-  m.m_tty[sizeof(m.m_tty) - 1] = 0;
+  strlcpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
 
   if (how == MSG_WINCH)
     {
@@ -317,8 +316,7 @@ Attach(int how)
       (how == MSG_DETACH || how == MSG_POW_DETACH))
     {
       m.m.detach.dpid = getpid();
-      strncpy(m.m.detach.duser, LoginName, sizeof(m.m.detach.duser) - 1); 
-      m.m.detach.duser[sizeof(m.m.detach.duser) - 1] = 0;
+      strlcpy(m.m.detach.duser, LoginName, sizeof(m.m.detach.duser) - 1); 
       if (dflag == 2)
 	m.type = MSG_POW_DETACH;
       else
@@ -341,16 +339,13 @@ Attach(int how)
       m.type = how;
     }
   ASSERT(how == MSG_ATTACH || how == MSG_CONT);
-  strncpy(m.m.attach.envterm, attach_term, sizeof(m.m.attach.envterm) - 1);
-  m.m.attach.envterm[sizeof(m.m.attach.envterm) - 1] = 0;
+  strlcpy(m.m.attach.envterm, attach_term, sizeof(m.m.attach.envterm) - 1);
   debug1("attach: sending %d bytes... ", (int)sizeof(m));
 
-  strncpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1); 
-  m.m.attach.auser[sizeof(m.m.attach.auser) - 1] = 0;
+  strlcpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1); 
   m.m.attach.esc = DefaultEsc;
   m.m.attach.meta_esc = DefaultMetaEsc;
-  strncpy(m.m.attach.preselect, preselect ? preselect : "", sizeof(m.m.attach.preselect) - 1);
-  m.m.attach.preselect[sizeof(m.m.attach.preselect) - 1] = 0;
+  strlcpy(m.m.attach.preselect, preselect ? preselect : "", sizeof(m.m.attach.preselect) - 1);
   m.m.attach.apid = getpid();
   m.m.attach.adaptflag = adaptflag;
   m.m.attach.lines = m.m.attach.columns = 0;
@@ -451,8 +446,7 @@ AttacherFinit SIGDEFARG
     {
       debug("Detaching backend!\n");
       memset((char *) &m, 0, sizeof(m));
-      strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
-      m.m_tty[sizeof(m.m_tty) - 1] = 0;
+      strlcpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
       debug1("attach_tty is %s\n", attach_tty);
       m.m.detach.dpid = getpid();
       m.type = MSG_HANGUP;
@@ -806,8 +800,7 @@ screen_builtin_lck()
     {
       if ((pass = getpass("Key:   ")))
         {
-          strncpy(mypass, pass, sizeof(mypass) - 1);
-          mypass[sizeof(mypass) - 1] = 0;
+          strlcpy(mypass, pass, sizeof(mypass) - 1);
           if (*mypass == 0)
             return;
           if ((pass = getpass("Again: ")))
@@ -836,15 +829,13 @@ screen_builtin_lck()
 #endif
 
   debug("screen_builtin_lck looking in gcos field\n");
-  strncpy(fullname, ppp->pw_gecos, sizeof(fullname) - 9);
-  fullname[sizeof(fullname) - 9] = 0;
+  strlcpy(fullname, ppp->pw_gecos, sizeof(fullname) - 9);
 
   if ((cp1 = strchr(fullname, ',')) != NULL)
     *cp1 = '\0';
   if ((cp1 = strchr(fullname, '&')) != NULL)
     {
-      strncpy(cp1, ppp->pw_name, 8);
-      cp1[8] = 0;
+      strlcpy(cp1, ppp->pw_name, 8);
       if (*cp1 >= 'a' && *cp1 <= 'z')
 	*cp1 -= 'a' - 'A';
     }
@@ -917,8 +908,7 @@ SendCmdMessage(char *sty, char *match, char **av, int query)
   m.type = query ? MSG_QUERY : MSG_COMMAND;
   if (attach_tty)
     {
-      strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
-      m.m_tty[sizeof(m.m_tty) - 1] = 0;
+      strlcpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
     }
   p = m.m.command.cmd;
   n = 0;
@@ -932,11 +922,9 @@ SendCmdMessage(char *sty, char *match, char **av, int query)
     }
   *p = 0;
   m.m.command.nargs = n;
-  strncpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1);
-  m.m.command.auser[sizeof(m.m.command.auser) - 1] = 0;
+  strlcpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1);
   m.protocol_revision = MSG_REVISION;
-  strncpy(m.m.command.preselect, preselect ? preselect : "", sizeof(m.m.command.preselect) - 1);
-  m.m.command.preselect[sizeof(m.m.command.preselect) - 1] = 0;
+  strlcpy(m.m.command.preselect, preselect ? preselect : "", sizeof(m.m.command.preselect) - 1);
   m.m.command.apid = getpid();
   debug1("SendCommandMsg writing '%s'\n", m.m.command.cmd);
   if (query)
@@ -967,8 +955,7 @@ SendCmdMessage(char *sty, char *match, char **av, int query)
       if (r < 0)
 	Panic(0, "Could not create a listening socket to read the results.");
 
-      strncpy(m.m.command.writeback, SockPath, sizeof(m.m.command.writeback) - 1);
-      m.m.command.writeback[sizeof(m.m.command.writeback) - 1] = '\0';
+      strlcpy(m.m.command.writeback, SockPath, sizeof(m.m.command.writeback) - 1);
 
       /* Send the message, then wait for a response */
       signal(SIGCONT, QueryResultSuccess);

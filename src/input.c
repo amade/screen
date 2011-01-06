@@ -99,8 +99,7 @@ inp_setprompt(char *p, char *s)
   if (s)
     {
       if (s != inpdata->inp.buf)
-	strncpy(inpdata->inp.buf, s, sizeof(inpdata->inp.buf) - 1);
-      inpdata->inp.buf[sizeof(inpdata->inp.buf) - 1] = 0;
+	strlcpy(inpdata->inp.buf, s, sizeof(inpdata->inp.buf) - 1);
       inpdata->inp.pos = inpdata->inp.len = strlen(inpdata->inp.buf);
     }
   InpRedisplayLine(INPUTLINE, 0, flayer->l_width - 1, 0);

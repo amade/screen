@@ -165,7 +165,7 @@ UserAdd(char *name, char *pass, struct acluser **up)
   (*up)->u_plop.enc = 0;
   (*up)->u_Esc = DefaultEsc;
   (*up)->u_MetaEsc = DefaultMetaEsc;
-  strncpy((*up)->u_name, name, NAME_MAX);
+  strlcpy((*up)->u_name, name, NAME_MAX);
   (*up)->u_password = NULL;
   if (pass)
     (*up)->u_password = SaveStr(pass);
@@ -945,8 +945,7 @@ AclUmask(struct acluser *u, char *str, char **errp)
       *errp = "Bad argument. Should be ``[user[,user...]{+|-}rwxn''.";
       return -1;
     }
-  strncpy(mode, p, 15);
-  mode[15] = '\0';
+  strlcpy(mode, p, 15);
   *p = '\0';
 
   /* construct argument vector */
