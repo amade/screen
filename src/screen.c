@@ -1168,7 +1168,7 @@ main(int argc, char **argv)
 	  *ap = '-';
 #ifdef NAME_MAX
       if (strlen(socknamebuf) > NAME_MAX)
-        socknamebuf[NAME_MAX] = 0;
+        socknamebuf[NAME_MAX - 1] = 0;
 #endif
       sprintf(SockPath + strlen(SockPath), "/%s", socknamebuf);
       SET_GUID();
