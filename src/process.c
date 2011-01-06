@@ -2967,8 +2967,6 @@ DoAction(struct action *act, int key)
 	          OutputMsg(0, "breaktype set to (%d) %s", n, types[n]);
 		}
 	    }
-	  else
-	    OutputMsg(0, "breaktype is (%d) %s", breaktype, types[breaktype]);
 	}
       break;
     case RC_POW_BREAK:
