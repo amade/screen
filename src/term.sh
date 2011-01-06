@@ -20,6 +20,8 @@ cat << EOF > term.h
 #define T_NUM 1
 #define T_STR 2
 
+extern char *tgoto(const char *, int, int);
+
 struct term
 {
   char *tcname;
