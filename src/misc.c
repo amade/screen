@@ -589,32 +589,6 @@ xsetenv(char *var, char *value)
 #endif /* USESETENV */
 }
 
-#ifdef TERMINFO
-/*
- * This is a replacement for the buggy _delay function from the termcap
- * emulation of libcurses, which ignores ospeed.
- */
-int
-_delay(register int delay, int (*outc) (int))
-{
-  int pad;
-  short ospeed;
-  static short osp2pad[] = {
-    0,2000,1333,909,743,666,500,333,166,83,55,41,20,10,5,2,1,1
-  };
-
-  if (ospeed <= 0 || ospeed >= (int)(sizeof(osp2pad)/sizeof(*osp2pad)))
-    return 0;
-  pad =osp2pad[ospeed];
-  delay = (delay + pad / 2) / pad;
-  while (delay-- > 0)
-    (*outc)(0);
-  return 0;
-}
-
-#endif /* TERMINFO */
-
-
 # define xva_arg(s, t, tn) va_arg(s, t)
 # define xva_list va_list
 
