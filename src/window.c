@@ -484,7 +484,7 @@ MakeWindow(struct NewWindow *newwin)
   struct NewWindow nwin;
   int type, startat;
   char *TtyName;
-  struct acluser *users;
+  extern struct acluser *users;
 
   if (!wtab)
     {
