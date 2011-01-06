@@ -194,27 +194,27 @@ struct msg
       create;
       struct
 	{
-	  char auser[20 + 1];	/* username */
+	  char auser[NAME_MAX + 1];	/* username */
 	  int apid;		/* pid of frontend */
 	  int adaptflag;	/* adapt window size? */
 	  int lines, columns;	/* display size */
 	  char preselect[20];
 	  int esc;		/* his new escape character unless -1 */
 	  int meta_esc;		/* his new meta esc character unless -1 */
-	  char envterm[20 + 1];	/* terminal type */
+	  char envterm[NAME_MAX + 1];	/* terminal type */
 	  int encoding;		/* encoding of display */
 	  int detachfirst;      /* whether to detach remote sessions first */
 	}
       attach;
       struct 
 	{
-	  char duser[20 + 1];	/* username */
+	  char duser[NAME_MAX + 1];	/* username */
 	  int dpid;		/* pid of frontend */
 	}
       detach;
       struct 
 	{
-	  char auser[20 + 1];	/* username */
+	  char auser[NAME_MAX + 1];	/* username */
 	  int nargs;
 	  char cmd[MAXPATHLEN];	/* command */
 	  int apid;		/* pid of frontend */

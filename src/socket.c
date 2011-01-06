@@ -1462,7 +1462,7 @@ static void PasswordProcessInput (char *, int);
 
 struct pwdata {
   int l;
-  char buf[20 + 1];
+  char buf[NAME_MAX + 1];
   struct msg m;
 };
 
