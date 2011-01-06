@@ -894,9 +894,9 @@ SendCmdMessage(char *sty, char *match, char **av, int query)
     }
   else
     {
-#ifdef FILENAME_MAX
-      if (strlen(sty) > FILENAME_MAX)
-	sty[FILENAME_MAX] = 0;
+#ifdef NAME_MAX
+      if (strlen(sty) > NAME_MAX)
+	sty[NAME_MAX] = 0;
 #endif
       if (strlen(sty) > 2 * MAXSTR - 1)
 	sty[2 * MAXSTR - 1] = 0;

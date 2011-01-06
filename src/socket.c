@@ -128,9 +128,9 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
   if (match)
     {
       matchlen = strlen(match);
-#ifdef FILENAME_MAX
-      if (matchlen > FILENAME_MAX)
-	matchlen = FILENAME_MAX;
+#ifdef NAME_MAX
+      if (matchlen > NAME_MAX)
+	matchlen = NAME_MAX;
 #endif
     }
 
@@ -622,9 +622,9 @@ SendCreateMsg(char *sty, struct NewWindow *nwin)
   register int len, n;
   char **av = nwin->args;
 
-#ifdef FILENAME_MAX
-  if (strlen(sty) > FILENAME_MAX)
-    sty[FILENAME_MAX] = 0;
+#ifdef NAME_MAX
+  if (strlen(sty) > NAME_MAX)
+    sty[NAME_MAX] = 0;
 #endif
   if (strlen(sty) > 2 * MAXSTR - 1)
     sty[2 * MAXSTR - 1] = 0;
