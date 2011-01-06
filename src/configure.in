@@ -1089,6 +1089,8 @@ main()
 
 fi
 
+
+
 dnl
 dnl    ****  libraries  ****
 dnl
@@ -1199,6 +1201,13 @@ main() {
 }], AC_DEFINE(USEMEMCPY))
 
 AC_SYS_LONG_FILE_NAMES
+
+
+dnl
+dnl    **** strlcpy strlcat ****
+dnl
+
+AC_CHECK_FUNCS(strlcpy strlcat)
 
 AC_MSG_CHECKING(for vsprintf)
 AC_TRY_LINK(,[vsprintf(0,0,0);], AC_MSG_RESULT(yes);AC_DEFINE(USEVARARGS), AC_MSG_RESULT(no))
