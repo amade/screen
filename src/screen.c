@@ -403,9 +403,6 @@ main(int argc, char **argv)
 #ifdef hpux
   debug("hpux\n");
 #endif
-#ifdef USEBCOPY
-  debug("USEBCOPY\n");
-#endif
 #ifdef UTMPOK
   debug("UTMPOK\n");
 #endif

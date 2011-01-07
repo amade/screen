@@ -405,21 +405,6 @@
 #undef GETTTYENT
 
 /*
- * Define USEBCOPY if the bcopy/memcpy from your system's C library
- * supports the overlapping of source and destination blocks.  When
- * undefined, screen uses its own (probably slower) version of bcopy().
- * 
- * SYSV machines may have a working memcpy() -- Oh, this is 
- * quite unlikely. Tell me if you see one.
- * "But then, memmove() should work, if at all available" he thought...
- * Boing, never say "works everywhere" unless you checked SCO UNIX.
- * Their memove fails the test in the configure script. Sigh. (Juergen)
- */
-#undef USEBCOPY
-#undef USEMEMCPY
-#undef USEMEMMOVE
-
-/*
  * If your system has vsprintf() and requires the use of the macros in
  * "varargs.h" to use functions with variable arguments,
  * define USEVARARGS.
