@@ -284,24 +284,6 @@ xsetegid(int egid)
 #endif /* HAVE_SETEUID */
 
 
-
-#ifdef NEED_OWN_BCOPY
-void
-xbcopy(register char *s1, register char *s2, register int len)
-{
-  if (s1 < s2 && s2 < s1 + len)
-    {
-      s1 += len;
-      s2 += len;
-      while (len-- > 0)
-	*--s2 = *--s1;
-    }
-  else
-    while (len-- > 0)
-      *s2++ = *s1++;
-}
-#endif	/* NEED_OWN_BCOPY */
-
 void
 bclear(char *p, int n)
 {
