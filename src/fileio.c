@@ -409,7 +409,7 @@ WriteFile(struct acluser *user, char *fn, int dump)
 	  i = SockName - SockPath;
 	  if (i > (int)sizeof(fnbuf) - 9)
 	    i = 0;
-	  strncpy(fnbuf, SockPath, i);
+	  strlcpy(fnbuf, SockPath, i);
 	  strlcpy(fnbuf + i, ".termcap", 9);
 	  fn = fnbuf;
 	}

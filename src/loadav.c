@@ -303,7 +303,7 @@ InitLoadav()
   nl[0].n_name = LOADAV_AVENRUN;
 #  endif
 # else
-  strncpy(nl[0].n_name, LOADAV_AVENRUN, sizeof(nl[0].n_name));
+  strlcpy(nl[0].n_name, LOADAV_AVENRUN, sizeof(nl[0].n_name));
 # endif
   debug2("Searching in %s for %s\n", LOADAV_UNIX, nl[0].n_name);
   nlist(LOADAV_UNIX, nl);
