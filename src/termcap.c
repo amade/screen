@@ -793,13 +793,13 @@ AddCap(char *s)
 
   if (tcLineLen + (n = strlen(s)) > 55 && Termcaplen < TERMCAP_BUFSIZE - 4 - 1)
     {
-      strcpy(Termcap + Termcaplen, "\\\n\t:");
+      strlcpy(Termcap + Termcaplen, "\\\n\t:", sizeof(Termcap) - Termcaplen);
       Termcaplen += 4;
       tcLineLen = 0;
     }
   if (Termcaplen + n < TERMCAP_BUFSIZE - 1)
     {
-      strcpy(Termcap + Termcaplen, s);
+      strlcpy(Termcap + Termcaplen, s, sizeof(Termcap) - Termcaplen);
       Termcaplen += n;
       tcLineLen += n;
     }
@@ -834,7 +834,7 @@ MakeTermcap(int aflag)
   if ((s = getenv("SCREENCAP")) && strlen(s) < TERMCAP_BUFSIZE)
     {
       sprintf(Termcap, "TERMCAP=%s", s);
-      strcpy(Term, "TERM=screen");
+      strlcpy(Term, "TERM=screen", sizeof(Term));
       debug("getenvSCREENCAP o.k.\n");
       return Termcap;
     }
@@ -848,7 +848,7 @@ MakeTermcap(int aflag)
     }
   do
     {
-      strcpy(Term, "TERM=");
+      strlcpy(Term, "TERM=", sizeof(Term));
       p = Term + 5;
       if (!aflag && strlen(screenterm) + strlen(tname) < MAXSTR-1)
 	{
@@ -879,7 +879,7 @@ MakeTermcap(int aflag)
 
   tcLineLen = 100;	/* Force NL */
   if (strlen(Term) > TERMCAP_BUFSIZE - 40)
-    strcpy(Term, "too_long");
+    strlcpy(Term, "too_long", sizeof(Term));
   sprintf(Termcap, "TERMCAP=SC|%s|VT 100/ANSI X3.64 virtual terminal:", Term + 5);
   Termcaplen = strlen(Termcap);
   debug1("MakeTermcap decided '%s'\n", p);
