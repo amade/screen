@@ -127,19 +127,6 @@ extern int errno;
 # define getcwd(b,l) getwd(b)
 #endif
 
-#ifndef USEBCOPY
-# ifdef USEMEMMOVE
-#  define bcopy(s,d,len) memmove(d,s,len)
-# else
-#  ifdef USEMEMCPY
-#   define bcopy(s,d,len) memcpy(d,s,len)
-#  else
-#   define NEED_OWN_BCOPY
-#   define bcopy xbcopy
-#  endif
-# endif
-#endif
-
 #if defined(HAVE_SETRESUID) && !defined(HAVE_SETREUID)
 # define setreuid(ruid, euid) setresuid(ruid, euid, -1)
 # define setregid(rgid, egid) setresgid(rgid, egid, -1)

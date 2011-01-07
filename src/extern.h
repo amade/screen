@@ -328,9 +328,6 @@ extern void  centerline (char *, int);
 extern void  leftline (char *, int, struct mchar *);
 extern char *Filename (char *);
 extern char *stripdev (char *);
-#ifdef NEED_OWN_BCOPY
-extern void  xbcopy (char *, char *, int);
-#endif
 extern void  bclear (char *, int);
 extern void  closeallfiles (int);
 extern int   UserContext (void);
