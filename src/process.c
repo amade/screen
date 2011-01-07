@@ -4094,7 +4094,7 @@ DoAction(struct action *act, int key)
 	      free(s);
 	      break;
 	    }
-	  strlcpy(buf, SockPath, SockName - SockPath);
+	  strncpy(buf, SockPath, SockName - SockPath);
 	  sprintf(buf + (SockName - SockPath), "%d.%s", (int)getpid(), s); 
 	  free(s);
 	  if ((access(buf, F_OK) == 0) || (errno != ENOENT))
@@ -6302,7 +6302,7 @@ AddWindows(char *buf, int len, int flags, int where)
           s = AddWindowFlags(s, len, p);
 	}
       *s++ = ' ';
-      strlcpy(s, cmd, l);
+      strncpy(s, cmd, l);
       s += l;
       if (rend != -1)
 	AddWinMsgRend(s, -1);
@@ -6711,7 +6711,7 @@ InputSetenv(char *arg)
 
   if (arg)
     {
-      strlcpy(setenv_var, arg, sizeof(setenv_var) - 1);
+      strncpy(setenv_var, arg, sizeof(setenv_var) - 1);
       sprintf(setenv_buf, "Enter value for %s: ", setenv_var);
       Input(setenv_buf, 30, INP_COOKED, SetenvFin2, NULL, 0);
     }
@@ -7020,7 +7020,7 @@ su_fin(char *buf, int len, char *data)
   else
     { strcpy(p = i->pw2, "\377"); l = sizeof(i->pw2) - 1; }
   if (buf && len)
-    strlcpy(p, buf, 1 + (l < len) ? l : len);
+    strncpy(p, buf, 1 + (l < len) ? l : len);
   if (!*i->name)
     Input("Screen User: ", sizeof(i->name) - 1, INP_COOKED, su_fin, (char *)i, 0);
   else if (!*i->pw1)

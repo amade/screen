@@ -221,7 +221,7 @@ AddLayoutsInfo(char *buf, int len, int where)
       if (display && p == D_layout)
 	*s++ = '*';
       *s++ = ' ';
-      strlcpy(s, t, l);
+      strncpy(s, t, l);
       s += l;
     }
   *s = 0;

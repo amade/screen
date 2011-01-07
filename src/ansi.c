@@ -1437,7 +1437,7 @@ StringEnd()
 	    typ2 = 0;
 	  if (strcmp(curr->w_xtermosc[typ2], p))
 	    {
-	      strlcpy(curr->w_xtermosc[typ2], p, sizeof(curr->w_xtermosc[typ2]) - 1);
+	      strncpy(curr->w_xtermosc[typ2], p, sizeof(curr->w_xtermosc[typ2]) - 1);
 	      curr->w_xtermosc[typ2][sizeof(curr->w_xtermosc[typ2]) - 1] = 0;
 
 	      for (display = displays; display; display = display->d_next)
