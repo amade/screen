@@ -45,14 +45,14 @@
 
 #ifdef DEBUG
 # define DEBUGDIR "/tmp/debug"
-# define debugf(a)       do {if(dfp){fprintf a;fflush(dfp);}} while (0)
+# define debugf(a)       {if(dfp){fprintf a;fflush(dfp);}}
 # define debug(x)        debugf((dfp,x))
 # define debug1(x,a)     debugf((dfp,x,a))
 # define debug2(x,a,b)   debugf((dfp,x,a,b))
 # define debug3(x,a,b,c) debugf((dfp,x,a,b,c))
   extern FILE *dfp;
 #else
-# define debugf(a)       do {} while (0)
+# define debugf(a)       {}
 # define debug(x)        debugf(x)
 # define debug1(x,a)     debugf(x)
 # define debug2(x,a,b)   debugf(x)
@@ -65,12 +65,12 @@
 
 #ifndef NOASSERT
 # if defined(__STDC__)
-#  define ASSERT(lousy_cpp) do {if (!(lousy_cpp)) {if (!dfp) opendebug(0, 1);debug2("ASSERT("#lousy_cpp") failed file %s line %d\n", __FILE__, __LINE__);abort();}} while (0)
+#  define ASSERT(lousy_cpp) {if (!(lousy_cpp)) {if (!dfp) opendebug(0, 1);debug2("ASSERT("#lousy_cpp") failed file %s line %d\n", __FILE__, __LINE__);abort();}}
 # else
-#  define ASSERT(lousy_cpp) do {if (!(lousy_cpp)) {if (!dfp) opendebug(0, 1);debug2("ASSERT(lousy_cpp) failed file %s line %d\n", __FILE__, __LINE__);abort();}} while (0)
+#  define ASSERT(lousy_cpp) {if (!(lousy_cpp)) {if (!dfp) opendebug(0, 1);debug2("ASSERT(lousy_cpp) failed file %s line %d\n", __FILE__, __LINE__);abort();}}
 # endif
 #else
-# define ASSERT(lousy_cpp) do {} while (0)
+# define ASSERT(lousy_cpp) {}
 #endif
 
 /* here comes my own Free: jw. */

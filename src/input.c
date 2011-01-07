@@ -203,7 +203,7 @@ InpProcess(char **ppbuf, int *plen)
   inpdata = (struct inpdata *)flayer->l_data;
   inpdisplay = display;
 
-#define RESET_SEARCH do { if (inpdata->search) Free(inpdata->search); } while (0)
+#define RESET_SEARCH { if (inpdata->search) Free(inpdata->search); }
 
   LGotoPos(flayer, inpdata->inpstringlen + (inpdata->inpmode & INP_NOECHO ? 0 : inpdata->inp.pos), INPUTLINE);
   if (ppbuf == 0)

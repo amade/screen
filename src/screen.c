@@ -864,15 +864,15 @@ main(int argc, char **argv)
     }
 #endif
 
-#define SET_GUID() do \
+#define SET_GUID() \
   { \
     setgid(real_gid); \
     setuid(real_uid); \
     eff_uid = real_uid; \
     eff_gid = real_gid; \
-  } while (0)
+  }
 
-#define SET_TTYNAME(fatal) do \
+#define SET_TTYNAME(fatal) \
   { \
     if (!(attach_tty = ttyname(0))) \
       { \
@@ -885,7 +885,7 @@ main(int argc, char **argv)
       Panic(errno, "Cannot access '%s'", attach_tty); \
     if (strlen(attach_tty) >= MAXPATHLEN) \
       Panic(0, "TtyName too long - sorry."); \
-  } while (0)
+  }
 
   if (home == 0 || *home == '\0')
     home = ppp->pw_dir;
@@ -1781,7 +1781,7 @@ Detach(int mode)
   if (display == 0)
     return;
 
-#define AddStrSock(msg) do { \
+#define AddStrSock(msg) { \
     if (SockName) \
       { \
 	AddStr("[" msg " from "); \
@@ -1790,7 +1790,7 @@ Detach(int mode)
       } \
     else \
       AddStr("[" msg "]\r\n"); \
-  } while (0)
+  }
 
   signal(SIGHUP, SIG_IGN);
   debug1("Detach(%d)\n", mode);
@@ -1947,7 +1947,7 @@ MakeNewEnv()
   *np = 0;
 }
 
-#define	PROCESS_MESSAGE(B) do { \
+#define	PROCESS_MESSAGE(B) { \
     char *p = B;	\
     VA_LIST(ap)	\
     VA_START(ap, fmt);	\
@@ -1962,7 +1962,7 @@ MakeNewEnv()
 	strncpy(p, strerror(err), B + sizeof(B) - p - 1);	\
 	B[sizeof(B) - 1] = 0;	\
       }	\
-  } while (0)
+  }
 
 void Msg(int err, const char *fmt, VA_DOTS)
 {

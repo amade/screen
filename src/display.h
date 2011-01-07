@@ -278,13 +278,11 @@ struct display
 #define OUTPUT_BLOCK_SIZE 256  /* Block size of output to tty */
 
 #define AddChar(c)		\
-do				\
   {				\
     if (--D_obuffree <= 0)	\
       Resize_obuf();		\
     *D_obufp++ = (c);		\
-  }				\
-while (0)
+  }
 
 #define STATUS_OFF	0
 #define STATUS_ON_WIN	1

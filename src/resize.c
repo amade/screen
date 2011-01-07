@@ -287,7 +287,7 @@ kaablamm()
 }
 
 /* Kills non-resizable layers. */
-#define RESIZE_OR_KILL_LAYERS(l, wi, he) do \
+#define RESIZE_OR_KILL_LAYERS(l, wi, he) \
   {	\
     struct layer *_last = NULL;	\
     flayer = (l);	\
@@ -312,7 +312,7 @@ kaablamm()
      * is always resizable. Currently, WinLf and BlankLf can be the bottom-most layers.	\
      */	\
     LayResize(wi, he);	\
-  } while (0)
+  }
 
 void
 ResizeLayer(struct layer *l, int wi, int he, struct display *norefdisp)
@@ -485,10 +485,10 @@ CheckMaxSize(int wi)
   mline_blank.colorx = null;
   mline_null.colorx = null;
 
-#define RESET_AFC(x, bl) do { if (x == old##bl) x = bl; } while (0)
+#define RESET_AFC(x, bl) { if (x == old##bl) x = bl; }
 
 #define RESET_LINES(lines, count) \
-  do { \
+  { \
     ml = lines; \
     for (i = 0; i < count; i++, ml++) \
       { \
@@ -498,7 +498,7 @@ CheckMaxSize(int wi)
 	IFCOLOR(RESET_AFC(ml->color, null)); \
 	IFCOLORX(RESET_AFC(ml->colorx, null)); \
       } \
-  } while (0)
+  }
 
   /* We have to run through all windows to substitute
    * the null and blank references.
@@ -935,7 +935,7 @@ SwapAltScreen(struct win *p)
   struct mline *ml;
   int t;
 
-#define SWAP(item, t) do { (t) = p->w_alt. item; p->w_alt. item = p->w_##item; p->w_##item = (t); } while (0)
+#define SWAP(item, t) { (t) = p->w_alt. item; p->w_alt. item = p->w_##item; p->w_##item = (t); }
 
   SWAP(mlines, ml);
   SWAP(width, t);

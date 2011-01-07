@@ -58,29 +58,29 @@ IFCOLORX(unsigned char *colorx; )
 
 
 
-#define save_mline(ml, n) do {						\
+#define save_mline(ml, n) {						\
 	 memmove((char *)mline_old.image, (char *)(ml)->image, (n));	\
 	 memmove((char *)mline_old.attr,  (char *)(ml)->attr,  (n));	\
 IFFONT(	 memmove((char *)mline_old.font,  (char *)(ml)->font,  (n));    ) \
 IFCOLOR( memmove((char *)mline_old.color, (char *)(ml)->color, (n));    ) \
 IFCOLORX(memmove((char *)mline_old.colorx,(char *)(ml)->colorx,(n));  ) \
-} while (0)
+}
 
-#define bcopy_mline(ml, xf, xt, n) do {					       \
+#define bcopy_mline(ml, xf, xt, n) {					       \
 	 memmove((char *)(ml)->image + (xt), (char *)(ml)->image + (xf), (n));   \
 	 memmove((char *)(ml)->attr  + (xt), (char *)(ml)->attr  + (xf), (n));   \
 IFFONT(	 memmove((char *)(ml)->font  + (xt), (char *)(ml)->font  + (xf), (n)); ) \
 IFCOLOR( memmove((char *)(ml)->color + (xt), (char *)(ml)->color + (xf), (n)); ) \
 IFCOLORX(memmove((char *)(ml)->colorx + (xt),(char *)(ml)->colorx + (xf),(n));) \
-} while (0)
+}
 
-#define clear_mline(ml, x, n) do {					       \
+#define clear_mline(ml, x, n) {					       \
 	 bclear((char *)(ml)->image + (x), (n));			       \
 	 if ((ml)->attr != null) memset((char *)(ml)->attr  + (x), 0, (n));	       \
 IFFONT(  if ((ml)->font != null) memset((char *)(ml)->font  + (x), 0, (n));      ) \
 IFCOLOR( if ((ml)->color!= null) memset((char *)(ml)->color + (x), 0, (n));      ) \
 IFCOLORX(if ((ml)->colorx!= null) memset((char *)(ml)->colorx + (x), 0, (n));    ) \
-} while (0)
+}
 
 #define cmp_mline(ml1, ml2, x) (				\
 	    (ml1)->image[x] == (ml2)->image[x]			\
@@ -106,22 +106,22 @@ IFCOLOR( && (mc)->color == (ml)->color[x]		      ) \
 IFCOLORX(&& (mc)->colorx == (ml)->colorx[x]		      ) \
 )
 
-#define copy_mchar2mline(mc, ml, x) do {			\
+#define copy_mchar2mline(mc, ml, x) {			\
 	 (ml)->image[x] = (mc)->image;				\
 	 (ml)->attr[x]  = (mc)->attr;				\
 IFFONT(	 (ml)->font[x]  = (mc)->font;			      ) \
 IFCOLOR( (ml)->color[x] = (mc)->color;			      ) \
 IFCOLORX((ml)->colorx[x] = (mc)->colorx;		      ) \
-} while (0)
+}
 
-#define copy_mline2mchar(mc, ml, x) do {			\
+#define copy_mline2mchar(mc, ml, x) {			\
 	 (mc)->image = (ml)->image[x];				\
 	 (mc)->attr  = (ml)->attr[x];				\
 IFFONT(	 (mc)->font  = (ml)->font[x];			      ) \
 IFCOLOR( (mc)->color = (ml)->color[x];			      ) \
 IFCOLORX((mc)->colorx = (ml)->colorx[x];		      ) \
 IFDWCHAR((mc)->mbcs  = 0;				      ) \
-} while (0)
+}
 
 #define rend_getbg(mc) (((mc)->color & 0xf0) >> 4 | ((mc)->attr & A_BBG ? 0x100 : 0) | ((mc)->colorx & 0xf0))
 #define rend_setbg(mc, c) ((mc)->color = ((mc)->color & 0x0f) | (c << 4 & 0xf0), (mc)->colorx = ((mc)->colorx & 0x0f) | (c & 0xf0), (mc)->attr = ((mc)->attr | A_BBG) ^ (c & 0x100 ? 0 : A_BBG))

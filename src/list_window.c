@@ -62,7 +62,7 @@ struct gl_Window_Data
 #define WLIST_FOR_GROUP(wdate)	((wdata)->group && !(wdata)->onblank && Layer2Window(flayer) && Layer2Window(flayer)->w_type == W_TYPE_GROUP)
 
 /* This macro should not be used if 'fn' is expected to update the window list */
-#define FOR_EACH_WINDOW(_wdata, _w, fn) do {	\
+#define FOR_EACH_WINDOW(_wdata, _w, fn) {	\
     if ((_wdata)->order == WLIST_MRU)	\
       {	\
 	struct win *_ww;	\
@@ -82,7 +82,7 @@ struct gl_Window_Data
 	    _witer = _witer->w_next;	\
 	  }	\
       }	\
-  } while (0)
+  }
 
 /* Is 'a' an ancestor of 'd'? */
 static int

@@ -846,36 +846,19 @@ MakeTermcap(int aflag)
       debug("MakeTermcap sets screenterm=screen\n");
       strcpy(screenterm, "screen");
     }
-  do
-    {
-      strlcpy(Term, "TERM=", sizeof(Term));
-      p = Term + 5;
-      if (!aflag && strlen(screenterm) + strlen(tname) < MAXSTR-1)
-	{
-	  sprintf(p, "%s.%s", screenterm, tname);
-	  if (e_tgetent(buf, p) == 1)
-	    break;
-	}
-      if (nwin_default.bce)
-	{
-	  sprintf(p, "%s-bce", screenterm);
-          if (e_tgetent(buf, p) == 1)
-	    break;
-	}
+  strlcpy(Term, "TERM=", sizeof(Term));
+  p = Term + 5;
+  if (!aflag && strlen(screenterm) + strlen(tname) < MAXSTR-1)
+    sprintf(p, "%s.%s", screenterm, tname);
+  if (e_tgetent(buf, p) != 1 && nwin_default.bce)
+    sprintf(p, "%s-bce", screenterm);
 #ifdef CHECK_SCREEN_W
-      if (wi >= 132)
-	{
-	  sprintf(p, "%s-w", screenterm);
-          if (e_tgetent(buf, p) == 1)
-	    break;
-	}
+  if (e_tgetent(buf, p) != 1 && wi >= 132)
+    sprintf(p, "%s-w", screenterm);
 #endif
-      strcpy(p, screenterm);
-      if (e_tgetent(buf, p) == 1)
-	break;
-      strcpy(p, "vt100");
-    }
-  while (0);		/* Goto free programming... */
+  strcpy(p, screenterm);
+  if (e_tgetent(buf, p) != 1)
+    strlcpy(p, "vt100", sizeof(Term) - 5);
 
   tcLineLen = 100;	/* Force NL */
   if (strlen(Term) > TERMCAP_BUFSIZE - 40)

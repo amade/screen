@@ -99,7 +99,7 @@ struct layer
 
 /* XXX: AArgh! think again! */
 
-#define LAY_CALL_UP(fn) do				\
+#define LAY_CALL_UP(fn)					\
 	{ 						\
 	  struct layer *oldlay = flayer; 		\
 	  struct canvas *oldcvlist, *cv;		\
@@ -115,9 +115,9 @@ struct layer
 	  for (cv = flayer->l_cvlist; cv; cv = cv->c_lnext)	\
 		cv->c_layer = flayer;			\
 	  flayer->l_next->l_cvlist = oldcvlist;		\
-	} while(0)
+	}
 
-#define LAY_DISPLAYS(l, fn) do				\
+#define LAY_DISPLAYS(l, fn)				\
 	{ 						\
 	  struct display *olddisplay = display;		\
 	  struct canvas *cv;				\
@@ -131,7 +131,7 @@ struct layer
 	      fn;					\
 	    }						\
 	  display = olddisplay;				\
-	} while(0)
+	}
 
 #endif /* SCREEN_LAYER_H */
 
