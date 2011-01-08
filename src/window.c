@@ -1946,7 +1946,6 @@ zmodem_found(struct win *p, int send, char *bp, int len)
 {
   char *s;
   int i, n;
-  int zmodem_mode;
 
   /* check for abort sequence */
   n = 0;
