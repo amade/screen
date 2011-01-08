@@ -39,18 +39,6 @@
 #include "screen.h"
 #include "extern.h"
 
-extern struct display *display, *displays;
-extern struct win *fore;
-extern struct layer *flayer;
-extern int real_uid, eff_uid;
-extern int real_gid, eff_gid;
-extern char *extra_incap, *extra_outcap;
-extern char *home, *RcFileName;
-extern char SockPath[], *SockName;
-extern char *BufferFile;
-extern int hardcopy_append;
-extern char *hardcopydir;
-
 static char *CatExtra (char *, char *);
 static char *findrcfile (char *);
 
@@ -350,8 +338,6 @@ RcLine(char *ubuf, int ubufl)
 {
   char *args[MAXARGS];
   int argl[MAXARGS];
-  extern struct acluser *EffectiveAclUser;	/* acl.c */
-  extern struct acluser *users;		/* acl.c */
 
   if (display)
     {

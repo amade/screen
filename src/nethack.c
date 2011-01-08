@@ -28,10 +28,7 @@
 
 #include "config.h"
 #include "screen.h"
-
-#ifdef NETHACK
-extern int nethackflag;
-#endif
+#include "extern.h"
 
 struct nlstrans {
     char *from;

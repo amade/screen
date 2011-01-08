@@ -441,3 +441,185 @@ extern int   EncodeChar (char *, int, int, int *);
 /* layout.c */
 extern void  RemoveLayout (struct layout *);
 extern int   LayoutDumpCanvas (struct canvas *, char *);
+
+/*
+ * GLOBAL VARIABLES
+ */
+
+extern char screenterm[];
+extern char version[];
+extern char DefaultShell[];
+extern char HostName[];
+extern char NullStr[];
+extern char SockPath[];
+extern char Term[];
+extern char Termcap[];
+extern char *attach_tty;
+extern char *attach_term;
+extern char *captionstring;
+extern char *extra_incap;
+extern char *extra_outcap;
+extern char *hardcopydir;
+extern char *home;
+extern char *hstatusstring;
+extern char *kmapadef[];
+extern char *kmapdef[];
+extern char *kmapmdef[];
+extern char *logtstamp_string;
+extern char *multi;
+extern char *noargs[];
+extern char *preselect;
+extern char *printcmd;
+extern char *rc_name;
+extern char *screenencodings;
+extern char *screenlogfile;
+extern char *timestring;
+extern char *wliststr;
+extern char *wlisttit;
+extern char *zmodem_recvcmd;
+extern char *zmodem_sendcmd;
+extern char *ActivityString;
+extern char *BellString;
+extern char *BufferFile;
+extern char *LoginName;
+extern char *PowDetachString;
+extern char *RcFileName;
+extern char *ShellArgs[];
+extern char *ShellProg;
+extern char *SockMatch;
+extern char *SockName;
+extern char *VisualBellString;
+extern char **environ;
+extern char **NewEnv;
+
+extern unsigned char mark_key_tab[];
+extern unsigned char *blank;
+extern unsigned char *null;
+
+extern int adaptflag;
+extern int attach_fd;
+extern int attr2color[][4];
+extern int auto_detach;
+extern int captionalways;
+extern int cjkwidth;
+extern int compacthist;
+extern int default_startup;
+extern int defautonuke;
+extern int defmousetrack;
+extern int defnonblock;
+extern int defobuflimit;
+extern int dflag;
+extern int eff_gid;
+extern int eff_uid;
+extern int focusminheight;
+extern int focusminwidth;
+extern int force_vt;
+extern int hardcopy_append;
+extern int hardstatusemu;
+extern int idletimo;
+extern int iflag;
+extern int join_with_cr;
+extern int kmap_extn;
+extern int lsflag;
+extern int log_flush;
+extern int logtstamp_on;
+extern int logtstamp_after;
+extern int maxusercount;
+extern int maxwin;
+extern int multi_uid;
+extern int multiattach;
+extern int nattr2color;
+extern int nversion;
+extern int own_uid;
+extern int pastefont;
+extern int pty_preopen;
+extern int search_ic;
+extern int separate_sids;
+extern int queryflag;
+extern int quietflag;
+extern int real_gid;
+extern int real_uid;
+extern int renditions[];
+extern int rflag;
+extern int tty_mode;
+extern int tty_oldmode;
+extern int use_altscreen;
+extern int use_hardstatus;
+extern int wipeflag;
+extern int xflag;
+extern int visual_bell;
+extern int zmodem_mode;
+extern int DefaultEsc;
+extern int MasterPid;
+extern int MsgMinWait;
+extern int MsgWait;
+extern int ServerSocket; 
+extern int SilenceWait;
+extern int TtyMode;
+extern int VerboseCreate;
+extern int VBellWait;
+extern int Z0width;
+extern int Z1width;
+extern int ZombieKey_destroy;
+extern int ZombieKey_onerror;
+extern int ZombieKey_resurrect;
+
+extern struct action idleaction;
+extern struct action dmtab[];
+extern struct action ktab[];
+extern struct action mmtab[];
+extern struct action umtab[];
+extern struct term term[];
+extern struct acluser *users, *EffectiveAclUser;
+extern struct display *display, *displays;
+extern struct LayFuncs ListLf;
+extern struct LayFuncs MarkLf;
+extern struct LayFuncs WinLf;
+extern struct LayFuncs BlankLf;
+extern struct layout *layout_attach, *layout_last, layout_last_marker;
+extern struct layout *layouts;
+extern struct layout *laytab[];
+extern struct NewWindow nwin_undef, nwin_default, nwin_options;
+extern struct win *fore, **wtab, *console_window, *windows;
+extern struct kmap_ext *kmap_exts;
+extern int kmap_extn;
+extern struct layer *flayer;
+extern struct mline mline_blank;
+extern struct mline mline_null;
+extern struct mline mline_old;
+extern struct mchar mchar_so;
+extern struct mchar mchar_blank;
+extern struct mchar mchar_null;
+extern struct comm comms[];
+extern struct event logflushev;
+extern struct event serv_read;
+extern struct mode attach_Mode;
+extern struct passwd *ppp;
+
+
+#ifdef NETHACK
+extern int nethackflag;
+#endif
+
+#if defined(TIOCSWINSZ) || defined(TIOCGWINSZ)
+extern struct winsize glwz;
+#endif
+
+#ifdef O_NOCTTY
+extern int separate_sids;
+#endif
+
+# if defined(GETUTENT) && (!defined(SVR4) || defined(__hpux)) && ! defined(__CYGWIN__)
+#  if defined(hpux) /* cruel hpux release 8.0 */
+#   define pututline _pututline
+#  endif /* hpux */
+extern struct utmp *getutline(), *pututline();
+#  if defined(_SEQUENT_)
+extern struct utmp *ut_add_user(), *ut_delete_user();
+extern char *ut_find_host();
+#   ifndef UTHOST
+#    define UTHOST		/* _SEQUENT_ has ut_find_host() */
+#   endif
+#  endif /* _SEQUENT_ */
+# endif /* GETUTENT && !SVR4 */
+

@@ -40,23 +40,7 @@
 
 char version[60];      /* initialised by main() */
 
-extern struct layer *flayer;
-extern struct display *display, *displays;
-extern struct win *windows;
-extern int maxwin;
-extern char *noargs[];
-extern struct mchar mchar_blank, mchar_so;
-extern int renditions[];
-extern unsigned char *blank;
-extern struct win **wtab;
-extern struct term term[];
-
-extern struct LayFuncs ListLf;
-
 static void PadStr (char *, int, int, int);
-
-extern char *wliststr;
-extern char *wlisttit;
 
 void
 exit_with_usage(char *myname, char *message, char *arg)
@@ -108,9 +92,6 @@ exit_with_usage(char *myname, char *message, char *arg)
 /*
 **   Here come the help page routines
 */
-
-extern struct comm comms[];
-extern struct action ktab[];
 
 static void HelpProcess (char **, int *);
 static void HelpAbort (void);
@@ -681,11 +662,6 @@ CopyrightRedisplayLine(int y, int xs, int xe, int isblank)
 **    The bindkey help page
 **
 */
-
-extern struct kmap_ext *kmap_exts;
-extern int kmap_extn;
-extern struct action dmtab[];
-extern struct action mmtab[];
 
 
 static void BindkeyProcess (char **, int *);

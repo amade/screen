@@ -51,19 +51,7 @@ static sigret_t AttacherChld SIGPROTOARG;
 #endif
 static sigret_t AttachSigCont SIGPROTOARG;
 
-extern int real_uid, real_gid, eff_uid, eff_gid;
-extern char *SockName, *SockMatch, SockPath[];
-extern char HostName[];
-extern struct passwd *ppp;
-extern char *attach_tty, *attach_term, *LoginName, *preselect;
-extern int xflag, dflag, rflag, quietflag, adaptflag;
-extern struct mode attach_Mode;
-extern struct NewWindow nwin_options;
-extern int MasterPid, attach_fd;
 
-extern char *multi;
-extern int multiattach, multi_uid, own_uid;
-extern int tty_mode, tty_oldmode;
 # ifndef USE_SETEUID
 static int multipipe[2];
 # endif

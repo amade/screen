@@ -43,38 +43,6 @@
 #include "extern.h"
 #include "logfile.h"	/* logfopen() */
 
-extern struct display *displays, *display;
-extern struct win *windows, *fore, *console_window;
-extern char *ShellArgs[];
-extern char *ShellProg;
-extern char screenterm[];
-extern char *screenlogfile;
-extern char HostName[];
-extern int TtyMode;
-extern int SilenceWait;
-extern int real_uid, real_gid, eff_uid, eff_gid;
-extern char Termcap[];
-extern char **NewEnv;
-extern int visual_bell, maxwin;
-extern struct event logflushev;
-extern int log_flush, logtstamp_after;
-extern int ZombieKey_destroy, ZombieKey_resurrect, ZombieKey_onerror;
-extern struct layer *flayer;
-extern int maxusercount;
-extern int pty_preopen;
-extern int zmodem_mode;
-extern struct mchar mchar_blank;
-extern char *zmodem_sendcmd;
-extern char *zmodem_recvcmd;
-
-#if defined(TIOCSWINSZ) || defined(TIOCGWINSZ)
-extern struct winsize glwz;
-#endif
-
-#ifdef O_NOCTTY
-extern int separate_sids;
-#endif
-
 static void WinProcess (char **, int *);
 static void WinRedisplayLine (int, int, int, int);
 static void WinClearLine (int, int, int, int);
@@ -509,7 +477,6 @@ MakeWindow(struct NewWindow *newwin)
   struct NewWindow nwin;
   int type, startat;
   char *TtyName;
-  extern struct acluser *users;
 
   if (!wtab)
     {
@@ -1391,8 +1358,6 @@ winexec(char **av)
   char *p, *s, *t;
   int i, r = 0, l = 0;
   struct win *w;
-  extern struct display *display;
-  extern struct win *windows;
   struct pseudowin *pwin;
   int type;
 
