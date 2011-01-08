@@ -60,33 +60,6 @@ static void SetBackColor (int);
 static void RemoveStatusMinWait (void);
 
 
-extern struct layer *flayer;
-extern struct win *windows, *fore;
-extern struct LayFuncs WinLf;
-
-extern int  use_hardstatus;
-extern int  MsgWait, MsgMinWait;
-extern int  Z0width, Z1width;
-extern unsigned char *blank, *null;
-extern struct mline mline_blank, mline_null, mline_old;
-extern struct mchar mchar_null, mchar_blank, mchar_so;
-extern struct NewWindow nwin_default;
-extern struct action idleaction;
-
-/* XXX shouldn't be here */
-extern char *hstatusstring;
-extern char *captionstring;
-
-extern int pastefont;
-extern int idletimo;
-
-extern int pty_preopen;
-#if defined(TIOCSWINSZ) || defined(TIOCGWINSZ)
-extern struct winsize glwz;
-#endif
-extern char **NewEnv;
-extern int real_uid, real_gid;
-
 /*
  * tputs needs this to calculate the padding
  */

@@ -39,15 +39,6 @@
 #endif
 
 
-extern struct display *display;
-#ifdef CAREFULUTMP
-extern struct win *windows;
-#endif
-extern struct win *fore;
-extern char *LoginName;
-extern int real_uid, eff_uid;
-
-
 /*
  *  UTNOKEEP: A (ugly) hack for apollo that does two things:
  *    1) Always close and reopen the utmp file descriptor. (I don't know
@@ -105,21 +96,6 @@ static char UtmpName[] = UTMPFILE;
 #ifndef UTMP_HELPER
 static int utmpfd = -1;
 #endif
-
-
-# if defined(GETUTENT) && (!defined(SVR4) || defined(__hpux)) && ! defined(__CYGWIN__)
-#  if defined(hpux) /* cruel hpux release 8.0 */
-#   define pututline _pututline
-#  endif /* hpux */
-extern struct utmp *getutline(), *pututline();
-#  if defined(_SEQUENT_)
-extern struct utmp *ut_add_user(), *ut_delete_user();
-extern char *ut_find_host();
-#   ifndef UTHOST
-#    define UTHOST		/* _SEQUENT_ has ut_find_host() */
-#   endif
-#  endif /* _SEQUENT_ */
-# endif /* GETUTENT && !SVR4 */
 
 # if !defined(GETUTENT) && !defined(UT_UNSORTED)
 #  ifdef GETTTYENT

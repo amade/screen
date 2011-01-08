@@ -33,14 +33,6 @@
 #include "mark.h"
 #include "extern.h"
 
-extern struct display *display, *displays;
-
-extern struct mline mline_blank, mline_null;
-extern struct mchar mchar_blank, mchar_null;
-
-extern struct layer *flayer;	/* sigh */
-extern struct LayFuncs WinLf;
-extern struct LayFuncs BlankLf;
 
 
 static struct mline *mloff (struct mline *, int);
@@ -950,8 +942,6 @@ InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
   LayRestore();
   return 0;
 }
-
-extern struct layout *layouts;
 
 void
 ExitOverlayPage()

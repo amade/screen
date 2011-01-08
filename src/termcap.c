@@ -31,21 +31,6 @@
 #include "screen.h"
 #include "extern.h"
 
-extern struct display *display, *displays;
-extern int real_uid, real_gid, eff_uid, eff_gid;
-extern struct term term[];	/* terminal capabilities */
-extern struct NewWindow nwin_undef, nwin_default, nwin_options;
-extern int force_vt;
-extern int Z0width, Z1width;
-extern int hardstatusemu;
-extern struct action umtab[];
-extern struct action mmtab[];
-extern struct action dmtab[];
-extern struct action ktab[];
-extern struct kmap_ext *kmap_exts;
-extern int kmap_extn;
-extern int DefaultEsc;
-
 
 static void  AddCap (char *);
 static void  MakeString (char *, char *, int, char *);

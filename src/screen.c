@@ -99,29 +99,12 @@ FILE *dfp;
 #endif
 
 
-extern char Term[], screenterm[], **environ, Termcap[];
 int force_vt = 1;
 int VBellWait, MsgWait, MsgMinWait, SilenceWait;
-
-extern struct acluser *users;
-extern struct display *displays, *display; 
-
-extern struct LayFuncs MarkLf;
-
-
-extern int visual_bell;
-extern unsigned char mark_key_tab[];
-extern char version[];
-extern char DefaultShell[];
-extern char *zmodem_sendcmd;
-extern char *zmodem_recvcmd;
-extern struct layout *layout_last;
-
 
 char *ShellProg;
 char *ShellArgs[2];
 
-extern struct NewWindow nwin_undef, nwin_default, nwin_options;
 struct backtick;
 
 static struct passwd *getpwbyname (char *, struct passwd *);

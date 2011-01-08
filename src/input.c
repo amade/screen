@@ -37,10 +37,6 @@ static void InpProcess (char **, int *);
 static void InpAbort (void);
 static void InpRedisplayLine (int, int, int, int);
 
-extern struct layer *flayer;
-extern struct display *display;
-extern struct mchar mchar_blank, mchar_so;
-
 struct inpline
 {
   char  buf[MAXSTR+1];	/* text buffer */

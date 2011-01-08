@@ -38,14 +38,6 @@
 # include <sys/resource.h>
 #endif
 
-extern struct layer *flayer;
-
-extern int eff_uid, real_uid;
-extern int eff_gid, real_gid;
-extern struct mline mline_old;
-extern struct mchar mchar_blank;
-extern unsigned char *null, *blank;
-
 #ifdef HAVE_FDWALK
 static int close_func (void *, int);
 #endif

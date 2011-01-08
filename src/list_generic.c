@@ -28,8 +28,6 @@
 
 /* Deals with a generic list display */
 
-extern struct layer *flayer;
-
 static void ListProcess (char **, int *);
 static void ListAbort (void);
 static void ListRedisplayLine (int, int, int, int);

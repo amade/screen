@@ -31,8 +31,6 @@
 #include "extern.h"
 #include "viewport.h"
 
-extern struct display *display;
-
 int
 RethinkDisplayViewports()
 {

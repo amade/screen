@@ -93,10 +93,7 @@ exit 0
 # include <sys/strredir.h>
 #endif
 
-extern struct display *display, *displays;
-extern int iflag;
 #if (!defined(TIOCCONS) && defined(SRIOCSREDIR)) || defined(linux)
-extern struct win *console_window;
 static void consredir_readev_fn (struct event *, char *);
 #endif
 

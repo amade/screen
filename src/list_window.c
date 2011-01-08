@@ -33,20 +33,6 @@
 #include "extern.h"
 #include "list_generic.h"
 
-extern struct layer *flayer;
-extern struct display *display, *displays;
-
-extern char *wlisttit;
-extern char *wliststr;
-
-extern struct mchar mchar_blank, mchar_so;
-extern int renditions[];
-
-extern struct win **wtab, *windows, *fore;
-extern int maxwin;
-
-extern char *noargs[];
-
 static char ListID[] = "window";
 
 struct gl_Window_Data
