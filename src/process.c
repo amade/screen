@@ -56,55 +56,6 @@
 #include "viewport.h"
 #include "list_generic.h"
 
-extern struct comm comms[];
-extern char *rc_name;
-extern char *RcFileName, *home;
-extern char *BellString, *ActivityString, *ShellProg, *ShellArgs[];
-extern char *hstatusstring, *captionstring, *timestring;
-extern char *wliststr, *wlisttit;
-extern int captionalways;
-extern int queryflag;
-extern char *hardcopydir, *screenlogfile, *logtstamp_string;
-extern int log_flush, logtstamp_on, logtstamp_after;
-extern char *VisualBellString;
-extern int VBellWait, MsgWait, MsgMinWait, SilenceWait;
-extern char SockPath[], *SockName;
-extern int TtyMode, auto_detach, use_altscreen;
-extern int iflag, maxwin;
-extern int focusminwidth, focusminheight;
-extern int use_hardstatus, visual_bell;
-extern int attr2color[][4];
-extern int nattr2color;
-extern int hardstatusemu;
-extern char *printcmd;
-extern int default_startup;
-extern int defobuflimit;
-extern int defnonblock;
-extern int defmousetrack;
-extern int ZombieKey_destroy;
-extern int ZombieKey_resurrect;
-extern int ZombieKey_onerror;
-extern int defautonuke;
-extern int separate_sids;
-extern struct NewWindow nwin_default, nwin_undef;
-extern int join_with_cr;
-extern int compacthist;
-extern int search_ic;
-extern int pastefont;
-extern unsigned char mark_key_tab[];
-extern char *BufferFile;
-extern char *BufferFile, *PowDetachString;
-extern struct acluser *EffectiveAclUser;	/* acl.c */
-extern struct term term[];      /* terminal capabilities */
-extern char *kmapdef[];
-extern char *kmapadef[];
-extern char *kmapmdef[];
-extern struct mchar mchar_so, mchar_null;
-extern int renditions[];
-extern int VerboseCreate;
-extern char *screenencodings;
-extern int cjkwidth;
-
 static int  CheckArgNum (int, char **);
 static void ClearAction (struct action *);
 static void SaveAction (struct action *, int, char **, int *);
@@ -146,30 +97,6 @@ static struct action *FindKtab (char *, int);
 static void SelectFin (char *, int, char *);
 static void SelectLayoutFin (char *, int, char *);
 
-
-extern struct layer *flayer;
-extern struct display *display, *displays;
-extern struct win *fore, *console_window, *windows;
-extern struct acluser *users;
-extern struct layout *layouts, *layout_attach, layout_last_marker;
-extern struct layout *laytab[];
-
-extern char screenterm[], HostName[], version[];
-extern struct NewWindow nwin_undef, nwin_default;
-extern struct LayFuncs WinLf, MarkLf;
-
-extern int Z0width, Z1width;
-extern int real_uid, real_gid;
-
-#ifdef NETHACK
-extern int nethackflag;
-#endif
-
-
-extern struct win **wtab;
-
-extern char *multi;
-extern int maxusercount;
 char NullStr[] = "";
 
 struct plop plop_tab[MAX_PLOP_DEFS];

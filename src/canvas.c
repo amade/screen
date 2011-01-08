@@ -32,13 +32,6 @@
 #include "canvas.h"
 #include "list_generic.h"
 
-extern struct display *display;
-extern struct win *fore, *windows;
-extern struct layer *flayer;
-extern int captionalways;
-extern struct LayFuncs BlankLf;
-extern int focusminwidth, focusminheight;
-
 static void
 CanvasInitBlank(struct canvas *cv)
 {

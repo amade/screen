@@ -27,15 +27,6 @@
 #include "screen.h"
 #include "extern.h"
 
-
-extern unsigned char *null;
-extern struct display *display, *displays;
-extern struct layer *flayer;
-
-extern char *screenencodings;
-
-extern int cjkwidth;
-
 static int  encmatch (char *, char *);
 static int   recode_char (int, int, int);
 static int   recode_char_to_encoding (int, int);

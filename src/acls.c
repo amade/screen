@@ -54,11 +54,6 @@
  * user managing code, this does not really belong into the acl stuff   *
  ************************************************************************/
 
-extern struct comm comms[];
-extern struct win *windows, **wtab;
-extern char NullStr[];
-extern char SockPath[];
-extern struct display *display, *displays;
 struct acluser *users;
 
 int maxusercount = 0;	/* used in process.c: RC_MONITOR, RC_SILENCE */

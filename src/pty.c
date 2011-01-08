@@ -74,8 +74,6 @@
 # undef HAVE_SVR4_PTYS
 #endif
 
-extern int eff_uid;
-
 /* used for opening a new pty-pair: */
 static char PtyName[32], TtyName[32];
 

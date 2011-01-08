@@ -37,20 +37,6 @@
 #include "extern.h"
 #include "logfile.h"
 
-extern struct display *display, *displays;
-extern struct win *fore;	/* for 83 escape */
-extern struct layer *flayer;	/* for 83 escape */
-
-extern struct NewWindow nwin_default;	/* for ResetWindow() */
-extern int  nversion;		/* numerical version of screen */
-extern int  log_flush, logtstamp_on, logtstamp_after;
-extern char *logtstamp_string;
-extern char *captionstring;
-extern char *hstatusstring;
-extern char *wliststr;
-extern int compacthist;
-extern struct acluser *EffectiveAclUser;
-
 int Z0width, Z1width;		/* widths for Z0/Z1 switching */
 
 /* globals set in WriteString */

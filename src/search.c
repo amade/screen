@@ -35,10 +35,6 @@
 
 #define INPUTLINE (flayer->l_height - 1)
 
-extern struct layer *flayer;
-extern struct win *fore;
-
-
 int search_ic;
 
 /********************************************************************

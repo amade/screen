@@ -50,14 +50,6 @@ static void kaablamm (void);
 static int  BcopyMline (struct mline *, int, struct mline *, int, int, int);
 static void SwapAltScreen (struct win *);
 
-extern struct layer *flayer;
-extern struct display *display, *displays;
-extern unsigned char *blank, *null;
-extern struct mline mline_blank, mline_null, mline_old;
-extern struct win *windows;
-extern int Z0width, Z1width;
-extern int captionalways;
-
 #if defined(TIOCGWINSZ) || defined(TIOCSWINSZ)
 struct winsize glwz;
 #endif

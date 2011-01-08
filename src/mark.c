@@ -58,12 +58,6 @@ static void MarkAbort (void);
 static void MarkRedisplayLine (int, int, int, int);
 static int  MarkRewrite (int, int, int, struct mchar *, int);
 
-extern struct layer *flayer;
-extern struct display *display, *displays;
-extern struct win *fore;
-extern struct mline mline_blank, mline_null;
-extern struct mchar mchar_so;
-
 int pastefont = 1;
 
 struct LayFuncs MarkLf =

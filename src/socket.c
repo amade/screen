@@ -62,25 +62,6 @@ static void  FinishAttach (struct msg *);
 static void  FinishDetach (struct msg *);
 static void  AskPassword (struct msg *);
 
-
-extern char *RcFileName, *extra_incap, *extra_outcap;
-extern int ServerSocket, real_uid, real_gid, eff_uid, eff_gid;
-extern int dflag, iflag, rflag, lsflag, quietflag, wipeflag, xflag;
-extern int queryflag;
-extern char *attach_tty, *LoginName, HostName[];
-extern struct display *display, *displays;
-extern struct win *fore, **wtab, *console_window, *windows;
-extern struct layer *flayer;
-extern struct layout *layout_attach, *layout_last, layout_last_marker;
-extern struct NewWindow nwin_undef;
-extern char *multi;
-extern int maxwin;
-
-extern char SockPath[];
-extern struct event serv_read;
-extern char *rc_name;
-extern struct comm comms[];
-
 #define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0) | (multi ? 1 : 0))
 
 

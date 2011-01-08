@@ -31,9 +31,6 @@
 #include "extern.h"
 #include "layout.h"
 
-extern struct display *display;
-extern int captionalways;
-
 struct layout *layouts;
 struct layout *laytab[MAXLAY];
 struct layout *layout_last, layout_last_marker;
