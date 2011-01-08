@@ -1312,6 +1312,7 @@ main(int argc, char **argv)
       if (MakeWindow(&nwin) == -1)
 	{
 	  fd_set rfd;
+	  FD_ZERO(&rfd);
 	  struct timeval tv = { MsgWait/1000, 1000*(MsgWait%1000) };
 	  FD_SET(0, &rfd);
 
