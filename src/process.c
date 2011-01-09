@@ -4187,7 +4187,7 @@ DoAction(struct action *act, int key)
 	    }
 	  if (lay == D_layout)
 	    break;
-	  LoadLayout(lay, &D_canvas);
+	  LoadLayout(lay);
 	  Activate(-1);
 	}
       else if (!strcmp(args[0], "prev"))
@@ -4215,7 +4215,7 @@ DoAction(struct action *act, int key)
 	    }
 	  if (lay == D_layout)
 	    break;
-	  LoadLayout(lay, &D_canvas);
+	  LoadLayout(lay);
 	  Activate(-1);
 	}
       else if (!strcmp(args[0], "attach"))
@@ -5577,7 +5577,7 @@ SelectLayoutFin(char *buf, int len, char *data)
     return;
   if (len == 1 && *buf == '-')
     {
-      LoadLayout((struct layout *)0, (struct canvas *)0);
+      LoadLayout((struct layout *)0);
       Activate(0);
       return;
     }
@@ -5588,7 +5588,7 @@ SelectLayoutFin(char *buf, int len, char *data)
     Msg(0, "This IS layout %d (%s).\n", lay->lay_number, lay->lay_title);
   else
     {
-      LoadLayout(lay, &D_canvas);
+      LoadLayout(lay);
       Activate(0);
     }
 }

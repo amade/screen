@@ -48,7 +48,7 @@ struct layout
 extern void  FreeLayoutCv(struct canvas *c);
 extern struct layout *CreateLayout(char *, int);
 extern void  AutosaveLayout (struct layout *);
-extern void  LoadLayout (struct layout *, struct canvas *);
+extern void  LoadLayout (struct layout *);
 extern void  NewLayout (char *, int);
 extern void  SaveLayout (char *, struct canvas *);
 extern void  ShowLayouts (int);

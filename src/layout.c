@@ -140,7 +140,7 @@ FindLayout(char *name)
 }
 
 void
-LoadLayout(struct layout *lay, struct canvas *cv)
+LoadLayout(struct layout *lay)
 {
   AutosaveLayout(D_layout);
   if (!lay)
@@ -181,7 +181,7 @@ NewLayout(char *title, int startat)
 
   if (display)
     {
-      LoadLayout(0, &D_canvas);
+      LoadLayout(0);
       fcv = D_forecv;
       DupLayoutCv(&D_canvas, &lay->lay_canvas, 1);
       lay->lay_forecv = D_forecv;
@@ -292,8 +292,7 @@ RemoveLayout(struct layout *lay)
   free(lay);
 
   if (layouts)
-    LoadLayout((display && D_layout) ? D_layout : *layp ? *layp : layouts,
-	display ? &D_canvas : (struct canvas *)0);
+    LoadLayout((display && D_layout) ? D_layout : *layp ? *layp : layouts);
   Activate(0);
 }
 
