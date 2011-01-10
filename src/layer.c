@@ -1041,7 +1041,6 @@ LayProcessMouseSwitch(struct layer *l, int s)
 void LayPause(struct layer *layer, int pause)
 {
   struct canvas *cv;
-  struct display *olddisplay = display;
   int line;
   struct win *win;
 
@@ -1121,7 +1120,6 @@ void LayPause(struct layer *layer, int pause)
 
   for (line = layer->l_pause.top; line <= layer->l_pause.bottom; line++)
     layer->l_pause.left[line] = layer->l_pause.right[line] = -1;
-  olddisplay = display;
 }
 
 void
