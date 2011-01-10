@@ -7564,22 +7564,12 @@ ParseAttrColor(char *s1, char *s2, int msgok)
     {
       int mode = 0, n = 0;
       if (*s == '+')
-	{
-	  mode = 1;
-	  s++;
-	}
+	mode = 1;
       else if (*s == '-')
-	{
-	  mode = -1;
-	  s++;
-	}
+	mode = -1;
       else if (*s == '!')
-	{
-	  mode = 2;
-	  s++;
-	}
-      else if (*s == '=')
-	s++;
+	mode = 2;
+      s++;
       if (*s >= '0' && *s <= '9')
 	{
 	  n = *s++ - '0';
