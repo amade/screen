@@ -501,6 +501,7 @@ extern int attach_fd;
 extern int attr2color[][4];
 extern int auto_detach;
 extern int captionalways;
+extern int breaktype;
 extern int cjkwidth;
 extern int compacthist;
 extern int default_startup;
