@@ -136,17 +136,17 @@ enum move_t {
 
 #define UTF8	8
 
-# define UCS_REPL    0xfffd  /* character for illegal codes */
-# define UCS_REPL_DW 0xff1f  /* character for illegal codes */
-# define UCS_HIDDEN 0xffff
+#define UCS_REPL    0xfffd  /* character for illegal codes */
+#define UCS_REPL_DW 0xff1f  /* character for illegal codes */
+#define UCS_HIDDEN  0xffff
 
-# define is_dw_font(f) ((f) && ((f) & 0x60) == 0)
+#define is_dw_font(f) ((f) && ((f) & 0x60) == 0)
 
-#  define dw_left(ml, x, enc) ((enc == UTF8) ? \
+#define dw_left(ml, x, enc) ((enc == UTF8) ? \
 	(unsigned char)(ml)->font[(x) + 1] == 0xff && (unsigned char)(ml)->image[(x) + 1] == 0xff : \
 	((unsigned char)(ml)->font[x] & 0x1f) != 0 && ((unsigned char)(ml)->font[x] & 0xe0) == 0 \
 	)
-#  define dw_right(ml, x, enc) ((enc == UTF8) ? \
+#define dw_right(ml, x, enc) ((enc == UTF8) ? \
 	(unsigned char)(ml)->font[x] == 0xff && (unsigned char)(ml)->image[x] == 0xff : \
 	((unsigned char)(ml)->font[x] & 0xe0) == 0x80 \
 	)
