@@ -460,7 +460,7 @@ CheckMaxSize(int wi)
   mline_old.font = (unsigned char *)xrealloc((char *)mline_old.font, maxwidth);
   mline_old.color = (unsigned char *)xrealloc((char *)mline_old.color, maxwidth);
   mline_old.colorx = (unsigned char *)xrealloc((char *)mline_old.colorx, maxwidth);
-  if (!(blank && null && mline_old.image && mline_old.attr IFFONT(&& mline_old.font) IFCOLOR(&& mline_old.color) IFCOLORX(&& mline_old.colorx)))
+  if (!(blank && null && mline_old.image && mline_old.attr && mline_old.font && mline_old.color && mline_old.colorx))
     Panic(0, "%s", strnomem);
 
   MakeBlankLine(blank, maxwidth);
@@ -486,9 +486,9 @@ CheckMaxSize(int wi)
       { \
 	RESET_AFC(ml->image, blank); \
 	RESET_AFC(ml->attr, null); \
-	IFFONT(RESET_AFC(ml->font, null)); \
-	IFCOLOR(RESET_AFC(ml->color, null)); \
-	IFCOLORX(RESET_AFC(ml->colorx, null)); \
+	RESET_AFC(ml->font, null); \
+	RESET_AFC(ml->color, null); \
+	RESET_AFC(ml->colorx, null); \
       } \
   }
 
