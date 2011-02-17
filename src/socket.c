@@ -676,6 +676,7 @@ ExecCreate(struct msg *mp)
   char *args[MAXARGS];
   register int n;
   register char **pp = args, *p = mp->m.create.line;
+  char buf[20];
 
   nwin = nwin_undef;
   n = mp->m.create.nargs;
@@ -685,7 +686,6 @@ ExecCreate(struct msg *mp)
   if (n)
     {
       int l, num;
-      char buf[20];
 
       l = strlen(p);
       if (IsNumColon(p, 10, buf, sizeof(buf)))
