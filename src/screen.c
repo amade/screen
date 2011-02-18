@@ -864,8 +864,13 @@ main(int argc, char **argv)
 	else \
 	  attach_tty = ""; \
       } \
-    else if (stat(attach_tty, &st)) \
-      Panic(errno, "Cannot access '%s'", attach_tty); \
+    else \
+      { \
+	if (stat(attach_tty, &st)) \
+	  Panic(errno, "Cannot access '%s'", attach_tty); \
+	if (CheckTtyname(attach_tty)) \
+	  Panic(0, "Bad tty '%s'", attach_tty); \
+      } \
     if (strlen(attach_tty) >= MAXPATHLEN) \
       Panic(0, "TtyName too long - sorry."); \
   }
