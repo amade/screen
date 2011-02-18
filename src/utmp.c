@@ -542,7 +542,7 @@ pututslot(slot_t slot, struct utmp *u, char *host, struct win *win)
     return ut_delete_user(slot, u.ut_pid, 0, 0) != 0;
 #endif
 #ifdef HAVE_UTEMPTER
-  if (eff_uid && win->w_ptyfd != -1)
+  if (eff_uid && win && win->w_ptyfd != -1)
     {
       /* sigh, linux hackers made the helper functions void */
       if (SLOT_USED(u))
