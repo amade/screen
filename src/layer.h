@@ -71,7 +71,7 @@ struct layer
 				   [1]: x
 				   [2]: y
 				*/
-    int len;
+    unsigned int len;
     int start;
   } l_mouseevent;
 
