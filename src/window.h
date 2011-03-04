@@ -310,7 +310,7 @@ struct win
 
 #define Layer2Window(l) ((struct win *)(l)->l_bottom->l_data)
 
-int WindowChangeNumber (int, int);
+int SwapWindows (int, int);
 
 #endif /* SCREEN_WINDOW_H */
 

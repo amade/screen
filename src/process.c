@@ -2755,11 +2755,11 @@ DoAction(struct action *act, int key)
       break;
     case RC_BUMPRIGHT:
       if (fore->w_number < NextWindow())
-        WindowChangeNumber(fore->w_number, NextWindow());
+        SwapWindows(fore->w_number, NextWindow());
       break;
     case RC_BUMPLEFT:
       if (fore->w_number > PreviousWindow())
-        WindowChangeNumber(fore->w_number, PreviousWindow());
+        SwapWindows(fore->w_number, PreviousWindow());
       break;
     case RC_COLLAPSE:
       CollapseWindowlist();
@@ -2786,7 +2786,7 @@ DoAction(struct action *act, int key)
 	    n += old;
 	  else if (rel < 0)
 	    n = old - n;
-	  if (!WindowChangeNumber(old, n))
+	  if (!SwapWindows(old, n))
 	    {
 	      /* Window number could not be changed. */
 	      queryflag = -1;
@@ -2806,50 +2806,29 @@ DoAction(struct action *act, int key)
 				fore->w_poll_zombie_timeout = nwin_default.poll_zombie_timeout;
 			debug1("Setting zombie polling to %d\n", nwin_default.poll_zombie_timeout);
 			break;
-
-		case RC_SORT:
-			if (fore) {
-			/* Better do not allow this. Not sure what the utmp stuff in number
-			* command above is for (you get four entries in e.g. /var/log/wtmp
-			* per number switch). But I don't know enough about this.
-			*/
-				Msg(0, "Sorting inside a window is not allowed. Push CTRL-a \" "
-					"and try again\n");
-				break;
-			}
-			/*
-			* Simple sort algorithm: Look out for the smallest, put it
-			* to the first place, look out for the 2nd smallest, ...
-			*/
-			for (i = 0; i < maxwin ; i++) {
-				if (wtab[i] == NULL)
-					continue;
-				n = i;
-
-				for (nr = i + 1; nr < maxwin; nr++) {
-					if (wtab[nr] == NULL)
-						continue;
-					debug2("Testing window %d and %d.\n", nr, n);
-					if (strcmp(wtab[nr]->w_title,wtab[n]->w_title) < 0)
-						n = nr;
-				}
-
-				if (n != i) {
-					debug2("Exchange window %d and %d.\n", i, n);
-					p = wtab[n];
-					wtab[n] = wtab[i];
-					wtab[i] = p;
-					wtab[n]->w_number = n;
-					wtab[i]->w_number = i;
-#ifdef MULTIUSER
-					/* exchange the acls for these windows. */
-					AclWinSwap(i, n);
-#endif
-				}
-			}
-			WindowChanged((struct win *)0, 0);
-			break;
-
+    case RC_SORT:
+      i = 0;
+      if (!wtab[i] || !wtab[i+1])
+        {
+         Msg(0, "Less than two windows, sorting makes no sense.\n");
+         break;
+       }
+      for (i = 0; wtab[i+1] != NULL; i++)
+        {
+         for (n = i, nr = i; wtab[n+1] != NULL; n++)
+           {
+             if (strcmp(wtab[nr]->w_title,wtab[n+1]->w_title) > 0)
+               {
+                 nr = n+1;
+               }
+           }
+         if (nr != i)
+           {
+             SwapWindows(nr, i);
+           }
+       }
+      WindowChanged((struct win *)0, 0);
+      break;
     case RC_SILENCE:
       n = fore->w_silence != 0;
       i = fore->w_silencewait;
@@ -4306,7 +4285,7 @@ CollapseWindowlist()
       for (; moveto < pos; moveto++)
         if (!wtab[moveto])
           {
-          WindowChangeNumber(pos, moveto);
+          SwapWindows(pos, moveto);
           break;
           }
 }
