@@ -194,6 +194,7 @@ struct comm comms[RC_LAST + 1] =
   { "sleep",		ARGS_1,				{NULL} },
   { "slowpaste",	NEED_FORE|ARGS_01,		{NULL} },
   { "sorendition",      ARGS_012,			{NULL} },
+  { "sort",		ARGS_0,				{NULL} },
   { "source",		ARGS_1,				{NULL} },
   { "split",		NEED_DISPLAY|ARGS_01,		{NULL} },
   { "startup_message",	ARGS_1,				{NULL} },
