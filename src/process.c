@@ -3905,11 +3905,11 @@ DoAction(struct action *act, int key)
       break;
     case RC_BUMPRIGHT:
       if (fore->w_number < NextWindow())
-        WindowChangeNumber(fore->w_number, NextWindow());
+        SwapWindows(fore->w_number, NextWindow());
       break;
     case RC_BUMPLEFT:
       if (fore->w_number > PreviousWindow())
-        WindowChangeNumber(fore->w_number, PreviousWindow());
+        SwapWindows(fore->w_number, PreviousWindow());
       break;
     case RC_COLLAPSE:
       CollapseWindowlist();
@@ -3936,13 +3936,36 @@ DoAction(struct action *act, int key)
 	    n += old;
 	  else if (rel < 0)
 	    n = old - n;
-	  if (!WindowChangeNumber(old, n))
+	  if (!SwapWindows(old, n))
 	    {
 	      /* Window number could not be changed. */
 	      queryflag = -1;
 	      return;
 	    }
 	}
+      break;
+    case RC_SORT:
+      i = 0;
+      if (!wtab[i] || !wtab[i+1])
+        {
+         Msg(0, "Less than two windows, sorting makes no sense.\n");
+         break;
+       }
+      for (i = 0; wtab[i+1] != NULL; i++)
+        {
+         for (n = i, nr = i; wtab[n+1] != NULL; n++)
+           {
+             if (strcmp(wtab[nr]->w_title,wtab[n+1]->w_title) > 0)
+               {
+                 nr = n+1;
+               }
+           }
+         if (nr != i)
+           {
+             SwapWindows(nr, i);
+           }
+       }
+      WindowChanged((struct win *)0, 0);
       break;
     case RC_SILENCE:
       n = fore->w_silence != 0;
@@ -5397,7 +5420,7 @@ CollapseWindowlist()
       for (; moveto < pos; moveto++)
         if (!wtab[moveto])
           {
-          WindowChangeNumber(pos, moveto);
+          SwapWindows(pos, moveto);
           break;
           }
 }

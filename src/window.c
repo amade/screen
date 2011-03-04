@@ -2057,7 +2057,7 @@ zmodem_abort(struct win *p, struct display *d)
 
 
 int
-WindowChangeNumber(int old, int dest)
+SwapWindows(int old, int dest)
 {
   struct win *p, *win_old;
 

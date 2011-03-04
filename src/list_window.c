@@ -373,7 +373,7 @@ gl_Window_input(struct ListData *ldata, char **inp, int *len)
 	   * with NULL window. So that causes a redraw of the entire list. So reset the
 	   * 'selected' after that. */
 	  wdata->fore = win;
-	  WindowChangeNumber(win->w_number, pw->w_number);
+	  SwapWindows(win->w_number, pw->w_number);
 	}
       break;
 
@@ -385,7 +385,7 @@ gl_Window_input(struct ListData *ldata, char **inp, int *len)
 	    break;	/* Do not allow switching with the parent group */
 
 	  wdata->fore = win;
-	  WindowChangeNumber(win->w_number, nw->w_number);
+	  SwapWindows(win->w_number, nw->w_number);
 	}
       break;
 
