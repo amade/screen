@@ -536,7 +536,7 @@ MakeWindow(struct NewWindow *newwin)
     p->w_group = fore->w_group;
   /*
    * This is dangerous: without a display we use creators umask
-   * This is intended to be usefull for detached startup.
+   * This is intended to be useful for detached startup.
    * But is still better than default bits with a NULL user.
    */
   if (NewWindowAcl(p, display ? D_user : users))
