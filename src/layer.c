@@ -34,9 +34,6 @@
 #include "extern.h"
 
 
-
-static struct mline *mloff (struct mline *, int);
-
 /*
  * Layer subsystem.
  *
