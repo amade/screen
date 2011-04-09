@@ -192,7 +192,7 @@ OpenPTY(char **ttyn)
 {
   int f;
   char *name, *_getpty(); 
-  sigret_t (*sigcld)(int);
+  void (*sigcld)(int);
 
   /*
    * SIGCHLD set to SIG_DFL for _getpty() because it may fork() and
@@ -248,7 +248,7 @@ OpenPTY(char **ttyn)
 #if defined(HAVE_GETPT) && defined(linux)
   int getpt (void);
 #endif
-  sigret_t (*sigcld)(int);
+  void (*sigcld)(int);
 
   strncpy(PtyName, "/dev/ptmx", 32);
 #if defined(HAVE_GETPT) && (defined(linux) || defined(__GLIBC__))
