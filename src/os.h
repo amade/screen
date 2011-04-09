@@ -368,14 +368,6 @@ extern int errno;
  *    signal handling
  */
 
-#ifdef SIGVOID
-# define SIGRETURN
-# define sigret_t void
-#else
-# define SIGRETURN return 0;
-# define sigret_t int
-#endif
-
 #ifndef SIGCHLD
 #define SIGCHLD SIGCLD
 #endif

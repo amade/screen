@@ -1516,7 +1516,7 @@ CoreDump (int sigsig)
 
   char *dump_msg = " (core dumped)";
 
-  int running_w_s_bit = getuid() != geteuid();
+  int running_w_s_bit = (getuid() != geteuid());
 #if defined(SHADOWPW) && !defined(DEBUG) && !defined(DUMPSHADOW)
   if (running_w_s_bit)
     dump_msg = "";
