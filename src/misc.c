@@ -175,12 +175,12 @@ stripdev(char *nam)
 #ifdef POSIX
 sigret_t (*xsignal(sig, func))
 # ifndef __APPLE__
- SIGPROTOARG
+ (int)
 # else
 ()
 # endif
 int sig;
-sigret_t (*func) SIGPROTOARG;
+sigret_t (*func) (int);
 {
   struct sigaction osa, sa;
   sa.sa_handler = func;
@@ -191,7 +191,7 @@ sigret_t (*func) SIGPROTOARG;
   sa.sa_flags = 0;
 #endif
   if (sigaction(sig, &sa, &osa))
-    return (sigret_t (*)SIGPROTOARG)-1;
+    return (sigret_t (*)(int))-1;
   return osa.sa_handler;
 }
 
@@ -201,9 +201,9 @@ sigret_t (*func) SIGPROTOARG;
  * hpux has berkeley signal semantics if we use sigvector,
  * but not, if we use signal, so we define our own signal() routine.
  */
-void (*xsignal(sig, func)) SIGPROTOARG
+void (*xsignal(sig, func)) (int)
 int sig;
-void (*func) SIGPROTOARG;
+void (*func) (int);
 {
   struct sigvec osv, sv;
 
@@ -211,7 +211,7 @@ void (*func) SIGPROTOARG;
   sv.sv_mask = sigmask(sig);
   sv.sv_flags = SV_BSDSIG;
   if (sigvector(sig, &sv, &osv) < 0)
-    return (void (*)SIGPROTOARG)(BADSIG);
+    return (void (*)(int))(BADSIG);
   return osv.sv_handler;
 }
 # endif	/* hpux */
@@ -344,7 +344,7 @@ closeallfiles(int except)
 
 #ifndef USE_SETEUID
 static int UserPID;
-static sigret_t (*Usersigcld)SIGPROTOARG;
+static sigret_t (*Usersigcld)(int);
 #endif
 static int UserSTAT;
 
