@@ -100,7 +100,7 @@ static void consredir_readev_fn (struct event *, char *);
 int separate_sids = 1;
 
 static void DoSendBreak (int, int, int);
-static sigret_t SigAlrmDummy SIGPROTOARG;
+static sigret_t SigAlrmDummy (int);
 
 
 /* Frank Schulz (fschulz@pyramid.com):
@@ -127,7 +127,7 @@ static sigret_t SigAlrmDummy SIGPROTOARG;
 
 
 static sigret_t
-SigAlrmDummy SIGDEFARG
+SigAlrmDummy (int sigsig)
 {
   debug("SigAlrmDummy()\n");
   SIGRETURN;
@@ -144,7 +144,7 @@ char *line, *opt;
 {
   int f;
   struct mode Mode;
-  sigret_t (*sigalrm)SIGPROTOARG;
+  sigret_t (*sigalrm)(int);
 
   sigalrm = signal(SIGALRM, SigAlrmDummy);
   alarm(2);
@@ -969,7 +969,7 @@ SendBreak(wp, n, closeopen)
 struct win *wp;
 int n, closeopen;
 {
-  sigret_t (*sigalrm)SIGPROTOARG;
+  sigret_t (*sigalrm)(int);
 
 #ifdef BUILTIN_TELNET
   if (wp->w_type == W_TYPE_TELNET)

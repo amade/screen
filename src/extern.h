@@ -34,7 +34,7 @@
 
 /* screen.c */
 extern int   main (int, char **);
-extern sigret_t SigHup SIGPROTOARG;
+extern sigret_t SigHup (int);
 extern void  eexit (int) __attribute__((__noreturn__));
 extern void  Detach (int);
 extern void  Hangup (void);
@@ -222,7 +222,7 @@ extern void  FreeTransTable (void);
 /* attacher.c */
 extern int   Attach (int);
 extern void  Attacher (void);
-extern sigret_t AttacherFinit SIGPROTOARG;
+extern sigret_t AttacherFinit (int);
 extern void  SendCmdMessage (char *, char *, char **, int);
 
 /* display.c */
@@ -334,7 +334,7 @@ extern int   UserContext (void);
 extern void  UserReturn (int);
 extern int   UserStatus (void);
 #if defined(POSIX) || defined(hpux)
-extern void (*xsignal (int, void (*)SIGPROTOARG)) SIGPROTOARG;
+extern void (*xsignal (int, void (*)(int))) (int);
 #endif
 #ifndef HAVE_RENAME
 extern int   rename (char *, char *);

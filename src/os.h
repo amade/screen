@@ -376,21 +376,6 @@ extern int errno;
 # define sigret_t int
 #endif
 
-/* Geeeee, reverse it? */
-#if defined(SVR4) || (defined(SYSV) && defined(ISC)) || defined(_AIX) || defined(linux) || defined(ultrix) || defined(__386BSD__) || defined(__bsdi__) || defined(POSIX) || defined(NeXT)
-# define SIGHASARG
-#endif
-
-#ifdef SIGHASARG
-# define SIGPROTOARG   (int)
-# define SIGDEFARG     (sigsig) int sigsig;
-# define SIGARG        0
-#else
-# define SIGPROTOARG   (void)
-# define SIGDEFARG     ()
-# define SIGARG
-#endif
-
 #ifndef SIGCHLD
 #define SIGCHLD SIGCLD
 #endif

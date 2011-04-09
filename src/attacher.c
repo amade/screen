@@ -38,18 +38,18 @@
 #include <pwd.h>
 
 static int WriteMessage (int, struct msg *);
-static sigret_t AttacherSigInt SIGPROTOARG;
+static sigret_t AttacherSigInt (int);
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
-static sigret_t AttacherWinch SIGPROTOARG;
+static sigret_t AttacherWinch (int);
 #endif
-static sigret_t DoLock SIGPROTOARG;
+static sigret_t DoLock (int);
 static void  LockTerminal (void);
-static sigret_t LockHup SIGPROTOARG;
+static sigret_t LockHup (int);
 static void  screen_builtin_lck (void);
 #ifdef DEBUG
-static sigret_t AttacherChld SIGPROTOARG;
+static sigret_t AttacherChld (int);
 #endif
-static sigret_t AttachSigCont SIGPROTOARG;
+static sigret_t AttachSigCont (int);
 
 
 # ifndef USE_SETEUID
@@ -60,7 +60,7 @@ static int multipipe[2];
 static int ContinuePlease;
 
 static sigret_t
-AttachSigCont SIGDEFARG
+AttachSigCont (int sigsig)
 {
   debug("SigCont()\n");
   ContinuePlease = 1;
@@ -70,14 +70,14 @@ AttachSigCont SIGDEFARG
 static int QueryResult;
 
 static sigret_t
-QueryResultSuccess SIGDEFARG
+QueryResultSuccess (int sigsig)
 {
   QueryResult = 1;
   SIGRETURN;
 }
 
 static sigret_t
-QueryResultFail SIGDEFARG
+QueryResultFail (int sigsig)
 {
   QueryResult = 2;
   SIGRETURN;
@@ -394,7 +394,7 @@ static int AttacherPanic = 0;
 
 #ifdef DEBUG
 static sigret_t
-AttacherChld SIGDEFARG
+AttacherChld (int sigsig)
 {
   AttacherPanic = 1;
   SIGRETURN;
@@ -402,7 +402,7 @@ AttacherChld SIGDEFARG
 #endif
 
 static sigret_t 
-AttacherSigAlarm SIGDEFARG
+AttacherSigAlarm (int sigsig)
 {
 #ifdef DEBUG
   static int tick_cnt = 0;
@@ -417,7 +417,7 @@ AttacherSigAlarm SIGDEFARG
  * we forward SIGINT to the poor backend
  */
 static sigret_t 
-AttacherSigInt SIGDEFARG
+AttacherSigInt (int sigsig)
 {
   signal(SIGINT, AttacherSigInt);
   Kill(MasterPid, SIGINT);
@@ -430,7 +430,7 @@ AttacherSigInt SIGDEFARG
  */
 
 sigret_t
-AttacherFinit SIGDEFARG
+AttacherFinit (int sigsig)
 {
   struct stat statb;
   struct msg m;
@@ -466,7 +466,7 @@ AttacherFinit SIGDEFARG
 }
 
 static sigret_t
-AttacherFinitBye SIGDEFARG
+AttacherFinitBye (int sigsig)
 {
   int ppid;
   debug("AttacherFintBye()\n");
@@ -487,7 +487,7 @@ AttacherFinitBye SIGDEFARG
 
 #if defined(DEBUG) && defined(SIG_NODEBUG)
 static sigret_t
-AttacherNoDebug SIGDEFARG
+AttacherNoDebug (int sigsig)
 {
   debug("AttacherNoDebug()\n");
   signal(SIG_NODEBUG, AttacherNoDebug);
@@ -505,7 +505,7 @@ AttacherNoDebug SIGDEFARG
 static int SuspendPlease;
 
 static sigret_t
-SigStop SIGDEFARG
+SigStop (int sigsig)
 {
   debug("SigStop()\n");
   SuspendPlease = 1;
@@ -515,7 +515,7 @@ SigStop SIGDEFARG
 static int LockPlease;
 
 static sigret_t
-DoLock SIGDEFARG
+DoLock (int sigsig)
 {
 # ifdef SYSVSIGS
   signal(SIG_LOCK, DoLock);
@@ -529,7 +529,7 @@ DoLock SIGDEFARG
 static int SigWinchPlease;
 
 static sigret_t
-AttacherWinch SIGDEFARG
+AttacherWinch (int sigsig)
 {
   debug("AttacherWinch()\n");
   SigWinchPlease = 1;
@@ -632,7 +632,7 @@ Attacher()
 static char LockEnd[] = "Welcome back to screen !!\n";
 
 static sigret_t
-LockHup SIGDEFARG
+LockHup (int sigsig)
 {
   int ppid = getppid();
   if (setgid(real_gid))
@@ -649,7 +649,7 @@ LockTerminal()
 {
   char *prg;
   int sig, pid;
-  sigret_t (*sigs[NSIG])SIGPROTOARG;
+  sigret_t (*sigs[NSIG])(int);
 
   for (sig = 1; sig < NSIG; sig++)
     sigs[sig] = signal(sig, sig == SIGCHLD ? SIG_DFL : SIG_IGN);
@@ -726,7 +726,7 @@ LockTerminal()
   /* reset signals */
   for (sig = 1; sig < NSIG; sig++)
     {
-      if (sigs[sig] != (sigret_t(*)SIGPROTOARG) -1)
+      if (sigs[sig] != (sigret_t(*)(int)) -1)
 	signal(sig, sigs[sig]);
     }
 }				/* LockTerminal */
@@ -871,7 +871,7 @@ screen_builtin_lck()
       errno = 0;
       if ((cp1 = getpass(message)) == NULL)
         {
-          AttacherFinit(SIGARG);
+          AttacherFinit(0);
           /* NOTREACHED */
         }
       if (using_pam)
@@ -880,7 +880,7 @@ screen_builtin_lck()
       PAM_conversation.appdata_ptr = cp1;
       pam_error = pam_start("screen", ppp->pw_name, &PAM_conversation, &pamh);
       if (pam_error != PAM_SUCCESS)
-	AttacherFinit(SIGARG);		/* goodbye */
+	AttacherFinit(0);		/* goodbye */
 
       if (strncmp(attach_tty, "/dev/", 5) == 0)
 	tty_name = attach_tty + 5;
@@ -888,7 +888,7 @@ screen_builtin_lck()
 	tty_name = attach_tty;
       pam_error = pam_set_item(pamh, PAM_TTY, tty_name);
       if (pam_error != PAM_SUCCESS)
-	AttacherFinit(SIGARG);		/* goodbye */
+	AttacherFinit(0);		/* goodbye */
 
       pam_error = pam_authenticate(pamh, 0);
       pam_end(pamh, pam_error);
