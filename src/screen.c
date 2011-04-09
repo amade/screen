@@ -1498,25 +1498,9 @@ SigHup (int sigsig)
 static sigret_t
 SigInt (int sigsig)
 {
-#if HAZARDOUS
-  char ibuf;
-
-  debug("SigInt()\n");
-  if (fore && displays)
-    {
-# if defined(TERMIO) || defined(POSIX)
-      ibuf = displays->d_OldMode.tio.c_cc[VINTR];
-# else
-      ibuf = displays->d_OldMode.m_tchars.t_intrc;
-# endif
-      fore->w_inlen = 0;
-      write(fore->w_ptyfd, &ibuf, 1);
-    }
-#else
   signal(SIGINT, SigInt);
   debug("SigInt() careful\n");
   InterruptPlease = 1;
-#endif
   SIGRETURN;
 }
 
