@@ -34,7 +34,7 @@
 
 /* screen.c */
 extern int   main (int, char **);
-extern sigret_t SigHup (int);
+extern void  SigHup (int);
 extern void  eexit (int) __attribute__((__noreturn__));
 extern void  Detach (int);
 extern void  Hangup (void);
@@ -222,7 +222,7 @@ extern void  FreeTransTable (void);
 /* attacher.c */
 extern int   Attach (int);
 extern void  Attacher (void);
-extern sigret_t AttacherFinit (int);
+extern void  AttacherFinit (int);
 extern void  SendCmdMessage (char *, char *, char **, int);
 
 /* display.c */

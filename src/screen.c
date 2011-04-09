@@ -109,10 +109,10 @@ struct backtick;
 
 static struct passwd *getpwbyname (char *, struct passwd *);
 static void  SigChldHandler (void);
-static sigret_t SigChld (int);
-static sigret_t SigInt (int);
-static sigret_t CoreDump (int);
-static sigret_t FinitHandler (int);
+static void  SigChld (int);
+static void  SigInt (int);
+static void  CoreDump (int);
+static void  FinitHandler (int);
 static void  DoWait (void);
 static void  serv_read_fn (struct event *, char *);
 static void  serv_select_fn (struct event *, char *);
@@ -1473,21 +1473,21 @@ SigChldHandler()
     debug2("SigChldHandler: stat '%s' o.k. (%03o)\n", SockPath, (int)st.st_mode);
 }
 
-static sigret_t
+static void
 SigChld (int sigsig)
 {
   debug("SigChld()\n");
   GotSigChld = 1;
-  SIGRETURN;
+  return;
 }
 
-sigret_t
+void
 SigHup (int sigsig)
 {
   /* Hangup all displays */
   while ((display = displays) != 0)
     Hangup();
-  SIGRETURN;
+  return;
 }
 
 /* 
@@ -1495,16 +1495,16 @@ SigHup (int sigsig)
  * we cannot insert the intrc directly, as we never know
  * if fore is valid.
  */
-static sigret_t
+static void
 SigInt (int sigsig)
 {
   signal(SIGINT, SigInt);
   debug("SigInt() careful\n");
   InterruptPlease = 1;
-  SIGRETURN;
+  return;
 }
 
-static sigret_t
+static void
 CoreDump (int sigsig)
 {
   /* if running with s-bit, we must reset the s-bit, so that we get a
@@ -1556,7 +1556,7 @@ CoreDump (int sigsig)
     }
   else
     abort();
-  SIGRETURN;
+  return;
 }
 
 static void
@@ -1655,7 +1655,7 @@ DoWait()
 }
 
 
-static sigret_t
+static void
 FinitHandler (int sigsig)
 {
 #ifdef SIGHASARG
@@ -1664,7 +1664,7 @@ FinitHandler (int sigsig)
   debug("FinitHandler called.\n");
 #endif
   Finit(1);
-  SIGRETURN;
+  return;
 }
 
 void

@@ -38,18 +38,18 @@
 #include <pwd.h>
 
 static int WriteMessage (int, struct msg *);
-static sigret_t AttacherSigInt (int);
+static void AttacherSigInt (int);
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
-static sigret_t AttacherWinch (int);
+static void AttacherWinch (int);
 #endif
-static sigret_t DoLock (int);
+static void DoLock (int);
 static void  LockTerminal (void);
-static sigret_t LockHup (int);
+static void LockHup (int);
 static void  screen_builtin_lck (void);
 #ifdef DEBUG
-static sigret_t AttacherChld (int);
+static void AttacherChld (int);
 #endif
-static sigret_t AttachSigCont (int);
+static void AttachSigCont (int);
 
 
 # ifndef USE_SETEUID
@@ -59,28 +59,28 @@ static int multipipe[2];
 
 static int ContinuePlease;
 
-static sigret_t
+static void
 AttachSigCont (int sigsig)
 {
   debug("SigCont()\n");
   ContinuePlease = 1;
-  SIGRETURN;
+  return;
 }
 
 static int QueryResult;
 
-static sigret_t
+static void
 QueryResultSuccess (int sigsig)
 {
   QueryResult = 1;
-  SIGRETURN;
+  return;
 }
 
-static sigret_t
+static void
 QueryResultFail (int sigsig)
 {
   QueryResult = 2;
-  SIGRETURN;
+  return;
 }
 
 /*
@@ -393,15 +393,15 @@ Attach(int how)
 static int AttacherPanic = 0;
 
 #ifdef DEBUG
-static sigret_t
+static void
 AttacherChld (int sigsig)
 {
   AttacherPanic = 1;
-  SIGRETURN;
+  return;
 }
 #endif
 
-static sigret_t 
+static void
 AttacherSigAlarm (int sigsig)
 {
 #ifdef DEBUG
@@ -409,19 +409,19 @@ AttacherSigAlarm (int sigsig)
   if ((tick_cnt = (tick_cnt + 1) % 4) == 0)
     debug("tick\n");
 #endif
-  SIGRETURN;
+  return;
 }
 
 /*
  * the frontend's Interrupt handler
  * we forward SIGINT to the poor backend
  */
-static sigret_t 
+static void
 AttacherSigInt (int sigsig)
 {
   signal(SIGINT, AttacherSigInt);
   Kill(MasterPid, SIGINT);
-  SIGRETURN;
+  return;
 }
 
 /*
@@ -429,7 +429,7 @@ AttacherSigInt (int sigsig)
  * check if the backend is already detached.
  */
 
-sigret_t
+void
 AttacherFinit (int sigsig)
 {
   struct stat statb;
@@ -462,10 +462,10 @@ AttacherFinit (int sigsig)
       chmod(attach_tty, tty_oldmode);
     }
   exit(0);
-  SIGRETURN;
+  return;
 }
 
-static sigret_t
+static void
 AttacherFinitBye (int sigsig)
 {
   int ppid;
@@ -482,11 +482,11 @@ AttacherFinitBye (int sigsig)
   if ((ppid = getppid()) > 1)
     Kill(ppid, SIGHUP);		/* carefully say good bye. jw. */
   exit(0);
-  SIGRETURN;
+  return;
 }
 
 #if defined(DEBUG) && defined(SIG_NODEBUG)
-static sigret_t
+static void
 AttacherNoDebug (int sigsig)
 {
   debug("AttacherNoDebug()\n");
@@ -498,23 +498,23 @@ AttacherNoDebug (int sigsig)
       fclose(dfp);
       dfp = NULL;
     }
-  SIGRETURN;
+  return;
 }
 #endif /* SIG_NODEBUG */
 
 static int SuspendPlease;
 
-static sigret_t
+static void
 SigStop (int sigsig)
 {
   debug("SigStop()\n");
   SuspendPlease = 1;
-  SIGRETURN;
+  return;
 }
 
 static int LockPlease;
 
-static sigret_t
+static void
 DoLock (int sigsig)
 {
 # ifdef SYSVSIGS
@@ -522,18 +522,18 @@ DoLock (int sigsig)
 # endif
   debug("DoLock()\n");
   LockPlease = 1;
-  SIGRETURN;
+  return;
 }
 
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 static int SigWinchPlease;
 
-static sigret_t
+static void
 AttacherWinch (int sigsig)
 {
   debug("AttacherWinch()\n");
   SigWinchPlease = 1;
-  SIGRETURN;
+  return;
 }
 #endif
 
@@ -631,7 +631,7 @@ Attacher()
 
 static char LockEnd[] = "Welcome back to screen !!\n";
 
-static sigret_t
+static void
 LockHup (int sigsig)
 {
   int ppid = getppid();
@@ -649,7 +649,7 @@ LockTerminal()
 {
   char *prg;
   int sig, pid;
-  sigret_t (*sigs[NSIG])(int);
+  void(*sigs[NSIG])(int);
 
   for (sig = 1; sig < NSIG; sig++)
     sigs[sig] = signal(sig, sig == SIGCHLD ? SIG_DFL : SIG_IGN);
@@ -726,7 +726,7 @@ LockTerminal()
   /* reset signals */
   for (sig = 1; sig < NSIG; sig++)
     {
-      if (sigs[sig] != (sigret_t(*)(int)) -1)
+      if (sigs[sig] != (void(*)(int)) -1)
 	signal(sig, sigs[sig]);
     }
 }				/* LockTerminal */

@@ -173,14 +173,14 @@ stripdev(char *nam)
  */
 
 #ifdef POSIX
-sigret_t (*xsignal(sig, func))
+void (*xsignal(sig, func))
 # ifndef __APPLE__
  (int)
 # else
 ()
 # endif
 int sig;
-sigret_t (*func) (int);
+void (*func) (int);
 {
   struct sigaction osa, sa;
   sa.sa_handler = func;
@@ -191,7 +191,7 @@ sigret_t (*func) (int);
   sa.sa_flags = 0;
 #endif
   if (sigaction(sig, &sa, &osa))
-    return (sigret_t (*)(int))-1;
+    return (void (*)(int))-1;
   return osa.sa_handler;
 }
 
@@ -344,7 +344,7 @@ closeallfiles(int except)
 
 #ifndef USE_SETEUID
 static int UserPID;
-static sigret_t (*Usersigcld)(int);
+static void (*Usersigcld)(int);
 #endif
 static int UserSTAT;
 
