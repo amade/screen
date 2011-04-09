@@ -109,10 +109,10 @@ struct backtick;
 
 static struct passwd *getpwbyname (char *, struct passwd *);
 static void  SigChldHandler (void);
-static sigret_t SigChld SIGPROTOARG;
-static sigret_t SigInt SIGPROTOARG;
-static sigret_t CoreDump SIGPROTOARG;
-static sigret_t FinitHandler SIGPROTOARG;
+static sigret_t SigChld (int);
+static sigret_t SigInt (int);
+static sigret_t CoreDump (int);
+static sigret_t FinitHandler (int);
 static void  DoWait (void);
 static void  serv_read_fn (struct event *, char *);
 static void  serv_select_fn (struct event *, char *);
@@ -1492,7 +1492,7 @@ SigChldHandler()
 }
 
 static sigret_t
-SigChld SIGDEFARG
+SigChld (int sigsig)
 {
   debug("SigChld()\n");
   GotSigChld = 1;
@@ -1500,7 +1500,7 @@ SigChld SIGDEFARG
 }
 
 sigret_t
-SigHup SIGDEFARG
+SigHup (int sigsig)
 {
   /* Hangup all displays */
   while ((display = displays) != 0)
@@ -1514,7 +1514,7 @@ SigHup SIGDEFARG
  * if fore is valid.
  */
 static sigret_t
-SigInt SIGDEFARG
+SigInt (int sigsig)
 {
 #if HAZARDOUS
   char ibuf;
@@ -1539,7 +1539,7 @@ SigInt SIGDEFARG
 }
 
 static sigret_t
-CoreDump SIGDEFARG
+CoreDump (int sigsig)
 {
   /* if running with s-bit, we must reset the s-bit, so that we get a
    * core file anyway.
@@ -1690,7 +1690,7 @@ DoWait()
 
 
 static sigret_t
-FinitHandler SIGDEFARG
+FinitHandler (int sigsig)
 {
 #ifdef SIGHASARG
   debug1("FinitHandler called, sig %d.\n", sigsig);
