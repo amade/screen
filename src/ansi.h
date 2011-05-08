@@ -130,6 +130,7 @@ enum move_t {
 #define KOI8R	6
 #define CP1251	7
 #define GBK	20
+#define KOI8U	21
 
 #define EUC	EUC_JP
 

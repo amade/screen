@@ -45,6 +45,7 @@ struct encoding {
 
 /* big5 font:   ^X */
 /* KOI8-R font: 96 ! */
+/* KOI8-U font: 96 # */
 /* CP1251 font: 96 ? */
 
 struct encoding encodings[] = {
@@ -68,7 +69,8 @@ struct encoding encodings[] = {
   { "ISO8859-10",	0,		0x80|'V',	0, 0, 0 },
   { "ISO8859-15",	0,		0x80|'b',	0, 0, 0 },
   { "jis",		0,		0,		0, 0, "\002\004I" },
-  { "GBK",		"B\031BB01",	0x80|'b',	1, 1, "\031" }
+  { "GBK",		"B\031BB01",	0x80|'b',	1, 1, "\031" },
+  { "KOI8-U",		0,		0x80|'#',	0, 1, 0 }
 };
 
 
