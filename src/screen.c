@@ -2124,7 +2124,7 @@ backtick_filter(struct backtick *bt)
     {
       if (c == '\t')
 	c = ' ';
-      if (c >= ' ' || c == '\005')
+      if (c >= ' ' || c == '\005' || c == '\033')
 	*q++ = c;
     }
   *q = 0;
