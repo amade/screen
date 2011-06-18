@@ -1887,6 +1887,17 @@ strlen_onscreen(char *c, char *end)
 static int
 PrePutWinMsg(char *s, int start, int max)
 {
+  /* Fix padding for non-printing ecma escape sequences */
+  int i, ecma = 0, fix = 0, l = strlen(s);
+  for (i = 0; i < l; ++i) {
+    if (s[i] == '\033')
+      ecma = 1;
+
+    if (ecma) fix++;
+
+    if (ecma && s[i] == 'm')
+      ecma = 0;
+  }
   /* Avoid double-encoding problem for a UTF-8 message on a UTF-8 locale.
      Ideally, this would not be necessary. But fixing it the Right Way will
      probably take way more time. So this will have to do for now. */
@@ -1894,7 +1905,7 @@ PrePutWinMsg(char *s, int start, int max)
     {
       int chars = strlen_onscreen(s + start, s + max);
       D_encoding = 0;
-      PutWinMsg(s, start, max);
+      PutWinMsg(s, start, max + fix);
       D_encoding = UTF8;
       D_x -= (max - chars);	/* Yak! But this is necessary to count for
 				   the fact that not every byte represents a
@@ -1903,7 +1914,7 @@ PrePutWinMsg(char *s, int start, int max)
     }
   else
     {
-      PutWinMsg(s, start, max);
+      PutWinMsg(s, start, max + fix);
       return max;
     }
 }
