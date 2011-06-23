@@ -799,7 +799,7 @@ LMsg(int err, const char *fmt, VA_DOTS)
       p += strlen(p);
       *p++ = ':';
       *p++ = ' ';
-      strlcpy(p, strerror(err), buf + sizeof(buf) - p - 1);
+      strncpy(p, strerror(err), buf + sizeof(buf) - p - 1);
     }
   debug2("LMsg('%s') (%#x);\n", buf, (unsigned int)flayer);
   for (display = displays; display; display = display->d_next)

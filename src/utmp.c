@@ -307,7 +307,7 @@ RemoveLoginSlot()
       {
 	char *p;
 	if ((p = ut_find_host(D_loginslot)) != 0)
-	  strlcpy(D_loginhost, p, sizeof(D_loginhost) - 1);
+	  strncpy(D_loginhost, p, sizeof(D_loginhost) - 1);
 	D_loginhost[sizeof(D_loginhost) - 1] = 0;
       }
 #endif /* _SEQUENT_ */
@@ -411,7 +411,7 @@ SetUtmp(struct win *win)
   host[sizeof(host) - 15] = '\0';
   if (display)
     {
-      strlcpy(host, D_loginhost, sizeof(host) - 15);
+      strncpy(host, D_loginhost, sizeof(host) - 15);
       if (D_loginslot != (slot_t)0 && D_loginslot != (slot_t)-1 && host[0] != '\0')
 	{
 	  /*
@@ -437,18 +437,18 @@ SetUtmp(struct win *win)
 	}
       else
 	{
-	  strlcpy(host + 1, stripdev(D_usertty), sizeof(host) - 15 - 1);
+	  strncpy(host + 1, stripdev(D_usertty), sizeof(host) - 15 - 1);
 	  host[0] = ':';
 	}
     }
   else
-    strlcpy(host, "local", sizeof(host) - 15);
+    strncpy(host, "local", sizeof(host) - 15);
 
   sprintf(host + strlen(host), ":S.%d", win->w_number);
   debug1("rlogin hostname: '%s'\n", host);
 
 # if !defined(_SEQUENT_) && !defined(sequent)
-  strlcpy(u.ut_host, host, sizeof(u.ut_host));
+  strncpy(u.ut_host, host, sizeof(u.ut_host));
 # endif
 #endif /* UTHOST */
 
@@ -527,7 +527,7 @@ getutslot(slot_t slot)
 {
   struct utmp u;
   memset((char *)&u, 0, sizeof(u));
-  strlcpy(u.ut_line, slot, sizeof(u.ut_line));
+  strncpy(u.ut_line, slot, sizeof(u.ut_line));
   setutent();
   return getutline(&u);
 }
@@ -578,18 +578,18 @@ makeuser(struct utmp *u, char *line, char *user, int pid)
 {
   time_t now;
   u->ut_type = USER_PROCESS;
-  strlcpy(u->ut_user, user, sizeof(u->ut_user));
+  strncpy(u->ut_user, user, sizeof(u->ut_user));
   /* Now the tricky part... guess ut_id */
 #if defined(sgi) || defined(linux)
-  strlcpy(u->ut_id, line + 3, sizeof(u->ut_id));
+  strncpy(u->ut_id, line + 3, sizeof(u->ut_id));
 #else /* sgi */
 # ifdef _IBMR2
-  strlcpy(u->ut_id, line, sizeof(u->ut_id));
+  strncpy(u->ut_id, line, sizeof(u->ut_id));
 # else
-  strlcpy(u->ut_id, line + strlen(line) - 2, sizeof(u->ut_id));
+  strncpy(u->ut_id, line + strlen(line) - 2, sizeof(u->ut_id));
 # endif
 #endif /* sgi */
-  strlcpy(u->ut_line, line, sizeof(u->ut_line));
+  strncpy(u->ut_line, line, sizeof(u->ut_line));
   u->ut_pid = pid;
   /* must use temp variable because of NetBSD/sparc64, where
    * ut_xtime is long(64) but time_t is int(32) */
@@ -693,8 +693,8 @@ static void
 makeuser(struct utmp *u, char *line, char *user, int pid)
 {
   time_t now;
-  strlcpy(u->ut_line, line, sizeof(u->ut_line));
-  strlcpy(u->ut_name, user, sizeof(u->ut_name));
+  strncpy(u->ut_line, line, sizeof(u->ut_line));
+  strncpy(u->ut_name, user, sizeof(u->ut_name));
   (void)time(&now);
   u->ut_time = now;
 }
@@ -813,7 +813,7 @@ getlogin()
     {
       if (!strncmp(tty, u.ut_line, sizeof(u.ut_line)))
 	{
-	  strlcpy(retbuf, u.ut_user, sizeof(u.ut_user));
+	  strncpy(retbuf, u.ut_user, sizeof(u.ut_user));
 	  if (u.ut_type == USER_PROCESS)
 	    break;
 	}

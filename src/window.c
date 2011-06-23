@@ -418,7 +418,7 @@ DoStartLog(struct win *w, char *buf, int bufsize)
   if (!w || !buf)
     return -1;
 
-  strlcpy(buf, MakeWinMsg(screenlogfile, w, '%'), bufsize - 1);
+  strncpy(buf, MakeWinMsg(screenlogfile, w, '%'), bufsize - 1);
 
   debug2("DoStartLog: win %d, file %s\n", w->w_number, buf);
 
@@ -562,7 +562,7 @@ MakeWindow(struct NewWindow *newwin)
   p->w_flow = nwin.flowflag | ((nwin.flowflag & FLOW_AUTOFLAG) ? (FLOW_AUTO|FLOW_NOW) : FLOW_AUTO);
   if (!nwin.aka)
     nwin.aka = Filename(nwin.args[0]);
-  strlcpy(p->w_akabuf, nwin.aka, sizeof(p->w_akabuf));
+  strncpy(p->w_akabuf, nwin.aka, sizeof(p->w_akabuf));
   if ((nwin.aka = strrchr(p->w_akabuf, '|')) != NULL)
     {
       p->w_autoaka = 0;
@@ -595,7 +595,7 @@ MakeWindow(struct NewWindow *newwin)
   p->w_slowpaste = nwin.slow;
 
   p->w_norefresh = 0;
-  strlcpy(p->w_tty, TtyName, MAXSTR);
+  strncpy(p->w_tty, TtyName, MAXSTR);
 
   if (ChangeWindowSize(p, display ? D_forecv->c_xe - D_forecv->c_xs + 1: 80,
 		       display ? D_forecv->c_ye - D_forecv->c_ys + 1 : 24, 
@@ -735,7 +735,7 @@ RemakeWindow(struct win *p)
   if ((f = OpenDevice(p->w_cmdargs, lflag, &p->w_type, &TtyName)) < 0)
     return -1;
 
-  strlcpy(p->w_tty, *TtyName ? TtyName : p->w_title, MAXSTR);
+  strncpy(p->w_tty, *TtyName ? TtyName : p->w_title, MAXSTR);
   p->w_ptyfd = f;
   p->w_readev.fd = f;
   p->w_writeev.fd = f;
@@ -1199,8 +1199,8 @@ ForkWindow(struct win *win, char **args, char *ttyn)
       NewEnv[6] = cobuf;
 #endif
       NewEnv[2] = MakeTermcap(display == 0 || win->w_aflag);
-      strlcpy(shellbuf, "SHELL=", 7);
-      strlcpy(shellbuf + 6, ShellProg + (*ShellProg == '-'), sizeof(shellbuf) - 6);
+      strncpy(shellbuf, "SHELL=", 7);
+      strncpy(shellbuf + 6, ShellProg + (*ShellProg == '-'), sizeof(shellbuf) - 6);
       NewEnv[4] = shellbuf;
       debug1("ForkWindow: NewEnv[4] = '%s'\n", shellbuf);
       if (win->w_term && *win->w_term && strcmp(screenterm, win->w_term) &&
@@ -1389,7 +1389,7 @@ winexec(char **av)
       free((char *)pwin);
       return -1;
     }
-  strlcpy(pwin->p_tty, t, MAXSTR);
+  strncpy(pwin->p_tty, t, MAXSTR);
   w->w_pwin = pwin;
   if (type != W_TYPE_PTY)
     {

@@ -3579,7 +3579,7 @@ DoAction(struct action *act, int key)
 	  free(s);
 	  break;
 	}
-      strlcpy(screenterm, s, 20);
+      strncpy(screenterm, s, 20);
       free(s);
       debug1("screenterm set to %s\n", screenterm);
       MakeTermcap((display == 0));
@@ -5113,7 +5113,7 @@ DoAction(struct action *act, int key)
 	    {
 	      n = i == 0 ? focusminwidth : focusminheight;
 	      if (n == -1)
-		strlcpy(b[i], "max", 20);
+		strncpy(b[i], "max", 20);
 	      else
 		sprintf(b[i], "%d", n);
 	    }
@@ -5975,7 +5975,7 @@ IsNumColon(char *s, int base, char *p, int psize)
   char *q;
   if ((q = strrchr(s, ':')) != 0)
     {
-      strlcpy(p, q + 1, psize - 1);
+      strncpy(p, q + 1, psize - 1);
       *q = '\0';
     }
   else

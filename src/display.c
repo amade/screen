@@ -241,8 +241,8 @@ MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struct mode *M
 #endif
   debug1("New displays ospeed = %d\n", D_dospeed);
 
-  strlcpy(D_usertty, utty, sizeof(D_usertty) - 1);
-  strlcpy(D_termname, term, sizeof(D_termname) - 1);
+  strncpy(D_usertty, utty, sizeof(D_usertty) - 1);
+  strncpy(D_termname, term, sizeof(D_termname) - 1);
   D_user = *u;
   D_processinput = ProcessInput;
   D_mousetrack = defmousetrack;
@@ -1743,7 +1743,7 @@ MakeStatus(char *msg)
 	}
     }
   if (t - msg < D_status_buflen)
-    strlcpy(D_status_lastmsg, msg, D_status_buflen);
+    strncpy(D_status_lastmsg, msg, D_status_buflen);
   D_status_len = t - msg;
   D_status_lastx = D_x;
   D_status_lasty = D_y;
@@ -3308,8 +3308,8 @@ RunBlanker(char **cmdv)
 #endif
   char **np;
 
-  strlcpy(termname, "TERM=", 6);
-  strlcpy(termname + 5, D_termname, sizeof(termname) - 6);
+  strncpy(termname, "TERM=", 6);
+  strncpy(termname + 5, D_termname, sizeof(termname) - 6);
   termname[sizeof(termname) - 1] = 0;
   KillBlanker();
   D_blankerpid = -1;

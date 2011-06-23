@@ -175,8 +175,8 @@ OpenPTY(char **ttyn)
 #ifdef _SEQUENT_
   fvhangup(s);
 #endif
-  strlcpy(PtyName, m, sizeof(PtyName));
-  strlcpy(TtyName, s, sizeof(TtyName));
+  strncpy(PtyName, m, sizeof(PtyName));
+  strncpy(TtyName, s, sizeof(TtyName));
   initmaster(f);
   *ttyn = TtyName;
   return f;
@@ -220,7 +220,7 @@ OpenPTY(char **ttyn)
   register int f;
   struct stat buf;
    
-  strlcpy(PtyName, "/dev/ptc", 32);
+  strncpy(PtyName, "/dev/ptc", 32);
   if ((f = open(PtyName, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0)
     return -1;
   if (fstat(f, &buf) < 0)
@@ -250,7 +250,7 @@ OpenPTY(char **ttyn)
 #endif
   void (*sigcld)(int);
 
-  strlcpy(PtyName, "/dev/ptmx", 32);
+  strncpy(PtyName, "/dev/ptmx", 32);
 #if defined(HAVE_GETPT) && defined(linux)
   if ((f = getpt()) == -1)
 #else
@@ -270,7 +270,7 @@ OpenPTY(char **ttyn)
       return -1;
     } 
   signal(SIGCHLD, sigcld);
-  strlcpy(TtyName, m, sizeof(TtyName));
+  strncpy(TtyName, m, sizeof(TtyName));
   initmaster(f);
   *ttyn = TtyName;
   return f;
@@ -288,10 +288,10 @@ OpenPTY(char **ttyn)
   register int f;
 
   /* a dumb looking loop replaced by mycrofts code: */
-  strlcpy (PtyName, "/dev/ptc", 32);
+  strncpy (PtyName, "/dev/ptc", 32);
   if ((f = open (PtyName, O_RDWR | O_NOCTTY)) < 0)
     return -1;
-  strlcpy(TtyName, ttyname(f), sizeof(TtyName));
+  strncpy(TtyName, ttyname(f), sizeof(TtyName));
   if (eff_uid && access(TtyName, R_OK | W_OK))
     {
       close(f);
@@ -334,8 +334,8 @@ OpenPTY(char **ttyn)
   register int f;
 
   debug("OpenPTY: Using BSD style ptys.\n");
-  strlcpy(PtyName, PtyProto, 32);
-  strlcpy(TtyName, TtyProto, 32);
+  strncpy(PtyName, PtyProto, 32);
+  strncpy(TtyName, TtyProto, 32);
   for (p = PtyName; *p != 'X'; p++)
     ;
   for (q = TtyName; *q != 'X'; q++)

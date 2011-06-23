@@ -433,7 +433,7 @@ main(int argc, char **argv)
   cjkwidth = 0;
   nwin = nwin_undef;
   nwin_options = nwin_undef;
-  strlcpy(screenterm, "screen", 20);
+  strncpy(screenterm, "screen", 20);
 
   logreopen_register(lf_secreopen);
 
@@ -594,7 +594,7 @@ main(int argc, char **argv)
 		  if (--argc == 0)
 		    exit_with_usage(myname, "Specify terminal-type with -T", NULL);
 		  if (strlen(*++argv) < NAME_MAX)
-		    strlcpy(screenterm, *argv, NAME_MAX);
+		    strncpy(screenterm, *argv, NAME_MAX);
 		  else
 		    Panic(0, "-T: terminal name too long. (max. %d char)", NAME_MAX);
 		  nwin_options.term = screenterm;
@@ -1036,7 +1036,7 @@ main(int argc, char **argv)
 #if defined(SYSV) && !defined(ISC)
   if (uname(&utsnam) == -1)
     Panic(errno, "uname");
-  strlcpy(HostName, utsnam.nodename, sizeof(utsnam.nodename) < MAXSTR ? sizeof(utsnam.nodename) : MAXSTR - 1);
+  strncpy(HostName, utsnam.nodename, sizeof(utsnam.nodename) < MAXSTR ? sizeof(utsnam.nodename) : MAXSTR - 1);
 #else
   (void) gethostname(HostName, MAXSTR);
   HostName[MAXSTR - 1] = '\0';
@@ -2526,15 +2526,15 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	      int oldnumrend = winmsg_numrend;
 
 	      *p = 0;
-	      strlcpy(savebuf, winmsg_buf, sizeof(winmsg_buf));
+	      strncpy(savebuf, winmsg_buf, sizeof(winmsg_buf));
 	      winmsg_numrend = -winmsg_numrend;
 	      MakeWinMsgEv(*s == 'h' ? win->w_hstatus : runbacktick(bt, &oldtick, now.tv_sec), win, '\005', 0, (struct event *)0, rec + 1);
 	      debug2("oldtick=%d tick=%d\n", oldtick, tick);
 	      if (!tick || oldtick < tick)
 		tick = oldtick;
 	      if ((int)strlen(winmsg_buf) < l)
-		strlcat(savebuf, winmsg_buf, sizeof(winmsg_buf));
-	      strlcpy(winmsg_buf, savebuf, sizeof(winmsg_buf));
+		strncat(savebuf, winmsg_buf, sizeof(winmsg_buf));
+	      strncpy(winmsg_buf, savebuf, sizeof(winmsg_buf));
 	      while (oldnumrend < winmsg_numrend)
 		winmsg_rendpos[oldnumrend++] += p - winmsg_buf;
 	      if (*p)

@@ -277,8 +277,8 @@ helppage()
     }
   else
     {
-      strlcpy(Esc_buf, "??", 5);
-      strlcpy(buf, "??", 256);
+      strncpy(Esc_buf, "??", 5);
+      strncpy(buf, "??", 256);
     }
 
   for (; crow < flayer->l_height - 3; crow++)
@@ -404,9 +404,9 @@ add_key_to_buf(char *buf, int key)
 {
   buf += strlen(buf);
   if (key < 0)
-    strlcpy(buf, "unset", 6);
+    strncpy(buf, "unset", 6);
   else if (key == ' ')
-    strlcpy(buf, "sp", 3);
+    strncpy(buf, "sp", 3);
   else if (key >= 256)
     {
       key = key - 256 + T_CAPS;
