@@ -56,53 +56,6 @@ RethinkDisplayViewports()
     {
       if ((vp = (struct viewport *)malloc(sizeof *vp)) == 0)
 	return -1;
-#ifdef HOLE
-      vp->v_canvas = cv;
-      vp->v_xs = cv->c_xs;
-      vp->v_ys = (cv->c_ys + cv->c_ye) / 2;
-      vp->v_xe = cv->c_xe;
-      vp->v_ye = cv->c_ye;
-      vp->v_xoff = cv->c_xoff;
-      vp->v_yoff = cv->c_yoff;
-      vp->v_next = cv->c_vplist;
-      cv->c_vplist = vp;
-
-      if ((vp = (struct viewport *)malloc(sizeof *vp)) == 0)
-	return -1;
-      vp->v_canvas = cv;
-      vp->v_xs = (cv->c_xs + cv->c_xe) / 2;
-      vp->v_ys = (3 * cv->c_ys + cv->c_ye) / 4;
-      vp->v_xe = cv->c_xe;
-      vp->v_ye = (cv->c_ys + cv->c_ye) / 2 - 1;
-      vp->v_xoff = cv->c_xoff;
-      vp->v_yoff = cv->c_yoff;
-      vp->v_next = cv->c_vplist;
-      cv->c_vplist = vp;
-
-      if ((vp = (struct viewport *)malloc(sizeof *vp)) == 0)
-	return -1;
-      vp->v_canvas = cv;
-      vp->v_xs = cv->c_xs;
-      vp->v_ys = (3 * cv->c_ys + cv->c_ye) / 4;
-      vp->v_xe = (3 * cv->c_xs + cv->c_xe) / 4 - 1;
-      vp->v_ye = (cv->c_ys + cv->c_ye) / 2 - 1;
-      vp->v_xoff = cv->c_xoff;
-      vp->v_yoff = cv->c_yoff;
-      vp->v_next = cv->c_vplist;
-      cv->c_vplist = vp;
-
-      if ((vp = (struct viewport *)malloc(sizeof *vp)) == 0)
-	return -1;
-      vp->v_canvas = cv;
-      vp->v_xs = cv->c_xs;
-      vp->v_ys = cv->c_ys;
-      vp->v_xe = cv->c_xe;
-      vp->v_ye = (3 * cv->c_ys + cv->c_ye) / 4 - 1;
-      vp->v_xoff = cv->c_xoff;
-      vp->v_yoff = cv->c_yoff;
-      vp->v_next = cv->c_vplist;
-      cv->c_vplist = vp;
-#else
       vp->v_canvas = cv;
       vp->v_xs = cv->c_xs;
       vp->v_ys = cv->c_ys;
@@ -112,7 +65,6 @@ RethinkDisplayViewports()
       vp->v_yoff = cv->c_yoff;
       vp->v_next = cv->c_vplist;
       cv->c_vplist = vp;
-#endif
 
       if (cv->c_xs < display->d_vpxmin || display->d_vpxmin == -1)
         display->d_vpxmin = cv->c_xs;
