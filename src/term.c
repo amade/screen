@@ -205,6 +205,10 @@ struct term term[T_N] =
   { "F8", T_STR  },
   { "F9", T_STR  },
   { "FA", T_STR  },
+  { "FB", T_STR  },
+  { "FC", T_STR  },
+  { "FD", T_STR  },
+  { "FE", T_STR  },
 
   { "kb", T_STR  },
   { "K1", T_STR  },
