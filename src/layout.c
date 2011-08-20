@@ -168,6 +168,8 @@ struct canvas *cv;
     FreeCanvas(D_canvas.c_slperp);
   D_cvlist = 0;
   D_forecv = lay->lay_forecv;
+  if (!D_forecv)
+    MakeDefaultCanvas();
   DupLayoutCv(&lay->lay_canvas, &D_canvas, 0);
   D_canvas.c_ys = (D_has_hstatus == HSTATUS_FIRSTLINE);
   D_canvas.c_ye = D_height - 1 - ((D_canvas.c_slperp && D_canvas.c_slperp->c_slnext) || captionalways) - (D_has_hstatus == HSTATUS_LASTLINE);
@@ -190,12 +192,20 @@ int startat;
   lay = CreateLayout(title, startat);
   if (!lay)
     return;
-  LoadLayout(0, &D_canvas);
-  fcv = D_forecv;
-  DupLayoutCv(&D_canvas, &lay->lay_canvas, 1);
-  lay->lay_forecv = D_forecv;
-  D_forecv = fcv;
-  D_layout = lay;
+
+  if (display)
+    {
+      LoadLayout(0, &D_canvas);
+      fcv = D_forecv;
+      DupLayoutCv(&D_canvas, &lay->lay_canvas, 1);
+      lay->lay_forecv = D_forecv;
+      D_forecv = fcv;
+      D_layout = lay;
+    }
+  else
+    {
+      layout_attach = lay;
+    }
   lay->lay_autosave = 1;
 }
 
@@ -370,3 +380,28 @@ char *filename;
   return 1;
 }
 
+void RenameLayout(layout, name)
+struct layout *layout;
+const char *name;
+{
+  free(layout->lay_title);
+  layout->lay_title = SaveStr(name);
+}
+
+int RenumberLayout(layout, number)
+struct layout *layout;
+int number;
+{
+  int old;
+  struct layout *lay;
+  old = layout->lay_number;
+  if (number < 0 || number >= MAXLAY)
+    return 0;
+  lay = laytab[number];
+  laytab[number] = layout;
+  layout->lay_number = number;
+  laytab[old] = lay;
+  if (lay)
+    lay->lay_number = old;
+  return 1;
+}

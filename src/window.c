@@ -642,7 +642,7 @@ struct NewWindow *newwin;
 #ifdef MULTIUSER
   /*
    * This is dangerous: without a display we use creators umask
-   * This is intended to be usefull for detached startup.
+   * This is intended to be useful for detached startup.
    * But is still better than default bits with a NULL user.
    */
   if (NewWindowAcl(p, display ? D_user : users))
@@ -880,6 +880,8 @@ struct win *p;
   lflag = nwin_default.lflag;
   if ((f = OpenDevice(p->w_cmdargs, lflag, &p->w_type, &TtyName)) < 0)
     return -1;
+
+  evdeq(&p->w_destroyev); /* no re-destroy of resurrected zombie */
 
   strncpy(p->w_tty, *TtyName ? TtyName : p->w_title, MAXSTR - 1);
   p->w_ptyfd = f;
