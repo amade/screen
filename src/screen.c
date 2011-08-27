@@ -2689,19 +2689,6 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	  padlen += strlen(colstr);
 	  break;
 	  }
-	case 'B':
-	  *p = 0;
-	  char colstr[128];
-	  if (num && num < 256)
-		sprintf(colstr, "\033[48;5;%dm", num);
-	  else
-		strcpy(colstr, "\033[0m");
-
-	  strcpy(p, colstr);
-	  p += strlen(p) - 1;
-	  padlen += strlen(colstr);
-	  break;
-
 	case '=':
 	case '<':
 	  *p = ' ';
