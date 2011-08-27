@@ -1812,6 +1812,7 @@ Detach(int mode)
       break;
     case D_LOCK:
       ClearAll();
+      ClearScrollbackBuffer();
       sign = SIG_LOCK;
       /* tell attacher to lock terminal with a lockprg. */
       break;
