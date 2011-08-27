@@ -3392,7 +3392,7 @@ RunBlanker(char **cmdv)
 }
 
 
-voif
+void
 ClearScrollbackBuffer()
 {
   if (D_CE3)
