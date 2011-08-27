@@ -842,13 +842,6 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
 	  }
 
       debug2("RecMsg: apid %d is o.k. and we just opened '%s'\n", pid, m->m_tty);
-      if (displays)
-	{
-	  write(i, "Screen session in use.\n", 23);
-	  close(i);
-	  Kill(pid, SIG_BYE);
-	  return -1;
-	}
     }
 
   /* create new display */
