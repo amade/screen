@@ -3407,4 +3407,9 @@ RunBlanker(char **cmdv)
 }
 
 
-
+void
+ClearScrollbackBuffer()
+{
+  if (D_CE3)
+    AddCStr(D_CE3);
+}
