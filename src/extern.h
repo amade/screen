@@ -286,6 +286,7 @@ extern int   color256to88 (int);
 extern void  ResetIdle (void);
 extern void  KillBlanker (void);
 extern void  DisplaySleep1000 (int, int);
+extern void  ClearScrollbackBuffer (void);
 
 /* resize.c */
 extern int   ChangeWindowSize (struct win *, int, int, int);
