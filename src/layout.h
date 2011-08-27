@@ -58,5 +58,8 @@ extern void  UpdateLayoutCanvas (struct canvas *, struct win *);
 extern void RenameLayout (struct layout *, const char *);
 extern int RenumberLayout (struct layout *, int);
 
+extern void RenameLayout (struct layout *, const char *);
+extern int RenumberLayout (struct layout *, int);
+
 #endif /* SCREEN_LAYOUT_H */
 

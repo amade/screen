@@ -735,7 +735,10 @@ RemakeWindow(struct win *p)
   if ((f = OpenDevice(p->w_cmdargs, lflag, &p->w_type, &TtyName)) < 0)
     return -1;
 
-  strncpy(p->w_tty, *TtyName ? TtyName : p->w_title, MAXSTR);
+  evdeq(&p->w_destroyev); /* no re-destroy of resurrected zombie */
+
+  strncpy(p->w_tty, *TtyName ? TtyName : p->w_title, MAXSTR - 1);
+
   p->w_ptyfd = f;
   p->w_readev.fd = f;
   p->w_writeev.fd = f;

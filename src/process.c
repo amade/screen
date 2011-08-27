@@ -2160,6 +2160,7 @@ DoAction(struct action *act, int key)
   char ch;
   struct display *odisplay = display;
   struct acluser *user;
+  struct layout *layout;
 
   user = display ? D_user : users;
   if (nr == RC_ILLEGAL)
@@ -5205,7 +5206,7 @@ DoAction(struct action *act, int key)
                 }
               break;
             }
-	  if (!D_layout)
+          if (!D_layout)
 	    {
 	      OutputMsg(0, "not on a layout");
 	      break;
