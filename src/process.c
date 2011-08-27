@@ -2160,7 +2160,6 @@ DoAction(struct action *act, int key)
   char ch;
   struct display *odisplay = display;
   struct acluser *user;
-  struct layout *layout;
 
   user = display ? D_user : users;
   if (nr == RC_ILLEGAL)
