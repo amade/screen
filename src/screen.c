@@ -2332,7 +2332,6 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
   int truncper = 0;
   int trunclong = 0;
   struct backtick *bt = NULL;
-  int ecma_esc = 0; /* flag whether in ecma esc sequence for backtick */
  
   if (winmsg_numrend >= 0)
     winmsg_numrend = 0;
@@ -2367,18 +2366,6 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 		  break;
 		}
 	    }
-      /* These 3 conditionals handle non-printing characters when
-       * backtick commands use ecma 48 escape sequences... at least the color
-       * codes */
-      if (*s == '\033')
-	ecma_esc = 1;
-
-      if (ecma_esc)
-	p--;
-
-      if (ecma_esc && *s == 'm')
-	ecma_esc = 0;
-
 	  continue;
 	}
       if (*++s == esc)	/* double escape ? */
