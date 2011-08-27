@@ -2801,6 +2801,14 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	      numpad++;
 	    }
 	  break;
+        case 'x':
+          *p = 0;
+          if (!win)
+            sprintf(p, "--x--");
+          else
+            sprintf(p, "%dx%d", win->w_width, win->w_height);
+          p += strlen(p) - 1;
+          break;
 	case 'n':
 	  s++;
 	  /* FALLTHROUGH */
