@@ -2547,7 +2547,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	      if (!tick || oldtick < tick)
 		tick = oldtick;
 	      if ((int)strlen(winmsg_buf) < l)
-		strncat(savebuf, winmsg_buf, sizeof(winmsg_buf));
+		strncat(savebuf, winmsg_buf, sizeof(savebuf) - strlen(savebuf));
 	      strncpy(winmsg_buf, savebuf, sizeof(winmsg_buf));
 	      while (oldnumrend < winmsg_numrend)
 		winmsg_rendpos[oldnumrend++] += p - winmsg_buf;
