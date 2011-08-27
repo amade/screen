@@ -10,16 +10,6 @@
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  * Copyright (c) 1987 Oliver Laumann
-#ifdef HAVE_BRAILLE
- * Modified by:
- *      Authors:  Hadi Bargi Rangin  bargi@dots.physics.orst.edu
- *                Bill Barry         barryb@dots.physics.orst.edu
- *                Randy Lundquist    randyl@dots.physics.orst.edu
- *
- * Modifications Copyright (c) 1995 by
- * Science Access Project, Oregon State University.
-#endif
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
@@ -79,17 +69,14 @@
 #if (defined(AUX) || defined(_AUX_SOURCE)) && defined(POSIX)
 # include <compat.h>
 #endif
-#if defined(USE_LOCALE) || defined(ENCODINGS)
+#if defined(USE_LOCALE)
 # include <locale.h>
 #endif
-#if defined(HAVE_NL_LANGINFO) && defined(ENCODINGS)
+#if defined(HAVE_NL_LANGINFO)
 # include <langinfo.h>
 #endif
 
 #include "screen.h"
-#ifdef HAVE_BRAILLE
-# include "braille.h"
-#endif
 
 #include "patchlevel.h"
 
@@ -98,9 +85,7 @@
  *  builtin lock is used. Therefore disable SHADOWPW if
  *  we do not really need it (kind of security thing).
  */
-#ifndef LOCK
-# undef SHADOWPW
-#endif
+#undef SHADOWPW
 
 #include <pwd.h>
 #ifdef SHADOWPW
@@ -114,54 +99,33 @@ FILE *dfp;
 #endif
 
 
-extern char Term[], screenterm[], **environ, Termcap[];
 int force_vt = 1;
 int VBellWait, MsgWait, MsgMinWait, SilenceWait;
-
-extern struct acluser *users;
-extern struct display *displays, *display; 
-
-extern struct LayFuncs MarkLf;
-
-
-extern int visual_bell;
-#ifdef COPY_PASTE
-extern unsigned char mark_key_tab[];
-#endif
-extern char version[];
-extern char DefaultShell[];
-#ifdef ZMODEM
-extern char *zmodem_sendcmd;
-extern char *zmodem_recvcmd;
-#endif
-extern struct layout *layout_last;
-
 
 char *ShellProg;
 char *ShellArgs[2];
 
-extern struct NewWindow nwin_undef, nwin_default, nwin_options;
 struct backtick;
 
-static struct passwd *getpwbyname __P((char *, struct passwd *));
-static void  SigChldHandler __P((void));
-static sigret_t SigChld __P(SIGPROTOARG);
-static sigret_t SigInt __P(SIGPROTOARG);
-static sigret_t CoreDump __P(SIGPROTOARG);
-static sigret_t FinitHandler __P(SIGPROTOARG);
-static void  DoWait __P((void));
-static void  serv_read_fn __P((struct event *, char *));
-static void  serv_select_fn __P((struct event *, char *));
-static void  logflush_fn __P((struct event *, char *));
-static void  backtick_filter __P((struct backtick *));
-static void  backtick_fn __P((struct event *, char *));
-static char *runbacktick __P((struct backtick *, int *, time_t));
-static int   IsSymbol __P((char *, char *));
-static char *ParseChar __P((char *, char *));
-static int   ParseEscape __P((char *));
-static char *pad_expand __P((char *, char *, int, int));
+static struct passwd *getpwbyname (char *, struct passwd *);
+static void  SigChldHandler (void);
+static void  SigChld (int);
+static void  SigInt (int);
+static void  CoreDump (int);
+static void  FinitHandler (int);
+static void  DoWait (void);
+static void  serv_read_fn (struct event *, char *);
+static void  serv_select_fn (struct event *, char *);
+static void  logflush_fn (struct event *, char *);
+static void  backtick_filter (struct backtick *);
+static void  backtick_fn (struct event *, char *);
+static char *runbacktick (struct backtick *, int *, time_t);
+static int   IsSymbol (char *, char *);
+static char *ParseChar (char *, char *);
+static int   ParseEscape (char *);
+static char *pad_expand (char *, char *, int, int);
 #ifdef DEBUG
-static void  fds __P((void));
+static void  fds (void);
 #endif
 
 int nversion;	/* numerical version, used for secondary DA */
@@ -196,12 +160,8 @@ char *hardcopydir = NULL;
 char *BellString;
 char *VisualBellString;
 char *ActivityString;
-#ifdef COPY_PASTE
 char *BufferFile;
-#endif
-#ifdef POW_DETACH
 char *PowDetachString;
-#endif
 char *hstatusstring;
 char *captionstring;
 char *timestring;
@@ -213,7 +173,6 @@ int cmdflag;
 int queryflag = -1;
 int adaptflag;
 
-#ifdef MULTIUSER
 char *multi;
 char *multi_home;
 int multi_uid;
@@ -221,7 +180,6 @@ int own_uid;
 int multiattach;
 int tty_mode;
 int tty_oldmode = -1;
-#endif
 
 char HostName[MAXSTR];
 int MasterPid, PanicPid;
@@ -230,13 +188,9 @@ int default_startup;
 int ZombieKey_destroy, ZombieKey_resurrect, ZombieKey_onerror;
 char *preselect = NULL;		/* only used in Attach() */
 
-#ifdef UTF8
 char *screenencodings;
-#endif
 
-#ifdef DW_CHARS
 int cjkwidth;
-#endif
 
 #ifdef NETHACK
 int nethackflag = 0;
@@ -263,10 +217,7 @@ static int InterruptPlease;
 static int GotSigChld;
 
 static int 
-lf_secreopen(name, wantfd, l)
-char *name;
-int wantfd;
-struct logfile *l;
+lf_secreopen(char *name, int wantfd, struct logfile *l)
 {
   int got_fd;
 
@@ -289,9 +240,7 @@ struct logfile *l;
 
 
 static struct passwd *
-getpwbyname(name, ppp)
-char *name;
-struct passwd *ppp;
+getpwbyname(char *name, struct passwd *ppp)
 {
   int n;
 #ifdef SHADOWPW
@@ -363,16 +312,14 @@ locale_name(void)
 }
 
 int
-main(ac, av)
-int ac;
-char **av;
+main(int argc, char **argv)
 {
   register int n;
   char *ap;
   char *av0;
   char socknamebuf[2 * MAXSTR];
   int mflag = 0;
-  char *myname = (ac == 0) ? "screen" : av[0];
+  char *myname = (argc == 0) ? "screen" : argv[0];
   char *SockDir;
   struct stat st;
 #ifdef _MODE_T			/* (jw) */
@@ -385,9 +332,7 @@ char **av;
 #endif
   struct NewWindow nwin;
   int detached = 0;		/* start up detached */
-#ifdef MULTIUSER
   char *sockp;
-#endif
   char *sty = 0;
 
 #if (defined(AUX) || defined(_AUX_SOURCE)) && defined(POSIX)
@@ -413,7 +358,7 @@ char **av;
   snprintf(version, 59, "%d.%.2d.%.2d%s (%s%s) %s", REV, VERS,
 	  PATCHLEVEL, STATE, ORIGIN, GIT_REV, DATE);
   nversion = REV * 10000 + VERS * 100 + PATCHLEVEL;
-  debug2("-- screen debug started %s (%s)\n", *av, version);
+  debug2("-- screen debug started %s (%s)\n", *argv, version);
 #ifdef POSIX
   debug("POSIX\n");
 #endif
@@ -440,9 +385,6 @@ char **av;
 #endif
 #ifdef hpux
   debug("hpux\n");
-#endif
-#ifdef USEBCOPY
-  debug("USEBCOPY\n");
 #endif
 #ifdef UTMPOK
   debug("UTMPOK\n");
@@ -473,64 +415,45 @@ char **av;
   timestring = SaveStr("%c:%s %M %d %H%? %l%?");
   wlisttit = SaveStr(" Num Name%=Flags");
   wliststr = SaveStr("%4n %t%=%f");
-#ifdef COPY_PASTE
   BufferFile = SaveStr(DEFAULT_BUFFERFILE);
-#endif
   ShellProg = NULL;
-#ifdef POW_DETACH
   PowDetachString = 0;
-#endif
-  default_startup = (ac > 1) ? 0 : 1;
+  default_startup = (argc > 1) ? 0 : 1;
   adaptflag = 0;
   VBellWait = VBELLWAIT * 1000;
   MsgWait = MSGWAIT * 1000;
   MsgMinWait = MSGMINWAIT * 1000;
   SilenceWait = SILENCEWAIT;
-#ifdef HAVE_BRAILLE
-  InitBraille();
-#endif
-#ifdef ZMODEM
   zmodem_sendcmd = SaveStr("!!! sz -vv -b ");
   zmodem_recvcmd = SaveStr("!!! rz -vv -b -E");
-#endif
 
-#ifdef COPY_PASTE
   CompileKeys((char *)0, 0, mark_key_tab);
-#endif
-#ifdef UTF8
   InitBuiltinTabs();
   screenencodings = SaveStr(SCREENENCODINGS);
-#endif
-#ifdef DW_CHARS
   cjkwidth = 0;
-#endif
   nwin = nwin_undef;
   nwin_options = nwin_undef;
-  strcpy(screenterm, "screen");
+  strncpy(screenterm, "screen", 20);
 
   logreopen_register(lf_secreopen);
 
-  av0 = *av;
+  av0 = *argv;
   /* if this is a login screen, assume -RR */
   if (*av0 == '-')
     {
       rflag = 4;
-#ifdef MULTI
       xflag = 1;
-#else
-      dflag = 1;
-#endif
       ShellProg = SaveStr(DefaultShell); /* to prevent nasty circles */
     }
-  while (ac > 0)
+  while (argc > 0)
     {
-      ap = *++av;
-      if (--ac > 0 && *ap == '-')
+      ap = *++argv;
+      if (--argc > 0 && *ap == '-')
 	{
 	  if (ap[1] == '-' && ap[2] == 0)
 	    {
-	      av++;
-	      ac--;
+	      argv++;
+	      argc--;
 	      break;
 	    }
 	  if (ap[1] == '-' && !strcmp(ap, "--version"))
@@ -552,34 +475,29 @@ char **av;
 		    preselect = ap;
 		  else
 		    {
-		      if (!--ac)
+		      if (!--argc)
 			exit_with_usage(myname, "Specify a window to preselect with -p", NULL);
-		      preselect = *++av;
+		      preselect = *++argv;
 		    }
 		  ap = NULL;
 		  break;
-#ifdef HAVE_BRAILLE
-		case 'B':
-		  bd.bd_start_braille = 1;
-		  break;
-#endif
 		case 'c':
 		  if (*++ap)
 		    RcFileName = ap;
 		  else
 		    {
-		      if (--ac == 0)
+		      if (--argc == 0)
 			exit_with_usage(myname, "Specify an alternate rc-filename with -c", NULL);
-		      RcFileName = *++av;
+		      RcFileName = *++argv;
 		    }
 		  ap = NULL;
 		  break;
 		case 'e':
 		  if (!*++ap)
 		    {
-		      if (--ac == 0)
+		      if (--argc == 0)
 			exit_with_usage(myname, "Specify command characters with -e", NULL);
-		      ap = *++av;
+		      ap = *++argv;
 		    }
 		  if (ParseEscape(ap))
 		    Panic(0, "Two characters are required with -e option, not '%s'.", ap);
@@ -608,19 +526,19 @@ char **av;
 		    }
 		  break;
 		case 'h':
-		  if (--ac == 0)
+		  if (--argc == 0)
 		    exit_with_usage(myname, NULL, NULL);
-		  nwin_options.histheight = atoi(*++av);
+		  nwin_options.histheight = atoi(*++argv);
 		  if (nwin_options.histheight < 0)
-		    exit_with_usage(myname, "-h: %s: negative scrollback size?", *av);
+		    exit_with_usage(myname, "-h: %s: negative scrollback size?", *argv);
 		  break;
 		case 'i':
 		  iflag = 1;
 		  break;
 		case 't': /* title, the former AkA == -k */
-		  if (--ac == 0)
+		  if (--argc == 0)
 		    exit_with_usage(myname, "Specify a new window-name with -t", NULL);
-		  nwin_options.aka = *++av;
+		  nwin_options.aka = *++argv;
 		  break;
 		case 'l':
 		  ap++;
@@ -643,10 +561,10 @@ char **av;
 		    case 's':	/* -ls */
 		    case 'i':	/* -list */
 		      lsflag = 1;
-		      if (ac > 1 && !SockMatch)
+		      if (argc > 1 && !SockMatch)
 			{
-			  SockMatch = *++av;
-			  ac--;
+			  SockMatch = *++argv;
+			  argc--;
 			}
 		      ap = NULL;
 		      break;
@@ -657,10 +575,10 @@ char **av;
 		case 'w':
 		  lsflag = 1;
 		  wipeflag = 1;
-		  if (ac > 1 && !SockMatch)
+		  if (argc > 1 && !SockMatch)
 		    {
-		      SockMatch = *++av;
-		      ac--;
+		      SockMatch = *++argv;
+		      argc--;
 		    }
 		  break;
 		case 'L':
@@ -673,12 +591,12 @@ char **av;
 		  force_vt = 0;
 		  break;
 		case 'T':
-		  if (--ac == 0)
+		  if (--argc == 0)
 		    exit_with_usage(myname, "Specify terminal-type with -T", NULL);
-		  if (strlen(*++av) < 20)
-		    strcpy(screenterm, *av);
+		  if (strlen(*++argv) < NAME_MAX)
+		    strncpy(screenterm, *argv, NAME_MAX);
 		  else
-		    Panic(0, "-T: terminal name too long. (max. 20 char)");
+		    Panic(0, "-T: terminal name too long. (max. %d char)", NAME_MAX);
 		  nwin_options.term = screenterm;
 		  break;
 		case 'q':
@@ -690,55 +608,49 @@ char **av;
 		  break;
 		case 'r':
 		case 'R':
-#ifdef MULTI
 		case 'x':
-#endif
-		  if (ac > 1 && *av[1] != '-' && !SockMatch)
+		  if (argc > 1 && *argv[1] != '-' && !SockMatch)
 		    {
-		      SockMatch = *++av;
-		      ac--;
+		      SockMatch = *++argv;
+		      argc--;
 		      debug2("rflag=%d, SockMatch=%s\n", dflag, SockMatch);
 		    }
-#ifdef MULTI
 		  if (*ap == 'x')
 		    xflag = 1;
-#endif
 		  if (rflag)
 		    rflag = 2;
 		  rflag += (*ap == 'R') ? 2 : 1;
 		  break;
-#ifdef REMOTE_DETACH
 		case 'd':
 		  dflag = 1;
 		  /* FALLTHROUGH */
 		case 'D':
 		  if (!dflag)
 		    dflag = 2;
-		  if (ac == 2)
+		  if (argc == 2)
 		    {
-		      if (*av[1] != '-' && !SockMatch)
+		      if (*argv[1] != '-' && !SockMatch)
 			{
-			  SockMatch = *++av;
-			  ac--;
+			  SockMatch = *++argv;
+			  argc--;
 			  debug2("dflag=%d, SockMatch=%s\n", dflag, SockMatch);
 			}
 		    }
 		  break;
-#endif
 		case 's':
-		  if (--ac == 0)
+		  if (--argc == 0)
 		    exit_with_usage(myname, "Specify shell with -s", NULL);
 		  if (ShellProg)
 		    free(ShellProg);
-		  ShellProg = SaveStr(*++av);
+		  ShellProg = SaveStr(*++argv);
 		  debug1("ShellProg: '%s'\n", ShellProg);
 		  break;
 		case 'S':
 		  if (!SockMatch)
 		    {
-		      if (--ac == 0)
+		      if (--argc == 0)
 			exit_with_usage(myname, "Specify session-name with -S", NULL);
-		      SockMatch = *++av;
+		      SockMatch = *++argv;
 		    }
 		  if (!*SockMatch)
 		    exit_with_usage(myname, "Empty session-name?", NULL);
@@ -749,11 +661,9 @@ char **av;
 		case 'v':
 		  Panic(0, "Screen version %s", version);
 		  /* NOTREACHED */
-#ifdef UTF8
 		case 'U':
 		  nwin_options.encoding = nwin_options.encoding == -1 ? UTF8 : 0;
 		  break;
-#endif
 		default:
 		  exit_with_usage(myname, "Unknown option %s", --ap);
 		}
@@ -777,7 +687,6 @@ char **av;
 #ifdef USE_LOCALE
   setlocale(LC_ALL, "");
 #endif
-#ifdef ENCODINGS
   if (nwin_options.encoding == -1)
     {
       /* ask locale if we should start in UTF-8 mode */
@@ -788,15 +697,12 @@ char **av;
       nwin_options.encoding = FindEncoding(nl_langinfo(CODESET));
       debug1("locale says encoding = %d\n", nwin_options.encoding);
 # else
-#  ifdef UTF8
       char *s;
       if ((s = locale_name()) && InStr(s, "UTF-8"))
         nwin_options.encoding = UTF8;
-#  endif
       debug1("environment says encoding=%d\n", nwin_options.encoding);
 #endif
     }
-# ifdef DW_CHARS
   {
     char *s;
     if ((s = locale_name()))
@@ -807,11 +713,8 @@ char **av;
       }
     }
   }
-#endif
-#endif
   if (nwin_options.aka)
     {
-#ifdef ENCODINGS
       if (nwin_options.encoding > 0)
         {
           size_t len = strlen(nwin_options.aka);
@@ -819,13 +722,12 @@ char **av;
           char *newbuf = malloc(3 * len);
           if (!newbuf)
             Panic(0, "%s", strnomem);
-          newsz = RecodeBuf(nwin_options.aka, len,
-                            nwin_options.encoding, 0, newbuf);
+          newsz = RecodeBuf((unsigned char *)nwin_options.aka, len,
+                            nwin_options.encoding, 0, (unsigned char *)newbuf);
           newbuf[newsz] = '\0';
           nwin_options.aka = newbuf;
         }
       else
-#endif
         {
           /* If we just use the original value from av,
              subsequent shelltitle invocations will attempt to free
@@ -841,11 +743,9 @@ char **av;
   if (!cmdflag && dflag && mflag && !(rflag || xflag))
     detached = 1;
   nwin = nwin_options;
-#ifdef ENCODINGS
   nwin.encoding = nwin_undef.encoding;	/* let screenrc overwrite it */
-#endif
-  if (ac)
-    nwin.args = av;
+  if (argc)
+    nwin.args = argv;
 
   /* make the write() calls return -1 on all errors */
 #ifdef SIGXFSZ
@@ -894,9 +794,8 @@ char **av;
     }
 #endif
 
-#ifdef MULTIUSER
   own_uid = multi_uid = real_uid;
-  if (SockMatch && (sockp = index(SockMatch, '/')))
+  if (SockMatch && (sockp = strchr(SockMatch, '/')))
     {
       *sockp = 0;
       multi = SockMatch;
@@ -910,11 +809,9 @@ char **av;
 	  multi_home = SaveStr(mppp->pw_dir);
           if (strlen(multi_home) > MAXPATHLEN - 10)
 	    Panic(0, "home directory path too long");
-# ifdef MULTI
           /* always fake multi attach mode */
 	  if (rflag || lsflag)
 	    xflag = 1;
-# endif /* MULTI */
 	  detached = 0;
 	  multiattach = 1;
 	}
@@ -924,7 +821,6 @@ char **av;
     }
   if (SockMatch && *SockMatch == 0)
     SockMatch = 0;
-#endif /* MULTIUSER */
 
   if ((LoginName = getlogin()) && LoginName[0] != '\0')
     {
@@ -945,7 +841,7 @@ char **av;
 
   ppp = getpwbyname(LoginName, ppp);
 
-#if !defined(SOCKDIR) && defined(MULTIUSER)
+#if !defined(SOCKDIR)
   if (multi && !multiattach)
     {
       if (home && strcmp(home, ppp->pw_dir))
@@ -953,15 +849,15 @@ char **av;
     }
 #endif
 
-#define SET_GUID() do \
+#define SET_GUID() \
   { \
     setgid(real_gid); \
     setuid(real_uid); \
     eff_uid = real_uid; \
     eff_gid = real_gid; \
-  } while (0)
+  }
 
-#define SET_TTYNAME(fatal) do \
+#define SET_TTYNAME(fatal) \
   { \
     if (!(attach_tty = ttyname(0))) \
       { \
@@ -970,21 +866,24 @@ char **av;
 	else \
 	  attach_tty = ""; \
       } \
-    else if (stat(attach_tty, &st)) \
-      Panic(errno, "Cannot access '%s'", attach_tty); \
+    else \
+      { \
+	if (stat(attach_tty, &st)) \
+	  Panic(errno, "Cannot access '%s'", attach_tty); \
+	if (CheckTtyname(attach_tty)) \
+	  Panic(0, "Bad tty '%s'", attach_tty); \
+      } \
     if (strlen(attach_tty) >= MAXPATHLEN) \
       Panic(0, "TtyName too long - sorry."); \
-  } while (0)
+  }
 
   if (home == 0 || *home == '\0')
     home = ppp->pw_dir;
-  if (strlen(LoginName) > 20)
+  if (strlen(LoginName) > NAME_MAX)
     Panic(0, "LoginName too long - sorry.");
-#ifdef MULTIUSER
-  if (multi && strlen(multi) > 20)
+  if (multi && strlen(multi) > NAME_MAX)
     Panic(0, "Screen owner name too long - sorry.");
-#endif
-  if (strlen(home) > MAXPATHLEN - 25)
+  if (strlen(home) > MAXPATHLEN - NAME_MAX)
     Panic(0, "$HOME too long - sorry.");
 
   attach_tty = "";
@@ -996,9 +895,7 @@ char **av;
 
       /* ttyname implies isatty */
       SET_TTYNAME(1);
-#ifdef MULTIUSER
       tty_mode = (int)st.st_mode & 0777;
-#endif
 
 #ifndef NAMEDPIPE
       fl = fcntl(0, F_GETFL, 0);
@@ -1034,12 +931,9 @@ char **av;
     {
       if (strlen(SockDir) >= MAXPATHLEN - 1)
 	Panic(0, "Ridiculously long $SCREENDIR - try again.");
-#ifdef MULTIUSER
       if (multi)
 	Panic(0, "No $SCREENDIR with multi screens, please.");
-#endif
     }
-#ifdef MULTIUSER
   if (multiattach)
     {
 # ifndef SOCKDIR
@@ -1051,7 +945,6 @@ char **av;
 # endif
     }
   else
-#endif
     {
 #ifndef SOCKDIR
       if (SockDir == 0)
@@ -1121,21 +1014,19 @@ char **av;
   else
   if (!S_ISDIR(st.st_mode))
     Panic(0, "%s is not a directory.", SockPath);
-#ifdef MULTIUSER
   if (multi)
     {
       if ((int)st.st_uid != multi_uid)
 	Panic(0, "%s is not the owner of %s.", multi, SockPath);
     }
   else
-#endif
     {
       if ((int)st.st_uid != real_uid)
 	Panic(0, "You are not the owner of %s.", SockPath);
     }
   if ((st.st_mode & 0777) != 0700)
     Panic(0, "Directory %s must have mode 700.", SockPath);
-  if (SockMatch && index(SockMatch, '/'))
+  if (SockMatch && strchr(SockMatch, '/'))
     Panic(0, "Bad session name '%s'", SockMatch);
   SockName = SockPath + strlen(SockPath) + 1;
   *SockName = 0;
@@ -1146,22 +1037,19 @@ char **av;
   if (uname(&utsnam) == -1)
     Panic(errno, "uname");
   strncpy(HostName, utsnam.nodename, sizeof(utsnam.nodename) < MAXSTR ? sizeof(utsnam.nodename) : MAXSTR - 1);
-  HostName[sizeof(utsnam.nodename) < MAXSTR ? sizeof(utsnam.nodename) : MAXSTR - 1] = '\0';
 #else
   (void) gethostname(HostName, MAXSTR);
   HostName[MAXSTR - 1] = '\0';
 #endif
-  if ((ap = index(HostName, '.')) != NULL)
+  if ((ap = strchr(HostName, '.')) != NULL)
     *ap = '\0';
 
   if (lsflag)
     {
       int i, fo, oth;
 
-#ifdef MULTIUSER
       if (multi)
 	real_uid = multi_uid;
-#endif
       SET_GUID();
       i = FindSocket((int *)NULL, &fo, &oth, SockMatch);
       if (quietflag)
@@ -1176,10 +1064,10 @@ char **av;
     {
       /* attach_tty is not mandatory */
       SET_TTYNAME(0);
-      if (!*av)
+      if (!*argv)
 	Panic(0, "Please specify a command.");
       SET_GUID();
-      SendCmdMessage(sty, SockMatch, av, queryflag >= 0);
+      SendCmdMessage(sty, SockMatch, argv, queryflag >= 0);
       exit(0);
     }
   else if (rflag || xflag)
@@ -1190,10 +1078,8 @@ char **av;
 	  Attacher();
 	  /* NOTREACHED */
 	}
-#ifdef MULTIUSER
       if (multiattach)
 	Panic(0, "Can't create sessions of other users.");
-#endif
       debug("screen -r: backend not responding -- still crying\n");
     }
   else if (dflag && !mflag)
@@ -1209,7 +1095,7 @@ char **av;
       /* attach_tty is not mandatory */
       SET_TTYNAME(0);
       SET_GUID();
-      nwin_options.args = av;
+      nwin_options.args = argv;
       SendCreateMsg(sty, &nwin);
       exit(0);
       /* NOTREACHED */
@@ -1238,10 +1124,8 @@ char **av;
       for (ap = socknamebuf; *ap; ap++)
 	if (*ap == '/')
 	  *ap = '-';
-#ifdef NAME_MAX
       if (strlen(socknamebuf) > NAME_MAX)
         socknamebuf[NAME_MAX] = 0;
-#endif
       sprintf(SockPath + strlen(SockPath), "/%s", socknamebuf);
       SET_GUID();
       Attacher();
@@ -1286,7 +1170,7 @@ char **av;
     {
       if (attach_fd == -1)
 	{
-	  if ((n = secopen(attach_tty, O_RDWR, 0)) < 0)
+	  if ((n = secopen(attach_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
 	    Panic(0, "Cannot reopen '%s' - please check.", attach_tty);
 	}
       else
@@ -1315,10 +1199,8 @@ char **av;
       if (MakeDisplay(LoginName, attach_tty, attach_term, n, getppid(), &attach_Mode) == 0)
 	Panic(0, "Could not alloc display");
       PanicPid = 0;
-#ifdef ENCODINGS
       D_encoding = nwin_options.encoding > 0 ? nwin_options.encoding : 0;
       debug1("D_encoding = %d\n", D_encoding);
-#endif
     }
 
   if (SockMatch)
@@ -1420,25 +1302,22 @@ char **av;
       if (MakeWindow(&nwin) == -1)
 	{
 	  fd_set rfd;
+	  FD_ZERO(&rfd);
 	  struct timeval tv = { MsgWait/1000, 1000*(MsgWait%1000) };
 	  FD_SET(0, &rfd);
 
 	  Msg(0, "Sorry, could not find a PTY or TTY.");
-	  // allow user to exit early by pressing any key.
+	  /* allow user to exit early by pressing any key. */
 	  select(1, &rfd, NULL, NULL, &tv);
 	  Finit(0);
 	  /* NOTREACHED */
 	}
     }
-  else if (ac) /* Screen was invoked with a command */
+  else if (argc) /* Screen was invoked with a command */
     {
       MakeWindow(&nwin);
     }
 
-#ifdef HAVE_BRAILLE
-  StartBraille();
-#endif
-  
   if (display && default_startup)
     display_copyright();
   signal(SIGINT, SigInt);
@@ -1466,15 +1345,13 @@ char **av;
   return 0;
 }
 
-void
-WindowDied(p, wstat, wstat_valid)
-struct win *p;
 #ifdef BSDWAIT
-  union wait wstat;
+void
+WindowDied(struct win *p, union wait wstat, int wstat_valid)
 #else
-  int wstat;
+void
+WindowDied(struct win *p, int wstat, int wstat_valid)
 #endif
-int wstat_valid;
 {
   int killit = 0;
 
@@ -1584,21 +1461,21 @@ SigChldHandler()
     debug2("SigChldHandler: stat '%s' o.k. (%03o)\n", SockPath, (int)st.st_mode);
 }
 
-static sigret_t
-SigChld SIGDEFARG
+static void
+SigChld (int sigsig)
 {
   debug("SigChld()\n");
   GotSigChld = 1;
-  SIGRETURN;
+  return;
 }
 
-sigret_t
-SigHup SIGDEFARG
+void
+SigHup (int sigsig)
 {
   /* Hangup all displays */
   while ((display = displays) != 0)
     Hangup();
-  SIGRETURN;
+  return;
 }
 
 /* 
@@ -1606,33 +1483,17 @@ SigHup SIGDEFARG
  * we cannot insert the intrc directly, as we never know
  * if fore is valid.
  */
-static sigret_t
-SigInt SIGDEFARG
+static void
+SigInt (int sigsig)
 {
-#if HAZARDOUS
-  char ibuf;
-
-  debug("SigInt()\n");
-  if (fore && displays)
-    {
-# if defined(TERMIO) || defined(POSIX)
-      ibuf = displays->d_OldMode.tio.c_cc[VINTR];
-# else
-      ibuf = displays->d_OldMode.m_tchars.t_intrc;
-# endif
-      fore->w_inlen = 0;
-      write(fore->w_ptyfd, &ibuf, 1);
-    }
-#else
   signal(SIGINT, SigInt);
   debug("SigInt() careful\n");
   InterruptPlease = 1;
-#endif
-  SIGRETURN;
+  return;
 }
 
-static sigret_t
-CoreDump SIGDEFARG
+static void
+CoreDump (int sigsig)
 {
   /* if running with s-bit, we must reset the s-bit, so that we get a
    * core file anyway.
@@ -1643,7 +1504,7 @@ CoreDump SIGDEFARG
 
   char *dump_msg = " (core dumped)";
 
-  int running_w_s_bit = getuid() != geteuid();
+  int running_w_s_bit = (getuid() != geteuid());
 #if defined(SHADOWPW) && !defined(DEBUG) && !defined(DUMPSHADOW)
   if (running_w_s_bit)
     dump_msg = "";
@@ -1683,7 +1544,7 @@ CoreDump SIGDEFARG
     }
   else
     abort();
-  SIGRETURN;
+  return;
 }
 
 static void
@@ -1767,14 +1628,12 @@ DoWait()
 		}
 	      break;
 	    }
-#ifdef PSEUDOS
 	  if (p->w_pwin && pid == p->w_pwin->p_pid)
 	    {
 	      debug2("pseudo of win Nr %d died. pid == %d\n", p->w_number, p->w_pwin->p_pid);
 	      FreePseudowin(p);
 	      break;
 	    }
-#endif
 	}
       if (p == 0)
 	{
@@ -1784,8 +1643,8 @@ DoWait()
 }
 
 
-static sigret_t
-FinitHandler SIGDEFARG
+static void
+FinitHandler (int sigsig)
 {
 #ifdef SIGHASARG
   debug1("FinitHandler called, sig %d.\n", sigsig);
@@ -1793,12 +1652,11 @@ FinitHandler SIGDEFARG
   debug("FinitHandler called.\n");
 #endif
   Finit(1);
-  SIGRETURN;
+  return;
 }
 
 void
-Finit(i)
-int i;
+Finit(int i)
 {
   signal(SIGCHLD, SIG_DFL);
   signal(SIGHUP, SIG_IGN);
@@ -1845,8 +1703,7 @@ int i;
 }
 
 void
-eexit(e)
-int e;
+eexit(int e)
 {
   debug("eexit\n");
   if (ServerSocket != -1)
@@ -1890,8 +1747,7 @@ Hangup()
  * Note: Take extra care here, we may be called by interrupt!
  */
 void
-Detach(mode)
-int mode;
+Detach(int mode)
 {
   int sign = 0, pid;
   struct canvas *cv;
@@ -1900,7 +1756,7 @@ int mode;
   if (display == 0)
     return;
 
-#define AddStrSock(msg) do { \
+#define AddStrSock(msg) { \
     if (SockName) \
       { \
 	AddStr("[" msg " from "); \
@@ -1909,7 +1765,7 @@ int mode;
       } \
     else \
       AddStr("[" msg "]\r\n"); \
-  } while (0)
+  }
 
   signal(SIGHUP, SIG_IGN);
   debug1("Detach(%d)\n", mode);
@@ -1932,13 +1788,10 @@ int mode;
       sign = SIG_STOP;
       break;
 #endif
-#ifdef REMOTE_DETACH
     case D_REMOTE:
       AddStrSock("remote detached");
       sign = SIG_BYE;
       break;
-#endif
-#ifdef POW_DETACH
     case D_POWER:
       AddStrSock("power detached");
       if (PowDetachString)
@@ -1948,7 +1801,6 @@ int mode;
 	}
       sign = SIG_POWER_BYE;
       break;
-#ifdef REMOTE_DETACH
     case D_REMOTE_POWER:
       AddStrSock("remote power detached");
       if (PowDetachString)
@@ -1958,10 +1810,9 @@ int mode;
 	}
       sign = SIG_POWER_BYE;
       break;
-#endif
-#endif
     case D_LOCK:
       ClearAll();
+      ClearScrollbackBuffer();
       sign = SIG_LOCK;
       /* tell attacher to lock terminal with a lockprg. */
       break;
@@ -1996,9 +1847,7 @@ int mode;
     }
   if (D_fore)
     {
-#ifdef MULTIUSER
       ReleaseAutoWritelock(display, D_fore);
-#endif
       D_user->u_detachwin = D_fore->w_number;
       D_user->u_detachotherwin = D_other ? D_other->w_number : -1;
     }
@@ -2031,8 +1880,7 @@ int mode;
 }
 
 static int
-IsSymbol(e, s)
-char *e, *s;
+IsSymbol(char *e, char *s)
 {
   register int l;
 
@@ -2075,16 +1923,7 @@ MakeNewEnv()
   *np = 0;
 }
 
-#if defined(USEVARARGS) && defined(__STDC__)
-  #define DEFINE_VARARGS_FN(fnname)	void fnname (int err, const char *fmt, VA_DOTS)
-#else
-  #define DEFINE_VARARGS_FN(fnname)	void fnname(err, fmt, VA_DOTS) \
-  int err;	\
-  const char *fmt;	\
-  VA_DECL
-#endif
-
-#define	PROCESS_MESSAGE(B) do { \
+#define	PROCESS_MESSAGE(B) { \
     char *p = B;	\
     VA_LIST(ap)	\
     VA_START(ap, fmt);	\
@@ -2099,9 +1938,9 @@ MakeNewEnv()
 	strncpy(p, strerror(err), B + sizeof(B) - p - 1);	\
 	B[sizeof(B) - 1] = 0;	\
       }	\
-  } while (0)
+  }
 
-DEFINE_VARARGS_FN(Msg)
+void Msg(int err, const char *fmt, VA_DOTS)
 {
   char buf[MAXPATHLEN*2];
   PROCESS_MESSAGE(buf);
@@ -2136,7 +1975,8 @@ DEFINE_VARARGS_FN(Msg)
 /*
  * Call FinitTerm for all displays, write a message to each and call eexit();
  */
-DEFINE_VARARGS_FN(Panic)
+void Panic(int err, const char *fmt, VA_DOTS)
+
 {
   char buf[MAXPATHLEN*2];
   PROCESS_MESSAGE(buf);
@@ -2177,7 +2017,6 @@ DEFINE_VARARGS_FN(Panic)
 	if (D_userpid)
 	  Kill(D_userpid, SIG_BYE);
       }
-#ifdef MULTIUSER
   if (tty_oldmode >= 0)
     {
 # ifdef USE_SETEUID
@@ -2189,11 +2028,10 @@ DEFINE_VARARGS_FN(Panic)
       debug1("Panic: changing back modes from %s\n", attach_tty);
       chmod(attach_tty, tty_oldmode);
     }
-#endif
   eexit(1);
 }
 
-DEFINE_VARARGS_FN(QueryMsg)
+void QueryMsg(int err, const char *fmt, VA_DOTS)
 {
   char buf[MAXPATHLEN*2];
 
@@ -2204,11 +2042,10 @@ DEFINE_VARARGS_FN(QueryMsg)
   write(queryflag, buf, strlen(buf));
 }
 
-DEFINE_VARARGS_FN(Dummy)
+void Dummy (int err, const char *fmt, VA_DOTS)
 {}
 
 #undef PROCESS_MESSAGE
-#undef DEFINE_VARARGS_FN
 
 /*
  * '^' is allowed as an escape mechanism for control characters. jw.
@@ -2230,11 +2067,7 @@ static int winmsg_rendpos[MAX_WINMSG_REND];
 static int winmsg_numrend;
 
 static char *
-pad_expand(buf, p, numpad, padlen)
-char *buf;
-char *p;
-int numpad;
-int padlen;
+pad_expand(char *buf, char *p, int numpad, int padlen)
 {
   char *pn, *pn2;
   int i, r;
@@ -2283,8 +2116,7 @@ struct backtick {
 struct backtick *backticks;
 
 static void
-backtick_filter(bt)
-struct backtick *bt;
+backtick_filter(struct backtick *bt)
 {
   char *p, *q;
   int c;
@@ -2300,9 +2132,7 @@ struct backtick *bt;
 }
 
 static void
-backtick_fn(ev, data)
-struct event *ev;
-char *data;
+backtick_fn(struct event *ev, char *data)
 {
   struct backtick *bt;
   int i, j, k, l;
@@ -2330,7 +2160,7 @@ char *data;
 	if (bt->buf[k] == '\n')
 	  break;
       k++;
-      bcopy(bt->buf + k, bt->result, i - j - k);
+      memmove(bt->result, bt->buf + k, i - j - k);
       bt->result[i - j - k - 1] = 0;
       backtick_filter(bt);
       WindowChanged(0, '`');
@@ -2343,18 +2173,14 @@ char *data;
   if (j < l)
     {
       if (j)
-        bcopy(bt->buf + i - j, bt->buf, j);
+        memmove(bt->buf, bt->buf + i - j, j);
       i = j;
     }
   bt->bufi = i;
 }
 
 void
-setbacktick(num, lifespan, tick, cmdv)
-int num;
-int lifespan;
-int tick;
-char **cmdv;
+setbacktick(int num, int lifespan, int tick, char **cmdv)
 {
   struct backtick **btp, *bt;
   char **v;
@@ -2390,7 +2216,7 @@ char **cmdv;
 	  Msg(0, "%s", strnomem);
           return;
 	}
-      bzero(bt, sizeof(*bt));
+      memset(bt, 0, sizeof(*bt));
       bt->next = 0;
       *btp = bt;
     }
@@ -2423,10 +2249,7 @@ char **cmdv;
 }
 
 static char *
-runbacktick(bt, tickp, now)
-struct backtick *bt;
-int *tickp;
-time_t now;
+runbacktick(struct backtick *bt, int *tickp, time_t now)
 {
   int f, i, l, j;
   time_t now2;
@@ -2457,7 +2280,7 @@ time_t now;
 	}
       if (j < l)
 	{
-	  bcopy(bt->result + i - j, bt->result, j);
+	  memmove(bt->result, bt->result + i - j, j);
 	  i = j;
 	}
     }
@@ -2474,9 +2297,7 @@ time_t now;
 }
 
 int
-AddWinMsgRend(str, r)
-const char *str;
-int r;
+AddWinMsgRend(const char *str, int r)
 {
   if (winmsg_numrend >= MAX_WINMSG_REND || str < winmsg_buf ||
       str >= winmsg_buf + MAXSTR)
@@ -2490,13 +2311,7 @@ int r;
 }
 
 char *
-MakeWinMsgEv(str, win, esc, padlen, ev, rec)
-char *str;
-struct win *win;
-int esc;
-int padlen;
-struct event *ev;
-int rec;
+MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, int rec)
 {
   static int tick;
   char *s = str;
@@ -2517,7 +2332,7 @@ int rec;
   int truncpos = -1;
   int truncper = 0;
   int trunclong = 0;
-  struct backtick *bt;
+  struct backtick *bt = NULL;
  
   if (winmsg_numrend >= 0)
     winmsg_numrend = 0;
@@ -2544,11 +2359,6 @@ int rec;
 	    {
 	      switch (*s)
 		{
-#if 0
-		case '~':
-		  *p = BELL;
-		  break;
-#endif
 		case '^':
 		  ctrl = 1;
 		  *p-- = '^';
@@ -2717,15 +2527,15 @@ int rec;
 	      int oldnumrend = winmsg_numrend;
 
 	      *p = 0;
-	      strcpy(savebuf, winmsg_buf);
+	      strncpy(savebuf, winmsg_buf, sizeof(winmsg_buf));
 	      winmsg_numrend = -winmsg_numrend;
 	      MakeWinMsgEv(*s == 'h' ? win->w_hstatus : runbacktick(bt, &oldtick, now.tv_sec), win, '\005', 0, (struct event *)0, rec + 1);
 	      debug2("oldtick=%d tick=%d\n", oldtick, tick);
 	      if (!tick || oldtick < tick)
 		tick = oldtick;
 	      if ((int)strlen(winmsg_buf) < l)
-		strcat(savebuf, winmsg_buf);
-	      strcpy(winmsg_buf, savebuf);
+		strncat(savebuf, winmsg_buf, sizeof(winmsg_buf));
+	      strncpy(winmsg_buf, savebuf, sizeof(winmsg_buf));
 	      while (oldnumrend < winmsg_numrend)
 		winmsg_rendpos[oldnumrend++] += p - winmsg_buf;
 	      if (*p)
@@ -2737,14 +2547,13 @@ int rec;
 	case 'W':
 	  {
 	    struct win *oldfore = 0;
-	    char *ss;
 
 	    if (display)
 	      {
 		oldfore = D_fore;
 		D_fore = win;
 	      }
-	    ss = AddWindows(p, l - 1, (*s == 'w' ? 0 : 1) | (longflg ? 0 : 2) | (plusflg ? 4 : 0) | (minusflg ? 8 : 0), win ? win->w_number : -1);
+	    AddWindows(p, l - 1, (*s == 'w' ? 0 : 1) | (longflg ? 0 : 2) | (plusflg ? 4 : 0) | (minusflg ? 8 : 0), win ? win->w_number : -1);
 	    if (display)
 	      D_fore = oldfore;
 	  }
@@ -2845,7 +2654,6 @@ int rec;
 	  break;
 	case 'P':
 	  p--;
-#ifdef COPY_PASTE
 	  if (display && ev && ev != &D_hstatusev)	/* Hack */
 	    {
 	      /* Is the layer in the current canvas in copy mode? */
@@ -2853,7 +2661,13 @@ int rec;
 	      if (ev == &cv->c_captev && cv->c_layer->l_layfn == &MarkLf)
 		qmflag = 1;
 	    }
-#endif
+	  break;
+	case 'E':
+	  p--;
+	  if (display && D_ESCseen)
+	    {
+	      qmflag = 1;
+	    }
 	  break;
 	case '>':
 	  truncpos = p - winmsg_buf;
@@ -2918,7 +2732,7 @@ int rec;
 		      if (left + lastpad > p - winmsg_buf)
 			left = p - winmsg_buf - lastpad;
 		      if (p - winmsg_buf - lastpad - left > 0)
-		        bcopy(winmsg_buf + lastpad + left, winmsg_buf + lastpad,  p - winmsg_buf - lastpad - left);
+		        memmove(winmsg_buf + lastpad, winmsg_buf + lastpad + left, p - winmsg_buf - lastpad - left);
 		      p -= left;
 		      r = winmsg_numrend;
 		      while (r && winmsg_rendpos[r - 1] > lastpad)
@@ -2977,6 +2791,14 @@ int rec;
 	      numpad++;
 	    }
 	  break;
+        case 'x':
+          *p = 0;
+          if (!win)
+            sprintf(p, "--x--");
+          else
+            sprintf(p, "%dx%d", win->w_width, win->w_height);
+          p += strlen(p) - 1;
+          break;
 	case 'n':
 	  s++;
 	  /* FALLTHROUGH */
@@ -3025,18 +2847,13 @@ int rec;
 }
 
 char *
-MakeWinMsg(s, win, esc)
-char *s;
-struct win *win;
-int esc;
+MakeWinMsg(char *s, struct win *win, int esc)
 {
   return MakeWinMsgEv(s, win, esc, 0, (struct event *)0, 0);
 }
 
 void
-PutWinMsg(s, start, max)
-char *s;
-int start, max;
+PutWinMsg(char *s, int start, int max)
 {
   int i, p, l, r, n;
   struct mchar rend;
@@ -3110,8 +2927,7 @@ int start, max;
 
 #ifdef DEBUG
 static void
-fds1(i, j)
-int i, j;
+fds1(int i, int j)
 {
   while (i < j)
     {
@@ -3140,18 +2956,14 @@ fds()
 #endif
 
 static void
-serv_read_fn(ev, data)
-struct event *ev;
-char *data;
+serv_read_fn(struct event *ev, char *data)
 {
   debug("Knock - knock!\n");
   ReceiveMsg();
 }
 
 static void
-serv_select_fn(ev, data)
-struct event *ev;
-char *data;
+serv_select_fn(struct event *ev, char *data)
 {
   struct win *p;
 
@@ -3173,15 +2985,10 @@ char *data;
 #else
 	  char ibuf = displays->d_OldMode.m_tchars.t_intrc;
 #endif
-#ifdef PSEUDOS
 	  write(W_UWP(fore) ? fore->w_pwin->p_ptyfd : fore->w_ptyfd, 
 		&ibuf, 1);
 	  debug1("Backend wrote interrupt to %d", fore->w_number);
 	  debug1("%s\n", W_UWP(fore) ? " (pseudowin)" : "");
-#else
-	  write(fore->w_ptyfd, &ibuf, 1);
-	  debug1("Backend wrote interrupt to %d\n", fore->w_number);
-#endif
 	}
       InterruptPlease = 0;
     }
@@ -3230,10 +3037,8 @@ char *data;
 		  break;
 	      if (cv)
 		continue;	/* user already sees window */
-#ifdef MULTIUSER
 	      if (!(ACLBYTE(p->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id)))
 		continue;	/* user doesn't care */
-#endif
 	      Msg(0, "%s", MakeWinMsg(ActivityString, p, '%'));
 	      p->w_monitor = MON_DONE;
 	    }
@@ -3354,9 +3159,7 @@ char *data;
 }
 
 static void
-logflush_fn(ev, data)
-struct event *ev;
-char *data;
+logflush_fn(struct event *ev, char *data)
 {
   struct win *p;
   char *buf;
@@ -3396,8 +3199,7 @@ char *data;
  * returned. 
  */
 static char *
-ParseChar(p, cp)
-char *p, *cp;
+ParseChar(char *p, char *cp)
 {
   if (*p == 0)
     return 0;
@@ -3424,8 +3226,7 @@ char *p, *cp;
 }
 
 static int 
-ParseEscape(p)
-char *p;
+ParseEscape(char *p)
 {
   unsigned char buf[2];
 

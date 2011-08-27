@@ -32,19 +32,7 @@
 #include "screen.h"
 #include "mark.h"
 #include "extern.h"
-#include "braille.h"
 
-extern struct display *display, *displays;
-
-extern struct mline mline_blank, mline_null;
-extern struct mchar mchar_blank, mchar_null;
-
-extern struct layer *flayer;	/* sigh */
-extern struct LayFuncs WinLf;
-extern struct LayFuncs BlankLf;
-
-
-static struct mline *mloff __P((struct mline *, int));
 
 /*
  * Layer subsystem.
@@ -56,9 +44,7 @@ static struct mline *mloff __P((struct mline *, int));
  */
 
 static struct mline *
-mloff(ml, off)
-struct mline *ml;
-int off;
+mloff(struct mline *ml, int off)
 {
   static struct mline mml;
 
@@ -66,25 +52,14 @@ int off;
     return 0;
   mml.image = ml->image + off;
   mml.attr  = ml->attr  + off;
-#ifdef FONT
   mml.font  = ml->font  + off;
-#endif
-#ifdef COLOR
   mml.color = ml->color + off;
-# ifdef COLORS256
   mml.colorx = ml->colorx + off;
-# endif
-#endif
   return &mml;
 }
 
-#ifdef UTF8
 # define RECODE_MCHAR(mc) ((l->l_encoding == UTF8) != (D_encoding == UTF8) ? recode_mchar(mc, l->l_encoding, D_encoding) : (mc))
 # define RECODE_MLINE(ml) ((l->l_encoding == UTF8) != (D_encoding == UTF8) ? recode_mline(ml, l->l_width, l->l_encoding, D_encoding) : (ml))
-#else
-# define RECODE_MCHAR(mc) (mc)
-# define RECODE_MLINE(ml) (ml)
-#endif
 
 #define FOR_EACH_UNPAUSED_CANVAS(l, fn) for (cv = (l)->l_cvlist; cv; cv = cv->c_lnext) \
   {	\
@@ -94,9 +69,7 @@ int off;
   }
 
 void
-LGotoPos(l, x, y)
-struct layer *l;
-int x, y;
+LGotoPos(struct layer *l, int x, int y)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -105,10 +78,6 @@ int x, y;
   if (l->l_pause.d)
     LayPauseUpdateRegion(l, x, x, y, y);
 
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    return;
-#endif
   FOR_EACH_UNPAUSED_CANVAS(l,
     {
       display = cv->c_display;
@@ -141,11 +110,7 @@ int x, y;
 }
 
 void
-LScrollH(l, n, y, xs, xe, bce, ol)
-struct layer *l;
-int n, y, xs, xe;
-int bce;
-struct mline *ol;
+LScrollH(struct layer *l, int n, int y, int xs, int xe, int bce, struct mline *ol)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -196,11 +161,7 @@ struct mline *ol;
 }
 
 void
-LScrollV(l, n, ys, ye, bce)
-struct layer *l;
-int n;
-int ys, ye;
-int bce;
+LScrollV(struct layer *l, int n, int ys, int ye, int bce)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -229,11 +190,7 @@ int bce;
 	display = cv->c_display;
 	if (D_blocked)
 	  continue;
-#if 0
-	ScrollV(xs2, ys2, xe2, ye2, n, bce);
-#else
 	ScrollV(vp->v_xs, ys2, vp->v_xe, ye2, n, bce);
-#endif
 	debug2("LScrollV: %d %d", ys, ye);
 	debug2(" -> %d %d\n", ys2, ye2);
 	if (ye2 - ys2 == ye - ys)
@@ -261,11 +218,7 @@ int bce;
 }
 
 void
-LInsChar(l, c, x, y, ol)
-struct layer *l;
-struct mchar *c;
-int x, y;
-struct mline *ol;
+LInsChar(struct layer *l, struct mchar *c, int x, int y, struct mline *ol)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -318,29 +271,15 @@ struct mline *ol;
 }
 
 void
-LPutChar(l, c, x, y)
-struct layer *l;
-struct mchar *c;
-int x, y;
+LPutChar(struct layer *l, struct mchar *c, int x, int y)
 {
   struct canvas *cv;
   struct viewport *vp;
   int x2, y2;
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    {
-      BPutChar(l, c, x, y);
-      return;
-    }
-#endif
 
   if (l->l_pause.d)
     LayPauseUpdateRegion(l, x,
-#ifdef DW_CHARS
 	x + (c->mbcs ? 1 : 0)
-#else
-	x
-#endif
 	, y, y);
 
   FOR_EACH_UNPAUSED_CANVAS(l,
@@ -364,12 +303,7 @@ int x, y;
 }
 
 void
-LPutStr(l, s, n, r, x, y)
-struct layer *l;
-char *s;
-int n;
-struct mchar *r;
-int x, y;
+LPutStr(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -378,13 +312,6 @@ int x, y;
 
   if (x + n > l->l_width)
     n = l->l_width - x;
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    {
-      BPutStr(l, s, n, r, x, y);
-      return;
-    }
-#endif
   if (l->l_pause.d)
     LayPauseUpdateRegion(l, x, x + n - 1, y, y);
 
@@ -408,7 +335,6 @@ int x, y;
 	GotoPos(xs2, y2);
 	SetRendition(r);
 	s2 = s + xs2 - x - vp->v_xoff;
-#ifdef UTF8
 	if (D_encoding == UTF8 && l->l_encoding != UTF8 && (r->font || l->l_encoding))
 	  {
 	    struct mchar mc;
@@ -420,7 +346,6 @@ int x, y;
 	      }
 	    continue;
 	  }
-#endif
 	while (xs2++ <= xe2)
 	  PUTCHARLP(*s2++);
       }
@@ -428,12 +353,7 @@ int x, y;
 }
 
 void
-LPutWinMsg(l, s, n, r, x, y)
-struct layer *l;
-char *s;
-int n;
-struct mchar *r;
-int x, y;
+LPutWinMsg(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -442,13 +362,6 @@ int x, y;
 
   if (x + n > l->l_width)
     n = l->l_width - x;
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    {
-      BPutStr(l, s, n, r, x, y);
-      return;
-    }
-#endif
   if (l->l_pause.d)
     LayPauseUpdateRegion(l, x, x + n - 1, y, y);
   len = strlen(s);
@@ -490,10 +403,7 @@ int x, y;
 }
 
 void
-LClearLine(l, y, xs, xe, bce, ol)
-struct layer *l;
-int xs, xe, bce;
-struct mline *ol;
+LClearLine(struct layer *l, int y, int xs, int xe, int bce, struct mline *ol)
 {
   struct canvas *cv;
   struct viewport *vp;
@@ -529,19 +439,11 @@ struct mline *ol;
 }
 
 void
-LClearArea(l, xs, ys, xe, ye, bce, uself)
-struct layer *l;
-int xs, ys, xe, ye;
-int bce;
-int uself;
+LClearArea(struct layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
 {
   struct canvas *cv;
   struct viewport *vp;
   int xs2, ys2, xe2, ye2;
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    return;
-#endif
   /* Check for zero-height window */
   if (ys < 0 || ye < ys)
     return;
@@ -578,22 +480,6 @@ int uself;
 	    ye2 = vp->v_ye;
 	  if (ys2 > ye2)
 	    continue;
-#if 0
-	  xcs = vp->v_xoff;
-	  xce = l->l_width - 1 + vp->v_xoff;
-	  if (xcs < vp->v_xs)
-	    xcs = vp->v_xs;
-	  if (xce > vp->v_xe)
-	    xce = vp->v_xe;
-	  if (xcs > xce)
-	    continue;
-	  if (ys2 != ys + vp->v_yoff)
-	    xs2 = xcs;
-	  if (ye2 != ye + vp->v_yoff)
-	    xe2 = xce;
-	  display = cv->c_display;
-	  ClearArea(xs2, ys2, xcs, xce, xe2, ye2, bce, uself);
-#else
 	  if (xs == 0 || ys2 != ys + vp->v_yoff)
 	    xs2 = vp->v_xs;
 	  if (xe == l->l_width - 1 || ye2 != ye + vp->v_yoff)
@@ -610,29 +496,17 @@ int uself;
 		  PUTCHARLP('|');
 		}
 	    }
-#endif
 	}
     }
   );
 }
 
 void
-LCDisplayLine(l, ml, y, xs, xe, isblank)
-struct layer *l;
-struct mline *ml;
-int y, xs, xe;
-int isblank;
+LCDisplayLine(struct layer *l, struct mline *ml, int y, int xs, int xe, int isblank)
 {
   struct canvas *cv;
   struct viewport *vp;
   int xs2, xe2, y2;
-#ifdef HAVE_BRAILLE
-  if (bd.bd_refreshing)
-    {
-      BCDisplayLine(l, ml, y, xs, xe, isblank);
-      return;
-    }
-#endif
   if (l->l_pause.d)
     LayPauseUpdateRegion(l, xs, xe, y, y);
   FOR_EACH_UNPAUSED_CANVAS(l,
@@ -663,21 +537,15 @@ int isblank;
 }
 
 void
-LCDisplayLineWrap(l, ml, y, from, to, isblank)
-struct layer *l;
-struct mline *ml;
-int y, from, to;
-int isblank;
+LCDisplayLineWrap(struct layer *l, struct mline *ml, int y, int from, int to, int isblank)
 {
   struct mchar nc;
   copy_mline2mchar(&nc, ml, 0);
-#ifdef DW_CHARS
   if (dw_left(ml, 0, l->l_encoding))
     {
       nc.mbcs = ml->image[1];
       from++;
     }
-#endif
   LWrapChar(l, &nc, y - 1, -1, -1, 0);
   from++;
   if (from <= to)
@@ -685,9 +553,7 @@ int isblank;
 }
 
 void
-LSetRendition(l, r)
-struct layer *l;
-struct mchar *r;
+LSetRendition(struct layer *l, struct mchar *r)
 {
   struct canvas *cv;
 
@@ -701,11 +567,7 @@ struct mchar *r;
 }
 
 void
-LWrapChar(l, c, y, top, bot, ins)
-struct layer *l;
-struct mchar *c;
-int y, top, bot;
-int ins;
+LWrapChar(struct layer *l, struct mchar *c, int y, int top, int bot, int ins)
 {
   struct canvas *cv, *cvlist, *cvlnext;
   struct viewport *vp, *evp, **vpp;
@@ -716,11 +578,7 @@ int ins;
     /* XXX: 'y'? */
     LayPauseUpdateRegion(l, 0, l->l_width - 1, top, bot);
 
-#ifdef COLOR
   bce = rend_getbg(c);
-#else
-  bce = 0;
-#endif
   if (y != bot)
     {
       /* simple case: no scrolling */
@@ -828,9 +686,7 @@ int ins;
 
 
 void
-LCursorVisibility(l, vis)
-struct layer *l;
-int vis;
+LCursorVisibility(struct layer *l, int vis)
 {
   struct canvas *cv;
   for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
@@ -845,9 +701,7 @@ int vis;
 }
 
 void
-LSetFlow(l, flow)
-struct layer *l;
-int flow;
+LSetFlow(struct layer *l, int flow)
 {
   struct canvas *cv;
   for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
@@ -860,9 +714,7 @@ int flow;
 }
 
 void
-LKeypadMode(l, on)
-struct layer *l;
-int on;
+LKeypadMode(struct layer *l, int on)
 {
   struct canvas *cv;
   for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
@@ -877,9 +729,7 @@ int on;
 }
 
 void
-LCursorkeysMode(l, on)
-struct layer *l;
-int on;
+LCursorkeysMode(struct layer *l, int on)
 {
   struct canvas *cv;
   for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
@@ -894,9 +744,7 @@ int on;
 }
 
 void
-LMouseMode(l, on)
-struct layer *l;
-int on;
+LMouseMode(struct layer *l, int on)
 {
   struct canvas *cv;
   for (cv = l->l_cvlist; cv; cv = cv->c_lnext)
@@ -911,17 +759,13 @@ int on;
 }
 
 void
-LClearAll(l, uself)
-struct layer *l;
-int uself;
+LClearAll(struct layer *l, int uself)
 {
   LClearArea(l, 0, 0, l->l_width - 1, l->l_height - 1, 0, uself);
 }
 
 void
-LRefreshAll(l, isblank)
-struct layer *l;
-int isblank;
+LRefreshAll(struct layer *l, int isblank)
 {
   struct layer *oldflayer;
   int y;
@@ -939,15 +783,7 @@ int isblank;
 }
 
 void
-/*VARARGS2*/
-#if defined(USEVARARGS) && defined(__STDC__)
 LMsg(int err, const char *fmt, VA_DOTS)
-#else
-LMsg(err, fmt, VA_DOTS)
-int err;
-const char *fmt;
-VA_DECL
-#endif
 {
   VA_LIST(ap)
   char buf[MAXPATHLEN*2];
@@ -964,7 +800,6 @@ VA_DECL
       *p++ = ':';
       *p++ = ' ';
       strncpy(p, strerror(err), buf + sizeof(buf) - p - 1);
-      buf[sizeof(buf) - 1] = 0;
     }
   debug2("LMsg('%s') (%#x);\n", buf, (unsigned int)flayer);
   for (display = displays; display; display = display->d_next)
@@ -987,8 +822,7 @@ VA_DECL
  */
 
 void
-KillLayerChain(lay)
-struct layer *lay;
+KillLayerChain(struct layer *lay)
 {
   struct canvas *cv, *ncv;
   struct layer *l, *oldflayer;
@@ -1018,10 +852,7 @@ struct layer *lay;
 
 
 int
-InitOverlayPage(datasize, lf, block)
-int datasize;
-struct LayFuncs *lf;
-int block;
+InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
 {
   char *data;
   struct layer *newlay;
@@ -1107,8 +938,6 @@ int block;
   return 0;
 }
 
-extern struct layout *layouts;
-
 void
 ExitOverlayPage()
 {
@@ -1150,10 +979,8 @@ ExitOverlayPage()
     }
   if (p && p->w_savelayer == oldlay)
     p->w_savelayer = flayer;
-#ifdef COPY_PASTE
   if (p && oldlay == p->w_paster.pa_pastelayer)
     p->w_paster.pa_pastelayer = 0;
-#endif
 
   for (lay = layouts; lay; lay = lay->lay_next)
     for (cv = lay->lay_cvlist; cv; cv = cv->c_next)
@@ -1197,7 +1024,7 @@ LayProcessMouse(struct layer *l, unsigned char ch)
   return (l->l_mouseevent.len == sizeof(l->l_mouseevent.buffer));
 }
 
-int
+void
 LayProcessMouseSwitch(struct layer *l, int s)
 {
   if ((l->l_mouseevent.start = s))
@@ -1206,12 +1033,9 @@ LayProcessMouseSwitch(struct layer *l, int s)
     }
 }
 
-void LayPause(layer, pause)
-struct layer *layer;
-int pause;
+void LayPause(struct layer *layer, int pause)
 {
   struct canvas *cv;
-  struct display *olddisplay = display;
   int line;
   struct win *win;
 
@@ -1262,14 +1086,12 @@ int pause;
 		  if (xs < vp->v_xs) xs = vp->v_xs;
 		  if (xe > vp->v_xe) xe = vp->v_xe;
 
-#if defined(DW_CHARS) && defined(UTF8)
 		  if (layer->l_encoding == UTF8 && xe < vp->v_xe && win)
 		    {
 		      struct mline *ml = win->w_mlines + line;
 		      if (dw_left(ml, xe, UTF8))
 			xe++;
 		    }
-#endif
 
 		  if (xs <= xe)
 		    RefreshLine(line + vp->v_yoff, xs, xe, 0);
@@ -1293,14 +1115,10 @@ int pause;
 
   for (line = layer->l_pause.top; line <= layer->l_pause.bottom; line++)
     layer->l_pause.left[line] = layer->l_pause.right[line] = -1;
-  olddisplay = display;
 }
 
 void
-LayPauseUpdateRegion(layer, xs, xe, ys, ye)
-struct layer *layer;
-int xs, xe;
-int ys, ye;
+LayPauseUpdateRegion(struct layer *layer, int xs, int xe, int ys, int ye)
 {
   if (!layer->l_pause.d)
     return;
@@ -1341,8 +1159,7 @@ int ys, ye;
 }
 
 void
-LayerCleanupMemory(layer)
-struct layer *layer;
+LayerCleanupMemory(struct layer *layer)
 {
   if (layer->l_pause.left)
     free(layer->l_pause.left);

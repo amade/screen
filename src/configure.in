@@ -201,16 +201,6 @@ AC_EGREP_CPP(yes,
 #endif
 ], LIBS="$LIBS -lsocket -linet";seqptx=1)
 
-oldlibs="$LIBS"
-LIBS="$LIBS -lelf"
-AC_CHECKING(SVR4)
-AC_TRY_LINK([#include <utmpx.h>
-],,
-[AC_CHECK_HEADER(dwarf.h, AC_DEFINE(SVR4) AC_DEFINE(BUGGYGETLOGIN),
-[AC_CHECK_HEADER(elf.h, AC_DEFINE(SVR4) AC_DEFINE(BUGGYGETLOGIN))])]
-,LIBS="$oldlibs")
-AC_CHECK_HEADERS([stropts.h string.h strings.h])
-
 AC_CHECKING(for Solaris 2.x)
 AC_EGREP_CPP(yes,
 [#if defined(SVR4) && defined(sun)
@@ -1099,6 +1089,8 @@ main()
 
 fi
 
+
+
 dnl
 dnl    ****  libraries  ****
 dnl
@@ -1162,51 +1154,6 @@ AC_TRY_LINK(,[getttyent();], AC_DEFINE(GETTTYENT))
 AC_CHECKING(fdwalk)
 AC_TRY_LINK([#include <stdlib.h>], [fdwalk(NULL, NULL);],AC_DEFINE(HAVE_FDWALK))
 
-AC_CHECKING(whether memcpy/memmove/bcopy handles overlapping arguments)
-AC_TRY_RUN([
-main() {
-  char buf[10];
-  strcpy(buf, "abcdefghi");
-  bcopy(buf, buf + 2, 3);
-  if (strncmp(buf, "ababcf", 6))
-    exit(1);
-  strcpy(buf, "abcdefghi");
-  bcopy(buf + 2, buf, 3);
-  if (strncmp(buf, "cdedef", 6))
-    exit(1);
-  exit(0); /* libc version works properly.  */
-}], AC_DEFINE(USEBCOPY))
-
-AC_TRY_RUN([
-#define bcopy(s,d,l) memmove(d,s,l)
-main() {
-  char buf[10];
-  strcpy(buf, "abcdefghi");
-  bcopy(buf, buf + 2, 3);
-  if (strncmp(buf, "ababcf", 6))
-    exit(1);
-  strcpy(buf, "abcdefghi");
-  bcopy(buf + 2, buf, 3);
-  if (strncmp(buf, "cdedef", 6))
-    exit(1);
-  exit(0); /* libc version works properly.  */
-}], AC_DEFINE(USEMEMMOVE))
-
-
-AC_TRY_RUN([
-#define bcopy(s,d,l) memcpy(d,s,l)
-main() {
-  char buf[10];
-  strcpy(buf, "abcdefghi");
-  bcopy(buf, buf + 2, 3);
-  if (strncmp(buf, "ababcf", 6))
-    exit(1);
-  strcpy(buf, "abcdefghi");
-  bcopy(buf + 2, buf, 3);
-  if (strncmp(buf, "cdedef", 6))
-    exit(1);
-  exit(0); /* libc version works properly.  */
-}], AC_DEFINE(USEMEMCPY))
 
 AC_SYS_LONG_FILE_NAMES
 
@@ -1267,18 +1214,6 @@ fi
 AC_ARG_ENABLE(use_locale, [  --enable-locale         use localized month/day names])
 if test "$enable_use_locale" = "yes"; then
   AC_DEFINE(USE_LOCALE)
-fi
-AC_ARG_ENABLE(telnet, [  --enable-telnet         enable builtin telnet])
-if test "$enable_telnet" = "yes"; then
-  AC_DEFINE(BUILTIN_TELNET)
-fi
-AC_ARG_ENABLE(colors256, [  --enable-colors256      enable support for 256 colors])
-if test "$enable_colors256" = "yes"; then
-  AC_DEFINE(COLORS256)
-fi
-AC_ARG_ENABLE(rxvt_osc, [  --enable-rxvt_osc       enable support for rxvt OSC codes])
-if test "$enable_rxvt_osc" = "yes"; then
-  AC_DEFINE(RXVT_OSC)
 fi
 
 dnl

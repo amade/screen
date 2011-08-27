@@ -3370,7 +3370,8 @@ the terminal type by using the @samp{KJ} termcap entry. @xref{Special Capabiliti
 
 Supported encodings are
 @code{eucJP}, @code{SJIS}, @code{eucKR},
-@code{eucCN}, @code{Big5}, @code{GBK}, @code{KOI8-R}, @code{CP1251},
+@code{eucCN}, @code{Big5}, @code{GBK},
+@code{KOI8-R}, @code{KOI8-U}, @code{CP1251},
 @code{UTF-8}, @code{ISO8859-2}, @code{ISO8859-3},
 @code{ISO8859-4}, @code{ISO8859-5}, @code{ISO8859-6},
 @code{ISO8859-7}, @code{ISO8859-8}, @code{ISO8859-9},
@@ -5438,6 +5439,8 @@ current time @code{HH:MM} in 12h format
 day number
 @item D
 weekday name
+@item E
+sets %? to true if the session has seen an escape character
 @item f
 flags of the window. @xref{Windows}, for meanings of the various flags.
 @item F

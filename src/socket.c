@@ -51,45 +51,18 @@
 #include "extern.h"
 #include "list_generic.h"
 
-static int   CheckPid __P((int));
-static void  ExecCreate __P((struct msg *));
-static void  DoCommandMsg __P((struct msg *));
+static int   CheckPid (int);
+static void  ExecCreate (struct msg *);
+static void  DoCommandMsg (struct msg *);
 #if defined(_SEQUENT_) && !defined(NAMEDPIPE)
 # define connect sconnect	/* _SEQUENT_ has braindamaged connect */
-static int   sconnect __P((int, struct sockaddr *, int));
+static int   sconnect (int, struct sockaddr *, int);
 #endif
-static void  FinishAttach __P((struct msg *));
-static void  FinishDetach __P((struct msg *));
-static void  AskPassword __P((struct msg *));
+static void  FinishAttach (struct msg *);
+static void  FinishDetach (struct msg *);
+static void  AskPassword (struct msg *);
 
-
-extern char *RcFileName, *extra_incap, *extra_outcap;
-extern int ServerSocket, real_uid, real_gid, eff_uid, eff_gid;
-extern int dflag, iflag, rflag, lsflag, quietflag, wipeflag, xflag;
-extern int queryflag;
-extern char *attach_tty, *LoginName, HostName[];
-extern struct display *display, *displays;
-extern struct win *fore, **wtab, *console_window, *windows;
-extern struct layer *flayer;
-extern struct layout *layout_attach, *layout_last, layout_last_marker;
-extern struct NewWindow nwin_undef;
-#ifdef MULTIUSER
-extern char *multi;
-#endif
-extern int maxwin;
-
-extern char *getenv();
-
-extern char SockPath[];
-extern struct event serv_read;
-extern char *rc_name;
-extern struct comm comms[];
-
-#ifdef MULTIUSER
-# define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0) | (multi ? 1 : 0))
-#else
-# define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0))
-#endif
+#define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0) | (multi ? 1 : 0))
 
 
 /*
@@ -113,10 +86,7 @@ extern struct comm comms[];
  */
 
 int
-FindSocket(fdp, nfoundp, notherp, match)
-int *fdp;
-int *nfoundp, *notherp;
-char *match;
+FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 {
   DIR *dirp;
   struct dirent *dp;
@@ -234,7 +204,6 @@ char *match;
 	continue;
       mode = (int)st.st_mode & 0777;
       debug1("  has mode 0%03o\n", mode);
-#ifdef MULTIUSER 
       if (multi && ((mode & 0677) != 0601))
         {
 	  debug("  is not a MULTI-USER session");
@@ -248,7 +217,6 @@ char *match;
 	      debug(", but it is our own session.\n");
 	    }
 	}
-#endif
       debug("  store it.\n");
       if ((sent = (struct sent *)malloc(sizeof(struct sent))) == 0)
 	continue;
@@ -364,14 +332,12 @@ char *match;
 	    case 0600:
 	      printf("\t%s\t(Detached)\n", sent->name);
 	      break;
-#ifdef MULTIUSER
 	    case 0701:
 	      printf("\t%s\t(Multi, attached)\n", sent->name);
 	      break;
 	    case 0601:
 	      printf("\t%s\t(Multi, detached)\n", sent->name);
 	      break;
-#endif
 	    case -1:
 	      /* No trigraphs here! */
 	      printf("\t%s\t(Dead ?%c?)\n", sent->name, '?');
@@ -491,8 +457,7 @@ MakeServerSocket()
 
 
 int
-MakeClientSocket(err)
-int err;
+MakeClientSocket(int err)
 {
   register int s = 0;
 
@@ -522,7 +487,6 @@ MakeServerSocket()
     Panic(errno, "socket");
   a.sun_family = AF_UNIX;
   strncpy(a.sun_path, SockPath, sizeof(a.sun_path));
-  a.sun_path[sizeof(a.sun_path) - 1] = 0;
 # ifdef USE_SETEUID
   xseteuid(real_uid);
   xsetegid(real_gid);
@@ -585,8 +549,7 @@ MakeServerSocket()
 }
 
 int
-MakeClientSocket(err)
-int err;
+MakeClientSocket(int err)
 {
   register int s;
   struct sockaddr_un a;
@@ -595,7 +558,6 @@ int err;
     Panic(errno, "socket");
   a.sun_family = AF_UNIX;
   strncpy(a.sun_path, SockPath, sizeof(a.sun_path));
-  a.sun_path[sizeof(a.sun_path) - 1] = 0;
 # ifdef USE_SETEUID
   xseteuid(real_uid);
   xsetegid(real_gid);
@@ -633,9 +595,7 @@ int err;
 */
 
 void
-SendCreateMsg(sty, nwin)
-char *sty;
-struct NewWindow *nwin;
+SendCreateMsg(char *sty, struct NewWindow *nwin)
 {
   int s;
   struct msg m;
@@ -653,10 +613,9 @@ struct NewWindow *nwin;
   if ((s = MakeClientSocket(1)) == -1)
     exit(1);
   debug1("SendCreateMsg() to '%s'\n", SockPath);
-  bzero((char *)&m, sizeof(m));
+  memset((char *)&m, 0, sizeof(m));
   m.type = MSG_CREATE;
   strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
-  m.m_tty[sizeof(m.m_tty) - 1] = 0;
   p = m.m.create.line;
   n = 0;
   if (nwin->args != nwin_undef.args)
@@ -684,7 +643,6 @@ struct NewWindow *nwin;
     }
   if (nwin->term != nwin_undef.term)
     strncpy(m.m.create.screenterm, nwin->term, 19);
-  m.m.create.screenterm[19] = '\0';
   m.protocol_revision = MSG_REVISION;
   debug1("SendCreateMsg writing '%s'\n", m.m.create.line);
   if (write(s, (char *) &m, sizeof m) != sizeof m)
@@ -693,20 +651,17 @@ struct NewWindow *nwin;
 }
 
 int
-SendErrorMsg(tty, buf)
-char *tty, *buf;
+SendErrorMsg(char *tty, char *buf)
 {
   int s;
   struct msg m;
 
   strncpy(m.m.message, buf, sizeof(m.m.message) - 1);
-  m.m.message[sizeof(m.m.message) - 1] = 0;
   s = MakeClientSocket(0);
   if (s < 0)
     return -1;
   m.type = MSG_ERROR;
   strncpy(m.m_tty, tty, sizeof(m.m_tty) - 1);
-  m.m_tty[sizeof(m.m_tty) - 1] = 0;
   m.protocol_revision = MSG_REVISION;
   debug1("SendErrorMsg(): writing to '%s'\n", SockPath);
   (void) write(s, (char *) &m, sizeof m);
@@ -715,13 +670,13 @@ char *tty, *buf;
 }
 
 static void
-ExecCreate(mp)
-struct msg *mp;
+ExecCreate(struct msg *mp)
 {
   struct NewWindow nwin;
   char *args[MAXARGS];
   register int n;
   register char **pp = args, *p = mp->m.create.line;
+  char buf[20];
 
   nwin = nwin_undef;
   n = mp->m.create.nargs;
@@ -731,7 +686,6 @@ struct msg *mp;
   if (n)
     {
       int l, num;
-      char buf[20];
 
       l = strlen(p);
       if (IsNumColon(p, 10, buf, sizeof(buf)))
@@ -768,8 +722,7 @@ struct msg *mp;
 }
 
 static int
-CheckPid(pid)
-int pid;
+CheckPid(int pid)
 {
   debug1("Checking pid %d\n", pid);
   if (pid < 2)
@@ -796,8 +749,7 @@ int pid;
  * Earlier versions seemed to work -- wonder what they did.
  */
 static int
-ttycmp(s1, s2)
-char *s1, *s2;
+ttycmp(char *s1, char *s2)
 {
   if (strlen(s1) > 5) s1 += strlen(s1) - 5;
   if (strlen(s2) > 5) s2 += strlen(s2) - 5;
@@ -809,10 +761,7 @@ char *s1, *s2;
 #endif
 
 static int
-CreateTempDisplay(m, recvfd, wi)
-struct msg *m;
-int recvfd;
-struct win *wi;
+CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
 {
   int pid;
   int attach;
@@ -829,16 +778,12 @@ struct win *wi;
 	user = m->m.attach.auser;
 	attach = 1;
 	break;
-#ifdef REMOTE_DETACH
       case MSG_DETACH:
-# ifdef POW_DETACH
       case MSG_POW_DETACH:
-# endif				/* POW_DETACH */
 	pid = m->m.detach.dpid;
 	user = m->m.detach.duser;
 	attach = 0;
 	break;
-#endif
       default:
 	return -1;
     }
@@ -868,10 +813,8 @@ struct win *wi;
       Kill(pid, SIG_BYE);
       return -1;
     }
-#ifdef MULTIUSER
   if (attach)
     Kill(pid, SIGCONT);
-#endif
 
 #if defined(ultrix) || defined(pyr) || defined(NeXT)
   brktty(i);	/* for some strange reason this must be done */
@@ -879,7 +822,7 @@ struct win *wi;
 
   if (attach)
     {
-      if (display || wi)
+      if (display || win)
 	{
 	  write(i, "Attaching from inside of screen?\n", 33);
 	  close(i);
@@ -888,7 +831,6 @@ struct win *wi;
 	  return -1;
 	}
 
-#ifdef MULTIUSER
       if (strcmp(user, LoginName))
 	if (*FindUserPtr(user) == 0)
 	  {
@@ -898,18 +840,8 @@ struct win *wi;
 	      Msg(0, "Attach: access denied for user %s.", user);
 	      return -1;
 	  }
-#endif
 
       debug2("RecMsg: apid %d is o.k. and we just opened '%s'\n", pid, m->m_tty);
-#ifndef MULTI
-      if (displays)
-	{
-	  write(i, "Screen session in use.\n", 23);
-	  close(i);
-	  Kill(pid, SIG_BYE);
-	  return -1;
-	}
-#endif
     }
 
   /* create new display */
@@ -922,18 +854,12 @@ struct win *wi;
       Kill(pid, SIG_BYE);
       return -1;
     }
-#ifdef ENCODINGS
   if (attach)
     {
-# ifdef UTF8
       D_encoding = m->m.attach.encoding == 1 ? UTF8 : m->m.attach.encoding ? m->m.attach.encoding - 1 : 0;
-# else
-      D_encoding = m->m.attach.encoding ? m->m.attach.encoding - 1 : 0;
-# endif
       if (D_encoding < 0 || !EncodingName(D_encoding))
 	D_encoding = 0;
     }
-#endif
 
   if (iflag && olddisplays)
     {
@@ -986,7 +912,7 @@ ReceiveMsg()
 
   p = (char *) &m;
   left = sizeof(m);
-  bzero(&msg, sizeof(msg));
+  memset(&msg, 0, sizeof(msg));
   iov.iov_base = &m;
   iov.iov_len = left;
   msg.msg_iov = &iov;
@@ -1018,7 +944,7 @@ ReceiveMsg()
 	      while(cl >= CMSG_LEN(sizeof(int)))
 		{
 		  int passedfd;
-		  bcopy(cp, &passedfd, sizeof(int));
+		  memmove(&passedfd, cp, sizeof(int));
 		  if (recvfd >= 0 && passedfd != recvfd)
 		    close(recvfd);
 		  recvfd = passedfd;
@@ -1140,11 +1066,9 @@ ReceiveMsg()
     case MSG_ATTACH:
       if (CreateTempDisplay(&m, recvfd, wi))
 	break;
-#ifdef PASSWORD
       if (D_user->u_password && *D_user->u_password)
 	AskPassword(&m);
       else
-#endif
         FinishAttach(&m);
       break;
     case MSG_ERROR:
@@ -1154,12 +1078,8 @@ ReceiveMsg()
       if (!wi)		/* ignore hangups from inside */
         Hangup();
       break;
-#ifdef REMOTE_DETACH
     case MSG_DETACH:
-# ifdef POW_DETACH
     case MSG_POW_DETACH:
-# endif				/* POW_DETACH */
-#ifdef PASSWORD
       user = *FindUserPtr(m.m.detach.duser);
       if (user && user->u_password && *user->u_password)
 	{
@@ -1168,10 +1088,8 @@ ReceiveMsg()
 	  AskPassword(&m);
 	}
       else
-#endif /* PASSWORD */
 	FinishDetach(&m);
       break;
-#endif
     case MSG_QUERY:
 	{
 	  char *oldSockPath = SaveStr(SockPath);
@@ -1201,8 +1119,7 @@ ReceiveMsg()
 }
 
 void
-ReceiveRaw(s)
-int s;
+ReceiveRaw(int s)
 {
   char rd[256];
   int len = 0;
@@ -1232,9 +1149,7 @@ int s;
  *  sequent_ptx socket emulation must have mode 000 on the socket!
  */
 static int
-sconnect(s, sapp, len)
-int s, len;
-struct sockaddr *sapp;
+sconnect(int s, struct sockaddr *sapp, int len)
 {
   register struct sockaddr_un *sap;
   struct stat st;
@@ -1302,8 +1217,7 @@ RecoverSocket()
 
 
 static void
-FinishAttach(m)
-struct msg *m;
+FinishAttach(struct msg *m)
 {
   char *p;
   int pid;
@@ -1313,14 +1227,10 @@ struct msg *m;
   ASSERT(display);
   pid = D_userpid;
 
-#ifdef REMOTE_DETACH
   if (m->m.attach.detachfirst == MSG_DETACH
-# ifdef POW_DETACH
       || m->m.attach.detachfirst == MSG_POW_DETACH
-# endif
      )
     FinishDetach(m);
-#endif
 
 #if defined(pyr) || defined(xelos) || defined(sequent)
   /*
@@ -1392,7 +1302,7 @@ struct msg *m;
 	lay = layout_last;
       if (lay)
 	{
-	  LoadLayout(lay, &D_canvas);
+	  LoadLayout(lay);
 	  SetCanvasWindow(D_forecv, 0);
 	}
     }
@@ -1437,9 +1347,7 @@ struct msg *m;
     SetForeWindow(fore);
   else if (!noshowwin)
     {
-#ifdef MULTIUSER
       if (!AclCheckPermCmd(D_user, ACL_EXEC, &comms[RC_WINDOWLIST]))
-#endif
 	{
 	  struct display *olddisplay = display;
 	  flayer = D_forecv->c_layer;
@@ -1470,8 +1378,7 @@ struct msg *m;
 }
 
 static void
-FinishDetach(m)
-struct msg *m;
+FinishDetach(struct msg *m)
 {
   struct display *next, **d, *det;
   int pid;
@@ -1496,20 +1403,16 @@ struct msg *m;
   for (display = displays; display; display = next)
     {
       next = display->d_next;
-# ifdef POW_DETACH
       if (m->type == MSG_POW_DETACH)
 	Detach(D_REMOTE_POWER);
       else
-# endif				/* POW_DETACH */
       if (m->type == MSG_DETACH)
 	Detach(D_REMOTE);
       else if (m->type == MSG_ATTACH)
 	{
-#ifdef POW_DETACH
 	  if (m->m.attach.detachfirst == MSG_POW_DETACH)
 	    Detach(D_REMOTE_POWER);
 	  else
-#endif
 	  if (m->m.attach.detachfirst == MSG_DETACH)
 	    Detach(D_REMOTE);
 	}
@@ -1523,18 +1426,16 @@ struct msg *m;
     }
 }
 
-#ifdef PASSWORD
-static void PasswordProcessInput __P((char *, int));
+static void PasswordProcessInput (char *, int);
 
 struct pwdata {
   int l;
-  char buf[20 + 1];
+  char buf[NAME_MAX + 1];
   struct msg m;
 };
 
 static void
-AskPassword(m)
-struct msg *m;
+AskPassword(struct msg *m)
 {
   struct pwdata *pwdata;
   ASSERT(display);
@@ -1549,9 +1450,7 @@ struct msg *m;
 }
 
 static void
-PasswordProcessInput(ibuf, ilen)
-char *ibuf;
-int ilen;
+PasswordProcessInput(char *ibuf, int ilen)
 {
   struct pwdata *pwdata;
   int c, l;
@@ -1570,7 +1469,7 @@ int ilen;
 	  if (strncmp(crypt(pwdata->buf, up), up, strlen(up)))
 	    {
 	      /* uh oh, user failed */
-	      bzero(pwdata->buf, sizeof(pwdata->buf));
+	      memset(pwdata->buf, 0, sizeof(pwdata->buf));
 	      AddStr("\r\nPassword incorrect.\r\n");
 	      D_processinputdata = 0;	/* otherwise freed by FreeDis */
 	      FreeDisplay();
@@ -1580,19 +1479,15 @@ int ilen;
 	      return;
 	    }
 	  /* great, pw matched, all is fine */
-	  bzero(pwdata->buf, sizeof(pwdata->buf));
+	  memset(pwdata->buf, 0, sizeof(pwdata->buf));
 	  AddStr("\r\n");
 	  D_processinputdata = 0;
 	  D_processinput = ProcessInput;
-#ifdef REMOTE_DETACH
 	  if (pwdata->m.type == MSG_DETACH
-# ifdef POW_DETACH
 	      || pwdata->m.type == MSG_POW_DETACH
-# endif
 	     )
 	    FinishDetach(&pwdata->m);
 	  else
-#endif
 	    FinishAttach(&pwdata->m);
 	  free(pwdata);
 	  return;
@@ -1620,13 +1515,10 @@ int ilen;
     }
   pwdata->l = l;
 }
-#endif
 
 /* 'end' is exclusive, i.e. you should *not* write in *end */
 static char *
-strncpy_escape_quote(dst, src, end)
-char *dst;
-const char *src, *end;
+strncpy_escape_quote(char *dst, const char *src, const char *end)
 {
   while (*src && dst < end)
     {
@@ -1647,8 +1539,7 @@ const char *src, *end;
 }
 
 static void
-DoCommandMsg(mp)
-struct msg *mp;
+DoCommandMsg(struct msg *mp)
 {
   char *args[MAXARGS];
   int argl[MAXARGS];
@@ -1657,11 +1548,6 @@ struct msg *mp;
   int n;
   register char *p = mp->m.command.cmd;
   struct acluser *user;
-#ifdef MULTIUSER
-  extern struct acluser *EffectiveAclUser;	/* acls.c */
-#else
-  extern struct acluser *users;			/* acls.c */
-#endif
 
   n = mp->m.command.nargs;
   if (n > MAXARGS - 1)
@@ -1687,7 +1573,6 @@ struct msg *mp;
       queryflag = -1;
       return;
     }
-#ifdef MULTIUSER
   user = *FindUserPtr(mp->m.attach.auser);
   if (user == 0)
     {
@@ -1695,17 +1580,12 @@ struct msg *mp;
       queryflag = -1;
       return;
     }
-#else
-  user = users;
-#endif
-#ifdef PASSWORD
   if (user->u_password && *user->u_password)
     {
       Msg(0, "User %s has a password, cannot use remote commands (using -Q or -X option).", mp->m.attach.auser);
       queryflag = -1;
       return;
     }
-#endif
   if (!display)
     for (display = displays; display; display = display->d_next)
       if (D_user == user)
@@ -1746,9 +1626,7 @@ struct msg *mp;
     }
   if (!fore)
     fore = windows;		/* sigh */
-#ifdef MULTIUSER
   EffectiveAclUser = user;
-#endif
   if (*args)
     {
       char *oldrcname = rc_name;
@@ -1760,18 +1638,13 @@ struct msg *mp;
       DoCommand(args, argl);
       rc_name = oldrcname;
     }
-#ifdef MULTIUSER
   EffectiveAclUser = 0;
-#endif
 }
 
 #ifndef NAMEDPIPE
 
 int
-SendAttachMsg(s, m, fd)
-int s;
-struct msg *m;
-int fd;
+SendAttachMsg(int s, struct msg *m, int fd)
 {
   int r;
   struct msghdr msg;
@@ -1781,7 +1654,7 @@ int fd;
 
   iov.iov_base = (char *)m;
   iov.iov_len = sizeof(*m);
-  bzero(&msg, sizeof(msg));
+  memset(&msg, 0, sizeof(msg));
   msg.msg_name = 0;
   msg.msg_namelen = 0;
   msg.msg_iov = &iov; 
@@ -1792,7 +1665,7 @@ int fd;
   cmsg->cmsg_level = SOL_SOCKET;
   cmsg->cmsg_type = SCM_RIGHTS; 
   cmsg->cmsg_len = CMSG_LEN(sizeof(int));
-  bcopy(&fd, CMSG_DATA(cmsg), sizeof(int));
+  memmove(CMSG_DATA(cmsg), &fd, sizeof(int));
   msg.msg_controllen = cmsg->cmsg_len;
   while(1)
     {

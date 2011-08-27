@@ -49,7 +49,7 @@
 
 #ifdef LOADAV
 
-static int GetLoadav __P((void));
+static int GetLoadav (void);
 
 static LOADAV_TYPE loadav[LOADAV_NUM];
 static int loadok;
@@ -276,7 +276,7 @@ GetLoadav()
 #  include <a.out.h>
 # endif
 # ifndef NLIST_DECLARED
-extern int nlist __P((char *, struct nlist *));
+extern int nlist (char *, struct nlist *);
 # endif
 
 #ifdef LOADAV_USE_NLIST64
@@ -339,8 +339,7 @@ GetLoadav()
 #endif
 
 void
-AddLoadav(p)
-char *p;
+AddLoadav(char *p)
 {
   int i, j;
   if (loadok == 0)

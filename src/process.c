@@ -56,147 +56,47 @@
 #include "viewport.h"
 #include "list_generic.h"
 
-extern struct comm comms[];
-extern char *rc_name;
-extern char *RcFileName, *home;
-extern char *BellString, *ActivityString, *ShellProg, *ShellArgs[];
-extern char *hstatusstring, *captionstring, *timestring;
-extern char *wliststr, *wlisttit;
-extern int captionalways;
-extern int queryflag;
-extern char *hardcopydir, *screenlogfile, *logtstamp_string;
-extern int log_flush, logtstamp_on, logtstamp_after;
-extern char *VisualBellString;
-extern int VBellWait, MsgWait, MsgMinWait, SilenceWait;
-extern char SockPath[], *SockName;
-extern int TtyMode, auto_detach, use_altscreen;
-extern int iflag, maxwin;
-extern int focusminwidth, focusminheight;
-extern int use_hardstatus, visual_bell;
-#ifdef COLOR
-extern int attr2color[][4];
-extern int nattr2color;
-#endif
-extern int hardstatusemu;
-extern char *printcmd;
-extern int default_startup;
-extern int defobuflimit;
-extern int defnonblock;
-extern int defmousetrack;
-extern int ZombieKey_destroy;
-extern int ZombieKey_resurrect;
-extern int ZombieKey_onerror;
-#ifdef AUTO_NUKE
-extern int defautonuke;
-#endif
-extern int separate_sids;
-extern struct NewWindow nwin_default, nwin_undef;
-#ifdef COPY_PASTE
-extern int join_with_cr;
-extern int compacthist;
-extern int search_ic;
-# ifdef FONT
-extern int pastefont;
-# endif
-extern unsigned char mark_key_tab[];
-extern char *BufferFile;
-#endif
-#ifdef POW_DETACH
-extern char *BufferFile, *PowDetachString;
-#endif
-#ifdef MULTIUSER
-extern struct acluser *EffectiveAclUser;	/* acl.c */
-#endif
-extern struct term term[];      /* terminal capabilities */
-#ifdef MAPKEYS
-extern char *kmapdef[];
-extern char *kmapadef[];
-extern char *kmapmdef[];
-#endif
-extern struct mchar mchar_so, mchar_null;
-extern int renditions[];
-extern int VerboseCreate;
-#ifdef UTF8
-extern char *screenencodings;
-#endif
-#ifdef DW_CHARS
-extern int cjkwidth;
-#endif
+static int  CheckArgNum (int, char **);
+static void ClearAction (struct action *);
+static void SaveAction (struct action *, int, char **, int *);
+static int  NextWindow (void);
+static int  PreviousWindow (void);
+static int  MoreWindows (void);
+static void CollapseWindowlist (void);
+static void LogToggle (int);
+static void ShowInfo (void);
+static void ShowDInfo (void);
+static struct win *WindowByName (char *);
+static int  WindowByNumber (char *);
+static int  ParseOnOff (struct action *, int *);
+static int  ParseWinNum (struct action *, int *);
+static int  ParseBase (struct action *, char *, int *, int, char *);
+static int  ParseNum1000 (struct action *, int *);
+static char **SaveArgs (char **);
+static int  IsNum (char *, int);
+static void Colonfin (char *, int, char *);
+static void InputSelect (void);
+static void InputSetenv (char *);
+static void InputAKA (void);
+static int  InputSu (struct win *, struct acluser **, char *);
+static void su_fin (char *, int, char *);
+static void AKAfin (char *, int, char *);
+static void copy_reg_fn (char *, int, char *);
+static void ins_reg_fn (char *, int, char *);
+static void process_fn (char *, int, char *);
+static void pass1 (char *, int, char *);
+static void pass2 (char *, int, char *);
+static void pow_detach_fn (char *, int, char *);
+static void digraph_fn (char *, int, char *);
+static int  digraph_find (const char *buf);
+static void confirm_fn (char *, int, char *);
+static int  IsOnDisplay (struct win *);
+static void ResizeRegions (char *, int);
+static void ResizeFin (char *, int, char *);
+static struct action *FindKtab (char *, int);
+static void SelectFin (char *, int, char *);
+static void SelectLayoutFin (char *, int, char *);
 
-static int  CheckArgNum __P((int, char **));
-static void ClearAction __P((struct action *));
-static void SaveAction __P((struct action *, int, char **, int *));
-static int  NextWindow __P((void));
-static int  PreviousWindow __P((void));
-static int  MoreWindows __P((void));
-static void LogToggle __P((int));
-static void ShowInfo __P((void));
-static void ShowDInfo __P((void));
-static struct win *WindowByName __P((char *));
-static int  WindowByNumber __P((char *));
-static int  ParseOnOff __P((struct action *, int *));
-static int  ParseWinNum __P((struct action *, int *));
-static int  ParseBase __P((struct action *, char *, int *, int, char *));
-static int  ParseNum1000 __P((struct action *, int *));
-static char **SaveArgs __P((char **));
-static int  IsNum __P((char *, int));
-static void Colonfin __P((char *, int, char *));
-static void InputSelect __P((void));
-static void InputSetenv __P((char *));
-static void InputAKA __P((void));
-#ifdef MULTIUSER
-static int  InputSu __P((struct win *, struct acluser **, char *));
-static void su_fin __P((char *, int, char *));
-#endif
-static void AKAfin __P((char *, int, char *));
-#ifdef COPY_PASTE
-static void copy_reg_fn __P((char *, int, char *));
-static void ins_reg_fn __P((char *, int, char *));
-#endif
-static void process_fn __P((char *, int, char *));
-#ifdef PASSWORD
-static void pass1 __P((char *, int, char *));
-static void pass2 __P((char *, int, char *));
-#endif
-#ifdef POW_DETACH
-static void pow_detach_fn __P((char *, int, char *));
-#endif
-static void digraph_fn __P((char *, int, char *));
-static int  digraph_find __P((const char *buf));
-static void confirm_fn __P((char *, int, char *));
-static int  IsOnDisplay __P((struct win *));
-static void ResizeRegions __P((char *, int));
-static void ResizeFin __P((char *, int, char *));
-static struct action *FindKtab __P((char *, int));
-static void SelectFin __P((char *, int, char *));
-static void SelectLayoutFin __P((char *, int, char *));
-
-
-extern struct layer *flayer;
-extern struct display *display, *displays;
-extern struct win *fore, *console_window, *windows;
-extern struct acluser *users;
-extern struct layout *layouts, *layout_attach, layout_last_marker;
-extern struct layout *laytab[];
-
-extern char screenterm[], HostName[], version[];
-extern struct NewWindow nwin_undef, nwin_default;
-extern struct LayFuncs WinLf, MarkLf;
-
-extern int Z0width, Z1width;
-extern int real_uid, real_gid;
-
-#ifdef NETHACK
-extern int nethackflag;
-#endif
-
-
-extern struct win **wtab;
-
-#ifdef MULTIUSER
-extern char *multi;
-extern int maxusercount;
-#endif
 char NullStr[] = "";
 
 struct plop plop_tab[MAX_PLOP_DEFS];
@@ -208,18 +108,14 @@ struct plop plop_tab[MAX_PLOP_DEFS];
 int TtyMode = PTYMODE;
 int hardcopy_append = 0;
 int all_norefresh = 0;
-#ifdef ZMODEM
 int zmodem_mode = 0;
 char *zmodem_sendcmd;
 char *zmodem_recvcmd;
 static char *zmodes[4] = {"off", "auto", "catch", "pass"};
-#endif
 
 int idletimo;
 struct action idleaction;
-#ifdef BLANKER_PRG
 char **blankerprg;
-#endif
 
 struct action ktab[256 + KMAP_KEYS];	/* command key translation table */
 struct kclass {
@@ -229,18 +125,12 @@ struct kclass {
 };
 struct kclass *kclasses;
 
-#ifdef MAPKEYS
 struct action umtab[KMAP_KEYS+KMAP_AKEYS];
 struct action dmtab[KMAP_KEYS+KMAP_AKEYS];
 struct action mmtab[KMAP_KEYS+KMAP_AKEYS];
 struct kmap_ext *kmap_exts;
 int kmap_extn;
 static int maptimeout = 300;
-#endif
-
-#ifndef MAX_DIGRAPH
-#define MAX_DIGRAPH 512
-#endif
 
 struct digraph
 {
@@ -249,178 +139,1333 @@ struct digraph
 };
 
 /* digraph table taken from old vim and rfc1345 */
-static struct digraph digraphs[MAX_DIGRAPH + 1] = {
-    {' ', ' ', 160},	/*   */
-    {'N', 'S', 160},	/*   */
-    {'~', '!', 161},	/* ¡ */
-    {'!', '!', 161},	/* ¡ */
-    {'!', 'I', 161},	/* ¡ */
-    {'c', '|', 162},	/* ¢ */
-    {'c', 't', 162},	/* ¢ */
-    {'$', '$', 163},	/* £ */
-    {'P', 'd', 163},	/* £ */
-    {'o', 'x', 164},	/* ¤ */
-    {'C', 'u', 164},	/* ¤ */
-    {'C', 'u', 164},	/* ¤ */
-    {'E', 'u', 164},	/* ¤ */
-    {'Y', '-', 165},	/* ¥ */
-    {'Y', 'e', 165},	/* ¥ */
-    {'|', '|', 166},	/* ¦ */
-    {'B', 'B', 166},	/* ¦ */
-    {'p', 'a', 167},	/* § */
-    {'S', 'E', 167},	/* § */
-    {'"', '"', 168},	/* ¨ */
-    {'\'', ':', 168},	/* ¨ */
-    {'c', 'O', 169},	/* © */
-    {'C', 'o', 169},	/* © */
-    {'a', '-', 170},	/* ª */
-    {'<', '<', 171},	/* « */
-    {'-', ',', 172},	/* ¬ */
-    {'N', 'O', 172},	/* ¬ */
-    {'-', '-', 173},	/* ­ */
-    {'r', 'O', 174},	/* ® */
-    {'R', 'g', 174},	/* ® */
-    {'-', '=', 175},	/* ¯ */
-    {'\'', 'm', 175},	/* ¯ */
-    {'~', 'o', 176},	/* ° */
-    {'D', 'G', 176},	/* ° */
-    {'+', '-', 177},	/* ± */
-    {'2', '2', 178},	/* ² */
-    {'2', 'S', 178},	/* ² */
-    {'3', '3', 179},	/* ³ */
-    {'3', 'S', 179},	/* ³ */
-    {'\'', '\'', 180},	/* ´ */
-    {'j', 'u', 181},	/* µ */
-    {'M', 'y', 181},	/* µ */
-    {'p', 'p', 182},	/* ¶ */
-    {'P', 'I', 182},	/* ¶ */
-    {'~', '.', 183},	/* · */
-    {'.', 'M', 183},	/* · */
-    {',', ',', 184},	/* ¸ */
-    {'\'', ',', 184},	/* ¸ */
-    {'1', '1', 185},	/* ¹ */
-    {'1', 'S', 185},	/* ¹ */
-    {'o', '-', 186},	/* º */
-    {'>', '>', 187},	/* » */
-    {'1', '4', 188},	/* ¼ */
-    {'1', '2', 189},	/* ½ */
-    {'3', '4', 190},	/* ¾ */
-    {'~', '?', 191},	/* ¿ */
-    {'?', '?', 191},	/* ¿ */
-    {'?', 'I', 191},	/* ¿ */
-    {'A', '`', 192},	/* À */
-    {'A', '!', 192},	/* À */
-    {'A', '\'', 193},	/* Á */
-    {'A', '^', 194},	/* Â */
-    {'A', '>', 194},	/* Â */
-    {'A', '~', 195},	/* Ã */
-    {'A', '?', 195},	/* Ã */
-    {'A', '"', 196},	/* Ä */
-    {'A', ':', 196},	/* Ä */
-    {'A', '@', 197},	/* Å */
-    {'A', 'A', 197},	/* Å */
-    {'A', 'E', 198},	/* Æ */
-    {'C', ',', 199},	/* Ç */
-    {'E', '`', 200},	/* È */
-    {'E', '!', 200},	/* È */
-    {'E', '\'', 201},	/* É */
-    {'E', '^', 202},	/* Ê */
-    {'E', '>', 202},	/* Ê */
-    {'E', '"', 203},	/* Ë */
-    {'E', ':', 203},	/* Ë */
-    {'I', '`', 204},	/* Ì */
-    {'I', '!', 204},	/* Ì */
-    {'I', '\'', 205},	/* Í */
-    {'I', '^', 206},	/* Î */
-    {'I', '>', 206},	/* Î */
-    {'I', '"', 207},	/* Ï */
-    {'I', ':', 207},	/* Ï */
-    {'D', '-', 208},	/* Ð */
-    {'N', '~', 209},	/* Ñ */
-    {'N', '?', 209},	/* Ñ */
-    {'O', '`', 210},	/* Ò */
-    {'O', '!', 210},	/* Ò */
-    {'O', '\'', 211},	/* Ó */
-    {'O', '^', 212},	/* Ô */
-    {'O', '>', 212},	/* Ô */
-    {'O', '~', 213},	/* Õ */
-    {'O', '?', 213},	/* Õ */
-    {'O', '"', 214},	/* Ö */
-    {'O', ':', 214},	/* Ö */
-    {'/', '\\', 215},	/* × */
-    {'*', 'x', 215},	/* × */
-    {'O', '/', 216},	/* Ø */
-    {'U', '`', 217},	/* Ù */
-    {'U', '!', 217},	/* Ù */
-    {'U', '\'', 218},	/* Ú */
-    {'U', '^', 219},	/* Û */
-    {'U', '>', 219},	/* Û */
-    {'U', '"', 220},	/* Ü */
-    {'U', ':', 220},	/* Ü */
-    {'Y', '\'', 221},	/* Ý */
-    {'I', 'p', 222},	/* Þ */
-    {'T', 'H', 222},	/* Þ */
-    {'s', 's', 223},	/* ß */
-    {'s', '"', 223},	/* ß */
-    {'a', '`', 224},	/* à */
-    {'a', '!', 224},	/* à */
-    {'a', '\'', 225},	/* á */
-    {'a', '^', 226},	/* â */
-    {'a', '>', 226},	/* â */
-    {'a', '~', 227},	/* ã */
-    {'a', '?', 227},	/* ã */
-    {'a', '"', 228},	/* ä */
-    {'a', ':', 228},	/* ä */
-    {'a', 'a', 229},	/* å */
-    {'a', 'e', 230},	/* æ */
-    {'c', ',', 231},	/* ç */
-    {'e', '`', 232},	/* è */
-    {'e', '!', 232},	/* è */
-    {'e', '\'', 233},	/* é */
-    {'e', '^', 234},	/* ê */
-    {'e', '>', 234},	/* ê */
-    {'e', '"', 235},	/* ë */
-    {'e', ':', 235},	/* ë */
-    {'i', '`', 236},	/* ì */
-    {'i', '!', 236},	/* ì */
-    {'i', '\'', 237},	/* í */
-    {'i', '^', 238},	/* î */
-    {'i', '>', 238},	/* î */
-    {'i', '"', 239},	/* ï */
-    {'i', ':', 239},	/* ï */
-    {'d', '-', 240},	/* ð */
-    {'n', '~', 241},	/* ñ */
-    {'n', '?', 241},	/* ñ */
-    {'o', '`', 242},	/* ò */
-    {'o', '!', 242},	/* ò */
-    {'o', '\'', 243},	/* ó */
-    {'o', '^', 244},	/* ô */
-    {'o', '>', 244},	/* ô */
-    {'o', '~', 245},	/* õ */
-    {'o', '?', 245},	/* õ */
-    {'o', '"', 246},	/* ö */
-    {'o', ':', 246},	/* ö */
-    {':', '-', 247},	/* ÷ */
-    {'o', '/', 248},	/* ø */
-    {'u', '`', 249},	/* ù */
-    {'u', '!', 249},	/* ù */
-    {'u', '\'', 250},	/* ú */
-    {'u', '^', 251},	/* û */
-    {'u', '>', 251},	/* û */
-    {'u', '"', 252},	/* ü */
-    {'u', ':', 252},	/* ü */
-    {'y', '\'', 253},	/* ý */
-    {'i', 'p', 254},	/* þ */
-    {'t', 'h', 254},	/* þ */
-    {'y', '"', 255},	/* ÿ */
-    {'y', ':', 255},	/* ÿ */
-    {'"', '[', 196},	/* Ä */
-    {'"', '\\', 214},	/* Ö */
-    {'"', ']', 220},	/* Ü */
-    {'"', '{', 228},	/* ä */
-    {'"', '|', 246},	/* ö */
-    {'"', '}', 252},	/* ü */
-    {'"', '~', 223}	/* ß */
+static struct digraph digraphs[] = {
+    {{'N', 'S'}, 0x00a0},   /* NO-BREAK SPACE */
+    {{'!', 'I'}, 0x00a1},   /* INVERTED EXCLAMATION MARK */
+    {{'C', 't'}, 0x00a2},   /* CENT SIGN */
+    {{'P', 'd'}, 0x00a3},   /* POUND SIGN */
+    {{'C', 'u'}, 0x00a4},   /* CURRENCY SIGN */
+    {{'Y', 'e'}, 0x00a5},   /* YEN SIGN */
+    {{'B', 'B'}, 0x00a6},   /* BROKEN BAR */
+    {{'S', 'E'}, 0x00a7},   /* SECTION SIGN */
+    {{'\'', ':'}, 0x00a8},   /* DIAERESIS */
+    {{'C', 'o'}, 0x00a9},   /* COPYRIGHT SIGN */
+    {{'-', 'a'}, 0x00aa},   /* FEMININE ORDINAL INDICATOR */
+    {{'<', '<'}, 0x00ab},   /* LEFT-POINTING DOUBLE ANGLE QUOTATION MARK */
+    {{'N', 'O'}, 0x00ac},   /* NOT SIGN */
+    {{'-', '-'}, 0x00ad},   /* SOFT HYPHEN */
+    {{'R', 'g'}, 0x00ae},   /* REGISTERED SIGN */
+    {{'\'', 'm'}, 0x00af},   /* MACRON */
+    {{'D', 'G'}, 0x00b0},   /* DEGREE SIGN */
+    {{'+', '-'}, 0x00b1},   /* PLUS-MINUS SIGN */
+    {{'2', 'S'}, 0x00b2},   /* SUPERSCRIPT TWO */
+    {{'3', 'S'}, 0x00b3},   /* SUPERSCRIPT THREE */
+    {{'\'', '\''}, 0x00b4},   /* ACUTE ACCENT */
+    {{'M', 'y'}, 0x00b5},   /* MICRO SIGN */
+    {{'P', 'I'}, 0x00b6},   /* PILCROW SIGN */
+    {{'.', 'M'}, 0x00b7},   /* MIDDLE DOT */
+    {{'\'', ','}, 0x00b8},   /* CEDILLA */
+    {{'1', 'S'}, 0x00b9},   /* SUPERSCRIPT ONE */
+    {{'-', 'o'}, 0x00ba},   /* MASCULINE ORDINAL INDICATOR */
+    {{'>', '>'}, 0x00bb},   /* RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK */
+    {{'1', '4'}, 0x00bc},   /* VULGAR FRACTION ONE QUARTER */
+    {{'1', '2'}, 0x00bd},   /* VULGAR FRACTION ONE HALF */
+    {{'3', '4'}, 0x00be},   /* VULGAR FRACTION THREE QUARTERS */
+    {{'?', 'I'}, 0x00bf},   /* INVERTED QUESTION MARK */
+    {{'A', '!'}, 0x00c0},   /* LATIN CAPITAL LETTER A WITH GRAVE */
+    {{'A', '\''}, 0x00c1},   /* LATIN CAPITAL LETTER A WITH ACUTE */
+    {{'A', '>'}, 0x00c2},   /* LATIN CAPITAL LETTER A WITH CIRCUMFLEX */
+    {{'A', '?'}, 0x00c3},   /* LATIN CAPITAL LETTER A WITH TILDE */
+    {{'A', ':'}, 0x00c4},   /* LATIN CAPITAL LETTER A WITH DIAERESIS */
+    {{'A', 'A'}, 0x00c5},   /* LATIN CAPITAL LETTER A WITH RING ABOVE */
+    {{'A', 'E'}, 0x00c6},   /* LATIN CAPITAL LETTER AE */
+    {{'C', ','}, 0x00c7},   /* LATIN CAPITAL LETTER C WITH CEDILLA */
+    {{'E', '!'}, 0x00c8},   /* LATIN CAPITAL LETTER E WITH GRAVE */
+    {{'E', '\''}, 0x00c9},   /* LATIN CAPITAL LETTER E WITH ACUTE */
+    {{'E', '>'}, 0x00ca},   /* LATIN CAPITAL LETTER E WITH CIRCUMFLEX */
+    {{'E', ':'}, 0x00cb},   /* LATIN CAPITAL LETTER E WITH DIAERESIS */
+    {{'I', '!'}, 0x00cc},   /* LATIN CAPITAL LETTER I WITH GRAVE */
+    {{'I', '\''}, 0x00cd},   /* LATIN CAPITAL LETTER I WITH ACUTE */
+    {{'I', '>'}, 0x00ce},   /* LATIN CAPITAL LETTER I WITH CIRCUMFLEX */
+    {{'I', ':'}, 0x00cf},   /* LATIN CAPITAL LETTER I WITH DIAERESIS */
+    {{'D', '-'}, 0x00d0},   /* LATIN CAPITAL LETTER ETH (Icelandic) */
+    {{'N', '?'}, 0x00d1},   /* LATIN CAPITAL LETTER N WITH TILDE */
+    {{'O', '!'}, 0x00d2},   /* LATIN CAPITAL LETTER O WITH GRAVE */
+    {{'O', '\''}, 0x00d3},   /* LATIN CAPITAL LETTER O WITH ACUTE */
+    {{'O', '>'}, 0x00d4},   /* LATIN CAPITAL LETTER O WITH CIRCUMFLEX */
+    {{'O', '?'}, 0x00d5},   /* LATIN CAPITAL LETTER O WITH TILDE */
+    {{'O', ':'}, 0x00d6},   /* LATIN CAPITAL LETTER O WITH DIAERESIS */
+    {{'*', 'X'}, 0x00d7},   /* MULTIPLICATION SIGN */
+    {{'O', '/'}, 0x00d8},   /* LATIN CAPITAL LETTER O WITH STROKE */
+    {{'U', '!'}, 0x00d9},   /* LATIN CAPITAL LETTER U WITH GRAVE */
+    {{'U', '\''}, 0x00da},   /* LATIN CAPITAL LETTER U WITH ACUTE */
+    {{'U', '>'}, 0x00db},   /* LATIN CAPITAL LETTER U WITH CIRCUMFLEX */
+    {{'U', ':'}, 0x00dc},   /* LATIN CAPITAL LETTER U WITH DIAERESIS */
+    {{'Y', '\''}, 0x00dd},   /* LATIN CAPITAL LETTER Y WITH ACUTE */
+    {{'T', 'H'}, 0x00de},   /* LATIN CAPITAL LETTER THORN (Icelandic) */
+    {{'s', 's'}, 0x00df},   /* LATIN SMALL LETTER SHARP S (German) */
+    {{'a', '!'}, 0x00e0},   /* LATIN SMALL LETTER A WITH GRAVE */
+    {{'a', '\''}, 0x00e1},   /* LATIN SMALL LETTER A WITH ACUTE */
+    {{'a', '>'}, 0x00e2},   /* LATIN SMALL LETTER A WITH CIRCUMFLEX */
+    {{'a', '?'}, 0x00e3},   /* LATIN SMALL LETTER A WITH TILDE */
+    {{'a', ':'}, 0x00e4},   /* LATIN SMALL LETTER A WITH DIAERESIS */
+    {{'a', 'a'}, 0x00e5},   /* LATIN SMALL LETTER A WITH RING ABOVE */
+    {{'a', 'e'}, 0x00e6},   /* LATIN SMALL LETTER AE */
+    {{'c', ','}, 0x00e7},   /* LATIN SMALL LETTER C WITH CEDILLA */
+    {{'e', '!'}, 0x00e8},   /* LATIN SMALL LETTER E WITH GRAVE */
+    {{'e', '\''}, 0x00e9},   /* LATIN SMALL LETTER E WITH ACUTE */
+    {{'e', '>'}, 0x00ea},   /* LATIN SMALL LETTER E WITH CIRCUMFLEX */
+    {{'e', ':'}, 0x00eb},   /* LATIN SMALL LETTER E WITH DIAERESIS */
+    {{'i', '!'}, 0x00ec},   /* LATIN SMALL LETTER I WITH GRAVE */
+    {{'i', '\''}, 0x00ed},   /* LATIN SMALL LETTER I WITH ACUTE */
+    {{'i', '>'}, 0x00ee},   /* LATIN SMALL LETTER I WITH CIRCUMFLEX */
+    {{'i', ':'}, 0x00ef},   /* LATIN SMALL LETTER I WITH DIAERESIS */
+    {{'d', '-'}, 0x00f0},   /* LATIN SMALL LETTER ETH (Icelandic) */
+    {{'n', '?'}, 0x00f1},   /* LATIN SMALL LETTER N WITH TILDE */
+    {{'o', '!'}, 0x00f2},   /* LATIN SMALL LETTER O WITH GRAVE */
+    {{'o', '\''}, 0x00f3},   /* LATIN SMALL LETTER O WITH ACUTE */
+    {{'o', '>'}, 0x00f4},   /* LATIN SMALL LETTER O WITH CIRCUMFLEX */
+    {{'o', '?'}, 0x00f5},   /* LATIN SMALL LETTER O WITH TILDE */
+    {{'o', ':'}, 0x00f6},   /* LATIN SMALL LETTER O WITH DIAERESIS */
+    {{'-', ':'}, 0x00f7},   /* DIVISION SIGN */
+    {{'o', '/'}, 0x00f8},   /* LATIN SMALL LETTER O WITH STROKE */
+    {{'u', '!'}, 0x00f9},   /* LATIN SMALL LETTER U WITH GRAVE */
+    {{'u', '\''}, 0x00fa},   /* LATIN SMALL LETTER U WITH ACUTE */
+    {{'u', '>'}, 0x00fb},   /* LATIN SMALL LETTER U WITH CIRCUMFLEX */
+    {{'u', ':'}, 0x00fc},   /* LATIN SMALL LETTER U WITH DIAERESIS */
+    {{'y', '\''}, 0x00fd},   /* LATIN SMALL LETTER Y WITH ACUTE */
+    {{'t', 'h'}, 0x00fe},   /* LATIN SMALL LETTER THORN (Icelandic) */
+    {{'y', ':'}, 0x00ff},   /* LATIN SMALL LETTER Y WITH DIAERESIS */
+    {{'A', '-'}, 0x0100},   /* LATIN CAPITAL LETTER A WITH MACRON */
+    {{'a', '-'}, 0x0101},   /* LATIN SMALL LETTER A WITH MACRON */
+    {{'A', '('}, 0x0102},   /* LATIN CAPITAL LETTER A WITH BREVE */
+    {{'a', '('}, 0x0103},   /* LATIN SMALL LETTER A WITH BREVE */
+    {{'A', ';'}, 0x0104},   /* LATIN CAPITAL LETTER A WITH OGONEK */
+    {{'a', ';'}, 0x0105},   /* LATIN SMALL LETTER A WITH OGONEK */
+    {{'C', '\''}, 0x0106},   /* LATIN CAPITAL LETTER C WITH ACUTE */
+    {{'c', '\''}, 0x0107},   /* LATIN SMALL LETTER C WITH ACUTE */
+    {{'C', '>'}, 0x0108},   /* LATIN CAPITAL LETTER C WITH CIRCUMFLEX */
+    {{'c', '>'}, 0x0109},   /* LATIN SMALL LETTER C WITH CIRCUMFLEX */
+    {{'C', '.'}, 0x010a},   /* LATIN CAPITAL LETTER C WITH DOT ABOVE */
+    {{'c', '.'}, 0x010b},   /* LATIN SMALL LETTER C WITH DOT ABOVE */
+    {{'C', '<'}, 0x010c},   /* LATIN CAPITAL LETTER C WITH CARON */
+    {{'c', '<'}, 0x010d},   /* LATIN SMALL LETTER C WITH CARON */
+    {{'D', '<'}, 0x010e},   /* LATIN CAPITAL LETTER D WITH CARON */
+    {{'d', '<'}, 0x010f},   /* LATIN SMALL LETTER D WITH CARON */
+    {{'D', '/'}, 0x0110},   /* LATIN CAPITAL LETTER D WITH STROKE */
+    {{'d', '/'}, 0x0111},   /* LATIN SMALL LETTER D WITH STROKE */
+    {{'E', '-'}, 0x0112},   /* LATIN CAPITAL LETTER E WITH MACRON */
+    {{'e', '-'}, 0x0113},   /* LATIN SMALL LETTER E WITH MACRON */
+    {{'E', '('}, 0x0114},   /* LATIN CAPITAL LETTER E WITH BREVE */
+    {{'e', '('}, 0x0115},   /* LATIN SMALL LETTER E WITH BREVE */
+    {{'E', '.'}, 0x0116},   /* LATIN CAPITAL LETTER E WITH DOT ABOVE */
+    {{'e', '.'}, 0x0117},   /* LATIN SMALL LETTER E WITH DOT ABOVE */
+    {{'E', ';'}, 0x0118},   /* LATIN CAPITAL LETTER E WITH OGONEK */
+    {{'e', ';'}, 0x0119},   /* LATIN SMALL LETTER E WITH OGONEK */
+    {{'E', '<'}, 0x011a},   /* LATIN CAPITAL LETTER E WITH CARON */
+    {{'e', '<'}, 0x011b},   /* LATIN SMALL LETTER E WITH CARON */
+    {{'G', '>'}, 0x011c},   /* LATIN CAPITAL LETTER G WITH CIRCUMFLEX */
+    {{'g', '>'}, 0x011d},   /* LATIN SMALL LETTER G WITH CIRCUMFLEX */
+    {{'G', '('}, 0x011e},   /* LATIN CAPITAL LETTER G WITH BREVE */
+    {{'g', '('}, 0x011f},   /* LATIN SMALL LETTER G WITH BREVE */
+    {{'G', '.'}, 0x0120},   /* LATIN CAPITAL LETTER G WITH DOT ABOVE */
+    {{'g', '.'}, 0x0121},   /* LATIN SMALL LETTER G WITH DOT ABOVE */
+    {{'G', ','}, 0x0122},   /* LATIN CAPITAL LETTER G WITH CEDILLA */
+    {{'g', ','}, 0x0123},   /* LATIN SMALL LETTER G WITH CEDILLA */
+    {{'H', '>'}, 0x0124},   /* LATIN CAPITAL LETTER H WITH CIRCUMFLEX */
+    {{'h', '>'}, 0x0125},   /* LATIN SMALL LETTER H WITH CIRCUMFLEX */
+    {{'H', '/'}, 0x0126},   /* LATIN CAPITAL LETTER H WITH STROKE */
+    {{'h', '/'}, 0x0127},   /* LATIN SMALL LETTER H WITH STROKE */
+    {{'I', '?'}, 0x0128},   /* LATIN CAPITAL LETTER I WITH TILDE */
+    {{'i', '?'}, 0x0129},   /* LATIN SMALL LETTER I WITH TILDE */
+    {{'I', '-'}, 0x012a},   /* LATIN CAPITAL LETTER I WITH MACRON */
+    {{'i', '-'}, 0x012b},   /* LATIN SMALL LETTER I WITH MACRON */
+    {{'I', '('}, 0x012c},   /* LATIN CAPITAL LETTER I WITH BREVE */
+    {{'i', '('}, 0x012d},   /* LATIN SMALL LETTER I WITH BREVE */
+    {{'I', ';'}, 0x012e},   /* LATIN CAPITAL LETTER I WITH OGONEK */
+    {{'i', ';'}, 0x012f},   /* LATIN SMALL LETTER I WITH OGONEK */
+    {{'I', '.'}, 0x0130},   /* LATIN CAPITAL LETTER I WITH DOT ABOVE */
+    {{'i', '.'}, 0x0131},   /* LATIN SMALL LETTER I DOTLESS */
+    {{'I', 'J'}, 0x0132},   /* LATIN CAPITAL LIGATURE IJ */
+    {{'i', 'j'}, 0x0133},   /* LATIN SMALL LIGATURE IJ */
+    {{'J', '>'}, 0x0134},   /* LATIN CAPITAL LETTER J WITH CIRCUMFLEX */
+    {{'j', '>'}, 0x0135},   /* LATIN SMALL LETTER J WITH CIRCUMFLEX */
+    {{'K', ','}, 0x0136},   /* LATIN CAPITAL LETTER K WITH CEDILLA */
+    {{'k', ','}, 0x0137},   /* LATIN SMALL LETTER K WITH CEDILLA */
+    {{'k', 'k'}, 0x0138},   /* LATIN SMALL LETTER KRA (Greenlandic) */
+    {{'L', '\''}, 0x0139},   /* LATIN CAPITAL LETTER L WITH ACUTE */
+    {{'l', '\''}, 0x013a},   /* LATIN SMALL LETTER L WITH ACUTE */
+    {{'L', ','}, 0x013b},   /* LATIN CAPITAL LETTER L WITH CEDILLA */
+    {{'l', ','}, 0x013c},   /* LATIN SMALL LETTER L WITH CEDILLA */
+    {{'L', '<'}, 0x013d},   /* LATIN CAPITAL LETTER L WITH CARON */
+    {{'l', '<'}, 0x013e},   /* LATIN SMALL LETTER L WITH CARON */
+    {{'L', '.'}, 0x013f},   /* LATIN CAPITAL LETTER L WITH MIDDLE DOT */
+    {{'l', '.'}, 0x0140},   /* LATIN SMALL LETTER L WITH MIDDLE DOT */
+    {{'L', '/'}, 0x0141},   /* LATIN CAPITAL LETTER L WITH STROKE */
+    {{'l', '/'}, 0x0142},   /* LATIN SMALL LETTER L WITH STROKE */
+    {{'N', '\''}, 0x0143},   /* LATIN CAPITAL LETTER N WITH ACUTE */
+    {{'n', '\''}, 0x0144},   /* LATIN SMALL LETTER N WITH ACUTE */
+    {{'N', ','}, 0x0145},   /* LATIN CAPITAL LETTER N WITH CEDILLA */
+    {{'n', ','}, 0x0146},   /* LATIN SMALL LETTER N WITH CEDILLA */
+    {{'N', '<'}, 0x0147},   /* LATIN CAPITAL LETTER N WITH CARON */
+    {{'n', '<'}, 0x0148},   /* LATIN SMALL LETTER N WITH CARON */
+    {{'\'', 'n'}, 0x0149},   /* LATIN SMALL LETTER N PRECEDED BY APOSTROPHE */
+    {{'N', 'G'}, 0x014a},   /* LATIN CAPITAL LETTER ENG (Lappish) */
+    {{'n', 'g'}, 0x014b},   /* LATIN SMALL LETTER ENG (Lappish) */
+    {{'O', '-'}, 0x014c},   /* LATIN CAPITAL LETTER O WITH MACRON */
+    {{'o', '-'}, 0x014d},   /* LATIN SMALL LETTER O WITH MACRON */
+    {{'O', '('}, 0x014e},   /* LATIN CAPITAL LETTER O WITH BREVE */
+    {{'o', '('}, 0x014f},   /* LATIN SMALL LETTER O WITH BREVE */
+    {{'O', '"'}, 0x0150},   /* LATIN CAPITAL LETTER O WITH DOUBLE ACUTE */
+    {{'o', '"'}, 0x0151},   /* LATIN SMALL LETTER O WITH DOUBLE ACUTE */
+    {{'O', 'E'}, 0x0152},   /* LATIN CAPITAL LIGATURE OE */
+    {{'o', 'e'}, 0x0153},   /* LATIN SMALL LIGATURE OE */
+    {{'R', '\''}, 0x0154},   /* LATIN CAPITAL LETTER R WITH ACUTE */
+    {{'r', '\''}, 0x0155},   /* LATIN SMALL LETTER R WITH ACUTE */
+    {{'R', ','}, 0x0156},   /* LATIN CAPITAL LETTER R WITH CEDILLA */
+    {{'r', ','}, 0x0157},   /* LATIN SMALL LETTER R WITH CEDILLA */
+    {{'R', '<'}, 0x0158},   /* LATIN CAPITAL LETTER R WITH CARON */
+    {{'r', '<'}, 0x0159},   /* LATIN SMALL LETTER R WITH CARON */
+    {{'S', '\''}, 0x015a},   /* LATIN CAPITAL LETTER S WITH ACUTE */
+    {{'s', '\''}, 0x015b},   /* LATIN SMALL LETTER S WITH ACUTE */
+    {{'S', '>'}, 0x015c},   /* LATIN CAPITAL LETTER S WITH CIRCUMFLEX */
+    {{'s', '>'}, 0x015d},   /* LATIN SMALL LETTER S WITH CIRCUMFLEX */
+    {{'S', ','}, 0x015e},   /* LATIN CAPITAL LETTER S WITH CEDILLA */
+    {{'s', ','}, 0x015f},   /* LATIN SMALL LETTER S WITH CEDILLA */
+    {{'S', '<'}, 0x0160},   /* LATIN CAPITAL LETTER S WITH CARON */
+    {{'s', '<'}, 0x0161},   /* LATIN SMALL LETTER S WITH CARON */
+    {{'T', ','}, 0x0162},   /* LATIN CAPITAL LETTER T WITH CEDILLA */
+    {{'t', ','}, 0x0163},   /* LATIN SMALL LETTER T WITH CEDILLA */
+    {{'T', '<'}, 0x0164},   /* LATIN CAPITAL LETTER T WITH CARON */
+    {{'t', '<'}, 0x0165},   /* LATIN SMALL LETTER T WITH CARON */
+    {{'T', '/'}, 0x0166},   /* LATIN CAPITAL LETTER T WITH STROKE */
+    {{'t', '/'}, 0x0167},   /* LATIN SMALL LETTER T WITH STROKE */
+    {{'U', '?'}, 0x0168},   /* LATIN CAPITAL LETTER U WITH TILDE */
+    {{'u', '?'}, 0x0169},   /* LATIN SMALL LETTER U WITH TILDE */
+    {{'U', '-'}, 0x016a},   /* LATIN CAPITAL LETTER U WITH MACRON */
+    {{'u', '-'}, 0x016b},   /* LATIN SMALL LETTER U WITH MACRON */
+    {{'U', '('}, 0x016c},   /* LATIN CAPITAL LETTER U WITH BREVE */
+    {{'u', '('}, 0x016d},   /* LATIN SMALL LETTER U WITH BREVE */
+    {{'U', '0'}, 0x016e},   /* LATIN CAPITAL LETTER U WITH RING ABOVE */
+    {{'u', '0'}, 0x016f},   /* LATIN SMALL LETTER U WITH RING ABOVE */
+    {{'U', '"'}, 0x0170},   /* LATIN CAPITAL LETTER U WITH DOUBLE ACUTE */
+    {{'u', '"'}, 0x0171},   /* LATIN SMALL LETTER U WITH DOUBLE ACUTE */
+    {{'U', ';'}, 0x0172},   /* LATIN CAPITAL LETTER U WITH OGONEK */
+    {{'u', ';'}, 0x0173},   /* LATIN SMALL LETTER U WITH OGONEK */
+    {{'W', '>'}, 0x0174},   /* LATIN CAPITAL LETTER W WITH CIRCUMFLEX */
+    {{'w', '>'}, 0x0175},   /* LATIN SMALL LETTER W WITH CIRCUMFLEX */
+    {{'Y', '>'}, 0x0176},   /* LATIN CAPITAL LETTER Y WITH CIRCUMFLEX */
+    {{'y', '>'}, 0x0177},   /* LATIN SMALL LETTER Y WITH CIRCUMFLEX */
+    {{'Y', ':'}, 0x0178},   /* LATIN CAPITAL LETTER Y WITH DIAERESIS */
+    {{'Z', '\''}, 0x0179},   /* LATIN CAPITAL LETTER Z WITH ACUTE */
+    {{'z', '\''}, 0x017a},   /* LATIN SMALL LETTER Z WITH ACUTE */
+    {{'Z', '.'}, 0x017b},   /* LATIN CAPITAL LETTER Z WITH DOT ABOVE */
+    {{'z', '.'}, 0x017c},   /* LATIN SMALL LETTER Z WITH DOT ABOVE */
+    {{'Z', '<'}, 0x017d},   /* LATIN CAPITAL LETTER Z WITH CARON */
+    {{'z', '<'}, 0x017e},   /* LATIN SMALL LETTER Z WITH CARON */
+    {{'O', '9'}, 0x01a0},   /* LATIN CAPITAL LETTER O WITH HORN */
+    {{'o', '9'}, 0x01a1},   /* LATIN SMALL LETTER O WITH HORN */
+    {{'O', 'I'}, 0x01a2},   /* LATIN CAPITAL LETTER OI */
+    {{'o', 'i'}, 0x01a3},   /* LATIN SMALL LETTER OI */
+    {{'y', 'r'}, 0x01a6},   /* LATIN LETTER YR */
+    {{'U', '9'}, 0x01af},   /* LATIN CAPITAL LETTER U WITH HORN */
+    {{'u', '9'}, 0x01b0},   /* LATIN SMALL LETTER U WITH HORN */
+    {{'Z', '/'}, 0x01b5},   /* LATIN CAPITAL LETTER Z WITH STROKE */
+    {{'z', '/'}, 0x01b6},   /* LATIN SMALL LETTER Z WITH STROKE */
+    {{'E', 'D'}, 0x01b7},   /* LATIN CAPITAL LETTER EZH */
+    {{'A', '<'}, 0x01cd},   /* LATIN CAPITAL LETTER A WITH CARON */
+    {{'a', '<'}, 0x01ce},   /* LATIN SMALL LETTER A WITH CARON */
+    {{'I', '<'}, 0x01cf},   /* LATIN CAPITAL LETTER I WITH CARON */
+    {{'i', '<'}, 0x01d0},   /* LATIN SMALL LETTER I WITH CARON */
+    {{'O', '<'}, 0x01d1},   /* LATIN CAPITAL LETTER O WITH CARON */
+    {{'o', '<'}, 0x01d2},   /* LATIN SMALL LETTER O WITH CARON */
+    {{'U', '<'}, 0x01d3},   /* LATIN CAPITAL LETTER U WITH CARON */
+    {{'u', '<'}, 0x01d4},   /* LATIN SMALL LETTER U WITH CARON */
+    {{'A', '1'}, 0x01de},   /* LATIN CAPITAL LETTER A WITH DIAERESIS AND MACRON */
+    {{'a', '1'}, 0x01df},   /* LATIN SMALL LETTER A WITH DIAERESIS AND MACRON */
+    {{'A', '7'}, 0x01e0},   /* LATIN CAPITAL LETTER A WITH DOT ABOVE AND MACRON */
+    {{'a', '7'}, 0x01e1},   /* LATIN SMALL LETTER A WITH DOT ABOVE AND MACRON */
+    {{'A', '3'}, 0x01e2},   /* LATIN CAPITAL LETTER AE WITH MACRON */
+    {{'a', '3'}, 0x01e3},   /* LATIN SMALL LETTER AE WITH MACRON */
+    {{'G', '/'}, 0x01e4},   /* LATIN CAPITAL LETTER G WITH STROKE */
+    {{'g', '/'}, 0x01e5},   /* LATIN SMALL LETTER G WITH STROKE */
+    {{'G', '<'}, 0x01e6},   /* LATIN CAPITAL LETTER G WITH CARON */
+    {{'g', '<'}, 0x01e7},   /* LATIN SMALL LETTER G WITH CARON */
+    {{'K', '<'}, 0x01e8},   /* LATIN CAPITAL LETTER K WITH CARON */
+    {{'k', '<'}, 0x01e9},   /* LATIN SMALL LETTER K WITH CARON */
+    {{'O', ';'}, 0x01ea},   /* LATIN CAPITAL LETTER O WITH OGONEK */
+    {{'o', ';'}, 0x01eb},   /* LATIN SMALL LETTER O WITH OGONEK */
+    {{'O', '1'}, 0x01ec},   /* LATIN CAPITAL LETTER O WITH OGONEK AND MACRON */
+    {{'o', '1'}, 0x01ed},   /* LATIN SMALL LETTER O WITH OGONEK AND MACRON */
+    {{'E', 'Z'}, 0x01ee},   /* LATIN CAPITAL LETTER EZH WITH CARON */
+    {{'e', 'z'}, 0x01ef},   /* LATIN SMALL LETTER EZH WITH CARON */
+    {{'j', '<'}, 0x01f0},   /* LATIN SMALL LETTER J WITH CARON */
+    {{'G', '\''}, 0x01f4},   /* LATIN CAPITAL LETTER G WITH ACUTE */
+    {{'g', '\''}, 0x01f5},   /* LATIN SMALL LETTER G WITH ACUTE */
+    {{';', 'S'}, 0x02bf},   /* MODIFIER LETTER LEFT HALF RING */
+    {{'\'', '<'}, 0x02c7},   /* CARON */
+    {{'\'', '('}, 0x02d8},   /* BREVE */
+    {{'\'', '.'}, 0x02d9},   /* DOT ABOVE */
+    {{'\'', '0'}, 0x02da},   /* RING ABOVE */
+    {{'\'', ';'}, 0x02db},   /* OGONEK */
+    {{'\'', '"'}, 0x02dd},   /* DOUBLE ACUTE ACCENT */
+    {{'A', '%'}, 0x0386},   /* GREEK CAPITAL LETTER ALPHA WITH ACUTE */
+    {{'E', '%'}, 0x0388},   /* GREEK CAPITAL LETTER EPSILON WITH ACUTE */
+    {{'Y', '%'}, 0x0389},   /* GREEK CAPITAL LETTER ETA WITH ACUTE */
+    {{'I', '%'}, 0x038a},   /* GREEK CAPITAL LETTER IOTA WITH ACUTE */
+    {{'O', '%'}, 0x038c},   /* GREEK CAPITAL LETTER OMICRON WITH ACUTE */
+    {{'U', '%'}, 0x038e},   /* GREEK CAPITAL LETTER UPSILON WITH ACUTE */
+    {{'W', '%'}, 0x038f},   /* GREEK CAPITAL LETTER OMEGA WITH ACUTE */
+    {{'i', '3'}, 0x0390},   /* GREEK SMALL LETTER IOTA WITH ACUTE AND DIAERESIS */
+    {{'A', '*'}, 0x0391},   /* GREEK CAPITAL LETTER ALPHA */
+    {{'B', '*'}, 0x0392},   /* GREEK CAPITAL LETTER BETA */
+    {{'G', '*'}, 0x0393},   /* GREEK CAPITAL LETTER GAMMA */
+    {{'D', '*'}, 0x0394},   /* GREEK CAPITAL LETTER DELTA */
+    {{'E', '*'}, 0x0395},   /* GREEK CAPITAL LETTER EPSILON */
+    {{'Z', '*'}, 0x0396},   /* GREEK CAPITAL LETTER ZETA */
+    {{'Y', '*'}, 0x0397},   /* GREEK CAPITAL LETTER ETA */
+    {{'H', '*'}, 0x0398},   /* GREEK CAPITAL LETTER THETA */
+    {{'I', '*'}, 0x0399},   /* GREEK CAPITAL LETTER IOTA */
+    {{'K', '*'}, 0x039a},   /* GREEK CAPITAL LETTER KAPPA */
+    {{'L', '*'}, 0x039b},   /* GREEK CAPITAL LETTER LAMDA */
+    {{'M', '*'}, 0x039c},   /* GREEK CAPITAL LETTER MU */
+    {{'N', '*'}, 0x039d},   /* GREEK CAPITAL LETTER NU */
+    {{'C', '*'}, 0x039e},   /* GREEK CAPITAL LETTER XI */
+    {{'O', '*'}, 0x039f},   /* GREEK CAPITAL LETTER OMICRON */
+    {{'P', '*'}, 0x03a0},   /* GREEK CAPITAL LETTER PI */
+    {{'R', '*'}, 0x03a1},   /* GREEK CAPITAL LETTER RHO */
+    {{'S', '*'}, 0x03a3},   /* GREEK CAPITAL LETTER SIGMA */
+    {{'T', '*'}, 0x03a4},   /* GREEK CAPITAL LETTER TAU */
+    {{'U', '*'}, 0x03a5},   /* GREEK CAPITAL LETTER UPSILON */
+    {{'F', '*'}, 0x03a6},   /* GREEK CAPITAL LETTER PHI */
+    {{'X', '*'}, 0x03a7},   /* GREEK CAPITAL LETTER CHI */
+    {{'Q', '*'}, 0x03a8},   /* GREEK CAPITAL LETTER PSI */
+    {{'W', '*'}, 0x03a9},   /* GREEK CAPITAL LETTER OMEGA */
+    {{'J', '*'}, 0x03aa},   /* GREEK CAPITAL LETTER IOTA WITH DIAERESIS */
+    {{'V', '*'}, 0x03ab},   /* GREEK CAPITAL LETTER UPSILON WITH DIAERESIS */
+    {{'a', '%'}, 0x03ac},   /* GREEK SMALL LETTER ALPHA WITH ACUTE */
+    {{'e', '%'}, 0x03ad},   /* GREEK SMALL LETTER EPSILON WITH ACUTE */
+    {{'y', '%'}, 0x03ae},   /* GREEK SMALL LETTER ETA WITH ACUTE */
+    {{'i', '%'}, 0x03af},   /* GREEK SMALL LETTER IOTA WITH ACUTE */
+    {{'u', '3'}, 0x03b0},   /* GREEK SMALL LETTER UPSILON WITH ACUTE AND DIAERESIS */
+    {{'a', '*'}, 0x03b1},   /* GREEK SMALL LETTER ALPHA */
+    {{'b', '*'}, 0x03b2},   /* GREEK SMALL LETTER BETA */
+    {{'g', '*'}, 0x03b3},   /* GREEK SMALL LETTER GAMMA */
+    {{'d', '*'}, 0x03b4},   /* GREEK SMALL LETTER DELTA */
+    {{'e', '*'}, 0x03b5},   /* GREEK SMALL LETTER EPSILON */
+    {{'z', '*'}, 0x03b6},   /* GREEK SMALL LETTER ZETA */
+    {{'y', '*'}, 0x03b7},   /* GREEK SMALL LETTER ETA */
+    {{'h', '*'}, 0x03b8},   /* GREEK SMALL LETTER THETA */
+    {{'i', '*'}, 0x03b9},   /* GREEK SMALL LETTER IOTA */
+    {{'k', '*'}, 0x03ba},   /* GREEK SMALL LETTER KAPPA */
+    {{'l', '*'}, 0x03bb},   /* GREEK SMALL LETTER LAMDA */
+    {{'m', '*'}, 0x03bc},   /* GREEK SMALL LETTER MU */
+    {{'n', '*'}, 0x03bd},   /* GREEK SMALL LETTER NU */
+    {{'c', '*'}, 0x03be},   /* GREEK SMALL LETTER XI */
+    {{'o', '*'}, 0x03bf},   /* GREEK SMALL LETTER OMICRON */
+    {{'p', '*'}, 0x03c0},   /* GREEK SMALL LETTER PI */
+    {{'r', '*'}, 0x03c1},   /* GREEK SMALL LETTER RHO */
+    {{'*', 's'}, 0x03c2},   /* GREEK SMALL LETTER FINAL SIGMA */
+    {{'s', '*'}, 0x03c3},   /* GREEK SMALL LETTER SIGMA */
+    {{'t', '*'}, 0x03c4},   /* GREEK SMALL LETTER TAU */
+    {{'u', '*'}, 0x03c5},   /* GREEK SMALL LETTER UPSILON */
+    {{'f', '*'}, 0x03c6},   /* GREEK SMALL LETTER PHI */
+    {{'x', '*'}, 0x03c7},   /* GREEK SMALL LETTER CHI */
+    {{'q', '*'}, 0x03c8},   /* GREEK SMALL LETTER PSI */
+    {{'w', '*'}, 0x03c9},   /* GREEK SMALL LETTER OMEGA */
+    {{'j', '*'}, 0x03ca},   /* GREEK SMALL LETTER IOTA WITH DIAERESIS */
+    {{'v', '*'}, 0x03cb},   /* GREEK SMALL LETTER UPSILON WITH DIAERESIS */
+    {{'o', '%'}, 0x03cc},   /* GREEK SMALL LETTER OMICRON WITH ACUTE */
+    {{'u', '%'}, 0x03cd},   /* GREEK SMALL LETTER UPSILON WITH ACUTE */
+    {{'w', '%'}, 0x03ce},   /* GREEK SMALL LETTER OMEGA WITH ACUTE */
+    {{'\'', 'G'}, 0x03d8},   /* GREEK NUMERAL SIGN */
+    {{',', 'G'}, 0x03d9},   /* GREEK LOWER NUMERAL SIGN */
+    {{'T', '3'}, 0x03da},   /* GREEK CAPITAL LETTER STIGMA */
+    {{'t', '3'}, 0x03db},   /* GREEK SMALL LETTER STIGMA */
+    {{'M', '3'}, 0x03dc},   /* GREEK CAPITAL LETTER DIGAMMA */
+    {{'m', '3'}, 0x03dd},   /* GREEK SMALL LETTER DIGAMMA */
+    {{'K', '3'}, 0x03de},   /* GREEK CAPITAL LETTER KOPPA */
+    {{'k', '3'}, 0x03df},   /* GREEK SMALL LETTER KOPPA */
+    {{'P', '3'}, 0x03e0},   /* GREEK CAPITAL LETTER SAMPI */
+    {{'p', '3'}, 0x03e1},   /* GREEK SMALL LETTER SAMPI */
+    {{'\'', '%'}, 0x03f4},   /* ACUTE ACCENT AND DIAERESIS (Tonos and Dialytika) */
+    {{'j', '3'}, 0x03f5},   /* GREEK IOTA BELOW */
+    {{'I', 'O'}, 0x0401},   /* CYRILLIC CAPITAL LETTER IO */
+    {{'D', '%'}, 0x0402},   /* CYRILLIC CAPITAL LETTER DJE (Serbocroatian) */
+    {{'G', '%'}, 0x0403},   /* CYRILLIC CAPITAL LETTER GJE (Macedonian) */
+    {{'I', 'E'}, 0x0404},   /* CYRILLIC CAPITAL LETTER UKRAINIAN IE */
+    {{'D', 'S'}, 0x0405},   /* CYRILLIC CAPITAL LETTER DZE (Macedonian) */
+    {{'I', 'I'}, 0x0406},   /* CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I */
+    {{'Y', 'I'}, 0x0407},   /* CYRILLIC CAPITAL LETTER YI (Ukrainian) */
+    {{'J', '%'}, 0x0408},   /* CYRILLIC CAPITAL LETTER JE */
+    {{'L', 'J'}, 0x0409},   /* CYRILLIC CAPITAL LETTER LJE */
+    {{'N', 'J'}, 0x040a},   /* CYRILLIC CAPITAL LETTER NJE */
+    {{'T', 's'}, 0x040b},   /* CYRILLIC CAPITAL LETTER TSHE (Serbocroatian) */
+    {{'K', 'J'}, 0x040c},   /* CYRILLIC CAPITAL LETTER KJE (Macedonian) */
+    {{'V', '%'}, 0x040e},   /* CYRILLIC CAPITAL LETTER SHORT U (Byelorussian) */
+    {{'D', 'Z'}, 0x040f},   /* CYRILLIC CAPITAL LETTER DZHE */
+    {{'A', '='}, 0x0410},   /* CYRILLIC CAPITAL LETTER A */
+    {{'B', '='}, 0x0411},   /* CYRILLIC CAPITAL LETTER BE */
+    {{'V', '='}, 0x0412},   /* CYRILLIC CAPITAL LETTER VE */
+    {{'G', '='}, 0x0413},   /* CYRILLIC CAPITAL LETTER GHE */
+    {{'D', '='}, 0x0414},   /* CYRILLIC CAPITAL LETTER DE */
+    {{'E', '='}, 0x0415},   /* CYRILLIC CAPITAL LETTER IE */
+    {{'Z', '%'}, 0x0416},   /* CYRILLIC CAPITAL LETTER ZHE */
+    {{'Z', '='}, 0x0417},   /* CYRILLIC CAPITAL LETTER ZE */
+    {{'I', '='}, 0x0418},   /* CYRILLIC CAPITAL LETTER I */
+    {{'J', '='}, 0x0419},   /* CYRILLIC CAPITAL LETTER SHORT I */
+    {{'K', '='}, 0x041a},   /* CYRILLIC CAPITAL LETTER KA */
+    {{'L', '='}, 0x041b},   /* CYRILLIC CAPITAL LETTER EL */
+    {{'M', '='}, 0x041c},   /* CYRILLIC CAPITAL LETTER EM */
+    {{'N', '='}, 0x041d},   /* CYRILLIC CAPITAL LETTER EN */
+    {{'O', '='}, 0x041e},   /* CYRILLIC CAPITAL LETTER O */
+    {{'P', '='}, 0x041f},   /* CYRILLIC CAPITAL LETTER PE */
+    {{'R', '='}, 0x0420},   /* CYRILLIC CAPITAL LETTER ER */
+    {{'S', '='}, 0x0421},   /* CYRILLIC CAPITAL LETTER ES */
+    {{'T', '='}, 0x0422},   /* CYRILLIC CAPITAL LETTER TE */
+    {{'U', '='}, 0x0423},   /* CYRILLIC CAPITAL LETTER U */
+    {{'F', '='}, 0x0424},   /* CYRILLIC CAPITAL LETTER EF */
+    {{'H', '='}, 0x0425},   /* CYRILLIC CAPITAL LETTER HA */
+    {{'C', '='}, 0x0426},   /* CYRILLIC CAPITAL LETTER TSE */
+    {{'C', '%'}, 0x0427},   /* CYRILLIC CAPITAL LETTER CHE */
+    {{'S', '%'}, 0x0428},   /* CYRILLIC CAPITAL LETTER SHA */
+    {{'S', 'c'}, 0x0429},   /* CYRILLIC CAPITAL LETTER SHCHA */
+    {{'=', '"'}, 0x042a},   /* CYRILLIC CAPITAL LETTER HARD SIGN */
+    {{'Y', '='}, 0x042b},   /* CYRILLIC CAPITAL LETTER YERU */
+    {{'%', '"'}, 0x042c},   /* CYRILLIC CAPITAL LETTER SOFT SIGN */
+    {{'J', 'E'}, 0x042d},   /* CYRILLIC CAPITAL LETTER E */
+    {{'J', 'U'}, 0x042e},   /* CYRILLIC CAPITAL LETTER YU */
+    {{'J', 'A'}, 0x042f},   /* CYRILLIC CAPITAL LETTER YA */
+    {{'a', '='}, 0x0430},   /* CYRILLIC SMALL LETTER A */
+    {{'b', '='}, 0x0431},   /* CYRILLIC SMALL LETTER BE */
+    {{'v', '='}, 0x0432},   /* CYRILLIC SMALL LETTER VE */
+    {{'g', '='}, 0x0433},   /* CYRILLIC SMALL LETTER GHE */
+    {{'d', '='}, 0x0434},   /* CYRILLIC SMALL LETTER DE */
+    {{'e', '='}, 0x0435},   /* CYRILLIC SMALL LETTER IE */
+    {{'z', '%'}, 0x0436},   /* CYRILLIC SMALL LETTER ZHE */
+    {{'z', '='}, 0x0437},   /* CYRILLIC SMALL LETTER ZE */
+    {{'i', '='}, 0x0438},   /* CYRILLIC SMALL LETTER I */
+    {{'j', '='}, 0x0439},   /* CYRILLIC SMALL LETTER SHORT I */
+    {{'k', '='}, 0x043a},   /* CYRILLIC SMALL LETTER KA */
+    {{'l', '='}, 0x043b},   /* CYRILLIC SMALL LETTER EL */
+    {{'m', '='}, 0x043c},   /* CYRILLIC SMALL LETTER EM */
+    {{'n', '='}, 0x043d},   /* CYRILLIC SMALL LETTER EN */
+    {{'o', '='}, 0x043e},   /* CYRILLIC SMALL LETTER O */
+    {{'p', '='}, 0x043f},   /* CYRILLIC SMALL LETTER PE */
+    {{'r', '='}, 0x0440},   /* CYRILLIC SMALL LETTER ER */
+    {{'s', '='}, 0x0441},   /* CYRILLIC SMALL LETTER ES */
+    {{'t', '='}, 0x0442},   /* CYRILLIC SMALL LETTER TE */
+    {{'u', '='}, 0x0443},   /* CYRILLIC SMALL LETTER U */
+    {{'f', '='}, 0x0444},   /* CYRILLIC SMALL LETTER EF */
+    {{'h', '='}, 0x0445},   /* CYRILLIC SMALL LETTER HA */
+    {{'c', '='}, 0x0446},   /* CYRILLIC SMALL LETTER TSE */
+    {{'c', '%'}, 0x0447},   /* CYRILLIC SMALL LETTER CHE */
+    {{'s', '%'}, 0x0448},   /* CYRILLIC SMALL LETTER SHA */
+    {{'s', 'c'}, 0x0449},   /* CYRILLIC SMALL LETTER SHCHA */
+    {{'=', '\''}, 0x044a},   /* CYRILLIC SMALL LETTER HARD SIGN */
+    {{'y', '='}, 0x044b},   /* CYRILLIC SMALL LETTER YERU */
+    {{'%', '\''}, 0x044c},   /* CYRILLIC SMALL LETTER SOFT SIGN */
+    {{'j', 'e'}, 0x044d},   /* CYRILLIC SMALL LETTER E */
+    {{'j', 'u'}, 0x044e},   /* CYRILLIC SMALL LETTER YU */
+    {{'j', 'a'}, 0x044f},   /* CYRILLIC SMALL LETTER YA */
+    {{'i', 'o'}, 0x0451},   /* CYRILLIC SMALL LETTER IO */
+    {{'d', '%'}, 0x0452},   /* CYRILLIC SMALL LETTER DJE (Serbocroatian) */
+    {{'g', '%'}, 0x0453},   /* CYRILLIC SMALL LETTER GJE (Macedonian) */
+    {{'i', 'e'}, 0x0454},   /* CYRILLIC SMALL LETTER UKRAINIAN IE */
+    {{'d', 's'}, 0x0455},   /* CYRILLIC SMALL LETTER DZE (Macedonian) */
+    {{'i', 'i'}, 0x0456},   /* CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I */
+    {{'y', 'i'}, 0x0457},   /* CYRILLIC SMALL LETTER YI (Ukrainian) */
+    {{'j', '%'}, 0x0458},   /* CYRILLIC SMALL LETTER JE */
+    {{'l', 'j'}, 0x0459},   /* CYRILLIC SMALL LETTER LJE */
+    {{'n', 'j'}, 0x045a},   /* CYRILLIC SMALL LETTER NJE */
+    {{'t', 's'}, 0x045b},   /* CYRILLIC SMALL LETTER TSHE (Serbocroatian) */
+    {{'k', 'j'}, 0x045c},   /* CYRILLIC SMALL LETTER KJE (Macedonian) */
+    {{'v', '%'}, 0x045e},   /* CYRILLIC SMALL LETTER SHORT U (Byelorussian) */
+    {{'d', 'z'}, 0x045f},   /* CYRILLIC SMALL LETTER DZHE */
+    {{'Y', '3'}, 0x0462},   /* CYRILLIC CAPITAL LETTER YAT */
+    {{'y', '3'}, 0x0463},   /* CYRILLIC SMALL LETTER YAT */
+    {{'O', '3'}, 0x046a},   /* CYRILLIC CAPITAL LETTER BIG YUS */
+    {{'o', '3'}, 0x046b},   /* CYRILLIC SMALL LETTER BIG YUS */
+    {{'F', '3'}, 0x0472},   /* CYRILLIC CAPITAL LETTER FITA */
+    {{'f', '3'}, 0x0473},   /* CYRILLIC SMALL LETTER FITA */
+    {{'V', '3'}, 0x0474},   /* CYRILLIC CAPITAL LETTER IZHITSA */
+    {{'v', '3'}, 0x0475},   /* CYRILLIC SMALL LETTER IZHITSA */
+    {{'C', '3'}, 0x0480},   /* CYRILLIC CAPITAL LETTER KOPPA */
+    {{'c', '3'}, 0x0481},   /* CYRILLIC SMALL LETTER KOPPA */
+    {{'G', '3'}, 0x0490},   /* CYRILLIC CAPITAL LETTER GHE WITH UPTURN */
+    {{'g', '3'}, 0x0491},   /* CYRILLIC SMALL LETTER GHE WITH UPTURN */
+    {{'A', '+'}, 0x05d0},   /* HEBREW LETTER ALEF */
+    {{'B', '+'}, 0x05d1},   /* HEBREW LETTER BET */
+    {{'G', '+'}, 0x05d2},   /* HEBREW LETTER GIMEL */
+    {{'D', '+'}, 0x05d3},   /* HEBREW LETTER DALET */
+    {{'H', '+'}, 0x05d4},   /* HEBREW LETTER HE */
+    {{'W', '+'}, 0x05d5},   /* HEBREW LETTER VAV */
+    {{'Z', '+'}, 0x05d6},   /* HEBREW LETTER ZAYIN */
+    {{'X', '+'}, 0x05d7},   /* HEBREW LETTER HET */
+    {{'T', 'j'}, 0x05d8},   /* HEBREW LETTER TET */
+    {{'J', '+'}, 0x05d9},   /* HEBREW LETTER YOD */
+    {{'K', '%'}, 0x05da},   /* HEBREW LETTER FINAL KAF */
+    {{'K', '+'}, 0x05db},   /* HEBREW LETTER KAF */
+    {{'L', '+'}, 0x05dc},   /* HEBREW LETTER LAMED */
+    {{'M', '%'}, 0x05dd},   /* HEBREW LETTER FINAL MEM */
+    {{'M', '+'}, 0x05de},   /* HEBREW LETTER MEM */
+    {{'N', '%'}, 0x05df},   /* HEBREW LETTER FINAL NUN */
+    {{'N', '+'}, 0x05e0},   /* HEBREW LETTER NUN */
+    {{'S', '+'}, 0x05e1},   /* HEBREW LETTER SAMEKH */
+    {{'E', '+'}, 0x05e2},   /* HEBREW LETTER AYIN */
+    {{'P', '%'}, 0x05e3},   /* HEBREW LETTER FINAL PE */
+    {{'P', '+'}, 0x05e4},   /* HEBREW LETTER PE */
+    {{'Z', 'j'}, 0x05e5},   /* HEBREW LETTER FINAL TSADI */
+    {{'Z', 'J'}, 0x05e6},   /* HEBREW LETTER TSADI */
+    {{'Q', '+'}, 0x05e7},   /* HEBREW LETTER QOF */
+    {{'R', '+'}, 0x05e8},   /* HEBREW LETTER RESH */
+    {{'S', 'h'}, 0x05e9},   /* HEBREW LETTER SHIN */
+    {{'T', '+'}, 0x05ea},   /* HEBREW LETTER TAV */
+    {{',', '+'}, 0x060c},   /* ARABIC COMMA */
+    {{';', '+'}, 0x061b},   /* ARABIC SEMICOLON */
+    {{'?', '+'}, 0x061f},   /* ARABIC QUESTION MARK */
+    {{'H', '\''}, 0x0621},   /* ARABIC LETTER HAMZA */
+    {{'a', 'M'}, 0x0622},   /* ARABIC LETTER ALEF WITH MADDA ABOVE */
+    {{'a', 'H'}, 0x0623},   /* ARABIC LETTER ALEF WITH HAMZA ABOVE */
+    {{'w', 'H'}, 0x0624},   /* ARABIC LETTER WAW WITH HAMZA ABOVE */
+    {{'a', 'h'}, 0x0625},   /* ARABIC LETTER ALEF WITH HAMZA BELOW */
+    {{'y', 'H'}, 0x0626},   /* ARABIC LETTER YEH WITH HAMZA ABOVE */
+    {{'a', '+'}, 0x0627},   /* ARABIC LETTER ALEF */
+    {{'b', '+'}, 0x0628},   /* ARABIC LETTER BEH */
+    {{'t', 'm'}, 0x0629},   /* ARABIC LETTER TEH MARBUTA */
+    {{'t', '+'}, 0x062a},   /* ARABIC LETTER TEH */
+    {{'t', 'k'}, 0x062b},   /* ARABIC LETTER THEH */
+    {{'g', '+'}, 0x062c},   /* ARABIC LETTER JEEM */
+    {{'h', 'k'}, 0x062d},   /* ARABIC LETTER HAH */
+    {{'x', '+'}, 0x062e},   /* ARABIC LETTER KHAH */
+    {{'d', '+'}, 0x062f},   /* ARABIC LETTER DAL */
+    {{'d', 'k'}, 0x0630},   /* ARABIC LETTER THAL */
+    {{'r', '+'}, 0x0631},   /* ARABIC LETTER REH */
+    {{'z', '+'}, 0x0632},   /* ARABIC LETTER ZAIN */
+    {{'s', '+'}, 0x0633},   /* ARABIC LETTER SEEN */
+    {{'s', 'n'}, 0x0634},   /* ARABIC LETTER SHEEN */
+    {{'c', '+'}, 0x0635},   /* ARABIC LETTER SAD */
+    {{'d', 'd'}, 0x0636},   /* ARABIC LETTER DAD */
+    {{'t', 'j'}, 0x0637},   /* ARABIC LETTER TAH */
+    {{'z', 'H'}, 0x0638},   /* ARABIC LETTER ZAH */
+    {{'e', '+'}, 0x0639},   /* ARABIC LETTER AIN */
+    {{'i', '+'}, 0x063a},   /* ARABIC LETTER GHAIN */
+    {{'+', '+'}, 0x0640},   /* ARABIC TATWEEL */
+    {{'f', '+'}, 0x0641},   /* ARABIC LETTER FEH */
+    {{'q', '+'}, 0x0642},   /* ARABIC LETTER QAF */
+    {{'k', '+'}, 0x0643},   /* ARABIC LETTER KAF */
+    {{'l', '+'}, 0x0644},   /* ARABIC LETTER LAM */
+    {{'m', '+'}, 0x0645},   /* ARABIC LETTER MEEM */
+    {{'n', '+'}, 0x0646},   /* ARABIC LETTER NOON */
+    {{'h', '+'}, 0x0647},   /* ARABIC LETTER HEH */
+    {{'w', '+'}, 0x0648},   /* ARABIC LETTER WAW */
+    {{'j', '+'}, 0x0649},   /* ARABIC LETTER ALEF MAKSURA */
+    {{'y', '+'}, 0x064a},   /* ARABIC LETTER YEH */
+    {{':', '+'}, 0x064b},   /* ARABIC FATHATAN */
+    {{'"', '+'}, 0x064c},   /* ARABIC DAMMATAN */
+    {{'=', '+'}, 0x064d},   /* ARABIC KASRATAN */
+    {{'/', '+'}, 0x064e},   /* ARABIC FATHA */
+    {{'\'', '+'}, 0x064f},   /* ARABIC DAMMA */
+    {{'1', '+'}, 0x0650},   /* ARABIC KASRA */
+    {{'3', '+'}, 0x0651},   /* ARABIC SHADDA */
+    {{'0', '+'}, 0x0652},   /* ARABIC SUKUN */
+    {{'a', 'S'}, 0x0670},   /* SUPERSCRIPT ARABIC LETTER ALEF */
+    {{'p', '+'}, 0x067e},   /* ARABIC LETTER PEH */
+    {{'v', '+'}, 0x06a4},   /* ARABIC LETTER VEH */
+    {{'g', 'f'}, 0x06af},   /* ARABIC LETTER GAF */
+    {{'0', 'a'}, 0x06f0},   /* EASTERN ARABIC-INDIC DIGIT ZERO */
+    {{'1', 'a'}, 0x06f1},   /* EASTERN ARABIC-INDIC DIGIT ONE */
+    {{'2', 'a'}, 0x06f2},   /* EASTERN ARABIC-INDIC DIGIT TWO */
+    {{'3', 'a'}, 0x06f3},   /* EASTERN ARABIC-INDIC DIGIT THREE */
+    {{'4', 'a'}, 0x06f4},   /* EASTERN ARABIC-INDIC DIGIT FOUR */
+    {{'5', 'a'}, 0x06f5},   /* EASTERN ARABIC-INDIC DIGIT FIVE */
+    {{'6', 'a'}, 0x06f6},   /* EASTERN ARABIC-INDIC DIGIT SIX */
+    {{'7', 'a'}, 0x06f7},   /* EASTERN ARABIC-INDIC DIGIT SEVEN */
+    {{'8', 'a'}, 0x06f8},   /* EASTERN ARABIC-INDIC DIGIT EIGHT */
+    {{'9', 'a'}, 0x06f9},   /* EASTERN ARABIC-INDIC DIGIT NINE */
+    {{'B', '.'}, 0x1e02},   /* LATIN CAPITAL LETTER B WITH DOT ABOVE */
+    {{'b', '.'}, 0x1e03},   /* LATIN SMALL LETTER B WITH DOT ABOVE */
+    {{'B', '_'}, 0x1e06},   /* LATIN CAPITAL LETTER B WITH LINE BELOW */
+    {{'b', '_'}, 0x1e07},   /* LATIN SMALL LETTER B WITH LINE BELOW */
+    {{'D', '.'}, 0x1e0a},   /* LATIN CAPITAL LETTER D WITH DOT ABOVE */
+    {{'d', '.'}, 0x1e0b},   /* LATIN SMALL LETTER D WITH DOT ABOVE */
+    {{'D', '_'}, 0x1e0e},   /* LATIN CAPITAL LETTER D WITH LINE BELOW */
+    {{'d', '_'}, 0x1e0f},   /* LATIN SMALL LETTER D WITH LINE BELOW */
+    {{'D', ','}, 0x1e10},   /* LATIN CAPITAL LETTER D WITH CEDILLA */
+    {{'d', ','}, 0x1e11},   /* LATIN SMALL LETTER D WITH CEDILLA */
+    {{'F', '.'}, 0x1e1e},   /* LATIN CAPITAL LETTER F WITH DOT ABOVE */
+    {{'f', '.'}, 0x1e1f},   /* LATIN SMALL LETTER F WITH DOT ABOVE */
+    {{'G', '-'}, 0x1e20},   /* LATIN CAPITAL LETTER G WITH MACRON */
+    {{'g', '-'}, 0x1e21},   /* LATIN SMALL LETTER G WITH MACRON */
+    {{'H', '.'}, 0x1e22},   /* LATIN CAPITAL LETTER H WITH DOT ABOVE */
+    {{'h', '.'}, 0x1e23},   /* LATIN SMALL LETTER H WITH DOT ABOVE */
+    {{'H', ':'}, 0x1e26},   /* LATIN CAPITAL LETTER H WITH DIAERESIS */
+    {{'h', ':'}, 0x1e27},   /* LATIN SMALL LETTER H WITH DIAERESIS */
+    {{'H', ','}, 0x1e28},   /* LATIN CAPITAL LETTER H WITH CEDILLA */
+    {{'h', ','}, 0x1e29},   /* LATIN SMALL LETTER H WITH CEDILLA */
+    {{'K', '\''}, 0x1e30},   /* LATIN CAPITAL LETTER K WITH ACUTE */
+    {{'k', '\''}, 0x1e31},   /* LATIN SMALL LETTER K WITH ACUTE */
+    {{'K', '_'}, 0x1e34},   /* LATIN CAPITAL LETTER K WITH LINE BELOW */
+    {{'k', '_'}, 0x1e35},   /* LATIN SMALL LETTER K WITH LINE BELOW */
+    {{'L', '_'}, 0x1e3a},   /* LATIN CAPITAL LETTER L WITH LINE BELOW */
+    {{'l', '_'}, 0x1e3b},   /* LATIN SMALL LETTER L WITH LINE BELOW */
+    {{'M', '\''}, 0x1e3e},   /* LATIN CAPITAL LETTER M WITH ACUTE */
+    {{'m', '\''}, 0x1e3f},   /* LATIN SMALL LETTER M WITH ACUTE */
+    {{'M', '.'}, 0x1e40},   /* LATIN CAPITAL LETTER M WITH DOT ABOVE */
+    {{'m', '.'}, 0x1e41},   /* LATIN SMALL LETTER M WITH DOT ABOVE */
+    {{'N', '.'}, 0x1e44},   /* LATIN CAPITAL LETTER N WITH DOT ABOVE */
+    {{'n', '.'}, 0x1e45},   /* LATIN SMALL LETTER N WITH DOT ABOVE */
+    {{'N', '_'}, 0x1e48},   /* LATIN CAPITAL LETTER N WITH LINE BELOW */
+    {{'n', '_'}, 0x1e49},   /* LATIN SMALL LETTER N WITH LINE BELOW */
+    {{'P', '\''}, 0x1e54},   /* LATIN CAPITAL LETTER P WITH ACUTE */
+    {{'p', '\''}, 0x1e55},   /* LATIN SMALL LETTER P WITH ACUTE */
+    {{'P', '.'}, 0x1e56},   /* LATIN CAPITAL LETTER P WITH DOT ABOVE */
+    {{'p', '.'}, 0x1e57},   /* LATIN SMALL LETTER P WITH DOT ABOVE */
+    {{'R', '.'}, 0x1e58},   /* LATIN CAPITAL LETTER R WITH DOT ABOVE */
+    {{'r', '.'}, 0x1e59},   /* LATIN SMALL LETTER R WITH DOT ABOVE */
+    {{'R', '_'}, 0x1e5e},   /* LATIN CAPITAL LETTER R WITH LINE BELOW */
+    {{'r', '_'}, 0x1e5f},   /* LATIN SMALL LETTER R WITH LINE BELOW */
+    {{'S', '.'}, 0x1e60},   /* LATIN CAPITAL LETTER S WITH DOT ABOVE */
+    {{'s', '.'}, 0x1e61},   /* LATIN SMALL LETTER S WITH DOT ABOVE */
+    {{'T', '.'}, 0x1e6a},   /* LATIN CAPITAL LETTER T WITH DOT ABOVE */
+    {{'t', '.'}, 0x1e6b},   /* LATIN SMALL LETTER T WITH DOT ABOVE */
+    {{'T', '_'}, 0x1e6e},   /* LATIN CAPITAL LETTER T WITH LINE BELOW */
+    {{'t', '_'}, 0x1e6f},   /* LATIN SMALL LETTER T WITH LINE BELOW */
+    {{'V', '?'}, 0x1e7c},   /* LATIN CAPITAL LETTER V WITH TILDE */
+    {{'v', '?'}, 0x1e7d},   /* LATIN SMALL LETTER V WITH TILDE */
+    {{'W', '!'}, 0x1e80},   /* LATIN CAPITAL LETTER W WITH GRAVE */
+    {{'w', '!'}, 0x1e81},   /* LATIN SMALL LETTER W WITH GRAVE */
+    {{'W', '\''}, 0x1e82},   /* LATIN CAPITAL LETTER W WITH ACUTE */
+    {{'w', '\''}, 0x1e83},   /* LATIN SMALL LETTER W WITH ACUTE */
+    {{'W', ':'}, 0x1e84},   /* LATIN CAPITAL LETTER W WITH DIAERESIS */
+    {{'w', ':'}, 0x1e85},   /* LATIN SMALL LETTER W WITH DIAERESIS */
+    {{'W', '.'}, 0x1e86},   /* LATIN CAPITAL LETTER W WITH DOT ABOVE */
+    {{'w', '.'}, 0x1e87},   /* LATIN SMALL LETTER W WITH DOT ABOVE */
+    {{'X', '.'}, 0x1e8a},   /* LATIN CAPITAL LETTER X WITH DOT ABOVE */
+    {{'x', '.'}, 0x1e8b},   /* LATIN SMALL LETTER X WITH DOT ABOVE */
+    {{'X', ':'}, 0x1e8c},   /* LATIN CAPITAL LETTER X WITH DIAERESIS */
+    {{'x', ':'}, 0x1e8d},   /* LATIN SMALL LETTER X WITH DIAERESIS */
+    {{'Y', '.'}, 0x1e8e},   /* LATIN CAPITAL LETTER Y WITH DOT ABOVE */
+    {{'y', '.'}, 0x1e8f},   /* LATIN SMALL LETTER Y WITH DOT ABOVE */
+    {{'Z', '>'}, 0x1e90},   /* LATIN CAPITAL LETTER Z WITH CIRCUMFLEX */
+    {{'z', '>'}, 0x1e91},   /* LATIN SMALL LETTER Z WITH CIRCUMFLEX */
+    {{'Z', '_'}, 0x1e94},   /* LATIN CAPITAL LETTER Z WITH LINE BELOW */
+    {{'z', '_'}, 0x1e95},   /* LATIN SMALL LETTER Z WITH LINE BELOW */
+    {{'h', '_'}, 0x1e96},   /* LATIN SMALL LETTER H WITH LINE BELOW */
+    {{'t', ':'}, 0x1e97},   /* LATIN SMALL LETTER T WITH DIAERESIS */
+    {{'w', '0'}, 0x1e98},   /* LATIN SMALL LETTER W WITH RING ABOVE */
+    {{'y', '0'}, 0x1e99},   /* LATIN SMALL LETTER Y WITH RING ABOVE */
+    {{'A', '2'}, 0x1ea2},   /* LATIN CAPITAL LETTER A WITH HOOK ABOVE */
+    {{'a', '2'}, 0x1ea3},   /* LATIN SMALL LETTER A WITH HOOK ABOVE */
+    {{'E', '2'}, 0x1eba},   /* LATIN CAPITAL LETTER E WITH HOOK ABOVE */
+    {{'e', '2'}, 0x1ebb},   /* LATIN SMALL LETTER E WITH HOOK ABOVE */
+    {{'E', '?'}, 0x1ebc},   /* LATIN CAPITAL LETTER E WITH TILDE */
+    {{'e', '?'}, 0x1ebd},   /* LATIN SMALL LETTER E WITH TILDE */
+    {{'I', '2'}, 0x1ec8},   /* LATIN CAPITAL LETTER I WITH HOOK ABOVE */
+    {{'i', '2'}, 0x1ec9},   /* LATIN SMALL LETTER I WITH HOOK ABOVE */
+    {{'O', '2'}, 0x1ece},   /* LATIN CAPITAL LETTER O WITH HOOK ABOVE */
+    {{'o', '2'}, 0x1ecf},   /* LATIN SMALL LETTER O WITH HOOK ABOVE */
+    {{'U', '2'}, 0x1ee6},   /* LATIN CAPITAL LETTER U WITH HOOK ABOVE */
+    {{'u', '2'}, 0x1ee7},   /* LATIN SMALL LETTER U WITH HOOK ABOVE */
+    {{'Y', '!'}, 0x1ef2},   /* LATIN CAPITAL LETTER Y WITH GRAVE */
+    {{'y', '!'}, 0x1ef3},   /* LATIN SMALL LETTER Y WITH GRAVE */
+    {{'Y', '2'}, 0x1ef6},   /* LATIN CAPITAL LETTER Y WITH HOOK ABOVE */
+    {{'y', '2'}, 0x1ef7},   /* LATIN SMALL LETTER Y WITH HOOK ABOVE */
+    {{'Y', '?'}, 0x1ef8},   /* LATIN CAPITAL LETTER Y WITH TILDE */
+    {{'y', '?'}, 0x1ef9},   /* LATIN SMALL LETTER Y WITH TILDE */
+    {{';', '\''}, 0x1f00},   /* GREEK DASIA AND ACUTE ACCENT */
+    {{',', '\''}, 0x1f01},   /* GREEK PSILI AND ACUTE ACCENT */
+    {{';', '!'}, 0x1f02},   /* GREEK DASIA AND VARIA */
+    {{',', '!'}, 0x1f03},   /* GREEK PSILI AND VARIA */
+    {{'?', ';'}, 0x1f04},   /* GREEK DASIA AND PERISPOMENI */
+    {{'?', ','}, 0x1f05},   /* GREEK PSILI AND PERISPOMENI */
+    {{'!', ':'}, 0x1f06},   /* GREEK DIAERESIS AND VARIA */
+    {{'?', ':'}, 0x1f07},   /* GREEK DIAERESIS AND PERISPOMENI */
+    {{'1', 'N'}, 0x2002},   /* EN SPACE */
+    {{'1', 'M'}, 0x2003},   /* EM SPACE */
+    {{'3', 'M'}, 0x2004},   /* THREE-PER-EM SPACE */
+    {{'4', 'M'}, 0x2005},   /* FOUR-PER-EM SPACE */
+    {{'6', 'M'}, 0x2006},   /* SIX-PER-EM SPACE */
+    {{'1', 'T'}, 0x2009},   /* THIN SPACE */
+    {{'1', 'H'}, 0x200a},   /* HAIR SPACE */
+    {{'-', '1'}, 0x2010},   /* HYPHEN */
+    {{'-', 'N'}, 0x2013},   /* EN DASH */
+    {{'-', 'M'}, 0x2014},   /* EM DASH */
+    {{'-', '3'}, 0x2015},   /* HORIZONTAL BAR */
+    {{'!', '2'}, 0x2016},   /* DOUBLE VERTICAL LINE */
+    {{'=', '2'}, 0x2017},   /* DOUBLE LOW LINE */
+    {{'\'', '6'}, 0x2018},   /* LEFT SINGLE QUOTATION MARK */
+    {{'\'', '9'}, 0x2019},   /* RIGHT SINGLE QUOTATION MARK */
+    {{'.', '9'}, 0x201a},   /* SINGLE LOW-9 QUOTATION MARK */
+    {{'9', '\''}, 0x201b},   /* SINGLE HIGH-REVERSED-9 QUOTATION MARK */
+    {{'"', '6'}, 0x201c},   /* LEFT DOUBLE QUOTATION MARK */
+    {{'"', '9'}, 0x201d},   /* RIGHT DOUBLE QUOTATION MARK */
+    {{':', '9'}, 0x201e},   /* DOUBLE LOW-9 QUOTATION MARK */
+    {{'9', '"'}, 0x201f},   /* DOUBLE HIGH-REVERSED-9 QUOTATION MARK */
+    {{'/', '-'}, 0x2020},   /* DAGGER */
+    {{'/', '='}, 0x2021},   /* DOUBLE DAGGER */
+    {{'.', '.'}, 0x2025},   /* TWO DOT LEADER */
+    {{'%', '0'}, 0x2030},   /* PER MILLE SIGN */
+    {{'1', '\''}, 0x2032},   /* PRIME */
+    {{'2', '\''}, 0x2033},   /* DOUBLE PRIME */
+    {{'3', '\''}, 0x2034},   /* TRIPLE PRIME */
+    {{'1', '"'}, 0x2035},   /* REVERSED PRIME */
+    {{'2', '"'}, 0x2036},   /* REVERSED DOUBLE PRIME */
+    {{'3', '"'}, 0x2037},   /* REVERSED TRIPLE PRIME */
+    {{'C', 'a'}, 0x2038},   /* CARET */
+    {{'<', '1'}, 0x2039},   /* SINGLE LEFT-POINTING ANGLE QUOTATION MARK */
+    {{'>', '1'}, 0x203a},   /* SINGLE RIGHT-POINTING ANGLE QUOTATION MARK */
+    {{':', 'X'}, 0x203b},   /* REFERENCE MARK */
+    {{'\'', '-'}, 0x203e},   /* OVERLINE */
+    {{'/', 'f'}, 0x2044},   /* FRACTION SLASH */
+    {{'0', 'S'}, 0x2070},   /* SUPERSCRIPT DIGIT ZERO */
+    {{'4', 'S'}, 0x2074},   /* SUPERSCRIPT DIGIT FOUR */
+    {{'5', 'S'}, 0x2075},   /* SUPERSCRIPT DIGIT FIVE */
+    {{'6', 'S'}, 0x2076},   /* SUPERSCRIPT DIGIT SIX */
+    {{'7', 'S'}, 0x2077},   /* SUPERSCRIPT DIGIT SEVEN */
+    {{'8', 'S'}, 0x2078},   /* SUPERSCRIPT DIGIT EIGHT */
+    {{'9', 'S'}, 0x2079},   /* SUPERSCRIPT DIGIT NINE */
+    {{'+', 'S'}, 0x207a},   /* SUPERSCRIPT PLUS SIGN */
+    {{'-', 'S'}, 0x207b},   /* SUPERSCRIPT MINUS */
+    {{'=', 'S'}, 0x207c},   /* SUPERSCRIPT EQUALS SIGN */
+    {{'(', 'S'}, 0x207d},   /* SUPERSCRIPT LEFT PARENTHESIS */
+    {{')', 'S'}, 0x207e},   /* SUPERSCRIPT RIGHT PARENTHESIS */
+    {{'n', 'S'}, 0x207f},   /* SUPERSCRIPT LATIN SMALL LETTER N */
+    {{'0', 's'}, 0x2080},   /* SUBSCRIPT DIGIT ZERO */
+    {{'1', 's'}, 0x2081},   /* SUBSCRIPT DIGIT ONE */
+    {{'2', 's'}, 0x2082},   /* SUBSCRIPT DIGIT TWO */
+    {{'3', 's'}, 0x2083},   /* SUBSCRIPT DIGIT THREE */
+    {{'4', 's'}, 0x2084},   /* SUBSCRIPT DIGIT FOUR */
+    {{'5', 's'}, 0x2085},   /* SUBSCRIPT DIGIT FIVE */
+    {{'6', 's'}, 0x2086},   /* SUBSCRIPT DIGIT SIX */
+    {{'7', 's'}, 0x2087},   /* SUBSCRIPT DIGIT SEVEN */
+    {{'8', 's'}, 0x2088},   /* SUBSCRIPT DIGIT EIGHT */
+    {{'9', 's'}, 0x2089},   /* SUBSCRIPT DIGIT NINE */
+    {{'+', 's'}, 0x208a},   /* SUBSCRIPT PLUS SIGN */
+    {{'-', 's'}, 0x208b},   /* SUBSCRIPT MINUS */
+    {{'=', 's'}, 0x208c},   /* SUBSCRIPT EQUALS SIGN */
+    {{'(', 's'}, 0x208d},   /* SUBSCRIPT LEFT PARENTHESIS */
+    {{')', 's'}, 0x208e},   /* SUBSCRIPT RIGHT PARENTHESIS */
+    {{'L', 'i'}, 0x20a4},   /* LIRA SIGN */
+    {{'P', 't'}, 0x20a7},   /* PESETA SIGN */
+    {{'W', '='}, 0x20a9},   /* WON SIGN */
+    {{'o', 'C'}, 0x2103},   /* DEGREE CENTIGRADE */
+    {{'c', 'o'}, 0x2105},   /* CARE OF */
+    {{'o', 'F'}, 0x2109},   /* DEGREE FAHRENHEIT */
+    {{'N', '0'}, 0x2116},   /* NUMERO SIGN */
+    {{'P', 'O'}, 0x2117},   /* SOUND RECORDING COPYRIGHT */
+    {{'R', 'x'}, 0x211e},   /* PRESCRIPTION TAKE */
+    {{'S', 'M'}, 0x2120},   /* SERVICE MARK */
+    {{'T', 'M'}, 0x2122},   /* TRADE MARK SIGN */
+    {{'O', 'm'}, 0x2126},   /* OHM SIGN */
+    {{'A', 'O'}, 0x212b},   /* ANGSTROEM SIGN */
+    {{'1', '3'}, 0x2153},   /* VULGAR FRACTION ONE THIRD */
+    {{'2', '3'}, 0x2154},   /* VULGAR FRACTION TWO THIRDS */
+    {{'1', '5'}, 0x2155},   /* VULGAR FRACTION ONE FIFTH */
+    {{'2', '5'}, 0x2156},   /* VULGAR FRACTION TWO FIFTHS */
+    {{'3', '5'}, 0x2157},   /* VULGAR FRACTION THREE FIFTHS */
+    {{'4', '5'}, 0x2158},   /* VULGAR FRACTION FOUR FIFTHS */
+    {{'1', '6'}, 0x2159},   /* VULGAR FRACTION ONE SIXTH */
+    {{'5', '6'}, 0x215a},   /* VULGAR FRACTION FIVE SIXTHS */
+    {{'1', '8'}, 0x215b},   /* VULGAR FRACTION ONE EIGHTH */
+    {{'3', '8'}, 0x215c},   /* VULGAR FRACTION THREE EIGHTHS */
+    {{'5', '8'}, 0x215d},   /* VULGAR FRACTION FIVE EIGHTHS */
+    {{'7', '8'}, 0x215e},   /* VULGAR FRACTION SEVEN EIGHTHS */
+    {{'1', 'R'}, 0x2160},   /* ROMAN NUMERAL ONE */
+    {{'2', 'R'}, 0x2161},   /* ROMAN NUMERAL TWO */
+    {{'3', 'R'}, 0x2162},   /* ROMAN NUMERAL THREE */
+    {{'4', 'R'}, 0x2163},   /* ROMAN NUMERAL FOUR */
+    {{'5', 'R'}, 0x2164},   /* ROMAN NUMERAL FIVE */
+    {{'6', 'R'}, 0x2165},   /* ROMAN NUMERAL SIX */
+    {{'7', 'R'}, 0x2166},   /* ROMAN NUMERAL SEVEN */
+    {{'8', 'R'}, 0x2167},   /* ROMAN NUMERAL EIGHT */
+    {{'9', 'R'}, 0x2168},   /* ROMAN NUMERAL NINE */
+    {{'a', 'R'}, 0x2169},   /* ROMAN NUMERAL TEN */
+    {{'b', 'R'}, 0x216a},   /* ROMAN NUMERAL ELEVEN */
+    {{'c', 'R'}, 0x216b},   /* ROMAN NUMERAL TWELVE */
+    {{'1', 'r'}, 0x2170},   /* SMALL ROMAN NUMERAL ONE */
+    {{'2', 'r'}, 0x2171},   /* SMALL ROMAN NUMERAL TWO */
+    {{'3', 'r'}, 0x2172},   /* SMALL ROMAN NUMERAL THREE */
+    {{'4', 'r'}, 0x2173},   /* SMALL ROMAN NUMERAL FOUR */
+    {{'5', 'r'}, 0x2174},   /* SMALL ROMAN NUMERAL FIVE */
+    {{'6', 'r'}, 0x2175},   /* SMALL ROMAN NUMERAL SIX */
+    {{'7', 'r'}, 0x2176},   /* SMALL ROMAN NUMERAL SEVEN */
+    {{'8', 'r'}, 0x2177},   /* SMALL ROMAN NUMERAL EIGHT */
+    {{'9', 'r'}, 0x2178},   /* SMALL ROMAN NUMERAL NINE */
+    {{'a', 'r'}, 0x2179},   /* SMALL ROMAN NUMERAL TEN */
+    {{'b', 'r'}, 0x217a},   /* SMALL ROMAN NUMERAL ELEVEN */
+    {{'c', 'r'}, 0x217b},   /* SMALL ROMAN NUMERAL TWELVE */
+    {{'<', '-'}, 0x2190},   /* LEFTWARDS ARROW */
+    {{'-', '!'}, 0x2191},   /* UPWARDS ARROW */
+    {{'-', '>'}, 0x2192},   /* RIGHTWARDS ARROW */
+    {{'-', 'v'}, 0x2193},   /* DOWNWARDS ARROW */
+    {{'<', '>'}, 0x2194},   /* LEFT RIGHT ARROW */
+    {{'U', 'D'}, 0x2195},   /* UP DOWN ARROW */
+    {{'<', '='}, 0x21d0},   /* LEFTWARDS DOUBLE ARROW */
+    {{'=', '>'}, 0x21d2},   /* RIGHTWARDS DOUBLE ARROW */
+    {{'=', '='}, 0x21d4},   /* LEFT RIGHT DOUBLE ARROW */
+    {{'F', 'A'}, 0x2200},   /* FOR ALL */
+    {{'d', 'P'}, 0x2202},   /* PARTIAL DIFFERENTIAL */
+    {{'T', 'E'}, 0x2203},   /* THERE EXISTS */
+    {{'/', '0'}, 0x2205},   /* EMPTY SET */
+    {{'D', 'E'}, 0x2206},   /* INCREMENT */
+    {{'N', 'B'}, 0x2207},   /* NABLA */
+    {{'(', '-'}, 0x2208},   /* ELEMENT OF */
+    {{'-', ')'}, 0x220b},   /* CONTAINS AS MEMBER */
+    {{'*', 'P'}, 0x220f},   /* N-ARY PRODUCT */
+    {{'+', 'Z'}, 0x2211},   /* N-ARY SUMMATION */
+    {{'-', '2'}, 0x2212},   /* MINUS SIGN */
+    {{'-', '+'}, 0x2213},   /* MINUS-OR-PLUS SIGN */
+    {{'*', '-'}, 0x2217},   /* ASTERISK OPERATOR */
+    {{'O', 'b'}, 0x2218},   /* RING OPERATOR */
+    {{'S', 'b'}, 0x2219},   /* BULLET OPERATOR */
+    {{'R', 'T'}, 0x221a},   /* SQUARE ROOT */
+    {{'0', '('}, 0x221d},   /* PROPORTIONAL TO */
+    {{'0', '0'}, 0x221e},   /* INFINITY */
+    {{'-', 'L'}, 0x221f},   /* RIGHT ANGLE */
+    {{'-', 'V'}, 0x2220},   /* ANGLE */
+    {{'P', 'P'}, 0x2225},   /* PARALLEL TO */
+    {{'A', 'N'}, 0x2227},   /* LOGICAL AND */
+    {{'O', 'R'}, 0x2228},   /* LOGICAL OR */
+    {{'(', 'U'}, 0x2229},   /* INTERSECTION */
+    {{')', 'U'}, 0x222a},   /* UNION */
+    {{'I', 'n'}, 0x222b},   /* INTEGRAL */
+    {{'D', 'I'}, 0x222c},   /* DOUBLE INTEGRAL */
+    {{'I', 'o'}, 0x222e},   /* CONTOUR INTEGRAL */
+    {{'.', ':'}, 0x2234},   /* THEREFORE */
+    {{':', '.'}, 0x2235},   /* BECAUSE */
+    {{':', 'R'}, 0x2236},   /* RATIO */
+    {{':', ':'}, 0x2237},   /* PROPORTION */
+    {{'?', '1'}, 0x223c},   /* TILDE OPERATOR */
+    {{'C', 'G'}, 0x223e},   /* INVERTED LAZY S */
+    {{'?', '-'}, 0x2243},   /* ASYMPTOTICALLY EQUAL TO */
+    {{'?', '='}, 0x2245},   /* APPROXIMATELY EQUAL TO */
+    {{'?', '2'}, 0x2248},   /* ALMOST EQUAL TO */
+    {{'=', '?'}, 0x224c},   /* ALL EQUAL TO */
+    {{'H', 'I'}, 0x2253},   /* IMAGE OF OR APPROXIMATELY EQUAL TO */
+    {{'!', '='}, 0x2260},   /* NOT EQUAL TO */
+    {{'=', '3'}, 0x2261},   /* IDENTICAL TO */
+    {{'=', '<'}, 0x2264},   /* LESS-THAN OR EQUAL TO */
+    {{'>', '='}, 0x2265},   /* GREATER-THAN OR EQUAL TO */
+    {{'<', '*'}, 0x226a},   /* MUCH LESS-THAN */
+    {{'*', '>'}, 0x226b},   /* MUCH GREATER-THAN */
+    {{'!', '<'}, 0x226e},   /* NOT LESS-THAN */
+    {{'!', '>'}, 0x226f},   /* NOT GREATER-THAN */
+    {{'(', 'C'}, 0x2282},   /* SUBSET OF */
+    {{')', 'C'}, 0x2283},   /* SUPERSET OF */
+    {{'(', '_'}, 0x2286},   /* SUBSET OF OR EQUAL TO */
+    {{')', '_'}, 0x2287},   /* SUPERSET OF OR EQUAL TO */
+    {{'0', '.'}, 0x2299},   /* CIRCLED DOT OPERATOR */
+    {{'0', '2'}, 0x229a},   /* CIRCLED RING OPERATOR */
+    {{'-', 'T'}, 0x22a5},   /* UP TACK */
+    {{'.', 'P'}, 0x22c5},   /* DOT OPERATOR */
+    {{':', '3'}, 0x22ee},   /* VERTICAL ELLIPSIS */
+    {{'.', '3'}, 0x22ef},   /* MIDLINE HORIZONTAL ELLIPSIS */
+    {{'E', 'h'}, 0x2302},   /* HOUSE */
+    {{'<', '7'}, 0x2308},   /* LEFT CEILING */
+    {{'>', '7'}, 0x2309},   /* RIGHT CEILING */
+    {{'7', '<'}, 0x230a},   /* LEFT FLOOR */
+    {{'7', '>'}, 0x230b},   /* RIGHT FLOOR */
+    {{'N', 'I'}, 0x2310},   /* REVERSED NOT SIGN */
+    {{'(', 'A'}, 0x2312},   /* ARC */
+    {{'T', 'R'}, 0x2315},   /* TELEPHONE RECORDER */
+    {{'I', 'u'}, 0x2320},   /* TOP HALF INTEGRAL */
+    {{'I', 'l'}, 0x2321},   /* BOTTOM HALF INTEGRAL */
+    {{'<', '/'}, 0x2329},   /* LEFT-POINTING ANGLE BRACKET */
+    {{'/', '>'}, 0x232a},   /* RIGHT-POINTING ANGLE BRACKET */
+    {{'V', 's'}, 0x2423},   /* OPEN BOX */
+    {{'1', 'h'}, 0x2440},   /* OCR HOOK */
+    {{'3', 'h'}, 0x2441},   /* OCR CHAIR */
+    {{'2', 'h'}, 0x2442},   /* OCR FORK */
+    {{'4', 'h'}, 0x2443},   /* OCR INVERTED FORK */
+    {{'1', 'j'}, 0x2446},   /* OCR BRANCH BANK IDENTIFICATION */
+    {{'2', 'j'}, 0x2447},   /* OCR AMOUNT OF CHECK */
+    {{'3', 'j'}, 0x2448},   /* OCR DASH */
+    {{'4', 'j'}, 0x2449},   /* OCR CUSTOMER ACCOUNT NUMBER */
+    {{'1', '.'}, 0x2488},   /* DIGIT ONE FULL STOP */
+    {{'2', '.'}, 0x2489},   /* DIGIT TWO FULL STOP */
+    {{'3', '.'}, 0x248a},   /* DIGIT THREE FULL STOP */
+    {{'4', '.'}, 0x248b},   /* DIGIT FOUR FULL STOP */
+    {{'5', '.'}, 0x248c},   /* DIGIT FIVE FULL STOP */
+    {{'6', '.'}, 0x248d},   /* DIGIT SIX FULL STOP */
+    {{'7', '.'}, 0x248e},   /* DIGIT SEVEN FULL STOP */
+    {{'8', '.'}, 0x248f},   /* DIGIT EIGHT FULL STOP */
+    {{'9', '.'}, 0x2490},   /* DIGIT NINE FULL STOP */
+    {{'h', 'h'}, 0x2500},   /* BOX DRAWINGS LIGHT HORIZONTAL */
+    {{'H', 'H'}, 0x2501},   /* BOX DRAWINGS HEAVY HORIZONTAL */
+    {{'v', 'v'}, 0x2502},   /* BOX DRAWINGS LIGHT VERTICAL */
+    {{'V', 'V'}, 0x2503},   /* BOX DRAWINGS HEAVY VERTICAL */
+    {{'3', '-'}, 0x2504},   /* BOX DRAWINGS LIGHT TRIPLE DASH HORIZONTAL */
+    {{'3', '_'}, 0x2505},   /* BOX DRAWINGS HEAVY TRIPLE DASH HORIZONTAL */
+    {{'3', '!'}, 0x2506},   /* BOX DRAWINGS LIGHT TRIPLE DASH VERTICAL */
+    {{'3', '/'}, 0x2507},   /* BOX DRAWINGS HEAVY TRIPLE DASH VERTICAL */
+    {{'4', '-'}, 0x2508},   /* BOX DRAWINGS LIGHT QUADRUPLE DASH HORIZONTAL */
+    {{'4', '_'}, 0x2509},   /* BOX DRAWINGS HEAVY QUADRUPLE DASH HORIZONTAL */
+    {{'4', '!'}, 0x250a},   /* BOX DRAWINGS LIGHT QUADRUPLE DASH VERTICAL */
+    {{'4', '/'}, 0x250b},   /* BOX DRAWINGS HEAVY QUADRUPLE DASH VERTICAL */
+    {{'d', 'r'}, 0x250c},   /* BOX DRAWINGS LIGHT DOWN AND RIGHT */
+    {{'d', 'R'}, 0x250d},   /* BOX DRAWINGS DOWN LIGHT AND RIGHT HEAVY */
+    {{'D', 'r'}, 0x250e},   /* BOX DRAWINGS DOWN HEAVY AND RIGHT LIGHT */
+    {{'D', 'R'}, 0x250f},   /* BOX DRAWINGS HEAVY DOWN AND RIGHT */
+    {{'d', 'l'}, 0x2510},   /* BOX DRAWINGS LIGHT DOWN AND LEFT */
+    {{'d', 'L'}, 0x2511},   /* BOX DRAWINGS DOWN LIGHT AND LEFT HEAVY */
+    {{'D', 'l'}, 0x2512},   /* BOX DRAWINGS DOWN HEAVY AND LEFT LIGHT */
+    {{'L', 'D'}, 0x2513},   /* BOX DRAWINGS HEAVY DOWN AND LEFT */
+    {{'u', 'r'}, 0x2514},   /* BOX DRAWINGS LIGHT UP AND RIGHT */
+    {{'u', 'R'}, 0x2515},   /* BOX DRAWINGS UP LIGHT AND RIGHT HEAVY */
+    {{'U', 'r'}, 0x2516},   /* BOX DRAWINGS UP HEAVY AND RIGHT LIGHT */
+    {{'U', 'R'}, 0x2517},   /* BOX DRAWINGS HEAVY UP AND RIGHT */
+    {{'u', 'l'}, 0x2518},   /* BOX DRAWINGS LIGHT UP AND LEFT */
+    {{'u', 'L'}, 0x2519},   /* BOX DRAWINGS UP LIGHT AND LEFT HEAVY */
+    {{'U', 'l'}, 0x251a},   /* BOX DRAWINGS UP HEAVY AND LEFT LIGHT */
+    {{'U', 'L'}, 0x251b},   /* BOX DRAWINGS HEAVY UP AND LEFT */
+    {{'v', 'r'}, 0x251c},   /* BOX DRAWINGS LIGHT VERTICAL AND RIGHT */
+    {{'v', 'R'}, 0x251d},   /* BOX DRAWINGS VERTICAL LIGHT AND RIGHT HEAVY */
+    {{'V', 'r'}, 0x2520},   /* BOX DRAWINGS VERTICAL HEAVY AND RIGHT LIGHT */
+    {{'V', 'R'}, 0x2523},   /* BOX DRAWINGS HEAVY VERTICAL AND RIGHT */
+    {{'v', 'l'}, 0x2524},   /* BOX DRAWINGS LIGHT VERTICAL AND LEFT */
+    {{'v', 'L'}, 0x2525},   /* BOX DRAWINGS VERTICAL LIGHT AND LEFT HEAVY */
+    {{'V', 'l'}, 0x2528},   /* BOX DRAWINGS VERTICAL HEAVY AND LEFT LIGHT */
+    {{'V', 'L'}, 0x252b},   /* BOX DRAWINGS HEAVY VERTICAL AND LEFT */
+    {{'d', 'h'}, 0x252c},   /* BOX DRAWINGS LIGHT DOWN AND HORIZONTAL */
+    {{'d', 'H'}, 0x252f},   /* BOX DRAWINGS DOWN LIGHT AND HORIZONTAL HEAVY */
+    {{'D', 'h'}, 0x2530},   /* BOX DRAWINGS DOWN HEAVY AND HORIZONTAL LIGHT */
+    {{'D', 'H'}, 0x2533},   /* BOX DRAWINGS HEAVY DOWN AND HORIZONTAL */
+    {{'u', 'h'}, 0x2534},   /* BOX DRAWINGS LIGHT UP AND HORIZONTAL */
+    {{'u', 'H'}, 0x2537},   /* BOX DRAWINGS UP LIGHT AND HORIZONTAL HEAVY */
+    {{'U', 'h'}, 0x2538},   /* BOX DRAWINGS UP HEAVY AND HORIZONTAL LIGHT */
+    {{'U', 'H'}, 0x253b},   /* BOX DRAWINGS HEAVY UP AND HORIZONTAL */
+    {{'v', 'h'}, 0x253c},   /* BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL */
+    {{'v', 'H'}, 0x253f},   /* BOX DRAWINGS VERTICAL LIGHT AND HORIZONTAL HEAVY */
+    {{'V', 'h'}, 0x2542},   /* BOX DRAWINGS VERTICAL HEAVY AND HORIZONTAL LIGHT */
+    {{'V', 'H'}, 0x254b},   /* BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL */
+    {{'F', 'D'}, 0x2571},   /* BOX DRAWINGS LIGHT DIAGONAL UPPER RIGHT TO LOWER LEFT */
+    {{'B', 'D'}, 0x2572},   /* BOX DRAWINGS LIGHT DIAGONAL UPPER LEFT TO LOWER RIGHT */
+    {{'T', 'B'}, 0x2580},   /* UPPER HALF BLOCK */
+    {{'L', 'B'}, 0x2584},   /* LOWER HALF BLOCK */
+    {{'F', 'B'}, 0x2588},   /* FULL BLOCK */
+    {{'l', 'B'}, 0x258c},   /* LEFT HALF BLOCK */
+    {{'R', 'B'}, 0x2590},   /* RIGHT HALF BLOCK */
+    {{'.', 'S'}, 0x2591},   /* LIGHT SHADE */
+    {{':', 'S'}, 0x2592},   /* MEDIUM SHADE */
+    {{'?', 'S'}, 0x2593},   /* DARK SHADE */
+    {{'f', 'S'}, 0x25a0},   /* BLACK SQUARE */
+    {{'O', 'S'}, 0x25a1},   /* WHITE SQUARE */
+    {{'R', 'O'}, 0x25a2},   /* WHITE SQUARE WITH ROUNDED CORNERS */
+    {{'R', 'r'}, 0x25a3},   /* WHITE SQUARE CONTAINING BLACK SMALL SQUARE */
+    {{'R', 'F'}, 0x25a4},   /* SQUARE WITH HORIZONTAL FILL */
+    {{'R', 'Y'}, 0x25a5},   /* SQUARE WITH VERTICAL FILL */
+    {{'R', 'H'}, 0x25a6},   /* SQUARE WITH ORTHOGONAL CROSSHATCH FILL */
+    {{'R', 'Z'}, 0x25a7},   /* SQUARE WITH UPPER LEFT TO LOWER RIGHT FILL */
+    {{'R', 'K'}, 0x25a8},   /* SQUARE WITH UPPER RIGHT TO LOWER LEFT FILL */
+    {{'R', 'X'}, 0x25a9},   /* SQUARE WITH DIAGONAL CROSSHATCH FILL */
+    {{'s', 'B'}, 0x25aa},   /* BLACK SMALL SQUARE */
+    {{'S', 'R'}, 0x25ac},   /* BLACK RECTANGLE */
+    {{'O', 'r'}, 0x25ad},   /* WHITE RECTANGLE */
+    {{'U', 'T'}, 0x25b2},   /* BLACK UP-POINTING TRIANGLE */
+    {{'u', 'T'}, 0x25b3},   /* WHITE UP-POINTING TRIANGLE */
+    {{'P', 'R'}, 0x25b6},   /* BLACK RIGHT-POINTING TRIANGLE */
+    {{'T', 'r'}, 0x25b7},   /* WHITE RIGHT-POINTING TRIANGLE */
+    {{'D', 't'}, 0x25bc},   /* BLACK DOWN-POINTING TRIANGLE */
+    {{'d', 'T'}, 0x25bd},   /* WHITE DOWN-POINTING TRIANGLE */
+    {{'P', 'L'}, 0x25c0},   /* BLACK LEFT-POINTING TRIANGLE */
+    {{'T', 'l'}, 0x25c1},   /* WHITE LEFT-POINTING TRIANGLE */
+    {{'D', 'b'}, 0x25c6},   /* BLACK DIAMOND */
+    {{'D', 'w'}, 0x25c7},   /* WHITE DIAMOND */
+    {{'L', 'Z'}, 0x25ca},   /* LOZENGE */
+    {{'0', 'm'}, 0x25cb},   /* WHITE CIRCLE */
+    {{'0', 'o'}, 0x25ce},   /* BULLSEYE */
+    {{'0', 'M'}, 0x25cf},   /* BLACK CIRCLE */
+    {{'0', 'L'}, 0x25d0},   /* CIRCLE WITH LEFT HALF BLACK */
+    {{'0', 'R'}, 0x25d1},   /* CIRCLE WITH RIGHT HALF BLACK */
+    {{'S', 'n'}, 0x25d8},   /* INVERSE BULLET */
+    {{'I', 'c'}, 0x25d9},   /* INVERSE WHITE CIRCLE */
+    {{'F', 'd'}, 0x25e2},   /* BLACK LOWER RIGHT TRIANGLE */
+    {{'B', 'd'}, 0x25e3},   /* BLACK LOWER LEFT TRIANGLE */
+    {{'*', '2'}, 0x2605},   /* BLACK STAR */
+    {{'*', '1'}, 0x2606},   /* WHITE STAR */
+    {{'<', 'H'}, 0x261c},   /* WHITE LEFT POINTING INDEX */
+    {{'>', 'H'}, 0x261e},   /* WHITE RIGHT POINTING INDEX */
+    {{'0', 'u'}, 0x263a},   /* WHITE SMILING FACE */
+    {{'0', 'U'}, 0x263b},   /* BLACK SMILING FACE */
+    {{'S', 'U'}, 0x263c},   /* WHITE SUN WITH RAYS */
+    {{'F', 'm'}, 0x2640},   /* FEMALE SIGN */
+    {{'M', 'l'}, 0x2642},   /* MALE SIGN */
+    {{'c', 'S'}, 0x2660},   /* BLACK SPADE SUIT */
+    {{'c', 'H'}, 0x2661},   /* WHITE HEART SUIT */
+    {{'c', 'D'}, 0x2662},   /* WHITE DIAMOND SUIT */
+    {{'c', 'C'}, 0x2663},   /* BLACK CLUB SUIT */
+    {{'M', 'd'}, 0x2669},   /* QUARTER NOTE */
+    {{'M', '8'}, 0x266a},   /* EIGHTH NOTE */
+    {{'M', '2'}, 0x266b},   /* BARRED EIGHTH NOTES */
+    {{'M', 'b'}, 0x266d},   /* MUSIC FLAT SIGN */
+    {{'M', 'x'}, 0x266e},   /* MUSIC NATURAL SIGN */
+    {{'M', 'X'}, 0x266f},   /* MUSIC SHARP SIGN */
+    {{'O', 'K'}, 0x2713},   /* CHECK MARK */
+    {{'X', 'X'}, 0x2717},   /* BALLOT X */
+    {{'-', 'X'}, 0x2720},   /* MALTESE CROSS */
+    {{'I', 'S'}, 0x3000},   /* IDEOGRAPHIC SPACE */
+    {{',', '_'}, 0x3001},   /* IDEOGRAPHIC COMMA */
+    {{'.', '_'}, 0x3002},   /* IDEOGRAPHIC PERIOD */
+    {{'+', '"'}, 0x3003},   /* DITTO MARK */
+    {{'+', '_'}, 0x3004},   /* IDEOGRAPHIC DITTO MARK */
+    {{'*', '_'}, 0x3005},   /* IDEOGRAPHIC ITERATION MARK */
+    {{';', '_'}, 0x3006},   /* IDEOGRAPHIC CLOSING MARK */
+    {{'0', '_'}, 0x3007},   /* IDEOGRAPHIC NUMBER ZERO */
+    {{'<', '+'}, 0x300a},   /* LEFT DOUBLE ANGLE BRACKET */
+    {{'>', '+'}, 0x300b},   /* RIGHT DOUBLE ANGLE BRACKET */
+    {{'<', '\''}, 0x300c},   /* LEFT CORNER BRACKET */
+    {{'>', '\''}, 0x300d},   /* RIGHT CORNER BRACKET */
+    {{'<', '"'}, 0x300e},   /* LEFT WHITE CORNER BRACKET */
+    {{'>', '"'}, 0x300f},   /* RIGHT WHITE CORNER BRACKET */
+    {{'(', '"'}, 0x3010},   /* LEFT BLACK LENTICULAR BRACKET */
+    {{')', '"'}, 0x3011},   /* RIGHT BLACK LENTICULAR BRACKET */
+    {{'=', 'T'}, 0x3012},   /* POSTAL MARK */
+    {{'=', '_'}, 0x3013},   /* GETA MARK */
+    {{'(', '\''}, 0x3014},   /* LEFT TORTOISE SHELL BRACKET */
+    {{')', '\''}, 0x3015},   /* RIGHT TORTOISE SHELL BRACKET */
+    {{'(', 'I'}, 0x3016},   /* LEFT WHITE LENTICULAR BRACKET */
+    {{')', 'I'}, 0x3017},   /* RIGHT WHITE LENTICULAR BRACKET */
+    {{'-', '?'}, 0x301c},   /* WAVE DASH */
+    {{'A', '5'}, 0x3041},   /* HIRAGANA LETTER SMALL A */
+    {{'a', '5'}, 0x3042},   /* HIRAGANA LETTER A */
+    {{'I', '5'}, 0x3043},   /* HIRAGANA LETTER SMALL I */
+    {{'i', '5'}, 0x3044},   /* HIRAGANA LETTER I */
+    {{'U', '5'}, 0x3045},   /* HIRAGANA LETTER SMALL U */
+    {{'u', '5'}, 0x3046},   /* HIRAGANA LETTER U */
+    {{'E', '5'}, 0x3047},   /* HIRAGANA LETTER SMALL E */
+    {{'e', '5'}, 0x3048},   /* HIRAGANA LETTER E */
+    {{'O', '5'}, 0x3049},   /* HIRAGANA LETTER SMALL O */
+    {{'o', '5'}, 0x304a},   /* HIRAGANA LETTER O */
+    {{'k', 'a'}, 0x304b},   /* HIRAGANA LETTER KA */
+    {{'g', 'a'}, 0x304c},   /* HIRAGANA LETTER GA */
+    {{'k', 'i'}, 0x304d},   /* HIRAGANA LETTER KI */
+    {{'g', 'i'}, 0x304e},   /* HIRAGANA LETTER GI */
+    {{'k', 'u'}, 0x304f},   /* HIRAGANA LETTER KU */
+    {{'g', 'u'}, 0x3050},   /* HIRAGANA LETTER GU */
+    {{'k', 'e'}, 0x3051},   /* HIRAGANA LETTER KE */
+    {{'g', 'e'}, 0x3052},   /* HIRAGANA LETTER GE */
+    {{'k', 'o'}, 0x3053},   /* HIRAGANA LETTER KO */
+    {{'g', 'o'}, 0x3054},   /* HIRAGANA LETTER GO */
+    {{'s', 'a'}, 0x3055},   /* HIRAGANA LETTER SA */
+    {{'z', 'a'}, 0x3056},   /* HIRAGANA LETTER ZA */
+    {{'s', 'i'}, 0x3057},   /* HIRAGANA LETTER SI */
+    {{'z', 'i'}, 0x3058},   /* HIRAGANA LETTER ZI */
+    {{'s', 'u'}, 0x3059},   /* HIRAGANA LETTER SU */
+    {{'z', 'u'}, 0x305a},   /* HIRAGANA LETTER ZU */
+    {{'s', 'e'}, 0x305b},   /* HIRAGANA LETTER SE */
+    {{'z', 'e'}, 0x305c},   /* HIRAGANA LETTER ZE */
+    {{'s', 'o'}, 0x305d},   /* HIRAGANA LETTER SO */
+    {{'z', 'o'}, 0x305e},   /* HIRAGANA LETTER ZO */
+    {{'t', 'a'}, 0x305f},   /* HIRAGANA LETTER TA */
+    {{'d', 'a'}, 0x3060},   /* HIRAGANA LETTER DA */
+    {{'t', 'i'}, 0x3061},   /* HIRAGANA LETTER TI */
+    {{'d', 'i'}, 0x3062},   /* HIRAGANA LETTER DI */
+    {{'t', 'U'}, 0x3063},   /* HIRAGANA LETTER SMALL TU */
+    {{'t', 'u'}, 0x3064},   /* HIRAGANA LETTER TU */
+    {{'d', 'u'}, 0x3065},   /* HIRAGANA LETTER DU */
+    {{'t', 'e'}, 0x3066},   /* HIRAGANA LETTER TE */
+    {{'d', 'e'}, 0x3067},   /* HIRAGANA LETTER DE */
+    {{'t', 'o'}, 0x3068},   /* HIRAGANA LETTER TO */
+    {{'d', 'o'}, 0x3069},   /* HIRAGANA LETTER DO */
+    {{'n', 'a'}, 0x306a},   /* HIRAGANA LETTER NA */
+    {{'n', 'i'}, 0x306b},   /* HIRAGANA LETTER NI */
+    {{'n', 'u'}, 0x306c},   /* HIRAGANA LETTER NU */
+    {{'n', 'e'}, 0x306d},   /* HIRAGANA LETTER NE */
+    {{'n', 'o'}, 0x306e},   /* HIRAGANA LETTER NO */
+    {{'h', 'a'}, 0x306f},   /* HIRAGANA LETTER HA */
+    {{'b', 'a'}, 0x3070},   /* HIRAGANA LETTER BA */
+    {{'p', 'a'}, 0x3071},   /* HIRAGANA LETTER PA */
+    {{'h', 'i'}, 0x3072},   /* HIRAGANA LETTER HI */
+    {{'b', 'i'}, 0x3073},   /* HIRAGANA LETTER BI */
+    {{'p', 'i'}, 0x3074},   /* HIRAGANA LETTER PI */
+    {{'h', 'u'}, 0x3075},   /* HIRAGANA LETTER HU */
+    {{'b', 'u'}, 0x3076},   /* HIRAGANA LETTER BU */
+    {{'p', 'u'}, 0x3077},   /* HIRAGANA LETTER PU */
+    {{'h', 'e'}, 0x3078},   /* HIRAGANA LETTER HE */
+    {{'b', 'e'}, 0x3079},   /* HIRAGANA LETTER BE */
+    {{'p', 'e'}, 0x307a},   /* HIRAGANA LETTER PE */
+    {{'h', 'o'}, 0x307b},   /* HIRAGANA LETTER HO */
+    {{'b', 'o'}, 0x307c},   /* HIRAGANA LETTER BO */
+    {{'p', 'o'}, 0x307d},   /* HIRAGANA LETTER PO */
+    {{'m', 'a'}, 0x307e},   /* HIRAGANA LETTER MA */
+    {{'m', 'i'}, 0x307f},   /* HIRAGANA LETTER MI */
+    {{'m', 'u'}, 0x3080},   /* HIRAGANA LETTER MU */
+    {{'m', 'e'}, 0x3081},   /* HIRAGANA LETTER ME */
+    {{'m', 'o'}, 0x3082},   /* HIRAGANA LETTER MO */
+    {{'y', 'A'}, 0x3083},   /* HIRAGANA LETTER SMALL YA */
+    {{'y', 'a'}, 0x3084},   /* HIRAGANA LETTER YA */
+    {{'y', 'U'}, 0x3085},   /* HIRAGANA LETTER SMALL YU */
+    {{'y', 'u'}, 0x3086},   /* HIRAGANA LETTER YU */
+    {{'y', 'O'}, 0x3087},   /* HIRAGANA LETTER SMALL YO */
+    {{'y', 'o'}, 0x3088},   /* HIRAGANA LETTER YO */
+    {{'r', 'a'}, 0x3089},   /* HIRAGANA LETTER RA */
+    {{'r', 'i'}, 0x308a},   /* HIRAGANA LETTER RI */
+    {{'r', 'u'}, 0x308b},   /* HIRAGANA LETTER RU */
+    {{'r', 'e'}, 0x308c},   /* HIRAGANA LETTER RE */
+    {{'r', 'o'}, 0x308d},   /* HIRAGANA LETTER RO */
+    {{'w', 'A'}, 0x308e},   /* HIRAGANA LETTER SMALL WA */
+    {{'w', 'a'}, 0x308f},   /* HIRAGANA LETTER WA */
+    {{'w', 'i'}, 0x3090},   /* HIRAGANA LETTER WI */
+    {{'w', 'e'}, 0x3091},   /* HIRAGANA LETTER WE */
+    {{'w', 'o'}, 0x3092},   /* HIRAGANA LETTER WO */
+    {{'n', '5'}, 0x3093},   /* HIRAGANA LETTER N */
+    {{'v', 'u'}, 0x3094},   /* HIRAGANA LETTER VU */
+    {{'"', '5'}, 0x309b},   /* KATAKANA-HIRAGANA VOICED SOUND MARK */
+    {{'0', '5'}, 0x309c},   /* KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK */
+    {{'*', '5'}, 0x309d},   /* HIRAGANA ITERATION MARK */
+    {{'+', '5'}, 0x309e},   /* HIRAGANA VOICED ITERATION MARK */
+    {{'a', '6'}, 0x30a1},   /* KATAKANA LETTER SMALL A */
+    {{'A', '6'}, 0x30a2},   /* KATAKANA LETTER A */
+    {{'i', '6'}, 0x30a3},   /* KATAKANA LETTER SMALL I */
+    {{'I', '6'}, 0x30a4},   /* KATAKANA LETTER I */
+    {{'u', '6'}, 0x30a5},   /* KATAKANA LETTER SMALL U */
+    {{'U', '6'}, 0x30a6},   /* KATAKANA LETTER U */
+    {{'e', '6'}, 0x30a7},   /* KATAKANA LETTER SMALL E */
+    {{'E', '6'}, 0x30a8},   /* KATAKANA LETTER E */
+    {{'o', '6'}, 0x30a9},   /* KATAKANA LETTER SMALL O */
+    {{'O', '6'}, 0x30aa},   /* KATAKANA LETTER O */
+    {{'K', 'a'}, 0x30ab},   /* KATAKANA LETTER KA */
+    {{'G', 'a'}, 0x30ac},   /* KATAKANA LETTER GA */
+    {{'K', 'i'}, 0x30ad},   /* KATAKANA LETTER KI */
+    {{'G', 'i'}, 0x30ae},   /* KATAKANA LETTER GI */
+    {{'K', 'u'}, 0x30af},   /* KATAKANA LETTER KU */
+    {{'G', 'u'}, 0x30b0},   /* KATAKANA LETTER GU */
+    {{'K', 'e'}, 0x30b1},   /* KATAKANA LETTER KE */
+    {{'G', 'e'}, 0x30b2},   /* KATAKANA LETTER GE */
+    {{'K', 'o'}, 0x30b3},   /* KATAKANA LETTER KO */
+    {{'G', 'o'}, 0x30b4},   /* KATAKANA LETTER GO */
+    {{'S', 'a'}, 0x30b5},   /* KATAKANA LETTER SA */
+    {{'Z', 'a'}, 0x30b6},   /* KATAKANA LETTER ZA */
+    {{'S', 'i'}, 0x30b7},   /* KATAKANA LETTER SI */
+    {{'Z', 'i'}, 0x30b8},   /* KATAKANA LETTER ZI */
+    {{'S', 'u'}, 0x30b9},   /* KATAKANA LETTER SU */
+    {{'Z', 'u'}, 0x30ba},   /* KATAKANA LETTER ZU */
+    {{'S', 'e'}, 0x30bb},   /* KATAKANA LETTER SE */
+    {{'Z', 'e'}, 0x30bc},   /* KATAKANA LETTER ZE */
+    {{'S', 'o'}, 0x30bd},   /* KATAKANA LETTER SO */
+    {{'Z', 'o'}, 0x30be},   /* KATAKANA LETTER ZO */
+    {{'T', 'a'}, 0x30bf},   /* KATAKANA LETTER TA */
+    {{'D', 'a'}, 0x30c0},   /* KATAKANA LETTER DA */
+    {{'T', 'i'}, 0x30c1},   /* KATAKANA LETTER TI */
+    {{'D', 'i'}, 0x30c2},   /* KATAKANA LETTER DI */
+    {{'T', 'U'}, 0x30c3},   /* KATAKANA LETTER SMALL TU */
+    {{'T', 'u'}, 0x30c4},   /* KATAKANA LETTER TU */
+    {{'D', 'u'}, 0x30c5},   /* KATAKANA LETTER DU */
+    {{'T', 'e'}, 0x30c6},   /* KATAKANA LETTER TE */
+    {{'D', 'e'}, 0x30c7},   /* KATAKANA LETTER DE */
+    {{'T', 'o'}, 0x30c8},   /* KATAKANA LETTER TO */
+    {{'D', 'o'}, 0x30c9},   /* KATAKANA LETTER DO */
+    {{'N', 'a'}, 0x30ca},   /* KATAKANA LETTER NA */
+    {{'N', 'i'}, 0x30cb},   /* KATAKANA LETTER NI */
+    {{'N', 'u'}, 0x30cc},   /* KATAKANA LETTER NU */
+    {{'N', 'e'}, 0x30cd},   /* KATAKANA LETTER NE */
+    {{'N', 'o'}, 0x30ce},   /* KATAKANA LETTER NO */
+    {{'H', 'a'}, 0x30cf},   /* KATAKANA LETTER HA */
+    {{'B', 'a'}, 0x30d0},   /* KATAKANA LETTER BA */
+    {{'P', 'a'}, 0x30d1},   /* KATAKANA LETTER PA */
+    {{'H', 'i'}, 0x30d2},   /* KATAKANA LETTER HI */
+    {{'B', 'i'}, 0x30d3},   /* KATAKANA LETTER BI */
+    {{'P', 'i'}, 0x30d4},   /* KATAKANA LETTER PI */
+    {{'H', 'u'}, 0x30d5},   /* KATAKANA LETTER HU */
+    {{'B', 'u'}, 0x30d6},   /* KATAKANA LETTER BU */
+    {{'P', 'u'}, 0x30d7},   /* KATAKANA LETTER PU */
+    {{'H', 'e'}, 0x30d8},   /* KATAKANA LETTER HE */
+    {{'B', 'e'}, 0x30d9},   /* KATAKANA LETTER BE */
+    {{'P', 'e'}, 0x30da},   /* KATAKANA LETTER PE */
+    {{'H', 'o'}, 0x30db},   /* KATAKANA LETTER HO */
+    {{'B', 'o'}, 0x30dc},   /* KATAKANA LETTER BO */
+    {{'P', 'o'}, 0x30dd},   /* KATAKANA LETTER PO */
+    {{'M', 'a'}, 0x30de},   /* KATAKANA LETTER MA */
+    {{'M', 'i'}, 0x30df},   /* KATAKANA LETTER MI */
+    {{'M', 'u'}, 0x30e0},   /* KATAKANA LETTER MU */
+    {{'M', 'e'}, 0x30e1},   /* KATAKANA LETTER ME */
+    {{'M', 'o'}, 0x30e2},   /* KATAKANA LETTER MO */
+    {{'Y', 'A'}, 0x30e3},   /* KATAKANA LETTER SMALL YA */
+    {{'Y', 'a'}, 0x30e4},   /* KATAKANA LETTER YA */
+    {{'Y', 'U'}, 0x30e5},   /* KATAKANA LETTER SMALL YU */
+    {{'Y', 'u'}, 0x30e6},   /* KATAKANA LETTER YU */
+    {{'Y', 'O'}, 0x30e7},   /* KATAKANA LETTER SMALL YO */
+    {{'Y', 'o'}, 0x30e8},   /* KATAKANA LETTER YO */
+    {{'R', 'a'}, 0x30e9},   /* KATAKANA LETTER RA */
+    {{'R', 'i'}, 0x30ea},   /* KATAKANA LETTER RI */
+    {{'R', 'u'}, 0x30eb},   /* KATAKANA LETTER RU */
+    {{'R', 'e'}, 0x30ec},   /* KATAKANA LETTER RE */
+    {{'R', 'o'}, 0x30ed},   /* KATAKANA LETTER RO */
+    {{'W', 'A'}, 0x30ee},   /* KATAKANA LETTER SMALL WA */
+    {{'W', 'a'}, 0x30ef},   /* KATAKANA LETTER WA */
+    {{'W', 'i'}, 0x30f0},   /* KATAKANA LETTER WI */
+    {{'W', 'e'}, 0x30f1},   /* KATAKANA LETTER WE */
+    {{'W', 'o'}, 0x30f2},   /* KATAKANA LETTER WO */
+    {{'N', '6'}, 0x30f3},   /* KATAKANA LETTER N */
+    {{'V', 'u'}, 0x30f4},   /* KATAKANA LETTER VU */
+    {{'K', 'A'}, 0x30f5},   /* KATAKANA LETTER SMALL KA */
+    {{'K', 'E'}, 0x30f6},   /* KATAKANA LETTER SMALL KE */
+    {{'V', 'a'}, 0x30f7},   /* KATAKANA LETTER VA */
+    {{'V', 'i'}, 0x30f8},   /* KATAKANA LETTER VI */
+    {{'V', 'e'}, 0x30f9},   /* KATAKANA LETTER VE */
+    {{'V', 'o'}, 0x30fa},   /* KATAKANA LETTER VO */
+    {{'.', '6'}, 0x30fb},   /* KATAKANA MIDDLE DOT */
+    {{'-', '6'}, 0x30fc},   /* KATAKANA-HIRAGANA PROLONGED SOUND MARK */
+    {{'*', '6'}, 0x30fd},   /* KATAKANA ITERATION MARK */
+    {{'+', '6'}, 0x30fe},   /* KATAKANA VOICED ITERATION MARK */
+    {{'b', '4'}, 0x3105},   /* BOPOMOFO LETTER B */
+    {{'p', '4'}, 0x3106},   /* BOPOMOFO LETTER P */
+    {{'m', '4'}, 0x3107},   /* BOPOMOFO LETTER M */
+    {{'f', '4'}, 0x3108},   /* BOPOMOFO LETTER F */
+    {{'d', '4'}, 0x3109},   /* BOPOMOFO LETTER D */
+    {{'t', '4'}, 0x310a},   /* BOPOMOFO LETTER T */
+    {{'n', '4'}, 0x310b},   /* BOPOMOFO LETTER N */
+    {{'l', '4'}, 0x310c},   /* BOPOMOFO LETTER L */
+    {{'g', '4'}, 0x310d},   /* BOPOMOFO LETTER G */
+    {{'k', '4'}, 0x310e},   /* BOPOMOFO LETTER K */
+    {{'h', '4'}, 0x310f},   /* BOPOMOFO LETTER H */
+    {{'j', '4'}, 0x3110},   /* BOPOMOFO LETTER J */
+    {{'q', '4'}, 0x3111},   /* BOPOMOFO LETTER Q */
+    {{'x', '4'}, 0x3112},   /* BOPOMOFO LETTER X */
+    {{'z', 'h'}, 0x3113},   /* BOPOMOFO LETTER ZH */
+    {{'c', 'h'}, 0x3114},   /* BOPOMOFO LETTER CH */
+    {{'s', 'h'}, 0x3115},   /* BOPOMOFO LETTER SH */
+    {{'r', '4'}, 0x3116},   /* BOPOMOFO LETTER R */
+    {{'z', '4'}, 0x3117},   /* BOPOMOFO LETTER Z */
+    {{'c', '4'}, 0x3118},   /* BOPOMOFO LETTER C */
+    {{'s', '4'}, 0x3119},   /* BOPOMOFO LETTER S */
+    {{'a', '4'}, 0x311a},   /* BOPOMOFO LETTER A */
+    {{'o', '4'}, 0x311b},   /* BOPOMOFO LETTER O */
+    {{'e', '4'}, 0x311c},   /* BOPOMOFO LETTER E */
+    {{'a', 'i'}, 0x311e},   /* BOPOMOFO LETTER AI */
+    {{'e', 'i'}, 0x311f},   /* BOPOMOFO LETTER EI */
+    {{'a', 'u'}, 0x3120},   /* BOPOMOFO LETTER AU */
+    {{'o', 'u'}, 0x3121},   /* BOPOMOFO LETTER OU */
+    {{'a', 'n'}, 0x3122},   /* BOPOMOFO LETTER AN */
+    {{'e', 'n'}, 0x3123},   /* BOPOMOFO LETTER EN */
+    {{'a', 'N'}, 0x3124},   /* BOPOMOFO LETTER ANG */
+    {{'e', 'N'}, 0x3125},   /* BOPOMOFO LETTER ENG */
+    {{'e', 'r'}, 0x3126},   /* BOPOMOFO LETTER ER */
+    {{'i', '4'}, 0x3127},   /* BOPOMOFO LETTER I */
+    {{'u', '4'}, 0x3128},   /* BOPOMOFO LETTER U */
+    {{'i', 'u'}, 0x3129},   /* BOPOMOFO LETTER IU */
+    {{'v', '4'}, 0x312a},   /* BOPOMOFO LETTER V */
+    {{'n', 'G'}, 0x312b},   /* BOPOMOFO LETTER NG */
+    {{'g', 'n'}, 0x312c},   /* BOPOMOFO LETTER GN */
+    {{'1', 'c'}, 0x3220},   /* PARENTHESIZED IDEOGRAPH ONE */
+    {{'2', 'c'}, 0x3221},   /* PARENTHESIZED IDEOGRAPH TWO */
+    {{'3', 'c'}, 0x3222},   /* PARENTHESIZED IDEOGRAPH THREE */
+    {{'4', 'c'}, 0x3223},   /* PARENTHESIZED IDEOGRAPH FOUR */
+    {{'5', 'c'}, 0x3224},   /* PARENTHESIZED IDEOGRAPH FIVE */
+    {{'6', 'c'}, 0x3225},   /* PARENTHESIZED IDEOGRAPH SIX */
+    {{'7', 'c'}, 0x3226},   /* PARENTHESIZED IDEOGRAPH SEVEN */
+    {{'8', 'c'}, 0x3227},   /* PARENTHESIZED IDEOGRAPH EIGHT */
+    {{'9', 'c'}, 0x3228},   /* PARENTHESIZED IDEOGRAPH NINE */
+    {{'f', 'f'}, 0xfb00},   /* LATIN SMALL LIGATURE FF */
+    {{'f', 'i'}, 0xfb01},   /* LATIN SMALL LIGATURE FI */
+    {{'f', 'l'}, 0xfb02},   /* LATIN SMALL LIGATURE FL */
+    {{'f', 't'}, 0xfb05},   /* LATIN SMALL LIGATURE FT */
+    {{'s', 't'}, 0xfb06},   /* LATIN SMALL LIGATURE ST */
+    {{'N', 'U'}, 0x0000},   /* NULL (NUL) */
+    {{'S', 'H'}, 0x0001},   /* START OF HEADING (SOH) */
+    {{'S', 'X'}, 0x0002},   /* START OF TEXT (STX) */
+    {{'E', 'X'}, 0x0003},   /* END OF TEXT (ETX) */
+    {{'E', 'T'}, 0x0004},   /* END OF TRANSMISSION (EOT) */
+    {{'E', 'Q'}, 0x0005},   /* ENQUIRY (ENQ) */
+    {{'A', 'K'}, 0x0006},   /* ACKNOWLEDGE (ACK) */
+    {{'B', 'L'}, 0x0007},   /* BELL (BEL) */
+    {{'B', 'S'}, 0x0008},   /* BACKSPACE (BS) */
+    {{'H', 'T'}, 0x0009},   /* CHARACTER TABULATION (HT) */
+    {{'L', 'F'}, 0x000a},   /* LINE FEED (LF) */
+    {{'V', 'T'}, 0x000b},   /* LINE TABULATION (VT) */
+    {{'F', 'F'}, 0x000c},   /* FORM FEED (FF) */
+    {{'C', 'R'}, 0x000d},   /* CARRIAGE RETURN (CR) */
+    {{'S', 'O'}, 0x000e},   /* SHIFT OUT (SO) */
+    {{'S', 'I'}, 0x000f},   /* SHIFT IN (SI) */
+    {{'D', 'L'}, 0x0010},   /* DATALINK ESCAPE (DLE) */
+    {{'D', '1'}, 0x0011},   /* DEVICE CONTROL ONE (DC1) */
+    {{'D', '2'}, 0x0012},   /* DEVICE CONTROL TWO (DC2) */
+    {{'D', '3'}, 0x0013},   /* DEVICE CONTROL THREE (DC3) */
+    {{'D', '4'}, 0x0014},   /* DEVICE CONTROL FOUR (DC4) */
+    {{'N', 'K'}, 0x0015},   /* NEGATIVE ACKNOWLEDGE (NAK) */
+    {{'S', 'Y'}, 0x0016},   /* SYNCRONOUS IDLE (SYN) */
+    {{'E', 'B'}, 0x0017},   /* END OF TRANSMISSION BLOCK (ETB) */
+    {{'C', 'N'}, 0x0018},   /* CANCEL (CAN) */
+    {{'E', 'M'}, 0x0019},   /* END OF MEDIUM (EM) */
+    {{'S', 'B'}, 0x001a},   /* SUBSTITUTE (SUB) */
+    {{'E', 'C'}, 0x001b},   /* ESCAPE (ESC) */
+    {{'F', 'S'}, 0x001c},   /* FILE SEPARATOR (IS4) */
+    {{'G', 'S'}, 0x001d},   /* GROUP SEPARATOR (IS3) */
+    {{'R', 'S'}, 0x001e},   /* RECORD SEPARATOR (IS2) */
+    {{'U', 'S'}, 0x001f},   /* UNIT SEPARATOR (IS1) */
+    {{'D', 'T'}, 0x007f},   /* DELETE (DEL) */
+    {{'P', 'A'}, 0x0080},   /* PADDING CHARACTER (PAD) */
+    {{'H', 'O'}, 0x0081},   /* HIGH OCTET PRESET (HOP) */
+    {{'B', 'H'}, 0x0082},   /* BREAK PERMITTED HERE (BPH) */
+    {{'N', 'H'}, 0x0083},   /* NO BREAK HERE (NBH) */
+    {{'I', 'N'}, 0x0084},   /* INDEX (IND) */
+    {{'N', 'L'}, 0x0085},   /* NEXT LINE (NEL) */
+    {{'S', 'A'}, 0x0086},   /* START OF SELECTED AREA (SSA) */
+    {{'E', 'S'}, 0x0087},   /* END OF SELECTED AREA (ESA) */
+    {{'H', 'S'}, 0x0088},   /* CHARACTER TABULATION SET (HTS) */
+    {{'H', 'J'}, 0x0089},   /* CHARACTER TABULATION WITH JUSTIFICATION (HTJ) */
+    {{'V', 'S'}, 0x008a},   /* LINE TABULATION SET (VTS) */
+    {{'P', 'D'}, 0x008b},   /* PARTIAL LINE FORWARD (PLD) */
+    {{'P', 'U'}, 0x008c},   /* PARTIAL LINE BACKWARD (PLU) */
+    {{'R', 'I'}, 0x008d},   /* REVERSE LINE FEED (RI) */
+    {{'S', '2'}, 0x008e},   /* SINGLE-SHIFT TWO (SS2) */
+    {{'S', '3'}, 0x008f},   /* SINGLE-SHIFT THREE (SS3) */
+    {{'D', 'C'}, 0x0090},   /* DEVICE CONTROL STRING (DCS) */
+    {{'P', '1'}, 0x0091},   /* PRIVATE USE ONE (PU1) */
+    {{'P', '2'}, 0x0092},   /* PRIVATE USE TWO (PU2) */
+    {{'T', 'S'}, 0x0093},   /* SET TRANSMIT STATE (STS) */
+    {{'C', 'C'}, 0x0094},   /* CANCEL CHARACTER (CCH) */
+    {{'M', 'W'}, 0x0095},   /* MESSAGE WAITING (MW) */
+    {{'S', 'G'}, 0x0096},   /* START OF GUARDED AREA (SPA) */
+    {{'E', 'G'}, 0x0097},   /* END OF GUARDED AREA (EPA) */
+    {{'S', 'S'}, 0x0098},   /* START OF STRING (SOS) */
+    {{'G', 'C'}, 0x0099},   /* SINGLE GRAPHIC CHARACTER INTRODUCER (SGCI) */
+    {{'S', 'C'}, 0x009a},   /* SINGLE CHARACTER INTRODUCER (SCI) */
+    {{'C', 'I'}, 0x009b},   /* CONTROL SEQUENCE INTRODUCER (CSI) */
+    {{'S', 'T'}, 0x009c},   /* STRING TERMINATOR (ST) */
+    {{'O', 'C'}, 0x009d},   /* OPERATING SYSTEM COMMAND (OSC) */
+    {{'P', 'M'}, 0x009e},   /* PRIVACY MESSAGE (PM) */
+    {{'A', 'C'}, 0x009f},   /* APPLICATION PROGRAM COMMAND (APC) */
+    {{' ', ' '}, 0xe000},   /* indicates unfinished (Mnemonic) */
+    {{'/', 'c'}, 0xe001},   /* JOIN THIS LINE WITH NEXT LINE (Mnemonic) */
+    {{'U', 'A'}, 0xe002},   /* Unit space A (ISO-IR-8-1 064) */
+    {{'U', 'B'}, 0xe003},   /* Unit space B (ISO-IR-8-1 096) */
+    {{'"', '3'}, 0xe004},   /* NON-SPACING UMLAUT (ISO-IR-38 201) (character part) */
+    {{'"', '1'}, 0xe005},   /* NON-SPACING DIAERESIS WITH ACCENT (ISO-IR-70 192) (character part) */
+    {{'"', '!'}, 0xe006},   /* NON-SPACING GRAVE ACCENT (ISO-IR-103 193) (character part) */
+    {{'"', '\''}, 0xe007},   /* NON-SPACING ACUTE ACCENT (ISO-IR-103 194) (character part) */
+    {{'"', '>'}, 0xe008},   /* NON-SPACING CIRCUMFLEX ACCENT (ISO-IR-103 195) (character part) */
+    {{'"', '?'}, 0xe009},   /* NON-SPACING TILDE (ISO-IR-103 196) (character part) */
+    {{'"', '-'}, 0xe00a},   /* NON-SPACING MACRON (ISO-IR-103 197) (character part) */
+    {{'"', '('}, 0xe00b},   /* NON-SPACING BREVE (ISO-IR-103 198) (character part) */
+    {{'"', '.'}, 0xe00c},   /* NON-SPACING DOT ABOVE (ISO-IR-103 199) (character part) */
+    {{'"', ':'}, 0xe00d},   /* NON-SPACING DIAERESIS (ISO-IR-103 200) (character part) */
+    {{'"', '0'}, 0xe00e},   /* NON-SPACING RING ABOVE (ISO-IR-103 202) (character part) */
+    {{'"', '"'}, 0xe00f},   /* NON-SPACING DOUBLE ACCUTE (ISO-IR-103 204) (character part) */
+    {{'"', '<'}, 0xe010},   /* NON-SPACING CARON (ISO-IR-103 206) (character part) */
+    {{'"', ','}, 0xe011},   /* NON-SPACING CEDILLA (ISO-IR-103 203) (character part) */
+    {{'"', ';'}, 0xe012},   /* NON-SPACING OGONEK (ISO-IR-103 206) (character part) */
+    {{'"', '_'}, 0xe013},   /* NON-SPACING LOW LINE (ISO-IR-103 204) (character part) */
+    {{'"', '='}, 0xe014},   /* NON-SPACING DOUBLE LOW LINE (ISO-IR-38 217) (character part) */
+    {{'"', '/'}, 0xe015},   /* NON-SPACING LONG SOLIDUS (ISO-IR-128 201) (character part) */
+    {{'"', 'i'}, 0xe016},   /* GREEK NON-SPACING IOTA BELOW (ISO-IR-55 39) (character part) */
+    {{'"', 'd'}, 0xe017},   /* GREEK NON-SPACING DASIA PNEUMATA (ISO-IR-55 38) (character part) */
+    {{'"', 'p'}, 0xe018},   /* GREEK NON-SPACING PSILI PNEUMATA (ISO-IR-55 37) (character part) */
+    {{';', ';'}, 0xe019},   /* GREEK DASIA PNEUMATA (ISO-IR-18 92) */
+    {{',', ','}, 0xe01a},   /* GREEK PSILI PNEUMATA (ISO-IR-18 124) */
+    {{'b', '3'}, 0xe01b},   /* GREEK SMALL LETTER MIDDLE BETA (ISO-IR-18 99) */
+    {{'C', 'i'}, 0xe01c},   /* CIRCLE (ISO-IR-83 0294) */
+    {{'f', '('}, 0xe01d},   /* FUNCTION SIGN (ISO-IR-143 221) */
+    {{'e', 'd'}, 0xe01e},   /* LATIN SMALL LETTER EZH (ISO-IR-158 142) */
+    {{'a', 'm'}, 0xe01f},   /* ANTE MERIDIAM SIGN (ISO-IR-149 0267) */
+    {{'p', 'm'}, 0xe020},   /* POST MERIDIAM SIGN (ISO-IR-149 0268) */
+    {{'F', 'l'}, 0xe023},   /* DUTCH GUILDER SIGN (IBM437 159) */
+    {{'G', 'F'}, 0xe024},   /* GAMMA FUNCTION SIGN (ISO-10646-1DIS 032/032/037/122) */
+    {{'>', 'V'}, 0xe025},   /* RIGHTWARDS VECTOR ABOVE (ISO-10646-1DIS 032/032/038/046) */
+    {{'!', '*'}, 0xe026},   /* GREEK VARIA (ISO-10646-1DIS 032/032/042/164) */
+    {{'?', '*'}, 0xe027},   /* GREEK PERISPOMENI (ISO-10646-1DIS 032/032/042/165) */
+    {{'J', '<'}, 0xe028}    /* LATIN CAPITAL LETTER J WITH CARON (lowercase: 000/000/001/240) */
 };
 
 #define RESIZE_FLAG_H 1
@@ -439,10 +1484,7 @@ static char *resizeprompts[] = {
 };
 
 static int
-parse_input_int(buf, len, val)
-const char *buf;
-int len;
-int *val;
+parse_input_int(const char *buf, int len, int *val)
 {
   int x = 0, i;
   if (len >= 1 && ((*buf == 'U' && buf[1] == '+') || (*buf == '0' && (buf[1] == 'x' || buf[1] == 'X'))))
@@ -482,9 +1524,7 @@ void
 InitKeytab()
 {
   register unsigned int i;
-#ifdef MAPKEYS
   char *argarr[2];
-#endif
 
   for (i = 0; i < sizeof(ktab)/sizeof(*ktab); i++)
     {
@@ -492,7 +1532,6 @@ InitKeytab()
       ktab[i].args = noargs;
       ktab[i].argl = 0;
     }
-#ifdef MAPKEYS
   for (i = 0; i < KMAP_KEYS+KMAP_AKEYS; i++)
     {
       umtab[i].nr = RC_ILLEGAL;
@@ -540,7 +1579,6 @@ InitKeytab()
       argarr[1] = 0;
       SaveAction(mmtab + i + (KMAPMDEFSTART - T_CAPS), RC_STUFF, argarr, 0);
     }
-#endif
 
   ktab['h'].nr = RC_HARDCOPY;
 #ifdef BSDJOBS
@@ -569,12 +1607,8 @@ InitKeytab()
   ktab['W'].nr = RC_WIDTH;
   ktab['.'].nr = RC_DUMPTERMCAP;
   ktab[Ctrl('\\')].nr = RC_QUIT;
-#ifdef DETACH
   ktab['d'].nr = ktab[Ctrl('d')].nr = RC_DETACH;
-# ifdef POW_DETACH
   ktab['D'].nr = RC_POW_DETACH;
-# endif
-#endif
   ktab['r'].nr = ktab[Ctrl('r')].nr = RC_WRAP;
   ktab['f'].nr = ktab[Ctrl('f')].nr = RC_FLOW;
   ktab['C'].nr = RC_CLEAR;
@@ -582,9 +1616,7 @@ InitKeytab()
   ktab['H'].nr = RC_LOG;
   ktab['M'].nr = RC_MONITOR;
   ktab['?'].nr = RC_HELP;
-#ifdef MULTI
   ktab['*'].nr = RC_DISPLAYS;
-#endif
   {
     char *args[2];
     args[0] = "-";
@@ -608,7 +1640,6 @@ InitKeytab()
   }
   ktab[Ctrl('G')].nr = RC_VBELL;
   ktab[':'].nr = RC_COLON;
-#ifdef COPY_PASTE
   ktab['['].nr = ktab[Ctrl('[')].nr = RC_COPY;
   {
     char *args[2];
@@ -622,13 +1653,12 @@ InitKeytab()
   ktab['>'].nr = RC_WRITEBUF;
   ktab['<'].nr = RC_READBUF;
   ktab['='].nr = RC_REMOVEBUF;
-#endif
-#ifdef POW_DETACH
+/* co-opting "^A [<>=]", looking for alternatives */
+  ktab['>'].nr = ktab[Ctrl('.')].nr = RC_BUMPRIGHT;
+  ktab['<'].nr = ktab[Ctrl(',')].nr = RC_BUMPLEFT;
+  ktab['='].nr = RC_COLLAPSE;
   ktab['D'].nr = RC_POW_DETACH;
-#endif
-#ifdef LOCK
   ktab['x'].nr = ktab[Ctrl('x')].nr = RC_LOCKSCREEN;
-#endif
   ktab['b'].nr = ktab[Ctrl('b')].nr = RC_BREAK;
   ktab['B'].nr = RC_POW_BREAK;
   ktab['_'].nr = RC_SILENCE;
@@ -667,9 +1697,7 @@ InitKeytab()
 }
 
 static struct action *
-FindKtab(class, create)
-char *class;
-int create;
+FindKtab(char *class, int create)
 {
   struct kclass *kp, **kpp;
   int i;
@@ -709,8 +1737,7 @@ int create;
 }
 
 static void
-ClearAction(act)
-struct action *act;
+ClearAction(struct action *act)
 {
   char **p;
 
@@ -731,7 +1758,6 @@ struct action *act;
  * the layer on canvas D_forecv.
  */
 
-#ifdef MAPKEYS
 
 /*
  *  This ProcessInput just does the keybindings and passes
@@ -739,9 +1765,7 @@ struct action *act;
  */
 
 void
-ProcessInput(ibuf, ilen)
-char *ibuf;
-int ilen;
+ProcessInput(char *ibuf, int ilen)
 {
   int ch, slen;
   unsigned char *s, *q;
@@ -827,7 +1851,7 @@ int ilen;
 	      if (D_seqp[l] != l)
 		{
 		  q = D_seqp + 1 + l;
-		  if (D_kmaps + D_nseqs > q && q[2] > l && !bcmp(D_seqp - l, q + 3, l))
+		  if (D_kmaps + D_nseqs > q && q[2] > l && !memcmp(D_seqp - l, q + 3, l))
 		    {
 		      debug1("have another mapping (%s), delay execution\n", q + 3);
 		      D_seqh = D_seqp - 3 - l;
@@ -870,9 +1894,6 @@ int ilen;
   ProcessInput2(ibuf, slen);
 }
 
-#else
-# define ProcessInput2 ProcessInput
-#endif
 
 
 /*
@@ -880,9 +1901,7 @@ int ilen;
  */
 
 void
-ProcessInput2(ibuf, ilen)
-char *ibuf;
-int ilen;
+ProcessInput2(char *ibuf, int ilen)
 {
   char *s;
   int ch, slen;
@@ -908,12 +1927,19 @@ int ilen;
 	  if (slen)
 	    DoProcess(fore, &ibuf, &slen, 0);
 	  if (--ilen == 0)
+	  {
 	    D_ESCseen = ktab;
+	    WindowChanged(fore, 'E');
+	  }
 	}
       if (ilen <= 0)
         return;
       ktabp = D_ESCseen ? D_ESCseen : ktab;
-      D_ESCseen = 0;
+      if (D_ESCseen)
+      {
+        D_ESCseen = 0;
+	WindowChanged(fore, 'E');
+      }
       ch = (unsigned char)*s;
 
       /* 
@@ -935,16 +1961,11 @@ int ilen;
 }
 
 void
-DoProcess(p, bufp, lenp, pa)
-struct win *p;
-char **bufp;
-int *lenp;
-struct paster *pa;
+DoProcess(struct win *p, char **bufp, int *lenp, struct paster *pa)
 {
   int oldlen;
   struct display *d = display;
 
-#ifdef COPY_PASTE
   /* XXX -> PasteStart */
   if (pa && *lenp > 1 && p && p->w_slowpaste)
     {
@@ -953,10 +1974,8 @@ struct paster *pa;
       evenq(&p->w_paster.pa_slowev);
       return;
     }
-#endif
   while (flayer && *lenp)
     {
-#ifdef COPY_PASTE
       if (!pa && p && p->w_paster.pa_pastelen && flayer == p->w_paster.pa_pastelayer)
 	{
 	  debug("layer is busy - beep!\n");
@@ -966,13 +1985,10 @@ struct paster *pa;
 	  display = d;
 	  return;
 	}
-#endif
       oldlen = *lenp;
       LayProcess(bufp, lenp);
-#ifdef COPY_PASTE
       if (pa && !pa->pa_pastelayer)
 	break;		/* flush rest of paste */
-#endif
       if (*lenp == oldlen)
 	{
 	  if (pa)
@@ -989,15 +2005,12 @@ struct paster *pa;
   *bufp += *lenp;
   *lenp = 0;
   display = d;
-#ifdef COPY_PASTE
   if (pa && pa->pa_pastelen == 0)
     FreePaster(pa);
-#endif
 }
 
 int
-FindCommnr(str)
-const char *str;
+FindCommnr(const char *str)
 {
   int x, m, l = 0, r = RC_LAST;
   while (l <= r)
@@ -1015,9 +2028,7 @@ const char *str;
 }
 
 static int
-CheckArgNum(nr, args)
-int nr;
-char **args;
+CheckArgNum(int nr, char **args)
 {
   int i, n;
   static char *argss[] = {"no", "one", "two", "three", "four", "OOPS"};
@@ -1118,10 +2129,7 @@ char **args;
 }
 
 static void
-StuffFin(buf, len, data)
-char *buf;
-int len;
-char *data;
+StuffFin(char *buf, int len, char *data)
 {
   if (!flayer)
     return;
@@ -1141,9 +2149,7 @@ char *data;
 
 /*ARGSUSED*/
 void
-DoAction(act, key)
-struct action *act;
-int key;
+DoAction(struct action *act, int key)
 {
   int nr = act->nr;
   char **args = act->args;
@@ -1196,7 +2202,6 @@ int key;
     }
   if ((argc = CheckArgNum(nr, args)) < 0)
     return;
-#ifdef MULTIUSER
   if (display)
     {
       if (AclCheckPermCmd(D_user, ACL_EXEC, &comms[nr]))
@@ -1207,7 +2212,6 @@ int key;
 	  return;
 	}
     }
-#endif /* MULTIUSER */
 
   msgok = display && !*rc_name;
   switch(nr)
@@ -1238,7 +2242,6 @@ int key;
       else if (queryflag >= 0)
 	queryflag = -1;	/* ParseWinNum already prints out an appropriate error message. */
       break;
-#ifdef AUTO_NUKE
     case RC_DEFAUTONUKE:
       if (ParseOnOff(act, &defautonuke) == 0 && msgok)
 	OutputMsg(0, "Default autonuke turned %s", defautonuke ? "on" : "off");
@@ -1249,7 +2252,6 @@ int key;
       if (ParseOnOff(act, &D_auto_nuke) == 0 && msgok)
 	OutputMsg(0, "Autonuke turned %s", D_auto_nuke ? "on" : "off");
       break;
-#endif
     case RC_DEFOBUFLIMIT:
       if (ParseNum(act, &defobuflimit) == 0 && msgok)
 	OutputMsg(0, "Default limit set to %d", defobuflimit);
@@ -1322,22 +2324,16 @@ int key;
 
 	if (key >= 0)
 	  {
-#ifdef PSEUDOS
 	    Input(fore->w_pwin ? "Really kill this filter [y/n]" : "Really kill this window [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_KILL);
-#else
-	    Input("Really kill this window [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_KILL);
-#endif
 	    break;
 	  }
 	n = fore->w_number;
-#ifdef PSEUDOS
 	if (fore->w_pwin)
 	  {
 	    FreePseudowin(fore);
 	    OutputMsg(0, "Filter removed.");
 	    break;
 	  }
-#endif
 	name = SaveStr(fore->w_title);
 	KillWindow(fore);
 	OutputMsg(0, "Window %d (%s) killed.", n, name);
@@ -1353,14 +2349,12 @@ int key;
 	}
       Finit(0);
       /* NOTREACHED */
-#ifdef DETACH
     case RC_DETACH:
       if (*args && !strcmp(*args, "-h"))
         Hangup();
       else
         Detach(D_DETACH);
       break;
-# ifdef POW_DETACH
     case RC_POW_DETACH:
       if (key >= 0)
 	{
@@ -1372,8 +2366,6 @@ int key;
       else
         Detach(D_POWER); /* detach and kill Attacher's parent */
       break;
-# endif
-#endif
     case RC_DEBUG:
 #ifdef DEBUG
       if (!*args)
@@ -1402,7 +2394,6 @@ int key;
         OutputMsg(0, "Sorry, screen was compiled without -DDEBUG option.");
 #endif
       break;
-#ifdef ZMODEM
     case RC_ZMODEM:
       if (*args && !strcmp(*args, "sendcmd"))
 	{
@@ -1443,7 +2434,6 @@ int key;
       if (msgok)
 	OutputMsg(0, "zmodem mode is %s", zmodes[zmodem_mode]);
       break;
-#endif
     case RC_UNBINDALL:
       {
         register unsigned int i;
@@ -1481,29 +2471,18 @@ int key;
       }
       break;
     case RC_WALL:
-#ifdef MULTIUSER
       s = D_user->u_name;
-#else
-      s = D_usertty;
-#endif
         {
-	  struct display *olddisplay = display;
-          display = 0;		/* no display will cause a broadcast */
           OutputMsg(0, "%s: %s", s, *args);
-	  display = olddisplay;
         }
       break;
     case RC_AT:
       /* where this AT command comes from: */
       if (!user)
 	break;
-#ifdef MULTIUSER
       s = SaveStr(user->u_name);
       /* DO NOT RETURN FROM HERE WITHOUT RESETTING THIS: */
       EffectiveAclUser = user;
-#else
-      s = SaveStr(display ? D_usertty : user->u_name);
-#endif
       n = strlen(args[0]);
       if (n) n--;
       /*
@@ -1655,14 +2634,10 @@ int key;
 	  }
 	}
       free(s);
-#ifdef MULTIUSER
       EffectiveAclUser = NULL;
-#endif
       break;
 
-#ifdef COPY_PASTE
     case RC_READREG:
-#ifdef ENCODINGS
       i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
       if (args[0] && args[1] && !strcmp(args[0], "-e"))
 	{
@@ -1674,7 +2649,6 @@ int key;
 	    }
 	  args += 2;
 	}
-#endif
       /* 
        * Without arguments we prompt for a destination register.
        * It will receive the copybuffer contents.
@@ -1710,9 +2684,7 @@ int key;
 		free(pp->buf);
 	      pp->buf = s;
 	      pp->len = n;
-#ifdef ENCODINGS
 	      pp->enc = i;
-#endif
 	    }
 	}
       else
@@ -1723,9 +2695,7 @@ int key;
 	 */
         copy_reg_fn(&ch, 0, NULL);
       break;
-#endif
     case RC_REGISTER:
-#ifdef ENCODINGS
       i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
       if (args[0] && args[1] && !strcmp(args[0], "-e"))
 	{
@@ -1738,7 +2708,6 @@ int key;
 	  args += 2;
 	  argc -= 2;
 	}
-#endif
       if (argc != 2)
 	{
 	  OutputMsg(0, "%s: register: illegal number of arguments.", rc_name);
@@ -1750,7 +2719,6 @@ int key;
 	  break;
 	}
       ch = args[0][0];
-#ifdef COPY_PASTE
       if (ch == '.')
 	{
 	  if (user->u_plop.buf != NULL)
@@ -1759,13 +2727,10 @@ int key;
 	    {
 	      user->u_plop.buf = SaveStrn(args[1], argl[1]);
 	      user->u_plop.len = argl[1];
-#ifdef ENCODINGS
 	      user->u_plop.enc = i;
-#endif
 	    }
 	}
       else
-#endif
 	{
 	  struct plop *plp = plop_tab + (int)(unsigned char)ch;
 
@@ -1773,9 +2738,7 @@ int key;
 	    free(plp->buf);
 	  plp->buf = SaveStrn(args[1], argl[1]);
 	  plp->len = argl[1];
-#ifdef ENCODINGS
 	  plp->enc = i;
-#endif
 	}
       break;
     case RC_PROCESS:
@@ -1816,10 +2779,8 @@ int key;
 	      OutputMsg(0, "%s: stuff: unknown key '%s'", rc_name, s);
 	      break;
 	    }
-#ifdef MAPKEYS
 	  if (StuffKey(i - T_CAPS) == 0)
 	    break;
-#endif
 	  s = display ? D_tcs[i].str : 0;
 	  if (s == 0)
 	    break;
@@ -1864,10 +2825,18 @@ int key;
 	    }
 	  if (D_ESCseen != ktab || ktabp != ktab)
 	    {
-	      D_ESCseen = ktabp;
+	      if (D_ESCseen != ktabp)
+	        {
+	          D_ESCseen = ktabp;
+		  WindowChanged(fore, 'E');
+		}
 	      break;
 	    }
-	  D_ESCseen = 0;
+	  if (D_ESCseen)
+	    {
+	      D_ESCseen = 0;
+	      WindowChanged(fore, 'E');
+	    }
 	}
       /* FALLTHROUGH */
     case RC_OTHER:
@@ -1898,7 +2867,6 @@ int key;
     case RC_BREAKTYPE:
 	{
 	  static char *types[] = { "TIOCSBRK", "TCSBRK", "tcsendbreak", NULL };
-	  extern int breaktype;
 
 	  if (*args)
 	    {
@@ -1924,8 +2892,6 @@ int key;
 	          OutputMsg(0, "breaktype set to (%d) %s", n, types[n]);
 		}
 	    }
-	  else
-	    OutputMsg(0, "breaktype is (%d) %s", breaktype, types[breaktype]);
 	}
       break;
     case RC_POW_BREAK:
@@ -1935,11 +2901,9 @@ int key;
 	break;
       SendBreak(fore, n, nr == RC_POW_BREAK);
       break;
-#ifdef LOCK
     case RC_LOCKSCREEN:
       Detach(D_LOCK);
       break;
-#endif
     case RC_WIDTH:
     case RC_HEIGHT:
       {
@@ -2130,7 +3094,6 @@ int key;
 	OutputMsg(0, "%cflow%s", (fore->w_flow & FLOW_NOW) ? '+' : '-',
 	    (fore->w_flow & FLOW_AUTOFLAG) ? "(auto)" : "");
       break;
-#ifdef MULTIUSER
     case RC_DEFWRITELOCK:
       if (args[0][0] == 'a')
 	nwin_default.wlock = WLOCK_AUTO;
@@ -2164,43 +3127,35 @@ int key;
       OutputMsg(0, "writelock %s", (fore->w_wlock == WLOCK_AUTO) ? "auto" :
 	  ((fore->w_wlock == WLOCK_OFF) ? "off" : "on"));
       break;
-#endif
     case RC_CLEAR:
       ResetAnsiState(fore);
       WriteString(fore, "\033[H\033[J", 6);
       break;
     case RC_RESET:
       ResetAnsiState(fore);
-#ifdef ZMODEM
       if (fore->w_zdisplay)
         zmodem_abort(fore, fore->w_zdisplay);
-#endif
       WriteString(fore, "\033c", 2);
       break;
     case RC_MONITOR:
       n = fore->w_monitor != MON_OFF;
-#ifdef MULTIUSER
       if (display)
 	n = n && (ACLBYTE(fore->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id));
-#endif
       if (ParseSwitch(act, &n))
 	break;
       if (n)
 	{
-#ifdef MULTIUSER
 	  if (display)	/* we tell only this user */
 	    ACLBYTE(fore->w_mon_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
 	  else
 	    for (i = 0; i < maxusercount; i++)
 	      ACLBYTE(fore->w_mon_notify, i) |= ACLBIT(i);
-#endif
 	  if (fore->w_monitor == MON_OFF)
 	    fore->w_monitor = MON_ON;
 	  OutputMsg(0, "Window %d (%s) is now being monitored for all activity.", fore->w_number, fore->w_title);
 	}
       else
 	{
-#ifdef MULTIUSER
 	  if (display) /* we remove only this user */
 	    ACLBYTE(fore->w_mon_notify, D_user->u_id) 
 	      &= ~ACLBIT(D_user->u_id);
@@ -2211,16 +3166,13 @@ int key;
 	    if (ACLBYTE(fore->w_mon_notify, i))
 	      break;
 	  if (i < 0)
-#endif
 	    fore->w_monitor = MON_OFF;
 	  OutputMsg(0, "Window %d (%s) is no longer being monitored for activity.", fore->w_number, fore->w_title);
 	}
       break;
-#ifdef MULTI
     case RC_DISPLAYS:
       display_displays();
       break;
-#endif
     case RC_WINDOWLIST:
       if (!*args)
         display_windows(0, WLIST_NUM, (struct win *)0);
@@ -2285,7 +3237,6 @@ int key;
     case RC_LICENSE:
       display_copyright();
       break;
-#ifdef COPY_PASTE
     case RC_COPY:
       if (flayer->l_layfn != &WinLf)
 	{
@@ -2317,9 +3268,7 @@ int key;
       {
         char *ss, *dbuf, dch;
         int l = 0;
-# ifdef ENCODINGS
 	int enc = -1;
-# endif
 
 	/*
 	 * without args we prompt for one(!) register to be pasted in the window
@@ -2341,10 +3290,8 @@ int key;
 		rc_name);
 	    break;
 	  }
-# ifdef ENCODINGS
         else if (fore)
 	  enc = fore->w_encoding;
-# endif
 
 	/*
 	 * measure length of needed buffer 
@@ -2353,24 +3300,20 @@ int key;
           {
 	    if (ch == '.')
 	      {
-# ifdef ENCODINGS
 		if (enc == -1)
 		  enc = user->u_plop.enc;
 		if (enc != user->u_plop.enc)
 		  l += RecodeBuf((unsigned char *)user->u_plop.buf, user->u_plop.len, user->u_plop.enc, enc, (unsigned char *)0);
 		else
-# endif
 		  l += user->u_plop.len;
 	      }
 	    else
 	      {
-# ifdef ENCODINGS
 		if (enc == -1)
 		  enc = plop_tab[(int)(unsigned char)ch].enc;
 		if (enc != plop_tab[(int)(unsigned char)ch].enc)
 		  l += RecodeBuf((unsigned char *)plop_tab[(int)(unsigned char)ch].buf, plop_tab[(int)(unsigned char)ch].len, plop_tab[(int)(unsigned char)ch].enc, enc, (unsigned char *)0);
 		else
-# endif
                   l += plop_tab[(int)(unsigned char)ch].len;
 	      }
           }
@@ -2385,9 +3328,7 @@ int key;
 	 * pass a pointer rather than duplicating the buffer.
 	 */
         if (s[1] == 0 && args[1] == 0)
-# ifdef ENCODINGS
 	  if (enc == (*s == '.' ? user->u_plop.enc : plop_tab[(int)(unsigned char)*s].enc))
-# endif
             {
 	      MakePaster(&fore->w_paster, *s == '.' ? user->u_plop.buf : plop_tab[(int)(unsigned char)*s].buf, l, 0);
 	      break;
@@ -2408,14 +3349,12 @@ int key;
         for (ss = s; (ch = *ss); ss++)
           {
 	    struct plop *pp = (ch == '.' ? &user->u_plop : &plop_tab[(int)(unsigned char)ch]);
-#ifdef ENCODINGS
 	    if (pp->enc != enc)
 	      {
 		l += RecodeBuf((unsigned char *)pp->buf, pp->len, pp->enc, enc, (unsigned char *)dbuf + l);
 		continue;
 	      }
-#endif
-	    bcopy(pp->buf, dbuf + l, pp->len);
+	    memmove(dbuf + l, pp->buf, pp->len);
 	    l += pp->len;
           }
 	/*
@@ -2438,9 +3377,7 @@ int key;
 	          UserFreeCopyBuffer(user);
 		user->u_plop.buf = dbuf;
 		user->u_plop.len = l;
-#ifdef ENCODINGS
 		user->u_plop.enc = enc;
-#endif
 	      }
 	    else
 	      {
@@ -2449,9 +3386,7 @@ int key;
 		  free(pp->buf);
 		pp->buf = dbuf;
 		pp->len = l;
-#ifdef ENCODINGS
 		pp->enc = enc;
-#endif
 	      }
 	  }
         break;
@@ -2462,7 +3397,6 @@ int key;
 	  OutputMsg(0, "empty buffer");
 	  break;
 	}
-#ifdef ENCODINGS
 	{
 	  struct plop oldplop;
 
@@ -2493,20 +3427,16 @@ int key;
 		}
 	      args += 2;
 	    }
-#endif
 	  if (args[0] && args[1])
 	    OutputMsg(0, "%s: writebuf: too many arguments", rc_name);
 	  else
 	    WriteFile(user, args[0], DUMP_EXCHANGE);
-#ifdef ENCODINGS
 	  if (user->u_plop.buf != oldplop.buf)
 	    free(user->u_plop.buf);
 	  user->u_plop = oldplop;
 	}
-#endif
       break;
     case RC_READBUF:
-#ifdef ENCODINGS
       i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
       if (args[0] && args[1] && !strcmp(args[0], "-e"))
 	{
@@ -2518,7 +3448,6 @@ int key;
 	    }
 	  args += 2;
 	}
-#endif
       if (args[0] && args[1])
 	{
 	  OutputMsg(0, "%s: readbuf: too many arguments", rc_name);
@@ -2530,9 +3459,7 @@ int key;
 	    UserFreeCopyBuffer(user);
 	  user->u_plop.len = n;
 	  user->u_plop.buf = s;
-#ifdef ENCODINGS
 	  user->u_plop.enc = i;
-#endif
 	}
       break;
     case RC_REMOVEBUF:
@@ -2543,7 +3470,6 @@ int key;
       if (msgok)
         OutputMsg(0, "Will %signore case in searches", search_ic ? "" : "not ");
       break;
-#endif				/* COPY_PASTE */
     case RC_ESCAPE:
       if (*argl == 0)
 	SetEscape(user, -1, -1);
@@ -2570,9 +3496,7 @@ int key;
 	  OutputMsg(0, "%s: two characters required after defescape.", rc_name);
 	  break;
 	}
-#ifdef MAPKEYS
       CheckEscape();
-#endif
       break;
     case RC_CHDIR:
       s = *args ? *args : home;
@@ -2656,7 +3580,7 @@ int key;
 	  free(s);
 	  break;
 	}
-      strcpy(screenterm, s);
+      strncpy(screenterm, s, 20);
       free(s);
       debug1("screenterm set to %s\n", screenterm);
       MakeTermcap((display == 0));
@@ -2702,7 +3626,6 @@ int key;
 	}
       (void)ParseSaveStr(act, &BellString);
       break;
-#ifdef COPY_PASTE
     case RC_BUFFERFILE:
       if (*args == 0)
 	BufferFile = SaveStr(DEFAULT_BUFFERFILE);
@@ -2711,11 +3634,9 @@ int key;
       if (msgok)
         OutputMsg(0, "Bufferfile is now '%s'", BufferFile);
       break;
-#endif
     case RC_ACTIVITY:
       (void)ParseSaveStr(act, &ActivityString);
       break;
-#if defined(DETACH) && defined(POW_DETACH)
     case RC_POW_DETACH_MSG:
       if (*args == 0)
         {
@@ -2726,7 +3647,6 @@ int key;
 	}
       (void)ParseSaveStr(act, &PowDetachString);
       break;
-#endif
 #if defined(UTMPOK) && defined(LOGOUTOK)
     case RC_LOGIN:
       n = fore->w_slot != (slot_t)-1;
@@ -2784,11 +3704,9 @@ int key;
     case RC_DEFC1:
       (void)ParseOnOff(act, &nwin_default.c1);
       break;
-#ifdef COLOR
     case RC_DEFBCE:
       (void)ParseOnOff(act, &nwin_default.bce);
       break;
-#endif
     case RC_DEFGR:
       (void)ParseOnOff(act, &nwin_default.gr);
       break;
@@ -2984,6 +3902,17 @@ int key;
       if (msgok)
 	OutputMsg(0, "silencewait set to %d seconds", SilenceWait);
       break;
+    case RC_BUMPRIGHT:
+      if (fore->w_number < NextWindow())
+        SwapWindows(fore->w_number, NextWindow());
+      break;
+    case RC_BUMPLEFT:
+      if (fore->w_number > PreviousWindow())
+        SwapWindows(fore->w_number, PreviousWindow());
+      break;
+    case RC_COLLAPSE:
+      CollapseWindowlist();
+      break;
     case RC_NUMBER:
       if (*args == 0)
         OutputMsg(0, queryflag >= 0 ? "%d (%s)" : "This is window %d (%s).", fore->w_number, fore->w_title);
@@ -3006,13 +3935,36 @@ int key;
 	    n += old;
 	  else if (rel < 0)
 	    n = old - n;
-	  if (!WindowChangeNumber(fore, n))
+	  if (!SwapWindows(old, n))
 	    {
 	      /* Window number could not be changed. */
 	      queryflag = -1;
 	      return;
 	    }
 	}
+      break;
+    case RC_SORT:
+      i = 0;
+      if (!wtab[i] || !wtab[i+1])
+        {
+         Msg(0, "Less than two windows, sorting makes no sense.\n");
+         break;
+       }
+      for (i = 0; wtab[i+1] != NULL; i++)
+        {
+         for (n = i, nr = i; wtab[n+1] != NULL; n++)
+           {
+             if (strcmp(wtab[nr]->w_title,wtab[n+1]->w_title) > 0)
+               {
+                 nr = n+1;
+               }
+           }
+         if (nr != i)
+           {
+             SwapWindows(nr, i);
+           }
+       }
+      WindowChanged((struct win *)0, 0);
       break;
     case RC_SILENCE:
       n = fore->w_silence != 0;
@@ -3027,13 +3979,11 @@ int key;
         break;
       if (n)
         {
-#ifdef MULTIUSER
 	  if (display)	/* we tell only this user */
 	    ACLBYTE(fore->w_lio_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
 	  else
 	    for (n = 0; n < maxusercount; n++)
 	      ACLBYTE(fore->w_lio_notify, n) |= ACLBIT(n);
-#endif
 	  fore->w_silencewait = i;
 	  fore->w_silence = SILENCE_ON;
 	  SetTimeout(&fore->w_silenceev, fore->w_silencewait * 1000);
@@ -3045,7 +3995,6 @@ int key;
 	}
       else
         {
-#ifdef MULTIUSER
 	  if (display) /* we remove only this user */
 	    ACLBYTE(fore->w_lio_notify, D_user->u_id) 
 	      &= ~ACLBIT(D_user->u_id);
@@ -3056,7 +4005,6 @@ int key;
 	    if (ACLBYTE(fore->w_lio_notify, i))
 	      break;
 	  if (i < 0)
-#endif
 	    {
 	      fore->w_silence = SILENCE_OFF;
 	      evdeq(&fore->w_silenceev);
@@ -3066,7 +4014,6 @@ int key;
 	  OutputMsg(0, "The window is no longer being monitored for silence.");
 	}
       break;
-#ifdef COPY_PASTE
     case RC_DEFSCROLLBACK:
       (void)ParseNum(act, &nwin_default.histheight);
       break;
@@ -3081,7 +4028,6 @@ int key;
       if (msgok)
 	OutputMsg(0, "scrollback set to %d", fore->w_histheight);
       break;
-#endif
     case RC_SESSIONNAME:
       if (*args == 0)
 	OutputMsg(0, "This session is named '%s'\n", SockName);
@@ -3092,7 +4038,7 @@ int key;
 	  s = 0;
 	  if (ParseSaveStr(act, &s))
 	    break;
-	  if (!*s || strlen(s) + (SockName - SockPath) > MAXPATHLEN - 13 || index(s, '/'))
+	  if (!*s || strlen(s) + (SockName - SockPath) > MAXPATHLEN - 13 || strchr(s, '/'))
 	    {
 	      OutputMsg(0, "%s: bad session name '%s'\n", rc_name, s);
 	      free(s);
@@ -3133,7 +4079,6 @@ int key;
       unsetenv(*args);
       MakeNewEnv();
       break;
-#ifdef COPY_PASTE
     case RC_DEFSLOWPASTE:
       (void)ParseNum(act, &nwin_default.slow);
       break;
@@ -3157,12 +4102,10 @@ int key;
 	}
       debug1("markkeys %s\n", *args);
       break;
-# ifdef FONT
     case RC_PASTEFONT:
       if (ParseSwitch(act, &pastefont) == 0 && msgok)
         OutputMsg(0, "Will %spaste font settings", pastefont ? "" : "not ");
       break;
-# endif
     case RC_CRLF:
       (void)ParseSwitch(act, &join_with_cr);
       break;
@@ -3170,7 +4113,6 @@ int key;
       if (ParseSwitch(act, &compacthist) == 0 && msgok)
 	OutputMsg(0, "%scompacting history lines", compacthist ? "" : "not ");
       break;
-#endif
 #ifdef NETHACK
     case RC_NETHACK:
       (void)ParseOnOff(act, &nethackflag);
@@ -3208,7 +4150,6 @@ int key;
     case RC_STARTUP_MESSAGE:
       (void)ParseOnOff(act, &default_startup);
       break;
-#ifdef PASSWORD
     case RC_PASSWORD:
       if (*args)
 	{
@@ -3233,7 +4174,6 @@ int key;
 	  Input("New screen password:", 100, INP_NOECHO, pass1, display ? (char *)D_user : (char *)users, 0);
 	}
       break;
-#endif				/* PASSWORD */
     case RC_BIND:
 	{
 	  struct action *ktabp = ktab;
@@ -3260,7 +4200,6 @@ int key;
 	      else
 	        break;
 	    }
-#ifdef MAPKEYS
           if (kflag)
 	    {
 	      for (n = 0; n < KMAP_KEYS; n++)
@@ -3274,7 +4213,6 @@ int key;
 	      n += 256;
 	    }
 	  else
-#endif
 	  if (*argl != 1)
 	    {
 	      OutputMsg(0, "%s: bind: character, ^x, or (octal) \\032 expected.", rc_name);
@@ -3299,14 +4237,13 @@ int key;
 	    ClearAction(&ktabp[n]);
 	}
       break;
-#ifdef MAPKEYS
     case RC_BINDKEY:
 	{
 	  struct action *newact;
           int newnr, fl = 0, kf = 0, af = 0, df = 0, mf = 0;
 	  struct display *odisp = display;
 	  int used = 0;
-          struct kmap_ext *kme;
+          struct kmap_ext *kme = NULL;
 
 	  for (; *args && **args == '-'; args++, argl++)
 	    {
@@ -3366,7 +4303,7 @@ int key;
 		      break;
 		  }
 		else
-		  if (*argl == (kme->fl & ~KMAP_NOTIMEOUT) && bcmp(kme->str, *args, *argl) == 0)
+		  if (*argl == (kme->fl & ~KMAP_NOTIMEOUT) && memcmp(kme->str, *args, *argl) == 0)
 		      break;
 	      if (i == kmap_extn)
 		{
@@ -3378,7 +4315,7 @@ int key;
 		  kmap_extn += 8;
 		  kmap_exts = (struct kmap_ext *)xrealloc((char *)kmap_exts, kmap_extn * sizeof(*kmap_exts));
 		  kme = kmap_exts + i;
-		  bzero((char *)kme, 8 * sizeof(*kmap_exts));
+		  memset((char *)kme, 0, 8 * sizeof(*kmap_exts));
 		  for (; i < kmap_extn; i++, kme++)
 		    {
 		      kme->str = 0;
@@ -3470,8 +4407,6 @@ int key;
     case RC_MAPDEFAULT:
       D_mapdefault = 1;
       break;
-#endif
-#ifdef MULTIUSER
     case RC_ACLCHG:
     case RC_ACLADD:
     case RC_ADDACL:
@@ -3560,13 +4495,9 @@ int key;
       if (msgok)
 	OutputMsg(0, "Multiuser mode %s", multi ? "enabled" : "disabled");
       break;
-#endif /* MULTIUSER */
-#ifdef PSEUDOS
     case RC_EXEC:
       winexec(args);
       break;
-#endif
-#ifdef MULTI
     case RC_NONBLOCK:
       i = D_nonblock >= 0;
       if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.'))
@@ -3605,33 +4536,24 @@ int key;
 	    evdeq(&D_blockedev);
 	}
       break;
-#endif
     case RC_GR:
-#ifdef ENCODINGS
       if (fore->w_gr == 2)
 	fore->w_gr = 0;
-#endif
       if (ParseSwitch(act, &fore->w_gr) == 0 && msgok)
         OutputMsg(0, "Will %suse GR", fore->w_gr ? "" : "not ");
-#ifdef ENCODINGS
       if (fore->w_gr == 0 && fore->w_FontE)
 	fore->w_gr = 2;
-#endif
       break;
     case RC_C1:
       if (ParseSwitch(act, &fore->w_c1) == 0 && msgok)
         OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
       break;
-#ifdef COLOR
     case RC_BCE:
       if (ParseSwitch(act, &fore->w_bce) == 0 && msgok)
         OutputMsg(0, "Will %serase with background color", fore->w_bce ? "" : "not ");
       break;
-#endif
-#ifdef ENCODINGS
     case RC_KANJI:
     case RC_ENCODING:
-#ifdef UTF8
       if (*args && !strcmp(args[0], "-d"))
 	{
 	  if (!args[1])
@@ -3653,14 +4575,6 @@ int key;
 	    OutputMsg(0, "encoding: utf8 encoding file loaded");
 	  break;
 	}
-#else
-      if (*args && (!strcmp(args[0], "-l") || !strcmp(args[0], "-d")))
-	{
-	  if (msgok)
-	    OutputMsg(0, "encoding: screen is not compiled for UTF-8.");
-	  break;
-	}
-#endif
       for (i = 0; i < 2; i++)
 	{
 	  if (args[i] == 0)
@@ -3692,9 +4606,6 @@ int key;
 	}
       nwin_default.encoding = n;
       break;
-#endif
-
-#ifdef UTF8
     case RC_DEFUTF8:
       n = nwin_default.encoding == UTF8;
       if (ParseSwitch(act, &n) == 0)
@@ -3732,8 +4643,6 @@ int key;
 	    break;
 	}
       break;
-#endif
-
     case RC_PRINTCMD:
       if (*args)
 	{
@@ -3770,11 +4679,10 @@ int key;
 		{
 		  if (!args[1][1])
 		    digraphs[i].value = (int)args[1][0];
-#ifdef UTF8
 		  else
 		    {
 		      int t;
-		      unsigned char *s = args[1];
+		      char *s = args[1];
 		      digraphs[i].value = 0;
 		      while (*s)
 			{
@@ -3788,7 +4696,6 @@ int key;
 			  break;
 			}
 		    }
-#endif
 		}
 	    }
 	  break;
@@ -3829,7 +4736,6 @@ int key;
       WindowChanged(fore, 'h');
       break;
 
-#ifdef FONT
     case RC_DEFCHARSET:
     case RC_CHARSET:
       if (*args == 0)
@@ -3863,8 +4769,6 @@ int key;
 	free(nwin_default.charset);
       nwin_default.charset = SaveStr(*args);
       break;
-#endif
-#ifdef COLOR
     case RC_ATTRCOLOR:
       s = args[0];
       if (*s >= '0' && *s <= '9')
@@ -3904,7 +4808,6 @@ int key;
 	  n |= 1 << i;
       nattr2color = n;
       break;
-#endif
     case RC_RENDITION:
       i = -1;
       if (strcmp(args[0], "bell") == 0)
@@ -3951,18 +4854,13 @@ int key;
 	  debug2("--> %x %x\n", mchar_so.attr, mchar_so.color);
 	}
       if (msgok)
-#ifdef COLOR
         OutputMsg(0, "Standout attributes 0x%02x  color 0x%02x", (unsigned char)mchar_so.attr, 0x99 ^ (unsigned char)mchar_so.color);
-#else
-        OutputMsg(0, "Standout attributes 0x%02x ", (unsigned char)mchar_so.attr);
-#endif
       break;
 
       case RC_SOURCE:
 	do_source(*args);
 	break;
 
-#ifdef MULTIUSER
     case RC_SU:
       s = NULL;
       if (!*args)
@@ -3979,7 +4877,6 @@ int key;
       if (s)
         OutputMsg(0, "%s", s);
       break;
-#endif /* MULTIUSER */
     case RC_SPLIT:
       s = args[0];
       if (s && !strcmp(s, "-v"))
@@ -4130,18 +5027,15 @@ int key;
       WindowChanged(0, '`');
       break;
     case RC_BLANKER:
-#ifdef BLANKER_PRG
       if (blankerprg)
 	{
           RunBlanker(blankerprg);
 	  break;
 	}
-#endif
       ClearAll();
       CursorVisibility(-1);
       D_blocked = 4;
       break;
-#ifdef BLANKER_PRG
     case RC_BLANKERPRG:
       if (!args[0])
 	{
@@ -4169,7 +5063,6 @@ int key;
       if (args[0][0])
 	blankerprg = SaveArgs(args);
       break;
-#endif
     case RC_IDLE:
       if (*args)
 	{
@@ -4221,7 +5114,7 @@ int key;
 	    {
 	      n = i == 0 ? focusminwidth : focusminheight;
 	      if (n == -1)
-		strcpy(b[i], "max");
+		strncpy(b[i], "max", 20);
 	      else
 		sprintf(b[i], "%d", n);
 	    }
@@ -4251,22 +5144,22 @@ int key;
 	}
       break;
     case RC_LAYOUT:
-      // A number of the subcommands for "layout" are ignored, or not processed correctly when there
-      // is no attached display.
-
+/*
+ * A number of the subcommands for "layout" are ignored, or not processed
+ * correctly when there is no attached display.
+ */
       if (!strcmp(args[0], "title"))
 	{
-          if (!display)
+	  if (!display)
             {
-	      if (!args[1])  // There is no display, and there is no new title. Ignore.
-		break;
-	      if (!layout_attach || layout_attach == &layout_last_marker)
-		layout_attach = CreateLayout(args[1], 0);
-	      else
-		RenameLayout(layout_attach, args[1]);
-	      break;
-	    }
-
+              if (!args[1]) /* There is no display, and there is no new title. Ignore. */
+                break;
+              if (!layout_attach || layout_attach == &layout_last_marker)
+                layout_attach = CreateLayout(args[1], 0);
+              else
+                RenameLayout(layout_attach, args[1]);
+              break;
+            }
 	  if (!D_layout)
 	    {
 	      OutputMsg(0, "not on a layout");
@@ -4283,11 +5176,10 @@ int key;
 	{
 	  if (!display)
 	    {
-	      if (args[1] && layout_attach && layout_attach != &layout_last_marker)
-		RenumberLayout(layout_attach, atoi(args[1]));
-	      break;
+              if (args[1] && layout_attach && layout_attach != &layout_last_marker)
+                RenumberLayout(layout_attach, atoi(args[1]));
+              break;
 	    }
-
 	  if (!D_layout)
 	    {
 	      OutputMsg(0, "not on a layout");
@@ -4298,24 +5190,23 @@ int key;
 	      OutputMsg(0, "This is layout %d (%s).\n", D_layout->lay_number, D_layout->lay_title);
 	      break;
 	    }
-	   RenumberLayout(D_layout, atoi(args[1]));
-	   break;
+	  RenumberLayout(D_layout, atoi(args[1]));
+	  break;
 	}
       else if (!strcmp(args[0], "autosave"))
 	{
 	  if (!display)
-	    {
-	      if (args[1] && layout_attach && layout_attach != &layout_last_marker)
-		{
-		  if (!strcmp(args[1], "on"))
-		    layout_attach->lay_autosave = 1;
-		  else if (!strcmp(args[1], "off"))
-		    layout_attach->lay_autosave = 0;
-		}
-	      break;
-	    }
-
-	  if (!D_layout)
+            {
+              if (args[1] && layout_attach && layout_attach != &layout_last_marker)
+                {
+                  if (!strcmp(args[1], "on"))
+                    layout_attach->lay_autosave = 1;
+                  else if (!strcmp(args[1], "off"))
+                    layout_attach->lay_autosave = 0;
+                }
+              break;
+            }
+          if (!D_layout)
 	    {
 	      OutputMsg(0, "not on a layout");
 	      break;
@@ -4370,11 +5261,11 @@ int key;
       else if (!strcmp(args[0], "select"))
 	{
 	  if (!display)
-	    {
-	      if (args[1])
-		layout_attach = FindLayout(args[1]);
-	      break;
-	    }
+            {
+              if (args[1])
+                layout_attach = FindLayout(args[1]);
+              break;
+            }
           if (!args[1])
 	    {
 	      Input("Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
@@ -4385,11 +5276,11 @@ int key;
       else if (!strcmp(args[0], "next"))
 	{
 	  if (!display)
-	    {
-	      if (layout_attach && layout_attach != &layout_last_marker)
-		layout_attach = layout_attach->lay_next ? layout_attach->lay_next : layouts;;
-	      break;
-	    }
+            {
+              if (layout_attach && layout_attach != &layout_last_marker)
+                layout_attach = layout_attach->lay_next ? layout_attach->lay_next : layouts;;
+              break;
+            }
 	  struct layout *lay = D_layout;
 	  if (lay)
 	    lay = lay->lay_next ? lay->lay_next : layouts;
@@ -4402,7 +5293,7 @@ int key;
 	    }
 	  if (lay == D_layout)
 	    break;
-	  LoadLayout(lay, &D_canvas);
+	  LoadLayout(lay);
 	  Activate(-1);
 	}
       else if (!strcmp(args[0], "prev"))
@@ -4417,11 +5308,11 @@ int key;
 	  else
 	    lay = layouts;
 
-	  if (!display)
-	    {
-	      layout_attach = lay;
-	      break;
-	    }
+          if (!display)
+            {
+              layout_attach = lay;
+              break;
+            }
 
 	  if (!lay)
 	    {
@@ -4430,7 +5321,7 @@ int key;
 	    }
 	  if (lay == D_layout)
 	    break;
-	  LoadLayout(lay, &D_canvas);
+	  LoadLayout(lay);
 	  Activate(-1);
 	}
       else if (!strcmp(args[0], "attach"))
@@ -4492,7 +5383,6 @@ int key;
       else
 	OutputMsg(0, "unknown layout subcommand");
       break;
-#ifdef DW_CHARS
     case RC_CJKWIDTH:
       if(ParseSwitch(act, &cjkwidth) == 0)
       {
@@ -4500,12 +5390,7 @@ int key;
           OutputMsg(0, "Treat ambiguous width characters as %s width", cjkwidth ? "full" : "half");
       }
       break;
-#endif
     default:
-#ifdef HAVE_BRAILLE
-      /* key == -2: input from braille keybord, msgok always 0 */
-      DoBrailleAction(act, key == -2 ? 0 : msgok);
-#endif
       break;
     }
   if (display != odisplay)
@@ -4518,9 +5403,23 @@ int key;
 #undef OutputMsg
 
 void
-DoCommand(argv, argl) 
-char **argv;
-int *argl;
+CollapseWindowlist()
+/* renumber windows from 0, leaving no gaps */
+{
+  int pos, moveto=0;
+
+  for (pos = 1; pos < MAXWIN; pos++)
+    if (wtab[pos])
+      for (; moveto < pos; moveto++)
+        if (!wtab[moveto])
+          {
+          SwapWindows(pos, moveto);
+          break;
+          }
+}
+
+void
+DoCommand(char **argv, int *argl) 
 {
   struct action act;
   const char *cmd = *argv;
@@ -4551,11 +5450,7 @@ int *argl;
 }
 
 static void
-SaveAction(act, nr, args, argl)
-struct action *act;
-int nr;
-char **args;
-int *argl;
+SaveAction(struct action *act, int nr, char **args, int *argl)
 {
   register int argc = 0;
   char **pp;
@@ -4587,8 +5482,7 @@ int *argl;
 }
 
 static char **
-SaveArgs(args)
-char **args;
+SaveArgs(char **args)
 {
   register char **ap, **pp;
   register int argc = 0;
@@ -4614,9 +5508,7 @@ char **args;
  * argc is returned.
  */
 int 
-Parse(buf, bufl, args, argl)
-char *buf, **args;
-int bufl, *argl;
+Parse(char *buf, int bufl, char **args, int *argl)
 {
   register char *p = buf, **ap = args, *pp;
   register int delim, argc;
@@ -4631,7 +5523,6 @@ int bufl, *argl;
       *lp = 0;
       while (*p && (*p == ' ' || *p == '\t'))
 	++p;
-#ifdef PSEUDOS
       if (argc == 0 && *p == '!')
 	{
 	  *ap++ = "exec";
@@ -4640,7 +5531,6 @@ int bufl, *argl;
 	  argc++;
 	  continue;
         }
-#endif
       if (*p == '\0' || *p == '#' || *p == '\n')
 	{
 	  *p = '\0';
@@ -4765,7 +5655,7 @@ int bufl, *argl;
 		      int right = buf + bufl - (p + strlen(p) + 1);
 		      if (right > 0)
 			{
-			  bcopy(p, p + right, strlen(p) + 1);
+			  memmove(p + right, p, strlen(p) + 1);
 			  p += right;
 			}
 		    }
@@ -4774,7 +5664,7 @@ int bufl, *argl;
 		      Msg(0, "%s: no space left for variable expansion.", rc_name);
 		      return 0;
 		    }
-		  bcopy(v, pp, vl);
+		  memmove(pp, v, vl);
 		  pp += vl;
 		}
 	      continue;
@@ -4807,9 +5697,7 @@ int bufl, *argl;
 }
 
 void
-SetEscape(u, e, me)
-struct acluser *u;
-int e, me;
+SetEscape(struct acluser *u, int e, int me)
 {
   if (u)
     {
@@ -4844,9 +5732,7 @@ int e, me;
 }
 
 int
-ParseSwitch(act, var)
-struct action *act;
-int *var;
+ParseSwitch(struct action *act, int *var)
 {
   if (*act->args == 0)
     {
@@ -4857,9 +5743,7 @@ int *var;
 }
 
 static int
-ParseOnOff(act, var)
-struct action *act;
-int *var;
+ParseOnOff(struct action *act, int *var)
 {
   register int num = -1;
   char **args = act->args;
@@ -4881,9 +5765,7 @@ int *var;
 }
 
 int
-ParseSaveStr(act, var)
-struct action *act;
-char **var;
+ParseSaveStr(struct action *act, char **var)
 {
   char **args = act->args;
   if (*args == 0 || args[1])
@@ -4898,9 +5780,7 @@ char **var;
 }
 
 int
-ParseNum(act, var)
-struct action *act;
-int *var;
+ParseNum(struct action *act, int *var)
 {
   int i;
   char *p, **args = act->args;
@@ -4931,9 +5811,7 @@ int *var;
 }
 
 static int
-ParseNum1000(act, var)
-struct action *act;
-int *var;
+ParseNum1000(struct action *act, int *var)
 {
   int i;
   char *p, **args = act->args;
@@ -4981,8 +5859,7 @@ int *var;
 }
 
 static struct win *
-WindowByName(s)
-char *s;
+WindowByName(char *s)
 {
   struct win *p;
 
@@ -4996,8 +5873,7 @@ char *s;
 }
 
 static int
-WindowByNumber(str)
-char *str;
+WindowByNumber(char *str)
 {
   int i;
   char *s;
@@ -5017,8 +5893,7 @@ char *str;
  * Be careful when assigning numeric strings as WindowTitles.
  */
 int
-WindowByNoN(str)
-char *str;
+WindowByNoN(char *str)
 {
   int i;
   struct win *p;
@@ -5033,9 +5908,7 @@ char *str;
 }
 
 static int
-ParseWinNum(act, var)
-struct action *act;
-int *var;
+ParseWinNum(struct action *act, int *var)
 {
   char **args = act->args;
   int i = 0;
@@ -5059,12 +5932,7 @@ int *var;
 }
 
 static int
-ParseBase(act, p, var, base, bname)
-struct action *act;
-char *p;
-int *var;
-int base;
-char *bname;
+ParseBase(struct action *act, char *p, int *var, int base, char *bname)
 {
   int i = 0;
   int c;
@@ -5094,9 +5962,7 @@ char *bname;
 }
 
 static int
-IsNum(s, base)
-register char *s;
-register int base;
+IsNum(register char *s, register int base)
 {
   for (base += '0'; *s; ++s)
     if (*s < '0' || *s > base)
@@ -5105,15 +5971,12 @@ register int base;
 }
 
 int
-IsNumColon(s, base, p, psize)
-int base, psize;
-char *s, *p;
+IsNumColon(char *s, int base, char *p, int psize)
 {
   char *q;
-  if ((q = rindex(s, ':')) != 0)
+  if ((q = strrchr(s, ':')) != 0)
     {
       strncpy(p, q + 1, psize - 1);
-      p[psize - 1] = '\0';
       *q = '\0';
     }
   else
@@ -5122,8 +5985,7 @@ char *s, *p;
 }
 
 void
-SwitchWindow(n)
-int n;
+SwitchWindow(int n)
 {
   struct win *p;
 
@@ -5148,13 +6010,11 @@ int n;
       Msg(0, "This IS window %d (%s).", n, p->w_title);
       return;
     }
-#ifdef MULTIUSER
   if (AclCheckPermWin(D_user, ACL_READ, p))
     {
       Msg(0, "Access to window %d denied.", p->w_number);
       return;
     }
-#endif
   SetForeWindow(p);
   Activate(fore->w_norefresh);  
 }
@@ -5164,21 +6024,20 @@ int n;
  * Puts window wi in canvas display->d_forecv.
  */
 void
-SetForeWindow(wi)
-struct win *wi;
+SetForeWindow(struct win *win)
 {
   struct win *p;
   if (display == 0)
     {
-      fore = wi;
+      fore = win;
       return;
     }
   p = Layer2Window(D_forecv->c_layer);
-  SetCanvasWindow(D_forecv, wi);
+  SetCanvasWindow(D_forecv, win);
   if (p)
     WindowChanged(p, 'u');
-  if (wi)
-    WindowChanged(wi, 'u');
+  if (win)
+    WindowChanged(win, 'u');
   flayer = D_forecv->c_layer;
   /* Activate called afterwards, so no RefreshHStatus needed */
 }
@@ -5191,8 +6050,7 @@ struct win *wi;
  *  norefresh = -1 forces a refresh, disregard all_norefresh then.
  */
 void
-Activate(norefresh)
-int norefresh;
+Activate(int norefresh)
 {
   debug1("Activate(%d)\n", norefresh);
   if (display == 0)
@@ -5214,15 +6072,6 @@ int norefresh;
 	fore->w_monitor = MON_ON;
       fore->w_bell = BELL_ON;
       WindowChanged(fore, 'f');
-
-#if 0
-      if (ResizeDisplay(fore->w_width, fore->w_height))
-	{
-	  debug2("Cannot resize from (%d,%d)", D_width, D_height);
-	  debug2(" to (%d,%d) -> resize window\n", fore->w_width, fore->w_height);
-	  DoResize(D_width, D_height);
-	}
-#endif
     }
   Redisplay(norefresh + all_norefresh);
 }
@@ -5288,8 +6137,7 @@ MoreWindows()
 }
 
 void
-KillWindow(wi)
-struct win *wi;
+KillWindow(struct win *win)
 {
   struct win **pp, *p;
   struct canvas *cv;
@@ -5300,16 +6148,16 @@ struct win *wi;
    * Remove window from linked list.
    */
   for (pp = &windows; (p = *pp); pp = &p->w_next)
-    if (p == wi)
+    if (p == win)
       break;
   ASSERT(p);
   *pp = p->w_next;
-  wi->w_inlen = 0;
-  wtab[wi->w_number] = 0;
+  win->w_inlen = 0;
+  wtab[win->w_number] = 0;
 
   if (windows == 0)
     {
-      FreeWindow(wi);
+      FreeWindow(win);
       Finit(0);
     }
 
@@ -5321,7 +6169,7 @@ struct win *wi;
       gotone = 0;
       for (cv = D_cvlist; cv; cv = cv->c_next)
 	{
-	  if (Layer2Window(cv->c_layer) != wi)
+	  if (Layer2Window(cv->c_layer) != win)
 	    continue;
 	  /* switch to other window */
 	  SetCanvasWindow(cv, FindNiceWindow(D_other, 0));
@@ -5329,30 +6177,27 @@ struct win *wi;
 	}
       if (gotone)
 	{
-#ifdef ZMODEM
-	  if (wi->w_zdisplay == display)
+	  if (win->w_zdisplay == display)
 	    {
 	      D_blocked = 0;
 	      D_readev.condpos = D_readev.condneg = 0;
 	    }
-#endif
 	  Activate(-1);
 	}
     }
 
   /* do the same for the layouts */
   for (lay = layouts; lay; lay = lay->lay_next)
-    UpdateLayoutCanvas(&lay->lay_canvas, wi);
+    UpdateLayoutCanvas(&lay->lay_canvas, win);
 
-  FreeWindow(wi);
+  FreeWindow(win);
   WindowChanged((struct win *)0, 'w');
   WindowChanged((struct win *)0, 'W');
   WindowChanged((struct win *)0, 0);
 }
 
 static void
-LogToggle(on)
-int on;
+LogToggle(int on)
 {
   char buf[1024];
 
@@ -5383,11 +6228,7 @@ int on;
 }
 
 char *
-AddWindows(buf, len, flags, where)
-char *buf;
-int len;
-int flags;
-int where;
+AddWindows(char *buf, int len, int flags, int where)
 {
   register char *s, *ss;
   register struct win **pp, *p;
@@ -5461,10 +6302,7 @@ int where;
 }
 
 char *
-AddWindowFlags(buf, len, p)
-char *buf;
-int len;
-struct win *p;
+AddWindowFlags(char *buf, int len, struct win *p)
 {
   char *s = buf;
   if (p == 0 || len < 12)
@@ -5472,18 +6310,10 @@ struct win *p;
       *s = 0;
       return s;
     }
-#if 0
-  if (display && p == D_fore)
-    *s++ = '*';
-  if (display && p == D_other)
-    *s++ = '-';
-#endif
   if (p->w_layer.l_cvlist && p->w_layer.l_cvlist->c_lnext)
     *s++ = '&';
   if (p->w_monitor == MON_DONE
-#ifdef MULTIUSER
       && (ACLBYTE(p->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id))
-#endif
      )
     *s++ = '@';
   if (p->w_bell == BELL_DONE)
@@ -5504,10 +6334,7 @@ struct win *p;
 }
 
 char *
-AddOtherUsers(buf, len, p)
-char *buf;
-int len;
-struct win *p;
+AddOtherUsers(char *buf, int len, struct win *p)
 {
   struct display *d, *olddisplay = display;
   struct canvas *cv;
@@ -5547,8 +6374,7 @@ struct win *p;
 }
 
 void
-ShowWindows(where)
-int where;
+ShowWindows(int where)
 {
   char buf[1024];
   char *s, *ss;
@@ -5589,9 +6415,7 @@ ShowInfo()
     *p++ = ' ';
   sprintf(p, "(%d,%d)/(%d,%d)",
     wp->w_x + 1, wp->w_y + 1, wp->w_width, wp->w_height);
-#ifdef COPY_PASTE
   sprintf(p += strlen(p), "+%d", wp->w_histheight);
-#endif
   sprintf(p += strlen(p), " %c%sflow",
   	  (wp->w_flow & FLOW_NOW) ? '+' : '-',
 	  (wp->w_flow & FLOW_AUTOFLAG) ? "" : 
@@ -5602,31 +6426,22 @@ ShowInfo()
   if (wp->w_keypad) sprintf(p += strlen(p), " app");
   if (wp->w_log)    sprintf(p += strlen(p), " log");
   if (wp->w_monitor != MON_OFF
-#ifdef MULTIUSER
       && (ACLBYTE(wp->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id))
-#endif
      )
     sprintf(p += strlen(p), " mon");
   if (wp->w_mouse) sprintf(p += strlen(p), " mouse");
-#ifdef COLOR
   if (wp->w_bce) sprintf(p += strlen(p), " bce");
-#endif
   if (!wp->w_c1) sprintf(p += strlen(p), " -c1");
   if (wp->w_norefresh) sprintf(p += strlen(p), " nored");
 
   p += strlen(p);
-#ifdef FONT
-# ifdef ENCODINGS
   if (wp->w_encoding && (display == 0 || D_encoding != wp->w_encoding || EncodingDefFont(wp->w_encoding) <= 0))
     {
       *p++ = ' ';
       strcpy(p, EncodingName(wp->w_encoding));
       p += strlen(p);
     }
-#  ifdef UTF8
   if (wp->w_encoding != UTF8)
-#  endif
-# endif
     if (D_CC0 || (D_CS0 && *D_CS0))
       {
 	if (wp->w_gr == 2)
@@ -5663,7 +6478,6 @@ ShowInfo()
 	*p++ = ']';
 	*p = 0;
       }
-#endif
 
   if (wp->w_type == W_TYPE_PLAIN)
     {
@@ -5671,13 +6485,6 @@ ShowInfo()
       *p++ = ' ';
       TtyGetModemStatus(wp->w_ptyfd, p);
     }
-#ifdef BUILTIN_TELNET
-  else if (wp->w_type == W_TYPE_TELNET)
-    {
-      *p++ = ' ';
-      TelStatus(wp, p, sizeof(buf) - 1 - (p - buf));
-    }
-#endif
   Msg(0, "%s %d(%s)", buf, wp->w_number, wp->w_title);
 }
 
@@ -5690,27 +6497,22 @@ ShowDInfo()
   p = buf;
   sprintf(p, "(%d,%d)", D_width, D_height),
   p += strlen(p);
-#ifdef ENCODINGS
   if (D_encoding)
     {
       *p++ = ' ';
       strcpy(p, EncodingName(D_encoding));
       p += strlen(p);
     }
-#endif
   if (D_CXT)
     {
       strcpy(p, " xterm");
       p += strlen(p);
     }
-#ifdef COLOR
   if (D_hascolor)
     {
       strcpy(p, " color");
       p += strlen(p);
     }
-#endif
-#ifdef FONT
   if (D_CG0)
     {
       strcpy(p, " iso2022");
@@ -5721,15 +6523,11 @@ ShowDInfo()
       strcpy(p, " altchar");
       p += strlen(p);
     }
-#endif
   Msg(0, "%s", buf);
 }
 
 static void
-AKAfin(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+AKAfin(char *buf, int len, char *data)
 {
   ASSERT(display);
   if (len && fore)
@@ -5756,10 +6554,7 @@ InputAKA()
 }
 
 static void
-Colonfin(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+Colonfin(char *buf, int len, char *data)
 {
   char mbuf[256];
 
@@ -5823,16 +6618,13 @@ char *data;	/* dummy */
     RcLine(buf, len);
   else
     {
-      bcopy(buf, mbuf, len);
+      memmove(mbuf, buf, len);
       RcLine(mbuf, sizeof mbuf);
     }
 }
 
 static void
-SelectFin(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+SelectFin(char *buf, int len, char *data)
 {
   int n;
 
@@ -5850,10 +6642,7 @@ char *data;	/* dummy */
 }
 
 static void
-SelectLayoutFin(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+SelectLayoutFin(char *buf, int len, char *data)
 {
   struct layout *lay;
 
@@ -5861,7 +6650,7 @@ char *data;	/* dummy */
     return;
   if (len == 1 && *buf == '-')
     {
-      LoadLayout((struct layout *)0, (struct canvas *)0);
+      LoadLayout((struct layout *)0);
       Activate(0);
       return;
     }
@@ -5872,7 +6661,7 @@ char *data;	/* dummy */
     Msg(0, "This IS layout %d (%s).\n", lay->lay_number, lay->lay_title);
   else
     {
-      LoadLayout(lay, &D_canvas);
+      LoadLayout(lay);
       Activate(0);
     }
 }
@@ -5888,10 +6677,7 @@ static char setenv_var[31];
 
 
 static void
-SetenvFin1(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+SetenvFin1(char *buf, int len, char *data)
 {
   if (!len || !display)
     return;
@@ -5899,10 +6685,7 @@ char *data;	/* dummy */
 }
   
 static void
-SetenvFin2(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+SetenvFin2(char *buf, int len, char *data)
 {
   if (!len || !display)
     return;
@@ -5912,8 +6695,7 @@ char *data;	/* dummy */
 }
 
 static void
-InputSetenv(arg)
-char *arg;
+InputSetenv(char *arg)
 {
   static char setenv_buf[50 + sizeof(setenv_var)];	/* need to be static here, cannot be freed */
 
@@ -5935,8 +6717,7 @@ char *arg;
  * -a, -M, -L
  */
 void
-DoScreen(fn, av)
-char *fn, **av;
+DoScreen(char *fn, char **av)
 {
   struct NewWindow nwin;
   register int num;
@@ -6054,7 +6835,6 @@ char *fn, **av;
   MakeWindow(&nwin);
 }
 
-#ifdef COPY_PASTE
 /*
  * CompileKeys must be called before Markroutine is first used.
  * to initialise the keys with defaults, call CompileKeys(NULL, mark_key_tab);
@@ -6065,10 +6845,7 @@ char *fn, **av;
  * l (left), r (right). placing a mark will now be done with ".".
  */
 int
-CompileKeys(s, sl, array)
-char *s;
-int sl;
-unsigned char *array;
+CompileKeys(char *s, int sl, unsigned char *array)
 {
   int i;
   unsigned char key, value;
@@ -6102,18 +6879,13 @@ unsigned char *array;
     }
   return 0;
 }
-#endif /* COPY_PASTE */
 
 /*
  *  Asynchronous input functions
  */
 
-#if defined(DETACH) && defined(POW_DETACH)
 static void
-pow_detach_fn(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+pow_detach_fn(char *buf, int len, char *data)
 {
   debug("pow_detach_fn called\n");
   if (len)
@@ -6130,14 +6902,9 @@ char *data;	/* dummy */
   else
     Detach(D_POWER);
 }
-#endif /* POW_DETACH */
 
-#ifdef COPY_PASTE
 static void
-copy_reg_fn(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+copy_reg_fn(char *buf, int len, char *data)
 {
   struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
@@ -6157,20 +6924,15 @@ char *data;	/* dummy */
 	  Msg(0, "%s", strnomem);
 	  return;
 	}
-      bcopy(D_user->u_plop.buf, pp->buf, D_user->u_plop.len);
+      memmove(pp->buf, D_user->u_plop.buf, D_user->u_plop.len);
     }
   pp->len = D_user->u_plop.len;
-#ifdef ENCODINGS
   pp->enc = D_user->u_plop.enc;
-#endif
   Msg(0, "Copied %d characters into register %c", D_user->u_plop.len, *buf);
 }
 
 static void
-ins_reg_fn(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+ins_reg_fn(char *buf, int len, char *data)
 {
   struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
@@ -6190,13 +6952,9 @@ char *data;	/* dummy */
     }
   Msg(0, "Empty register.");
 }
-#endif /* COPY_PASTE */
 
 static void
-process_fn(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+process_fn(char *buf, int len, char *data)
 {
   struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
@@ -6214,10 +6972,7 @@ char *data;	/* dummy */
 }
 
 static void
-confirm_fn(buf, len, data)
-char *buf;
-int len;
-char *data;
+confirm_fn(char *buf, int len, char *data)
 {
   struct action act;
 
@@ -6233,7 +6988,6 @@ char *data;
   DoAction(&act, -1);
 }
 
-#ifdef MULTIUSER
 struct inputsu
 {
   struct acluser **up;
@@ -6243,10 +6997,7 @@ struct inputsu
 };
 
 static void
-su_fin(buf, len, data)
-char *buf;
-int len;
-char *data;
+su_fin(char *buf, int len, char *data)
 {
   struct inputsu *i = (struct inputsu *)data;
   char *p;
@@ -6275,10 +7026,7 @@ char *data;
 }
  
 static int
-InputSu(w, up, name)
-struct win *w;
-struct acluser **up;
-char *name;
+InputSu(struct win *win, struct acluser **up, char *name)
 {
   struct inputsu *i;
 
@@ -6292,15 +7040,9 @@ char *name;
     su_fin((char *)0, 0, (char *)i);
   return 0;
 }
-#endif	/* MULTIUSER */
-
-#ifdef PASSWORD
 
 static void
-pass1(buf, len, data)
-char *buf;
-int len;
-char *data;
+pass1(char *buf, int len, char *data)
 {
   struct acluser *u = (struct acluser *)data;
 
@@ -6310,15 +7052,12 @@ char *data;
   if (u->u_password != NullStr)
     free((char *)u->u_password);
   u->u_password = SaveStr(buf);
-  bzero(buf, strlen(buf));
+  memset(buf, 0, strlen(buf));
   Input("Retype new password:", 100, INP_NOECHO, pass2, data, 0);
 }
 
 static void
-pass2(buf, len, data)
-char *buf;
-int len;
-char *data;
+pass2(char *buf, int len, char *data)
 {
   int st;
   char salt[3];
@@ -6330,7 +7069,7 @@ char *data;
       Msg(0, "[ Passwords don't match - checking turned off ]");
       if (u->u_password != NullStr)
         {
-          bzero(u->u_password, strlen(u->u_password));
+          memset(u->u_password, 0, strlen(u->u_password));
           free((char *)u->u_password);
 	}
       u->u_password = NullStr;
@@ -6339,7 +7078,7 @@ char *data;
     {
       Msg(0, "[ No password - no secure ]");
       if (buf)
-        bzero(buf, strlen(buf));
+        memset(buf, 0, strlen(buf));
     }
   
   if (u->u_password != NullStr)
@@ -6348,17 +7087,14 @@ char *data;
 	salt[st] = 'A' + (int)((time(0) >> 6 * st) % 26);
       salt[2] = 0;
       buf = crypt(u->u_password, salt);
-      bzero(u->u_password, strlen(u->u_password));
+      memset(u->u_password, 0, strlen(u->u_password));
       free((char *)u->u_password);
       u->u_password = SaveStr(buf);
-      bzero(buf, strlen(buf));
-#ifdef COPY_PASTE
+      memset(buf, 0, strlen(buf));
       if (u->u_plop.buf)
 	UserFreeCopyBuffer(u);
       u->u_plop.len = strlen(u->u_password);
-# ifdef ENCODINGS
       u->u_plop.enc = 0;
-#endif
       if (!(u->u_plop.buf = SaveStr(u->u_password)))
 	{
 	  Msg(0, "%s", strnomem);
@@ -6366,30 +7102,21 @@ char *data;
 	}
       else
 	Msg(0, "[ Password moved into copybuffer ]");
-#else				/* COPY_PASTE */
-      Msg(0, "[ Crypted password is \"%s\" ]", u->u_password);
-#endif				/* COPY_PASTE */
     }
 }
-#endif /* PASSWORD */
 
 static int
-digraph_find(buf)
-const char *buf;
+digraph_find(const char *buf)
 {
   int i;
-  for (i = 0; i < MAX_DIGRAPH && digraphs[i].d[0]; i++)
-    if ((digraphs[i].d[0] == (unsigned char)buf[0] && digraphs[i].d[1] == (unsigned char)buf[1]) ||
-	(digraphs[i].d[0] == (unsigned char)buf[1] && digraphs[i].d[1] == (unsigned char)buf[0]))
+  for (i = 0; i < sizeof(digraphs) && digraphs[i].d[0]; i++)
+    if ((digraphs[i].d[0] == (unsigned char)buf[0] && digraphs[i].d[1] == (unsigned char)buf[1]))
       break;
   return i;
 }
 
 static void
-digraph_fn(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+digraph_fn(char *buf, int len, char *data)
 {
   int ch, i, x;
 
@@ -6447,18 +7174,14 @@ char *data;	/* dummy */
     }
   i = 1;
   *buf = x;
-#ifdef UTF8
   if (flayer->l_encoding == UTF8)
     i = ToUtf8(buf, x);	/* buf is big enough for all UTF-8 codes */
-#endif
   while(i)
     LayProcess(&buf, &i);
 }
 
-#ifdef MAPKEYS
 int
-StuffKey(i)
-int i;
+StuffKey(int i)
 {
   struct action *act;
   int discard = 0;
@@ -6475,6 +7198,7 @@ int i;
       if (act->nr != RC_ILLEGAL)
 	{
 	  D_ESCseen = 0;
+	  WindowChanged(fore, 'E');
           DoAction(act, i + 256);
 	  return 0;
 	}
@@ -6489,10 +7213,8 @@ int i;
   flayer = D_forecv->c_layer;
   fore = D_fore;
   act = 0;
-#ifdef COPY_PASTE
   if (flayer && flayer->l_mode == 1)
     act = i < KMAP_KEYS+KMAP_AKEYS ? &mmtab[i] : &kmap_exts[i - (KMAP_KEYS+KMAP_AKEYS)].mm;
-#endif
   if ((!act || act->nr == RC_ILLEGAL) && !D_mapdefault)
     act = i < KMAP_KEYS+KMAP_AKEYS ? &umtab[i] : &kmap_exts[i - (KMAP_KEYS+KMAP_AKEYS)].um;
   if (!act || act->nr == RC_ILLEGAL)
@@ -6500,7 +7222,11 @@ int i;
 
   if (discard && (!act || act->nr != RC_COMMAND))
     {
-      D_ESCseen = 0;
+      if (D_ESCseen)
+        {
+          D_ESCseen = 0;
+	  WindowChanged(fore, 'E');
+	}
       return 0;
     }
   D_mapdefault = 0;
@@ -6510,144 +7236,70 @@ int i;
   DoAction(act, 0);
   return 0;
 }
-#endif
 
 
 static int
-IsOnDisplay(wi)
-struct win *wi;
+IsOnDisplay(struct win *win)
 {
   struct canvas *cv;
   ASSERT(display);
   for (cv = D_cvlist; cv; cv = cv->c_next)
-    if (Layer2Window(cv->c_layer) == wi)
+    if (Layer2Window(cv->c_layer) == win)
       return 1;
   return 0;
 }
 
 struct win *
-FindNiceWindow(wi, presel)
-struct win *wi;
-char *presel;
+FindNiceWindow(struct win *win, char *presel)
 {
   int i;
 
-  debug2("FindNiceWindow %d %s\n", wi ? wi->w_number : -1 , presel ? presel : "NULL");
+  debug2("FindNiceWindow %d %s\n", win ? win->w_number : -1 , presel ? presel : "NULL");
   if (presel)
     {
       i = WindowByNoN(presel);
       if (i >= 0)
-	wi = wtab[i];
+	win = wtab[i];
     }
   if (!display)
-    return wi;
-#ifdef MULTIUSER
-  if (wi && AclCheckPermWin(D_user, ACL_READ, wi))
-    wi = 0;
-#endif
-  if (!wi || (IsOnDisplay(wi) && !presel))
+    return win;
+  if (win && AclCheckPermWin(D_user, ACL_READ, win))
+    win = 0;
+  if (!win || (IsOnDisplay(win) && !presel))
     {
       /* try to get another window */
-      wi = 0;
-#ifdef MULTIUSER
-      for (wi = windows; wi; wi = wi->w_next)
-	if (!wi->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_WRITE, wi))
+      win = 0;
+      for (win = windows; win; win = win->w_next)
+	if (!win->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_WRITE, win))
 	  break;
-      if (!wi)
-        for (wi = windows; wi; wi = wi->w_next)
-	  if (wi->w_layer.l_cvlist && !IsOnDisplay(wi) && !AclCheckPermWin(D_user, ACL_WRITE, wi))
+      if (!win)
+        for (win = windows; win; win = win->w_next)
+	  if (win->w_layer.l_cvlist && !IsOnDisplay(win) && !AclCheckPermWin(D_user, ACL_WRITE, win))
 	    break;
-      if (!wi)
-	for (wi = windows; wi; wi = wi->w_next)
-	  if (!wi->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_READ, wi))
+      if (!win)
+	for (win = windows; win; win = win->w_next)
+	  if (!win->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_READ, win))
 	    break;
-      if (!wi)
-	for (wi = windows; wi; wi = wi->w_next)
-	  if (wi->w_layer.l_cvlist && !IsOnDisplay(wi) && !AclCheckPermWin(D_user, ACL_READ, wi))
+      if (!win)
+	for (win = windows; win; win = win->w_next)
+	  if (win->w_layer.l_cvlist && !IsOnDisplay(win) && !AclCheckPermWin(D_user, ACL_READ, win))
 	    break;
-#endif
-      if (!wi)
-	for (wi = windows; wi; wi = wi->w_next)
-	  if (!wi->w_layer.l_cvlist)
+      if (!win)
+	for (win = windows; win; win = win->w_next)
+	  if (!win->w_layer.l_cvlist)
 	    break;
-      if (!wi)
-	for (wi = windows; wi; wi = wi->w_next)
-	  if (wi->w_layer.l_cvlist && !IsOnDisplay(wi))
+      if (!win)
+	for (win = windows; win; win = win->w_next)
+	  if (win->w_layer.l_cvlist && !IsOnDisplay(win))
 	    break;
     }
-#ifdef MULTIUSER
-  if (wi && AclCheckPermWin(D_user, ACL_READ, wi))
-    wi = 0;
-#endif
-  return wi;
+  if (win && AclCheckPermWin(D_user, ACL_READ, win))
+    win = 0;
+  return win;
 }
-
-#if 0
-
-/* sorted list of all commands */
-static struct comm **commtab;
-static int ncommtab;
-
-void
-AddComms(cos, hand)
-struct comm *cos;
-void (*hand) __P((struct comm *, char **, int));
-{
-  int n, i, j, r;
-  for (n = 0; cos[n].name; n++)
-    ;
-  if (n == 0)
-    return;
-  if (commtab)
-    commtab = (struct commt *)realloc(commtab, sizeof(*commtab) * (ncommtab + n));
-  else
-    commtab = (struct commt *)malloc(sizeof(*commtab) * (ncommtab + n));
-  if (!commtab)
-    Panic(0, strnomem);
-  for (i = 0; i < n; i++)
-    {
-      for (j = 0; j < ncommtab; j++)
-	{
-	  r = strcmp(cos[i].name, commtab[j]->name);
-	  if (r == 0)
-	    Panic(0, "Duplicate command: %s\n", cos[i].name);
-	  if (r < 0)
-	    break;
-	}
-      for (r = ncommtab; r > j; r--)
-	commtab[r] = commtab[r - 1];
-      commtab[j] = cos + i;
-      cos[i].handler = hand;
-      bzero(cos[i].userbits, sizeof(cos[i].userbits));
-      ncommtab++;
-    }
-}
-
-struct comm *
-FindComm(str)
-char *str;
-{
-  int x, m, l = 0, r = ncommtab - 1;
-  while (l <= r)
-    {
-      m = (l + r) / 2;
-      x = strcmp(str, commtab[m]->name);
-      if (x > 0)
-	l = m + 1;
-      else if (x < 0)
-	r = m - 1;
-      else
-	return commtab[m];
-    }
-  return 0;
-}
-
-#endif
 
 static int
-CalcSlicePercent(cv, percent)
-struct canvas *cv;
-int percent;
+CalcSlicePercent(struct canvas *cv, int percent)
 {
   int w, wsum, up;
   if (!cv || !cv->c_slback)
@@ -6662,12 +7314,12 @@ int percent;
 }
 
 static int
-ChangeCanvasSize(fcv, abs, diff, gflag, percent)
-struct canvas *fcv;	/* make this canvas bigger */
-int abs;		/* mode: 0:rel 1:abs 2:max */
-int diff;		/* change this much */
-int gflag;		/* go up if neccessary */
-int percent;
+ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, int percent)
+/* struct canvas *fcv;	 make this canvas bigger
+   int abs;		 mode: 0:rel 1:abs 2:max
+   int diff;		 change this much
+   int gflag;		 go up if neccessary
+   int percent; */
 {
   struct canvas *cv;
   int done, have, m, dir;
@@ -6793,9 +7445,7 @@ int percent;
 }
 
 static void
-ResizeRegions(arg, flags)
-char *arg;
-int flags;
+ResizeRegions(char *arg, int flags)
 {
   struct canvas *cv;
   int diff, l;
@@ -6880,74 +7530,10 @@ int flags;
   RethinkDisplayViewports();
   ResizeLayersToCanvases();
   return;
-
-#if 0
-
-  if (siz + diff < 1)
-    diff = 1 - siz;
-  if (siz + diff > dsize - (nreg - 1) * 2 - 1)
-    diff = dsize - (nreg - 1) * 2 - 1 - siz;
-  if (diff == 0 || siz + diff < 1)
-    return;
-
-  if (diff < 0)
-    {
-      if (D_forecv->c_next)
-	{
-	  D_forecv->c_ye += diff;
-	  D_forecv->c_next->c_ys += diff;
-	  D_forecv->c_next->c_yoff += diff;
-	}
-      else
-	{
-	  for (cv = D_cvlist; cv; cv = cv->c_next)
-	    if (cv->c_next == D_forecv)
-	      break;
-	  ASSERT(cv);
-	  cv->c_ye -= diff;
-	  D_forecv->c_ys -= diff;
-	  D_forecv->c_yoff -= diff;
-	}
-    }
-  else
-    {
-      int s, i = 0, found = 0, di = diff, d2;
-      s = dsize - (nreg - 1) * 2 - 1 - siz;
-      for (cv = D_cvlist; cv; i = cv->c_ye + 2, cv = cv->c_next)
-	{
-	  if (cv == D_forecv)
-	    {
-	      cv->c_ye = i + (cv->c_ye - cv->c_ys) + diff;
-	      cv->c_yoff -= cv->c_ys - i;
-	      cv->c_ys = i;
-	      found = 1;
-	      continue;
-	    }
-	  s -= cv->c_ye - cv->c_ys;
-	  if (!found)
-	    {
-	      if (s >= di)
-		continue;
-	      d2 = di - s;
-	    }
-	  else
-	    d2 = di > cv->c_ye - cv->c_ys ? cv->c_ye - cv->c_ys : di;
-	  di -= d2;
-	  cv->c_ye = i + (cv->c_ye - cv->c_ys) - d2;
-	  cv->c_yoff -= cv->c_ys - i;
-	  cv->c_ys = i;
-        }
-    }
-  RethinkDisplayViewports();
-  ResizeLayersToCanvases();
-#endif
 }
 
 static void
-ResizeFin(buf, len, data)
-char *buf;
-int len;
-char *data;
+ResizeFin(char *buf, int len, char *data)
 {
   int ch;
   int flags = *(int *)data;
@@ -6975,9 +7561,7 @@ char *data;
 }
 
 void
-SetForeCanvas(d, cv)
-struct display *d;
-struct canvas *cv;
+SetForeCanvas(struct display *d, struct canvas *cv)
 {
   struct display *odisplay = display;
   if (d->d_forecv == cv)
@@ -6997,18 +7581,14 @@ struct canvas *cv;
   if (D_other == fore)
     D_other = 0;
   flayer = D_forecv->c_layer;
-#ifdef RXVT_OSC
   if (D_xtermosc[2] || D_xtermosc[3])
     {
       Activate(-1);
     }
   else
-#endif
     {
       RefreshHStatus();
-#ifdef RXVT_OSC
       RefreshXtermOSC();
-#endif
       flayer = D_forecv->c_layer;
       CV_CALL(D_forecv, LayRestore();LaySetCursor());
       WindowChanged(0, 'F');
@@ -7017,7 +7597,6 @@ struct canvas *cv;
   display = odisplay;
 }
 
-#ifdef RXVT_OSC
 void
 RefreshXtermOSC()
 {
@@ -7028,12 +7607,9 @@ RefreshXtermOSC()
   for (i = 3; i >=0; i--)
     SetXtermOSC(i, p ? p->w_xtermosc[i] : 0);
 }
-#endif
 
 int
-ParseAttrColor(s1, s2, msgok)
-char *s1, *s2;
-int msgok;
+ParseAttrColor(char *s1, char *s2, int msgok)
 {
   int i, n;
   char *s, *ss;
@@ -7139,7 +7715,6 @@ int msgok;
 	s++;
     }
 
-#ifdef COLOR
   if (*s)
     {
       static char costr[] = "krgybmcw d    i.01234567 9     f               FKRGYBMCW      I ";
@@ -7165,18 +7740,14 @@ int msgok;
 	    }
 	  numco++;
 	  n = n << 4 | (i & 15);
-#ifdef COLORS16
 	  if (i >= 48)
 	    n = (n & 0x20ff) | 0x200;
-#endif
 	  s++;
 	}
       if ((n & 0xf00) == 0xf00)
         n ^= 0xf00;	/* clear superflous bits */
-#ifdef COLORS16
       if (n & 0x2000)
 	n ^= 0x2400;	/* shift bit into right position */
-#endif
       if (numco == 1)
 	n |= 0xf0;	/* don't change bg color */
       if (numco != 2 && n != 0xff)
@@ -7190,7 +7761,6 @@ int msgok;
       n ^= 0xff;
       r |= n << 16;
     }
-#endif
 
   while (*s && *s == ' ')
     s++;
@@ -7213,31 +7783,22 @@ int msgok;
  *  Intensity is encoded into bits 17(fg) and 18(bg).
  */
 void
-ApplyAttrColor(i, mc)
-int i;
-struct mchar *mc;
+ApplyAttrColor(int i, struct mchar *mc)
 {
   debug1("ApplyAttrColor %06x\n", i);
   mc->attr |= i >> 8 & 255;
   mc->attr ^= i & 255;
-#ifdef COLOR
   i = (i >> 16) ^ 0xff;
   if ((i & 0x100) != 0)
     {
       i &= 0xeff;
       if (mc->attr & (A_SO|A_RV))
-# ifdef COLORS16
         i = ((i & 0x0f) << 4) | ((i & 0xf0) >> 4) | ((i & 0x200) << 1) | ((i & 0x400) >> 1);
-# else
-        i = ((i & 0x0f) << 4) | ((i & 0xf0) >> 4);
-# endif
     }
-# ifdef COLORS16
   if ((i & 0x0f) != 0x0f)
     mc->attr = (mc->attr & 0xbf) | ((i >> 3) & 0x40);
   if ((i & 0xf0) != 0xf0)
     mc->attr = (mc->attr & 0x7f) | ((i >> 3) & 0x80);
-# endif
   mc->color = 0x99 ^ mc->color;
   if ((i & 0x0e) == 0x0e)
     i = (i & 0xf0) | (mc->color & 0x0f);
@@ -7245,5 +7806,4 @@ struct mchar *mc;
     i = (i & 0x0f) | (mc->color & 0xf0);
   mc->color = 0x99 ^ i;
   debug2("ApplyAttrColor - %02x %02x\n", mc->attr, i);
-#endif
 }

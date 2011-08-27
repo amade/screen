@@ -1854,8 +1854,9 @@ needed as screen uses the locale setting to detect the encoding.
 There is also a way to select a terminal encoding depending on
 the terminal type by using the \*QKJ\*U termcap entry.
 
-Supported encodings are eucJP, SJIS, eucKR, eucCN, Big5, GBK, KOI8-R,
-CP1251, UTF-8, ISO8859-2, ISO8859-3, ISO8859-4, ISO8859-5, ISO8859-6,
+Supported encodings are eucJP, SJIS, eucKR, eucCN, Big5, GBK,
+KOI8-R, KOI8-U, CP1251, UTF-8,
+ISO8859-2, ISO8859-3, ISO8859-4, ISO8859-5, ISO8859-6,
 ISO8859-7, ISO8859-8, ISO8859-9, ISO8859-10, ISO8859-15, jis.
 
 See also \*Qdefencoding\*U, which changes the default setting of a new
@@ -3692,6 +3693,8 @@ current time HH:MM in 12h format
 day number
 .IP D
 weekday name
+.IP E
+sets %? to true if the session has seen an escape string character
 .IP f
 flags of the window, see \*Qwindows\*U for meanings of the various flags
 .IP F

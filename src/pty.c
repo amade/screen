@@ -74,8 +74,6 @@
 # undef HAVE_SVR4_PTYS
 #endif
 
-extern int eff_uid;
-
 /* used for opening a new pty-pair: */
 static char PtyName[32], TtyName[32];
 
@@ -94,7 +92,7 @@ static char TtyProto[] = "/dev/ttyXY";
 # endif /* hpux */
 #endif
 
-static void initmaster __P((int));
+static void initmaster (int);
 
 #if defined(sun)
 /* sun's utmp_update program opens the salve side, thus corrupting
@@ -115,8 +113,7 @@ int pty_preopen = 0;
 /***************************************************************/
 
 static void
-initmaster(f)
-int f;
+initmaster(int f)
 {
 #ifdef POSIX
   tcflush(f, TCIOFLUSH);
@@ -131,8 +128,7 @@ int f;
 }
 
 void
-InitPTY(f)
-int f;
+InitPTY(int f)
 {
   if (f < 0)
     return;
@@ -153,8 +149,7 @@ int f;
 #if defined(OSX) && !defined(PTY_DONE)
 #define PTY_DONE
 int
-OpenPTY(ttyn)
-char **ttyn;
+OpenPTY(char **ttyn)
 {
   register int f;
   if ((f = open_controlling_pty(TtyName)) < 0)
@@ -170,8 +165,7 @@ char **ttyn;
 #if (defined(sequent) || defined(_SEQUENT_)) && !defined(PTY_DONE)
 #define PTY_DONE
 int
-OpenPTY(ttyn)
-char **ttyn;
+OpenPTY(char **ttyn)
 {
   char *m, *s;
   register int f;
@@ -194,12 +188,11 @@ char **ttyn;
 #if defined(__sgi) && !defined(PTY_DONE)
 #define PTY_DONE
 int
-OpenPTY(ttyn)
-char **ttyn;
+OpenPTY(char **ttyn)
 {
   int f;
   char *name, *_getpty(); 
-  sigret_t (*sigcld)__P(SIGPROTOARG);
+  void (*sigcld)(int);
 
   /*
    * SIGCHLD set to SIG_DFL for _getpty() because it may fork() and
@@ -222,13 +215,12 @@ char **ttyn;
 #if defined(MIPS) && defined(HAVE_DEV_PTC) && !defined(PTY_DONE)
 #define PTY_DONE
 int
-OpenPTY(ttyn)
-char **ttyn;
+OpenPTY(char **ttyn)
 {
   register int f;
   struct stat buf;
    
-  strcpy(PtyName, "/dev/ptc");
+  strncpy(PtyName, "/dev/ptc", 32);
   if ((f = open(PtyName, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0)
     return -1;
   if (fstat(f, &buf) < 0)
@@ -248,18 +240,17 @@ char **ttyn;
 #if defined(HAVE_SVR4_PTYS) && !defined(PTY_DONE)
 #define PTY_DONE
 int
-OpenPTY(ttyn)
-char **ttyn;
+OpenPTY(char **ttyn)
 {
   register int f;
   char *m, *ptsname();
-  int unlockpt __P((int)), grantpt __P((int));
+  int unlockpt (int), grantpt (int);
 #if defined(HAVE_GETPT) && defined(linux)
-  int getpt __P((void));
+  int getpt (void);
 #endif
-  sigret_t (*sigcld)__P(SIGPROTOARG);
+  void (*sigcld)(int);
 
-  strcpy(PtyName, "/dev/ptmx");
+  strncpy(PtyName, "/dev/ptmx", 32);
 #if defined(HAVE_GETPT) && defined(linux)
   if ((f = getpt()) == -1)
 #else
@@ -292,13 +283,12 @@ char **ttyn;
 #define PTY_DONE
 
 int
-OpenPTY(ttyn)
-char **ttyn;
+OpenPTY(char **ttyn)
 {
   register int f;
 
   /* a dumb looking loop replaced by mycrofts code: */
-  strcpy (PtyName, "/dev/ptc");
+  strncpy (PtyName, "/dev/ptc", 32);
   if ((f = open (PtyName, O_RDWR | O_NOCTTY)) < 0)
     return -1;
   strncpy(TtyName, ttyname(f), sizeof(TtyName));
@@ -321,8 +311,7 @@ char **ttyn;
 #if defined(HAVE_OPENPTY) && !defined(PTY_DONE)
 #define PTY_DONE
 int
-OpenPTY(ttyn)
-char **ttyn;
+OpenPTY(char **ttyn)
 {
   int f, s;
   if (openpty(&f, &s, TtyName, NULL, NULL) != 0)
@@ -339,15 +328,14 @@ char **ttyn;
 
 #ifndef PTY_DONE
 int
-OpenPTY(ttyn)
-char **ttyn;
+OpenPTY(char **ttyn)
 {
   register char *p, *q, *l, *d;
   register int f;
 
   debug("OpenPTY: Using BSD style ptys.\n");
-  strcpy(PtyName, PtyProto);
-  strcpy(TtyName, TtyProto);
+  strncpy(PtyName, PtyProto, 32);
+  strncpy(TtyName, TtyProto, 32);
   for (p = PtyName; *p != 'X'; p++)
     ;
   for (q = TtyName; *q != 'X'; q++)

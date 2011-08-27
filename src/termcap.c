@@ -31,40 +31,21 @@
 #include "screen.h"
 #include "extern.h"
 
-extern struct display *display, *displays;
-extern int real_uid, real_gid, eff_uid, eff_gid;
-extern struct term term[];	/* terminal capabilities */
-extern struct NewWindow nwin_undef, nwin_default, nwin_options;
-extern int force_vt;
-extern int Z0width, Z1width;
-extern int hardstatusemu;
-#ifdef MAPKEYS
-extern struct action umtab[];
-extern struct action mmtab[];
-extern struct action dmtab[];
-extern struct action ktab[];
-extern struct kmap_ext *kmap_exts;
-extern int kmap_extn;
-extern int DefaultEsc;
-#endif
 
-
-static void  AddCap __P((char *));
-static void  MakeString __P((char *, char *, int, char *));
-static char *findcap __P((char *, char **, int));
-static int   copyarg __P((char **, char *));
-static int   e_tgetent __P((char *, char *));
-static char *e_tgetstr __P((char *, char **));
-static int   e_tgetflag __P((char *));
-static int   e_tgetnum __P((char *));
-#ifdef MAPKEYS
-static int   findseq_ge __P((char *, int, unsigned char **));
-static void  setseqoff __P((unsigned char *, int, int));
-static int   addmapseq __P((char *, int, int));
-static int   remmapseq __P((char *, int));
+static void  AddCap (char *);
+static void  MakeString (char *, char *, int, char *);
+static char *findcap (char *, char **, int);
+static int   copyarg (char **, char *);
+static int   e_tgetent (char *, char *);
+static char *e_tgetstr (char *, char **);
+static int   e_tgetflag (char *);
+static int   e_tgetnum (char *);
+static int   findseq_ge (char *, int, unsigned char **);
+static void  setseqoff (unsigned char *, int, int);
+static int   addmapseq (char *, int, int);
+static int   remmapseq (char *, int);
 #ifdef DEBUGG
-static void  dumpmap __P((void));
-#endif
+static void  dumpmap (void);
 #endif
 
 
@@ -83,8 +64,7 @@ static const char TermcapConst[] = "\\\n\
 \t:le=^H:bl=^G:cr=^M:it#8:ho=\\E[H:nw=\\EE:ta=^I:is=\\E)0:";
 
 char *
-gettermcapstring(s)
-char *s;
+gettermcapstring(char *s)
 {
   int i;
 
@@ -106,9 +86,7 @@ char *s;
  * Effect: display initialisation.
  */
 int
-InitTermcap(wi, he)
-int wi;
-int he;
+InitTermcap(int wi, int he)
 {
   register char *s;
   int i;
@@ -116,7 +94,7 @@ int he;
   int t, xue, xse, xme;
 
   ASSERT(display);
-  bzero(tbuf, sizeof(tbuf));
+  memset(tbuf, 0, sizeof(tbuf));
   debug1("InitTermcap: looking for tgetent('%s')\n", D_termname);
   if (*D_termname == 0 || e_tgetent(tbuf, D_termname) != 1)
     {
@@ -356,7 +334,6 @@ int he;
   if (D_CCE == 0)
     D_CCS = 0;
 
-#ifdef FONT
   if (D_CG0)
     {
       if (D_CS0 == 0)
@@ -396,16 +373,13 @@ int he;
     for (i = strlen(D_CC0) & ~1; i >= 0; i -= 2)
       D_c0_tab[(int)(unsigned char)D_CC0[i]] = D_CC0[i + 1];
   debug1("ISO2022 = %d\n", D_CG0);
-#endif /* FONT */
   if (D_PF == 0)
     D_PO = 0;
   debug2("terminal size is %d, %d (says TERMCAP)\n", D_CO, D_LI);
 
-#ifdef FONT
   if (D_CXC)
     if (CreateTransTable(D_CXC))
       return -1;
-#endif
 
   /* Termcap fields Z0 & Z1 contain width-changing sequences. */
   if (D_CZ1 == 0)
@@ -427,14 +401,12 @@ int he;
   if (D_HS && !(hardstatusemu & HSTATUS_ALWAYS))
     D_has_hstatus = HSTATUS_HS;
 
-#ifdef ENCODINGS
   if (D_CKJ)
     {
       int enc = FindEncoding(D_CKJ);
       if (enc != -1)
 	D_encoding = enc;
     }
-#endif
   if (!D_tcs[T_NAVIGATE].str && D_tcs[T_NAVIGATE + 1].str)
     D_tcs[T_NAVIGATE].str = D_tcs[T_NAVIGATE + 1].str;  /* kh = @1 */
   if (!D_tcs[T_NAVIGATE + 2].str && D_tcs[T_NAVIGATE + 3].str)
@@ -449,13 +421,11 @@ int he;
   D_IMcost = CalcCost(D_IM);
   D_EIcost = CalcCost(D_EI);
 
-#ifdef AUTO_NUKE
   if (D_CAN)
     {
       debug("termcap has AN, setting autonuke\n");
       D_auto_nuke = 1;
     }
-#endif
   if (D_COL > 0)
     {
       debug1("termcap has OL (%d), setting limit\n", D_COL);
@@ -473,7 +443,6 @@ int he;
   if (D_tcs[T_CURSOR + 3].str && !strcmp(D_tcs[T_CURSOR + 3].str, "\008"))
     D_tcs[T_CURSOR + 3].str = 0;
 
-#ifdef MAPKEYS
   D_nseqs = 0;
   for (i = 0; i < T_OCAPS - T_CAPS; i++)
     remap(i, 1);
@@ -482,22 +451,16 @@ int he;
   D_seqp = D_kmaps + 3;
   D_seql = 0;
   D_seqh = 0;
-#endif
 
   D_tcinited = 1;
   MakeTermcap(0);
-#ifdef MAPKEYS
   CheckEscape();
-#endif
   return 0;
 }
 
-#ifdef MAPKEYS
 
 int
-remap(n, map)
-int n;
-int map;
+remap(int n, int map)
 {
   char *s = 0;
   int fl = 0, domap = 0;
@@ -613,10 +576,7 @@ CheckEscape()
 }
 
 static int
-findseq_ge(seq, k, sp)
-char *seq;
-int k;
-unsigned char **sp;
+findseq_ge(char *seq, int k, unsigned char **sp)
 {
   unsigned char *p;
   int j, l;
@@ -648,10 +608,7 @@ unsigned char **sp;
 }
 
 static void
-setseqoff(p, i, o)
-unsigned char *p;
-int i;
-int o;
+setseqoff(unsigned char *p, int i, int o)
 {
   unsigned char *q;
   int l, k;
@@ -675,10 +632,7 @@ int o;
 }
 
 static int
-addmapseq(seq, k, nr)
-char *seq;
-int k;
-int nr;
+addmapseq(char *seq, int k, int nr)
 {
   int i, j, l, mo, m;
   unsigned char *p, *q;
@@ -704,12 +658,12 @@ int nr;
   D_seqh = 0;
   evdeq(&D_mapev);
   if (j > 0)
-    bcopy((char *)p, (char *)p + 2 * k + 4, D_nseqs - i);
+    memmove((char *)p + 2 * k + 4, (char *)p, D_nseqs - i);
   p[0] = nr >> 8;
   p[1] = nr;
   p[2] = k;
-  bcopy(seq, (char *)p + 3, k);
-  bzero(p + k + 3, k + 1);
+  memmove((char *)p + 3, seq, k);
+  memset(p + k + 3, 0, k + 1);
   D_nseqs += 2 * k + 4;
   if (j > 0)
     {
@@ -749,9 +703,7 @@ int nr;
 }
 
 static int
-remmapseq(seq, k)
-char *seq;
-int k;
+remmapseq(char *seq, int k)
 {
   int j, l;
   unsigned char *p, *q;
@@ -770,7 +722,7 @@ int k;
         }
     }
   if (D_kmaps + D_nseqs > p + 2 * k + 4)
-    bcopy((char *)p + 2 * k + 4, (char *)p, (D_kmaps + D_nseqs) - (p + 2 * k + 4));
+    memmove((char *)p, (char *)p + 2 * k + 4, (D_kmaps + D_nseqs) - (p + 2 * k + 4));
   D_nseqs -= 2 * k + 4;
   D_seqp = D_kmaps + 3;
   D_seql = 0;
@@ -815,26 +767,24 @@ dumpmap()
 }
 #endif /* DEBUGG */
 
-#endif /* MAPKEYS */
 
 /*
  * Appends to the static variable Termcap
  */
 static void
-AddCap(s)
-char *s;
+AddCap(char *s)
 {
   register int n;
 
   if (tcLineLen + (n = strlen(s)) > 55 && Termcaplen < TERMCAP_BUFSIZE - 4 - 1)
     {
-      strcpy(Termcap + Termcaplen, "\\\n\t:");
+      strncpy(Termcap + Termcaplen, "\\\n\t:", sizeof(Termcap) - Termcaplen);
       Termcaplen += 4;
       tcLineLen = 0;
     }
   if (Termcaplen + n < TERMCAP_BUFSIZE - 1)
     {
-      strcpy(Termcap + Termcaplen, s);
+      strncpy(Termcap + Termcaplen, s, sizeof(Termcap) - Termcaplen);
       Termcaplen += n;
       tcLineLen += n;
     }
@@ -847,15 +797,11 @@ char *s;
  * global buffer "Termcap". A pointer to this buffer is returned.
  */
 char *
-MakeTermcap(aflag)
-int aflag;
+MakeTermcap(int aflag)
 {
   char buf[TERMCAP_BUFSIZE];
   register char *p, *cp, *s, ch, *tname;
   int i, wi, he;
-#if 0
-  int found;
-#endif
 
   if (display)
     {
@@ -873,7 +819,7 @@ int aflag;
   if ((s = getenv("SCREENCAP")) && strlen(s) < TERMCAP_BUFSIZE)
     {
       sprintf(Termcap, "TERMCAP=%s", s);
-      strcpy(Term, "TERM=screen");
+      strncpy(Term, "TERM=screen", sizeof(Term));
       debug("getenvSCREENCAP o.k.\n");
       return Termcap;
     }
@@ -885,68 +831,29 @@ int aflag;
       debug("MakeTermcap sets screenterm=screen\n");
       strcpy(screenterm, "screen");
     }
-#if 0
-  found = 1;
-#endif
-  do
-    {
-      strcpy(Term, "TERM=");
-      p = Term + 5;
-      if (!aflag && strlen(screenterm) + strlen(tname) < MAXSTR-1)
-	{
-	  sprintf(p, "%s.%s", screenterm, tname);
-	  if (e_tgetent(buf, p) == 1)
-	    break;
-	}
-#ifdef COLOR
-      if (nwin_default.bce)
-	{
-	  sprintf(p, "%s-bce", screenterm);
-          if (e_tgetent(buf, p) == 1)
-	    break;
-	}
-#endif
+  strncpy(Term, "TERM=", sizeof(Term));
+  p = Term + 5;
+  if (!aflag && strlen(screenterm) + strlen(tname) < MAXSTR-1)
+    sprintf(p, "%s.%s", screenterm, tname);
+  if (e_tgetent(buf, p) != 1 && nwin_default.bce)
+    sprintf(p, "%s-bce", screenterm);
 #ifdef CHECK_SCREEN_W
-      if (wi >= 132)
-	{
-	  sprintf(p, "%s-w", screenterm);
-          if (e_tgetent(buf, p) == 1)
-	    break;
-	}
+  if (e_tgetent(buf, p) != 1 && wi >= 132)
+    sprintf(p, "%s-w", screenterm);
 #endif
-      strcpy(p, screenterm);
-      if (e_tgetent(buf, p) == 1)
-	break;
-      strcpy(p, "vt100");
-#if 0
-      found = 0;
-#endif
-    }
-  while (0);		/* Goto free programming... */
-
-#if 0
-#ifndef TERMINFO
-  /* check for compatibility problems, displays == 0 after fork */
-  if (found)
-    {
-      char xbuf[TERMCAP_BUFSIZE], *xbp = xbuf;
-      if (tgetstr("im", &xbp) && tgetstr("ic", &xbp) && displays)
-	{
-	  Msg(0, "Warning: im and ic set in %s termcap entry", p);
-	}
-    }
-#endif
-#endif
+  strcpy(p, screenterm);
+  if (e_tgetent(buf, p) != 1)
+    strncpy(p, "vt100", sizeof(Term) - 5);
 
   tcLineLen = 100;	/* Force NL */
   if (strlen(Term) > TERMCAP_BUFSIZE - 40)
-    strcpy(Term, "too_long");
+    strncpy(Term, "too_long", sizeof(Term));
   sprintf(Termcap, "TERMCAP=SC|%s|VT 100/ANSI X3.64 virtual terminal:", Term + 5);
   Termcaplen = strlen(Termcap);
   debug1("MakeTermcap decided '%s'\n", p);
   if (extra_outcap && *extra_outcap)
     {
-      for (cp = extra_outcap; (p = index(cp, ':')); cp = p)
+      for (cp = extra_outcap; (p = strchr(cp, ':')); cp = p)
 	{
 	  ch = *++p;
 	  *p = '\0';
@@ -997,10 +904,8 @@ int aflag;
       AddCap("mi:");
       AddCap("IC=\\E[%d@:");
     }
-#ifdef MAPKEYS
   AddCap("ks=\\E[?1h\\E=:");
   AddCap("ke=\\E[?1l\\E>:");
-#endif
   AddCap("vi=\\E[?25l:");
   AddCap("ve=\\E[34h\\E[?25h:");
   AddCap("vs=\\E[34l:");
@@ -1032,7 +937,6 @@ int aflag;
 	AddCap("Co#8:pa#64:AF=\\E[3%dm:AB=\\E[4%dm:op=\\E[39;49m:AX:");
       if (D_VB)
 	AddCap("vb=\\Eg:");
-#ifndef MAPKEYS
       if (D_KS)
 	{
 	  AddCap("ks=\\E=:");
@@ -1043,7 +947,6 @@ int aflag;
 	  AddCap("CS=\\E[?1h:");
 	  AddCap("CE=\\E[?1l:");
 	}
-#endif
       if (D_CG0)
 	AddCap("G0:");
       if (D_CC0 || (D_CS0 && *D_CS0))
@@ -1068,7 +971,6 @@ int aflag;
     }
   for (i = T_CAPS; i < T_ECAPS; i++)
     {
-#ifdef MAPKEYS
       struct action *act;
       if (i < T_OCAPS)
 	{
@@ -1103,7 +1005,6 @@ int aflag;
 	      continue;
 	    }
 	}
-#endif
       if (display == 0)
 	continue;
       switch(term[i].type)
@@ -1129,10 +1030,7 @@ int aflag;
 }
 
 static void
-MakeString(cap, buf, buflen, s)
-char *cap, *buf;
-int buflen;
-char *s;
+MakeString(char *cap, char *buf, int buflen, char *s)
 {
   register char *p, *pmax;
   register unsigned int c;
@@ -1183,10 +1081,8 @@ char *s;
 #define QUOTES(p) \
   (*p == '\\' && (p[1] == '\\' || p[1] == ',' || p[1] == '%'))
 
-#ifdef FONT
 int
-CreateTransTable(s)
-char *s;
+CreateTransTable(char *s)
 {
   int curchar;
   char *templ, *arg;
@@ -1297,11 +1193,9 @@ FreeTransTable()
     }
   free(D_xtable);
 }
-#endif /* FONT */
 
 static int
-copyarg(pp, s)
-char **pp, *s;
+copyarg(char **pp, char *s)
 {
   int l;
   char *p;
@@ -1328,8 +1222,7 @@ char **pp, *s;
 */
 
 static int
-e_tgetent(bp, name)
-char *bp, *name;
+e_tgetent(char *bp, char *name)
 {
   int r;
 
@@ -1353,10 +1246,7 @@ char *bp, *name;
  */
 
 static char *
-findcap(cap, tepp, n)
-char *cap;
-char **tepp;
-int n;
+findcap(char *cap, char **tepp, int n)
 {
   char *tep;
   char c, *p, *cp;
@@ -1465,9 +1355,7 @@ int n;
 }
 
 static char *
-e_tgetstr(cap, tepp)
-char *cap;
-char **tepp;
+e_tgetstr(char *cap, char **tepp)
 {
   char *tep;
   if ((tep = findcap(cap, tepp, 0)))
@@ -1476,8 +1364,7 @@ char **tepp;
 }
 
 static int
-e_tgetflag(cap)
-char *cap;
+e_tgetflag(char *cap)
 {
   char buf[2], *bufp;
   char *tep;
@@ -1488,8 +1375,7 @@ char *cap;
 }
 
 static int
-e_tgetnum(cap)
-char *cap;
+e_tgetnum(char *cap)
 {
   char buf[20], *bufp;
   char *tep, c;

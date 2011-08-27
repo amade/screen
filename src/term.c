@@ -83,6 +83,7 @@ struct term term[T_N] =
   { "CD", T_STR  },
   { "ce", T_STR  },
   { "cb", T_STR  },
+  { "E3", T_STR  },
 
 /* initialise */
   { "is", T_STR  },

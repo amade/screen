@@ -45,6 +45,16 @@
 #define NAME_MAX 14
 #endif
 
+#include <limits.h>
+
+#ifndef NAME_MAX
+# ifndef MAXNAMELEN
+#  define NAME_MAX 255
+# else
+#  define NAME_MAX MAXNAMELEN
+# endif
+#endif
+
 #ifdef ISC
 # ifdef ENAMETOOLONG
 #  undef ENAMETOOLONG
@@ -86,33 +96,22 @@ extern int errno;
 # include <string.h>
 #endif
 
-#ifdef USEVARARGS
-# if defined(__STDC__)
-#  include <stdarg.h>
-#  define VA_LIST(var) va_list var;
-#  define VA_DOTS ...
-#  define VA_DECL
-#  define VA_START(ap, fmt) va_start(ap, fmt)
-#  define VA_ARGS(ap) ap
-#  define VA_END(ap) va_end(ap)
-# else
-#  include <varargs.h>
-#  define VA_LIST(var) va_list var;
-#  define VA_DOTS va_alist
-#  define VA_DECL va_dcl
-#  define VA_START(ap, fmt) va_start(ap)
-#  define VA_ARGS(ap) ap
-#  define VA_END(ap) va_end(ap)
-# endif
+#if defined(__STDC__)
+# include <stdarg.h>
+# define VA_LIST(var) va_list var;
+# define VA_DOTS ...
+# define VA_DECL
+# define VA_START(ap, fmt) va_start(ap, fmt)
+# define VA_ARGS(ap) ap
+# define VA_END(ap) va_end(ap)
 #else
-# define VA_LIST(var)
-# define VA_DOTS p1, p2, p3, p4, p5, p6
-# define VA_DECL unsigned long VA_DOTS;
-# define VA_START(ap, fmt)
-# define VA_ARGS(ap) VA_DOTS
-# define VA_END(ap)
-# undef vsnprintf
-# define vsnprintf xsnprintf
+# include <varargs.h>
+# define VA_LIST(var) va_list var;
+# define VA_DOTS va_alist
+# define VA_DECL va_dcl
+# define VA_START(ap, fmt) va_start(ap)
+# define VA_ARGS(ap) ap
+# define VA_END(ap) va_end(ap)
 #endif
 
 #if !defined(sun) && !defined(B43) && !defined(ISC) && !defined(pyr) && !defined(_CX_UX)
@@ -138,19 +137,6 @@ extern int errno;
 # define getcwd(b,l) getwd(b)
 #endif
 
-#ifndef USEBCOPY
-# ifdef USEMEMMOVE
-#  define bcopy(s,d,len) memmove(d,s,len)
-# else
-#  ifdef USEMEMCPY
-#   define bcopy(s,d,len) memcpy(d,s,len)
-#  else
-#   define NEED_OWN_BCOPY
-#   define bcopy xbcopy
-#  endif
-# endif
-#endif
-
 #if defined(HAVE_SETRESUID) && !defined(HAVE_SETREUID)
 # define setreuid(ruid, euid) setresuid(ruid, euid, -1)
 # define setregid(rgid, egid) setresgid(rgid, egid, -1)
@@ -169,11 +155,6 @@ extern int errno;
 #endif
 #ifndef HAVE_VSNPRINTF
 # define vsnprintf xvsnprintf
-#endif
-
-#ifdef BUILTIN_TELNET
-# include <netinet/in.h>
-# include <arpa/inet.h>
 #endif
 
 #if defined(USE_LOCALE) && (!defined(HAVE_SETLOCALE) || !defined(HAVE_STRFTIME))
@@ -391,29 +372,6 @@ extern int errno;
 /*****************************************************************
  *    signal handling
  */
-
-#ifdef SIGVOID
-# define SIGRETURN
-# define sigret_t void
-#else
-# define SIGRETURN return 0;
-# define sigret_t int
-#endif
-
-/* Geeeee, reverse it? */
-#if defined(SVR4) || (defined(SYSV) && defined(ISC)) || defined(_AIX) || defined(linux) || defined(ultrix) || defined(__386BSD__) || defined(__bsdi__) || defined(POSIX) || defined(NeXT)
-# define SIGHASARG
-#endif
-
-#ifdef SIGHASARG
-# define SIGPROTOARG   (int)
-# define SIGDEFARG     (sigsig) int sigsig;
-# define SIGARG        0
-#else
-# define SIGPROTOARG   (void)
-# define SIGDEFARG     ()
-# define SIGARG
-#endif
 
 #ifndef SIGCHLD
 #define SIGCHLD SIGCLD

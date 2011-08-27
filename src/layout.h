@@ -45,16 +45,21 @@ struct layout
   int              lay_autosave;
 };
 
-extern void  AutosaveLayout __P((struct layout *));
-extern void  LoadLayout __P((struct layout *, struct canvas *));
-extern void  NewLayout __P((char *, int));
-extern void  SaveLayout __P((char *, struct canvas *));
-extern void  ShowLayouts __P((int));
-extern struct layout *FindLayout __P((char *));
-extern void  UpdateLayoutCanvas __P((struct canvas *, struct win *));
+extern void  FreeLayoutCv(struct canvas *c);
+extern struct layout *CreateLayout(char *, int);
+extern void  AutosaveLayout (struct layout *);
+extern void  LoadLayout (struct layout *);
+extern void  NewLayout (char *, int);
+extern void  SaveLayout (char *, struct canvas *);
+extern void  ShowLayouts (int);
+extern struct layout *FindLayout (char *);
+extern void  UpdateLayoutCanvas (struct canvas *, struct win *);
 
-extern void RenameLayout __P((struct layout *, const char *));
-extern int RenumberLayout __P((struct layout *, int));
+extern void RenameLayout (struct layout *, const char *);
+extern int RenumberLayout (struct layout *, int);
+
+extern void RenameLayout (struct layout *, const char *);
+extern int RenumberLayout (struct layout *, int);
 
 #endif /* SCREEN_LAYOUT_H */
 

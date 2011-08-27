@@ -108,77 +108,6 @@
 #undef TOPSTAT
 
 /*
- * define DETACH can detach a session. An absolute 'must'.
- */
-#define DETACH
-
-/*
- * here come the erlangen extensions to screen:
- * define LOCK if you want to use a lock program for a screenlock.
- * define PASSWORD for secure reattach of your screen.
- * define COPY_PASTE to use the famous hacker's treasure zoo.
- * define POW_DETACH to have a detach_and_logout key (requires DETACH).
- * define REMOTE_DETACH (-d option) to move screen between terminals.
- * define AUTO_NUKE to enable Tim MacKenzies clear screen nuking
- * define PSEUDOS to allow window input/output filtering
- * define MULTI to allow multiple attaches.
- * define MULTIUSER to allow other users attach to your session
- *                  (if they are in the acl, of course)
- * define MAPKEYS to include input keyboard translation.
- * define FONT to support ISO2022/alternet charset support
- * define COLOR to include ansi color support. This may expose
- *        a bug in x11r6-color-xterm.
- * define DW_CHARS to include support for double-width character
- *        sets.
- * define ENCODINGS to include support for encodings like euc or big5.
- *        Needs FONT to work.
- * define UTF8 if you want support for UTF-8 encoding.
- *        Needs FONT and ENCODINGS to work.
- * define COLORS16 if you want 16 colors.
- *        Needs COLOR to work.
- * define BUILTIN_TELNET to add telnet support to screen.
- *        Syntax: screen //telnet host [port]
- * define RXVT_OSC if you want support for rxvts special
- *        change fgcolor/bgcolor/bgpicture sequences
- */
-#undef SIMPLESCREEN
-#ifndef SIMPLESCREEN
-# define LOCK
-# define PASSWORD
-# define COPY_PASTE
-# define REMOTE_DETACH
-# define POW_DETACH
-# define AUTO_NUKE
-# define PSEUDOS
-# define MULTI
-# define MULTIUSER
-# define MAPKEYS
-# define COLOR
-# define FONT
-# define DW_CHARS
-# define ENCODINGS
-# define UTF8
-# define COLORS16
-# define ZMODEM
-# define BLANKER_PRG
-#endif /* SIMPLESCREEN */
-
-#undef BUILTIN_TELNET
-#undef RXVT_OSC
-#undef COLORS256
-
-
-/*
- * If you have a braille display you should define HAVE_BRAILLE.
- * The code inside #ifdef HAVE_BRAILLE was contributed by Hadi Bargi
- * Rangin (bargi@dots.physics.orst.edu).
- * WARNING: this is more or less unsupported code, it may be full of
- * bugs leading to security holes, enable at your own risk!
- */
-#undef HAVE_BRAILLE
-
-
-/*
  * As error messages are mostly meaningless to the user, we
  * try to throw out phrases that are somewhat more familiar
  * to ...well, at least familiar to us NetHack players.
@@ -474,21 +403,6 @@
  * getttyent(3) library functions, define GETTTYENT.
  */
 #undef GETTTYENT
-
-/*
- * Define USEBCOPY if the bcopy/memcpy from your system's C library
- * supports the overlapping of source and destination blocks.  When
- * undefined, screen uses its own (probably slower) version of bcopy().
- * 
- * SYSV machines may have a working memcpy() -- Oh, this is 
- * quite unlikely. Tell me if you see one.
- * "But then, memmove() should work, if at all available" he thought...
- * Boing, never say "works everywhere" unless you checked SCO UNIX.
- * Their memove fails the test in the configure script. Sigh. (Juergen)
- */
-#undef USEBCOPY
-#undef USEMEMCPY
-#undef USEMEMMOVE
 
 /*
  * If your system has vsprintf() and requires the use of the macros in

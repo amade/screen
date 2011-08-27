@@ -26,7 +26,6 @@
  ****************************************************************
  */
 
-#ifdef MULTIUSER
 
 /* three known bits: */
 #define ACL_EXEC 0		
@@ -52,7 +51,6 @@ struct aclusergroup
   struct acluser *u;	/* the user who borrows us his rights */
   struct aclusergroup *next;
 };
-#endif /* MULTIUSER */
 
 /***************
  *  ==> user.h
@@ -65,9 +63,7 @@ struct plop
 {
   char *buf;
   int len;
-#ifdef ENCODINGS
   int enc;
-#endif
 };
 
 /*
@@ -77,21 +73,17 @@ struct plop
  */
 typedef struct acluser
 {
-  struct acluser *u_next;		/* continue the main user list */
-  char u_name[20+1];		/* login name how he showed up */
+  struct acluser *u_next;	/* continue the main user list */
+  char u_name[NAME_MAX + 1];	/* login name how he showed up */
   char *u_password;		/* his password (may be NullStr). */
   int  u_checkpassword;		/* nonzero if this u_password is valid */
   int  u_detachwin;		/* the window where he last detached */
   int  u_detachotherwin;	/* window that was "other" when he detached */
   int  u_Esc, u_MetaEsc;	/* the users screen escape character */
-#ifdef COPY_PASTE
   struct plop u_plop;
-#endif
-#ifdef MULTIUSER
   int u_id;			/* a uniq index in the bitfields. */
   AclBits u_umask_w_bits[ACL_BITS_PER_WIN];	/* his window create umask */
   struct aclusergroup *u_group;	/* linked list of pointers to other users */
-#endif
 } User;
 
 extern int DefaultEsc, DefaultMetaEsc;

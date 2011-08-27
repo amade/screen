@@ -29,19 +29,6 @@
 
 #include "os.h"
 
-#if defined(__STDC__)
-# ifndef __P
-#  define __P(a) a
-# endif
-#else
-# ifndef __P
-#  define __P(a) ()
-# endif
-# define const
-#endif
-
-#include "osdef.h"
-
 #include "ansi.h"
 #include "sched.h"
 #include "acls.h"
@@ -58,14 +45,14 @@
 
 #ifdef DEBUG
 # define DEBUGDIR "/tmp/debug"
-# define debugf(a)       do {if(dfp){fprintf a;fflush(dfp);}} while (0)
+# define debugf(a)       {if(dfp){fprintf a;fflush(dfp);}}
 # define debug(x)        debugf((dfp,x))
 # define debug1(x,a)     debugf((dfp,x,a))
 # define debug2(x,a,b)   debugf((dfp,x,a,b))
 # define debug3(x,a,b,c) debugf((dfp,x,a,b,c))
   extern FILE *dfp;
 #else
-# define debugf(a)       do {} while (0)
+# define debugf(a)       {}
 # define debug(x)        debugf(x)
 # define debug1(x,a)     debugf(x)
 # define debug2(x,a,b)   debugf(x)
@@ -78,12 +65,12 @@
 
 #ifndef NOASSERT
 # if defined(__STDC__)
-#  define ASSERT(lousy_cpp) do {if (!(lousy_cpp)) {if (!dfp) opendebug(0, 1);debug2("ASSERT("#lousy_cpp") failed file %s line %d\n", __FILE__, __LINE__);abort();}} while (0)
+#  define ASSERT(lousy_cpp) {if (!(lousy_cpp)) {if (!dfp) opendebug(0, 1);debug2("ASSERT("#lousy_cpp") failed file %s line %d\n", __FILE__, __LINE__);abort();}}
 # else
-#  define ASSERT(lousy_cpp) do {if (!(lousy_cpp)) {if (!dfp) opendebug(0, 1);debug2("ASSERT(lousy_cpp) failed file %s line %d\n", __FILE__, __LINE__);abort();}} while (0)
+#  define ASSERT(lousy_cpp) {if (!(lousy_cpp)) {if (!dfp) opendebug(0, 1);debug2("ASSERT(lousy_cpp) failed file %s line %d\n", __FILE__, __LINE__);abort();}}
 # endif
 #else
-# define ASSERT(lousy_cpp) do {} while (0)
+# define ASSERT(lousy_cpp) {}
 #endif
 
 /* here comes my own Free: jw. */
@@ -207,29 +194,29 @@ struct msg
       create;
       struct
 	{
-	  char auser[20 + 1];	/* username */
+	  char auser[NAME_MAX + 1];	/* username */
 	  int apid;		/* pid of frontend */
 	  int adaptflag;	/* adapt window size? */
 	  int lines, columns;	/* display size */
 	  char preselect[20];
 	  int esc;		/* his new escape character unless -1 */
 	  int meta_esc;		/* his new meta esc character unless -1 */
-	  char envterm[20 + 1];	/* terminal type */
+	  char envterm[NAME_MAX + 1];	/* terminal type */
 	  int encoding;		/* encoding of display */
 	  int detachfirst;      /* whether to detach remote sessions first */
 	}
       attach;
       struct 
 	{
-	  char duser[20 + 1];	/* username */
+	  char duser[NAME_MAX + 1];	/* username */
 	  int dpid;		/* pid of frontend */
 	}
       detach;
       struct 
 	{
-	  char auser[20 + 1];	/* username */
+	  char auser[NAME_MAX + 1];	/* username */
 	  int nargs;
-	  char cmd[MAXPATHLEN];	/* command */
+	  char cmd[MAXPATHLEN + 1];	/* command */
 	  int apid;		/* pid of frontend */
 	  char preselect[20];
 	  char writeback[MAXPATHLEN];  /* The socket to write the result.
@@ -287,13 +274,11 @@ extern char strnomem[];
 #define INP_EVERY	4
 
 
-#ifdef MULTIUSER
 struct acl
 {
   struct acl *next;
   char *name;
 };
-#endif
 
 /* register list */
 #define MAX_PLOP_DEFS 256

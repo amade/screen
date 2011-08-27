@@ -34,7 +34,6 @@
 #include "mark.h"
 #include "extern.h"
 
-#ifdef COPY_PASTE
 
 /*
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -45,29 +44,21 @@
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 
-static int  is_letter __P((int));
-static void nextword __P((int *, int *, int, int));
-static int  linestart __P((int));
-static int  lineend __P((int));
-static int  rem __P((int, int , int , int , int , char *, int));
-static int  eq __P((int, int ));
-static int  MarkScrollDownDisplay __P((int));
-static int  MarkScrollUpDisplay __P((int));
+static int  is_letter (int);
+static void nextword (int *, int *, int, int);
+static int  linestart (int);
+static int  lineend (int);
+static int  rem (int, int , int , int , int , char *, int);
+static int  eq (int, int );
+static int  MarkScrollDownDisplay (int);
+static int  MarkScrollUpDisplay (int);
 
-static void MarkProcess __P((char **, int *));
-static void MarkAbort __P((void));
-static void MarkRedisplayLine __P((int, int, int, int));
-static int  MarkRewrite __P((int, int, int, struct mchar *, int));
+static void MarkProcess (char **, int *);
+static void MarkAbort (void);
+static void MarkRedisplayLine (int, int, int, int);
+static int  MarkRewrite (int, int, int, struct mchar *, int);
 
-extern struct layer *flayer;
-extern struct display *display, *displays;
-extern struct win *fore;
-extern struct mline mline_blank, mline_null;
-extern struct mchar mchar_so;
-
-#ifdef FONT
 int pastefont = 1;
-#endif
 
 struct LayFuncs MarkLf =
 {
@@ -94,8 +85,7 @@ static struct markdata *markdata;
  *                    1 - letter
  *		      2 - other
  */
-static int is_letter(c)
-char c;
+static int is_letter(int c)
 {
   if ((c >= 'a' && c <= 'z') ||
       (c >= 'A' && c <= 'Z') ||
@@ -112,8 +102,7 @@ char c;
 }
 
 static int
-linestart(y)
-int y;
+linestart(int y)
 {
   register int x;
   register unsigned char *i;
@@ -127,8 +116,7 @@ int y;
 }
 
 static int
-lineend(y)
-int y;
+lineend(int y)
 {
   register int x;
   register unsigned char *i;
@@ -157,11 +145,12 @@ nextchar(int *xp, int *yp, int direction, char target, int num)
  
   debug("nextchar\n");
  
+  step = 0;
   x = *xp;
   adjust = 0;
   width = fore->w_width;
   displayed_line = (char *)WIN(*yp) -> image;
- 
+
   switch(direction) {
     case 't':
       adjust = -1; /* fall through */
@@ -211,8 +200,7 @@ nextchar(int *xp, int *yp, int direction, char target, int num)
 
 
 static void
-nextword(xp, yp, flags, num)
-int *xp, *yp, flags, num;
+nextword(int *xp, int *yp, int flags, int num)
 {
   int xx = fore->w_width, yy = fore->w_histheight + fore->w_height;
   register int sx, oq, q, x, y;
@@ -273,18 +261,14 @@ int *xp, *yp, flags, num;
  */
 
 static int
-rem(x1, y1, x2, y2, redisplay, pt, yend)
-int x1, y1, x2, y2, redisplay, yend;
-char *pt;
+rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend)
 {
   int i, j, from, to, ry, c;
   int l = 0;
   unsigned char *im;
   struct mline *ml;
-#ifdef FONT
   int cf, font;
   unsigned char *fo;
-#endif
 
   markdata->second = 0;
   if (y2 < y1 || ((y2 == y1) && (x2 < x1)))
@@ -324,21 +308,15 @@ char *pt;
       if (redisplay != 2 && pt == 0)	/* don't count/copy */
 	continue;
       j = from;
-#ifdef DW_CHARS
       if (dw_right(ml, j, fore->w_encoding))
 	j--;
-#endif
       im = ml->image + j;
-#ifdef FONT
       fo = ml->font + j;
       font = ASCII;
-#endif
       for (; j <= to; j++)
 	{
 	  c = (unsigned char)*im++;
-#ifdef FONT
 	  cf = (unsigned char)*fo++;
-# ifdef UTF8
 	  if (fore->w_encoding == UTF8)
 	    {
 	      c |= cf << 8;
@@ -350,15 +328,12 @@ char *pt;
 	        pt += c;
 	      continue;
 	    }
-# endif
-# ifdef DW_CHARS
 	  if (is_dw_font(cf))
 	    {
 	      c = c << 8 | (unsigned char)*im++;
 	      fo++;
 	      j++;
 	    }
-# endif
 	  if (pastefont)
 	    {
 	      c = EncodeChar(pt, c | cf << 16, fore->w_encoding, &font);
@@ -367,22 +342,19 @@ char *pt;
 		pt += c;
 	      continue;
 	    }
-#endif /* FONT */
 	  if (pt)
 	    *pt++ = c;
 	  l++;
 	}
-#ifdef FONT
       if (pastefont && font != ASCII)
 	{
 	  if (pt)
 	    {
-	      strcpy(pt, "\033(B");
+	      strncpy(pt, "\033(B", 4);
 	      pt += 3;
 	    }
 	  l += 3;
 	}
-#endif
       if (i != y2 && (to != fore->w_width - 1 || ml->image[to + 1] == ' '))
 	{
 	  /*
@@ -424,8 +396,7 @@ char *pt;
  */
 
 static int
-eq(a, b)
-int a, b;
+eq(int a, int b)
 {
   if (a == b)
     return 1;
@@ -479,11 +450,9 @@ GetHistory()	/* return value 1 if copybuffer changed */
       LMsg(0, "Not enough memory... Sorry.");
       return 0;
     }
-  bcopy((char *)linep - i + x + 1, D_user->u_plop.buf, i - x + 1);
+  memmove(D_user->u_plop.buf, (char *)linep - i + x + 1, i - x + 1);
   D_user->u_plop.len = i - x + 1;
-#ifdef ENCODINGS
   D_user->u_plop.enc = fore->w_encoding;
-#endif
   return 1;
 }
 
@@ -530,9 +499,7 @@ MarkRoutine()
 }
 
 static void
-MarkProcess(inbufp,inlenp)
-char **inbufp;
-int *inlenp;
+MarkProcess(char **inbufp, int *inlenp)
 {
   char *inbuf, *pt;
   int inlen;
@@ -1027,9 +994,7 @@ processchar:
 		  md_user->u_plop.len += rem(markdata->x1, markdata->y1, x2, y2,
 		    markdata->hist_offset == fore->w_histheight,
 		    md_user->u_plop.buf + md_user->u_plop.len, yend);
-#ifdef ENCODINGS
 		  md_user->u_plop.enc = fore->w_encoding;
-#endif
 		}
 	      if (markdata->hist_offset != fore->w_histheight)
 		{
@@ -1098,15 +1063,13 @@ processchar:
   *inlenp = inlen;
 }
 
-void revto(tx, ty)
-int tx, ty;
+void revto(int tx, int ty)
 {
   revto_line(tx, ty, -1);
 }
 
 /* tx, ty: WINDOW,  line: DISPLAY */
-void revto_line(tx, ty, line)
-int tx, ty, line;
+void revto_line(int tx, int ty, int line)
 {
   int fx, fy;
   int x, y, t, revst, reven, qq, ff, tt, st, en, ce = 0;
@@ -1127,14 +1090,12 @@ int tx, ty, line;
 
   fx = markdata->cx; fy = markdata->cy;
 
-#ifdef DW_CHARS
   /* don't just move inside of a kanji, the user wants to see something */
   ml = WIN(ty);
   if (ty == fy && fx + 1 == tx && dw_right(ml, tx, fore->w_encoding) && tx < D_width - 1)
     tx++;
   if (ty == fy && fx - 1 == tx && dw_right(ml, fx, fore->w_encoding) && tx)
     tx--;
-#endif
 
   markdata->cx = tx; markdata->cy = ty;
 
@@ -1219,7 +1180,6 @@ int tx, ty, line;
 	}
       if (x <= ce && x >= markdata->left_mar && x <= markdata->right_mar)
 	{
-#ifdef DW_CHARS
 	  if (dw_right(ml, x, fore->w_encoding))
 	      {
 		if (t == revst)
@@ -1227,31 +1187,24 @@ int tx, ty, line;
 	        t--;
 		x--;
 	      }
-#endif
 	  if (t >= revst && t <= reven)
 	    {
 	      mc = mchar_so;
-#ifdef FONT
 	      if (pastefont)
 		mc.font = ml->font[x];
-#endif
 	      mc.image = ml->image[x];
 	    }
 	  else
 	    copy_mline2mchar(&mc, ml, x);
-#ifdef DW_CHARS
 	  if (dw_left(ml, x, fore->w_encoding))
 	    {
 	      mc.mbcs = ml->image[x + 1];
 	      LPutChar(flayer, &mc, x, W2D(y));
 	      t++;
 	    }
-#endif
 	  LPutChar(flayer, &mc, x, W2D(y));
-#ifdef DW_CHARS
 	  if (dw_left(ml, x, fore->w_encoding))
 	    x++;
-#endif
 	}
     }
   flayer->l_x = tx;
@@ -1288,10 +1241,8 @@ MarkAbort()
 
 
 static void
-MarkRedisplayLine(y, xs, xe, isblank)
-int y;	/* NOTE: y is in DISPLAY coords system! */
-int xs, xe;
-int isblank;
+MarkRedisplayLine(int y, int xs, int xe, int isblank)
+/* NOTE: y is in DISPLAY coords system! */
 {
   int wy, x, i, rm;
   int sta, sto, cp;	/* NOTE: these 3 are in WINDOW coords system */
@@ -1341,34 +1292,26 @@ int isblank;
   for (x = xs; x <= xe; x++, cp++)
     if (cp >= sta && x >= markdata->left_mar)
       break;
-#ifdef DW_CHARS
   if (dw_right(ml, x, fore->w_encoding))
     x--;
-#endif
   if (x > xs)
     LCDisplayLine(flayer, ml, y, xs, x - 1, isblank);
   for (; x <= xe; x++, cp++)
     {
       if (cp > sto || x > rm)
 	break;
-#ifdef FONT
       if (pastefont)
 	mchar_marked.font = ml->font[x];
-#endif
       mchar_marked.image = ml->image[x];
-#ifdef DW_CHARS
       mchar_marked.mbcs = 0;
       if (dw_left(ml, x, fore->w_encoding))
 	{
 	  mchar_marked.mbcs = ml->image[x + 1];
 	  cp++;
 	}
-#endif
       LPutChar(flayer, &mchar_marked, x, y);
-#ifdef DW_CHARS
       if (dw_left(ml, x, fore->w_encoding))
 	x++;
-#endif
     }
   if (x <= xe)
     LCDisplayLine(flayer, ml, y, x, xe, isblank);
@@ -1379,9 +1322,7 @@ int isblank;
  * This ugly routine is to speed up GotoPos()
  */
 static int
-MarkRewrite(ry, xs, xe, rend, doit)
-int ry, xs, xe, doit;
-struct mchar *rend;
+MarkRewrite(int ry, int xs, int xe, struct mchar *rend, int doit)
 {
   int dx, x, y, st, en, t, rm;
   unsigned char *i;
@@ -1395,10 +1336,8 @@ struct mchar *rend;
   fore = markdata->md_window;
   y = D2W(ry);
   ml = WIN(y);
-#ifdef UTF8
   if (fore->w_encoding && fore->w_encoding != UTF8 && D_encoding == UTF8 && ContainsSpecialDeffont(ml, xs, xe, fore->w_encoding))
     return EXPENSIVE;
-#endif
   dx = xe - xs + 1;
   if (doit)
     {
@@ -1430,10 +1369,8 @@ struct mchar *rend;
     {
       if (t >= st && t <= en && x >= markdata->left_mar && x <= rm)
         {
-#ifdef FONT
 	  if (pastefont)
 	    mchar_marked.font = ml->font[x];
-#endif
 	  rend->image = mchar_marked.image;
 	  if (!cmp_mchar(rend, &mchar_marked))
 	    return EXPENSIVE;
@@ -1453,8 +1390,7 @@ struct mchar *rend;
 /*
  * scroll the screen contents up/down.
  */
-static int MarkScrollUpDisplay(n)
-int n;
+static int MarkScrollUpDisplay(int n)
 {
   int i;
 
@@ -1472,8 +1408,7 @@ int n;
 }
 
 static int
-MarkScrollDownDisplay(n)
-int n;
+MarkScrollDownDisplay(int n)
 {
   int i;
 
@@ -1491,11 +1426,7 @@ int n;
 }
 
 void
-MakePaster(pa, buf, len, bufiscopy)
-struct paster *pa;
-char *buf;
-int len;
-int bufiscopy;
+MakePaster(struct paster *pa, char *buf, int len, int bufiscopy)
 {
   FreePaster(pa);
   pa->pa_pasteptr = buf;
@@ -1507,8 +1438,7 @@ int bufiscopy;
 }
 
 void
-FreePaster(pa)
-struct paster *pa;
+FreePaster(struct paster *pa)
 {
   if (pa->pa_pastebuf)
     free(pa->pa_pastebuf);
@@ -1519,5 +1449,4 @@ struct paster *pa;
   evdeq(&pa->pa_slowev);
 }
 
-#endif /* COPY_PASTE */
 

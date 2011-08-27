@@ -33,13 +33,9 @@
 
 #define INPUTLINE (flayer->l_height - 1)
 
-static void InpProcess __P((char **, int *));
-static void InpAbort __P((void));
-static void InpRedisplayLine __P((int, int, int, int));
-
-extern struct layer *flayer;
-extern struct display *display;
-extern struct mchar mchar_blank, mchar_so;
+static void InpProcess (char **, int *);
+static void InpAbort (void);
+static void InpRedisplayLine (int, int, int, int);
 
 struct inpline
 {
@@ -62,7 +58,7 @@ struct inpdata
   char *inpstring;	/* the prompt */
   int  inpstringlen;	/* length of the prompt */
   int  inpmode;		/* INP_NOECHO, INP_RAW, INP_EVERY */
-  void (*inpfinfunc) __P((char *buf, int len, char *priv));
+  void (*inpfinfunc) (char *buf, int len, char *priv);
   char  *priv;		/* private data for finfunc */
   int  privdata;	/* private data space */
   char *search; 	/* the search string */
@@ -86,8 +82,7 @@ static struct LayFuncs InpLf =
 
 /* called once, after InitOverlayPage in Input() or Isearch() */
 void
-inp_setprompt(p, s)
-char *p, *s;
+inp_setprompt(char *p, char *s)
 {
   struct inpdata *inpdata;
   
@@ -101,7 +96,6 @@ char *p, *s;
     {
       if (s != inpdata->inp.buf)
 	strncpy(inpdata->inp.buf, s, sizeof(inpdata->inp.buf) - 1);
-      inpdata->inp.buf[sizeof(inpdata->inp.buf) - 1] = 0;
       inpdata->inp.pos = inpdata->inp.len = strlen(inpdata->inp.buf);
     }
   InpRedisplayLine(INPUTLINE, 0, flayer->l_width - 1, 0);
@@ -120,13 +114,7 @@ char *p, *s;
  * INP_EVERY  == digraph mode.
  */
 void
-Input(istr, len, mode, finfunc, priv, data)
-char *istr;
-int len;
-int mode;
-void (*finfunc) __P((char *buf, int len, char *priv));
-char *priv;
-int data;
+Input(char *istr, int len, int mode, void (*finfunc) (char *buf, int len, char *priv), char *priv, int data)
 {
   int maxlen;
   struct inpdata *inpdata;
@@ -168,17 +156,12 @@ int data;
 }
 
 static void
-erase_chars(inpdata, from, to, x, mv)
-struct inpdata *inpdata;
-char *from;
-char *to;
-int x;
-int mv;
+erase_chars(struct inpdata *inpdata, char *from, char *to, int x, int mv)
 {
   int chng;
   ASSERT(from < to);
   if (inpdata->inp.len > to - inpdata->inp.buf)
-    bcopy(to, from, inpdata->inp.len - (to - inpdata->inp.buf));
+    memmove(from, to, inpdata->inp.len - (to - inpdata->inp.buf));
   chng = to - from;
   if (mv)
     {
@@ -204,9 +187,7 @@ int mv;
 }
 
 static void
-InpProcess(ppbuf, plen)
-char **ppbuf;
-int *plen;
+InpProcess(char **ppbuf, int *plen)
 {
   int len, x;
   char *pbuf;
@@ -218,7 +199,7 @@ int *plen;
   inpdata = (struct inpdata *)flayer->l_data;
   inpdisplay = display;
 
-#define RESET_SEARCH do { if (inpdata->search) Free(inpdata->search); } while (0)
+#define RESET_SEARCH { if (inpdata->search) Free(inpdata->search); }
 
   LGotoPos(flayer, inpdata->inpstringlen + (inpdata->inpmode & INP_NOECHO ? 0 : inpdata->inp.pos), INPUTLINE);
   if (ppbuf == 0)
@@ -255,7 +236,7 @@ int *plen;
       if (((unsigned char)ch & 0177) >= ' ' && ch != 0177 && inpdata->inp.len < inpdata->inpmaxlen)
 	{
 	  if (inpdata->inp.len > inpdata->inp.pos)
-	    bcopy(p, p+1, inpdata->inp.len - inpdata->inp.pos);
+	    memmove(p+1, p, inpdata->inp.len - inpdata->inp.pos);
 	  inpdata->inp.buf[inpdata->inp.pos++] = ch;
 	  inpdata->inp.len++;
 
@@ -477,8 +458,7 @@ InpAbort()
 }
 
 static void
-InpRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+InpRedisplayLine(int y, int xs, int xe, int isblank)
 {
   int q, r, s, l, v;
   struct inpdata *inpdata;

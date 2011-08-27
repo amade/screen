@@ -36,66 +36,29 @@
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
-#include "braille.h"
 #include "canvas.h"
 
-static int  CountChars __P((int));
-static int  DoAddChar __P((int));
-static int  BlankResize __P((int, int));
-static int  CallRewrite __P((int, int, int, int));
-static void disp_readev_fn __P((struct event *, char *));
-static void disp_writeev_fn __P((struct event *, char *));
+static int  CountChars (int);
+static int  DoAddChar (int);
+static int  BlankResize (int, int);
+static int  CallRewrite (int, int, int, int);
+static void disp_readev_fn (struct event *, char *);
+static void disp_writeev_fn (struct event *, char *);
 #ifdef linux
-static void disp_writeev_eagain __P((struct event *, char *));
+static void disp_writeev_eagain (struct event *, char *);
 #endif
-static void disp_status_fn __P((struct event *, char *));
-static void disp_hstatus_fn __P((struct event *, char *));
-static void disp_blocked_fn __P((struct event *, char *));
-static void cv_winid_fn __P((struct event *, char *));
-#ifdef MAPKEYS
-static void disp_map_fn __P((struct event *, char *));
-#endif
-static void disp_idle_fn __P((struct event *, char *));
-#ifdef BLANKER_PRG
-static void disp_blanker_fn __P((struct event *, char *));
-#endif
-static void WriteLP __P((int, int));
-static void INSERTCHAR __P((int));
-static void RAW_PUTCHAR __P((int));
-#ifdef COLOR
-static void SetBackColor __P((int));
-#endif
-static void RemoveStatusMinWait __P((void));
+static void disp_status_fn (struct event *, char *);
+static void disp_hstatus_fn (struct event *, char *);
+static void disp_blocked_fn (struct event *, char *);
+static void disp_map_fn (struct event *, char *);
+static void disp_idle_fn (struct event *, char *);
+static void disp_blanker_fn (struct event *, char *);
+static void WriteLP (int, int);
+static void INSERTCHAR (int);
+static void RAW_PUTCHAR (int);
+static void SetBackColor (int);
+static void RemoveStatusMinWait (void);
 
-
-extern struct layer *flayer;
-extern struct win *windows, *fore;
-extern struct LayFuncs WinLf;
-
-extern int  use_hardstatus;
-extern int  MsgWait, MsgMinWait;
-extern int  Z0width, Z1width;
-extern unsigned char *blank, *null;
-extern struct mline mline_blank, mline_null, mline_old;
-extern struct mchar mchar_null, mchar_blank, mchar_so;
-extern struct NewWindow nwin_default;
-extern struct action idleaction;
-
-/* XXX shouldn't be here */
-extern char *hstatusstring;
-extern char *captionstring;
-
-extern int pastefont;
-extern int idletimo;
-
-#ifdef BLANKER_PRG
-extern int pty_preopen;
-#if defined(TIOCSWINSZ) || defined(TIOCGWINSZ)
-extern struct winsize glwz;
-#endif
-extern char **NewEnv;
-extern int real_uid, real_gid;
-#endif
 
 /*
  * tputs needs this to calculate the padding
@@ -107,14 +70,10 @@ short ospeed;
 
 
 struct display *display, *displays;
-#ifdef COLOR
 int  attr2color[8][4];
 int  nattr2color;
-#endif
 
-#ifndef MULTI
 struct display TheDisplay;
-#endif
 
 /*
  *  The default values
@@ -122,9 +81,7 @@ struct display TheDisplay;
 int defobuflimit = OBUF_MAX;
 int defnonblock = -1;
 int defmousetrack = 0;
-#ifdef AUTO_NUKE
 int defautonuke = 0;
-#endif
 int captionalways;
 int hardstatusemu = HSTATUS_IGNORE;
 
@@ -135,42 +92,35 @@ int focusminwidth, focusminheight;
  */
 
 void
-DefProcess(bufp, lenp)
-char **bufp;
-int *lenp;
+DefProcess(char **bufp, int *lenp)
 {
   *bufp += *lenp;
   *lenp = 0;
 }
 
 void
-DefRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+DefRedisplayLine(int y, int xs, int xe, int isblank)
 {
   if (isblank == 0 && y >= 0)
     DefClearLine(y, xs, xe, 0);
 }
 
 void
-DefClearLine(y, xs, xe, bce)
-int y, xs, xe, bce;
+DefClearLine(int y, int xs, int xe, int bce)
 {
   LClearLine(flayer, y, xs, xe, bce, (struct mline *)0);
 }
 
 /*ARGSUSED*/
 int
-DefRewrite(y, xs, xe, rend, doit)
-int y, xs, xe, doit;
-struct mchar *rend;
+DefRewrite(int y, int xs, int xe, struct mchar *rend, int doit)
 {
   return EXPENSIVE;
 }
 
 /*ARGSUSED*/
 int
-DefResize(wi, he)
-int wi, he;
+DefResize(int wi, int he)
 {
   return -1;
 }
@@ -206,8 +156,7 @@ struct LayFuncs BlankLf =
 
 /*ARGSUSED*/
 static int
-BlankResize(wi, he)
-int wi, he;
+BlankResize(int wi, int he)
 {
   flayer->l_width = wi;
   flayer->l_height = he;
@@ -222,10 +171,7 @@ int wi, he;
  */
 
 struct display *
-MakeDisplay(uname, utty, term, fd, pid, Mode)
-char *uname, *utty, *term;
-int fd, pid;
-struct mode *Mode;
+MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struct mode *Mode)
 {
   struct acluser **u;
   struct baud_values *b;
@@ -233,15 +179,8 @@ struct mode *Mode;
   if (!*(u = FindUserPtr(uname)) && UserAdd(uname, (char *)0, u))
     return 0;	/* could not find or add user */
 
-#ifdef MULTI
   if ((display = (struct display *)calloc(1, sizeof(*display))) == 0)
     return 0;
-#else
-  if (displays)
-    return 0;
-  bzero((char *)&TheDisplay, sizeof(TheDisplay));
-  display = &TheDisplay;
-#endif
   display->d_next = displays;
   displays = display;
   D_flow = 1;
@@ -269,28 +208,22 @@ struct mode *Mode;
   D_blockedev.condpos = &D_obuffree;
   D_blockedev.condneg = &D_obuflenmax;
   D_hstatusev.handler = disp_hstatus_fn;
-#ifdef MAPKEYS
   D_mapev.type = EV_TIMEOUT;
   D_mapev.data = (char *)display;
   D_mapev.handler = disp_map_fn;
-#endif
   D_idleev.type = EV_TIMEOUT;
   D_idleev.data = (char *)display;
   D_idleev.handler = disp_idle_fn;
-#ifdef BLANKER_PRG
   D_blankerev.type = EV_READ;
   D_blankerev.data = (char *)display;
   D_blankerev.handler = disp_blanker_fn;
   D_blankerev.fd = -1;
-#endif
   D_OldMode = *Mode;
   D_status_obuffree = -1;
   Resize_obuf();  /* Allocate memory for buffer */
   D_obufmax = defobuflimit;
   D_obuflenmax = D_obuflen - D_obufmax;
-#ifdef AUTO_NUKE
   D_auto_nuke = defautonuke;
-#endif
   D_obufp = D_obuf;
   D_printfd = -1;
   D_userpid = pid;
@@ -309,9 +242,7 @@ struct mode *Mode;
   debug1("New displays ospeed = %d\n", D_dospeed);
 
   strncpy(D_usertty, utty, sizeof(D_usertty) - 1);
-  D_usertty[sizeof(D_usertty) - 1] = 0;
   strncpy(D_termname, term, sizeof(D_termname) - 1);
-  D_termname[sizeof(D_termname) - 1] = 0;
   D_user = *u;
   D_processinput = ProcessInput;
   D_mousetrack = defmousetrack;
@@ -323,16 +254,10 @@ void
 FreeDisplay()
 {
   struct win *p;
-#ifdef MULTI
   struct display *d, **dp;
-#endif
 
-#ifdef FONT
   FreeTransTable();
-#endif
-#ifdef BLANKER_PRG
   KillBlanker();
-#endif
   if (D_userfd >= 0)
     {
       Flush(3);
@@ -354,7 +279,6 @@ FreeDisplay()
   evdeq(&D_readev);
   evdeq(&D_writeev);
   evdeq(&D_blockedev);
-#ifdef MAPKEYS
   evdeq(&D_mapev);
   if (D_kmaps)
     {
@@ -366,20 +290,9 @@ FreeDisplay()
       D_seql = 0;
       D_seqh = 0;
     }
-#endif
   evdeq(&D_idleev);
-#ifdef BLANKER_PRG
   evdeq(&D_blankerev);
-#endif
-#ifdef HAVE_BRAILLE
-  if (bd.bd_dpy == display)
-    {
-      bd.bd_start_braille = 0;
-      StartBraille();
-    }
-#endif
 
-#ifdef MULTI
   for (dp = &displays; (d = *dp) ; dp = &d->d_next)
     if (d == display)
       break;
@@ -389,11 +302,6 @@ FreeDisplay()
   if (D_obuf)
     free(D_obuf);
   *dp = display->d_next;
-#else /* MULTI */
-  ASSERT(display == displays);
-  ASSERT(display == &TheDisplay);
-  displays = 0;
-#endif /* MULTI */
 
   while (D_canvas.c_slperp)
     FreeCanvas(D_canvas.c_slperp);
@@ -408,19 +316,15 @@ FreeDisplay()
       if (p->w_readev.condneg == &D_status || p->w_readev.condneg == &D_obuflenmax)
 	p->w_readev.condpos = p->w_readev.condneg = 0;
     }
-#ifdef ZMODEM
   for (p = windows; p; p = p->w_next)
     if (p->w_zdisplay == display)
       zmodem_abort(p, 0);
-#endif
   if (D_mousetrack)
     {
       D_mousetrack = 0;
       MouseMode(0);
     }
-#ifdef MULTI
   free((char *)display);
-#endif
   display = 0;
 }
 
@@ -429,8 +333,7 @@ FreeDisplay()
  * we may try to restore our old window sizes.
  */
 void
-InitTerm(adapt)
-int adapt;
+InitTerm(int adapt)
 {
   ASSERT(display);
   ASSERT(D_tcinited);
@@ -441,16 +344,8 @@ int adapt;
   if (D_IM && strcmp(D_IM, D_EI))
     AddCStr(D_EI);
   D_insert = 0;
-#ifdef MAPKEYS
   AddCStr(D_KS);
   AddCStr(D_CCS);
-#else
-  /* Check for toggle */
-  if (D_KS && strcmp(D_KS, D_KE))
-    AddCStr(D_KE);
-  if (D_CCS && strcmp(D_CCS, D_CCE))
-    AddCStr(D_CCE);
-#endif
   D_keypad = 0;
   D_cursorkeys = 0;
   AddCStr(D_ME);
@@ -474,9 +369,7 @@ void
 FinitTerm()
 {
   ASSERT(display);
-#ifdef BLANKER_PRG
   KillBlanker();
-#endif
   if (D_tcinited)
     {
       ResizeDisplay(D_defwidth, D_defheight);
@@ -490,15 +383,11 @@ FinitTerm()
       MouseMode(0);
       SetRendition(&mchar_null);
       SetFlow(FLOW_NOW);
-#ifdef MAPKEYS
       AddCStr(D_KE);
       AddCStr(D_CCE);
-#endif
       if (D_hstatus)
 	ShowHStatus((char *)0);
-#ifdef RXVT_OSC
       ClearAllXtermOSC();
-#endif
       D_x = D_y = -1;
       GotoPos(0, D_height - 1);
       AddChar('\r');
@@ -510,8 +399,7 @@ FinitTerm()
 
 
 static void
-INSERTCHAR(c)
-int c;
+INSERTCHAR(int c)
 {
   ASSERT(display);
   if (!D_insert && D_x < D_width - 1)
@@ -536,8 +424,7 @@ int c;
 }
 
 void
-PUTCHAR(c)
-int c;
+PUTCHAR(int c)
 {
   ASSERT(display);
   if (D_insert && D_x < D_width - 1)
@@ -546,8 +433,7 @@ int c;
 }
 
 void
-PUTCHARLP(c)
-int c;
+PUTCHARLP(int c)
 {
   if (D_x < D_width - 1)
     {
@@ -568,7 +454,6 @@ int c;
   D_lp_missing = 1;
   D_rend.image = c;
   D_lpchar = D_rend;
-#ifdef DW_CHARS
   /* XXX -> PutChar ? */
   if (D_mbcs)
     {
@@ -577,7 +462,6 @@ int c;
       D_mbcs = 0;
       D_x--;
     }
-#endif
 }
 
 /*
@@ -586,17 +470,13 @@ int c;
  */
 
 STATIC void
-RAW_PUTCHAR(c)
-int c;
+RAW_PUTCHAR(int c)
 {
   ASSERT(display);
 
-#ifdef FONT
-# ifdef UTF8
   if (D_encoding == UTF8)
     {
       c = (c & 255) | (unsigned char)D_rend.font << 8;
-#  ifdef DW_CHARS
       if (D_mbcs)
 	{
 	  c = D_mbcs;
@@ -610,7 +490,6 @@ int c;
 	  D_x++;
 	  return;
 	}
-#  endif
       if (c < 32)
 	{
 	  AddCStr2(D_CS0, '0');
@@ -629,8 +508,6 @@ int c;
 	AddUtf8(c);
       goto addedutf8;
     }
-# endif
-# ifdef DW_CHARS
   if (is_dw_font(D_rend.font))
     {
       int t = c;
@@ -646,25 +523,15 @@ int c;
       c = D_mbcs;
       D_mbcs = t;
     }
-# endif
-# if defined(ENCODINGS) && defined(DW_CHARS)
   if (D_encoding)
     c = PrepareEncodedChar(c);
-# endif
-# ifdef DW_CHARS
   kanjiloop:
-# endif
   if (D_xtable && D_xtable[(int)(unsigned char)D_rend.font] && D_xtable[(int)(unsigned char)D_rend.font][(int)(unsigned char)c])
     AddStr(D_xtable[(int)(unsigned char)D_rend.font][(int)(unsigned char)c]);
   else
     AddChar(D_rend.font != '0' ? c : D_c0_tab[(int)(unsigned char)c]);
-#else /* FONT */
-    AddChar(c);
-#endif /* FONT */
 
-#ifdef UTF8
 addedutf8:
-#endif
   if (++D_x >= D_width)
     {
       if (D_AM == 0)
@@ -676,19 +543,16 @@ addedutf8:
 	    D_y++;
 	}
     }
-#ifdef DW_CHARS
   if (D_mbcs)
     {
       c = D_mbcs;
       D_mbcs = 0;
       goto kanjiloop;
     }
-#endif
 }
 
 static int
-DoAddChar(c)
-int c;
+DoAddChar(int c)
 {
   /* this is for ESC-sequences only (AddChar is a macro) */
   AddChar(c);
@@ -696,8 +560,7 @@ int c;
 }
 
 void
-AddCStr(s)
-char *s;
+AddCStr(char *s)
 {
   if (display && s && *s)
     {
@@ -707,9 +570,7 @@ char *s;
 }
 
 void
-AddCStr2(s, c)
-char *s;
-int c;
+AddCStr2(char *s, int c)
 {
   if (display && s && *s)
     {
@@ -722,8 +583,7 @@ int c;
 /* Insert mode is a toggle on some terminals, so we need this hack:
  */
 void
-InsertMode(on)
-int on;
+InsertMode(int on)
 {
   if (display && on != D_insert && D_IM)
     {
@@ -738,46 +598,21 @@ int on;
 /* ...and maybe keypad application mode is a toggle, too:
  */
 void
-KeypadMode(on)
-int on;
+KeypadMode(int on)
 {
-#ifdef MAPKEYS
   if (display)
     D_keypad = on;
-#else
-  if (display && D_keypad != on && D_KS)
-    {
-      D_keypad = on;
-      if (on)
-	AddCStr(D_KS);
-      else
-	AddCStr(D_KE);
-    }
-#endif
 }
 
 void
-CursorkeysMode(on)
-int on;
+CursorkeysMode(int on)
 {
-#ifdef MAPKEYS
   if (display)
     D_cursorkeys = on;
-#else
-  if (display && D_cursorkeys != on && D_CCS)
-    {
-      D_cursorkeys = on;
-      if (on)
-	AddCStr(D_CCS);
-      else
-	AddCStr(D_CCE);
-    }
-#endif
 }
 
 void
-ReverseVideo(on)
-int on;
+ReverseVideo(int on)
 {
   if (display && D_revvid != on && D_CVR)
     {
@@ -790,8 +625,7 @@ int on;
 }
 
 void
-CursorVisibility(v)
-int v;
+CursorVisibility(int v)
 {
   if (display && D_curvis != v)
     {
@@ -809,8 +643,7 @@ int v;
 }
 
 void
-MouseMode(mode)
-int mode;
+MouseMode(int mode)
 {
   if (!display)
     return;
@@ -841,16 +674,14 @@ static int StrCost;
 
 /* ARGSUSED */
 static int
-CountChars(c)
-int c;
+CountChars(int c)
 {
   StrCost++;
   return c;
 }
 
 int
-CalcCost(s)
-register char *s;
+CalcCost(register char *s)
 {
   ASSERT(display);
   if (s)
@@ -865,8 +696,7 @@ register char *s;
 }
 
 static int
-CallRewrite(y, xs, xe, doit)
-int y, xs, xe, doit;
+CallRewrite(int y, int xs, int xe, int doit)
 {
   struct canvas *cv, *cvlist, *cvlnext;
   struct viewport *vp;
@@ -910,10 +740,8 @@ int y, xs, xe, doit;
     return EXPENSIVE;	/* line not on layer */
   if (xs - vp->v_xoff < 0 || xe - vp->v_xoff >= cv->c_layer->l_width)
     return EXPENSIVE;	/* line not on layer */
-#ifdef UTF8
   if (D_encoding == UTF8)
     D_rend.font = 0;
-#endif
   oldflayer = flayer;
   flayer = cv->c_layer;
   debug3("Calling Rewrite %d %d %d\n", y - vp->v_yoff, xs - vp->v_xoff, xe - vp->v_xoff);
@@ -926,8 +754,7 @@ int y, xs, xe, doit;
 
 
 void
-GotoPos(x2, y2)
-int x2, y2;
+GotoPos(int x2, int y2)
 {
   register int dy, dx, x1, y1;
   register int costx, costy;
@@ -1132,8 +959,7 @@ ClearAll()
 }
 
 void
-ClearArea(x1, y1, xs, xe, x2, y2, bce, uselayfn)
-int x1, y1, xs, xe, x2, y2, bce, uselayfn;
+ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int uselayfn)
 {
   int y, xxe;
   struct canvas *cv;
@@ -1154,10 +980,8 @@ int x1, y1, xs, xe, x2, y2, bce, uselayfn;
     xe = x2;
   if (D_UT)	/* Safe to erase ? */
     SetRendition(&mchar_null);
-#ifdef COLOR
   if (D_BE)
     SetBackColor(bce);
-#endif
   if (D_lp_missing && y1 <= D_bot && xe >= D_width - 1)
     {
       if (y2 > D_bot || (y2 == D_bot && x2 >= D_width - 1))
@@ -1165,10 +989,8 @@ int x1, y1, xs, xe, x2, y2, bce, uselayfn;
     }
   if (x2 == D_width - 1 && (xs == 0 || y1 == y2) && xe == D_width - 1 && y2 == D_height - 1 && (!bce || D_BE))
     {
-#ifdef AUTO_NUKE
       if (x1 == 0 && y1 == 0 && D_auto_nuke)
 	NukePending();
-#endif
       if (x1 == 0 && y1 == 0 && D_CL)
 	{
 	  AddCStr(D_CL);
@@ -1250,8 +1072,7 @@ int x1, y1, xs, xe, x2, y2, bce, uselayfn;
  * too expensive over a low baud line.
  */
 void
-Redisplay(cur_only)
-int cur_only;
+Redisplay(int cur_only)
 {
   ASSERT(display);
 
@@ -1266,9 +1087,7 @@ int cur_only;
   SetFlow(FLOW_NOW);
 
   ClearAll();
-#ifdef RXVT_OSC
   RefreshXtermOSC();
-#endif
   if (cur_only > 0 && D_fore)
     RefreshArea(0, D_fore->w_y, D_width - 1, D_fore->w_y, 1);
   else
@@ -1278,8 +1097,7 @@ int cur_only;
 }
 
 void
-RedisplayDisplays(cur_only)
-int cur_only;
+RedisplayDisplays(int cur_only)
 {
   struct display *olddisplay = display;
   for (display = displays; display; display = display->d_next)
@@ -1290,9 +1108,7 @@ int cur_only;
 
 /* XXX: use oml! */
 void
-ScrollH(y, xs, xe, n, bce, oml)
-int y, xs, xe, n, bce;
-struct mline *oml;
+ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
 {
   int i;
 
@@ -1307,10 +1123,8 @@ struct mline *oml;
   GotoPos(xs, y);
   if (D_UT)
     SetRendition(&mchar_null);
-#ifdef COLOR
   if (D_BE)
     SetBackColor(bce);
-#endif
   if (n > 0)
     {
       if (n >= xe - xs + 1)
@@ -1346,9 +1160,7 @@ struct mline *oml;
 	    {
 	      InsertMode(1);
 	      SetRendition(&mchar_null);
-#ifdef COLOR
 	      SetBackColor(bce);
-#endif
 	      for (i = -n; i--; )
 		INSERTCHAR(' ');
 	      bce = 0;	/* all done */
@@ -1363,9 +1175,7 @@ struct mline *oml;
       else
 	{
 	  SetRendition(&mchar_null);
-#ifdef COLOR
 	  SetBackColor(bce);
-#endif
 	  for (i = -n; i--; )
 	    INSERTCHAR(' ');
 	  bce = 0;	/* all done */
@@ -1387,8 +1197,7 @@ struct mline *oml;
 }
 
 void
-ScrollV(xs, ys, xe, ye, n, bce)
-int xs, ys, xe, ye, n, bce;
+ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 {
   int i;
   int up;
@@ -1461,10 +1270,8 @@ int xs, ys, xe, ye, n, bce;
 
   if (D_UT)
     SetRendition(&mchar_null);
-#ifdef COLOR
   if (D_BE)
     SetBackColor(bce);
-#endif
 
   aldlfaster = (n > 1 && ys >= D_top && ye == D_bot && ((up && D_CDL) || (!up && D_CAL)));
 
@@ -1526,19 +1333,16 @@ int xs, ys, xe, ye, n, bce;
 }
 
 void
-SetAttr(new)
-register int new;
+SetAttr(register int new)
 {
   register int i, j, old, typ;
 
   if (!display || (old = D_rend.attr) == new)
     return;
-#ifdef COLORS16
   D_col16change = (old ^ new) & (A_BFG | A_BBG);
   new ^= D_col16change;
   if (old == new)
     return;
-#endif
 #if defined(TERMINFO) && defined(USE_SGR)
   if (D_SA)
     {
@@ -1550,10 +1354,8 @@ register int new;
 			0), 1, DoAddChar);
       D_rend.attr = new;
       D_atyp = 0;
-# ifdef COLOR
       if (D_hascolor)
 	rend_setdefault(&D_rend);
-# endif
       return;
     }
 #endif
@@ -1568,21 +1370,15 @@ register int new;
       if ((typ & ATYP_M))
 	{
           AddCStr(D_ME);
-#ifdef COLOR
 	  /* ansi attrib handling: \E[m resets color, too */
 	  if (D_hascolor)
 	    rend_setdefault(&D_rend);
-#endif
-#ifdef FONT
 	  if (!D_CG0)
 	    {
 	      /* D_ME may also reset the alternate charset */
 	      D_rend.font = 0;
-# ifdef ENCODINGS
 	      D_realfont = 0;
-# endif
 	    }
-#endif
 	}
       old = 0;
       typ = 0;
@@ -1602,22 +1398,18 @@ register int new;
   D_atyp = typ;
 }
 
-#ifdef FONT
 void
-SetFont(new)
-int new;
+SetFont(int new)
 {
   int old = D_rend.font;
   if (!display || old == new)
     return;
   D_rend.font = new;
-#ifdef ENCODINGS
   if (D_encoding && CanEncodeFont(D_encoding, new))
     return;
   if (new == D_realfont)
     return;
   D_realfont = new;
-#endif
   if (D_xtable && D_xtable[(int)(unsigned char)new] &&
       D_xtable[(int)(unsigned char)new][256])
     {
@@ -1634,7 +1426,6 @@ int new;
 
   if (new == ASCII)
     AddCStr(D_CE0);
-#ifdef DW_CHARS
   else if (new < ' ')
     {
       AddStr("\033$");
@@ -1642,17 +1433,13 @@ int new;
         AddChar('(');
       AddChar(new + '@');
     }
-#endif
   else
     AddCStr2(D_CS0, new);
 }
-#endif
 
-#ifdef COLOR
 
 int
-color256to16(jj)
-int jj;
+color256to16(int jj)
 {
   int min, max;
   int r, g, b;
@@ -1679,10 +1466,8 @@ min) / (max - min) | (max > 3 ? 8 : 0);
   return jj;
 }
 
-#ifdef COLORS256
 int
-color256to88(jj)
-int jj;
+color256to88(int jj)
 {
   int r, g, b;
 
@@ -1698,11 +1483,9 @@ int jj;
     }
   return jj;
 }
-#endif
 
 void
-SetColor(f, b)
-int f, b;
+SetColor(int f, int b)
 {
   int of, ob;
   static unsigned char sftrans[8] = {0,4,2,6,1,5,3,7};
@@ -1713,13 +1496,11 @@ int f, b;
   of = rend_getfg(&D_rend);
   ob = rend_getbg(&D_rend);
 
-#ifdef COLORS16
   /* intense default not invented yet */
   if (f == 0x100)
     f = 0;
   if (b == 0x100)
     b = 0;
-#endif
   debug2("SetColor %d %d", coli2e(of), coli2e(ob));
   debug2(" -> %d %d\n", coli2e(f), coli2e(b));
   debug2("(%d %d", of, ob);
@@ -1734,16 +1515,12 @@ int f, b;
 	  int oattr;
 	  oattr = D_rend.attr;
 	  AddCStr(D_ME ? D_ME : "\033[m");
-#ifdef FONT
 	  if (D_ME && !D_CG0)
 	    {
 	      /* D_ME may also reset the alternate charset */
 	      D_rend.font = 0;
-# ifdef ENCODINGS
 	      D_realfont = 0;
-# endif
 	    }
-#endif
 	  D_atyp = 0;
 	  D_rend.attr = 0;
 	  SetAttr(oattr);
@@ -1752,16 +1529,13 @@ int f, b;
     }
   rend_setfg(&D_rend, f);
   rend_setbg(&D_rend, b);
-#ifdef COLORS16
   D_col16change = 0;
-#endif
   if (!D_hascolor)
     return;
   f = f ? coli2e(f) : -1;
   b = b ? coli2e(b) : -1;
   of = of ? coli2e(of) : -1;
   ob = ob ? coli2e(ob) : -1;
-#ifdef COLORS256
   if (f != of && f > 15 && D_CCO != 256)
     f = D_CCO == 88 && D_CAF ? color256to88(f) : color256to16(f);
   if (f != of && f > 15 && D_CAF)
@@ -1776,7 +1550,6 @@ int f, b;
       AddCStr2(D_CAB, b);
       ob = b;
     }
-#endif
   if (f != of && f != (of | 8))
     {
       if (f == -1)
@@ -1795,7 +1568,6 @@ int f, b;
       else if (D_CSB)
 	AddCStr2(D_CSB, sftrans[b & 7]);
     }
-#ifdef COLORS16
   if (f != of && D_CXT && (f & 8) != 0 && f != -1)
     {
 # ifdef TERMINFO
@@ -1812,26 +1584,21 @@ int f, b;
       AddCStr2("\033[10%dm", b & 7);
 # endif
     }
-#endif
 }
 
 static void
-SetBackColor(new)
-int new;
+SetBackColor(int new)
 {
   if (!display)
     return;
   SetColor(rend_getfg(&D_rend), new);
 }
-#endif /* COLOR */
 
 void
-SetRendition(mc)
-struct mchar *mc;
+SetRendition(struct mchar *mc)
 {
   if (!display)
     return;
-#ifdef COLOR
   if (nattr2color && D_hascolor && (mc->attr & nattr2color) != 0)
     {
       static struct mchar mmc;
@@ -1852,7 +1619,6 @@ struct mchar *mc;
       mc = &mmc;
       debug2("SetRendition: mapped to %02x %02x\n", (unsigned char)mc->attr, 0x99 - (unsigned char)mc->color);
     }
-# ifdef COLORS16
   if (D_hascolor && D_CC8 && (mc->attr & (A_BFG|A_BBG)))
     {
       int a = mc->attr;
@@ -1864,36 +1630,23 @@ struct mchar *mc;
         SetAttr(a);
     }
   else
-# endif /* COLORS16 */
-#endif /* COLOR */
     if (D_rend.attr != mc->attr)
     SetAttr(mc->attr);
 
-#ifdef COLOR
   if (D_rend.color != mc->color
-# ifdef COLORS256
       || D_rend.colorx != mc->colorx
-# endif
-# ifdef COLORS16
       || D_col16change
-# endif
     )
     SetColor(rend_getfg(mc), rend_getbg(mc));
-#endif
-#ifdef FONT
   if (D_rend.font != mc->font)
     SetFont(mc->font);
-#endif
 }
 
 void
-SetRenditionMline(ml, x)
-struct mline *ml;
-int x;
+SetRenditionMline(struct mline *ml, int x)
 {
   if (!display)
     return;
-#ifdef COLOR
   if (nattr2color && D_hascolor && (ml->attr[x] & nattr2color) != 0)
     {
       struct mchar mc;
@@ -1901,7 +1654,6 @@ int x;
       SetRendition(&mc);
       return;
     }
-# ifdef COLORS16
   if (D_hascolor && D_CC8 && (ml->attr[x] & (A_BFG|A_BBG)))
     {
       int a = ml->attr[x];
@@ -1913,34 +1665,23 @@ int x;
         SetAttr(a);
     }
   else
-# endif /* COLORS16 */
-#endif /* COLOR */
     if (D_rend.attr != ml->attr[x])
     SetAttr(ml->attr[x]);
-#ifdef COLOR
   if (D_rend.color != ml->color[x]
-# ifdef COLORS256
       || D_rend.colorx != ml->colorx[x]
-# endif
-# ifdef COLORS16
       || D_col16change
-# endif
     )
     {
       struct mchar mc;
       copy_mline2mchar(&mc, ml, x);
       SetColor(rend_getfg(&mc), rend_getbg(&mc));
     }
-#endif
-#ifdef FONT
   if (D_rend.font != ml->font[x])
     SetFont(ml->font[x]);
-#endif
 }
 
 void
-MakeStatus(msg)
-char *msg;
+MakeStatus(char *msg)
 {
   register char *s, *t;
   register int max;
@@ -2002,7 +1743,7 @@ char *msg;
 	}
     }
   if (t - msg < D_status_buflen)
-    strcpy(D_status_lastmsg, msg);
+    strncpy(D_status_lastmsg, msg, D_status_buflen);
   D_status_len = t - msg;
   D_status_lastx = D_x;
   D_status_lasty = D_y;
@@ -2118,12 +1859,10 @@ RemoveStatusMinWait()
   RemoveStatus();
 }
 
-#ifdef UTF8
 static int
-strlen_onscreen(unsigned char *c, unsigned char *end)
+strlen_onscreen(char *c, char *end)
 {
   int len = 0;
-  char *s = c;
   while (*c && (!end || c < end))
     {
       int v, dec = 0;
@@ -2146,9 +1885,7 @@ strlen_onscreen(unsigned char *c, unsigned char *end)
 }
 
 static int
-PrePutWinMsg(s, start, max)
-char *s;
-int start, max;
+PrePutWinMsg(char *s, int start, int max)
 {
   /* Avoid double-encoding problem for a UTF-8 message on a UTF-8 locale.
      Ideally, this would not be necessary. But fixing it the Right Way will
@@ -2170,21 +1907,10 @@ int start, max;
       return max;
     }
 }
-#else
-static int
-PrePutWinMsg(s, start, max)
-char *s;
-int start, max;
-{
-  PutWinMsg(s, start, max);
-  return max;
-}
-#endif
 
 /* refresh the display's hstatus line */
 void
-ShowHStatus(str)
-char *str;
+ShowHStatus(char *str)
 {
   int l, ox, oy, max;
 
@@ -2248,7 +1974,7 @@ char *str;
       GotoPos(0, 0);
       SetRendition(captionalways || D_cvlist == 0 || D_cvlist->c_next ? &mchar_null: &mchar_so);
       l = PrePutWinMsg(str, 0, l);
-      if (!captionalways || D_cvlist && !D_cvlist->c_next)
+      if (!captionalways || (D_cvlist && !D_cvlist->c_next))
         while (l++ < D_width)
           PUTCHARLP(' ');
       if (l < D_width)
@@ -2294,8 +2020,7 @@ RefreshHStatus()
  */
 
 void
-RefreshAll(isblank)
-int isblank;
+RefreshAll(int isblank)
 {
   struct canvas *cv;
 
@@ -2310,8 +2035,7 @@ int isblank;
 }
 
 void
-RefreshArea(xs, ys, xe, ye, isblank)
-int xs, ys, xe, ye, isblank;
+RefreshArea(int xs, int ys, int xe, int ye, int isblank)
 {
   int y;
   ASSERT(display);
@@ -2327,8 +2051,7 @@ int xs, ys, xe, ye, isblank;
 }
 
 void
-RefreshLine(y, from, to, isblank)
-int y, from, to, isblank;
+RefreshLine(int y, int from, int to, int isblank)
 {
   struct viewport *vp, *lvp;
   struct canvas *cv, *lcv, *cvlist, *cvlnext;
@@ -2358,7 +2081,7 @@ int y, from, to, isblank;
       isblank = 1;
     }
 
-  if (y == D_height - 1 && D_has_hstatus == HSTATUS_LASTLINE || (y == 0 && D_has_hstatus == HSTATUS_FIRSTLINE) )
+  if ((y == D_height - 1 && D_has_hstatus == HSTATUS_LASTLINE) || (y == 0 && D_has_hstatus == HSTATUS_FIRSTLINE) )
     {
       RefreshHStatus();
       return;
@@ -2479,8 +2202,7 @@ int y, from, to, isblank;
  * position must be safe.
  */
 static void
-WriteLP(x2, y2)
-int x2, y2;
+WriteLP(int x2, int y2)
 {
   struct mchar oldrend;
 
@@ -2488,7 +2210,6 @@ int x2, y2;
   ASSERT(D_lp_missing);
   oldrend = D_rend;
   debug2("WriteLP(%d,%d)\n", x2, y2);
-#ifdef DW_CHARS
   if (D_lpchar.mbcs)
     {
       if (x2 > 0)
@@ -2496,36 +2217,27 @@ int x2, y2;
       else
 	D_lpchar = mchar_blank;
     }
-#endif
   /* Can't use PutChar */
   GotoPos(x2, y2);
   SetRendition(&D_lpchar);
   PUTCHAR(D_lpchar.image);
-#ifdef DW_CHARS
   if (D_lpchar.mbcs)
     PUTCHAR(D_lpchar.mbcs);
-#endif
   D_lp_missing = 0;
   SetRendition(&oldrend);
 }
 
 void
-ClearLine(oml, y, from, to, bce)
-struct mline *oml;
-int from, to, y, bce;
+ClearLine(struct mline *oml, int y, int from, int to, int bce)
 {
   int x;
-#ifdef COLOR
   struct mchar bcechar;
-#endif
 
   debug3("ClearLine %d,%d-%d\n", y, from, to);
   if (D_UT)	/* Safe to erase ? */
     SetRendition(&mchar_null);
-#ifdef COLOR
   if (D_BE)
     SetBackColor(bce);
-#endif
   if (from == 0 && D_CB && (to != D_width - 1 || (D_x == to && D_y == y)) && (!bce || D_BE))
     {
       GotoPos(to, y);
@@ -2540,7 +2252,6 @@ int from, to, y, bce;
     }
   if (oml == 0)
     oml = &mline_null;
-#ifdef COLOR
   if (!bce)
     {
       DisplayLine(oml, &mline_blank, y, from, to);
@@ -2551,15 +2262,10 @@ int from, to, y, bce;
   for (x = from; x <= to; x++)
     copy_mchar2mline(&bcechar, &mline_old, x);
   DisplayLine(oml, &mline_old, y, from, to);
-#else
-  DisplayLine(oml, &mline_blank, y, from, to);
-#endif
 }
 
 void
-DisplayLine(oml, ml, y, from, to)
-struct mline *oml, *ml;
-int from, to, y;
+DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 {
   register int x;
   int last2flag = 0, delete_lp = 0;
@@ -2572,11 +2278,7 @@ int from, to, y;
     {
       if (D_lp_missing || !cmp_mline(oml, ml, to))
 	{
-#ifdef DW_CHARS
 	  if ((D_IC || D_IM) && from < to && !dw_left(ml, to, D_encoding))
-#else
-	  if ((D_IC || D_IM) && from < to)
-#endif
 	    {
 	      last2flag = 1;
 	      D_lp_missing = 0;
@@ -2591,7 +2293,6 @@ int from, to, y;
 	}
       to--;
     }
-#ifdef DW_CHARS
   if (D_mbcs)
     {
       /* finish dw-char (can happen after a wrap) */
@@ -2600,19 +2301,14 @@ int from, to, y;
       PUTCHAR(ml->image[from]);
       from++;
     }
-#endif
   for (x = from; x <= to; x++)
     {
-#if 0	/* no longer needed */
-      if (x || D_x != D_width || D_y != y - 1)
-#endif
         {
 	  if (x < to || x != D_width - 1 || ml->image[x + 1])
 	    if (cmp_mline(oml, ml, x))
 	      continue;
 	  GotoPos(x, y);
         }
-#ifdef DW_CHARS
       if (dw_right(ml, x, D_encoding))
 	{
 	  x--;
@@ -2621,19 +2317,11 @@ int from, to, y;
 	}
       if (x == to && dw_left(ml, x, D_encoding))
 	break;	/* don't start new kanji */
-#endif
       SetRenditionMline(ml, x);
       PUTCHAR(ml->image[x]);
-#ifdef DW_CHARS
       if (dw_left(ml, x, D_encoding))
         PUTCHAR(ml->image[++x]);
-#endif
     }
-#if 0	/* not needed any longer */
-  /* compare != 0 because ' ' can happen when clipping occures */
-  if (to == D_width - 1 && y < D_height - 1 && D_x == D_width && ml->image[to + 1])
-    GotoPos(0, y + 1);
-#endif
   if (last2flag)
     {
       GotoPos(x, y);
@@ -2657,30 +2345,21 @@ int from, to, y;
 }
 
 void
-PutChar(c, x, y)
-struct mchar *c;
-int x, y;
+PutChar(struct mchar *c, int x, int y)
 {
   GotoPos(x, y);
   SetRendition(c);
   PUTCHARLP(c->image);
-#ifdef DW_CHARS
   if (c->mbcs)
     {
-# ifdef UTF8
       if (D_encoding == UTF8)
         D_rend.font = 0;
-# endif
       PUTCHARLP(c->mbcs);
     }
-#endif
 }
 
 void
-InsChar(c, x, xe, y, oml)
-struct mchar *c;
-int x, xe, y;
-struct mline *oml;
+InsChar(struct mchar *c, int x, int xe, int y, struct mline *oml)
 {
   GotoPos(x, y);
   if (y == D_bot && !D_CLP)
@@ -2710,51 +2389,32 @@ struct mline *oml;
   InsertMode(1);
   if (!D_insert)
     {
-#ifdef DW_CHARS
       if (c->mbcs && D_IC)
         AddCStr(D_IC);
       if (D_IC)
         AddCStr(D_IC);
       else
         AddCStr2(D_CIC, c->mbcs ? 2 : 1);
-#else
-      if (D_IC)
-        AddCStr(D_IC);
-      else
-        AddCStr2(D_CIC, 1);
-#endif
     }
   SetRendition(c);
   RAW_PUTCHAR(c->image);
-#ifdef DW_CHARS
   if (c->mbcs)
     {
-# ifdef UTF8
       if (D_encoding == UTF8)
 	D_rend.font = 0;
-# endif
       if (D_x == D_width - 1)
 	PUTCHARLP(c->mbcs);
       else
 	RAW_PUTCHAR(c->mbcs);
     }
-#endif
 }
 
 void
-WrapChar(c, x, y, xs, ys, xe, ye, ins)
-struct mchar *c;
-int x, y;
-int xs, ys, xe, ye;
-int ins;
+WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int ins)
 {
   int bce;
 
-#ifdef COLOR
   bce = rend_getbg(c);
-#else
-  bce = 0;
-#endif
   debug("WrapChar:");
   debug2("  x %d  y %d", x, y);
   debug2("  Dx %d  Dy %d", D_x, D_y);
@@ -2812,22 +2472,17 @@ int ins;
   D_x = 0;
   SetRendition(c);
   RAW_PUTCHAR(c->image);
-#ifdef DW_CHARS
   if (c->mbcs)
     {
-# ifdef UTF8
       if (D_encoding == UTF8)
 	D_rend.font = 0;
-# endif
       RAW_PUTCHAR(c->mbcs);
     }
-#endif
   debug2(" -> done (%d,%d)\n", D_x, D_y);
 }
 
 int
-ResizeDisplay(wi, he)
-int wi, he;
+ResizeDisplay(int wi, int he)
 {
   ASSERT(display);
   debug2("ResizeDisplay: to (%d,%d).\n", wi, he);
@@ -2854,8 +2509,7 @@ int wi, he;
 }
 
 void
-ChangeScrollRegion(newtop, newbot)
-int newtop, newbot;
+ChangeScrollRegion(int newtop, int newbot)
 {
   if (display == 0)
     return;
@@ -2880,13 +2534,10 @@ int newtop, newbot;
   D_y = D_x = -1;		/* Just in case... */
 }
 
-#ifdef RXVT_OSC
 #define WT_FLAG "2"	/* change to "0" to set both title and icon */
 
 void
-SetXtermOSC(i, s)
-int i;
-char *s;
+SetXtermOSC(int i, char *s)
 {
   static char *oscs[][2] = {
     { WT_FLAG ";", "screen" }, /* set window title */
@@ -2923,48 +2574,40 @@ ClearAllXtermOSC()
     AddStr("\033[23;" WT_FLAG "t");	/* unstack titles (xterm patch #251) */
 }
 #undef WT_FLAG
-#endif
 
 /*
  *  Output buffering routines
  */
 
 void
-AddStr(str)
-char *str;
+AddStr(char *str)
 {
   register char c;
 
   ASSERT(display);
 
-#ifdef UTF8
   if (D_encoding == UTF8)
     {
       while ((c = *str++))
         AddUtf8((unsigned char)c);
       return;
     }
-#endif
   while ((c = *str++))
     AddChar(c);
 }
 
 void
-AddStrn(str, n)
-char *str;
-int n;
+AddStrn(char *str, int n)
 {
   register char c;
 
   ASSERT(display);
-#ifdef UTF8
   if (D_encoding == UTF8)
     {
       while ((c = *str++) && n-- > 0)
         AddUtf8((unsigned char)c);
     }
   else
-#endif
   while ((c = *str++) && n-- > 0)
     AddChar(c);
   while (n-- > 0)
@@ -2972,8 +2615,7 @@ int n;
 }
 
 void
-Flush(progress)
-int progress;
+Flush(int progress)
 {
   register int l;
   int wr;
@@ -3106,9 +2748,7 @@ Resize_obuf()
 }
 
 void
-DisplaySleep1000(n, eat)
-int n;
-int eat;
+DisplaySleep1000(int n, int eat)
 {
   char buf;
   fd_set r;
@@ -3135,7 +2775,6 @@ int eat;
   debug2("DisplaySleep(%d) ending, eat was %d\n", n, eat);
 }
 
-#ifdef AUTO_NUKE
 void
 NukePending()
 {/* Nuke pending output in current display, clear screen */
@@ -3169,10 +2808,8 @@ NukePending()
     AddCStr(D_ME);
   else
     {
-#ifdef COLOR
       if (D_hascolor)
 	AddStr("\033[m");	/* why is D_ME not set? */
-#endif
       AddCStr(D_SE);
       AddCStr(D_UE);
     }
@@ -3181,19 +2818,10 @@ NukePending()
     AddCStr(D_EI);
   D_insert = 0;
   /* Check for toggle */
-#ifdef MAPKEYS
   if (D_KS && strcmp(D_KS, D_KE))
     AddCStr(D_KS);
   if (D_CCS && strcmp(D_CCS, D_CCE))
     AddCStr(D_CCS);
-#else
-  if (D_KS && strcmp(D_KS, D_KE))
-    AddCStr(D_KE);
-  D_keypad = 0;
-  if (D_CCS && strcmp(D_CCS, D_CCE))
-    AddCStr(D_CCE);
-  D_cursorkeys = 0;
-#endif
   AddCStr(D_CE0);
   D_rend = mchar_null;
   D_atyp = 0;
@@ -3218,16 +2846,13 @@ NukePending()
       AddCStr(D_width == Z0width ? D_CZ0 : D_CZ1);
     }
 }
-#endif /* AUTO_NUKE */
 
 #ifdef linux
 /* linux' select can't handle flow control, so wait 100ms if
  * we get EAGAIN
  */
 static void
-disp_writeev_eagain(ev, data)
-struct event *ev;
-char *data;
+disp_writeev_eagain(struct event *ev, char *data)
 {
   display = (struct display *)data;
   evdeq(&D_writeev);
@@ -3238,9 +2863,7 @@ char *data;
 #endif
 
 static void
-disp_writeev_fn(ev, data)
-struct event *ev;
-char *data;
+disp_writeev_fn(struct event *ev, char *data)
 {
   int len, size = OUTPUT_BLOCK_SIZE;
 
@@ -3257,7 +2880,7 @@ char *data;
       len -= size;
       if (len)
 	{
-	  bcopy(D_obuf + size, D_obuf, len);
+	  memmove(D_obuf, D_obuf + size, len);
 	  debug2("ASYNC: wrote %d - remaining %d\n", size, len);
 	}
       D_obufp -= size;
@@ -3281,9 +2904,6 @@ char *data;
 	      gettimeofday(&D_status_time, NULL);
 	      SetTimeout(&D_statusev, MsgWait);
 	      evenq(&D_statusev);
-#ifdef HAVE_BRAILLE
-	      RefreshBraille();     /* let user see multiple Msg()s */
-#endif
 	    }
 	}
       if (D_blocked_fuzz)
@@ -3336,9 +2956,7 @@ char *data;
 }
 
 static void
-disp_readev_fn(ev, data)
-struct event *ev;
-char *data;
+disp_readev_fn(struct event *ev, char *data)
 {
   int size;
   char buf[IOSIZE];
@@ -3360,11 +2978,9 @@ char *data;
     size = IOSIZE;
   else
     {
-#ifdef PSEUDOS
       if (W_UWP(D_fore))
 	size = sizeof(D_fore->w_pwin->p_inbuf) - D_fore->w_pwin->p_inlen;
       else
-#endif
 	size = sizeof(D_fore->w_inbuf) - D_fore->w_inlen;
     }
 
@@ -3397,14 +3013,11 @@ char *data;
   if (D_blocked == 4)
     {
       D_blocked = 0;
-#ifdef BLANKER_PRG
       KillBlanker();
-#endif
       Activate(D_fore ? D_fore->w_norefresh : 0);
       ResetIdle();
       return;
     }
-#ifdef ZMODEM
   if (D_blocked > 1)	/* 2, 3 */
     {
       char *bufp;
@@ -3423,7 +3036,6 @@ char *data;
       debug("zmodem window gone, deblocking display");
       zmodem_abort(0, display);
     }
-#endif
   if (idletimo > 0)
     ResetIdle();
   if (D_fore)
@@ -3474,18 +3086,17 @@ char *data;
 	    }
 	  if (bp[0] == '[')
 	    {
-	      bcopy((char *)bp + 1, (char *)bp, i);
+	      memmove((char *)bp, (char *)bp + 1, i);
 	      bp--;
 	      size--;
 	    }
 	  if (i > 5)
-	    bcopy((char *)bp + 5, (char *)bp, i - 5);
+	    memmove((char *)bp, (char *)bp + 5, i - 5);
 	  bp--;
 	  i -= 4;
 	  size -= 5;
 	}
     }
-#ifdef ENCODINGS
   if (D_encoding != (D_forecv ? D_forecv->c_layer->l_encoding : 0))
     {
       int i, j, c, enc;
@@ -3513,14 +3124,11 @@ char *data;
       (*D_processinput)(buf2, j);
       return;
     }
-#endif
   (*D_processinput)(buf, size);
 }
 
 static void
-disp_status_fn(ev, data)
-struct event *ev;
-char *data;
+disp_status_fn(struct event *ev, char *data)
 {
   display = (struct display *)data;
   debug1("disp_status_fn for display %x\n", (int)display);
@@ -3529,9 +3137,7 @@ char *data;
 }
 
 static void
-disp_hstatus_fn(ev, data)
-struct event *ev;
-char *data;
+disp_hstatus_fn(struct event *ev, char *data)
 {
   display = (struct display *)data;
   if (D_status == STATUS_ON_HS)
@@ -3544,9 +3150,7 @@ char *data;
 }
 
 static void
-disp_blocked_fn(ev, data)
-struct event *ev;
-char *data;
+disp_blocked_fn(struct event *ev, char *data)
 {
   struct win *p;
 
@@ -3566,11 +3170,8 @@ char *data;
     }
 }
 
-#ifdef MAPKEYS
 static void
-disp_map_fn(ev, data)
-struct event *ev;
-char *data;
+disp_map_fn(struct event *ev, char *data)
 {
   char *p;
   int l, i;
@@ -3600,12 +3201,9 @@ char *data;
     D_dontmap = 1;
   ProcessInput(p, l);
 }
-#endif
 
 static void
-disp_idle_fn(ev, data)
-struct event *ev;
-char *data;
+disp_idle_fn(struct event *ev, char *data)
 {
   struct display *olddisplay;
   display = (struct display *)data;
@@ -3639,12 +3237,9 @@ ResetIdle()
 }
 
 
-#ifdef BLANKER_PRG
 
 static void
-disp_blanker_fn(ev, data)
-struct event *ev;
-char *data;
+disp_blanker_fn(struct event *ev, char *data)
 {
   char buf[IOSIZE], *b;
   int size;
@@ -3685,10 +3280,8 @@ KillBlanker()
     }
   else
     {
-#ifdef COLOR
       if (D_hascolor)
 	AddStr("\033[m\033[m");	/* why is D_ME not set? */
-#endif
       AddCStr(D_SE);
       AddCStr(D_UE);
     }
@@ -3704,19 +3297,18 @@ KillBlanker()
 }
 
 void
-RunBlanker(cmdv)
-char **cmdv;
+RunBlanker(char **cmdv)
 {
   char *m;
   int pid;
   int slave = -1;
-  char termname[30];
+  char termname[NAME_MAX + 1];
 #ifndef TIOCSWINSZ
   char libuf[20], cobuf[20];
 #endif
   char **np;
 
-  strcpy(termname, "TERM=");
+  strncpy(termname, "TERM=", 6);
   strncpy(termname + 5, D_termname, sizeof(termname) - 6);
   termname[sizeof(termname) - 1] = 0;
   KillBlanker();
@@ -3799,6 +3391,10 @@ char **cmdv;
   ClearAll();
 }
 
-#endif /* BLANKER_PRG */
 
-
+voif
+ClearScrollbackBuffer()
+{
+  if (D_CE3)
+    AddCStr(D_CE3);
+}

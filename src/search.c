@@ -35,33 +35,27 @@
 
 #define INPUTLINE (flayer->l_height - 1)
 
-extern struct layer *flayer;
-extern struct win *fore;
-
-#ifdef COPY_PASTE
-
 int search_ic;
 
 /********************************************************************
  *  VI style Search
  */
 
-static int  matchword __P((char *, int, int, int));
-static void searchend __P((char *, int, char *));
-static void backsearchend __P((char *, int, char *));
+static int  matchword (char *, int, int, int);
+static void searchend (char *, int, char *);
+static void backsearchend (char *, int, char *);
 
 void
-Search(dir)
-int dir;
+Search(int dir)
 {
   struct markdata *markdata;
   if (dir == 0)
     {
       markdata = (struct markdata *)flayer->l_data;
       if (markdata->isdir > 0)
-	searchend(0, 0, NULL);
+	searchend(0, 0, 0);
       else if (markdata->isdir < 0)
-	backsearchend(0, 0, NULL);
+	backsearchend(0, 0, 0);
       else
 	LMsg(0, "No previous pattern");
     }
@@ -71,10 +65,7 @@ int dir;
 }
 
 static void
-searchend(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+searchend(char *buf, int len, char *dummy)
 {
   int x = 0, sx, ex, y;
   struct markdata *markdata;
@@ -102,10 +93,7 @@ char *data;	/* dummy */
 }
 
 static void
-backsearchend(buf, len, data)
-char *buf;
-int len;
-char *data;	/* dummy */
+backsearchend(char *buf, int len, char *dummy)
 {
   int sx, ex, x = -1, y;
   struct markdata *markdata;
@@ -133,9 +121,7 @@ char *data;	/* dummy */
 }
 
 static int
-matchword(pattern, y, sx, ex)
-char *pattern;
-int y, sx, ex;
+matchword(char *pattern, int y, int sx, int ex)
 {
   unsigned char *ip, *ipe, *cp, *pp;
   struct mline *ml;
@@ -177,15 +163,13 @@ static char *isprompts[] = {
 };
 
 
-static int  is_redo __P((struct markdata *));
-static void is_process __P((char *, int, char *));
-static int  is_bm __P((char *, int, int, int, int));
+static int  is_redo (struct markdata *);
+static void is_process (char *, int, char *);
+static int  is_bm (char *, int, int, int, int);
 
 
 static int
-is_bm(str, l, p, end, dir)
-char *str;
-int l, p, end, dir;
+is_bm(char *str, int l, int p, int end, int dir)
 {
   int tab[256];
   int i, q;
@@ -238,10 +222,7 @@ int l, p, end, dir;
 
 /*ARGSUSED*/
 static void
-is_process(p, n, data)	/* i-search */
-char *p;
-int n;
-char *data;	/* dummy */
+is_process(char *p, int n, char *data)	/* i-search */
 {
   int pos, x, y, dir;
   struct markdata *markdata;
@@ -326,8 +307,7 @@ char *data;	/* dummy */
 }
 
 static int
-is_redo(markdata)
-struct markdata *markdata;
+is_redo(struct markdata *markdata)
 {
   int i, pos, npos, dir;
   char c;
@@ -357,8 +337,7 @@ struct markdata *markdata;
 }
 
 void
-ISearch(dir)
-int dir;
+ISearch(int dir)
 {
   struct markdata *markdata;
 
@@ -375,4 +354,3 @@ int dir;
   flayer->l_y = W2D(markdata->cy);
 }
 
-#endif /* COPY_PASTE */

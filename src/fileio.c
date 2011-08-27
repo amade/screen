@@ -39,30 +39,15 @@
 #include "screen.h"
 #include "extern.h"
 
-extern struct display *display, *displays;
-extern struct win *fore;
-extern struct layer *flayer;
-extern int real_uid, eff_uid;
-extern int real_gid, eff_gid;
-extern char *extra_incap, *extra_outcap;
-extern char *home, *RcFileName;
-extern char SockPath[], *SockName;
-#ifdef COPY_PASTE
-extern char *BufferFile;
-#endif
-extern int hardcopy_append;
-extern char *hardcopydir;
-
-static char *CatExtra __P((char *, char *));
-static char *findrcfile __P((char *));
+static char *CatExtra (char *, char *);
+static char *findrcfile (char *);
 
 
 char *rc_name = "";
 int rc_recursion = 0;
 
 static char *
-CatExtra(str1, str2)
-register char *str1, *str2;
+CatExtra(register char *str1, register char *str2)
 {
   register char *cp;
   register int len1, len2, add_colon;
@@ -76,17 +61,15 @@ register char *str1, *str2;
       len2 = strlen(str2);
       if ((cp = realloc(str2, (unsigned) len1 + len2 + add_colon + 1)) == NULL)
 	Panic(0, "%s", strnomem);
-      bcopy(cp, cp + len1 + add_colon, len2 + 1);
+      memmove(cp + len1 + add_colon, cp, len2 + 1);
     }
   else
     {
-      if (len1 == 0)
-	return 0;
       if ((cp = malloc((unsigned) len1 + add_colon + 1)) == NULL)
 	Panic(0, "%s", strnomem);
       cp[len1 + add_colon] = '\0';
     }
-  bcopy(str1, cp, len1);
+  memmove(cp, str1, len1);
   if (add_colon)
     cp[len1] = ':';
 
@@ -94,8 +77,7 @@ register char *str1, *str2;
 }
 
 static char *
-findrcfile(rcfile)
-char *rcfile;
+findrcfile(char *rcfile)
 {
   char buf[256];
   char *p;
@@ -138,11 +120,11 @@ char *rcfile;
 
   if (rcfile)
     {
-      char *rcend = rindex(rc_name, '/');
+      char *rcend = strrchr(rc_name, '/');
       if (*rcfile != '/' && rcend && (rcend - rc_name) + strlen(rcfile) + 2 < sizeof(buf))
 	{
 	  strncpy(buf, rc_name, rcend - rc_name + 1);
-	  strcpy(buf + (rcend - rc_name) + 1, rcfile);
+	  strncpy(buf + (rcend - rc_name) + 1, rcfile, 256 - (rcend - rc_name));
 	  if (access(buf, R_OK) == 0)
 	    return SaveStr(buf);
 	}
@@ -171,9 +153,7 @@ char *rcfile;
  * 2) rcfilename = RcFileName
  */
 int
-StartRc(rcfilename, nopanic)
-char *rcfilename;
-int nopanic;
+StartRc(char *rcfilename, int nopanic)
 {
   register int argc, len;
   register char *p, *cp;
@@ -214,7 +194,7 @@ int nopanic;
     }
   while (fgets(buf, sizeof buf, fp) != NULL)
     {
-      if ((p = rindex(buf, '\n')) != NULL)
+      if ((p = strrchr(buf, '\n')) != NULL)
 	*p = '\0';
       if ((argc = Parse(buf, sizeof buf, args, argl)) == 0)
 	continue;
@@ -261,7 +241,7 @@ int nopanic;
 	    }
 	  for (p = args[1]; p && *p; p = cp)
 	    {
-	      if ((cp = index(p, '|')) != 0)
+	      if ((cp = strchr(p, '|')) != 0)
 		*cp++ = '\0';
 	      len = strlen(p);
 	      if (p[len - 1] == '*')
@@ -295,8 +275,7 @@ int nopanic;
 }
 
 void
-FinishRc(rcfilename)
-char *rcfilename;
+FinishRc(char *rcfilename)
 {
   char buf[2048];
   FILE *fp;
@@ -336,8 +315,7 @@ char *rcfilename;
 }
 
 void
-do_source(rcfilename)
-char *rcfilename;
+do_source(char *rcfilename)
 {
   if (rc_recursion > 10)
     {
@@ -356,16 +334,10 @@ char *rcfilename;
  * This is bad when we run detached.
  */
 void
-RcLine(ubuf, ubufl)
-char *ubuf;
-int ubufl;
+RcLine(char *ubuf, int ubufl)
 {
   char *args[MAXARGS];
   int argl[MAXARGS];
-#ifdef MULTIUSER
-  extern struct acluser *EffectiveAclUser;	/* acl.c */
-  extern struct acluser *users;		/* acl.c */
-#endif
 
   if (display)
     {
@@ -376,34 +348,25 @@ int ubufl;
     flayer = fore ? fore->w_savelayer : 0;
   if (Parse(ubuf, ubufl, args, argl) <= 0)
     return;
-#ifdef MULTIUSER
   if (!display)
     {
       /* the session owner does it, when there is no display here */
       EffectiveAclUser = users;        
       debug("RcLine: WARNING, no display no user! Session owner executes command\n");
     }
-#endif
   DoCommand(args, argl);
-#ifdef MULTIUSER
   EffectiveAclUser = 0;
-#endif
 }
 
 /*
  * needs display for copybuffer access and termcap dumping
  */
 void
-WriteFile(user, fn, dump)
-struct acluser *user;
-char *fn;
-int dump;
+WriteFile(struct acluser *user, char *fn, int dump)
 {
   /* dump==0:	create .termcap,
    * dump==1:	hardcopy,
-   * #ifdef COPY_PASTE
    * dump==2:	BUFFERFILE
-   * #endif COPY_PASTE 
    * dump==1:	scrollback,
    */
   register int i, j, k;
@@ -411,17 +374,15 @@ int dump;
   register FILE *f;
   char fnbuf[1024];
   char *mode = "w";
-#ifdef COPY_PASTE
   int public = 0;
-# ifdef _MODE_T
+#ifdef _MODE_T
   mode_t old_umask;
-# else
+#else
   int old_umask;
-# endif
-# ifdef HAVE_LSTAT
+#endif
+#ifdef HAVE_LSTAT
   struct stat stb, stb2;
   int fd, exists = 0;
-# endif
 #endif
 
   switch (dump)
@@ -433,7 +394,7 @@ int dump;
 	  if (i > (int)sizeof(fnbuf) - 9)
 	    i = 0;
 	  strncpy(fnbuf, SockPath, i);
-	  strcpy(fnbuf + i, ".termcap");
+	  strncpy(fnbuf + i, ".termcap", 9);
 	  fn = fnbuf;
 	}
       break;
@@ -452,36 +413,32 @@ int dump;
       if (hardcopy_append && !access(fn, W_OK))
 	mode = "a";
       break;
-#ifdef COPY_PASTE
     case DUMP_EXCHANGE:
       if (fn == 0)
 	{
 	  strncpy(fnbuf, BufferFile, sizeof(fnbuf) - 1);
-	  fnbuf[sizeof(fnbuf) - 1] = 0;
 	  fn = fnbuf;
 	}
       public = !strcmp(fn, DEFAULT_BUFFERFILE);
-# ifdef HAVE_LSTAT
+#ifdef HAVE_LSTAT
       exists = !lstat(fn, &stb);
       if (public && exists && (S_ISLNK(stb.st_mode) || stb.st_nlink > 1))
 	{
 	  Msg(0, "No write to links, please.");
 	  return;
 	}
-# endif
-      break;
 #endif
+      break;
     }
 
   debug2("WriteFile(%d) %s\n", dump, fn);
   if (UserContext() > 0)
     {
       debug("Writefile: usercontext\n");
-#ifdef COPY_PASTE
       if (dump == DUMP_EXCHANGE && public)
 	{
           old_umask = umask(0);
-# ifdef HAVE_LSTAT
+#ifdef HAVE_LSTAT
 	  if (exists)
 	    {
 	      if ((fd = open(fn, O_WRONLY, 0666)) >= 0)
@@ -498,13 +455,12 @@ int dump;
 	  else
 	    fd = open(fn, O_WRONLY|O_CREAT|O_EXCL, 0666);
 	  f = fd >= 0 ? fdopen(fd, mode) : 0;
-# else
+#else
           f = fopen(fn, mode);
-# endif
+#endif
           umask(old_umask);
 	}
       else
-#endif /* COPY_PASTE */
         f = fopen(fn, mode);
       if (f == NULL)
 	{
@@ -528,7 +484,6 @@ int dump;
 		}
 	      if (dump == DUMP_SCROLLBACK)
 		{
-#ifdef COPY_PASTE
 		  for (i = 0; i < fore->w_histheight; i++)
 		    {
 		      p = (char *)(WIN(i)->image);
@@ -538,7 +493,6 @@ int dump;
 			putc(p[j], f);
 		      putc('\n', f);
 		    }
-#endif
 		}
 	      for (i = 0; i < fore->w_height; i++)
 		{
@@ -551,13 +505,12 @@ int dump;
 		}
 	      break;
 	    case DUMP_TERMCAP:
-	      if ((p = index(MakeTermcap(fore->w_aflag), '=')) != NULL)
+	      if ((p = strchr(MakeTermcap(fore->w_aflag), '=')) != NULL)
 		{
 		  fputs(++p, f);
 		  putc('\n', f);
 		}
 	      break;
-#ifdef COPY_PASTE
 	    case DUMP_EXCHANGE:
 	      p = user->u_plop.buf;
 	      for (i = user->u_plop.len; i-- > 0; p++)
@@ -566,7 +519,6 @@ int dump;
 		else
 		  putc(*p, f);
 	      break;
-#endif
 	    }
 	  (void) fclose(f);
 	  UserReturn(1);
@@ -586,15 +538,12 @@ int dump;
 	  Msg(0, "Screen image %s to \"%s\".",
 	      (*mode == 'a') ? "appended" : "written", fn);
 	  break;
-#ifdef COPY_PASTE
 	case DUMP_EXCHANGE:
 	  Msg(0, "Copybuffer written to \"%s\".", fn);
-#endif
 	}
     }
 }
 
-#ifdef COPY_PASTE
 
 /*
  * returns an allocated buffer which holds a copy of the file named fn.
@@ -602,9 +551,7 @@ int dump;
  * stored.
  */
 char *
-ReadFile(fn, lenp)
-char *fn;
-int *lenp;
+ReadFile(char *fn, int *lenp)
 {
   int i, l, size;
   char c, *bp, *buf;
@@ -636,7 +583,6 @@ int *lenp;
       if (l < 0) 
         l = 0;
       Msg(errno, "Got only %d bytes from %s", l, fn);
-      close(i);
     }
   else
     {
@@ -662,7 +608,6 @@ KillBuffers()
   errno = UserStatus();
   Msg(errno, "%s %sremoved", BufferFile, errno ? "not " : "");
 }
-#endif	/* COPY_PASTE */
 
 
 /*
@@ -670,9 +615,7 @@ KillBuffers()
  */
 
 FILE *
-secfopen(name, mode)
-char *name;
-char *mode;
+secfopen(char *name, char *mode)
 {
   FILE *fi;
 #ifndef USE_SETEUID
@@ -716,10 +659,7 @@ char *mode;
 
 
 int
-secopen(name, flags, mode)
-char *name;
-int flags;
-int mode;
+secopen(char *name, int flags, int mode)
 {
   int fd;
 #ifndef USE_SETEUID
@@ -799,9 +739,7 @@ int mode;
 
 
 int
-printpipe(p, cmd)
-struct win *p;
-char *cmd;
+printpipe(struct win *p, char *cmd)
 {
   int pi[2];
   if (pipe(pi))
@@ -839,8 +777,7 @@ char *cmd;
 }
 
 int
-readpipe(cmdv)
-char **cmdv;
+readpipe(char **cmdv)
 {
   int pi[2];
 

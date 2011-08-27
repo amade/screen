@@ -39,15 +39,6 @@
 #endif
 
 
-extern struct display *display;
-#ifdef CAREFULUTMP
-extern struct win *windows;
-#endif
-extern struct win *fore;
-extern char *LoginName;
-extern int real_uid, eff_uid;
-
-
 /*
  *  UTNOKEEP: A (ugly) hack for apollo that does two things:
  *    1) Always close and reopen the utmp file descriptor. (I don't know
@@ -83,19 +74,19 @@ extern int real_uid, eff_uid;
 #ifdef UTMPOK
 
 
-static slot_t TtyNameSlot __P((char *));
-static void makeuser __P((struct utmp *, char *, char *, int));
-static void makedead __P((struct utmp *));
-static int  pututslot __P((slot_t, struct utmp *, char *, struct win *));
-static struct utmp *getutslot __P((slot_t));
+static slot_t TtyNameSlot (char *);
+static void makeuser (struct utmp *, char *, char *, int);
+static void makedead (struct utmp *);
+static int  pututslot (slot_t, struct utmp *, char *, struct win *);
+static struct utmp *getutslot (slot_t);
 #ifndef GETUTENT
-static struct utmp *getutent __P((void));
-static void endutent __P((void));
-static int  initutmp __P((void));
-static void setutent __P((void));
+static struct utmp *getutent (void);
+static void endutent (void);
+static int  initutmp (void);
+static void setutent (void);
 #endif
 #if defined(linux) && defined(GETUTENT)
-static struct utmp *xpututline __P((struct utmp *utmp));
+static struct utmp *xpututline (struct utmp *utmp);
 # define pututline xpututline
 #endif
 
@@ -106,28 +97,13 @@ static char UtmpName[] = UTMPFILE;
 static int utmpfd = -1;
 #endif
 
-
-# if defined(GETUTENT) && (!defined(SVR4) || defined(__hpux)) && ! defined(__CYGWIN__)
-#  if defined(hpux) /* cruel hpux release 8.0 */
-#   define pututline _pututline
-#  endif /* hpux */
-extern struct utmp *getutline(), *pututline();
-#  if defined(_SEQUENT_)
-extern struct utmp *ut_add_user(), *ut_delete_user();
-extern char *ut_find_host();
-#   ifndef UTHOST
-#    define UTHOST		/* _SEQUENT_ has ut_find_host() */
-#   endif
-#  endif /* _SEQUENT_ */
-# endif /* GETUTENT && !SVR4 */
-
 # if !defined(GETUTENT) && !defined(UT_UNSORTED)
 #  ifdef GETTTYENT
 #   include <ttyent.h>
 #  else
 struct ttyent { char *ty_name; };
-static void           setttyent __P((void));
-static struct ttyent *getttyent __P((void));
+static void           setttyent (void);
+static struct ttyent *getttyent (void);
 #  endif
 # endif /* !GETUTENT && !UT_UNSORTED */
 
@@ -157,8 +133,7 @@ static struct ttyent *getttyent __P((void));
 
 #ifndef UTMPOK
 void
-SlotToggle(how)
-int how;
+SlotToggle(int how)
 {
   debug1("SlotToggle (!UTMPOK) %d\n", how);
 # ifdef UTMPFILE
@@ -174,8 +149,7 @@ int how;
 #ifdef UTMPOK
 
 void
-SlotToggle(how)
-int how;
+SlotToggle(int how)
 {
   debug1("SlotToggle %d\n", how);
   if (fore->w_type != W_TYPE_PTY)
@@ -361,7 +335,7 @@ RemoveLoginSlot()
       char *tty;
       debug("couln't zap slot -> do mesg n\n");
       D_loginttymode = 0;
-      if ((tty = ttyname(D_userfd)) && stat(tty, &stb) == 0 && (int)stb.st_uid == real_uid && ((int)stb.st_mode & 0777) != 0666)
+      if ((tty = ttyname(D_userfd)) && stat(tty, &stb) == 0 && (int)stb.st_uid == real_uid && !CheckTtyname(tty) && ((int)stb.st_mode & 0777) != 0666)
 	{
 	  D_loginttymode = (int)stb.st_mode & 0777;
 	  chmod(D_usertty, stb.st_mode & 0600);
@@ -387,7 +361,7 @@ RestoreLoginSlot()
     }
   UT_CLOSE;
   D_loginslot = (slot_t)0;
-  if (D_loginttymode && (tty = ttyname(D_userfd)))
+  if (D_loginttymode && (tty = ttyname(D_userfd)) && !CheckTtyname(tty))
     chmod(tty, D_loginttymode);
 }
 
@@ -403,8 +377,7 @@ RestoreLoginSlot()
  */ 
 
 int
-SetUtmp(wi)
-struct win *wi;
+SetUtmp(struct win *win)
 {
   register slot_t slot;
   struct utmp u;
@@ -416,23 +389,23 @@ struct win *wi;
   char *host = 0;
 #endif /* UTHOST */
 
-  wi->w_slot = (slot_t)0;
-  if (!utmpok || wi->w_type != W_TYPE_PTY)
+  win->w_slot = (slot_t)0;
+  if (!utmpok || win->w_type != W_TYPE_PTY)
     return -1;
-  if ((slot = TtyNameSlot(wi->w_tty)) == (slot_t)0)
+  if ((slot = TtyNameSlot(win->w_tty)) == (slot_t)0)
     {
-      debug1("SetUtmp failed (tty %s).\n",wi->w_tty);
+      debug1("SetUtmp failed (tty %s).\n",win->w_tty);
       return -1;
     }
-  debug2("SetUtmp %d will get slot %d...\n", wi->w_number, (int)slot);
+  debug2("SetUtmp %d will get slot %d...\n", win->w_number, (int)slot);
 
-  bzero((char *)&u, sizeof(u));
-  if ((saved_ut = bcmp((char *) &wi->w_savut, (char *)&u, sizeof(u))))
+  memset((char *)&u, 0, sizeof(u));
+  if ((saved_ut = memcmp((char *) &win->w_savut, (char *)&u, sizeof(u))))
     /* restore original, of which we will adopt all fields but ut_host */
-    bcopy((char *)&wi->w_savut, (char *) &u, sizeof(u));
+    memmove((char *) &u, (char *)&win->w_savut, sizeof(u));
 
   if (!saved_ut)
-    makeuser(&u, stripdev(wi->w_tty), LoginName, wi->w_pid);
+    makeuser(&u, stripdev(win->w_tty), LoginName, win->w_pid);
 
 #ifdef UTHOST
   host[sizeof(host) - 15] = '\0';
@@ -471,7 +444,7 @@ struct win *wi;
   else
     strncpy(host, "local", sizeof(host) - 15);
 
-  sprintf(host + strlen(host), ":S.%d", wi->w_number);
+  sprintf(host + strlen(host), ":S.%d", win->w_number);
   debug1("rlogin hostname: '%s'\n", host);
 
 # if !defined(_SEQUENT_) && !defined(sequent)
@@ -479,15 +452,15 @@ struct win *wi;
 # endif
 #endif /* UTHOST */
 
-  if (pututslot(slot, &u, host, wi) == 0)
+  if (pututslot(slot, &u, host, win) == 0)
     {
       Msg(errno,"Could not write %s", UtmpName);
       UT_CLOSE;
       return -1;
     }
   debug("SetUtmp successful\n");
-  wi->w_slot = slot;
-  bcopy((char *)&u, (char *)&wi->w_savut, sizeof(u));
+  win->w_slot = slot;
+  memmove((char *)&win->w_savut, (char *)&u, sizeof(u));
   UT_CLOSE;
   return 0;
 }
@@ -498,24 +471,23 @@ struct win *wi;
  */
 
 int
-RemoveUtmp(wi)
-struct win *wi;
+RemoveUtmp(struct win *win)
 {
   struct utmp u, *uu;
   slot_t slot;
 
-  slot = wi->w_slot;
+  slot = win->w_slot;
   debug1("RemoveUtmp slot=%#x\n", slot);
   if (!utmpok)
     return -1;
   if (slot == (slot_t)0 || slot == (slot_t)-1)
     {
-      wi->w_slot = (slot_t)-1;
+      win->w_slot = (slot_t)-1;
       return 0;
     }
-  bzero((char *) &u, sizeof(u));
+  memset((char *) &u, 0, sizeof(u));
 #ifdef sgi
-  bcopy((char *)&wi->w_savut, (char *)&u, sizeof(u));
+  memmove((char *)&u, (char *)&win->w_savut, sizeof(u));
   uu  = &u;
 #else
   if ((uu = getutslot(slot)) == 0)
@@ -523,18 +495,18 @@ struct win *wi;
       Msg(0, "Utmp slot not found -> not removed");
       return -1;
     }
-  bcopy((char *)uu, (char *)&wi->w_savut, sizeof(wi->w_savut));
+  memmove((char *)&win->w_savut, (char *)uu, sizeof(win->w_savut));
 #endif
   u = *uu;
   makedead(&u);
-  if (pututslot(slot, &u, (char *)0, wi) == 0)
+  if (pututslot(slot, &u, (char *)0, win) == 0)
     {
       Msg(errno,"Could not write %s", UtmpName);
       UT_CLOSE;
       return -1;
     }
   debug("RemoveUtmp successfull\n");
-  wi->w_slot = (slot_t)-1;
+  win->w_slot = (slot_t)-1;
   UT_CLOSE;
   return 0;
 }
@@ -551,22 +523,17 @@ struct win *wi;
 #define SLOT_USED(u) (u->ut_type == USER_PROCESS)
 
 static struct utmp *
-getutslot(slot)
-slot_t slot;
+getutslot(slot_t slot)
 {
   struct utmp u;
-  bzero((char *)&u, sizeof(u));
+  memset((char *)&u, 0, sizeof(u));
   strncpy(u.ut_line, slot, sizeof(u.ut_line));
   setutent();
   return getutline(&u);
 }
 
 static int
-pututslot(slot, u, host, wi)
-slot_t slot;
-struct utmp *u;
-char *host;
-struct win *wi;
+pututslot(slot_t slot, struct utmp *u, char *host, struct win *win)
 {
 #ifdef _SEQUENT_
   if (SLOT_USED(u) && host && *host)
@@ -575,13 +542,13 @@ struct win *wi;
     return ut_delete_user(slot, u.ut_pid, 0, 0) != 0;
 #endif
 #ifdef HAVE_UTEMPTER
-  if (eff_uid && wi->w_ptyfd != -1)
+  if (eff_uid && win && win->w_ptyfd != -1)
     {
       /* sigh, linux hackers made the helper functions void */
       if (SLOT_USED(u))
-	addToUtmp(wi->w_tty, host, wi->w_ptyfd);
+	addToUtmp(win->w_tty, host, win->w_ptyfd);
       else
-	removeLineFromUtmp(wi->w_tty, wi->w_ptyfd);
+	removeLineFromUtmp(win->w_tty, win->w_ptyfd);
       return 1;	/* pray for success */
     }
 #endif
@@ -594,8 +561,7 @@ struct win *wi;
 }
 
 static void
-makedead(u)
-struct utmp *u;
+makedead(struct utmp *u)
 {
   u->ut_type = DEAD_PROCESS;
 #if (!defined(linux) || defined(EMPTY)) && !defined(__CYGWIN__)
@@ -608,10 +574,7 @@ struct utmp *u;
 }
 
 static void
-makeuser(u, line, user, pid)
-struct utmp *u;
-char *line, *user;
-int pid;
+makeuser(struct utmp *u, char *line, char *user, int pid)
 {
   time_t now;
   u->ut_type = USER_PROCESS;
@@ -635,8 +598,7 @@ int pid;
 }
 
 static slot_t
-TtyNameSlot(nam)
-char *nam;
+TtyNameSlot(char *nam)
 {
   return stripdev(nam);
 }
@@ -687,8 +649,7 @@ getutent()
 }
 
 static struct utmp *
-getutslot(slot)
-slot_t slot;
+getutslot(slot_t slot)
 {
   if (utmpfd < 0 && !initutmp())
     return 0;
@@ -699,11 +660,7 @@ slot_t slot;
 }
 
 static int
-pututslot(slot, u, host, wi)
-slot_t slot;
-struct utmp *u;
-char *host;
-struct win *wi;
+pututslot(slot_t slot, struct utmp *u, char *host, struct win *win)
 {
 #ifdef sequent
   if (SLOT_USED(u))
@@ -719,25 +676,21 @@ struct win *wi;
 
 
 static void
-makedead(u)
-struct utmp *u;
+makedead(struct utmp *u)
 {
 #ifdef UT_UNSORTED
-  bzero(u->ut_name, sizeof(u->ut_name));
+  memset(u->ut_name, 0, sizeof(u->ut_name));
 # ifdef UTHOST
-  bzero(u->ut_host, sizeof(u->ut_host));
+  memset(u->ut_host, 0, sizeof(u->ut_host));
 # endif
 #else
-  bzero((char *)u, sizeof(*u));
+  memset((char *)u, 0, sizeof(*u));
 #endif
 }
 
 
 static void
-makeuser(u, line, user, pid)
-struct utmp *u;
-char *line, *user;
-int pid;
+makeuser(struct utmp *u, char *line, char *user, int pid)
 {
   time_t now;
   strncpy(u->ut_line, line, sizeof(u->ut_line));
@@ -747,8 +700,7 @@ int pid;
 }
 
 static slot_t
-TtyNameSlot(nam)
-char *nam;
+TtyNameSlot(char *nam)
 {
   slot_t slot;
   char *line;
@@ -853,7 +805,7 @@ getlogin()
 
   for (fd = 0; fd <= 2 && (tty = ttyname(fd)) == NULL; fd++)
     ;
-  if ((tty == NULL) || ((fd = open(UTMP_FILE, O_RDONLY)) < 0))
+  if ((tty == NULL) || CheckTtyname(tty) || ((fd = open(UTMP_FILE, O_RDONLY)) < 0))
     return NULL;
   tty = stripdev(tty);
   retbuf[0] = '\0';
@@ -862,7 +814,6 @@ getlogin()
       if (!strncmp(tty, u.ut_line, sizeof(u.ut_line)))
 	{
 	  strncpy(retbuf, u.ut_user, sizeof(u.ut_user));
-	  retbuf[sizeof(u.ut_user)] = '\0';
 	  if (u.ut_type == USER_PROCESS)
 	    break;
 	}
@@ -878,8 +829,7 @@ getlogin()
 
 /* aargh, linux' pututline returns void! */
 struct utmp *
-xpututline(u)
-struct utmp *u;
+xpututline(struct utmp *u)
 {
   struct utmp *u2;
   pututline(u);

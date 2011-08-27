@@ -32,16 +32,8 @@
 #include "canvas.h"
 #include "list_generic.h"
 
-extern struct display *display;
-extern struct win *fore, *windows;
-extern struct layer *flayer;
-extern int captionalways;
-extern struct LayFuncs BlankLf;
-extern int focusminwidth, focusminheight;
-
 static void
-CanvasInitBlank(cv)
-struct canvas *cv;
+CanvasInitBlank(struct canvas *cv)
 {
   cv->c_blank.l_cvlist = cv;
   cv->c_blank.l_width = cv->c_xe - cv->c_xs + 1;
@@ -56,8 +48,7 @@ struct canvas *cv;
 }
 
 static void
-FreePerp(pcv)
-struct canvas *pcv;
+FreePerp(struct canvas *pcv)
 {
   struct canvas *cv;
 
@@ -87,8 +78,7 @@ struct canvas *pcv;
 }
 
 void
-FreeCanvas(cv)
-struct canvas *cv;
+FreeCanvas(struct canvas *cv)
 {
   struct viewport *vp, *nvp;
   struct canvas **cvp;
@@ -141,8 +131,7 @@ struct canvas *cv;
 }
 
 int
-CountCanvas(cv)
-struct canvas *cv;
+CountCanvas(struct canvas *cv)
 {
   int num = 0;
   for (; cv; cv = cv->c_slnext)
@@ -167,8 +156,7 @@ struct canvas *cv;
 }
 
 int
-CountCanvasPerp(cv)
-struct canvas *cv;
+CountCanvasPerp(struct canvas *cv)
 {
   struct canvas *cvp;
   int num = 1, n;
@@ -183,8 +171,7 @@ struct canvas *cv;
 }
 
 struct canvas *
-FindCanvas(x, y)
-int x, y;
+FindCanvas(int x, int y)
 {
   struct canvas *cv, *mcv = 0;
   int m, mm = 0;
@@ -233,9 +220,7 @@ int x, y;
 }
 
 void
-SetCanvasWindow(cv, wi)
-struct canvas *cv;
-struct win *wi;
+SetCanvasWindow(struct canvas *cv, struct win *win)
 {
   struct win *p = 0, **pp;
   struct layer *l;
@@ -259,9 +244,7 @@ struct win *wi;
 
       if (p && cv == D_forecv)
 	{
-#ifdef MULTIUSER
 	  ReleaseAutoWritelock(display, p);
-#endif
 	  if (p->w_silence)
 	    {
 	      SetTimeout(&p->w_silenceev, p->w_silencewait * 1000);
@@ -275,17 +258,17 @@ struct win *wi;
     }
 
   /* find right layer to display on canvas */
-  if (wi && wi->w_type != W_TYPE_GROUP)
+  if (win && win->w_type != W_TYPE_GROUP)
     {
-      l = &wi->w_layer;
-      if (wi->w_savelayer && (wi->w_blocked || wi->w_savelayer->l_cvlist == 0))
-	l = wi->w_savelayer;
+      l = &win->w_layer;
+      if (win->w_savelayer && (win->w_blocked || win->w_savelayer->l_cvlist == 0))
+	l = win->w_savelayer;
     }
   else
     {
       l = &cv->c_blank;
-      if (wi)
-	l->l_data = (char *)wi;
+      if (win)
+	l->l_data = (char *)win;
       else
 	l->l_data = 0;
     }
@@ -302,35 +285,33 @@ struct win *wi;
   if (flayer == 0)
     flayer = l;
 
-  if (wi && wi->w_type == W_TYPE_GROUP)
+  if (win && win->w_type == W_TYPE_GROUP)
     {
       /* auto-start windowlist on groups */
       struct display *d = display;
       struct layer *oldflayer = flayer;
       flayer = l;
-      display_windows(0, 0, wi);
+      display_windows(0, 0, win);
       flayer = oldflayer;
       display = d;
     }
 
-  if (wi && D_other == wi)
-    D_other = wi->w_next;	/* Might be 0, but that's OK. */
+  if (win && D_other == win)
+    D_other = win->w_next;	/* Might be 0, but that's OK. */
   if (cv == D_forecv)
     {
-      D_fore = wi;
+      D_fore = win;
       fore = D_fore;	/* XXX ? */
-      if (wi)
+      if (win)
 	{
-#ifdef MULTIUSER
-	  ObtainAutoWritelock(display, wi);
-#endif
+	  ObtainAutoWritelock(display, win);
 	  /*
 	   * Place the window at the head of the most-recently-used list
 	   */
-	  if (windows != wi)
+	  if (windows != win)
 	    {
 	      for (pp = &windows; (p = *pp); pp = &p->w_next)
-		if (p == wi)
+		if (p == win)
 		  break;
 	      ASSERT(p);
 	      *pp = p->w_next;
@@ -340,29 +321,6 @@ struct win *wi;
 	    }
 	}
     }
-}
-
-static void
-cv_winid_fn(ev, data)
-struct event *ev;
-char *data;
-{
-  int ox, oy;
-  struct canvas *cv = (struct canvas *)data;
-
-  display = cv->c_display;
-  if (D_status == STATUS_ON_WIN)
-    {
-      SetTimeout(ev, 1);
-      evenq(ev);
-      return;
-    }
-  ox = D_x;
-  oy = D_y;
-  if (cv->c_ye + 1 < D_height)
-    RefreshLine(cv->c_ye + 1, 0, D_width - 1, 0);
-  if (ox != -1 && oy != -1)
-    GotoPos(ox, oy);
 }
 
 int
@@ -396,7 +354,7 @@ MakeDefaultCanvas()
   cv->c_slorient = SLICE_UNKN;
   cv->c_captev.type = EV_TIMEOUT;
   cv->c_captev.data = (char *)cv;
-  cv->c_captev.handler = cv_winid_fn;
+  cv->c_captev.handler = NULL;
 
   CanvasInitBlank(cv);
   cv->c_lnext = 0;
@@ -408,9 +366,7 @@ MakeDefaultCanvas()
 }
 
 static struct canvas **
-CreateCanvasChainRec(cv, cvp)
-struct canvas *cv;
-struct canvas **cvp;
+CreateCanvasChainRec(struct canvas *cv, struct canvas **cvp)
 {
   for (; cv; cv = cv->c_slnext)
     {
@@ -434,9 +390,7 @@ RecreateCanvasChain()
 }
 
 void
-EqualizeCanvas(cv, gflag)
-struct canvas *cv;
-int gflag;
+EqualizeCanvas(struct canvas *cv, int gflag)
 {
   struct canvas *cv2;
   for (; cv; cv = cv->c_slnext)
@@ -454,8 +408,7 @@ int gflag;
 }
 
 void
-ResizeCanvas(cv)
-struct canvas *cv;
+ResizeCanvas(struct canvas *cv)
 {
   struct canvas *cv2, *cvn, *fcv;
   int nh, i, maxi, hh, m, w, wsum;
@@ -642,8 +595,7 @@ struct canvas *cv;
 }
 
 static struct canvas *
-AddPerp(cv)
-struct canvas *cv;
+AddPerp(struct canvas *cv)
 {
   struct canvas *pcv;
   debug("Creating new perp node\n");
@@ -681,8 +633,7 @@ struct canvas *cv;
 }
 
 int
-AddCanvas(orient)
-int orient;
+AddCanvas(int orient)
 {
   struct canvas *cv;
   int xs, xe, ys, ye;
@@ -739,7 +690,7 @@ int orient;
   cv->c_vplist  = 0;
   cv->c_captev.type = EV_TIMEOUT;
   cv->c_captev.data = (char *)cv;
-  cv->c_captev.handler = cv_winid_fn;
+  cv->c_captev.handler = NULL;
 
   CanvasInitBlank(cv);
   cv->c_lnext = 0;
@@ -758,7 +709,7 @@ int orient;
 void
 RemCanvas()
 {
-  int xs, xe, ys, ye;
+  int ye;
   struct canvas *cv;
 
   debug("RemCanvas\n");
@@ -777,9 +728,6 @@ RemCanvas()
       FreePerp(cv->c_slprev ? cv->c_slprev : cv->c_slnext);
       FreePerp(cv->c_slback);
     }
-  xs = cv->c_slback->c_xs;
-  xe = cv->c_slback->c_xe;
-  ys = cv->c_slback->c_ys;
   ye = cv->c_slback->c_ye;
   /* free canvas */
   cv = D_forecv;
@@ -848,9 +796,7 @@ OneCanvas()
 }
 
 void
-DupLayoutCv(cvf, cvt, save)
-struct canvas *cvf, *cvt;
-int save;
+DupLayoutCv(struct canvas *cvf, struct canvas *cvt, int save)
 {
   while(cvf)
     {
@@ -865,7 +811,7 @@ int save;
 	    {
 	      cvt->c_captev.type = EV_TIMEOUT;
 	      cvt->c_captev.data = (char *)cvt;
-	      cvt->c_captev.handler = cv_winid_fn;
+	      cvt->c_captev.handler = NULL;
 	      cvt->c_blank.l_cvlist = 0;
 	      cvt->c_blank.l_layfn = &BlankLf;
 	      cvt->c_blank.l_bottom = &cvt->c_blank;
@@ -897,8 +843,7 @@ int save;
 }
 
 void
-PutWindowCv(cv)
-struct canvas *cv;
+PutWindowCv(struct canvas *cv)
 {
   struct win *p;
   for (; cv; cv = cv->c_slnext)

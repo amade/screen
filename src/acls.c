@@ -54,14 +54,8 @@
  * user managing code, this does not really belong into the acl stuff   *
  ************************************************************************/
 
-extern struct comm comms[];
-extern struct win *windows, **wtab;
-extern char NullStr[];
-extern char SockPath[];
-extern struct display *display, *displays;
 struct acluser *users;
 
-#ifdef MULTIUSER
 int maxusercount = 0;	/* used in process.c: RC_MONITOR, RC_SILENCE */
 
 /* record given user ids here */
@@ -90,18 +84,16 @@ static char default_c_bit[ACL_BITS_PER_CMD] =
  * static AclBits default_c_userbits[ACL_BITS_PER_CMD];
  */
 
-static int GrowBitfield __P((AclBits *, int, int, int));
-static struct aclusergroup **FindGroupPtr __P((struct aclusergroup **, struct acluser *, int));
-static int AclSetPermCmd __P((struct acluser *, char *, struct comm *));
-static int AclSetPermWin __P((struct acluser *, struct acluser *, char *, struct win *));
-static int UserAcl __P((struct acluser *, struct acluser **, int, char **));
-static int UserAclCopy __P((struct acluser **, struct acluser **));
+static int GrowBitfield (AclBits *, int, int, int);
+static struct aclusergroup **FindGroupPtr (struct aclusergroup **, struct acluser *, int);
+static int AclSetPermCmd (struct acluser *, char *, struct comm *);
+static int AclSetPermWin (struct acluser *, struct acluser *, char *, struct win *);
+static int UserAcl (struct acluser *, struct acluser **, int, char **);
+static int UserAclCopy (struct acluser **, struct acluser **);
 
 
 static int
-GrowBitfield(bfp, len, delta, defaultbit)
-AclBits *bfp;
-int len, delta, defaultbit;
+GrowBitfield(AclBits *bfp, int len, int delta, int defaultbit)
 {
   AclBits n, o = *bfp;
   int i;
@@ -120,27 +112,21 @@ int len, delta, defaultbit;
   return 0;
 }
 
-#endif /* MULTIUSER */
 
 /* 
  * Returns an nonzero Address. Its contents is either a User-ptr, 
  * or NULL which may be replaced by a User-ptr to create the entry.
  */
 struct acluser **
-FindUserPtr(name)
-char *name;
+FindUserPtr(char *name)
 {
   struct acluser **u;
 
   for (u = &users; *u; u = &(*u)->u_next)
     if (!strcmp((*u)->u_name, name))
       break;
-#ifdef MULTIUSER
   debug3("FindUserPtr %s %sfound, id %d\n", name, (*u)?"":"not ", 
          (*u)?(*u)->u_id:-1);
-#else /* MULTIUSER */
-  debug2("FindUserPtr %s %sfound\n", name, (*u)?"":"not ");
-#endif /* MULTIUSER */
   return u;
 }
 
@@ -153,13 +139,9 @@ int DefaultMetaEsc = -1;
  * He has default rights, determined by umask.
  */
 int
-UserAdd(name, pass, up)
-char *name, *pass;
-struct acluser **up;
+UserAdd(char *name, char *pass, struct acluser **up)
 {
-#ifdef MULTIUSER
   int j;
-#endif
 
   if (!up)
     up = FindUserPtr(name);
@@ -173,16 +155,12 @@ struct acluser **up;
     *up = (struct acluser *)calloc(1, sizeof(struct acluser));
   if (!*up)
     return -1;		/* he still does not exist */
-#ifdef COPY_PASTE
   (*up)->u_plop.buf = NULL;
   (*up)->u_plop.len = 0;
-# ifdef ENCODINGS
   (*up)->u_plop.enc = 0;
-# endif
-#endif
   (*up)->u_Esc = DefaultEsc;
   (*up)->u_MetaEsc = DefaultMetaEsc;
-  strncpy((*up)->u_name, name, 20);
+  strncpy((*up)->u_name, name, NAME_MAX);
   (*up)->u_password = NULL;
   if (pass)
     (*up)->u_password = SaveStr(pass);
@@ -191,7 +169,6 @@ struct acluser **up;
   (*up)->u_detachwin = -1;
   (*up)->u_detachotherwin = -1;
 
-#ifdef MULTIUSER
   (*up)->u_group = NULL;
   /* now find an unused index */
   for ((*up)->u_id = 0; (*up)->u_id < maxusercount; (*up)->u_id++)
@@ -299,44 +276,18 @@ struct acluser **up;
         }
       ACLBYTE((*up)->u_umask_w_bits[j], (*up)->u_id) |= ACLBIT((*up)->u_id);
     }
-#else /* MULTIUSER */
-  debug1("UserAdd %s\n", name);
-#endif /* MULTIUSER */
   return 0;
 }
-
-#if 0
-/* change user's password */
-int 
-UserSetPass(name, pass, up)
-char *name, *pass;
-struct acluser **up;
-{
-  if (!up)
-    up = FindUserPtr(name);
-  if (!*up)
-    return UserAdd(name, pass, up);
-  if (!strcmp(name, "nobody"))		/* he remains without password */
-    return -1;
-  strncpy((*up)->u_password, pass ? pass : "", 20);
-  (*up)->u_password[20] = '\0';
-  return 0;
-}
-#endif
 
 /* 
  * Remove a user from the list. 
  * Destroy all his permissions and completely detach him from the session.
  */
 int 
-UserDel(name, up)
-char *name;
-struct acluser **up;
+UserDel(char *name, struct acluser **up)
 {
   struct acluser *u;
-#ifdef MULTIUSER
   int i;
-#endif
   struct display *old, *next;
 
   if (!up)
@@ -356,7 +307,6 @@ struct acluser **up;
   display = old;
   *up = u->u_next;
 
-#ifdef MULTIUSER
   for (up = &users; *up; up = &(*up)->u_next)
     {
       /* unlink all group references to this user */
@@ -383,11 +333,8 @@ struct acluser **up;
   AclSetPerm(NULL, u, default_c_bit[ACL_EXEC] ? "+x" : "-x", "?");
   for (i = 0; i < ACL_BITS_PER_WIN; i++)
     free((char *)u->u_umask_w_bits[i]);
-#endif /* MULTIUSER */
   debug1("FREEING user structure for %s\n", u->u_name);
-#ifdef COPY_PASTE
   UserFreeCopyBuffer(u);
-#endif
   free((char *)u);
   if (!users)
     {
@@ -398,15 +345,13 @@ struct acluser **up;
 }
 
 
-#ifdef COPY_PASTE
 
 /*
  * returns 0 if the copy buffer was really deleted.
  * Also removes any references into the users copybuffer
  */
 int
-UserFreeCopyBuffer(u)
-struct acluser *u;
+UserFreeCopyBuffer(struct acluser *u)
 {
   struct win *w;
   struct paster *pa;
@@ -425,9 +370,7 @@ struct acluser *u;
   u->u_plop.buf = 0;
   return 0;
 }
-#endif	/* COPY_PASTE */
 
-#ifdef MULTIUSER
 /*
  * Traverses group nodes. It searches for a node that references user u. 
  * If recursive is true, nodes found in the users are also searched using 
@@ -435,10 +378,7 @@ struct acluser *u;
  * the last next pointer is returned. This address will contain NULL.
  */ 
 static struct aclusergroup **
-FindGroupPtr(gp, u, recursive)
-struct aclusergroup **gp;
-struct acluser *u;
-int recursive;
+FindGroupPtr(struct aclusergroup **gp, struct acluser *u, int recursive)
 {
   struct aclusergroup **g;
   
@@ -461,8 +401,7 @@ int recursive;
  * Cyclic links are prevented.
  */
 int
-AclLinkUser(from, to)
-char *from, *to;
+AclLinkUser(char *from, char *to)
 {
   struct acluser **u1, **u2;
   struct aclusergroup **g;
@@ -490,9 +429,7 @@ char *from, *to;
  * returns NULL if successfull, an static error string otherwise
  */
 char *
-DoSu(up, name, pw1, pw2)
-struct acluser **up;
-char *name, *pw1, *pw2;
+DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 {
   struct acluser *u;
   int sorry = 0;
@@ -590,20 +527,16 @@ char *name, *pw1, *pw2;
     *up = u;	/* substitute user now */
   return NULL;
 }
-#endif /* MULTIUSER */
 
 /************************************************************************
  *                     end of user managing code                        *
  ************************************************************************/
 
 
-#ifdef MULTIUSER
 
 /* This gives the users default rights to the new window w created by u */
 int
-NewWindowAcl(w, u)
-struct win *w;
-struct acluser *u;
+NewWindowAcl(struct win *w, struct acluser *u)
 {
   int i, j;
 
@@ -634,8 +567,7 @@ struct acluser *u;
 }
 
 void
-FreeWindowAcl(w)
-struct win *w;
+FreeWindowAcl(struct win *w)
 {
   int i;
 
@@ -652,10 +584,7 @@ struct win *w;
  * AclSetPermWin, try to merge both functions. 
  */
 static int
-AclSetPermCmd(u, mode, cmd)
-struct acluser *u;
-char *mode;
-struct comm *cmd;
+AclSetPermCmd(struct acluser *u, char *mode, struct comm *cmd)
 {
   int neg = 0;
   char *m = mode;
@@ -697,10 +626,7 @@ struct comm *cmd;
  * uu should be NULL, except if you want to change his umask.
  */
 static int
-AclSetPermWin(uu, u, mode, win)
-struct acluser *u, *uu;
-char *mode;
-struct win *win;
+AclSetPermWin(struct acluser *uu, struct acluser *u, char *mode, struct win *win)
 {
   int neg = 0;
   int bit, bits;
@@ -797,9 +723,7 @@ struct win *win;
  * uu should be NULL, except if you want to change his umask.
  */
 int
-AclSetPerm(uu, u, mode, s)
-struct acluser *uu, *u;
-char *mode, *s;
+AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
 {
   struct win *w;
   int i;
@@ -861,10 +785,7 @@ char *mode, *s;
  * uu should be NULL, except if you want to change his umask.
  */
 static int
-UserAcl(uu, u, argc, argv)
-struct acluser *uu, **u;
-int argc;
-char **argv;
+UserAcl(struct acluser *uu, struct acluser **u, int argc, char **argv)
 {
   if ((*u && !strcmp((*u)->u_name, "nobody")) ||
       (argc > 1 && !strcmp(argv[0], "nobody")))
@@ -893,8 +814,7 @@ char **argv;
 }
 
 static int
-UserAclCopy(to_up, from_up)
-struct acluser **to_up, **from_up;
+UserAclCopy(struct acluser **to_up, struct acluser **from_up)
 {
   struct win *w;
   int i, j, to_id, from_id;
@@ -948,13 +868,9 @@ struct acluser **to_up, **from_up;
  * uu should be NULL, except if you want to change his umask.
  */
 int
-UsersAcl(uu, argc, argv)
-struct acluser *uu;
-int argc;
-char **argv;
+UsersAcl(struct acluser *uu, int argc, char **argv)
 {
   char *s;
-  int r;
   struct acluser **cf_u = NULL;
 
   if (argc == 1)
@@ -979,8 +895,8 @@ char **argv;
       for (u = &users; *u; u = &(*u)->u_next)
 	if (strcmp("nobody", (*u)->u_name) && 
 	    ((cf_u) ?
-	     ((r = UserAclCopy(u, cf_u)) < 0) :
-	     ((r = UserAcl(uu, u, argc, argv)) < 0)))
+	     ((UserAclCopy(u, cf_u)) < 0) :
+	     ((UserAcl(uu, u, argc, argv)) < 0)))
 	  return -1;
       return 0;
     } 
@@ -992,8 +908,8 @@ char **argv;
       *s ? (*s++ = '\0') : (*s = '\0');
       debug2("UsersAcl(uu, \"%s\", argc=%d)\n", argv[0], argc);
       if ((cf_u) ?
-	  ((r = UserAclCopy(FindUserPtr(argv[0]), cf_u)) < 0) :
-	  ((r = UserAcl(uu, FindUserPtr(argv[0]), argc, argv)) < 0))
+	  ((UserAclCopy(FindUserPtr(argv[0]), cf_u)) < 0) :
+	  ((UserAcl(uu, FindUserPtr(argv[0]), argc, argv)) < 0))
         return -1;
     } while (*(argv[0] = s));
   return 0;
@@ -1009,10 +925,7 @@ char **argv;
  * default_c_bits		umask ??±rwxn
  */
 int 
-AclUmask(u, str, errp)
-struct acluser *u;
-char *str;
-char **errp;
+AclUmask(struct acluser *u, char *str, char **errp)
 {
   char mode[16]; 
   char *av[3];
@@ -1028,7 +941,6 @@ char **errp;
       return -1;
     }
   strncpy(mode, p, 15);
-  mode[15] = '\0';
   *p = '\0';
 
   /* construct argument vector */
@@ -1053,8 +965,7 @@ char **errp;
 }
 
 void
-AclWinSwap(a, b)
-int a, b;
+AclWinSwap(int a, int b)
 {
   debug2("AclWinSwap(%d, %d) NOP.\n", a, b);
 }
@@ -1062,10 +973,7 @@ int a, b;
 struct acluser *EffectiveAclUser = NULL;	/* hook for AT command permission */
 
 int 
-AclCheckPermWin(u, mode, w)
-struct acluser *u;
-int mode;
-struct win *w;
+AclCheckPermWin(struct acluser *u, int mode, struct win *w)
 {
   int ok;
 
@@ -1100,10 +1008,7 @@ struct win *w;
 }
 
 int 
-AclCheckPermCmd(u, mode, c)
-struct acluser *u;
-int mode;
-struct comm *c;
+AclCheckPermCmd(struct acluser *u, int mode, struct comm *c)
 {
   int ok;
 
@@ -1136,4 +1041,3 @@ struct comm *c;
   return !ok;
 }
 
-#endif /* MULTIUSER */

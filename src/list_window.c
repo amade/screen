@@ -33,20 +33,6 @@
 #include "extern.h"
 #include "list_generic.h"
 
-extern struct layer *flayer;
-extern struct display *display, *displays;
-
-extern char *wlisttit;
-extern char *wliststr;
-
-extern struct mchar mchar_blank, mchar_so;
-extern int renditions[];
-
-extern struct win **wtab, *windows, *fore;
-extern int maxwin;
-
-extern char *noargs[];
-
 static char ListID[] = "window";
 
 struct gl_Window_Data
@@ -62,7 +48,7 @@ struct gl_Window_Data
 #define WLIST_FOR_GROUP(wdate)	((wdata)->group && !(wdata)->onblank && Layer2Window(flayer) && Layer2Window(flayer)->w_type == W_TYPE_GROUP)
 
 /* This macro should not be used if 'fn' is expected to update the window list */
-#define FOR_EACH_WINDOW(_wdata, _w, fn) do {	\
+#define FOR_EACH_WINDOW(_wdata, _w, fn) {	\
     if ((_wdata)->order == WLIST_MRU)	\
       {	\
 	struct win *_ww;	\
@@ -82,7 +68,7 @@ struct gl_Window_Data
 	    _witer = _witer->w_next;	\
 	  }	\
       }	\
-  } while (0)
+  }
 
 /* Is 'a' an ancestor of 'd'? */
 static int
@@ -304,10 +290,8 @@ gl_Window_input(struct ListData *ldata, char **inp, int *len)
     case '\r':
       if (!win)
 	break;
-#ifdef MULTIUSER
       if (display && AclCheckPermWin(D_user, ACL_READ, win))
-	return;		/* Not allowed to switch to this window. */
-#endif
+	return 0;		/* Not allowed to switch to this window. */
       if (WLIST_FOR_GROUP(wdata))
 	SwitchWindow(win->w_number);
       else
@@ -389,7 +373,7 @@ gl_Window_input(struct ListData *ldata, char **inp, int *len)
 	   * with NULL window. So that causes a redraw of the entire list. So reset the
 	   * 'selected' after that. */
 	  wdata->fore = win;
-	  WindowChangeNumber(win, pw->w_number);
+	  SwapWindows(win->w_number, pw->w_number);
 	}
       break;
 
@@ -401,7 +385,7 @@ gl_Window_input(struct ListData *ldata, char **inp, int *len)
 	    break;	/* Do not allow switching with the parent group */
 
 	  wdata->fore = win;
-	  WindowChangeNumber(win, nw->w_number);
+	  SwapWindows(win->w_number, nw->w_number);
 	}
       break;
 
@@ -668,9 +652,7 @@ WListUpdate(struct win *p, struct ListData *ldata)
 }
 
 void
-WListUpdatecv(cv, p)
-struct canvas *cv;
-struct win *p;
+WListUpdatecv(struct canvas *cv, struct win *p)
 {
   struct ListData *ldata;
   struct gl_Window_Data *wdata;

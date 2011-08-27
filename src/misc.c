@@ -38,35 +38,24 @@
 # include <sys/resource.h>
 #endif
 
-extern struct layer *flayer;
-
-extern int eff_uid, real_uid;
-extern int eff_gid, real_gid;
-extern struct mline mline_old;
-extern struct mchar mchar_blank;
-extern unsigned char *null, *blank;
-
 #ifdef HAVE_FDWALK
-static int close_func __P((void *, int));
+static int close_func (void *, int);
 #endif
 
 char *
-SaveStr(str)
-register const char *str;
+SaveStr(register const char *str)
 {
   register char *cp;
 
   if ((cp = malloc(strlen(str) + 1)) == NULL)
     Panic(0, "%s", strnomem);
   else
-    strcpy(cp, str);
+    strncpy(cp, str, strlen(str) + 1);
   return cp;
 }
 
 char *
-SaveStrn(str, n)
-register const char *str;
-int n;
+SaveStrn(register const char *str, int n)
 {
   register char *cp;
 
@@ -74,7 +63,7 @@ int n;
     Panic(0, "%s", strnomem);
   else
     {
-      bcopy((char *)str, cp, n);
+      memmove(cp, (char *)str, n);
       cp[n] = 0;
     }
   return cp;
@@ -82,9 +71,7 @@ int n;
 
 /* cheap strstr replacement */
 char *
-InStr(str, pat)
-char *str;
-const char *pat;
+InStr(char *str, const char *pat)
 {
   int npat = strlen(pat);
   for (;*str; str++)
@@ -95,8 +82,7 @@ const char *pat;
 
 #ifndef HAVE_STRERROR
 char *
-strerror(err)
-int err;
+strerror(int err)
 {
   extern int sys_nerr;
   extern char *sys_errlist[];
@@ -110,9 +96,7 @@ int err;
 #endif
 
 void
-centerline(str, y)
-char *str;
-int y;
+centerline(char *str, int y)
 {
   int l, n;
 
@@ -125,10 +109,7 @@ int y;
 }
 
 void
-leftline(str, y, rend)
-char *str;
-int y;
-struct mchar *rend;
+leftline(char *str, int y, struct mchar *rend)
 {
   int l, n;
   struct mchar mchar_dol;
@@ -147,8 +128,7 @@ struct mchar *rend;
 
 
 char *
-Filename(s)
-char *s;
+Filename(char *s)
 {
   register char *p = s;
 
@@ -160,8 +140,7 @@ char *s;
 }
 
 char *
-stripdev(nam)
-char *nam;
+stripdev(char *nam)
 {
 #ifdef apollo
   char *p;
@@ -194,14 +173,14 @@ char *nam;
  */
 
 #ifdef POSIX
-sigret_t (*xsignal(sig, func))
+void (*xsignal(sig, func))
 # ifndef __APPLE__
- __P(SIGPROTOARG)
+ (int)
 # else
 ()
 # endif
 int sig;
-sigret_t (*func) __P(SIGPROTOARG);
+void (*func) (int);
 {
   struct sigaction osa, sa;
   sa.sa_handler = func;
@@ -212,7 +191,7 @@ sigret_t (*func) __P(SIGPROTOARG);
   sa.sa_flags = 0;
 #endif
   if (sigaction(sig, &sa, &osa))
-    return (sigret_t (*)__P(SIGPROTOARG))-1;
+    return (void (*)(int))-1;
   return osa.sa_handler;
 }
 
@@ -222,9 +201,9 @@ sigret_t (*func) __P(SIGPROTOARG);
  * hpux has berkeley signal semantics if we use sigvector,
  * but not, if we use signal, so we define our own signal() routine.
  */
-void (*xsignal(sig, func)) __P(SIGPROTOARG)
+void (*xsignal(sig, func)) (int)
 int sig;
-void (*func) __P(SIGPROTOARG);
+void (*func) (int);
 {
   struct sigvec osv, sv;
 
@@ -232,7 +211,7 @@ void (*func) __P(SIGPROTOARG);
   sv.sv_mask = sigmask(sig);
   sv.sv_flags = SV_BSDSIG;
   if (sigvector(sig, &sv, &osv) < 0)
-    return (void (*)__P(SIGPROTOARG))(BADSIG);
+    return (void (*)(int))(BADSIG);
   return osv.sv_handler;
 }
 # endif	/* hpux */
@@ -246,8 +225,7 @@ void (*func) __P(SIGPROTOARG);
 #ifdef HAVE_SETEUID
 
 void
-xseteuid(euid)
-int euid;
+xseteuid(int euid)
 {
   if (seteuid(euid) == 0)
     return;
@@ -257,8 +235,7 @@ int euid;
 }
 
 void
-xsetegid(egid)
-int egid;
+xsetegid(int egid)
 {
   if (setegid(egid))
     Panic(errno, "setegid");
@@ -268,8 +245,7 @@ int egid;
 # ifdef HAVE_SETREUID
 
 void
-xseteuid(euid)
-int euid;
+xseteuid(int euid)
 {
   int oeuid;
 
@@ -283,8 +259,7 @@ int euid;
 }
 
 void
-xsetegid(egid)
-int egid;
+xsetegid(int egid)
 {
   int oegid;
 
@@ -301,38 +276,15 @@ int egid;
 #endif /* HAVE_SETEUID */
 
 
-
-#ifdef NEED_OWN_BCOPY
 void
-xbcopy(s1, s2, len)
-register char *s1, *s2;
-register int len;
+bclear(char *p, int n)
 {
-  if (s1 < s2 && s2 < s1 + len)
-    {
-      s1 += len;
-      s2 += len;
-      while (len-- > 0)
-	*--s2 = *--s1;
-    }
-  else
-    while (len-- > 0)
-      *s2++ = *s1++;
-}
-#endif	/* NEED_OWN_BCOPY */
-
-void
-bclear(p, n)
-char *p;
-int n;
-{
-  bcopy((char *)blank, p, n);
+  memmove(p, (char *)blank, n);
 }
 
 
 void
-Kill(pid, sig)
-int pid, sig;
+Kill(int pid, int sig)
 {
   if (pid < 2)
     return;
@@ -346,9 +298,7 @@ int pid, sig;
  * the default file descriptor limit has risen to 65k.
  */
 static int
-close_func(cb_data, fd)
-void *cb_data;
-int fd;
+close_func(void *cb_data, int fd)
 {
   int except = *(int *)cb_data;
   if (fd > 2 && fd != except)
@@ -357,8 +307,7 @@ int fd;
 }
 
 void
-closeallfiles(except)
-int except;
+closeallfiles(int except)
 {
   (void)fdwalk(close_func, &except);
 }
@@ -366,8 +315,7 @@ int except;
 #else /* HAVE_FDWALK */
 
 void
-closeallfiles(except)
-int except;
+closeallfiles(int except)
 {
   int f;
 #ifdef SVR4
@@ -396,7 +344,7 @@ int except;
 
 #ifndef USE_SETEUID
 static int UserPID;
-static sigret_t (*Usersigcld)__P(SIGPROTOARG);
+static void (*Usersigcld)(int);
 #endif
 static int UserSTAT;
 
@@ -436,8 +384,7 @@ UserContext()
 }
 
 void
-UserReturn(val)
-int val;
+UserReturn(int val)
 {
 #ifndef USE_SETEUID
   if (eff_uid == real_uid && eff_gid == real_gid)
@@ -480,9 +427,7 @@ UserStatus()
 
 #ifndef HAVE_RENAME
 int
-rename (old, new)
-char *old;
-char *new;
+rename (char *old, char *new)
 {
   if (link(old, new) < 0)
     return -1;
@@ -492,9 +437,7 @@ char *new;
 
 
 int
-AddXChar(buf, ch)
-char *buf;
-int ch;
+AddXChar(char *buf, int ch)
 {
   char *p = buf;
 
@@ -516,9 +459,7 @@ int ch;
 }
 
 int
-AddXChars(buf, len, str)
-char *buf, *str;
-int len;
+AddXChars(char *buf, int len, char *str)
 {
   char *p;
 
@@ -542,8 +483,7 @@ int len;
 
 #ifdef DEBUG
 void
-opendebug(new, shout)
-int new, shout;
+opendebug(int new, int shout)
 {
   char buf[256];
 
@@ -568,9 +508,7 @@ int new, shout;
 #endif /* DEBUG */
 
 void
-sleep1000(msec)
-int msec;
-
+sleep1000(int msec)
 {
   struct timeval t;
 
@@ -585,9 +523,7 @@ int msec;
  * to free the buffer after putenv(), unless it it the one found in putenv.c
  */
 void
-xsetenv(var, value)
-char *var;
-char *value;
+xsetenv(char *var, char *value)
 {
 #ifndef USESETENV
   char *buf;
@@ -599,9 +535,9 @@ char *value;
       Msg(0, strnomem);
       return;
     }
-  strcpy(buf, var);
+  strncpy(buf, var, strlen(var) + 1);
   buf[l] = '=';
-  strcpy(buf + l + 1, value);
+  strncpy(buf + l + 1, value, strlen(value) + 1);
   putenv(buf);
 # ifdef NEEDPUTENV
   /*
@@ -627,145 +563,6 @@ char *value;
 #endif /* USESETENV */
 }
 
-#ifdef TERMINFO
-/*
- * This is a replacement for the buggy _delay function from the termcap
- * emulation of libcurses, which ignores ospeed.
- */
-int
-_delay(delay, outc)
-register int delay;
-int (*outc) __P((int));
-{
-  int pad;
-  extern short ospeed;
-  static short osp2pad[] = {
-    0,2000,1333,909,743,666,500,333,166,83,55,41,20,10,5,2,1,1
-  };
-
-  if (ospeed <= 0 || ospeed >= (int)(sizeof(osp2pad)/sizeof(*osp2pad)))
-    return 0;
-  pad =osp2pad[ospeed];
-  delay = (delay + pad / 2) / pad;
-  while (delay-- > 0)
-    (*outc)(0);
-  return 0;
-}
-
-#endif /* TERMINFO */
-
-
-
-#ifndef USEVARARGS
-
-# define xva_arg(s, t, tn) (*(t *)(s += xsnoff(tn, 0, 0), s - xsnoff(tn, 0, 0)))
-# define xva_list char *
-
-static int
-xsnoff(a, b, c)
-int a;
-char *b;
-int c;
-{
-  return a ? (char *)&c  - (char *)&b : (char *)&b - (char *)&a;
-}
-
-int
-xsnprintf(s, n, fmt, p1, p2, p3, p4, p5, p6)
-char *s;
-int n;
-char *fmt;
-unsigned long p1, p2, p3, p4, p5, p6;
-{
-  int xvsnprintf __P((char *, int, char *, xva_list));
-  return xvsnprintf(s, n, fmt, (char *)&fmt + xsnoff(1, 0, 0));
-}
-
-#else
-
 # define xva_arg(s, t, tn) va_arg(s, t)
 # define xva_list va_list
 
-#endif
-
-
-#if !defined(USEVARARGS) || !defined(HAVE_VSNPRINTF)
-
-int
-xvsnprintf(s, n, fmt, stack)
-char *s;
-int n;
-char *fmt;
-xva_list stack;
-{
-  char *f, *sf = 0;
-  int i, on, argl = 0;
-  char myf[10], buf[20];
-  char *arg, *myfp;
-
-  on = n;
-  f = fmt;
-  arg = 0;
-  while(arg || (sf = index(f, '%')) || (sf = f + strlen(f)))
-    {
-      if (arg == 0)
-	{
-	  arg = f;
-	  argl = sf - f;
-	}
-      if (argl)
-	{
-	  i = argl > n - 1 ? n - 1 : argl;
-	  strncpy(s, arg, i);
-          s += i;
-	  n -= i;
-	  if (i < argl)
-	    {
-	      *s = 0;
-	      return on;
-	    }
-	}
-      arg = 0;
-      if (sf == 0)
-	continue;
-      f = sf;
-      sf = 0;
-      if (!*f)
-	break;
-      myfp = myf;
-      *myfp++ = *f++;
-      while (((*f >= '0' && *f <='9') || *f == '#') && myfp - myf < 8)
-        *myfp++ = *f++;
-      *myfp++ = *f;
-      *myfp = 0;
-      if (!*f++)
-	break;
-      switch(f[-1])
-	{
-	case '%':
-	  arg = "%";
-	  break;
-	case 'c':
-	case 'o':
-	case 'd':
-	case 'x':
-	  i = xva_arg(stack, int, 0);
-	  sprintf(buf, myf, i);
-	  arg = buf;
-	  break;
-	case 's':
-	  arg = xva_arg(stack, char *, 1);
-	  if (arg == 0)
-	    arg = "NULL";
-	  break;
-	default:
-	  arg = "";
-	  break;
-	}
-      argl = strlen(arg);
-    }
-  *s = 0;
-  return on - n;
-}
-
-#endif

@@ -64,29 +64,22 @@
 
 #ifdef NEEDPUTENV
 
-#if defined(__STDC__)
-# define __P(a) a
-#else
-# define __P(a) ()
-#endif
-
-char  *malloc __P((int));
-char  *realloc __P((char *, int));
-void   free __P((char *));
-int    sprintf __P((char *, char *, ...));
+char  *malloc (int);
+char  *realloc (char *, int);
+void   free (char *);
+int    sprintf (char *, char *, ...);
 
 #define EXTRASIZE 5		/* increment to add to env. size */
 
 static int  envsize = -1;	/* current size of environment */
 extern char **environ;		/* the global which is your env. */
 
-static int  findenv __P((char *));  /* look for a name in the env. */
-static int  newenv __P((void));     /* copy env. from stack to heap */
-static int  moreenv __P((void));    /* incr. size of env. */
+static int  findenv (char *)	/* look for a name in the env. */
+static int  newenv (void)	/* copy env. from stack to heap */
+static int  moreenv (void)	/* incr. size of env. */
 
 int
-unsetenv(name)
-char *name;
+unsetenv(char *name)
 {
   register int i;
   
@@ -108,8 +101,7 @@ char *name;
 }
 
 int
-putenv(string)
-char *string;
+putenv(char *string)
 { 
   register int  i;
   register char *p;
@@ -148,8 +140,7 @@ char *string;
 }
 
 static int
-findenv(name)
-char *name;
+findenv(char *name)
 {
   register char *namechar, *envchar;
   register int  i, found;

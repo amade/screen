@@ -60,6 +60,7 @@ exit 0
 #include <sys/types.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #ifndef sgi
 # include <sys/file.h>
 #endif
@@ -92,17 +93,14 @@ exit 0
 # include <sys/strredir.h>
 #endif
 
-extern struct display *display, *displays;
-extern int iflag;
 #if (!defined(TIOCCONS) && defined(SRIOCSREDIR)) || defined(linux)
-extern struct win *console_window;
-static void consredir_readev_fn __P((struct event *, char *));
+static void consredir_readev_fn (struct event *, char *);
 #endif
 
 int separate_sids = 1;
 
-static void DoSendBreak __P((int, int, int));
-static sigret_t SigAlrmDummy __P(SIGPROTOARG);
+static void DoSendBreak (int, int, int);
+static void SigAlrmDummy (int);
 
 
 /* Frank Schulz (fschulz@pyramid.com):
@@ -128,11 +126,11 @@ static sigret_t SigAlrmDummy __P(SIGPROTOARG);
 #endif
 
 
-static sigret_t
-SigAlrmDummy SIGDEFARG
+static void
+SigAlrmDummy (int sigsig)
 {
   debug("SigAlrmDummy()\n");
-  SIGRETURN;
+  return;
 }
 
 /*
@@ -146,7 +144,7 @@ char *line, *opt;
 {
   int f;
   struct mode Mode;
-  sigret_t (*sigalrm)__P(SIGPROTOARG);
+  void (*sigalrm)(int);
 
   sigalrm = signal(SIGALRM, SigAlrmDummy);
   alarm(2);
@@ -232,7 +230,7 @@ InitTTY(m, ttyflag)
 struct mode *m;
 int ttyflag;
 {
-  bzero((char *)m, sizeof(*m));
+  memset((char *)m, 0, sizeof(*m));
 #ifdef POSIX
   /* struct termios tio 
    * defaults, as seen on SunOS 4.1.3
@@ -414,7 +412,7 @@ IF{LCRTBS}	| LCRTBS
 # endif /* TERMIO */
 #endif /* POSIX */
 
-#if defined(ENCODINGS) && defined(TIOCKSET)
+#if defined(TIOCKSET)
   m->m_jtchars.t_ascii = 'J';
   m->m_jtchars.t_kanji = 'B';
   m->m_knjmode = KM_ASCII | KM_SYSSJIS;
@@ -452,7 +450,7 @@ struct mode *mp;
   ioctl(fd, TIOCSLTC, (char *)&mp->m_ltchars); /* moved here for apollo. jw */
 # endif
 #endif
-#if defined(ENCODINGS) && defined(TIOCKSET)
+#if defined(TIOCKSET)
   ioctl(fd, TIOCKSETC, &mp->m_jtchars);
   ioctl(fd, TIOCKSET, &mp->m_knjmode);
 #endif
@@ -496,7 +494,7 @@ struct mode *mp;
   ioctl(fd, TIOCGETD, (char *)&mp->m_ldisc);
 # endif
 #endif
-#if defined(ENCODINGS) && defined(TIOCKSET)
+#if defined(TIOCKSET)
   ioctl(fd, TIOCKGETC, &mp->m_jtchars);
   ioctl(fd, TIOCKGET, &mp->m_knjmode);
 #endif
@@ -670,7 +668,7 @@ char *opt;
 
   while (*opt)
     {
-      while (index(sep, *opt)) opt++;
+      while (strchr(sep, *opt)) opt++;
       if (*opt >= '0' && *opt <= '9')
         {
 	  if (SetBaud(m, atoi(opt), atoi(opt)))
@@ -756,7 +754,7 @@ char *opt;
 	}
       else
         return -1;
-      while (*opt && !index(sep, *opt)) opt++;
+      while (*opt && !strchr(sep, *opt)) opt++;
     }
   return 0;
 }
@@ -978,15 +976,8 @@ SendBreak(wp, n, closeopen)
 struct win *wp;
 int n, closeopen;
 {
-  sigret_t (*sigalrm)__P(SIGPROTOARG);
+  void (*sigalrm)(int);
 
-#ifdef BUILTIN_TELNET
-  if (wp->w_type == W_TYPE_TELNET)
-    {
-      TelBreak(wp);
-      return;
-    }
-#endif
   if (wp->w_type != W_TYPE_PLAIN)
     return;
 
@@ -1503,6 +1494,18 @@ int ibaud, obaud;
   if (op) m->m_ttyb.sg_ospeed = op->idx;
 # endif /* TERMIO */
 #endif /* POSIX */
+  return 0;
+}
+
+int
+CheckTtyname (tty)
+char *tty;
+{
+  struct stat st;
+
+  if (lstat(tty, &st) || !S_ISCHR(st.st_mode) ||
+     (st.st_nlink > 1 && strncmp(tty, "/dev/", 5)))
+    return -1;
   return 0;
 }
 

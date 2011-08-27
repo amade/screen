@@ -31,13 +31,13 @@ struct ListRow
 
 struct GenericList
 {
-  int (*gl_printheader) __P((struct ListData *));		/* Print the header */
-  int (*gl_printfooter) __P((struct ListData *));		/* Print the footer */
-  int (*gl_printrow) __P((struct ListData *, struct ListRow *));	/* Print one row */
-  int (*gl_pinput) __P((struct ListData *, char **inp, int *len));	/* Process input */
-  int (*gl_freerow) __P((struct ListData *, struct ListRow *));	/* Free data for a row */
-  int (*gl_free) __P((struct ListData *));			/* Free data for the list */
-  int (*gl_matchrow) __P((struct ListData *, struct ListRow *, const char *));
+  int (*gl_printheader) (struct ListData *);			/* Print the header */
+  int (*gl_printfooter) (struct ListData *);			/* Print the footer */
+  int (*gl_printrow) (struct ListData *, struct ListRow *);	/* Print one row */
+  int (*gl_pinput) (struct ListData *, char **inp, int *len);	/* Process input */
+  int (*gl_freerow) (struct ListData *, struct ListRow *);	/* Free data for a row */
+  int (*gl_free) (struct ListData *);				/* Free data for the list */
+  int (*gl_matchrow) (struct ListData *, struct ListRow *, const char *);
 };
 
 struct ListData
@@ -57,17 +57,17 @@ struct ListData
 extern struct LayFuncs ListLf;
 
 
-struct ListRow * glist_add_row __P((struct ListData *ldata, void *data, struct ListRow *after));
+struct ListRow * glist_add_row (struct ListData *ldata, void *data, struct ListRow *after);
 
-void glist_remove_rows __P((struct ListData *ldata));
+void glist_remove_rows (struct ListData *ldata);
 
-void glist_display_all __P((struct ListData *list));
+void glist_display_all (struct ListData *list);
 
-struct ListData * glist_display __P((struct GenericList *list, const char *name));
+struct ListData * glist_display (struct GenericList *list, const char *name);
 
-void glist_abort __P((void));
+void glist_abort (void);
 
-void display_displays __P((void));
+void display_displays (void);
 
-void display_windows __P((int onblank, int order, struct win *group));
+void display_windows (int onblank, int order, struct win *group);
 

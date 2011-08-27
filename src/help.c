@@ -40,41 +40,20 @@
 
 char version[60];      /* initialised by main() */
 
-extern struct layer *flayer;
-extern struct display *display, *displays;
-extern struct win *windows;
-extern int maxwin;
-extern char *noargs[];
-extern struct mchar mchar_blank, mchar_so;
-extern int renditions[];
-extern unsigned char *blank;
-extern struct win **wtab;
-#ifdef MAPKEYS
-extern struct term term[];
-#endif
-
-extern struct LayFuncs ListLf;
-
-static void PadStr __P((char *, int, int, int));
-
-extern char *wliststr;
-extern char *wlisttit;
+static void PadStr (char *, int, int, int);
 
 void
-exit_with_usage(myname, message, arg)
-char *myname, *message, *arg;
+exit_with_usage(char *myname, char *message, char *arg)
 {
   printf("Use: %s [-opts] [cmd [args]]\n", myname);
   printf(" or: %s -r [host.tty]\n\nOptions:\n", myname);
   printf("-a            Force all capabilities into each window's termcap.\n");
   printf("-A -[r|R]     Adapt all windows to the new display width & height.\n");
   printf("-c file       Read configuration file instead of '.screenrc'.\n");
-#ifdef REMOTE_DETACH
   printf("-d (-r)       Detach the elsewhere running screen (and reattach here).\n");
   printf("-dmS name     Start as daemon: Screen session in detached mode.\n");
   printf("-D (-r)       Detach and logout remote (and reattach here).\n");
   printf("-D -RR        Do whatever is needed to get a screen session.\n");
-#endif
   printf("-e xy         Change command characters.\n");
   printf("-f            Flow control on, -fn = off, -fa = auto.\n");
   printf("-h lines      Set the size of the scrollback history buffer.\n");
@@ -94,14 +73,10 @@ char *myname, *message, *arg;
   printf("-S sockname   Name this session <pid>.sockname instead of <pid>.<tty>.<host>.\n");
   printf("-t title      Set title. (window's name).\n");
   printf("-T term       Use term as $TERM for windows, rather than \"screen\".\n");
-#ifdef UTF8
   printf("-U            Tell screen to use UTF-8 encoding.\n");
-#endif
   printf("-v            Print \"Screen version %s\".\n", version);
   printf("-wipe [match] Do nothing, just clean up SockDir [on possible matches].\n");
-#ifdef MULTI
   printf("-x            Attach to a not detached screen. (Multi display mode).\n");
-#endif /* MULTI */
   printf("-X            Execute <cmd> as a screen command in the specified session.\n");
   if (message && *message)
     {
@@ -116,15 +91,12 @@ char *myname, *message, *arg;
 **   Here come the help page routines
 */
 
-extern struct comm comms[];
-extern struct action ktab[];
-
-static void HelpProcess __P((char **, int *));
-static void HelpAbort __P((void));
-static void HelpRedisplayLine __P((int, int, int, int));
-static void add_key_to_buf __P((char *, int));
-static void AddAction __P((struct action *, int, int));
-static int  helppage __P((void));
+static void HelpProcess (char **, int *);
+static void HelpAbort (void);
+static void HelpRedisplayLine (int, int, int, int);
+static void add_key_to_buf (char *, int);
+static void AddAction (struct action *, int, int);
+static int  helppage (void);
 
 struct helpdata
 {
@@ -154,9 +126,7 @@ static struct LayFuncs HelpLf =
 
 
 void
-display_help(class, ktabp)
-char *class;
-struct action *ktabp;
+display_help(char *class, struct action *ktabp)
 {
   int i, n, key, mcom, mkey, l;
   struct helpdata *helpdata;
@@ -240,9 +210,7 @@ struct action *ktabp;
 }
 
 static void
-HelpProcess(ppbuf, plen)
-char **ppbuf;
-int *plen;
+HelpProcess(char **ppbuf, int *plen)
 {
   int done = 0;
 
@@ -309,8 +277,8 @@ helppage()
     }
   else
     {
-      strcpy(Esc_buf, "??");
-      strcpy(buf, "??");
+      strncpy(Esc_buf, "??", 5);
+      strncpy(buf, "??", 256);
     }
 
   for (; crow < flayer->l_height - 3; crow++)
@@ -371,9 +339,7 @@ helppage()
 }
 
 static void
-AddAction(act, x, y)
-struct action *act;
-int x, y;
+AddAction(struct action *act, int x, int y)
 {
   char buf[256];
   int del, l;
@@ -404,9 +370,9 @@ int x, y;
       del = 0;
       bp = buf;
       ll = *lp++;
-      if (!ll || (index(cp, ' ') != NULL))
+      if (!ll || (strchr(cp, ' ') != NULL))
 	{
-	  if (index(cp, '\'') != NULL)
+	  if (strchr(cp, '\'') != NULL)
 	    *bp++ = del = '"';
 	  else
 	    *bp++ = del = '\'';
@@ -434,16 +400,13 @@ int x, y;
 }
 
 static void
-add_key_to_buf(buf, key)
-char *buf;
-int key;
+add_key_to_buf(char *buf, int key)
 {
   buf += strlen(buf);
   if (key < 0)
-    strcpy(buf, "unset");
+    strncpy(buf, "unset", 6);
   else if (key == ' ')
-    strcpy(buf, "sp");
-#ifdef MAPKEYS
+    strncpy(buf, "sp", 3);
   else if (key >= 256)
     {
       key = key - 256 + T_CAPS;
@@ -453,15 +416,13 @@ int key;
       buf[3] = ':';
       buf[4] = 0;
     }
-#endif
   else
     buf[AddXChar(buf, key)] = 0;
 }
 
 
 static void
-HelpRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+HelpRedisplayLine(int y, int xs, int xe, int isblank)
 {
   if (y < 0)
     {
@@ -486,10 +447,10 @@ int y, xs, xe, isblank;
 **
 */
 
-static void CopyrightProcess __P((char **, int *));
-static void CopyrightRedisplayLine __P((int, int, int, int));
-static void CopyrightAbort __P((void));
-static void copypage __P((void));
+static void CopyrightProcess (char **, int *);
+static void CopyrightRedisplayLine (int, int, int, int);
+static void CopyrightAbort (void);
+static void copypage (void);
 
 struct copydata
 {
@@ -534,79 +495,11 @@ http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc., \
 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA.\n\
 \n\
 Send bugreports, fixes, enhancements, t-shirts, money, beer & pizza to \
-screen-devel@gnu.org\n\n\n"
+screen-devel@gnu.org\n\n\n";
 
-"Capabilities:\n"
-
-#ifdef COPY_PASTE
-"+copy "
-#else
-"-copy "
-#endif
-
-#ifdef REMOTE_DETACH
-"+remote-detach "
-#else
-"-remote-detach "
-#endif
-
-#ifdef POW_DETACH
-"+power-detach "
-#else
-"-power-detach "
-#endif
-
-#ifdef MULTI
-"+multi-attach "
-#else
-"-multi-attach "
-#endif
-
-#ifdef MULTIUSER
-"+multi-user "
-#else
-"-multi-user "
-#endif
-
-#ifdef FONT
-"+font "
-#else
-"-font "
-#endif
-
-#ifdef COLORS256
-"+color-256 "
-#elif defined(COLORS16)
-"+color-16 "
-#elif defined(COLOR)
-"+color "
-#else
-"-color "
-#endif
-
-#ifdef UTF8
-"+utf8 "
-#else
-"-utf8 "
-#endif
-
-#ifdef RXVT_OSC
-"+rxvt "
-#else
-"-rxvt "
-#endif
-
-#ifdef BUILTIN_TELNET
-"+builtin-telnet "
-#else
-"-builtin-telnet "
-#endif
-;
 
 static void
-CopyrightProcess(ppbuf, plen)
-char **ppbuf;
-int *plen;
+CopyrightProcess(char **ppbuf, int *plen)
 {
   int done = 0;
   struct copydata *copydata;
@@ -735,8 +628,7 @@ copypage()
 }
 
 static void
-CopyrightRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+CopyrightRedisplayLine(int y, int xs, int xe, int isblank)
 {
   ASSERT(flayer);
   if (y < 0)
@@ -763,17 +655,11 @@ int y, xs, xe, isblank;
 **
 */
 
-#ifdef MAPKEYS
-extern struct kmap_ext *kmap_exts;
-extern int kmap_extn;
-extern struct action dmtab[];
-extern struct action mmtab[];
 
-
-static void BindkeyProcess __P((char **, int *));
-static void BindkeyAbort __P((void));
-static void BindkeyRedisplayLine __P((int, int, int, int));
-static void bindkeypage __P((void));
+static void BindkeyProcess (char **, int *);
+static void BindkeyAbort (void);
+static void BindkeyRedisplayLine (int, int, int, int);
+static void bindkeypage (void);
 
 struct bindkeydata
 {
@@ -799,9 +685,7 @@ static struct LayFuncs BindkeyLf =
 
 
 void
-display_bindkey(title, tab)
-char *title;
-struct action *tab;
+display_bindkey(char *title, struct action *tab)
 {
   struct bindkeydata *bindkeydata;
   int i, n;
@@ -919,9 +803,7 @@ bindkeypage()
 }
  
 static void
-BindkeyProcess(ppbuf, plen)
-char **ppbuf;
-int *plen;
+BindkeyProcess(char **ppbuf, int *plen)
 {
   int done = 0;
   struct bindkeydata *bindkeydata;
@@ -955,8 +837,7 @@ int *plen;
 }
 
 static void
-BindkeyRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+BindkeyRedisplayLine(int y, int xs, int xe, int isblank)
 {
   if (y < 0)
     {
@@ -969,7 +850,6 @@ int y, xs, xe, isblank;
     LClearArea(flayer, xs, y, xe, y, 0, 0);
 }
 
-#endif /* MAPKEYS */
 
 
 /*
@@ -978,10 +858,9 @@ int y, xs, xe, isblank;
 **
 */
 
-#ifdef ZMODEM
 
-static void ZmodemRedisplayLine __P((int, int, int, int));
-static int  ZmodemResize __P((int, int));
+static void ZmodemRedisplayLine (int, int, int, int);
+static int  ZmodemResize (int, int);
 
 static struct LayFuncs ZmodemLf =
 {
@@ -997,8 +876,7 @@ static struct LayFuncs ZmodemLf =
 
 /*ARGSUSED*/
 static int
-ZmodemResize(wi, he)
-int wi, he; 
+ZmodemResize(int wi, int he)
 {
   flayer->l_width = wi;
   flayer->l_height = he;
@@ -1007,8 +885,7 @@ int wi, he;
 }
 
 static void
-ZmodemRedisplayLine(y, xs, xe, isblank)
-int y, xs, xe, isblank;
+ZmodemRedisplayLine(int y, int xs, int xe, int isblank)
 {
   DefRedisplayLine(y, xs, xe, isblank);
   if (y == 0 && xs == 0)
@@ -1025,14 +902,11 @@ ZmodemPage()
   flayer->l_y = 0;
 }
 
-#endif
 
 
 
 static void
-PadStr(str, n, x, y)
-char *str;
-int n, x, y;
+PadStr(char *str, int n, int x, int y)
 {
   int l;
 

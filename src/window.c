@@ -43,68 +43,28 @@
 #include "extern.h"
 #include "logfile.h"	/* logfopen() */
 
-extern struct display *displays, *display;
-extern struct win *windows, *fore, *console_window;
-extern char *ShellArgs[];
-extern char *ShellProg;
-extern char screenterm[];
-extern char *screenlogfile;
-extern char HostName[];
-extern int TtyMode;
-extern int SilenceWait;
-extern int real_uid, real_gid, eff_uid, eff_gid;
-extern char Termcap[];
-extern char **NewEnv;
-extern int visual_bell, maxwin;
-extern struct event logflushev;
-extern int log_flush, logtstamp_after;
-extern int ZombieKey_destroy, ZombieKey_resurrect, ZombieKey_onerror;
-extern struct layer *flayer;
-extern int maxusercount;
-extern int pty_preopen;
-#ifdef ZMODEM
-extern int zmodem_mode;
-extern struct mchar mchar_blank;
-extern char *zmodem_sendcmd;
-extern char *zmodem_recvcmd;
-#endif
+static void WinProcess (char **, int *);
+static void WinRedisplayLine (int, int, int, int);
+static void WinClearLine (int, int, int, int);
+static int  WinRewrite (int, int, int, struct mchar *, int);
+static int  WinResize (int, int);
+static void WinRestore (void);
+static int  DoAutolf (char *, int *, int);
+static void ZombieProcess (char **, int *);
+static void win_readev_fn (struct event *, char *);
+static void win_writeev_fn (struct event *, char *);
+static int  muchpending (struct win *, struct event *);
+static void paste_slowev_fn (struct event *, char *);
+static void pseu_readev_fn (struct event *, char *);
+static void pseu_writeev_fn (struct event *, char *);
+static void win_silenceev_fn (struct event *, char *);
+static void win_destroyev_fn (struct event *, char *);
 
-#if defined(TIOCSWINSZ) || defined(TIOCGWINSZ)
-extern struct winsize glwz;
-#endif
-
-#ifdef O_NOCTTY
-extern int separate_sids;
-#endif
-
-static void WinProcess __P((char **, int *));
-static void WinRedisplayLine __P((int, int, int, int));
-static void WinClearLine __P((int, int, int, int));
-static int  WinRewrite __P((int, int, int, struct mchar *, int));
-static int  WinResize __P((int, int));
-static void WinRestore __P((void));
-static int  DoAutolf __P((char *, int *, int));
-static void ZombieProcess __P((char **, int *));
-static void win_readev_fn __P((struct event *, char *));
-static void win_writeev_fn __P((struct event *, char *));
-static int  muchpending __P((struct win *, struct event *));
-#ifdef COPY_PASTE
-static void paste_slowev_fn __P((struct event *, char *));
-#endif
-#ifdef PSEUDOS
-static void pseu_readev_fn __P((struct event *, char *));
-static void pseu_writeev_fn __P((struct event *, char *));
-#endif
-static void win_silenceev_fn __P((struct event *, char *));
-static void win_destroyev_fn __P((struct event *, char *));
-
-static int  OpenDevice __P((char **, int, int *, char **));
-static int  ForkWindow __P((struct win *, char **, char *));
-#ifdef ZMODEM
-static void zmodem_found __P((struct win *, int, char *, int));
-static void zmodem_fin __P((char *, int, char *));
-static int  zmodem_parse __P((struct win *, char *, int));
-#endif
+static int  OpenDevice (char **, int, int *, char **);
+static int  ForkWindow (struct win *, char **, char *);
+static void zmodem_found (struct win *, int, char *, int);
+static void zmodem_fin (char *, int, char *);
+static int  zmodem_parse (struct win *, char *, int);
 
 
 struct win **wtab;	/* window table */
@@ -112,7 +72,9 @@ struct win **wtab;	/* window table */
 int VerboseCreate = 0;		/* XXX move this to user.h */
 
 char DefaultShell[] = "/bin/sh";
+#ifndef HAVE_EXECVPE
 static char DefaultPath[] = ":/usr/ucb:/bin:/usr/bin";
+#endif
 
 /* keep this in sync with the structure definition in window.h */
 struct NewWindow nwin_undef   = 
@@ -171,8 +133,7 @@ static int const_IOSIZE = IOSIZE;
 static int const_one = 1;
 
 void
-nwin_compose(def, new, res)
-struct NewWindow *def, *new, *res;
+nwin_compose(struct NewWindow *def, struct NewWindow *new, struct NewWindow *res)
 {
 #define COMPOSE(x) res->x = new->x != nwin_undef.x ? new->x : def->x
   COMPOSE(StartAt);
@@ -217,10 +178,7 @@ struct LayFuncs WinLf =
 };
 
 static int
-DoAutolf(buf, lenp, fr)
-char *buf;
-int *lenp;
-int fr;
+DoAutolf(char *buf, int *lenp, int fr)
 {
   char *p;
   int len = *lenp;
@@ -237,7 +195,7 @@ int fr;
 	}
       if (len == 0)
 	break;
-      bcopy(p, p + 1, len++);
+      memmove(p + 1, p, len++);
       p[1] = '\n';
     }
   *lenp = p - buf;
@@ -245,9 +203,7 @@ int fr;
 }
 
 static void
-WinProcess(bufpp, lenp)
-char **bufpp;
-int *lenp;
+WinProcess(char **bufpp, int *lenp)
 {
   int l2 = 0, f, *ilen, l = *lenp, trunc;
   char *ibuf;
@@ -266,7 +222,6 @@ int *lenp;
       ZombieProcess(bufpp, lenp);
       return;
     }
-#ifdef MULTIUSER
  /* a pending writelock is this:
   * fore->w_wlock == WLOCK_AUTO, fore->w_wlockuse = NULL
   * The user who wants to use this window next, will get the lock, if he can.
@@ -291,17 +246,7 @@ int *lenp;
       *lenp = 0;
       return;
     }
-#endif /* MULTIUSER */
 
-#ifdef BUILTIN_TELNET
-  if (fore->w_type == W_TYPE_TELNET && TelIsline(fore) && *bufpp != fore->w_telbuf)
-    {
-      TelProcessLine(bufpp, lenp);
-      return;
-    }
-#endif
-
-#ifdef PSEUDOS
   if (W_UWP(fore))
     {
       /* we send the user input to our pseudowin */
@@ -309,7 +254,6 @@ int *lenp;
       f = sizeof(fore->w_pwin->p_inbuf) - *ilen;
     }
   else
-#endif /* PSEUDOS */
     {
       /* we send the user input to the window */
       ibuf = fore->w_inbuf; ilen = &fore->w_inlen;
@@ -318,24 +262,12 @@ int *lenp;
 
   if (l > f)
     l = f;
-#ifdef BUILTIN_TELNET
-  while (l > 0)
-#else
   if (l > 0)
-#endif
     {
       l2 = l;
-      bcopy(*bufpp, ibuf + *ilen, l2);
+      memmove(ibuf + *ilen, *bufpp, l2);
       if (fore->w_autolf && (trunc = DoAutolf(ibuf + *ilen, &l2, f - l2)))
 	l -= trunc;
-#ifdef BUILTIN_TELNET
-      if (fore->w_type == W_TYPE_TELNET && (trunc = DoTelnet(ibuf + *ilen, &l2, f - l2)))
-	{
-	  l -= trunc;
-	  if (fore->w_autolf)
-	    continue;		/* need exact value */
-	}
-#endif
       *ilen += l2;
       *bufpp += l;
       *lenp -= l;
@@ -344,9 +276,7 @@ int *lenp;
 }
 
 static void
-ZombieProcess(bufpp, lenp)
-char **bufpp;
-int *lenp;
+ZombieProcess(char **bufpp, int *lenp)
 {
   int l = *lenp;
   char *buf = *bufpp, b1[10], b2[10];
@@ -379,8 +309,7 @@ int *lenp;
 }
 
 static void
-WinRedisplayLine(y, from, to, isblank)
-int y, from, to, isblank;
+WinRedisplayLine(int y, int from, int to, int isblank)
 {
   debug3("WinRedisplayLine %d %d %d\n", y, from, to);
   if (y < 0)
@@ -393,21 +322,13 @@ int y, from, to, isblank;
 }
 
 static int
-WinRewrite(y, x1, x2, rend, doit)
-int y, x1, x2, doit;
-struct mchar *rend;
+WinRewrite(int y, int x1, int x2, struct mchar *rend, int doit)
 {
   register int cost, dx;
   register unsigned char *p, *i;
-#ifdef FONT
   register unsigned char *f;
-#endif
-#ifdef COLOR
   register unsigned char *c;
-# ifdef COLORS256
   register unsigned char *cx;
-# endif
-#endif
 
   debug3("WinRewrite %d, %d-%d\n", y, x1, x2);
   fore = (struct win *)flayer->l_data;
@@ -420,48 +341,31 @@ struct mchar *rend;
       return 0;
     }
   p = fore->w_mlines[y].attr + x1;
-#ifdef FONT
   f = fore->w_mlines[y].font + x1;
-# ifdef DW_CHARS
   if (is_dw_font(rend->font))
     return EXPENSIVE;
-# endif
-# ifdef UTF8
   if (fore->w_encoding && fore->w_encoding != UTF8 && D_encoding == UTF8 && ContainsSpecialDeffont(fore->w_mlines + y, x1, x2, fore->w_encoding))
     return EXPENSIVE;
-# endif
-#endif
-#ifdef COLOR
   c = fore->w_mlines[y].color + x1;
-# ifdef COLORS256
   cx = fore->w_mlines[y].colorx + x1;
-# endif
-#endif
 
   cost = dx = x2 - x1 + 1;
   while(dx-- > 0)
     {
       if (*p++ != rend->attr)
 	return EXPENSIVE;
-#ifdef FONT
       if (*f++ != rend->font)
 	return EXPENSIVE;
-#endif
-#ifdef COLOR
       if (*c++ != rend->color)
 	return EXPENSIVE;
-# ifdef COLORS256
       if (*cx++ != rend->colorx)
 	return EXPENSIVE;
-# endif
-#endif
     }
   return cost;
 }
 
 static void
-WinClearLine(y, xs, xe, bce)
-int y, xs, xe, bce;
+WinClearLine(int y, int xs, int xe, int bce)
 {
   fore = (struct win *)flayer->l_data;
   debug3("WinClearLine %d %d-%d\n", y, xs, xe);
@@ -469,8 +373,7 @@ int y, xs, xe, bce;
 }
 
 static int
-WinResize(wi, he)
-int wi, he;
+WinResize(int wi, int he)
 {
   fore = (struct win *)flayer->l_data;
   ChangeWindowSize(fore, wi, he, fore->w_histheight);
@@ -509,17 +412,13 @@ WinRestore()
  * returns 0 on success.
  */
 int
-DoStartLog(w, buf, bufsize)
-struct win *w;
-char *buf;
-int bufsize;
+DoStartLog(struct win *w, char *buf, int bufsize)
 {
   int n;
   if (!w || !buf)
     return -1;
 
   strncpy(buf, MakeWinMsg(screenlogfile, w, '%'), bufsize - 1);
-  buf[bufsize - 1] = 0;
 
   debug2("DoStartLog: win %d, file %s\n", w->w_number, buf);
 
@@ -545,8 +444,7 @@ int bufsize;
  * The display d (if specified) switches to that window.
  */
 int
-MakeWindow(newwin)
-struct NewWindow *newwin;
+MakeWindow(struct NewWindow *newwin)
 {
   register struct win **pp, *p;
   register int n, i;
@@ -554,9 +452,6 @@ struct NewWindow *newwin;
   struct NewWindow nwin;
   int type, startat;
   char *TtyName;
-#ifdef MULTIUSER
-  extern struct acluser *users;
-#endif
 
   if (!wtab)
     {
@@ -639,7 +534,6 @@ struct NewWindow *newwin;
     p->w_group = fore;
   else if (fore && fore->w_group)
     p->w_group = fore->w_group;
-#ifdef MULTIUSER
   /*
    * This is dangerous: without a display we use creators umask
    * This is intended to be useful for detached startup.
@@ -652,7 +546,6 @@ struct NewWindow *newwin;
       Msg(0, "%s", strnomem);
       return -1;
     }
-#endif
   p->w_layer.l_next = 0;
   p->w_layer.l_bottom = &p->w_layer;
   p->w_layer.l_layfn = &WinLf;
@@ -661,18 +554,16 @@ struct NewWindow *newwin;
   p->w_pdisplay = 0;
   p->w_lastdisp = 0;
 
-#ifdef MULTIUSER
   if (display && !AclCheckPermWin(D_user, ACL_WRITE, p))
     p->w_wlockuser = D_user;
   p->w_wlock = nwin.wlock;
-#endif
   p->w_ptyfd = f;
   p->w_aflag = nwin.aflag;
   p->w_flow = nwin.flowflag | ((nwin.flowflag & FLOW_AUTOFLAG) ? (FLOW_AUTO|FLOW_NOW) : FLOW_AUTO);
   if (!nwin.aka)
     nwin.aka = Filename(nwin.args[0]);
-  strncpy(p->w_akabuf, nwin.aka, sizeof(p->w_akabuf) - 1);
-  if ((nwin.aka = rindex(p->w_akabuf, '|')) != NULL)
+  strncpy(p->w_akabuf, nwin.aka, sizeof(p->w_akabuf));
+  if ((nwin.aka = strrchr(p->w_akabuf, '|')) != NULL)
     {
       p->w_autoaka = 0;
       *nwin.aka++ = 0;
@@ -684,46 +575,28 @@ struct NewWindow *newwin;
   if (nwin.hstatus)
     p->w_hstatus = SaveStr(nwin.hstatus);
   p->w_monitor = nwin.monitor;
-#ifdef MULTIUSER
   if (p->w_monitor == MON_ON)
     {
       /* always tell all users */
       for (i = 0; i < maxusercount; i++)
 	ACLBYTE(p->w_mon_notify, i) |= ACLBIT(i);
     }
-#endif
   /*
    * defsilence by Lloyd Zusman (zusman_lloyd@jpmorgan.com)
    */
   p->w_silence = nwin.silence;
   p->w_silencewait = SilenceWait;
-#ifdef MULTIUSER
   if (p->w_silence == SILENCE_ON)
     {
       /* always tell all users */
       for (i = 0; i < maxusercount; i++)
 	ACLBYTE(p->w_lio_notify, i) |= ACLBIT(i);
     }
-#endif
-#ifdef COPY_PASTE
   p->w_slowpaste = nwin.slow;
-#else
-  nwin.histheight = 0;
-#endif
 
   p->w_norefresh = 0;
-  strncpy(p->w_tty, TtyName, MAXSTR - 1);
+  strncpy(p->w_tty, TtyName, MAXSTR);
 
-#if 0
-  /* XXX Fixme display resize */
-  if (ChangeWindowSize(p, display ? D_defwidth : 80,
-		       display ? D_defheight : 24, 
-		       nwin.histheight))
-    {
-      FreeWindow(p);
-      return -1;
-    }
-#else
   if (ChangeWindowSize(p, display ? D_forecv->c_xe - D_forecv->c_xs + 1: 80,
 		       display ? D_forecv->c_ye - D_forecv->c_ys + 1 : 24, 
 		       nwin.histheight))
@@ -731,15 +604,12 @@ struct NewWindow *newwin;
       FreeWindow(p);
       return -1;
     }
-#endif
 
   p->w_encoding = nwin.encoding;
   ResetWindow(p);	/* sets w_wrap, w_c1, w_gr, w_bce */
 
-#ifdef FONT
   if (nwin.charset)
     SetCharsets(p, nwin.charset);
-#endif
 
   if (VerboseCreate && type != W_TYPE_GROUP)
     {
@@ -759,21 +629,8 @@ struct NewWindow *newwin;
 
   p->w_deadpid = 0;
   p->w_pid = 0;
-#ifdef PSEUDOS
   p->w_pwin = 0;
-#endif
 
-#ifdef BUILTIN_TELNET
-  if (type == W_TYPE_TELNET)
-    {
-      if (TelConnect(p))
-	{
-	  FreeWindow(p);
-	  return -1;
-	}
-    }
-  else
-#endif
   if (type == W_TYPE_PTY)
     {
       p->w_pid = ForkWindow(p, nwin.args, TtyName);
@@ -838,11 +695,9 @@ struct NewWindow *newwin;
   p->w_writeev.condpos = &p->w_inlen;
   evenq(&p->w_readev);
   evenq(&p->w_writeev);
-#ifdef COPY_PASTE
   p->w_paster.pa_slowev.type = EV_TIMEOUT;
   p->w_paster.pa_slowev.data = (char *)&p->w_paster;
   p->w_paster.pa_slowev.handler = paste_slowev_fn;
-#endif
   p->w_silenceev.type = EV_TIMEOUT;
   p->w_silenceev.data = (char *)p;
   p->w_silenceev.handler = win_silenceev_fn;
@@ -871,8 +726,7 @@ struct NewWindow *newwin;
  * working directory is lost.
  */
 int
-RemakeWindow(p)
-struct win *p;
+RemakeWindow(struct win *p)
 {
   char *TtyName;
   int lflag, f;
@@ -884,6 +738,7 @@ struct win *p;
   evdeq(&p->w_destroyev); /* no re-destroy of resurrected zombie */
 
   strncpy(p->w_tty, *TtyName ? TtyName : p->w_title, MAXSTR - 1);
+
   p->w_ptyfd = f;
   p->w_readev.fd = f;
   p->w_writeev.fd = f;
@@ -908,14 +763,6 @@ struct win *p;
 
   p->w_deadpid = 0;
   p->w_pid = 0;
-#ifdef BUILTIN_TELNET
-  if (p->w_type == W_TYPE_TELNET)
-    {
-      if (TelConnect(p))
-        return -1;
-    }
-  else
-#endif
   if (p->w_type == W_TYPE_PTY)
     {
       p->w_pid = ForkWindow(p, p->w_cmdargs, TtyName);
@@ -935,8 +782,7 @@ struct win *p;
 }
 
 void
-CloseDevice(wp)
-struct win *wp;
+CloseDevice(struct win *wp)
 {
   if (wp->w_ptyfd < 0)
     return;
@@ -951,15 +797,11 @@ struct win *wp;
   wp->w_tty[0] = 0;
   evdeq(&wp->w_readev);
   evdeq(&wp->w_writeev);
-#ifdef BUILTIN_TELNET
-  evdeq(&wp->w_telconnev);
-#endif
   wp->w_readev.fd = wp->w_writeev.fd = -1;
 }
 
 void
-FreeWindow(wp)
-struct win *wp;
+FreeWindow(struct win *wp)
 {
   struct display *d;
   int i;
@@ -967,10 +809,8 @@ struct win *wp;
   struct layer *l;
 
   debug1("FreeWindow %d\n", wp ? wp->w_number: -1);
-#ifdef PSEUDOS
   if (wp->w_pwin)
     FreePseudowin(wp);
-#endif
 #ifdef UTMPOK
   RemoveUtmp(wp);
 #endif
@@ -1038,25 +878,17 @@ struct win *wp;
     flayer = 0;
   LayerCleanupMemory(&wp->w_layer);
 
-#ifdef MULTIUSER
   FreeWindowAcl(wp);
-#endif /* MULTIUSER */
   evdeq(&wp->w_readev);		/* just in case */
   evdeq(&wp->w_writeev);	/* just in case */
   evdeq(&wp->w_silenceev);
   evdeq(&wp->w_destroyev);
-#ifdef COPY_PASTE
   FreePaster(&wp->w_paster);
-#endif
   free((char *)wp);
 }
 
 static int
-OpenDevice(args, lflag, typep, namep)
-char **args;
-int lflag;
-int *typep;
-char **namep;
+OpenDevice(char **args, int lflag, int *typep, char **namep)
 {
   char *arg = args[0];
   struct stat st;
@@ -1070,16 +902,6 @@ char **namep;
       *namep = "telnet";
       return 0;
     }
-#ifdef BUILTIN_TELNET
-  if (strcmp(arg, "//telnet") == 0)
-    {
-      f = TelOpen(args + 1);
-      lflag = 0;
-      *typep = W_TYPE_TELNET;
-      *namep = "telnet";
-    }
-  else
-#endif
   if (strncmp(arg, "//", 2) == 0)
     {
       Msg(0, "Invalid argument '%s'", arg);
@@ -1179,9 +1001,7 @@ char **namep;
  *
  */
 static int
-ForkWindow(win, args, ttyn)
-struct win *win;
-char **args, *ttyn;
+ForkWindow(struct win *win, char **args, char *ttyn)
 {
   int pid;
   char tebuf[25];
@@ -1194,10 +1014,8 @@ char **args, *ttyn;
   int newfd;
   int w = win->w_width;
   int h = win->w_height;
-#ifdef PSEUDOS
   int i, pat, wfdused;
   struct pseudowin *pwin = win->w_pwin;
-#endif
   int slave = -1;
 
 #ifdef O_NOCTTY
@@ -1246,9 +1064,7 @@ char **args, *ttyn;
 	Panic(errno, "Setuid/gid");
       eff_uid = real_uid;
       eff_gid = real_gid;
-#ifdef PSEUDOS
       if (!pwin)	/* ignore directory if pseudo */
-#endif
         if (win->w_dir && *win->w_dir && chdir(win->w_dir))
 	  Panic(errno, "Cannot chdir to %s", win->w_dir);
 
@@ -1294,7 +1110,6 @@ char **args, *ttyn;
       /*
        * distribute filedescriptors between the ttys
        */
-#ifdef PSEUDOS
       pat = pwin ? pwin->p_fdpat : 
 		   ((F_PFRONT<<(F_PSHIFT*2)) | (F_PFRONT<<F_PSHIFT) | F_PFRONT);
       debug1("Using window pattern 0x%x\n", pat);
@@ -1335,20 +1150,6 @@ char **args, *ttyn;
 	    if (fcntl(win->w_ptyfd, F_SETFL, 0))
 	      Msg(errno, "Warning: clear NBLOCK fcntl failed");
 	}
-#else /* PSEUDOS */
-# ifdef O_NOCTTY
-      if (separate_sids)
-        newfd = open(ttyn, O_RDWR);
-      else
-        newfd = open(ttyn, O_RDWR|O_NOCTTY);
-# else
-      newfd = open(ttyn, O_RDWR);
-# endif
-      if (newfd != 0)
-	Panic(errno, "Cannot open %s", ttyn);
-      dup(0);
-      dup(0);
-#endif /* PSEUDOS */
       close(win->w_ptyfd);
       if (slave != -1)
         close(slave);
@@ -1375,7 +1176,6 @@ char **args, *ttyn;
 	  /* We only want echo if the users input goes to the pseudo
 	   * and the pseudo's stdout is not send to the window.
 	   */
-#ifdef PSEUDOS
 	  if (pwin && (!(pat & F_UWP) || (pat & F_PBACK << F_PSHIFT)))
 	    {
 	      debug1("clearing echo on pseudywin fd (pat %x)\n", pat);
@@ -1386,7 +1186,6 @@ char **args, *ttyn;
 	      modep->m_ttyb.sg_flags &= ~ECHO;
 # endif
 	    }
-#endif
 	  SetTTY(newfd, modep);
 #ifdef TIOCSWINSZ
 	  glwz.ws_col = w;
@@ -1402,17 +1201,9 @@ char **args, *ttyn;
       NewEnv[5] = libuf;
       NewEnv[6] = cobuf;
 #endif
-#ifdef MAPKEYS
       NewEnv[2] = MakeTermcap(display == 0 || win->w_aflag);
-#else
-      if (win->w_aflag)
-	NewEnv[2] = MakeTermcap(1);
-      else
-	NewEnv[2] = Termcap;
-#endif
-      strcpy(shellbuf, "SHELL=");
-      strncpy(shellbuf + 6, ShellProg + (*ShellProg == '-'), sizeof(shellbuf) - 7);
-      shellbuf[sizeof(shellbuf) - 1] = 0;
+      strncpy(shellbuf, "SHELL=", 7);
+      strncpy(shellbuf + 6, ShellProg + (*ShellProg == '-'), sizeof(shellbuf) - 6);
       NewEnv[4] = shellbuf;
       debug1("ForkWindow: NewEnv[4] = '%s'\n", shellbuf);
       if (win->w_term && *win->w_term && strcmp(screenterm, win->w_term) &&
@@ -1424,14 +1215,14 @@ char **args, *ttyn;
 	  debug2("Makewindow %d with %s\n", win->w_number, tebuf);
 	  tl = strlen(win->w_term);
 	  NewEnv[1] = tebuf;
-	  if ((s1 = index(NewEnv[2], '|')))
+	  if ((s1 = strchr(NewEnv[2], '|')))
 	    {
-	      if ((s2 = index(++s1, '|')))
+	      if ((s2 = strchr(++s1, '|')))
 		{
 		  if (strlen(NewEnv[2]) - (s2 - s1) + tl < 1024)
 		    {
-		      bcopy(s2, s1 + tl, strlen(s2) + 1);
-		      bcopy(win->w_term, s1, tl);
+		      memmove(s1 + tl, s2, strlen(s2) + 1);
+		      memmove(s1, win->w_term, tl);
 		    }
 		}
 	    }
@@ -1457,15 +1248,14 @@ char **args, *ttyn;
 
 #ifndef HAVE_EXECVPE
 void
-execvpe(prog, args, env)
-char *prog, **args, **env;
+execvpe(char *prog, char **args, char **env)
 {
   register char *path = NULL, *p;
   char buf[1024];
   char *shargs[MAXARGS + 1];
   register int i, eaccess = 0;
 
-  if (rindex(prog, '/'))
+  if (strrchr(prog, '/'))
     path = "";
   if (!path && !(path = getenv("PATH")))
     path = DefaultPath;
@@ -1503,18 +1293,14 @@ char *prog, **args, **env;
 }
 #endif
 
-#ifdef PSEUDOS
 
 int
-winexec(av)
-char **av;
+winexec(char **av)
 {
   char **pp;
   char *p, *s, *t;
   int i, r = 0, l = 0;
   struct win *w;
-  extern struct display *display;
-  extern struct win *windows;
   struct pseudowin *pwin;
   int type;
 
@@ -1606,7 +1392,7 @@ char **av;
       free((char *)pwin);
       return -1;
     }
-  strncpy(pwin->p_tty, t, MAXSTR - 1);
+  strncpy(pwin->p_tty, t, MAXSTR);
   w->w_pwin = pwin;
   if (type != W_TYPE_PTY)
     {
@@ -1655,8 +1441,7 @@ char **av;
 }
 
 void
-FreePseudowin(w)
-struct win *w;
+FreePseudowin(struct win *w)
 {
   struct pseudowin *pwin = w->w_pwin;
 
@@ -1685,17 +1470,13 @@ struct win *w;
   w->w_pwin = NULL;
 }
 
-#endif /* PSEUDOS */
 
 
-#ifdef MULTIUSER
 /*
  * returns 0, if the lock really has been released
  */
 int
-ReleaseAutoWritelock(dis, w)
-struct display *dis;
-struct win *w;
+ReleaseAutoWritelock(struct display *dis, struct win *w)
 {
   debug2("ReleaseAutoWritelock: user %s, window %d\n",
          dis->d_user->u_name, w->w_number);
@@ -1723,9 +1504,7 @@ struct win *w;
  * returns 0, if the lock really could be obtained
  */
 int
-ObtainAutoWritelock(d, w)
-struct display *d;
-struct win *w;
+ObtainAutoWritelock(struct display *d, struct win *w)
 {
   if ((w->w_wlock == WLOCK_AUTO) &&
        !AclCheckPermWin(d->d_user, ACL_WRITE, w) &&
@@ -1739,17 +1518,13 @@ struct win *w;
   return 1;
 }
 
-#endif /* MULTIUSER */
 
 
 
 /********************************************************************/
 
-#ifdef COPY_PASTE
 static void
-paste_slowev_fn(ev, data)
-struct event *ev;
-char *data;
+paste_slowev_fn(struct event *ev, char *data)
 {
   struct paster *pa = (struct paster *)data;
   struct win *p;
@@ -1769,13 +1544,10 @@ char *data;
       evenq(&pa->pa_slowev);
     }
 }
-#endif
 
 
 static int
-muchpending(p, ev)
-struct win *p;
-struct event *ev;
+muchpending(struct win *p, struct event *ev)
 {
   struct canvas *cv;
   for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext)
@@ -1817,21 +1589,16 @@ struct event *ev;
 }
 
 static void
-win_readev_fn(ev, data)
-struct event *ev;
-char *data;
+win_readev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)data;
   char buf[IOSIZE], *bp;
   int size, len;
-#ifdef PSEUDOS
   int wtop;
-#endif
 
   bp = buf;
   size = IOSIZE;
 
-#ifdef PSEUDOS
   wtop = p->w_pwin && W_WTOP(p);
   if (wtop)
     {
@@ -1844,12 +1611,9 @@ char *data;
 	  return;
 	}
     }
-#endif
   if (p->w_layer.l_cvlist && muchpending(p, ev))
     return;
-#ifdef ZMODEM
   if (!p->w_zdisplay)
-#endif
     if (p->w_blocked)
       {
 	ev->condpos = &const_one;
@@ -1909,24 +1673,16 @@ char *data;
       len--;
     }
 #endif
-#ifdef BUILTIN_TELNET
-  if (p->w_type == W_TYPE_TELNET)
-    len = TelIn(p, bp, len, buf + sizeof(buf) - (bp + len));
-#endif
   if (len == 0)
     return;
-#ifdef ZMODEM
   if (zmodem_mode && zmodem_parse(p, bp, len))
     return;
-#endif
-#ifdef PSEUDOS
   if (wtop)
     {
       debug("sending input to pwin\n");
-      bcopy(bp, p->w_pwin->p_inbuf + p->w_pwin->p_inlen, len);
+      memmove(p->w_pwin->p_inbuf + p->w_pwin->p_inlen, bp, len);
       p->w_pwin->p_inlen += len;
     }
-#endif
 
   LayPause(&p->w_layer, 1);
   WriteString(p, bp, len);
@@ -1937,9 +1693,7 @@ char *data;
 
 
 static void
-win_writeev_fn(ev, data)
-struct event *ev;
-char *data;
+win_writeev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)data;
   int len;
@@ -1949,9 +1703,8 @@ char *data;
       if ((len = write(ev->fd, p->w_inbuf, p->w_inlen)) <= 0)
 	len = p->w_inlen;	/* dead window */
       if ((p->w_inlen -= len))
-	bcopy(p->w_inbuf + len, p->w_inbuf, p->w_inlen);
+	memmove(p->w_inbuf, p->w_inbuf + len, p->w_inlen);
     }
-#ifdef COPY_PASTE
   if (p->w_paster.pa_pastelen && !p->w_slowpaste)
     {
       struct paster *pa = &p->w_paster;
@@ -1959,18 +1712,14 @@ char *data;
       if (flayer)
         DoProcess(p, &pa->pa_pasteptr, &pa->pa_pastelen, pa);
     }
-#endif
   return;
 }
 
 
 
-#ifdef PSEUDOS
 
 static void
-pseu_readev_fn(ev, data)
-struct event *ev;
-char *data;
+pseu_readev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)data;
   char buf[IOSIZE];
@@ -2023,7 +1772,7 @@ char *data;
   /* no packet mode on pseudos! */
   if (ptow)
     {
-      bcopy(buf, p->w_inbuf + p->w_inlen, len);
+      memmove(p->w_inbuf + p->w_inlen, buf, len);
       p->w_inlen += len;
     }
   WriteString(p, buf, len);
@@ -2031,9 +1780,7 @@ char *data;
 }
 
 static void
-pseu_writeev_fn(ev, data)
-struct event *ev;
-char *data;
+pseu_writeev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)data;
   struct pseudowin *pw = p->w_pwin;
@@ -2045,16 +1792,13 @@ char *data;
   if ((len = write(ev->fd, pw->p_inbuf, pw->p_inlen)) <= 0)
     len = pw->p_inlen;		/* dead pseudo */
   if ((p->w_pwin->p_inlen -= len))
-    bcopy(p->w_pwin->p_inbuf + len, p->w_pwin->p_inbuf, p->w_pwin->p_inlen);
+    memmove(p->w_pwin->p_inbuf, p->w_pwin->p_inbuf + len, p->w_pwin->p_inlen);
 }
 
 
-#endif /* PSEUDOS */
 
 static void
-win_silenceev_fn(ev, data)
-struct event *ev;
-char *data;
+win_silenceev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)data;
   struct canvas *cv;
@@ -2066,10 +1810,8 @@ char *data;
 	  break;
       if (cv)
 	continue;	/* user already sees window */
-#ifdef MULTIUSER
       if (!(ACLBYTE(p->w_lio_notify, D_user->u_id) & ACLBIT(D_user->u_id)))
 	continue;
-#endif
       Msg(0, "Window %d: silence for %d seconds", p->w_number, p->w_silencewait);
       p->w_silence = SILENCE_FOUND;
       WindowChanged(p, 'f');
@@ -2077,21 +1819,15 @@ char *data;
 }
 
 static void
-win_destroyev_fn(ev, data)
-struct event *ev;
-char *data;
+win_destroyev_fn(struct event *ev, char *data)
 {
   struct win *p = (struct win *)ev->data;
   WindowDied(p, p->w_exitstatus, 1);
 }
 
-#ifdef ZMODEM
 
 static int
-zmodem_parse(p, bp, len)
-struct win *p;
-char *bp;
-int len;
+zmodem_parse(struct win *p, char *bp, int len)
 {
   int i;
   char *b2 = bp;
@@ -2158,10 +1894,7 @@ int len;
 }
 
 static void
-zmodem_fin(buf, len, data)
-char *buf;
-int len;
-char *data;
+zmodem_fin(char *buf, int len, char *data)
 {
   char *s;
   int n;
@@ -2177,15 +1910,10 @@ char *data;
 }
 
 static void
-zmodem_found(p, send, bp, len)
-struct win *p;
-int send;
-char *bp;
-int len;
+zmodem_found(struct win *p, int send, char *bp, int len)
 {
   char *s;
   int i, n;
-  extern int zmodem_mode;
 
   /* check for abort sequence */
   n = 0;
@@ -2238,9 +1966,7 @@ int len;
 }
 
 void
-zmodem_abort(p, d)
-struct win *p;
-struct display *d;
+zmodem_abort(struct win *p, struct display *d)
 {
   struct display *olddisplay = display;
   struct layer *oldflayer = flayer;
@@ -2268,52 +1994,43 @@ struct display *d;
   flayer = oldflayer;
 }
 
-#endif
 
 int
-WindowChangeNumber(struct win *win, int n)
+SwapWindows(int old, int dest)
 {
-  struct win *p;
-  int old = win->w_number;
+  struct win *p, *win_old;
 
-  if (n < 0 || n >= maxwin)
+  if (dest < 0 || dest >= maxwin)
     {
       Msg(0, "Given window position is invalid.");
       return 0;
     }
 
-  p = wtab[n];
-  wtab[n] = win;
-  win->w_number = n;
+  win_old = wtab[old];
+  p = wtab[dest];
+  wtab[dest] = win_old;
+  win_old->w_number = dest;
   wtab[old] = p;
   if (p)
     p->w_number = old;
-#ifdef MULTIUSER
   /* exchange the acls for these windows. */
-  AclWinSwap(old, n);
-#endif
+  AclWinSwap(old, dest);
 #ifdef UTMPOK
   /* exchange the utmp-slots for these windows */
-  if ((win->w_slot != (slot_t) -1) && (win->w_slot != (slot_t) 0))
+  if ((win_old->w_slot != (slot_t) -1) && (win_old->w_slot != (slot_t) 0))
     {
-      RemoveUtmp(win);
-      SetUtmp(win);
+      RemoveUtmp(win_old);
+      SetUtmp(win_old);
     }
   if (p && (p->w_slot != (slot_t) -1) && (p->w_slot != (slot_t) 0))
     {
-      /* XXX: first display wins? */
-#if 0
-      /* Does this make more sense? */
-      display = p->w_lastdisp ? p->w_lastdisp : p->w_layer.l_cvlist ? p->w_layer.l_cvlist->c_display : 0;
-#else
-      display = win->w_layer.l_cvlist ? win->w_layer.l_cvlist->c_display : 0;
-#endif
+      display = win_old->w_layer.l_cvlist ? win_old->w_layer.l_cvlist->c_display : 0;
       RemoveUtmp(p);
       SetUtmp(p);
     }
 #endif
 
-  WindowChanged(win, 'n');
+  WindowChanged(win_old, 'n');
   WindowChanged((struct win *)0, 'w');
   WindowChanged((struct win *)0, 'W');
   WindowChanged((struct win *)0, 0);

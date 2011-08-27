@@ -31,17 +31,13 @@
 #include "extern.h"
 #include "layout.h"
 
-extern struct display *display;
-extern int captionalways;
-
 struct layout *layouts;
 struct layout *laytab[MAXLAY];
 struct layout *layout_last, layout_last_marker;
 struct layout *layout_attach = &layout_last_marker;
 
 void
-FreeLayoutCv(cv)
-struct canvas *cv;
+FreeLayoutCv(struct canvas *cv)
 {
   struct canvas *cnext, *c = cv;
   for (; cv; cv = cnext)
@@ -60,9 +56,7 @@ struct canvas *cv;
 }
 
 struct layout *
-CreateLayout(title, startat)
-char *title;
-int startat;
+CreateLayout(char *title, int startat)
 {
   struct layout *lay, **pl;
   int i;
@@ -96,9 +90,7 @@ int startat;
 }
 
 void
-SaveLayout(name, cv)
-char *name;
-struct canvas *cv;
+SaveLayout(char *name, struct canvas *cv)
 {
   struct layout *lay;
   struct canvas *fcv;
@@ -119,8 +111,7 @@ struct canvas *cv;
 }
 
 void
-AutosaveLayout(lay)
-struct layout *lay;
+AutosaveLayout(struct layout *lay)
 {
   struct canvas *fcv;
   if (!lay || !lay->lay_autosave)
@@ -133,8 +124,7 @@ struct layout *lay;
 }
 
 struct layout *
-FindLayout(name)
-char *name;
+FindLayout(char *name)
 {
   struct layout *lay;
   char *s;
@@ -150,9 +140,7 @@ char *name;
 }
 
 void
-LoadLayout(lay, cv)
-struct layout *lay;
-struct canvas *cv;
+LoadLayout(struct layout *lay)
 {
   AutosaveLayout(D_layout);
   if (!lay)
@@ -167,6 +155,8 @@ struct canvas *cv;
   while (D_canvas.c_slperp)
     FreeCanvas(D_canvas.c_slperp);
   D_cvlist = 0;
+  if (!D_forecv)
+    MakeDefaultCanvas();
   D_forecv = lay->lay_forecv;
   if (!D_forecv)
     MakeDefaultCanvas();
@@ -182,9 +172,7 @@ struct canvas *cv;
 }
 
 void
-NewLayout(title, startat)
-char *title;
-int startat;
+NewLayout(char *title, int startat)
 {
   struct layout *lay;
   struct canvas *fcv;
@@ -192,10 +180,9 @@ int startat;
   lay = CreateLayout(title, startat);
   if (!lay)
     return;
-
   if (display)
     {
-      LoadLayout(0, &D_canvas);
+      LoadLayout(0);
       fcv = D_forecv;
       DupLayoutCv(&D_canvas, &lay->lay_canvas, 1);
       lay->lay_forecv = D_forecv;
@@ -211,10 +198,7 @@ int startat;
 
 
 static char *
-AddLayoutsInfo(buf, len, where)
-char *buf;
-int len;
-int where;
+AddLayoutsInfo(char *buf, int len, int where)
 {
   char *s, *ss, *t;
   struct layout *p, **pp;
@@ -253,8 +237,7 @@ int where;
 }
 
 void
-ShowLayouts(where)
-int where;
+ShowLayouts(int where)
 {
   char buf[1024];
   char *s, *ss;
@@ -286,8 +269,7 @@ int where;
 }
 
 void
-RemoveLayout(lay)
-struct layout *lay;
+RemoveLayout(struct layout *lay)
 {
   struct layout **layp = &layouts;
 
@@ -311,15 +293,12 @@ struct layout *lay;
   free(lay);
 
   if (layouts)
-    LoadLayout((display && D_layout) ? D_layout : *layp ? *layp : layouts,
-	display ? &D_canvas : (struct canvas *)0);
+    LoadLayout((display && D_layout) ? D_layout : *layp ? *layp : layouts);
   Activate(0);
 }
 
 void
-UpdateLayoutCanvas(cv, wi)
-struct canvas *cv;
-struct win *wi;
+UpdateLayoutCanvas(struct canvas *cv, struct win *wi)
 {
   for (; cv; cv = cv->c_slnext)
     {
@@ -348,9 +327,7 @@ struct win *wi;
 
 
 static void
-dump_canvas(cv, file)
-struct canvas *cv;
-FILE *file;
+dump_canvas(struct canvas *cv, FILE *file)
 {
   struct canvas *c;
   for (c = cv->c_slperp; c && c->c_slnext; c = c->c_slnext)
@@ -368,9 +345,7 @@ FILE *file;
 }
 
 int
-LayoutDumpCanvas(cv, filename)
-struct canvas *cv;
-char *filename;
+LayoutDumpCanvas(struct canvas *cv, char *filename)
 {
   FILE *file = secfopen(filename, "a");
   if (!file)
@@ -380,17 +355,13 @@ char *filename;
   return 1;
 }
 
-void RenameLayout(layout, name)
-struct layout *layout;
-const char *name;
+void RenameLayout(struct layout *layout, const char *name)
 {
   free(layout->lay_title);
   layout->lay_title = SaveStr(name);
 }
 
-int RenumberLayout(layout, number)
-struct layout *layout;
-int number;
+int RenumberLayout(struct layout* layout, int number)
 {
   int old;
   struct layout *lay;
