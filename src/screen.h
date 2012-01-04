@@ -273,13 +273,6 @@ extern char strnomem[];
 #define INP_RAW		2
 #define INP_EVERY	4
 
-
-struct acl
-{
-  struct acl *next;
-  char *name;
-};
-
 /* register list */
 #define MAX_PLOP_DEFS 256
 

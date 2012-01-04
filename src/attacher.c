@@ -50,13 +50,6 @@ static void  screen_builtin_lck (void);
 static void AttacherChld (int);
 #endif
 static void AttachSigCont (int);
-
-
-# ifndef USE_SETEUID
-static int multipipe[2];
-# endif
-
-
 static int ContinuePlease;
 
 static void
@@ -125,78 +118,6 @@ Attach(int how)
   char *s;
 
   debug2("Attach: how=%d, tty=%s\n", how, attach_tty);
-# ifndef USE_SETEUID
-  while ((how == MSG_ATTACH || how == MSG_CONT) && multiattach)
-    {
-      int ret;
-
-      if (pipe(multipipe))
-	Panic(errno, "pipe");
-      if (chmod(attach_tty, 0666))
-	Panic(errno, "chmod %s", attach_tty);
-      tty_oldmode = tty_mode;
-      eff_uid = -1;	/* make UserContext fork */
-      real_uid = multi_uid;
-      if ((ret = UserContext()) <= 0)
-	{
-	  char dummy;
-          eff_uid = 0;
-	  real_uid = own_uid;
-	  if (ret < 0)
-	    Panic(errno, "UserContext");
-	  close(multipipe[1]);
-	  read(multipipe[0], &dummy, 1);
-	  if (tty_oldmode >= 0)
-	    {
-	      chmod(attach_tty, tty_oldmode);
-	      tty_oldmode = -1;
-	    }
-	  ret = UserStatus();
-	  if (ret == SIG_LOCK)
-	    LockTerminal();
-	  else
-#ifdef SIGTSTP
-	  if (ret == SIG_STOP)
-	    kill(getpid(), SIGTSTP);
-	  else
-#endif
-	  if (ret == SIG_POWER_BYE)
-	    {
-	      int ppid;
-	      if (setgid(real_gid) || setuid(real_uid))
-	        Panic(errno, "setuid/gid");
-	      if ((ppid = getppid()) > 1)
-		Kill(ppid, SIGHUP);
-	      exit(0);
-	    }
-	  else
-            exit(ret);
-	  dflag = 0;
-	  xflag = 1;
-	  how = MSG_ATTACH;
-	  continue;
-	}
-      close(multipipe[0]);
-      eff_uid  = real_uid;
-      break;
-    }
-# else /* USE_SETEUID */
-  if ((how == MSG_ATTACH || how == MSG_CONT) && multiattach)
-    {
-      real_uid = multi_uid;
-      eff_uid  = own_uid;
-#ifdef HAVE_SETRESUID
-      if (setresuid(multi_uid, own_uid, multi_uid))
-	Panic(errno, "setresuid");
-#else
-      xseteuid(multi_uid);
-      xseteuid(own_uid);
-#endif
-      if (chmod(attach_tty, 0666))
-	Panic(errno, "chmod %s", attach_tty);
-      tty_oldmode = tty_mode;
-    }
-# endif /* USE_SETEUID */
 
   memset((char *) &m, 0, sizeof(m));
   m.type = how;
@@ -260,18 +181,8 @@ Attach(int how)
    * when things go wrong. Any disadvantages? jw.
    * Do this before the attach to prevent races!
    */
-  if (!multiattach)
-    {
-      if (setuid(real_uid))
-        Panic(errno, "setuid");
-    }
-#if defined(USE_SETEUID)
-  else
-    {
-      /* This call to xsetuid should also set the saved uid */
-      xseteuid(real_uid); /* multi_uid, allow backend to send signals */
-    }
-#endif
+  if (setuid(real_uid))
+    Panic(errno, "setuid");
   if (setgid(real_gid))
     Panic(errno, "setgid");
   eff_uid = real_uid;
@@ -355,31 +266,10 @@ Attach(int how)
   else
     m.m.attach.detachfirst = MSG_ATTACH;
 
-  /* setup CONT signal handler to repair the terminal mode */
-  if (multi && (how == MSG_ATTACH || how == MSG_CONT))
-    signal(SIGCONT, AttachSigCont);
-
   if (WriteMessage(lasts, &m))
     Panic(errno, "WriteMessage");
   close(lasts);
   debug1("Attach(%d): sent\n", m.type);
-  if (multi && (how == MSG_ATTACH || how == MSG_CONT))
-    {
-      while (!ContinuePlease)
-        pause();	/* wait for SIGCONT */
-      signal(SIGCONT, SIG_DFL);
-      ContinuePlease = 0;
-# ifndef USE_SETEUID
-      close(multipipe[1]);
-# else
-      xseteuid(own_uid);
-      if (tty_oldmode >= 0)
-        if (chmod(attach_tty, tty_oldmode))
-          Panic(errno, "chmod %s", attach_tty);
-      tty_oldmode = -1;
-      xseteuid(real_uid);
-# endif
-    }
   rflag = 0;
   return 1;
 }
@@ -449,12 +339,6 @@ AttacherFinit (int sigsig)
 	  close(s);
 	}
     }
-  if (tty_oldmode >= 0)
-    {
-      if (setuid(own_uid))
-        Panic(errno, "setuid");
-      chmod(attach_tty, tty_oldmode);
-    }
   exit(0);
   return;
 }
@@ -464,13 +348,9 @@ AttacherFinitBye (int sigsig)
 {
   int ppid;
   debug("AttacherFintBye()\n");
-#if !defined(USE_SETEUID)
-  if (multiattach)
-    exit(SIG_POWER_BYE);
-#endif
   if (setgid(real_gid))
     Panic(errno, "setgid");
-  if (setuid(own_uid))
+  if (setuid(real_uid))
     Panic(errno, "setuid");
   /* we don't want to disturb init (even if we were root), eh? jw */
   if ((ppid = getppid()) > 1)
@@ -581,10 +461,6 @@ Attacher()
       if (SuspendPlease)
 	{
 	  SuspendPlease = 0;
-#if !defined(USE_SETEUID)
-	  if (multiattach)
-	    exit(SIG_STOP);
-#endif
 	  signal(SIGTSTP, SIG_DFL);
 	  debug("attacher: killing myself SIGTSTP\n");
 	  kill(getpid(), SIGTSTP);
@@ -596,10 +472,6 @@ Attacher()
       if (LockPlease)
 	{
 	  LockPlease = 0;
-#if !defined(USE_SETEUID)
-	  if (multiattach)
-	    exit(SIG_LOCK);
-#endif
 	  LockTerminal();
 # ifdef SYSVSIGS
 	  signal(SIG_LOCK, DoLock);
@@ -631,7 +503,7 @@ LockHup (int sigsig)
   int ppid = getppid();
   if (setgid(real_gid))
     Panic(errno, "setgid");
-  if (setuid(own_uid))
+  if (setuid(real_uid))
     Panic(errno, "setuid");
   if (ppid > 1)
     Kill(ppid, SIGHUP);
@@ -660,7 +532,7 @@ LockTerminal()
           /* Child */
           if (setgid(real_gid))
 	    Panic(errno, "setgid");
-          if (setuid(own_uid))
+          if (setuid(real_uid))
 	    Panic(errno, "setuid");
           closeallfiles(0);	/* important: /etc/shadow may be open */
           execl(prg, "SCREEN-LOCK", NULL);

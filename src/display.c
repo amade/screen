@@ -73,8 +73,6 @@ struct display *display, *displays;
 int  attr2color[8][4];
 int  nattr2color;
 
-struct display TheDisplay;
-
 /*
  *  The default values
  */

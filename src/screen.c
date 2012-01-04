@@ -173,14 +173,6 @@ int cmdflag;
 int queryflag = -1;
 int adaptflag;
 
-char *multi;
-char *multi_home;
-int multi_uid;
-int own_uid;
-int multiattach;
-int tty_mode;
-int tty_oldmode = -1;
-
 char HostName[MAXSTR];
 int MasterPid, PanicPid;
 int real_uid, real_gid, eff_uid, eff_gid;
@@ -332,7 +324,6 @@ main(int argc, char **argv)
 #endif
   struct NewWindow nwin;
   int detached = 0;		/* start up detached */
-  char *sockp;
   char *sty = 0;
 
 #if (defined(AUX) || defined(_AUX_SOURCE)) && defined(POSIX)
@@ -794,34 +785,6 @@ main(int argc, char **argv)
     }
 #endif
 
-  own_uid = multi_uid = real_uid;
-  if (SockMatch && (sockp = strchr(SockMatch, '/')))
-    {
-      *sockp = 0;
-      multi = SockMatch;
-      SockMatch = sockp + 1;
-      if (*multi)
-	{
-	  struct passwd *mppp;
-	  if ((mppp = getpwnam(multi)) == (struct passwd *)0)
-	    Panic(0, "Cannot identify account '%s'.", multi);
-	  multi_uid = mppp->pw_uid;
-	  multi_home = SaveStr(mppp->pw_dir);
-          if (strlen(multi_home) > MAXPATHLEN - 10)
-	    Panic(0, "home directory path too long");
-          /* always fake multi attach mode */
-	  if (rflag || lsflag)
-	    xflag = 1;
-	  detached = 0;
-	  multiattach = 1;
-	}
-      /* Special case: effective user is multiuser. */
-      if (eff_uid && (multi_uid != eff_uid))
-        Panic(0, "Must run suid root for multiuser support.");
-    }
-  if (SockMatch && *SockMatch == 0)
-    SockMatch = 0;
-
   if ((LoginName = getlogin()) && LoginName[0] != '\0')
     {
       if ((ppp = getpwnam(LoginName)) != (struct passwd *) 0)
@@ -840,14 +803,6 @@ main(int argc, char **argv)
   LoginName = SaveStr(LoginName);
 
   ppp = getpwbyname(LoginName, ppp);
-
-#if !defined(SOCKDIR)
-  if (multi && !multiattach)
-    {
-      if (home && strcmp(home, ppp->pw_dir))
-        Panic(0, "$HOME must match passwd entry for multiuser screens.");
-    }
-#endif
 
 #define SET_GUID() \
   { \
@@ -881,8 +836,6 @@ main(int argc, char **argv)
     home = ppp->pw_dir;
   if (strlen(LoginName) > NAME_MAX)
     Panic(0, "LoginName too long - sorry.");
-  if (multi && strlen(multi) > NAME_MAX)
-    Panic(0, "Screen owner name too long - sorry.");
   if (strlen(home) > MAXPATHLEN - NAME_MAX)
     Panic(0, "$HOME too long - sorry.");
 
@@ -895,7 +848,6 @@ main(int argc, char **argv)
 
       /* ttyname implies isatty */
       SET_TTYNAME(1);
-      tty_mode = (int)st.st_mode & 0777;
 
 #ifndef NAMEDPIPE
       fl = fcntl(0, F_GETFL, 0);
@@ -931,20 +883,7 @@ main(int argc, char **argv)
     {
       if (strlen(SockDir) >= MAXPATHLEN - 1)
 	Panic(0, "Ridiculously long $SCREENDIR - try again.");
-      if (multi)
-	Panic(0, "No $SCREENDIR with multi screens, please.");
     }
-  if (multiattach)
-    {
-# ifndef SOCKDIR
-      sprintf(SockPath, "%s/.screen", multi_home);
-      SockDir = SockPath;
-# else
-      SockDir = SOCKDIR;
-      sprintf(SockPath, "%s/S-%s", SockDir, multi);
-# endif
-    }
-  else
     {
 #ifndef SOCKDIR
       if (SockDir == 0)
@@ -1014,16 +953,8 @@ main(int argc, char **argv)
   else
   if (!S_ISDIR(st.st_mode))
     Panic(0, "%s is not a directory.", SockPath);
-  if (multi)
-    {
-      if ((int)st.st_uid != multi_uid)
-	Panic(0, "%s is not the owner of %s.", multi, SockPath);
-    }
-  else
-    {
-      if ((int)st.st_uid != real_uid)
-	Panic(0, "You are not the owner of %s.", SockPath);
-    }
+  if ((int)st.st_uid != real_uid)
+    Panic(0, "You are not the owner of %s.", SockPath);
   if ((st.st_mode & 0777) != 0700)
     Panic(0, "Directory %s must have mode 700.", SockPath);
   if (SockMatch && strchr(SockMatch, '/'))
@@ -1048,8 +979,6 @@ main(int argc, char **argv)
     {
       int i, fo, oth;
 
-      if (multi)
-	real_uid = multi_uid;
       SET_GUID();
       i = FindSocket((int *)NULL, &fo, &oth, SockMatch);
       if (quietflag)
@@ -1078,8 +1007,6 @@ main(int argc, char **argv)
 	  Attacher();
 	  /* NOTREACHED */
 	}
-      if (multiattach)
-	Panic(0, "Can't create sessions of other users.");
       debug("screen -r: backend not responding -- still crying\n");
     }
   else if (dflag && !mflag)
@@ -1847,7 +1774,6 @@ Detach(int mode)
     }
   if (D_fore)
     {
-      ReleaseAutoWritelock(display, D_fore);
       D_user->u_detachwin = D_fore->w_number;
       D_user->u_detachotherwin = D_other ? D_other->w_number : -1;
     }
@@ -2017,17 +1943,6 @@ void Panic(int err, const char *fmt, VA_DOTS)
 	if (D_userpid)
 	  Kill(D_userpid, SIG_BYE);
       }
-  if (tty_oldmode >= 0)
-    {
-# ifdef USE_SETEUID
-      if (setuid(own_uid))
-        xseteuid(own_uid);	/* may be a loop. sigh. */
-# else
-      setuid(own_uid);
-# endif
-      debug1("Panic: changing back modes from %s\n", attach_tty);
-      chmod(attach_tty, tty_oldmode);
-    }
   eexit(1);
 }
 
@@ -3037,8 +2952,6 @@ serv_select_fn(struct event *ev, char *data)
 		  break;
 	      if (cv)
 		continue;	/* user already sees window */
-	      if (!(ACLBYTE(p->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id)))
-		continue;	/* user doesn't care */
 	      Msg(0, "%s", MakeWinMsg(ActivityString, p, '%'));
 	      p->w_monitor = MON_DONE;
 	    }

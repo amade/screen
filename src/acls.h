@@ -26,32 +26,6 @@
  ****************************************************************
  */
 
-
-/* three known bits: */
-#define ACL_EXEC 0		
-#define ACL_WRITE 1
-#define ACL_READ 2
-
-#define ACL_BITS_PER_CMD 1	/* for comm.h */
-#define ACL_BITS_PER_WIN 3	/* for window.h */
-
-#define USER_CHUNK 8
-
-#define ACLBYTE(data, w)   ((data)[(w) >> 3])
-#define ACLBIT(w)   (0x80 >> ((w) & 7))
-
-typedef unsigned char * AclBits;
-
-/*
- * How a user joins a group.
- * Here is the node to construct one list per user.
- */
-struct aclusergroup
-{
-  struct acluser *u;	/* the user who borrows us his rights */
-  struct aclusergroup *next;
-};
-
 /***************
  *  ==> user.h
  */
@@ -81,9 +55,6 @@ typedef struct acluser
   int  u_detachotherwin;	/* window that was "other" when he detached */
   int  u_Esc, u_MetaEsc;	/* the users screen escape character */
   struct plop u_plop;
-  int u_id;			/* a uniq index in the bitfields. */
-  AclBits u_umask_w_bits[ACL_BITS_PER_WIN];	/* his window create umask */
-  struct aclusergroup *u_group;	/* linked list of pointers to other users */
 } User;
 
 extern int DefaultEsc, DefaultMetaEsc;

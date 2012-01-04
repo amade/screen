@@ -1388,33 +1388,6 @@ StringEnd()
 	break;
       typ = atoi(curr->w_string);
       p++;
-      if (typ == 83)	/* 83 = 'S' */
-	{
-	  /* special execute commands sequence */
-	  char *args[MAXARGS];
-	  int argl[MAXARGS];
-	  struct acluser *windowuser;
-
-	  windowuser = *FindUserPtr(":window:");
-	  if (windowuser && Parse(p, sizeof(curr->w_string) - (p - curr->w_string), args, argl))
-	    {
-	      for (display = displays; display; display = display->d_next)
-		if (D_forecv->c_layer->l_bottom == &curr->w_layer)
-		  break;	/* found it */
-	      if (display == 0 && curr->w_layer.l_cvlist)
-		display = curr->w_layer.l_cvlist->c_display;
-	      if (display == 0)
-		display = displays;
-	      EffectiveAclUser = windowuser;
-	      fore = curr;
-	      flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
-	      DoCommand(args, argl);
-	      EffectiveAclUser = 0;
-	      fore = 0;
-	      flayer = 0;
-	    }
-	  break;
-	}
       if (typ == 0 || typ == 1 || typ == 2 || typ == 20 || typ == 39 || typ == 49)
 	{
 	  int typ2;

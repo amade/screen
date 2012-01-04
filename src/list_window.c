@@ -290,8 +290,6 @@ gl_Window_input(struct ListData *ldata, char **inp, int *len)
     case '\r':
       if (!win)
 	break;
-      if (display && AclCheckPermWin(D_user, ACL_READ, win))
-	return 0;		/* Not allowed to switch to this window. */
       if (WLIST_FOR_GROUP(wdata))
 	SwitchWindow(win->w_number);
       else

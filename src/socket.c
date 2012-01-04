@@ -62,7 +62,7 @@ static void  FinishAttach (struct msg *);
 static void  FinishDetach (struct msg *);
 static void  AskPassword (struct msg *);
 
-#define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0) | (multi ? 1 : 0))
+#define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0))
 
 
 /*
@@ -204,19 +204,6 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	continue;
       mode = (int)st.st_mode & 0777;
       debug1("  has mode 0%03o\n", mode);
-      if (multi && ((mode & 0677) != 0601))
-        {
-	  debug("  is not a MULTI-USER session");
-	  if (strcmp(multi, LoginName))
-	    {
-	      debug(" and we are in a foreign directory.\n");
-	      mode = -4;
-	    }
-	  else
-	    {
-	      debug(", but it is our own session.\n");
-	    }
-	}
       debug("  store it.\n");
       if ((sent = (struct sent *)malloc(sizeof(struct sent))) == 0)
 	continue;
@@ -331,12 +318,6 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	      break;
 	    case 0600:
 	      printf("\t%s\t(Detached)\n", sent->name);
-	      break;
-	    case 0701:
-	      printf("\t%s\t(Multi, attached)\n", sent->name);
-	      break;
-	    case 0601:
-	      printf("\t%s\t(Multi, detached)\n", sent->name);
 	      break;
 	    case -1:
 	      /* No trigraphs here! */
@@ -813,8 +794,6 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
       Kill(pid, SIG_BYE);
       return -1;
     }
-  if (attach)
-    Kill(pid, SIGCONT);
 
 #if defined(ultrix) || defined(pyr) || defined(NeXT)
   brktty(i);	/* for some strange reason this must be done */
@@ -830,16 +809,6 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
 	  Msg(0, "Attach msg ignored: coming from inside.");
 	  return -1;
 	}
-
-      if (strcmp(user, LoginName))
-	if (*FindUserPtr(user) == 0)
-	  {
-	      write(i, "Access to session denied.\n", 26);
-	      close(i);
-	      Kill(pid, SIG_BYE);
-	      Msg(0, "Attach: access denied for user %s.", user);
-	      return -1;
-	  }
 
       debug2("RecMsg: apid %d is o.k. and we just opened '%s'\n", pid, m->m_tty);
     }
@@ -1347,14 +1316,11 @@ FinishAttach(struct msg *m)
     SetForeWindow(fore);
   else if (!noshowwin)
     {
-      if (!AclCheckPermCmd(D_user, ACL_EXEC, &comms[RC_WINDOWLIST]))
-	{
-	  struct display *olddisplay = display;
-	  flayer = D_forecv->c_layer;
-	  display_windows(1, WLIST_NUM, (struct win *)0);
-	  noshowwin = 1;
-	  display = olddisplay;	/* display_windows can change display */
-	}
+      struct display *olddisplay = display;
+      flayer = D_forecv->c_layer;
+      display_windows(1, WLIST_NUM, (struct win *)0);
+      noshowwin = 1;
+      display = olddisplay;	/* display_windows can change display */
     }
   Activate(0);
   ResetIdle();
@@ -1573,13 +1539,7 @@ DoCommandMsg(struct msg *mp)
       queryflag = -1;
       return;
     }
-  user = *FindUserPtr(mp->m.attach.auser);
-  if (user == 0)
-    {
-      Msg(0, "Unknown user %s tried to send a command!", mp->m.attach.auser);
-      queryflag = -1;
-      return;
-    }
+  user = users;
   if (user->u_password && *user->u_password)
     {
       Msg(0, "User %s has a password, cannot use remote commands (using -Q or -X option).", mp->m.attach.auser);
@@ -1626,7 +1586,6 @@ DoCommandMsg(struct msg *mp)
     }
   if (!fore)
     fore = windows;		/* sigh */
-  EffectiveAclUser = user;
   if (*args)
     {
       char *oldrcname = rc_name;
@@ -1638,7 +1597,6 @@ DoCommandMsg(struct msg *mp)
       DoCommand(args, argl);
       rc_name = oldrcname;
     }
-  EffectiveAclUser = 0;
 }
 
 #ifndef NAMEDPIPE

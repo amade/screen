@@ -157,12 +157,6 @@ struct win
   int	 w_args[MAXARGS];	/* emulator args */
   int	 w_NumArgs;
 
-  int    w_wlock;		/* WLOCK_AUTO, WLOCK_OFF, WLOCK_ON */
-  struct acluser *w_wlockuser;	/* NULL when unlocked or user who writes */
-  AclBits w_userbits[ACL_BITS_PER_WIN];
-  AclBits w_lio_notify;		/* whom to tell when lastio+seconds < time() */
-  AclBits w_mon_notify;		/* whom to tell monitor statis */
-
   enum state_t w_state;		/* parser state */
   enum string_t w_StringType;
   struct mline *w_mlines;

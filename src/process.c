@@ -78,8 +78,6 @@ static void Colonfin (char *, int, char *);
 static void InputSelect (void);
 static void InputSetenv (char *);
 static void InputAKA (void);
-static int  InputSu (struct win *, struct acluser **, char *);
-static void su_fin (char *, int, char *);
 static void AKAfin (char *, int, char *);
 static void copy_reg_fn (char *, int, char *);
 static void ins_reg_fn (char *, int, char *);
@@ -2201,16 +2199,6 @@ DoAction(struct action *act, int key)
     }
   if ((argc = CheckArgNum(nr, args)) < 0)
     return;
-  if (display)
-    {
-      if (AclCheckPermCmd(D_user, ACL_EXEC, &comms[nr]))
-        {
-	  OutputMsg(0, "%s: %s: permission denied (user %s)", 
-	      rc_name, comms[nr].name, (EffectiveAclUser ? EffectiveAclUser : D_user)->u_name);
-	  queryflag = -1;
-	  return;
-	}
-    }
 
   msgok = display && !*rc_name;
   switch(nr)
@@ -2470,7 +2458,7 @@ DoAction(struct action *act, int key)
       }
       break;
     case RC_WALL:
-      s = D_user->u_name;
+      s = D_usertty;
         {
           OutputMsg(0, "%s: %s", s, *args);
         }
@@ -2479,9 +2467,7 @@ DoAction(struct action *act, int key)
       /* where this AT command comes from: */
       if (!user)
 	break;
-      s = SaveStr(user->u_name);
-      /* DO NOT RETURN FROM HERE WITHOUT RESETTING THIS: */
-      EffectiveAclUser = user;
+      s = SaveStr(display ? D_usertty : user->u_name);
       n = strlen(args[0]);
       if (n) n--;
       /*
@@ -2633,7 +2619,6 @@ DoAction(struct action *act, int key)
 	  }
 	}
       free(s);
-      EffectiveAclUser = NULL;
       break;
 
     case RC_READREG:
@@ -3093,39 +3078,6 @@ DoAction(struct action *act, int key)
 	OutputMsg(0, "%cflow%s", (fore->w_flow & FLOW_NOW) ? '+' : '-',
 	    (fore->w_flow & FLOW_AUTOFLAG) ? "(auto)" : "");
       break;
-    case RC_DEFWRITELOCK:
-      if (args[0][0] == 'a')
-	nwin_default.wlock = WLOCK_AUTO;
-      else
-	{
-	  if (ParseOnOff(act, &n))
-	    break;
-	  nwin_default.wlock = n ? WLOCK_ON : WLOCK_OFF;
-	}
-      break;
-    case RC_WRITELOCK:
-      if (*args)
-	{
-	  if (args[0][0] == 'a')
-	    {
-	      fore->w_wlock = WLOCK_AUTO;
-	    }
-	  else
-	    {
-	      if (ParseOnOff(act, &n))
-		break;
-	      fore->w_wlock = n ? WLOCK_ON : WLOCK_OFF;
-	    }
-	  /* 
-	   * user may have permission to change the writelock setting, 
-	   * but he may never aquire the lock himself without write permission
-	   */
-	  if (!AclCheckPermWin(D_user, ACL_WRITE, fore))
-	    fore->w_wlockuser = D_user;
-	}
-      OutputMsg(0, "writelock %s", (fore->w_wlock == WLOCK_AUTO) ? "auto" :
-	  ((fore->w_wlock == WLOCK_OFF) ? "off" : "on"));
-      break;
     case RC_CLEAR:
       ResetAnsiState(fore);
       WriteString(fore, "\033[H\033[J", 6);
@@ -3138,34 +3090,17 @@ DoAction(struct action *act, int key)
       break;
     case RC_MONITOR:
       n = fore->w_monitor != MON_OFF;
-      if (display)
-	n = n && (ACLBYTE(fore->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id));
       if (ParseSwitch(act, &n))
 	break;
       if (n)
 	{
-	  if (display)	/* we tell only this user */
-	    ACLBYTE(fore->w_mon_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
-	  else
-	    for (i = 0; i < maxusercount; i++)
-	      ACLBYTE(fore->w_mon_notify, i) |= ACLBIT(i);
 	  if (fore->w_monitor == MON_OFF)
 	    fore->w_monitor = MON_ON;
 	  OutputMsg(0, "Window %d (%s) is now being monitored for all activity.", fore->w_number, fore->w_title);
 	}
       else
 	{
-	  if (display) /* we remove only this user */
-	    ACLBYTE(fore->w_mon_notify, D_user->u_id) 
-	      &= ~ACLBIT(D_user->u_id);
-	  else
-	    for (i = 0; i < maxusercount; i++)
-	      ACLBYTE(fore->w_mon_notify, i) &= ~ACLBIT(i);
-	  for (i = maxusercount - 1; i >= 0; i--)
-	    if (ACLBYTE(fore->w_mon_notify, i))
-	      break;
-	  if (i < 0)
-	    fore->w_monitor = MON_OFF;
+	  fore->w_monitor = MON_OFF;
 	  OutputMsg(0, "Window %d (%s) is no longer being monitored for activity.", fore->w_number, fore->w_title);
 	}
       break;
@@ -3978,11 +3913,6 @@ DoAction(struct action *act, int key)
         break;
       if (n)
         {
-	  if (display)	/* we tell only this user */
-	    ACLBYTE(fore->w_lio_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
-	  else
-	    for (n = 0; n < maxusercount; n++)
-	      ACLBYTE(fore->w_lio_notify, n) |= ACLBIT(n);
 	  fore->w_silencewait = i;
 	  fore->w_silence = SILENCE_ON;
 	  SetTimeout(&fore->w_silenceev, fore->w_silencewait * 1000);
@@ -3994,20 +3924,8 @@ DoAction(struct action *act, int key)
 	}
       else
         {
-	  if (display) /* we remove only this user */
-	    ACLBYTE(fore->w_lio_notify, D_user->u_id) 
-	      &= ~ACLBIT(D_user->u_id);
-	  else
-	    for (n = 0; n < maxusercount; n++)
-	      ACLBYTE(fore->w_lio_notify, n) &= ~ACLBIT(n);
-	  for (i = maxusercount - 1; i >= 0; i--)
-	    if (ACLBYTE(fore->w_lio_notify, i))
-	      break;
-	  if (i < 0)
-	    {
-	      fore->w_silence = SILENCE_OFF;
-	      evdeq(&fore->w_silenceev);
-	    }
+	  fore->w_silence = SILENCE_OFF;
+	  evdeq(&fore->w_silenceev);
 	  if (!msgok)
 	    break;
 	  OutputMsg(0, "The window is no longer being monitored for silence.");
@@ -4406,94 +4324,6 @@ DoAction(struct action *act, int key)
     case RC_MAPDEFAULT:
       D_mapdefault = 1;
       break;
-    case RC_ACLCHG:
-    case RC_ACLADD:
-    case RC_ADDACL:
-    case RC_CHACL:
-      UsersAcl(NULL, argc, args);
-      break;
-    case RC_ACLDEL:
-      if (UserDel(args[0], NULL))
-	break;
-      if (msgok)
-	OutputMsg(0, "%s removed from acl database", args[0]);
-      break;
-    case RC_ACLGRP:
-      /*
-       * modify a user to gain or lose rights granted to a group.
-       * This group is actually a normal user whose rights were defined
-       * with chacl in the usual way.
-       */
-      if (args[1])
-        {
-	  if (strcmp(args[1], "none"))	/* link a user to another user */
-	    {
-	      if (AclLinkUser(args[0], args[1]))
-		break;
-	      if (msgok)
-		OutputMsg(0, "User %s joined acl-group %s", args[0], args[1]);
-	    }
-	  else				/* remove all groups from user */
-	    {
-	      struct acluser *u;
-	      struct aclusergroup *g;
-
-	      if (!(u = *FindUserPtr(args[0])))
-	        break;
-	      while ((g = u->u_group))
-	        {
-		  u->u_group = g->next;
-	  	  free((char *)g);
-	        }
-	    }
-	}
-      else				/* show all groups of user */
-	{
-	  char buf[256], *p = buf;
-	  int ngroups = 0;
-	  struct acluser *u;
-	  struct aclusergroup *g;
-
-	  if (!(u = *FindUserPtr(args[0])))
-	    {
-	      if (msgok)
-		OutputMsg(0, "User %s does not exist.", args[0]);
-	      break;
-	    }
-	  g = u->u_group;
-	  while (g)
-	    {
-	      ngroups++;
-	      sprintf(p, "%s ", g->u->u_name);
-	      p += strlen(p);
-	      if (p > buf+200)
-		break;
-	      g = g->next;
-	    }
-	  if (ngroups)
-	    *(--p) = '\0';
-	  OutputMsg(0, "%s's group%s: %s.", args[0], (ngroups == 1) ? "" : "s",
-	      (ngroups == 0) ? "none" : buf);
-	}
-      break;
-    case RC_ACLUMASK:
-    case RC_UMASK:
-      while ((s = *args++))
-        {
-	  char *err = 0;
-
-	  if (AclUmask(display ? D_user : users, s, &err))
-	    OutputMsg(0, "umask: %s\n", err);
-	}
-      break;
-    case RC_MULTIUSER:
-      if (ParseOnOff(act, &n))
-	break;
-      multi = n ? "" : 0;
-      chsock();
-      if (msgok)
-	OutputMsg(0, "Multiuser mode %s", multi ? "enabled" : "disabled");
-      break;
     case RC_EXEC:
       winexec(args);
       break;
@@ -4856,26 +4686,10 @@ DoAction(struct action *act, int key)
         OutputMsg(0, "Standout attributes 0x%02x  color 0x%02x", (unsigned char)mchar_so.attr, 0x99 ^ (unsigned char)mchar_so.color);
       break;
 
-      case RC_SOURCE:
-	do_source(*args);
-	break;
-
-    case RC_SU:
-      s = NULL;
-      if (!*args)
-        {
-	  OutputMsg(0, "%s:%s screen login", HostName, SockPath);
-          InputSu(D_fore, &D_user, NULL);
-	}
-      else if (!args[1])
-        InputSu(D_fore, &D_user, args[0]);
-      else if (!args[2])
-        s = DoSu(&D_user, args[0], args[1], "\377");
-      else
-        s = DoSu(&D_user, args[0], args[1], args[2]);
-      if (s)
-        OutputMsg(0, "%s", s);
+    case RC_SOURCE:
+      do_source(*args);
       break;
+
     case RC_SPLIT:
       s = args[0];
       if (s && !strcmp(s, "-v"))
@@ -6009,11 +5823,6 @@ SwitchWindow(int n)
       Msg(0, "This IS window %d (%s).", n, p->w_title);
       return;
     }
-  if (AclCheckPermWin(D_user, ACL_READ, p))
-    {
-      Msg(0, "Access to window %d denied.", p->w_number);
-      return;
-    }
   SetForeWindow(p);
   Activate(fore->w_norefresh);  
 }
@@ -6311,9 +6120,7 @@ AddWindowFlags(char *buf, int len, struct win *p)
     }
   if (p->w_layer.l_cvlist && p->w_layer.l_cvlist->c_lnext)
     *s++ = '&';
-  if (p->w_monitor == MON_DONE
-      && (ACLBYTE(p->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id))
-     )
+  if (p->w_monitor == MON_DONE)
     *s++ = '@';
   if (p->w_bell == BELL_DONE)
     *s++ = '!';
@@ -6423,11 +6230,8 @@ ShowInfo()
   if (wp->w_insert) sprintf(p += strlen(p), " ins");
   if (wp->w_origin) sprintf(p += strlen(p), " org");
   if (wp->w_keypad) sprintf(p += strlen(p), " app");
-  if (wp->w_log)    sprintf(p += strlen(p), " log");
-  if (wp->w_monitor != MON_OFF
-      && (ACLBYTE(wp->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id))
-     )
-    sprintf(p += strlen(p), " mon");
+  if (wp->w_log) sprintf(p += strlen(p), " log");
+  if (wp->w_monitor != MON_OFF) sprintf(p += strlen(p), " mon");
   if (wp->w_mouse) sprintf(p += strlen(p), " mouse");
   if (wp->w_bce) sprintf(p += strlen(p), " bce");
   if (!wp->w_c1) sprintf(p += strlen(p), " -c1");
@@ -6987,59 +6791,6 @@ confirm_fn(char *buf, int len, char *data)
   DoAction(&act, -1);
 }
 
-struct inputsu
-{
-  struct acluser **up;
-  char name[24];
-  char pw1[130];	/* FreeBSD crypts to 128 bytes */
-  char pw2[130];
-};
-
-static void
-su_fin(char *buf, int len, char *data)
-{
-  struct inputsu *i = (struct inputsu *)data;
-  char *p;
-  int l;
-
-  if (!*i->name)
-    { p = i->name; l = sizeof(i->name) - 1; }
-  else if (!*i->pw1)
-    { strcpy(p = i->pw1, "\377"); l = sizeof(i->pw1) - 1; }
-  else
-    { strcpy(p = i->pw2, "\377"); l = sizeof(i->pw2) - 1; }
-  if (buf && len)
-    strncpy(p, buf, 1 + (l < len) ? l : len);
-  if (!*i->name)
-    Input("Screen User: ", sizeof(i->name) - 1, INP_COOKED, su_fin, (char *)i, 0);
-  else if (!*i->pw1)
-    Input("User's UNIX Password: ", sizeof(i->pw1)-1, INP_COOKED|INP_NOECHO, su_fin, (char *)i, 0);
-  else if (!*i->pw2)
-    Input("User's Screen Password: ", sizeof(i->pw2)-1, INP_COOKED|INP_NOECHO, su_fin, (char *)i, 0);
-  else
-    {
-      if ((p = DoSu(i->up, i->name, i->pw2, i->pw1)))
-        Msg(0, "%s", p);
-      free((char *)i);
-    }
-}
- 
-static int
-InputSu(struct win *win, struct acluser **up, char *name)
-{
-  struct inputsu *i;
-
-  if (!(i = (struct inputsu *)calloc(1, sizeof(struct inputsu))))
-    return -1;
-
-  i->up = up;
-  if (name && *name)
-    su_fin(name, (int)strlen(name), (char *)i); /* can also initialise stuff */
-  else
-    su_fin((char *)0, 0, (char *)i);
-  return 0;
-}
-
 static void
 pass1(char *buf, int len, char *data)
 {
@@ -7262,27 +7013,10 @@ FindNiceWindow(struct win *win, char *presel)
     }
   if (!display)
     return win;
-  if (win && AclCheckPermWin(D_user, ACL_READ, win))
-    win = 0;
   if (!win || (IsOnDisplay(win) && !presel))
     {
       /* try to get another window */
       win = 0;
-      for (win = windows; win; win = win->w_next)
-	if (!win->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_WRITE, win))
-	  break;
-      if (!win)
-        for (win = windows; win; win = win->w_next)
-	  if (win->w_layer.l_cvlist && !IsOnDisplay(win) && !AclCheckPermWin(D_user, ACL_WRITE, win))
-	    break;
-      if (!win)
-	for (win = windows; win; win = win->w_next)
-	  if (!win->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_READ, win))
-	    break;
-      if (!win)
-	for (win = windows; win; win = win->w_next)
-	  if (win->w_layer.l_cvlist && !IsOnDisplay(win) && !AclCheckPermWin(D_user, ACL_READ, win))
-	    break;
       if (!win)
 	for (win = windows; win; win = win->w_next)
 	  if (!win->w_layer.l_cvlist)
@@ -7292,8 +7026,6 @@ FindNiceWindow(struct win *win, char *presel)
 	  if (win->w_layer.l_cvlist && !IsOnDisplay(win))
 	    break;
     }
-  if (win && AclCheckPermWin(D_user, ACL_READ, win))
-    win = 0;
   return win;
 }
 

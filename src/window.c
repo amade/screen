@@ -222,30 +222,6 @@ WinProcess(char **bufpp, int *lenp)
       ZombieProcess(bufpp, lenp);
       return;
     }
- /* a pending writelock is this:
-  * fore->w_wlock == WLOCK_AUTO, fore->w_wlockuse = NULL
-  * The user who wants to use this window next, will get the lock, if he can.
-  */
- if (display && fore->w_wlock == WLOCK_AUTO &&
-     !fore->w_wlockuser && !AclCheckPermWin(D_user, ACL_WRITE, fore))
-   {
-     fore->w_wlockuser = D_user;
-     debug2("window %d: pending writelock grabbed by user %s\n",
-	    fore->w_number, fore->w_wlockuser->u_name);
-   }
- /* if w_wlock is set, only one user may write, else we check acls */
-  if (display && ((fore->w_wlock == WLOCK_OFF) ? 
-      AclCheckPermWin(D_user, ACL_WRITE, fore) :
-      (D_user != fore->w_wlockuser)))
-    {
-      debug2("window %d, user %s: ", fore->w_number, D_user->u_name);
-      debug2("writelock %d (wlockuser %s)\n", fore->w_wlock,
-	     fore->w_wlockuser ? fore->w_wlockuser->u_name : "NULL");
-      Msg(0, "write: permission denied (user %s)", D_user->u_name);
-      *bufpp += *lenp;
-      *lenp = 0;
-      return;
-    }
 
   if (W_UWP(fore))
     {
@@ -534,18 +510,6 @@ MakeWindow(struct NewWindow *newwin)
     p->w_group = fore;
   else if (fore && fore->w_group)
     p->w_group = fore->w_group;
-  /*
-   * This is dangerous: without a display we use creators umask
-   * This is intended to be useful for detached startup.
-   * But is still better than default bits with a NULL user.
-   */
-  if (NewWindowAcl(p, display ? D_user : users))
-    {
-      free((char *)p);
-      close(f);
-      Msg(0, "%s", strnomem);
-      return -1;
-    }
   p->w_layer.l_next = 0;
   p->w_layer.l_bottom = &p->w_layer;
   p->w_layer.l_layfn = &WinLf;
@@ -554,9 +518,6 @@ MakeWindow(struct NewWindow *newwin)
   p->w_pdisplay = 0;
   p->w_lastdisp = 0;
 
-  if (display && !AclCheckPermWin(D_user, ACL_WRITE, p))
-    p->w_wlockuser = D_user;
-  p->w_wlock = nwin.wlock;
   p->w_ptyfd = f;
   p->w_aflag = nwin.aflag;
   p->w_flow = nwin.flowflag | ((nwin.flowflag & FLOW_AUTOFLAG) ? (FLOW_AUTO|FLOW_NOW) : FLOW_AUTO);
@@ -575,23 +536,11 @@ MakeWindow(struct NewWindow *newwin)
   if (nwin.hstatus)
     p->w_hstatus = SaveStr(nwin.hstatus);
   p->w_monitor = nwin.monitor;
-  if (p->w_monitor == MON_ON)
-    {
-      /* always tell all users */
-      for (i = 0; i < maxusercount; i++)
-	ACLBYTE(p->w_mon_notify, i) |= ACLBIT(i);
-    }
   /*
    * defsilence by Lloyd Zusman (zusman_lloyd@jpmorgan.com)
    */
   p->w_silence = nwin.silence;
   p->w_silencewait = SilenceWait;
-  if (p->w_silence == SILENCE_ON)
-    {
-      /* always tell all users */
-      for (i = 0; i < maxusercount; i++)
-	ACLBYTE(p->w_lio_notify, i) |= ACLBIT(i);
-    }
   p->w_slowpaste = nwin.slow;
 
   p->w_norefresh = 0;
@@ -878,7 +827,6 @@ FreeWindow(struct win *wp)
     flayer = 0;
   LayerCleanupMemory(&wp->w_layer);
 
-  FreeWindowAcl(wp);
   evdeq(&wp->w_readev);		/* just in case */
   evdeq(&wp->w_writeev);	/* just in case */
   evdeq(&wp->w_silenceev);
@@ -1470,59 +1418,6 @@ FreePseudowin(struct win *w)
   w->w_pwin = NULL;
 }
 
-
-
-/*
- * returns 0, if the lock really has been released
- */
-int
-ReleaseAutoWritelock(struct display *dis, struct win *w)
-{
-  debug2("ReleaseAutoWritelock: user %s, window %d\n",
-         dis->d_user->u_name, w->w_number);
-
-  /* release auto writelock when user has no other display here */
-  if (w->w_wlock == WLOCK_AUTO && w->w_wlockuser == dis->d_user)
-    {
-      struct display *d;
-
-      for (d = displays; d; d = d->d_next)
-	if (( d != dis) && (d->d_fore == w) && (d->d_user == dis->d_user))
-	  break;
-      debug3("%s %s autolock on win %d\n", 
-	     dis->d_user->u_name, d ? "keeps" : "releases", w->w_number);
-      if (!d)
-        {
-	  w->w_wlockuser = NULL;
-          return 0;
-	}
-    }
-  return 1;
-}
-
-/*
- * returns 0, if the lock really could be obtained
- */
-int
-ObtainAutoWritelock(struct display *d, struct win *w)
-{
-  if ((w->w_wlock == WLOCK_AUTO) &&
-       !AclCheckPermWin(d->d_user, ACL_WRITE, w) &&
-       !w->w_wlockuser)
-    {
-      debug2("%s obtained auto writelock for exported window %d\n",
-             d->d_user->u_name, w->w_number);
-      w->w_wlockuser = d->d_user;
-      return 0;
-    }
-  return 1;
-}
-
-
-
-
-/********************************************************************/
-
 static void
 paste_slowev_fn(struct event *ev, char *data)
 {
@@ -1810,8 +1705,6 @@ win_silenceev_fn(struct event *ev, char *data)
 	  break;
       if (cv)
 	continue;	/* user already sees window */
-      if (!(ACLBYTE(p->w_lio_notify, D_user->u_id) & ACLBIT(D_user->u_id)))
-	continue;
       Msg(0, "Window %d: silence for %d seconds", p->w_number, p->w_silencewait);
       p->w_silence = SILENCE_FOUND;
       WindowChanged(p, 'f');
@@ -2013,8 +1906,6 @@ SwapWindows(int old, int dest)
   wtab[old] = p;
   if (p)
     p->w_number = old;
-  /* exchange the acls for these windows. */
-  AclWinSwap(old, dest);
 #ifdef UTMPOK
   /* exchange the utmp-slots for these windows */
   if ((win_old->w_slot != (slot_t) -1) && (win_old->w_slot != (slot_t) 0))

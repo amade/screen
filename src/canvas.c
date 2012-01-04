@@ -244,7 +244,6 @@ SetCanvasWindow(struct canvas *cv, struct win *win)
 
       if (p && cv == D_forecv)
 	{
-	  ReleaseAutoWritelock(display, p);
 	  if (p->w_silence)
 	    {
 	      SetTimeout(&p->w_silenceev, p->w_silencewait * 1000);
@@ -304,7 +303,6 @@ SetCanvasWindow(struct canvas *cv, struct win *win)
       fore = D_fore;	/* XXX ? */
       if (win)
 	{
-	  ObtainAutoWritelock(display, win);
 	  /*
 	   * Place the window at the head of the most-recently-used list
 	   */

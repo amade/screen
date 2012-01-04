@@ -105,13 +105,7 @@ gl_Display_row(struct ListData *ldata, struct ListRow *lrow)
 	   *            write, own wlock
 	   * -,x	no execute, execute
 	   */
-	  (AclCheckPermWin(d->d_user, ACL_READ, w) ? '-' :
-	   ((w->w_wlock == WLOCK_OFF || d->d_user == w->w_wlockuser) ?
-	    'r' : 'R')),
-	  (AclCheckPermWin(d->d_user, ACL_READ, w) ? '-' :
-	   ((w->w_wlock == WLOCK_OFF) ? 'w' :
-	    ((d->d_user == w->w_wlockuser) ? 'W' : 'v'))),
-	  (AclCheckPermWin(d->d_user, ACL_READ, w) ? '-' : 'x')
+	  'r', 'r', 'x'
 	  );
     }
   leftline(tbuf, lrow->y, lrow == ldata->selected ? &mchar_so : d == display ? &m_current : 0);

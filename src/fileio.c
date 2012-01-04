@@ -348,14 +348,7 @@ RcLine(char *ubuf, int ubufl)
     flayer = fore ? fore->w_savelayer : 0;
   if (Parse(ubuf, ubufl, args, argl) <= 0)
     return;
-  if (!display)
-    {
-      /* the session owner does it, when there is no display here */
-      EffectiveAclUser = users;        
-      debug("RcLine: WARNING, no display no user! Session owner executes command\n");
-    }
   DoCommand(args, argl);
-  EffectiveAclUser = 0;
 }
 
 /*
