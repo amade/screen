@@ -511,8 +511,6 @@ extern int defmousetrack;
 extern int defnonblock;
 extern int defobuflimit;
 extern int dflag;
-extern int eff_gid;
-extern int eff_uid;
 extern int focusminheight;
 extern int focusminwidth;
 extern int force_vt;
@@ -539,8 +537,6 @@ extern int search_ic;
 extern int separate_sids;
 extern int queryflag;
 extern int quietflag;
-extern int real_gid;
-extern int real_uid;
 extern int renditions[];
 extern int rflag;
 extern int tty_mode;
@@ -598,6 +594,10 @@ extern struct event serv_read;
 extern struct mode attach_Mode;
 extern struct passwd *ppp;
 
+extern gid_t eff_gid;
+extern gid_t real_gid;
+extern uid_t eff_uid;
+extern uid_t real_uid;
 
 #ifdef NETHACK
 extern int nethackflag;

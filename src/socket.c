@@ -205,7 +205,7 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
       debug2("st.st_uid = %d, real_uid = %d\n", st.st_uid, real_uid);
 #ifdef SOCKDIR /* if SOCKDIR is not defined, the socket is in $HOME.
                   in that case it does not make sense to compare uids. */
-      if ((int)st.st_uid != real_uid)
+      if (st.st_uid != real_uid)
 	continue;
 #endif
       mode = (int)st.st_mode & 0777;
@@ -1190,7 +1190,8 @@ sconnect(int s, struct sockaddr *sapp, int len)
 int
 chsock()
 {
-  int r, euid = geteuid();
+  int r;
+  uid_t euid = geteuid();
   if (euid != real_uid)
     {
       if (UserContext() <= 0)
@@ -1216,7 +1217,7 @@ int
 RecoverSocket()
 {
   close(ServerSocket);
-  if ((int)geteuid() != real_uid)
+  if (geteuid() != real_uid)
     {
       if (UserContext() > 0)
 	UserReturn(unlink(SockPath));

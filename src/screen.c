@@ -183,7 +183,8 @@ int tty_oldmode = -1;
 
 char HostName[MAXSTR];
 int MasterPid, PanicPid;
-int real_uid, real_gid, eff_uid, eff_gid;
+uid_t real_uid, eff_uid;
+gid_t real_gid, eff_gid; 
 int default_startup;
 int ZombieKey_destroy, ZombieKey_resurrect, ZombieKey_onerror;
 char *preselect = NULL;		/* only used in Attach() */
@@ -827,7 +828,7 @@ main(int argc, char **argv)
   if ((LoginName = getlogin()) && LoginName[0] != '\0')
     {
       if ((ppp = getpwnam(LoginName)) != (struct passwd *) 0)
-	if ((int)ppp->pw_uid != real_uid)
+	if (ppp->pw_uid != real_uid)
 	  ppp = (struct passwd *) 0;
     }
   if (ppp == 0)
@@ -992,10 +993,10 @@ main(int argc, char **argv)
 	    {
 	      if (!S_ISDIR(st.st_mode))
 		Panic(0, "'%s' must be a directory.", SockDir);
-              if (eff_uid == 0 && real_uid && (int)st.st_uid != eff_uid)
+              if (eff_uid == 0 && real_uid && st.st_uid != eff_uid)
 		Panic(0, "Directory '%s' must be owned by root.", SockDir);
 	      n = (eff_uid == 0 && (real_uid || (st.st_mode & 0775) != 0775)) ? 0755 :
-	          (eff_gid == (int)st.st_gid && eff_gid != real_gid) ? 0775 :
+	          (eff_gid == st.st_gid && eff_gid != real_gid) ? 0775 :
 		  0777;
 	      if (((int)st.st_mode & 0777) != n)
 		Panic(0, "Directory '%s' must have mode %03o.", SockDir, n);
@@ -1018,14 +1019,14 @@ main(int argc, char **argv)
     Panic(0, "%s is not a directory.", SockPath);
   if (multi)
     {
-      if ((int)st.st_uid != multi_uid)
+      if (st.st_uid != multi_uid)
 	Panic(0, "%s is not the owner of %s.", multi, SockPath);
     }
   else
     {
 #ifdef SOCKDIR /* if SOCKDIR is not defined, the socket is in $HOME.
                   in that case it does not make sense to compare uids. */
-      if ((int)st.st_uid != real_uid)
+      if (st.st_uid != real_uid)
 	Panic(0, "You are not the owner of %s.", SockPath);
 #endif
     }
