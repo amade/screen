@@ -200,7 +200,7 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 #endif
 
       debug2("st.st_uid = %d, real_uid = %d\n", st.st_uid, real_uid);
-      if ((int)st.st_uid != real_uid)
+      if (st.st_uid != real_uid)
 	continue;
       mode = (int)st.st_mode & 0777;
       debug1("  has mode 0%03o\n", mode);
@@ -1141,7 +1141,8 @@ sconnect(int s, struct sockaddr *sapp, int len)
 int
 chsock()
 {
-  int r, euid = geteuid();
+  int r;
+  uid_t euid = geteuid();
   if (euid != real_uid)
     {
       if (UserContext() <= 0)
@@ -1167,7 +1168,7 @@ int
 RecoverSocket()
 {
   close(ServerSocket);
-  if ((int)geteuid() != real_uid)
+  if (geteuid() != real_uid)
     {
       if (UserContext() > 0)
 	UserReturn(unlink(SockPath));
