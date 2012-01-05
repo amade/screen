@@ -982,7 +982,7 @@ main(int argc, char **argv)
 		Panic(0, "Cannot make directory '%s'.", SockDir);
 	    }
 	  if (SockDir != SockPath)
-	    strcpy(SockPath, SockDir);
+	    strncpy(SockPath, SockDir, MAXPATHLEN + 2 * MAXSTR);
 	}
 #ifdef SOCKDIR
       else
@@ -2626,7 +2626,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	  *p = 0;
 	  if (win && (int)strlen(win->w_title) < l)
 	    {
-	      strcpy(p, win->w_title);
+	      strncpy(p, win->w_title, l);
 	      if (*p)
 		qmflag = 1;
 	    }
@@ -2663,7 +2663,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	  *p = 0;
 	  if ((int)strlen(HostName) < l)
 	    {
-	      strcpy(p, HostName);
+	      strncpy(p, HostName, l);
 	      if (*p)
 		qmflag = 1;
 	    }
@@ -2676,7 +2676,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	    session_name = strchr(SockName, '.') + 1;
 	    if ((int)strlen(session_name) < l)
 	      {
-		strcpy(p, session_name);
+		strncpy(p, session_name, l);
 		if (*p)
 		  qmflag = 1;
 	      }
