@@ -4059,7 +4059,7 @@ DoAction(struct action *act, int key)
 	      break;
 	    }
 	  debug2("rename(%s, %s) done\n", SockPath, buf);
-	  strcpy(SockPath, buf);
+	  strncpy(SockPath, buf, MAXPATHLEN + 2 * MAXSTR);
 	  MakeNewEnv();
 	  WindowChanged((struct win *)0, 'S');
 	}
@@ -6506,37 +6506,45 @@ ShowInfo()
 static void
 ShowDInfo()
 {
-  char buf[512], *p;
+  char buf[128], *p;
+  int l;
   if (display == 0)
     return;
   p = buf;
+  l = 512;
   sprintf(p, "(%d,%d)", D_width, D_height),
-  p += strlen(p);
+  l -= strlen(p);
+  p += l;
   if (D_encoding)
     {
       *p++ = ' ';
-      strcpy(p, EncodingName(D_encoding));
-      p += strlen(p);
+      strncpy(p, EncodingName(D_encoding), l);
+      l -= strlen(p);
+      p += l;
     }
   if (D_CXT)
     {
-      strcpy(p, " xterm");
-      p += strlen(p);
+      strncpy(p, " xterm", l);
+      l -= strlen(p);
+      p += l;
     }
   if (D_hascolor)
     {
-      strcpy(p, " color");
-      p += strlen(p);
+      strncpy(p, " color", l);
+      l -= strlen(p);
+      p += l;
     }
   if (D_CG0)
     {
-      strcpy(p, " iso2022");
-      p += strlen(p);
+      strncpy(p, " iso2022", l);
+      l -= strlen(p);
+      p += l;
     }
   else if (D_CS0 && *D_CS0)
     {
-      strcpy(p, " altchar");
-      p += strlen(p);
+      strncpy(p, " altchar", l);
+      l -= strlen(p);
+      p += l;
     }
   Msg(0, "%s", buf);
 }
