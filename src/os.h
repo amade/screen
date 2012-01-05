@@ -99,14 +99,6 @@ extern int errno;
 # define ftruncate(fd, s) chsize(fd, s)
 #endif
 
-#ifdef SYSV
-# define index strchr
-# define rindex strrchr
-# define bzero(poi,len) memset(poi,0,len)
-# define bcmp memcmp
-# define killpg(pgrp,sig) kill( -(pgrp), sig)
-#endif
-
 #ifndef HAVE_GETCWD
 # define getcwd(b,l) getwd(b)
 #endif
