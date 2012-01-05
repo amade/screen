@@ -829,7 +829,7 @@ MakeTermcap(int aflag)
   if (*screenterm == '\0' || strlen(screenterm) > MAXSTR - 3)
     {
       debug("MakeTermcap sets screenterm=screen\n");
-      strcpy(screenterm, "screen");
+      strncpy(screenterm, "screen", 20);
     }
   strncpy(Term, "TERM=", sizeof(Term));
   p = Term + 5;

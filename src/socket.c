@@ -1062,9 +1062,9 @@ ReceiveMsg()
     case MSG_QUERY:
 	{
 	  char *oldSockPath = SaveStr(SockPath);
-	  strcpy(SockPath, m.m.command.writeback);
+	  strncpy(SockPath, m.m.command.writeback, MAXPATHLEN + 2 * MAXSTR);
 	  int s = MakeClientSocket(0);
-	  strcpy(SockPath, oldSockPath);
+	  strncpy(SockPath, oldSockPath, MAXPATHLEN + 2 * MAXSTR);
 	  Free(oldSockPath);
 	  if (s >= 0)
 	    {
