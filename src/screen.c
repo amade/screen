@@ -1938,11 +1938,11 @@ MakeNewEnv()
 
 #define	PROCESS_MESSAGE(B) do { \
     char *p = B;	\
-    VA_LIST(ap)	\
-    VA_START(ap, fmt);	\
+    va_list ap;	\
+    va_start(ap, fmt);	\
     fmt = DoNLS(fmt);	\
-    (void)vsnprintf(p, sizeof(B) - 100, fmt, VA_ARGS(ap));	\
-    VA_END(ap);	\
+    (void)vsnprintf(p, sizeof(B) - 100, fmt, ap);	\
+    va_end(ap);	\
     if (err)	\
       {	\
 	p += strlen(p);	\
@@ -1953,8 +1953,7 @@ MakeNewEnv()
       }	\
   } while (0)
 
-void Msg(int err, const char *fmt, VA_DOTS)
-
+void Msg(int err, const char *fmt, ...)
 {
   char buf[MAXPATHLEN*2];
   PROCESS_MESSAGE(buf);
@@ -1989,7 +1988,7 @@ void Msg(int err, const char *fmt, VA_DOTS)
 /*
  * Call FinitTerm for all displays, write a message to each and call eexit();
  */
-void Panic(int err, const char *fmt, VA_DOTS)
+void Panic(int err, const char *fmt, ...)
 
 {
   char buf[MAXPATHLEN*2];
@@ -2045,7 +2044,7 @@ void Panic(int err, const char *fmt, VA_DOTS)
   eexit(1);
 }
 
-void QueryMsg(int err, const char *fmt, VA_DOTS)
+void QueryMsg(int err, const char *fmt, ...)
 {
   char buf[MAXPATHLEN*2];
 
@@ -2056,7 +2055,7 @@ void QueryMsg(int err, const char *fmt, VA_DOTS)
   write(queryflag, buf, strlen(buf));
 }
 
-void Dummy (int err, const char *fmt, VA_DOTS)
+void Dummy (int err, const char *fmt, ...)
 {}
 
 #undef PROCESS_MESSAGE
