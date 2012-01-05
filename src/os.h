@@ -86,23 +86,7 @@ extern int errno;
 # include <string.h>
 #endif
 
-#if defined(__STDC__)
-# include <stdarg.h>
-# define VA_LIST(var) va_list var;
-# define VA_DOTS ...
-# define VA_DECL
-# define VA_START(ap, fmt) va_start(ap, fmt)
-# define VA_ARGS(ap) ap
-# define VA_END(ap) va_end(ap)
-#else
-# include <varargs.h>
-# define VA_LIST(var) va_list var;
-# define VA_DOTS va_alist
-# define VA_DECL va_dcl
-# define VA_START(ap, fmt) va_start(ap)
-# define VA_ARGS(ap) ap
-# define VA_END(ap) va_end(ap)
-#endif
+#include <stdarg.h>
 
 #if !defined(sun) && !defined(B43) && !defined(ISC) && !defined(pyr) && !defined(_CX_UX)
 # include <time.h>

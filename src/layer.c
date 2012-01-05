@@ -784,17 +784,17 @@ LRefreshAll(struct layer *l, int isblank)
 }
 
 void
-LMsg(int err, const char *fmt, VA_DOTS)
+LMsg(int err, const char *fmt, ...)
 {
-  VA_LIST(ap)
+  va_list ap;
   char buf[MAXPATHLEN*2];
   char *p = buf;
   struct canvas *cv;
 
-  VA_START(ap, fmt);
+  va_start(ap, fmt);
   fmt = DoNLS(fmt);
-  (void)vsnprintf(p, sizeof(buf) - 100, fmt, VA_ARGS(ap));
-  VA_END(ap);
+  (void)vsnprintf(p, sizeof(buf) - 100, fmt, ap);
+  va_end(ap);
   if (err)
     {
       p += strlen(p);
