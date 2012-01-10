@@ -52,10 +52,6 @@
 # include <sys/stropts.h>
 #endif
 
-#if defined(sequent) || defined(SVR4)
-# include <sys/resource.h>
-#endif /* sequent || SVR4 */
-
 #ifdef ISC
 # include <sys/tty.h>
 # include <sys/sioctl.h>

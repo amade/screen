@@ -61,16 +61,6 @@
 #endif
 
 
-/*
- *  we have a suid-root helper app that changes the utmp for us
- *  (won't work for login-slots)
- */
-#if (defined(sun) && defined(SVR4) && defined(GETUTENT)) || defined(HAVE_UTEMPTER)
-# define UTMP_HELPER
-#endif
-
-
-
 #ifdef UTMPOK
 
 
@@ -447,9 +437,7 @@ SetUtmp(struct win *win)
   sprintf(host + strlen(host), ":S.%d", win->w_number);
   debug1("rlogin hostname: '%s'\n", host);
 
-# if !defined(_SEQUENT_) && !defined(sequent)
   strncpy(u.ut_host, host, sizeof(u.ut_host));
-# endif
 #endif /* UTHOST */
 
   if (pututslot(slot, &u, host, win) == 0)
@@ -568,9 +556,7 @@ makedead(struct utmp *u)
   u->ut_exit.e_termination = 0;
   u->ut_exit.e_exit = 0;
 #endif
-#if !defined(sun) || !defined(SVR4)
   u->ut_user[0] = 0;	/* for Digital UNIX, kilbi@rad.rwth-aachen.de */
-#endif
 }
 
 static void
@@ -662,10 +648,6 @@ getutslot(slot_t slot)
 static int
 pututslot(slot_t slot, struct utmp *u, char *host, struct win *win)
 {
-#ifdef sequent
-  if (SLOT_USED(u))
-    return add_utmp(slot, u) != -1;
-#endif
   if (utmpfd < 0 && !initutmp())
     return 0;
   lseek(utmpfd, (off_t)(slot * sizeof(*u)), 0);

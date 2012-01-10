@@ -228,13 +228,6 @@
  *
  */
 
-/*
- * Some defines to identify special unix variants
- */
-#ifndef SVR4
-#undef SVR4
-#endif
-
 /* #ifndef __osf__ */
 #ifndef MIPS
 #undef MIPS
@@ -466,12 +459,6 @@
  * device.
  */
 #undef HAVE_DEV_PTC
-
-/*
- * define HAVE_SVR4_PTYS if you have a /dev/ptmx character special
- * device and support the ptsname(), grantpt(), unlockpt() functions.
- */
-#undef HAVE_SVR4_PTYS
 
 /* 
  * define PTYRANGE0 and or PTYRANGE1 if you want to adapt screen

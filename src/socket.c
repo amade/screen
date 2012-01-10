@@ -771,10 +771,6 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
       return -1;
     }
 
-#if defined(ultrix) || defined(pyr) || defined(NeXT)
-  brktty(i);	/* for some strange reason this must be done */
-#endif
-
   if (attach)
     {
       if (display || win)
@@ -1088,28 +1084,6 @@ ReceiveRaw(int s)
   close(s);
 }
 
-#if defined(_SEQUENT_) && !defined(NAMEDPIPE)
-#undef connect
-/*
- *  sequent_ptx socket emulation must have mode 000 on the socket!
- */
-static int
-sconnect(int s, struct sockaddr *sapp, int len)
-{
-  register struct sockaddr_un *sap;
-  struct stat st;
-  int x;
-
-  sap = (struct sockaddr_un *)sapp;
-  if (stat(sap->sun_path, &st))
-    return -1;
-  chmod(sap->sun_path, 0);
-  x = connect(s, (struct sockaddr *) sap, len);
-  chmod(sap->sun_path, st.st_mode);
-  return x;
-}
-#endif
-
 
 /*
  * Set the mode bits of the socket to the current status
@@ -1177,16 +1151,6 @@ FinishAttach(struct msg *m)
       || m->m.attach.detachfirst == MSG_POW_DETACH
      )
     FinishDetach(m);
-
-#if defined(pyr) || defined(xelos) || defined(sequent)
-  /*
-   * Kludge for systems with braindamaged termcap routines,
-   * which evaluate $TERMCAP, regardless weather it describes
-   * the correct terminal type or not.
-   */
-  debug("unsetenv(TERMCAP) in case of a different terminal");
-  unsetenv("TERMCAP");
-#endif
 
   /*
    * We reboot our Terminal Emulator. Forget all we knew about

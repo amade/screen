@@ -34,10 +34,6 @@
 #include "screen.h"
 #include "extern.h"
 
-#ifdef SVR4
-# include <sys/resource.h>
-#endif
-
 #ifdef HAVE_FDWALK
 static int close_func (void *, int);
 #endif
@@ -142,28 +138,10 @@ Filename(char *s)
 char *
 stripdev(char *nam)
 {
-#ifdef apollo
-  char *p;
-  
-  if (nam == NULL)
-    return NULL;
-# ifdef SVR4
-  /* unixware has /dev/pts012 as synonym for /dev/pts/12 */
-  if (!strncmp(nam, "/dev/pts", 8) && nam[8] >= '0' && nam[8] <= '9')
-    {
-      static char b[13];
-      sprintf(b, "pts/%d", atoi(nam + 8));
-      return b;
-    }
-# endif /* SVR4 */
-  if (p = strstr(nam,"/dev/"))
-    return p + 5;
-#else /* apollo */
   if (nam == NULL)
     return NULL;
   if (strncmp(nam, "/dev/", 5) == 0)
     return nam + 5;
-#endif /* apollo */
   return nam;
 }
 
