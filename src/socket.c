@@ -807,6 +807,7 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
       Kill(pid, SIG_BYE);
       return -1;
     }
+
   if (attach)
     Kill(pid, SIGCONT);
 
