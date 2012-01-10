@@ -84,10 +84,6 @@ exit 0
 #include "screen.h"
 #include "extern.h"
 
-#if !defined(TIOCCONS) && defined(sun) && defined(SVR4)
-# include <sys/strredir.h>
-#endif
-
 #if (!defined(TIOCCONS) && defined(SRIOCSREDIR)) || defined(linux)
 static void consredir_readev_fn (struct event *, char *);
 #endif

@@ -206,13 +206,6 @@ AC_TRY_LINK([#include <utmpx.h>
 ,LIBS="$oldlibs")
 AC_CHECK_HEADERS([stropts.h string.h strings.h])
 
-AC_CHECKING(for Solaris 2.x)
-AC_EGREP_CPP(yes,
-[#if defined(SVR4) && defined(sun)
-  yes
-#endif
-], LIBS="$LIBS -lsocket -lnsl -lkstat")
-
 dnl
 dnl    ****  typedefs ****
 dnl
@@ -691,13 +684,6 @@ dnl
 AC_CHECKING(for /dev/ptc)
 if test -r /dev/ptc; then
 AC_DEFINE(HAVE_DEV_PTC)
-fi
-
-AC_CHECKING(for SVR4 ptys)
-sysvr4ptys=
-if test -c /dev/ptmx ; then
-AC_TRY_LINK([],[ptsname(0);grantpt(0);unlockpt(0);],[AC_DEFINE(HAVE_SVR4_PTYS)
-sysvr4ptys=1])
 fi
 
 AC_CHECK_FUNCS(getpt)

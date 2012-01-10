@@ -221,10 +221,6 @@
  *
  * For this simple reason I now favour O_NDELAY. jw. 4.5.95
  */
-#if defined(sun) && !defined(SVR4)
-# undef O_NONBLOCK
-#endif
-
 #if !defined(O_NONBLOCK) && defined(O_NDELAY)
 # define O_NONBLOCK O_NDELAY
 #endif
@@ -268,9 +264,7 @@
  *    Wait stuff
  */
 
-#if (!defined(sysV68) && !defined(M_XENIX)) || defined(NeXT) || defined(M_UNIX)
 # include <sys/wait.h>
-#endif
 
 #ifndef WTERMSIG
 # ifndef BSDWAIT /* if wait is NOT a union: */
@@ -307,15 +301,6 @@
 # else
 #  define WEXITSTATUS(status) status.w_T.w_Retcode
 # endif
-#endif
-
-
-/*****************************************************************
- *    select stuff
- */
-
-#if defined(M_XENIX) || defined(M_UNIX) || defined(_SEQUENT_)
-#include <sys/select.h>		/* for timeval + FD... */
 #endif
 
 /*****************************************************************
