@@ -132,30 +132,7 @@
 #endif
 
 #if defined(UTMPOK) || defined(BUGGYGETLOGIN)
-# if defined(SVR4) && !defined(DGUX) && !defined(__hpux)
-#  include <utmpx.h>
-#  ifdef UTMPX_FILE /* GNU extension */
-#   define UTMPFILE	UTMPX_FILE
-#  endif
-#  define utmp		utmpx
-#  define getutent	getutxent
-#  define getutid	getutxid
-#  define getutline	getutxline
-#  define pututline	pututxline
-#  define setutent	setutxent
-#  define endutent	endutxent
-# else /* SVR4 */
-#  include <utmp.h>
-# endif /* SVR4 */
-# ifdef apollo
-   /* 
-    * We don't have GETUTENT, so we dig into utmp ourselves.
-    * But we save the permanent filedescriptor and
-    * open utmp just when we need to. 
-    * This code supports an unsorted utmp. jw.
-    */
-#  define UTNOKEEP
-# endif /* apollo */
+# include <utmp.h>
 
 # ifndef UTMPFILE
 #  ifdef UTMP_FILE
