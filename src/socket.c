@@ -925,7 +925,7 @@ ReceiveMsg()
 	  struct cmsghdr  *cmsg;
 	  for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg))
 	    {
-	      int cl;
+	      size_t cl;
 	      char *cp;
 	      if (cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_type != SCM_RIGHTS)
 		continue;
