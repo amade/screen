@@ -96,11 +96,6 @@
 # define DEFAULT_BUFFERFILE	"/tmp/screen-exchange"
 #endif
 
-
-#if defined(hpux) && !(defined(VSUSP) && defined(VDSUSP) && defined(VWERASE) && defined(VLNEXT))
-# define HPUX_LTCHARS_HACK
-#endif
-
 struct mode
 {
 #ifdef POSIX

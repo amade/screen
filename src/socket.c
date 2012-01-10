@@ -715,31 +715,7 @@ CheckPid(int pid)
   return UserStatus();
 }
 
-#ifdef hpux
-/*
- * From: "F. K. Bruner" <napalm@ugcs.caltech.edu>
- * From: "Dan Egnor" <egnor@oracorp.com> Tue Aug 10 06:56:45 1993
- * The problem is that under HPUX (and possibly other systems too) there are
- * two equivalent device files for each pty/tty device:
- * /dev/ttyxx == /dev/pty/ttyxx
- * /dev/ptyxx == /dev/ptym/ptyxx
- * I didn't look into the exact specifics, but I've run across this problem
- * before: Even if you open /dev/ttyxx as fds 0 1 & 2 for a process, if that
- * process calls the system to determine its tty, it'll get /dev/pty/ttyxx.
- *
- * Earlier versions seemed to work -- wonder what they did.
- */
-static int
-ttycmp(char *s1, char *s2)
-{
-  if (strlen(s1) > 5) s1 += strlen(s1) - 5;
-  if (strlen(s2) > 5) s2 += strlen(s2) - 5;
-  return strcmp(s1, s2);
-}
-# define TTYCMP(a, b) ttycmp(a, b)
-#else
-# define TTYCMP(a, b) strcmp(a, b)
-#endif
+#define TTYCMP(a, b) strcmp(a, b)
 
 static int
 CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
