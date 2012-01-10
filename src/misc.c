@@ -172,13 +172,7 @@ stripdev(char *nam)
  *    Signal handling
  */
 
-#ifdef POSIX
-void (*xsignal(sig, func))
-# ifndef __APPLE__
- (int)
-# else
-()
-# endif
+void (*xsignal(sig, func)) (int)
 int sig;
 void (*func) (int);
 {
@@ -194,29 +188,6 @@ void (*func) (int);
     return (void (*)(int))-1;
   return osa.sa_handler;
 }
-
-#else
-# ifdef hpux
-/*
- * hpux has berkeley signal semantics if we use sigvector,
- * but not, if we use signal, so we define our own signal() routine.
- */
-void (*xsignal(sig, func)) (int)
-int sig;
-void (*func) (int);
-{
-  struct sigvec osv, sv;
-
-  sv.sv_handler = func;
-  sv.sv_mask = sigmask(sig);
-  sv.sv_flags = SV_BSDSIG;
-  if (sigvector(sig, &sv, &osv) < 0)
-    return (void (*)(int))(BADSIG);
-  return osv.sv_handler;
-}
-# endif	/* hpux */
-#endif	/* POSIX */
-
 
 /*
  *    uid/gid handling

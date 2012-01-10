@@ -384,9 +384,6 @@ main(int argc, char **argv)
 #ifdef HAVE_SETEUID
   debug("SETEUID\n");
 #endif
-#ifdef hpux
-  debug("hpux\n");
-#endif
 #ifdef UTMPOK
   debug("UTMPOK\n");
 #endif

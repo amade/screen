@@ -34,17 +34,11 @@
 #include "config.h"
 #include "screen.h"
 
-#ifndef sun
-# include <sys/ioctl.h>
-#endif
+#include <sys/ioctl.h>
 
 /* for solaris 2.1, Unixware (SVR4.2) and possibly others */
 #ifdef HAVE_STROPTS_H
 # include <sys/stropts.h>
-#endif
-
-#if defined(sun) && defined(LOCKPTY) && !defined(TIOCEXCL)
-# include <sys/ttold.h>
 #endif
 
 #ifdef ISC
@@ -52,10 +46,6 @@
 # include <sys/sioctl.h>
 # include <sys/pty.h>
 #endif
-
-#ifdef sgi
-# include <sys/sysmacros.h>
-#endif /* sgi */
 
 #include "extern.h"
 
@@ -78,10 +68,6 @@
 static char PtyName[32], TtyName[32];
 
 #if !(defined(sequent) || defined(_SEQUENT_) || defined(HAVE_SVR4_PTYS))
-# ifdef hpux
-static char PtyProto[] = "/dev/ptym/ptyXY";
-static char TtyProto[] = "/dev/pty/ttyXY";
-# else
 #  ifdef M_UNIX
 static char PtyProto[] = "/dev/ptypXY";
 static char TtyProto[] = "/dev/ttypXY";
@@ -89,18 +75,11 @@ static char TtyProto[] = "/dev/ttypXY";
 static char PtyProto[] = "/dev/ptyXY";
 static char TtyProto[] = "/dev/ttyXY";
 #  endif
-# endif /* hpux */
 #endif
 
 static void initmaster (int);
 
-#if defined(sun)
-/* sun's utmp_update program opens the salve side, thus corrupting
- */
-int pty_preopen = 1;
-#else
 int pty_preopen = 0;
-#endif
 
 /*
  *  Open all ptys with O_NOCTTY, just to be on the safe side
@@ -115,13 +94,7 @@ int pty_preopen = 0;
 static void
 initmaster(int f)
 {
-#ifdef POSIX
   tcflush(f, TCIOFLUSH);
-#else
-# ifdef TIOCFLUSH
-  (void) ioctl(f, TIOCFLUSH, (char *) 0);
-# endif
-#endif
 #ifdef LOCKPTY
   (void) ioctl(f, TIOCEXCL, (char *) 0);
 #endif

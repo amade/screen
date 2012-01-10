@@ -334,9 +334,7 @@ extern void  closeallfiles (int);
 extern int   UserContext (void);
 extern void  UserReturn (int);
 extern int   UserStatus (void);
-#if defined(POSIX) || defined(hpux)
 extern void (*xsignal (int, void (*)(int))) (int);
-#endif
 #ifndef HAVE_RENAME
 extern int   rename (char *, char *);
 #endif

@@ -32,14 +32,7 @@
 
 #include <sys/param.h>
 
-/* In strict ANSI mode, HP-UX machines define __hpux but not hpux */
-#if defined(__hpux) && !defined(hpux)
-# define hpux
-#endif
-
-#if defined(__bsdi__) || defined(__386BSD__) || defined(_CX_UX) || defined(hpux) || defined(_IBMR2) || defined(linux)
-# include <signal.h>
-#endif /* __bsdi__ || __386BSD__ || _CX_UX || hpux || _IBMR2 || linux */
+#include <signal.h>
 
 #if !defined(HAVE_LONG_FILE_NAMES) && !defined(NAME_MAX)
 #define NAME_MAX 14
@@ -56,24 +49,9 @@
 # include <net/errno.h>
 #endif
 
-#ifdef sun
-# define getpgrp __getpgrp
-# define exit __exit
-#endif
-#ifdef POSIX
-# include <unistd.h>
-# if defined(__STDC__)
-#  include <stdlib.h>
-# endif /* __STDC__ */
-#endif /* POSIX */
-#ifdef sun
-# undef getpgrp
-# undef exit
-#endif /* sun */
+#include <unistd.h>
+#include <stdlib.h>
 
-#ifndef linux /* all done in <errno.h> */
-extern int errno;
-#endif /* linux */
 #ifndef HAVE_STRERROR
 /* No macros, please */
 #undef strerror
@@ -88,16 +66,8 @@ extern int errno;
 
 #include <stdarg.h>
 
-#if !defined(sun) && !defined(B43) && !defined(ISC) && !defined(pyr) && !defined(_CX_UX)
-# include <time.h>
-#endif
+#include <time.h>
 #include <sys/time.h>
-
-#ifdef M_UNIX   /* SCO */
-# include <sys/stream.h>
-# include <sys/ptem.h>
-# define ftruncate(fd, s) chsize(fd, s)
-#endif
 
 #ifndef HAVE_GETCWD
 # define getcwd(b,l) getwd(b)
@@ -136,31 +106,12 @@ extern int errno;
  *    terminal handling
  */
 
-#ifdef POSIX
-# include <termios.h>
-# ifdef hpux
-#  include <bsdtty.h>
-# endif /* hpux */
-# ifdef NCCS
-#  define MAXCC NCCS
-# else
-#  define MAXCC 256
-# endif
-#else /* POSIX */
-# ifdef TERMIO
-#  include <termio.h>
-#  ifdef NCC
-#   define MAXCC NCC
-#  else
-#   define MAXCC 256
-#  endif
-#  ifdef CYTERMIO
-#   include <cytermio.h>
-#  endif
-# else /* TERMIO */
-#  include <sgtty.h>
-# endif /* TERMIO */
-#endif /* POSIX */
+#include <termios.h>
+#ifdef NCCS
+# define MAXCC NCCS
+#else
+# define MAXCC 256
+#endif
 
 #ifndef VDISABLE
 # ifdef _POSIX_VDISABLE
@@ -169,27 +120,6 @@ extern int errno;
 #  define VDISABLE 0377
 # endif /* _POSIX_VDISABLE */
 #endif /* !VDISABLE */
-
-
-/* on sgi, regardless of the stream head's read mode (RNORM/RMSGN/RMSGD)
- * TIOCPKT mode causes data loss if our buffer is too small (IOSIZE)
- * to hold the whole packet at first read().
- * (Marc Boucher)
- *
- * matthew green:
- * TIOCPKT is broken on dgux 5.4.1 generic AViiON mc88100
- *
- * Joe Traister: On AIX4, programs like irc won't work if screen
- * uses TIOCPKT (select fails to return on pty read).
- */
-#if defined(sgi) || defined(DGUX) || defined(_IBMR2)
-# undef TIOCPKT
-#endif
-
-/* Alexandre Oliva: SVR4 style ptys don't work with osf */
-#ifdef __osf__
-# undef HAVE_SVR4_PTYS
-#endif
 
 /*****************************************************************
  *   utmp handling
@@ -348,13 +278,7 @@ extern int errno;
 #define SIGCHLD SIGCLD
 #endif
 
-#if defined(POSIX) || defined(hpux)
-# define signal xsignal
-#else
-# ifdef USESIGSET
-#  define signal sigset
-# endif /* USESIGSET */
-#endif
+#define signal xsignal
 
 /* used in screen.c and attacher.c */
 #ifndef NSIG		/* kbeal needs these w/o SYSV */
@@ -415,21 +339,6 @@ extern int errno;
 #if defined(M_XENIX) || defined(M_UNIX) || defined(_SEQUENT_)
 #include <sys/select.h>		/* for timeval + FD... */
 #endif
-
-/*
- * SunOS 3.5 - Tom Schmidt - Micron Semiconductor, Inc - 27-Jul-93
- * tschmidt@vax.micron.com
- */
-#ifndef FD_SET
-# ifndef SUNOS3
-typedef struct fd_set { int fds_bits[1]; } fd_set;
-# endif
-# define FD_ZERO(fd) ((fd)->fds_bits[0] = 0)
-# define FD_SET(b, fd) ((fd)->fds_bits[0] |= 1 << (b))
-# define FD_ISSET(b, fd) ((fd)->fds_bits[0] & 1 << (b))
-# define FD_SETSIZE 32
-#endif
-
 
 /*****************************************************************
  *    user defineable stuff

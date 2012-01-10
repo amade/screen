@@ -683,9 +683,6 @@ LockTerminal()
 #endif
           int wret;
 
-#ifdef hpux
-          signal(SIGCHLD, SIG_DFL);
-#endif
           errno = 0;
           while (((wret = wait(&wstat)) != pid) ||
 	         ((wret == -1) && (errno == EINTR))
