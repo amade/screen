@@ -609,10 +609,6 @@ extern struct winsize glwz;
 extern int separate_sids;
 #endif
 
-# if defined(GETUTENT) && (!defined(SVR4) || defined(__hpux)) && ! defined(__CYGWIN__)
-#  if defined(hpux) /* cruel hpux release 8.0 */
-#   define pututline _pututline
-#  endif /* hpux */
 extern struct utmp *getutline(), *pututline();
 #  if defined(_SEQUENT_)
 extern struct utmp *ut_add_user(), *ut_delete_user();
@@ -621,5 +617,4 @@ extern char *ut_find_host();
 #    define UTHOST		/* _SEQUENT_ has ut_find_host() */
 #   endif
 #  endif /* _SEQUENT_ */
-# endif /* GETUTENT && !SVR4 */
 

@@ -42,9 +42,6 @@ static struct event *nextev;
 static int calctimeout;
 
 static struct event *calctimo (void);
-#if (defined(sgi) && defined(SVR4)) || defined(__osf__) || defined(M_UNIX)
-static int sgihack (void);
-#endif
 
 void
 evenq(struct event *ev)
@@ -189,10 +186,6 @@ sched()
 	{
 	  if (errno != EINTR)
 	    {
-#if defined(sgi) && defined(SVR4)
-	      if (errno == EIO && sgihack())
-		continue;
-#endif
 #if defined(__osf__) || defined(M_UNIX)
 	      /* OSF/1 3.x, SCO bug: EBADF */
 	      /* OSF/1 4.x bug: EIO */
@@ -254,33 +247,3 @@ SetTimeout(struct event *ev, int timo)
     calctimeout = 1;
 }
 
-
-#if (defined(sgi) && defined(SVR4)) || defined(__osf__) || defined(M_UNIX)
-
-extern struct display *display, *displays;
-static int sgihack()
-{
-  fd_set r, w;
-  struct timeval tv;
-
-  debug("IRIX5.2 workaround: searching for bad display\n");
-  for (display = displays; display; )
-    {
-      FD_ZERO(&r);
-      FD_ZERO(&w);
-      FD_SET(D_userfd, &r);
-      FD_SET(D_userfd, &w);
-      tv.tv_sec = tv.tv_usec = 0;
-      if (select(FD_SETSIZE, &r, &w, (fd_set *)0, &tv) == -1)
-	{
-	  if (errno == EINTR)
-	    continue;
-	  Hangup();	/* goodbye display */
-	  return 1;
-	}
-      display = display->d_next;
-    }
-  return 0;
-}
-
-#endif

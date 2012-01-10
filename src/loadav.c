@@ -28,38 +28,17 @@
 
 #include <sys/types.h>
 #include <fcntl.h>
-#ifdef ultrix
-# include <sys/fixpoint.h>
-#endif
-
-/* mach stuff included here to prevent index macro conflict */
-#ifdef NeXT
-# include <sys/version.h>
-# if KERNEL_MAJOR_VERSION > 2
-#  include <mach/mach.h>
-# else
-#  include <mach.h>
-# endif
-#endif
 
 #include "config.h"
 #include "screen.h"
 
 #include "extern.h"
 
-#ifdef LOADAV
-
 static int GetLoadav (void);
 
 static LOADAV_TYPE loadav[LOADAV_NUM];
 static int loadok;
 
-
-
-/***************************************************************/
-
-#if defined(linux) && !defined(LOADAV_DONE)
-#define LOADAV_DONE
 /*
  * This is the easy way. It relies in /proc being mounted.
  * For the big and ugly way refer to previous screen version.
@@ -112,227 +91,6 @@ GetLoadav()
     }
   return i;
 }
-#endif /* linux */
-
-/***************************************************************/
-
-#if defined(LOADAV_GETLOADAVG) && !defined(LOADAV_DONE)
-#define LOADAV_DONE
-void
-InitLoadav()
-{
-  loadok = 1;
-}
-
-static int
-GetLoadav()
-{
-  return getloadavg(loadav, LOADAV_NUM);
-}
-#endif
-
-/***************************************************************/
-
-#if defined(apollo) && !defined(LOADAV_DONE)
-#define LOADAV_DONE
-void
-InitLoadav()
-{
-  loadok = 1;
-}
-
-static int
-GetLoadav()
-{
-  proc1_$get_loadav(loadav);
-  return LOADAV_NUM;
-}
-#endif
-
-/***************************************************************/
-
-#if defined(NeXT) && !defined(LOADAV_DONE)
-#define LOADAV_DONE
-
-static processor_set_t default_set;
-
-void
-InitLoadav()
-{
-  kern_return_t error;
-
-  error = processor_set_default(host_self(), &default_set);
-  if (error != KERN_SUCCESS)
-    mach_error("Error calling processor_set_default", error);
-  else
-    loadok = 1;
-}
-
-static int
-GetLoadav()
-{
-  unsigned int info_count;
-  struct processor_set_basic_info info;
-  host_t host;
-
-  info_count = PROCESSOR_SET_BASIC_INFO_COUNT;
-  if (processor_set_info(default_set, PROCESSOR_SET_BASIC_INFO, &host, (processor_set_info_t)&info, &info_count) != KERN_SUCCESS)
-    return 0;
-  loadav[0] = (float)info.load_average / LOAD_SCALE;
-  return 1;
-}
-#endif
-
-/***************************************************************/
-
-#if defined(sun) && defined(SVR4) && !defined(LOADAV_DONE)
-#define LOADAV_DONE
-
-#include <kstat.h>
-
-static kstat_ctl_t *kc;
-
-void
-InitLoadav()
-{
-  loadok = (kc = kstat_open()) != 0;
-}
-
-static int
-GetLoadav()
-{
-  kstat_t *ks;
-  kstat_named_t *avgs[3];
-  int i;
-
-  kstat_chain_update(kc);
-  if ((ks = kstat_lookup(kc, "unix", -1, "system_misc")) == 0 || kstat_read(kc, ks, (void *)0) == -1)
-    return (loadok = 0);
-  avgs[0] = kstat_data_lookup(ks, "avenrun_1min");
-  avgs[1] = kstat_data_lookup(ks, "avenrun_5min");
-  avgs[2] = kstat_data_lookup(ks, "avenrun_15min");
-  for (i = 0; i < 3; i++)
-    {
-      if (avgs[i] == 0 || avgs[i]->data_type != KSTAT_DATA_ULONG)
-        return (loadok = 0);
-      loadav[i] = avgs[i]->value.ul;
-    }
-  return 3;
-}
-
-#endif
-
-/***************************************************************/
-
-#if defined(__osf__) && defined(__alpha) && !defined(LOADAV_DONE)
-#define LOADAV_DONE
-
-struct rtentry; struct mbuf;	/* shut up gcc on OSF/1 4.0 */
-#include <sys/table.h>
-
-void
-InitLoadav()
-{
-  loadok = 1;
-}
-
-static int
-GetLoadav()
-{
-  struct tbl_loadavg tbl;
-  int i;
-
-  if (table(TBL_LOADAVG, 0, &tbl, 1, sizeof(struct tbl_loadavg)) != 1)
-    return 0;
-
-  if (tbl.tl_lscale)
-    {
-      /* in long */
-      for (i = 0; i < LOADAV_NUM; i++)
-        loadav[i] = (double) tbl.tl_avenrun.l[i] / tbl.tl_lscale;
-    }
-  else
-    {
-      /* in double */
-      for (i = 0; i < LOADAV_NUM; i++)
-        loadav[i] = tbl.tl_avenrun.d[i];
-    }
-  return LOADAV_NUM;
-}
-#endif
-
-/***************************************************************/
-
-#if !defined(LOADAV_DONE)
-/*
- * The old fashion way: open kernel and read avenrun
- *
- * Header File includes
- */
-
-# ifdef NLIST_STRUCT
-#  include <nlist.h>
-# else
-#  include <a.out.h>
-# endif
-# ifndef NLIST_DECLARED
-extern int nlist (char *, struct nlist *);
-# endif
-
-#ifdef LOADAV_USE_NLIST64
-# define nlist nlist64
-#endif
-
-static struct nlist nl[2];
-static int kmemf;
-
-#ifdef _IBMR2
-# define nlist(u,l) knlist(l,1,sizeof(*l))
-#endif
-
-void
-InitLoadav()
-{
-  debug("Init Kmem...\n");
-  if ((kmemf = open("/dev/kmem", O_RDONLY)) == -1)
-    return;
-# if !defined(_AUX_SOURCE) && !defined(AUX)
-#  ifdef NLIST_NAME_UNION
-  nl[0].n_un.n_name = LOADAV_AVENRUN;
-#  else
-  nl[0].n_name = LOADAV_AVENRUN;
-#  endif
-# else
-  strncpy(nl[0].n_name, LOADAV_AVENRUN, sizeof(nl[0].n_name));
-# endif
-  debug2("Searching in %s for %s\n", LOADAV_UNIX, nl[0].n_name);
-  nlist(LOADAV_UNIX, nl);
-  if (nl[0].n_value == 0)
-    {
-      close(kmemf);
-      return;
-    }
-# if 0		/* no longer needed (Al.Smith@aeschi.ch.eu.org) */
-#  ifdef sgi
-  nl[0].n_value &= (unsigned long)-1 >> 1;	/* clear upper bit */
-#  endif /* sgi */
-# endif
-  debug1("AvenrunSym found (0x%lx)!!\n", nl[0].n_value);
-  loadok = 1;
-}
-
-static int
-GetLoadav()
-{
-  if (lseek(kmemf, (off_t) nl[0].n_value, 0) == (off_t)-1)
-    return 0;
-  if (read(kmemf, (char *) loadav, sizeof(loadav)) != sizeof(loadav))
-    return 0;
-  return LOADAV_NUM;
-}
-#endif
-
-/***************************************************************/
 
 #ifndef FIX_TO_DBL
 #define FIX_TO_DBL(l) ((double)(l) /  LOADAV_SCALE)
@@ -352,4 +110,3 @@ AddLoadav(char *p)
     }
 }
 
-#endif /* LOADAV */
