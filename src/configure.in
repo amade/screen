@@ -188,12 +188,6 @@ main () {
 ], AC_NOTE(- you have a POSIX system) AC_DEFINE(POSIX) posix=1)
 fi
 
-AC_CHECKING(for System V)
-AC_TRY_COMPILE(
-[#include <sys/types.h>
-#include <signal.h>
-#include <fcntl.h>], [int x = SIGCHLD | FNDELAY;], , AC_DEFINE(SYSV))
-
 AC_CHECKING(for sequent/ptx)
 AC_EGREP_CPP(yes,
 [#ifdef _SEQUENT_
@@ -242,11 +236,7 @@ AC_TRY_LINK(
 tcsetpgrp(0, 0);
 #else
 int x = TIOCSPGRP;
-#ifdef SYSV
-setpgrp();
-#else
 int y = TIOCNOTTY;
-#endif
 #endif
 ], AC_NOTE(- you have jobcontrol) AC_DEFINE(BSDJOBS), AC_NOTE(- you don't have jobcontrol))
 
@@ -1060,41 +1050,6 @@ sigset(0, (void (*)())0);
 sigset(0, (int (*)())0);
 #endif
 ], AC_DEFINE(USESIGSET))
-AC_CHECKING(signal implementation)
-AC_TRY_RUN([
-#include <sys/types.h>
-#include <signal.h>
-
-#ifndef SIGCLD
-#define SIGCLD SIGCHLD
-#endif
-#ifdef USESIGSET
-#define signal sigset
-#endif
-
-int got;
-
-#ifdef SIGVOID
-void
-#endif
-hand()
-{
-  got++;
-}
-
-main()
-{
-  /* on hpux we use sigvec to get bsd signals */
-#ifdef __hpux
-  (void)signal(SIGCLD, hand);
-  kill(getpid(), SIGCLD);
-  kill(getpid(), SIGCLD);
-  if (got < 2)
-    exit(1);
-#endif
-  exit(0);
-}
-],,AC_DEFINE(SYSVSIGS))
 
 fi
 

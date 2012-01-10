@@ -52,10 +52,6 @@
 # include <sys/stropts.h>
 #endif
 
-#if defined(SYSV) && !defined(ISC)
-# include <sys/utsname.h>
-#endif
-
 #if defined(sequent) || defined(SVR4)
 # include <sys/resource.h>
 #endif /* sequent || SVR4 */
@@ -328,25 +324,10 @@ main(int argc, char **argv)
 #else
   int oumask;
 #endif
-#if defined(SYSV) && !defined(ISC)
-  struct utsname utsnam;
-#endif
   struct NewWindow nwin;
   int detached = 0;		/* start up detached */
   char *sockp;
   char *sty = 0;
-
-#if (defined(AUX) || defined(_AUX_SOURCE)) && defined(POSIX)
-  setcompat(COMPAT_POSIX|COMPAT_BSDPROT); /* turn on seteuid support */
-#endif
-#if defined(sun) && defined(SVR4)
-  {
-    /* Solaris' login blocks SIGHUP! This is _very bad_ */
-    sigset_t sset;
-    sigemptyset(&sset);
-    sigprocmask(SIG_SETMASK, &sset, 0);
-  }
-#endif
 
   /*
    *  First, close all unused descriptors
@@ -359,18 +340,9 @@ main(int argc, char **argv)
   snprintf(version, 59, "%d.%.2d.%.2d%s (%s%s) %s", REV, VERS,
 	  PATCHLEVEL, STATE, ORIGIN, GIT_REV, DATE);
   nversion = REV * 10000 + VERS * 100 + PATCHLEVEL;
-  debug2("-- screen debug started %s (%s)\n", *av, version);
-#ifdef POSIX
-  debug("POSIX\n");
-#endif
+  debug2("-- screen debug started %s (%s)\n", *argv, version);
 #ifdef TERMIO
   debug("TERMIO\n");
-#endif
-#ifdef SYSV
-  debug("SYSV\n");
-#endif
-#ifdef SYSVSIGS
-  debug("SYSVSIGS\n");
 #endif
 #ifdef NAMEDPIPE
   debug("NAMEDPIPE\n");
@@ -1036,15 +1008,8 @@ main(int argc, char **argv)
   (void) umask(oumask);
   debug2("SockPath: %s  SockMatch: %s\n", SockPath, SockMatch ? SockMatch : "NULL");
 
-#if defined(SYSV) && !defined(ISC)
-  if (uname(&utsnam) == -1)
-    Panic(errno, "uname");
-  strncpy(HostName, utsnam.nodename, sizeof(utsnam.nodename) < MAXSTR ? sizeof(utsnam.nodename) : MAXSTR - 1);
-  HostName[sizeof(utsnam.nodename) < MAXSTR ? sizeof(utsnam.nodename) : MAXSTR - 1] = '\0';
-#else
   (void) gethostname(HostName, MAXSTR);
   HostName[MAXSTR - 1] = '\0';
-#endif
   if ((ap = strchr(HostName, '.')) != NULL)
     *ap = '\0';
 
@@ -1452,9 +1417,6 @@ SigChldHandler()
     {
       GotSigChld = 0;
       DoWait();
-#ifdef SYSVSIGS
-      signal(SIGCHLD, SigChld);
-#endif
     }
   if (stat(SockPath, &st) == -1)
     {
@@ -1520,9 +1482,6 @@ CoreDump (int sigsig)
     dump_msg = "";
 #endif
 
-#if defined(SYSVSIGS) && defined(SIGHASARG)
-  signal(sigsig, SIG_IGN);
-#endif
   setgid(getgid());
   setuid(getuid());
   unlink("core");

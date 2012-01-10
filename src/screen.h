@@ -98,27 +98,7 @@
 
 struct mode
 {
-#ifdef POSIX
   struct termios tio;
-# ifdef HPUX_LTCHARS_HACK
-  struct ltchars m_ltchars;
-# endif /* HPUX_LTCHARS_HACK */
-#else /* POSIX */
-# ifdef TERMIO
-  struct termio tio;
-#  ifdef CYTERMIO
-  int m_mapkey;
-  int m_mapscreen;
-  int m_backspace;
-#  endif
-# else /* TERMIO */
-  struct sgttyb m_ttyb;
-  struct tchars m_tchars;
-  struct ltchars m_ltchars;
-  int m_ldisc;
-  int m_lmode;
-# endif /* TERMIO */
-#endif /* POSIX */
 #if defined(KANJI) && defined(TIOCKSET)
   struct jtchars m_jtchars;
   int m_knjmode;

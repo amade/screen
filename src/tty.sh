@@ -301,15 +301,6 @@ XIF{VSTATUS}	m->tio.c_cc[VSTATUS]  = Ctrl('T');
       m->tio.c_cc[VTIME] = TTYVTIME;
     }
 
-# ifdef HPUX_LTCHARS_HACK
-  m->m_ltchars.t_suspc =  Ctrl('Z');
-  m->m_ltchars.t_dsuspc = Ctrl('Y');
-  m->m_ltchars.t_rprntc = Ctrl('R');
-  m->m_ltchars.t_flushc = Ctrl('O');
-  m->m_ltchars.t_werasc = Ctrl('W');
-  m->m_ltchars.t_lnextc = Ctrl('V');
-# endif /* HPUX_LTCHARS_HACK */
-
 #if defined(TIOCKSET)
   m->m_jtchars.t_ascii = 'J';
   m->m_jtchars.t_kanji = 'B';
@@ -324,9 +315,6 @@ struct mode *mp;
 {
   errno = 0;
   tcsetattr(fd, TCSADRAIN, &mp->tio);
-# ifdef HPUX_LTCHARS_HACK
-  ioctl(fd, TIOCSLTC, (char *)&mp->m_ltchars);
-# endif
 #if defined(TIOCKSET)
   ioctl(fd, TIOCKSETC, &mp->m_jtchars);
   ioctl(fd, TIOCKSET, &mp->m_knjmode);
@@ -342,9 +330,6 @@ struct mode *mp;
 {
   errno = 0;
   tcgetattr(fd, &mp->tio);
-# ifdef HPUX_LTCHARS_HACK
-  ioctl(fd, TIOCGLTC, (char *)&mp->m_ltchars);
-# endif
 #if defined(TIOCKSET)
   ioctl(fd, TIOCKGETC, &mp->m_jtchars);
   ioctl(fd, TIOCKGET, &mp->m_knjmode);
@@ -419,18 +404,9 @@ XIF{VSUSP}	np->tio.c_cc[VSUSP] = VDISABLE;
     "autodetect" issues. */
 XIF{VERASE}	np->tio.c_cc[VERASE] = 0x7f;
 XIF{VKILL}	np->tio.c_cc[VKILL] = VDISABLE;
-# ifdef HPUX_LTCHARS_HACK
-  np->m_ltchars.t_suspc  = VDISABLE;
-  np->m_ltchars.t_dsuspc = VDISABLE;
-  np->m_ltchars.t_rprntc = VDISABLE;
-  np->m_ltchars.t_flushc = VDISABLE;
-  np->m_ltchars.t_werasc = VDISABLE;
-  np->m_ltchars.t_lnextc = VDISABLE;
-# else /* HPUX_LTCHARS_HACK */
 XIF{VDSUSP}	np->tio.c_cc[VDSUSP] = VDISABLE;
 XIF{VREPRINT}	np->tio.c_cc[VREPRINT] = VDISABLE;
 XIF{VWERASE}	np->tio.c_cc[VWERASE] = VDISABLE;
-# endif /* HPUX_LTCHARS_HACK */
 }
 
 /* operates on display */
@@ -1218,13 +1194,11 @@ struct mode *m;
     {
       debug2("c_cc[%d] = %#x\n", i, m->tio.c_cc[i]);
     }
-# ifdef HPUX_LTCHARS_HACK
   debug1("suspc     = %#02x\n", m->m_ltchars.t_suspc);
   debug1("dsuspc    = %#02x\n", m->m_ltchars.t_dsuspc);
   debug1("rprntc    = %#02x\n", m->m_ltchars.t_rprntc);
   debug1("flushc    = %#02x\n", m->m_ltchars.t_flushc);
   debug1("werasc    = %#02x\n", m->m_ltchars.t_werasc);
   debug1("lnextc    = %#02x\n", m->m_ltchars.t_lnextc);
-# endif /* HPUX_LTCHARS_HACK */
 }
 #endif /* DEBUG */
