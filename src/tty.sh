@@ -61,18 +61,13 @@ exit 0
 #include <signal.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#ifndef sgi
-# include <sys/file.h>
-#endif
+#include <sys/file.h>
 #if !defined(sun) || defined(SUNOS3)
 # include <sys/ioctl.h> /* collosions with termios.h */
 #else
 # ifndef TIOCEXCL
 #  include <sys/ttold.h>	/* needed for TIOCEXCL */
 # endif
-#endif
-#ifdef __hpux
-# include <sys/modem.h>
 #endif
 
 #ifdef ISC
@@ -231,7 +226,6 @@ struct mode *m;
 int ttyflag;
 {
   memset((char *)m, 0, sizeof(*m));
-#ifdef POSIX
   /* struct termios tio 
    * defaults, as seen on SunOS 4.1.3
    */
@@ -316,102 +310,6 @@ XIF{VSTATUS}	m->tio.c_cc[VSTATUS]  = Ctrl('T');
   m->m_ltchars.t_lnextc = Ctrl('V');
 # endif /* HPUX_LTCHARS_HACK */
 
-#else /* POSIX */
-
-# ifdef TERMIO
-  debug1("InitTTY: nonPOSIX, struct termio a la Motorola SYSV68 (%d)\n", ttyflag);
-  /* struct termio tio 
-   * defaults, as seen on Mototola SYSV68:
-   * input: 7bit, CR->NL, ^S/^Q flow control 
-   * output: POSTprocessing: NL->NL-CR, Tabs to spaces
-   * control: 9600baud, 8bit CSIZE, enable input
-   * local: enable signals, erase/kill processing, echo on.
-   */
-IF{ISTRIP}	m->tio.c_iflag |= ISTRIP;
-IF{IXON}	m->tio.c_iflag |= IXON;
-
-  if (!ttyflag)	/* may not even be good for ptys.. */
-    {
-IF{OPOST}	m->tio.c_oflag |= OPOST;
-IF{ICRNL}	m->tio.c_iflag |= ICRNL;
-IF{ONLCR}	m->tio.c_oflag |= ONLCR;
-IF{TAB3}	m->tio.c_oflag |= TAB3;
-    }
-
-#ifdef __bsdi__
-		)-: cannot handle BSDI without POSIX
-#else
-IF{B9600}	m->tio.c_cflag  = B9600;
-#endif
-IF{CS8} 	m->tio.c_cflag |= CS8;
-IF{CREAD}	m->tio.c_cflag |= CREAD;
-
-  if (!ttyflag)
-    {
-IF{ISIG}	m->tio.c_lflag |= ISIG;
-IF{ICANON}	m->tio.c_lflag |= ICANON;
-IF{ECHO}	m->tio.c_lflag |= ECHO;
-    }
-IF{ECHOE}	m->tio.c_lflag |= ECHOE;
-IF{ECHOK}	m->tio.c_lflag |= ECHOK;
-
-XIF{VINTR}	m->tio.c_cc[VINTR]  = Ctrl('C');
-XIF{VQUIT}	m->tio.c_cc[VQUIT]  = Ctrl('\\');
-XIF{VERASE}	m->tio.c_cc[VERASE] = 0177; /* DEL */
-XIF{VKILL}	m->tio.c_cc[VKILL]  = Ctrl('H');
-XIF{VEOF}	m->tio.c_cc[VEOF]   = Ctrl('D');
-XIF{VEOL}	m->tio.c_cc[VEOL]   = 0377;
-XIF{VEOL2}	m->tio.c_cc[VEOL2]  = 0377;
-XIF{VSWTCH}	m->tio.c_cc[VSWTCH] = 0000;
-
-  if (ttyflag)
-   {
-      m->tio.c_cc[VMIN] = TTYVMIN;
-      m->tio.c_cc[VTIME] = TTYVTIME;
-    } 
-
-# else /* TERMIO */
-  debug1("InitTTY: BSD: defaults a la SunOS 4.1.3 (%d)\n", ttyflag);
-  m->m_ttyb.sg_ispeed = B9600;
-  m->m_ttyb.sg_ospeed = B9600;
-  m->m_ttyb.sg_erase  = 0177; /*DEL */
-  m->m_ttyb.sg_kill   = Ctrl('H');
-  if (!ttyflag)
-    m->m_ttyb.sg_flags = CRMOD | ECHO
-IF{ANYP}	| ANYP
-    ;
-  else
-    m->m_ttyb.sg_flags = CBREAK
-IF{ANYP}	| ANYP
-    ;
-
-  m->m_tchars.t_intrc   = Ctrl('C');
-  m->m_tchars.t_quitc   = Ctrl('\\');
-  m->m_tchars.t_startc  = Ctrl('Q');
-  m->m_tchars.t_stopc   = Ctrl('S');
-  m->m_tchars.t_eofc    = Ctrl('D');
-  m->m_tchars.t_brkc    = -1;
-
-  m->m_ltchars.t_suspc  = Ctrl('Z');
-  m->m_ltchars.t_dsuspc = Ctrl('Y');
-  m->m_ltchars.t_rprntc = Ctrl('R');
-  m->m_ltchars.t_flushc = Ctrl('O');
-  m->m_ltchars.t_werasc = Ctrl('W');
-  m->m_ltchars.t_lnextc = Ctrl('V');
-
-IF{NTTYDISC}	m->m_ldisc = NTTYDISC;
-
-  m->m_lmode = 0
-IF{LDECCTQ}	| LDECCTQ
-IF{LCTLECH}	| LCTLECH
-IF{LPASS8}	| LPASS8
-IF{LCRTKIL}	| LCRTKIL
-IF{LCRTERA}	| LCRTERA
-IF{LCRTBS}	| LCRTBS
-  ;
-# endif /* TERMIO */
-#endif /* POSIX */
-
 #if defined(TIOCKSET)
   m->m_jtchars.t_ascii = 'J';
   m->m_jtchars.t_kanji = 'B';
@@ -425,31 +323,10 @@ int fd;
 struct mode *mp;
 {
   errno = 0;
-#ifdef POSIX
   tcsetattr(fd, TCSADRAIN, &mp->tio);
 # ifdef HPUX_LTCHARS_HACK
   ioctl(fd, TIOCSLTC, (char *)&mp->m_ltchars);
 # endif
-#else
-# ifdef TERMIO
-  ioctl(fd, TCSETAW, (char *)&mp->tio);
-#  ifdef CYTERMIO
-  if (mp->tio.c_line == 3)
-    {
-      ioctl(fd, LDSETMAPKEY, (char *)&mp->m_mapkey);
-      ioctl(fd, LDSETMAPSCREEN, (char *)&mp->m_mapscreen);
-      ioctl(fd, LDSETBACKSPACE, (char *)&mp->m_backspace);
-    }
-#  endif
-# else
-  /* ioctl(fd, TIOCSETP, (char *)&mp->m_ttyb); */
-  ioctl(fd, TIOCSETC, (char *)&mp->m_tchars);
-  ioctl(fd, TIOCLSET, (char *)&mp->m_lmode);
-  ioctl(fd, TIOCSETD, (char *)&mp->m_ldisc);
-  ioctl(fd, TIOCSETP, (char *)&mp->m_ttyb);
-  ioctl(fd, TIOCSLTC, (char *)&mp->m_ltchars); /* moved here for apollo. jw */
-# endif
-#endif
 #if defined(TIOCKSET)
   ioctl(fd, TIOCKSETC, &mp->m_jtchars);
   ioctl(fd, TIOCKSET, &mp->m_knjmode);
@@ -464,36 +341,10 @@ int fd;
 struct mode *mp;
 {
   errno = 0;
-#ifdef POSIX
   tcgetattr(fd, &mp->tio);
 # ifdef HPUX_LTCHARS_HACK
   ioctl(fd, TIOCGLTC, (char *)&mp->m_ltchars);
 # endif
-#else
-# ifdef TERMIO
-  ioctl(fd, TCGETA, (char *)&mp->tio);
-#  ifdef CYTERMIO
-  if (mp->tio.c_line == 3)
-    {
-      ioctl(fd, LDGETMAPKEY, (char *)&mp->m_mapkey);
-      ioctl(fd, LDGETMAPSCREEN, (char *)&mp->m_mapscreen);
-      ioctl(fd, LDGETBACKSPACE, (char *)&mp->m_backspace);
-    }
-  else
-    {
-      mp->m_mapkey = NOMAPKEY;
-      mp->m_mapscreen = NOMAPSCREEN;
-      mp->m_backspace = '\b';
-    }
-#  endif
-# else
-  ioctl(fd, TIOCGETP, (char *)&mp->m_ttyb);
-  ioctl(fd, TIOCGETC, (char *)&mp->m_tchars);
-  ioctl(fd, TIOCGLTC, (char *)&mp->m_ltchars);
-  ioctl(fd, TIOCLGET, (char *)&mp->m_lmode);
-  ioctl(fd, TIOCGETD, (char *)&mp->m_ldisc);
-# endif
-#endif
 #if defined(TIOCKSET)
   ioctl(fd, TIOCKGETC, &mp->m_jtchars);
   ioctl(fd, TIOCKGET, &mp->m_knjmode);
@@ -513,7 +364,6 @@ int flow, interrupt;
   *np = *op;
 
   ASSERT(display);
-#if defined(TERMIO) || defined(POSIX)
 # ifdef CYTERMIO
   np->m_mapkey = NOMAPKEY;
   np->m_mapscreen = NOMAPSCREEN;
@@ -581,26 +431,6 @@ XIF{VDSUSP}	np->tio.c_cc[VDSUSP] = VDISABLE;
 XIF{VREPRINT}	np->tio.c_cc[VREPRINT] = VDISABLE;
 XIF{VWERASE}	np->tio.c_cc[VWERASE] = VDISABLE;
 # endif /* HPUX_LTCHARS_HACK */
-#else /* TERMIO || POSIX */
-  if (!interrupt || !flow)
-    np->m_tchars.t_intrc = -1;
-  np->m_ttyb.sg_flags &= ~(CRMOD | ECHO);
-  np->m_ttyb.sg_flags |= CBREAK;
-# if defined(CYRILL) && defined(CSTYLE) && defined(CS_8BITS)
-  np->m_ttyb.sg_flags &= ~CSTYLE;
-  np->m_ttyb.sg_flags |= CS_8BITS;
-# endif
-  np->m_tchars.t_quitc = -1;
-  if (flow == 0)
-    {
-      np->m_tchars.t_startc = -1;
-      np->m_tchars.t_stopc = -1;
-    }
-  np->m_ltchars.t_suspc = -1;
-  np->m_ltchars.t_dsuspc = -1;
-  np->m_ltchars.t_flushc = -1;
-  np->m_ltchars.t_lnextc = -1;
-#endif /* defined(TERMIO) || defined(POSIX) */
 }
 
 /* operates on display */
@@ -611,7 +441,6 @@ int on;
   ASSERT(display);
   if (D_flow == on)
     return;
-#if defined(TERMIO) || defined(POSIX)
   if (on)
     {
       D_NewMode.tio.c_cc[VINTR] = iflag ? D_OldMode.tio.c_cc[VINTR] : VDISABLE;
@@ -626,32 +455,12 @@ XIF{VSTART}	D_NewMode.tio.c_cc[VSTART] = VDISABLE;
 XIF{VSTOP}	D_NewMode.tio.c_cc[VSTOP] = VDISABLE;
       D_NewMode.tio.c_iflag &= ~IXON;
     }
-# ifdef POSIX
 #  ifdef TCOON
   if (!on)
     tcflow(D_userfd, TCOON);
 #  endif
   if (tcsetattr(D_userfd, TCSANOW, &D_NewMode.tio))
-# else
-  if (ioctl(D_userfd, TCSETAW, (char *)&D_NewMode.tio) != 0)
-# endif
     debug1("SetFlow: ioctl errno %d\n", errno);
-#else /* POSIX || TERMIO */
-  if (on)
-    {
-      D_NewMode.m_tchars.t_intrc = iflag ? D_OldMode.m_tchars.t_intrc : -1;
-      D_NewMode.m_tchars.t_startc = D_OldMode.m_tchars.t_startc;
-      D_NewMode.m_tchars.t_stopc = D_OldMode.m_tchars.t_stopc;
-    }
-  else
-    {
-      D_NewMode.m_tchars.t_intrc = -1;
-      D_NewMode.m_tchars.t_startc = -1;
-      D_NewMode.m_tchars.t_stopc = -1;
-    }
-  if (ioctl(D_userfd, TIOCSETC, (char *)&D_NewMode.m_tchars) != 0)
-    debug1("SetFlow: ioctl errno %d\n", errno);
-#endif /* POSIX || TERMIO */
   D_flow = on;
 }
 
@@ -676,69 +485,37 @@ char *opt;
 	}
       else if (!strncmp("cs7", opt, 3))
         {
-#if defined(POSIX) || defined(TERMIO)
 	  m->tio.c_cflag &= ~CSIZE;
 	  m->tio.c_cflag |= CS7;
-#else
-	  m->m_lmode &= ~LPASS8;
-#endif
 	}
       else if (!strncmp("cs8", opt, 3))
 	{
-#if defined(POSIX) || defined(TERMIO)
 	  m->tio.c_cflag &= ~CSIZE;
 	  m->tio.c_cflag |= CS8;
-#else
-	  m->m_lmode |= LPASS8;
-#endif
 	}
       else if (!strncmp("istrip", opt, 6))
 	{
-#if defined(POSIX) || defined(TERMIO)
 	  m->tio.c_iflag |= ISTRIP;
-#else
-	  m->m_lmode &= ~LPASS8;
-#endif
         }
       else if (!strncmp("-istrip", opt, 7))
 	{
-#if defined(POSIX) || defined(TERMIO)
 	  m->tio.c_iflag &= ~ISTRIP;
-#else
-	  m->m_lmode |= LPASS8;
-#endif
         }
       else if (!strncmp("ixon", opt, 4))
 	{
-#if defined(POSIX) || defined(TERMIO)
 	  m->tio.c_iflag |= IXON;
-#else
-	  debug("SttyMode: no ixon in old bsd land.\n");
-#endif
         }
       else if (!strncmp("-ixon", opt, 5))
 	{
-#if defined(POSIX) || defined(TERMIO)
 	  m->tio.c_iflag &= ~IXON;
-#else
-	  debug("SttyMode: no -ixon in old bsd land.\n");
-#endif
         }
       else if (!strncmp("ixoff", opt, 5))
 	{
-#if defined(POSIX) || defined(TERMIO)
 	  m->tio.c_iflag |= IXOFF;
-#else
-	  m->m_ttyb.sg_flags |= TANDEM;
-#endif
         }
       else if (!strncmp("-ixoff", opt, 6))
 	{
-#if defined(POSIX) || defined(TERMIO)
 	  m->tio.c_iflag &= ~IXOFF;
-#else
-	  m->m_ttyb.sg_flags &= ~TANDEM;
-#endif
         }
       else if (!strncmp("crtscts", opt, 7))
 	{
@@ -771,30 +548,12 @@ void
 brktty(fd)
 int fd;
 {
-#if defined(POSIX) && !defined(ultrix)
   if (separate_sids)
     setsid();		/* will break terminal affiliation */
   /* GNU added for Hurd systems 2001-10-10 */
 # if defined(BSD) && defined(TIOCSCTTY) && !defined(__GNU__)
   ioctl(fd, TIOCSCTTY, (char *)0);
 # endif /* BSD && TIOCSCTTY */
-#else /* POSIX */
-# ifdef SYSV
-  if (separate_sids)
-    setpgrp();		/* will break terminal affiliation */
-# else /* SYSV */
-#  ifdef BSDJOBS
-  int devtty;
-
-  if ((devtty = open("/dev/tty", O_RDWR | O_NONBLOCK)) >= 0)
-    {
-      if (ioctl(devtty, TIOCNOTTY, (char *)0))
-        debug2("brktty: ioctl(devtty=%d, TIOCNOTTY, 0) = %d\n", devtty, errno);
-      close(devtty);
-    }
-#  endif /* BSDJOBS */
-# endif /* SYSV */
-#endif /* POSIX */
 }
 
 int
@@ -813,22 +572,12 @@ int fd;
   ioctl(fd, TIOCSCTTY, (char *)0);
 # endif
 
-# ifdef POSIX
   if (separate_sids)
     if (tcsetpgrp(fd, mypid))
       {
         debug1("fgtty: tcsetpgrp: %d\n", errno);
         return -1;
       }
-# else /* POSIX */
-  if (ioctl(fd, TIOCSPGRP, (char *)&mypid) != 0)
-    debug1("fgtty: TIOSETPGRP: %d\n", errno);
-#  ifndef SYSV	/* Already done in brktty():setpgrp() */
-  if (separate_sids)
-    if (setpgrp(fd, mypid))
-      debug1("fgtty: setpgrp: %d\n", errno);
-#  endif
-# endif /* POSIX */
 #endif /* BSDJOBS */
   return 0;
 }
@@ -838,19 +587,7 @@ int fd;
  * We cannot generate long breaks unless we use the most ugly form
  * of ioctls. jw.
  */
-#ifdef POSIX
 int breaktype = 2;
-#else /* POSIX */
-# ifdef TCSBRK
-int breaktype = 1;
-# else
-int breaktype = 0;
-# endif
-#endif /* POSIX */
-
-#if defined(sun) && !defined(SVR4)
-# define HAVE_SUPER_TCSENDBREAK
-#endif
 
 /*
  * type:
@@ -866,7 +603,6 @@ int fd, n, type;
   switch (type)
     {
     case 2:	/* tcsendbreak() =============================== */
-#ifdef POSIX
 # ifdef HAVE_SUPER_TCSENDBREAK
       /* There is one rare case that I have tested, where tcsendbreak works
        * really great: this was an alm driver that came with SunOS 4.1.3
@@ -902,9 +638,6 @@ int fd, n, type;
 	      }
 	}
 # endif
-#else /* POSIX */
-      Msg(0, "tcsendbreak() not available, change breaktype");
-#endif /* POSIX */
       break;
 
     case 1:	/* TCSBRK ======================================= */
@@ -983,13 +716,7 @@ int n, closeopen;
 
   debug3("break(%d, %d) fd %d\n", n, closeopen, wp->w_ptyfd);
 
-#ifdef POSIX
   (void) tcflush(wp->w_ptyfd, TCIOFLUSH);
-#else
-# ifdef TIOCFLUSH
-  (void) ioctl(wp->w_ptyfd, TIOCFLUSH, (char *)0);
-# endif /* TIOCFLUSH */
-#endif /* POSIX */
 
   if (closeopen)
     {
@@ -1373,34 +1100,6 @@ IF{MCTS}#  define TIOCM_CTS MCTS
 }
 
 /*
- * Old bsd-ish machines may not have any of the baudrate B... symbols.
- * We hope to detect them here, so that the btable[] below always has
- * many entries.
- */
-#ifndef POSIX
-# ifndef TERMIO
-#  if !defined(B9600) && !defined(B2400) && !defined(B1200) && !defined(B300)
-IFN{B0}#define		B0	0
-IFN{B50}#define  	B50	1
-IFN{B75}#define  	B75	2
-IFN{B110}#define 	B110	3
-IFN{B134}#define 	B134	4
-IFN{B150}#define 	B150	5
-IFN{B200}#define 	B200	6
-IFN{B300}#define 	B300	7
-IFN{B600}#define 	B600	8
-IFN{B1200}#define	B1200	9
-IFN{B1800}#define	B1800	10
-IFN{B2400}#define	B2400	11
-IFN{B4800}#define	B4800	12
-IFN{B9600}#define	B9600	13
-IFN{EXTA}#define	EXTA	14
-IFN{EXTB}#define	EXTB	15
-#  endif
-# endif
-#endif
-
-/*
  * On hpux, idx and sym will be different. 
  * Rumor has it that, we need idx in D_dospeed to make tputs
  * padding correct. 
@@ -1469,31 +1168,8 @@ int ibaud, obaud;
       (!(op = lookup_baud(obaud)) && obaud != -1))
     return -1;
 
-#ifdef POSIX
   if (ip) cfsetispeed(&m->tio, ip->sym);
   if (op) cfsetospeed(&m->tio, op->sym);
-#else /* POSIX */
-# ifdef TERMIO
-  if (ip)
-    {
-#  ifdef IBSHIFT
-      m->tio.c_cflag &= ~(CBAUD << IBSHIFT);
-      m->tio.c_cflag |= (ip->sym & CBAUD) << IBSHIFT;
-#  else /* IBSHIFT */
-      if (ibaud != obaud)
-        return -1;
-#  endif /* IBSHIFT */
-    }
-  if (op)
-    {
-      m->tio.c_cflag &= ~CBAUD;
-      m->tio.c_cflag |= op->sym & CBAUD;
-    }
-# else /* TERMIO */
-  if (ip) m->m_ttyb.sg_ispeed = ip->idx;
-  if (op) m->m_ttyb.sg_ospeed = op->idx;
-# endif /* TERMIO */
-#endif /* POSIX */
   return 0;
 }
 
@@ -1531,7 +1207,6 @@ struct mode *m;
 {
   int i;
 
-#ifdef POSIX
   debug("struct termios tio:\n");
   debug1("c_iflag = %#x\n", (unsigned int)m->tio.c_iflag);
   debug1("c_oflag = %#x\n", (unsigned int)m->tio.c_oflag);
@@ -1551,38 +1226,5 @@ struct mode *m;
   debug1("werasc    = %#02x\n", m->m_ltchars.t_werasc);
   debug1("lnextc    = %#02x\n", m->m_ltchars.t_lnextc);
 # endif /* HPUX_LTCHARS_HACK */
-#else /* POSIX */
-# ifdef TERMIO
-  debug("struct termio tio:\n");
-  debug1("c_iflag = %04o\n", m->tio.c_iflag);
-  debug1("c_oflag = %04o\n", m->tio.c_oflag);
-  debug1("c_cflag = %04o\n", m->tio.c_cflag);
-  debug1("c_lflag = %04o\n", m->tio.c_lflag);
-  for (i = 0; i < sizeof(m->tio.c_cc)/sizeof(*m->tio.c_cc); i++)
-    {
-      debug2("c_cc[%d] = %04o\n", i, m->tio.c_cc[i]);
-    }
-# else /* TERMIO */
-  debug1("sg_ispeed = %d\n",    m->m_ttyb.sg_ispeed);
-  debug1("sg_ospeed = %d\n",    m->m_ttyb.sg_ospeed);
-  debug1("sg_erase  = %#02x\n", m->m_ttyb.sg_erase);
-  debug1("sg_kill   = %#02x\n", m->m_ttyb.sg_kill);
-  debug1("sg_flags  = %#04x\n", (unsigned short)m->m_ttyb.sg_flags);
-  debug1("intrc     = %#02x\n", m->m_tchars.t_intrc);
-  debug1("quitc     = %#02x\n", m->m_tchars.t_quitc);
-  debug1("startc    = %#02x\n", m->m_tchars.t_startc);
-  debug1("stopc     = %#02x\n", m->m_tchars.t_stopc);
-  debug1("eofc      = %#02x\n", m->m_tchars.t_eofc);
-  debug1("brkc      = %#02x\n", m->m_tchars.t_brkc);
-  debug1("suspc     = %#02x\n", m->m_ltchars.t_suspc);
-  debug1("dsuspc    = %#02x\n", m->m_ltchars.t_dsuspc);
-  debug1("rprntc    = %#02x\n", m->m_ltchars.t_rprntc);
-  debug1("flushc    = %#02x\n", m->m_ltchars.t_flushc);
-  debug1("werasc    = %#02x\n", m->m_ltchars.t_werasc);
-  debug1("lnextc    = %#02x\n", m->m_ltchars.t_lnextc);
-  debug1("ldisc     = %d\n",    m->m_ldisc);
-  debug1("lmode     = %#x\n",   m->m_lmode);
-# endif /* TERMIO */
-#endif /* POSIX */
 }
 #endif /* DEBUG */
