@@ -289,18 +289,7 @@ void
 closeallfiles(int except)
 {
   int f;
-#ifdef SVR4
-  struct rlimit rl;
-  
-  if ((getrlimit(RLIMIT_NOFILE, &rl) == 0) && rl.rlim_max != RLIM_INFINITY)
-    f = rl.rlim_max;
-  else
-#endif /* SVR4 */
-#if defined(SYSV) && defined(NOFILE) && !defined(ISC)
-  f = NOFILE;
-#else /* SYSV && !ISC */
   f = getdtablesize();
-#endif /* SYSV && !ISC */
   while (--f > 2)
     if (f != except)
       close(f);

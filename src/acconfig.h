@@ -295,13 +295,6 @@
 #undef NEED_OSPEED
 
 /*
- * Define SYSV if your machine is SYSV complient (Sys V, HPUX, A/UX)
- */
-#ifndef SYSV
-#undef SYSV
-#endif
-
-/*
  * Define SIGVOID if your signal handlers return void.  On older
  * systems, signal returns int, but on newer ones, it returns void.
  */
@@ -311,12 +304,6 @@
  * Define USESIGSET if you have sigset for BSD 4.1 reliable signals.
  */
 #undef USESIGSET
-
-/*
- * Define SYSVSIGS if signal handlers must be reinstalled after
- * they have been called.
- */
-#undef SYSVSIGS
 
 /*
  * Define BSDWAIT if your system defines a 'union wait' in <sys/wait.h>
