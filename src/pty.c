@@ -38,6 +38,7 @@
 
 /* for solaris 2.1, Unixware (SVR4.2) and possibly others */
 #ifdef HAVE_STROPTS_H
+fdasfa
 # include <sys/stropts.h>
 #endif
 

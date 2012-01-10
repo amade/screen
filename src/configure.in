@@ -195,8 +195,6 @@ AC_EGREP_CPP(yes,
 #endif
 ], LIBS="$LIBS -lsocket -linet";seqptx=1)
 
-AC_CHECK_HEADERS([stropts.h string.h strings.h])
-
 dnl
 dnl    ****  typedefs ****
 dnl
