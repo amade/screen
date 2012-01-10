@@ -70,12 +70,6 @@ exit 0
 # endif
 #endif
 
-#ifdef ISC
-# include <sys/tty.h>
-# include <sys/sioctl.h>
-# include <sys/pty.h>
-#endif
-
 #include "config.h"
 #ifdef HAVE_STROPTS_H
 #include <sys/stropts.h>	/* for I_POP */

@@ -52,15 +52,6 @@
 # include <sys/stropts.h>
 #endif
 
-#ifdef ISC
-# include <sys/tty.h>
-# include <sys/sioctl.h>
-# include <sys/pty.h>
-#endif /* ISC */
-
-#if (defined(AUX) || defined(_AUX_SOURCE)) && defined(POSIX)
-# include <compat.h>
-#endif
 #if defined(USE_LOCALE)
 # include <locale.h>
 #endif
