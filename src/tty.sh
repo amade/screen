@@ -62,13 +62,7 @@ exit 0
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/file.h>
-#if !defined(sun) || defined(SUNOS3)
-# include <sys/ioctl.h> /* collosions with termios.h */
-#else
-# ifndef TIOCEXCL
-#  include <sys/ttold.h>	/* needed for TIOCEXCL */
-# endif
-#endif
+#include <sys/ioctl.h>
 
 #include "config.h"
 #ifdef HAVE_STROPTS_H
@@ -78,9 +72,7 @@ exit 0
 #include "screen.h"
 #include "extern.h"
 
-#if (!defined(TIOCCONS) && defined(SRIOCSREDIR)) || defined(linux)
 static void consredir_readev_fn (struct event *, char *);
-#endif
 
 int separate_sids = 1;
 
@@ -189,7 +181,7 @@ char *line, *opt;
 #endif
   SetTTY(f, &Mode);
 
-#if defined(linux) && defined(TIOCMSET)
+#if defined(TIOCMSET)
   {
     int mcs = 0;
     ioctl(f, TIOCMGET, &mcs);
@@ -516,10 +508,6 @@ int fd;
 {
   if (separate_sids)
     setsid();		/* will break terminal affiliation */
-  /* GNU added for Hurd systems 2001-10-10 */
-# if defined(BSD) && defined(TIOCSCTTY) && !defined(__GNU__)
-  ioctl(fd, TIOCSCTTY, (char *)0);
-# endif /* BSD && TIOCSCTTY */
 }
 
 int
@@ -530,13 +518,6 @@ int fd;
   int mypid;
 
   mypid = getpid();
-
-  /*
-   * Under BSD we have to set the controlling terminal again explicitly.
-   */
-# if (defined(__FreeBSD_kernel__) || defined(__DragonFly__) || defined(__GNU__)) && defined(TIOCSCTTY)
-  ioctl(fd, TIOCSCTTY, (char *)0);
-# endif
 
   if (separate_sids)
     if (tcsetpgrp(fd, mypid))
@@ -712,8 +693,6 @@ int n, closeopen;
  *  Console grabbing
  */
 
-#if (!defined(TIOCCONS) && defined(SRIOCSREDIR)) || defined(linux)
-
 static struct event consredir_ev;
 static int consredirfd[2] = {-1, -1};
 
@@ -745,67 +724,12 @@ char *data;
     WriteString(console_window, p, n - p);
 }
 
-#endif
-
 /*ARGSUSED*/
 int
 TtyGrabConsole(fd, on, rc_name)
 int fd, on;
 char *rc_name;
 {
-#if defined(TIOCCONS) && !defined(linux)
-  struct display *d;
-  int ret = 0;
-  int sfd = -1;
-
-  if (on < 0)
-    return 0;		/* pty close will ungrab */
-  if (on)
-    {
-      if (displays == 0)
-	{
-	  Msg(0, "I need a display");
-	  return -1;
-	}
-      for (d = displays; d; d = d->d_next)
-	if (strcmp(d->d_usertty, "/dev/console") == 0)
-	  break;
-      if (d)
-	{
-	  Msg(0, "too dangerous - screen is running on /dev/console");
-	  return -1;
-	}
-    }
-
-  if (!on)
-    {
-      char *slave;
-      if ((fd = OpenPTY(&slave)) < 0)
-	{
-	  Msg(errno, "%s: could not open detach pty master", rc_name);
-	  return -1;
-	}
-      if ((sfd = open(slave, O_RDWR | O_NOCTTY)) < 0)
-	{
-	  Msg(errno, "%s: could not open detach pty slave", rc_name);
-	  close(fd);
-	  return -1;
-	}
-    }
-  if (UserContext() == 1)
-    UserReturn(ioctl(fd, TIOCCONS, (char *)&on));
-  ret = UserStatus();
-  if (ret)
-    Msg(errno, "%s: ioctl TIOCCONS failed", rc_name);
-  if (!on)
-    {
-      close(sfd);
-      close(fd);
-    }
-  return ret;
-
-#else
-# if defined(SRIOCSREDIR) || defined(linux)
   struct display *d;
 #  ifdef SRIOCSREDIR
   int cfd;
@@ -893,12 +817,6 @@ char *rc_name;
   consredir_ev.handler = consredir_readev_fn;
   evenq(&consredir_ev);
   return 0;
-# else
-  if (on > 0)
-    Msg(0, "%s: don't know how to grab the console", rc_name);
-  return -1;
-# endif
-#endif
 }
 
 /*

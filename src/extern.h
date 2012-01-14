@@ -610,11 +610,4 @@ extern int separate_sids;
 #endif
 
 extern struct utmp *getutline(), *pututline();
-#  if defined(_SEQUENT_)
-extern struct utmp *ut_add_user(), *ut_delete_user();
-extern char *ut_find_host();
-#   ifndef UTHOST
-#    define UTHOST		/* _SEQUENT_ has ut_find_host() */
-#   endif
-#  endif /* _SEQUENT_ */
 

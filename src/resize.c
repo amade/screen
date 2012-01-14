@@ -28,15 +28,7 @@
 
 #include <sys/types.h>
 #include <signal.h>
-#ifndef sun
 #include <sys/ioctl.h>
-#endif
-
-#ifdef ISC
-# include <sys/tty.h>
-# include <sys/sioctl.h>
-# include <sys/pty.h>
-#endif
 
 #include "config.h"
 #include "screen.h"

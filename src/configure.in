@@ -159,13 +159,7 @@ dnl   NeXT, AUX, ISC, and ultrix are still broken (no saved uid support)
 dnl   Solaris seteuid doesn't change the saved uid, bad for
 dnl     multiuser screen sessions
 AC_CHECKING(seteuid)
-AC_TRY_LINK(,[
-#if defined(linux) || defined(NeXT) || defined(_AUX_SOURCE) || defined(AUX) || defined(ultrix) || (defined(sun) && defined(SVR4)) || defined(ISC) || defined(sony_news)
-seteuid_is_broken(0);
-#else
-seteuid(0);
-#endif
-], AC_DEFINE(HAVE_SETEUID))
+AC_TRY_LINK(,[seteuid_is_broken(0);], AC_DEFINE(HAVE_SETEUID))
 
 dnl execvpe
 AC_CHECKING(execvpe)
@@ -779,11 +773,7 @@ fi
 )
 
 if test -z "$load" ; then
-AC_EGREP_CPP(yes,
-[#if defined(NeXT) || defined(apollo) || defined(linux)
-  yes;
-#endif
-], load=1)
+AC_EGREP_CPP(yes,[yes;], load=1)
 fi
 if test -z "$load" ; then
 AC_CHECKING(for kernelfile)
@@ -877,27 +867,14 @@ AC_PROGRAM_SOURCE([
 #include <sys/types.h>
 #include <sys/param.h>
 ],[
-#if !defined(LOADAV_GETLOADAVG) && ((defined(hp300) && !defined(__hpux)) || defined(sun) || (defined(ultrix) && defined(mips)) || defined(_SEQUENT_) || defined(sgi) || (defined(SVR4) && !defined(__hpux)) || defined(sony_news) || (!defined(__osf__) && defined(__alpha)) || defined(_IBMR2) || defined(_AUX_SOURCE) || defined(AUX) || defined(m88k))
+#if !defined(LOADAV_GETLOADAVG)
 loadtype=long
-# if defined(apollo) || defined(_IBMR2) || defined(_AUX_SOURCE) || defined(AUX)
-loadscale=65536
-# else
 #  if defined(FSCALE) && !defined(__osf__)
 #   undef FSCALE
 loadscale=FSCALE
 #  else
-#   ifdef sgi
-loadtype=int
-loadscale=1024
-#   else
-#    if defined(MIPS) || defined(SVR4) || defined(m88k)
-loadscale=256
-#    else /* not MIPS */
 loadscale=1000 	/* our default value */
-#    endif /* MIPS */
-#   endif /* sgi */
 #  endif /* not FSCALE */
-# endif /* not apollo */
 #else
 loadtype=double
 loadscale=1

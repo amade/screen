@@ -57,10 +57,6 @@
 static int   CheckPid (int);
 static void  ExecCreate (struct msg *);
 static void  DoCommandMsg (struct msg *);
-#if defined(_SEQUENT_) && !defined(NAMEDPIPE)
-# define connect sconnect	/* _SEQUENT_ has braindamaged connect */
-static int   sconnect (int, struct sockaddr *, int);
-#endif
 static void  FinishAttach (struct msg *);
 static void  FinishDetach (struct msg *);
 static void  AskPassword (struct msg *);
@@ -527,11 +523,6 @@ MakeServerSocket()
 	Panic(0, "It is not detached.");
       /* NOTREACHED */
     }
-#if defined(m88k) || defined(sysV68)
-  close(s);	/* we get bind: Invalid argument if this is not done */
-  if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
-    Panic(errno, "reopen socket");
-#endif
   (void) unlink(SockPath);
   if (bind(s, (struct sockaddr *) & a, strlen(SockPath) + 2) == -1)
     Panic(errno, "bind (%s)", SockPath);

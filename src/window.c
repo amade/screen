@@ -33,9 +33,7 @@
 #include <sys/stat.h>
 #include <signal.h>
 #include <fcntl.h>
-#ifndef sun
-# include <sys/ioctl.h>
-#endif
+#include <sys/ioctl.h>
 
 #include "config.h"
 
@@ -1000,7 +998,6 @@ OpenDevice(char **args, int lflag, int *typep, char **namep)
     }
   debug1("fcntl(%d, F_SETFL, FNBLOCK)\n", f);
   (void) fcntl(f, F_SETFL, FNBLOCK);
-#ifdef linux
   /*
    * Tenebreux (zeus@ns.acadiacom.net) has Linux 1.3.70 where select
    * gets confused in the following condition:
@@ -1019,7 +1016,6 @@ OpenDevice(char **args, int lflag, int *typep, char **namep)
    */
   if (*typep == W_TYPE_PTY || *typep == W_TYPE_PLAIN)
     tcflush(f, TCIOFLUSH);
-#endif
 
   if (*typep != W_TYPE_PTY)
     return f;
