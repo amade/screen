@@ -228,28 +228,6 @@
  *
  */
 
-/* #ifndef __osf__ */
-#ifndef MIPS
-#undef MIPS
-#endif
-/* #endif */
-
-#ifndef OSX
-#undef OSX
-#endif
-
-#ifndef ISC
-#undef ISC
-#endif
-
-#ifndef sysV68
-#undef sysV68
-#endif
-
-#ifndef _POSIX_SOURCE
-#undef _POSIX_SOURCE
-#endif
-
 /*
  * Define POSIX if your system supports IEEE Std 1003.1-1988 (POSIX).
  */

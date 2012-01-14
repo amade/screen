@@ -29,9 +29,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <fcntl.h>
-#ifndef sun
-# include <sys/ioctl.h>
-#endif
+#include <sys/ioctl.h>
 
 #include "config.h"
 #include "screen.h"
@@ -44,9 +42,7 @@ static int  BlankResize (int, int);
 static int  CallRewrite (int, int, int, int);
 static void disp_readev_fn (struct event *, char *);
 static void disp_writeev_fn (struct event *, char *);
-#ifdef linux
 static void disp_writeev_eagain (struct event *, char *);
-#endif
 static void disp_status_fn (struct event *, char *);
 static void disp_hstatus_fn (struct event *, char *);
 static void disp_blocked_fn (struct event *, char *);
@@ -2852,7 +2848,6 @@ NukePending()
     }
 }
 
-#ifdef linux
 /* linux' select can't handle flow control, so wait 100ms if
  * we get EAGAIN
  */
@@ -2865,7 +2860,6 @@ disp_writeev_eagain(struct event *ev, char *data)
   D_writeev.handler = disp_writeev_fn;
   evenq(&D_writeev);
 }
-#endif
 
 static void
 disp_writeev_fn(struct event *ev, char *data)
@@ -2941,7 +2935,6 @@ disp_writeev_fn(struct event *ev, char *data)
     }
   else
     {
-#ifdef linux
       /* linux flow control is badly broken */
       if (errno == EAGAIN)
 	{
@@ -2951,7 +2944,6 @@ disp_writeev_fn(struct event *ev, char *data)
 	  SetTimeout(&D_writeev, 100);
 	  evenq(&D_writeev);
 	}
-#endif
       if (errno != EINTR && errno != EAGAIN)
 #if defined(EWOULDBLOCK) && (EWOULDBLOCK != EAGAIN)
 	if (errno != EWOULDBLOCK)

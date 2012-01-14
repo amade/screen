@@ -28,9 +28,7 @@
 
 #include <sys/types.h>
 #include <fcntl.h>
-#ifndef sun	/* we want to know about TIOCPKT. */
-# include <sys/ioctl.h>
-#endif
+#include <sys/ioctl.h>
 
 #include "config.h"
 #include "screen.h"

@@ -35,13 +35,9 @@
 #include <sys/stat.h>
 #include <signal.h>
 #include <fcntl.h>
-#if !defined(sun) && !defined(B43) && !defined(ISC) && !defined(pyr) && !defined(_CX_UX)
-# include <time.h>
-#endif
+#include <time.h>
 #include <sys/time.h>
-#ifndef sun
 #include <sys/ioctl.h>
-#endif
 
 
 /* for solaris 2.1, Unixware (SVR4.2) and possibly others: */

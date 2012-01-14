@@ -33,9 +33,6 @@
 /* XXX: WHY IS THIS HERE?? :XXX */
 
 #ifdef CHECKLOGIN
-# ifdef _SEQUENT_
-#  include <stdio.h>	/* needed by <pwd.h> */
-# endif /* _SEQUENT_ */
 # include <pwd.h>
 # ifdef SHADOWPW
 #  include <shadow.h>

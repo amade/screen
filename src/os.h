@@ -48,16 +48,6 @@
 # endif
 #endif
 
-#ifdef ISC
-# ifdef ENAMETOOLONG
-#  undef ENAMETOOLONG
-# endif
-# ifdef ENOTEMPTY
-#  undef ENOTEMPTY
-# endif
-# include <sys/bsdtypes.h>
-# include <net/errno.h>
-#endif
 
 #include <unistd.h>
 #include <stdlib.h>
