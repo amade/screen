@@ -38,15 +38,14 @@
 #define NAME_MAX 14
 #endif
 
-#ifdef ISC
-# ifdef ENAMETOOLONG
-#  undef ENAMETOOLONG
+#include <limits.h>
+
+#ifndef NAME_MAX
+# ifndef MAXNAMELEN
+#  define NAME_MAX 255
+# else
+#  define NAME_MAX MAXNAMELEN
 # endif
-# ifdef ENOTEMPTY
-#  undef ENOTEMPTY
-# endif
-# include <sys/bsdtypes.h>
-# include <net/errno.h>
 #endif
 
 #include <unistd.h>

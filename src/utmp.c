@@ -107,10 +107,8 @@ static struct ttyent *getttyent (void);
 #  endif
 # endif /* !GETUTENT && !UT_UNSORTED */
 
-#ifndef _SEQUENT_
 # undef  D_loginhost
 # define D_loginhost D_utmp_logintty.ut_host
-#endif
 #ifndef UTHOST
 # undef  D_loginhost
 # define D_loginhost ((char *)0)
@@ -303,15 +301,6 @@ RemoveLoginSlot()
     }
   else
     {
-#ifdef _SEQUENT_
-      {
-	char *p;
-	if ((p = ut_find_host(D_loginslot)) != 0)
-	  strncpy(D_loginhost, p, sizeof(D_loginhost) - 1);
-	D_loginhost[sizeof(D_loginhost) - 1] = 0;
-      }
-#endif /* _SEQUENT_ */
-
       if ((uu = getutslot(D_loginslot)) == 0)
 	{
 	  debug("Utmp slot not found -> not removed");
@@ -484,17 +473,12 @@ RemoveUtmp(struct win *win)
       return 0;
     }
   memset((char *) &u, 0, sizeof(u));
-#ifdef sgi
-  memmove((char *)&u, (char *)&win->w_savut, sizeof(u));
-  uu  = &u;
-#else
   if ((uu = getutslot(slot)) == 0)
     {
       Msg(0, "Utmp slot not found -> not removed");
       return -1;
     }
   memmove((char *)&win->w_savut, (char *)uu, sizeof(win->w_savut));
-#endif
   u = *uu;
   makedead(&u);
   if (pututslot(slot, &u, (char *)0, win) == 0)
@@ -533,12 +517,6 @@ getutslot(slot_t slot)
 static int
 pututslot(slot_t slot, struct utmp *u, char *host, struct win *win)
 {
-#ifdef _SEQUENT_
-  if (SLOT_USED(u) && host && *host)
-    return ut_add_user(u.ut_name, slot, u.ut_pid, host) != 0;
-  if (!SLOT_USED(u))
-    return ut_delete_user(slot, u.ut_pid, 0, 0) != 0;
-#endif
 #ifdef HAVE_UTEMPTER
   if (eff_uid && win && win->w_ptyfd != -1)
     {
@@ -551,21 +529,15 @@ pututslot(slot_t slot, struct utmp *u, char *host, struct win *win)
     }
 #endif
   setutent();
-#ifndef __CYGWIN__
   return pututline(u) != 0;
-#else
-  return 1;
-#endif
 }
 
 static void
 makedead(struct utmp *u)
 {
   u->ut_type = DEAD_PROCESS;
-#if (!defined(linux) || defined(EMPTY)) && !defined(__CYGWIN__)
   u->ut_exit.e_termination = 0;
   u->ut_exit.e_exit = 0;
-#endif
   u->ut_user[0] = 0;	/* for Digital UNIX, kilbi@rad.rwth-aachen.de */
 }
 
@@ -576,15 +548,7 @@ makeuser(struct utmp *u, char *line, char *user, int pid)
   u->ut_type = USER_PROCESS;
   strncpy(u->ut_user, user, sizeof(u->ut_user));
   /* Now the tricky part... guess ut_id */
-#if defined(sgi) || defined(linux)
   strncpy(u->ut_id, line + 3, sizeof(u->ut_id));
-#else /* sgi */
-# ifdef _IBMR2
-  strncpy(u->ut_id, line, sizeof(u->ut_id));
-# else
-  strncpy(u->ut_id, line + strlen(line) - 2, sizeof(u->ut_id));
-# endif
-#endif /* sgi */
   strncpy(u->ut_line, line, sizeof(u->ut_line));
   u->ut_pid = pid;
   /* must use temp variable because of NetBSD/sparc64, where

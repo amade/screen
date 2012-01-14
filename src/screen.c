@@ -38,9 +38,7 @@
 #endif
 
 #include <sys/stat.h>
-#ifndef sun
-# include <sys/ioctl.h>
-#endif
+#include <sys/ioctl.h>
 
 #ifndef SIGINT
 # include <signal.h>
@@ -272,10 +270,8 @@ pw_try_again:
 #endif
   if (n < 13)
     ppp->pw_passwd = 0;
-#ifdef linux
   if (ppp->pw_passwd && strlen(ppp->pw_passwd) == 13 + 11)
     ppp->pw_passwd[13] = 0;	/* beware of linux's long passwords */
-#endif
 
   return ppp;
 }

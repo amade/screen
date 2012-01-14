@@ -27,9 +27,7 @@
  */
 
 #include <sys/types.h>
-#if !defined(sun) && !defined(B43) && !defined(ISC) && !defined(pyr) && !defined(_CX_UX)
-# include <time.h>
-#endif
+#include <time.h>
 #include <sys/time.h>
 
 #include "config.h"
@@ -186,12 +184,6 @@ sched()
 	{
 	  if (errno != EINTR)
 	    {
-#if defined(__osf__) || defined(M_UNIX)
-	      /* OSF/1 3.x, SCO bug: EBADF */
-	      /* OSF/1 4.x bug: EIO */
-	      if ((errno == EIO || errno == EBADF) && sgihack())
-		continue;
-#endif
 	      Panic(errno, "select");
 	    }
 	  nsel = 0;

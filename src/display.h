@@ -148,9 +148,6 @@ struct display
   slot_t d_loginslot;		/* offset, where utmp_logintty belongs */
   struct utmp d_utmp_logintty;	/* here the original utmp structure is stored */
   int   d_loginttymode;
-# ifdef _SEQUENT_
-  char	d_loginhost[100+1];
-# endif /* _SEQUENT_ */
 #endif
   int   d_blocked;
   int   d_blocked_fuzz;
