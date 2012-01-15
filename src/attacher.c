@@ -117,7 +117,7 @@ Attach(int how)
   struct stat st;
   char *s;
 
-  debug2("Attach: how=%d, tty=%s\n", how, attach_tty);
+  debug("Attach: how=%d, tty=%s\n", how, attach_tty);
 
   memset((char *) &m, 0, sizeof(m));
   m.type = how;
@@ -188,7 +188,7 @@ Attach(int how)
   eff_uid = real_uid;
   eff_gid = real_gid;
 
-  debug2("Attach: uid %d euid %d\n", (int)getuid(), (int)geteuid());
+  debug("Attach: uid %d euid %d\n", (int)getuid(), (int)geteuid());
   MasterPid = 0;
   for (s = SockName; *s; s++)
     {
@@ -196,8 +196,8 @@ Attach(int how)
 	break;
       MasterPid = 10 * MasterPid + (*s - '0');
     }
-  debug1("Attach decided, it is '%s'\n", SockPath);
-  debug1("Attach found MasterPid == %d\n", MasterPid);
+  debug("Attach decided, it is '%s'\n", SockPath);
+  debug("Attach found MasterPid == %d\n", MasterPid);
   if (stat(SockPath, &st) == -1)
     Panic(errno, "stat %s", SockPath);
   if ((st.st_mode & 0600) != 0600)
@@ -243,7 +243,7 @@ Attach(int how)
     }
   ASSERT(how == MSG_ATTACH || how == MSG_CONT);
   strncpy(m.m.attach.envterm, attach_term, sizeof(m.m.attach.envterm) - 1);
-  debug1("attach: sending %d bytes... ", (int)sizeof(m));
+  debug("attach: sending %d bytes... ", (int)sizeof(m));
 
   strncpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1);
   m.m.attach.esc = DefaultEsc;
@@ -269,7 +269,7 @@ Attach(int how)
   if (WriteMessage(lasts, &m))
     Panic(errno, "WriteMessage");
   close(lasts);
-  debug1("Attach(%d): sent\n", m.type);
+  debug("Attach(%d): sent\n", m.type);
   rflag = 0;
   return 1;
 }
@@ -329,7 +329,7 @@ AttacherFinit (int sigsig)
       debug("Detaching backend!\n");
       memset((char *) &m, 0, sizeof(m));
       strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
-      debug1("attach_tty is %s\n", attach_tty);
+      debug("attach_tty is %s\n", attach_tty);
       m.m.detach.dpid = getpid();
       m.type = MSG_HANGUP;
       m.protocol_revision = MSG_REVISION;
@@ -447,7 +447,7 @@ Attacher()
       alarm(0);
       if (kill(MasterPid, 0) < 0 && errno != EPERM)
         {
-	  debug1("attacher: Panic! MasterPid %d does not exist.\n", MasterPid);
+	  debug("attacher: Panic! MasterPid %d does not exist.\n", MasterPid);
 	  AttacherPanic++;
 	}
       if (AttacherPanic)
@@ -526,7 +526,7 @@ LockTerminal()
   if (prg && strcmp(prg, "builtin") && !access(prg, X_OK))
     {
       signal(SIGCHLD, SIG_DFL);
-      debug1("lockterminal: '%s' seems executable, execl it!\n", prg);
+      debug("lockterminal: '%s' seems executable, execl it!\n", prg);
       if ((pid = fork()) == 0)
         {
           /* Child */
@@ -568,7 +568,7 @@ LockTerminal()
 	    }
 	  else if (WEXITSTATUS(wstat))
 	    {
-	      debug2("Lock: %s: return code %d\n", prg, WEXITSTATUS(wstat));
+	      debug("Lock: %s: return code %d\n", prg, WEXITSTATUS(wstat));
 	    }
           else
 	    printf("%s", LockEnd);
@@ -578,7 +578,7 @@ LockTerminal()
     {
       if (prg)
 	{
-          debug1("lockterminal: '%s' seems NOT executable, we use our builtin\n", prg);
+          debug("lockterminal: '%s' seems NOT executable, we use our builtin\n", prg);
 	}
       else
 	{
@@ -804,7 +804,7 @@ SendCmdMessage(char *sty, char *match, char **av, int query)
   m.protocol_revision = MSG_REVISION;
   strncpy(m.m.command.preselect, preselect ? preselect : "", sizeof(m.m.command.preselect) - 1);
   m.m.command.apid = getpid();
-  debug1("SendCommandMsg writing '%s'\n", m.m.command.cmd);
+  debug("SendCommandMsg writing '%s'\n", m.m.command.cmd);
   if (query)
     {
       /* Create a server socket so we can get back the result */

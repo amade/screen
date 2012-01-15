@@ -499,7 +499,7 @@ display_windows(int onblank, int order, struct win *group)
 
   if (onblank)
     {
-      debug3("flayer %x %d %x\n", flayer, flayer->l_width, flayer->l_height);
+      debug("flayer %x %d %x\n", flayer, flayer->l_width, flayer->l_height);
       if (!display)
 	{
 	  LMsg(0, "windowlist -b: display required");

@@ -267,7 +267,7 @@ WriteString(struct win *wp, register char *buf, register int len)
 
   if (curr->w_monitor == MON_ON)
     {
-      debug2("ACTIVITY %d %d\n", curr->w_monitor, curr->w_bell);
+      debug("ACTIVITY %d %d\n", curr->w_monitor, curr->w_bell);
       curr->w_monitor = MON_FOUND;
     }
 
@@ -326,7 +326,7 @@ WriteString(struct win *wp, register char *buf, register int len)
 		  len++;
 		}
 	      if (c > 0xff)
-		debug1("read UNICODE %04x\n", c);
+		debug("read UNICODE %04x\n", c);
 	    }
 
 	tryagain:
@@ -472,7 +472,7 @@ WriteString(struct win *wp, register char *buf, register int len)
 		      curr->w_state = LIT;
 		      break;
 		    }
-		  debug1("not special. c = %x\n", c);
+		  debug("not special. c = %x\n", c);
 		  if (c >= ' ' && c <= '/')
 		    {
 		      if (curr->w_intermediate)
@@ -598,12 +598,12 @@ WriteString(struct win *wp, register char *buf, register int len)
 		    {
 		      struct mchar mc, *mcp;
 
-		      debug1("SPECIAL %x\n", c);
+		      debug("SPECIAL %x\n", c);
 		      mc.image = c;
 		      mc.mbcs = 0;
 		      mc.font = '0';
 		      mcp = recode_mchar(&mc, 0, UTF8);
-		      debug2("%02x %02x\n", mcp->image, mcp->font);
+		      debug("%02x %02x\n", mcp->image, mcp->font);
 		      c = mcp->image | mcp->font << 8;
 		    }
 		  curr->w_rend.font = 0;
@@ -648,7 +648,7 @@ WriteString(struct win *wp, register char *buf, register int len)
 	      if (font == KANA && curr->w_encoding == SJIS && curr->w_mbcs == 0)
 		{
 		  /* Lets see if it is the first byte of a kanji */
-		  debug1("%x may be first of SJIS\n", c);
+		  debug("%x may be first of SJIS\n", c);
 		  if ((0x81 <= c && c <= 0x9f) || (0xe0 <= c && c <= 0xef))
 		    {
 		      debug("YES!\n");
@@ -671,14 +671,14 @@ WriteString(struct win *wp, register char *buf, register int len)
 		  if (curr->w_x == cols - 1)
 		    {
 		      curr->w_x += curr->w_wrap ? 1 : -1;
-		      debug1("Patched w_x to %d\n", curr->w_x);
+		      debug("Patched w_x to %d\n", curr->w_x);
 		    }
 		  if (curr->w_encoding != UTF8)
 		    {
 		      c = curr->w_mbcs;
 		      if (font == KANA && curr->w_encoding == SJIS)
 			{
-			  debug2("SJIS !! %x %x\n", c, t);
+			  debug("SJIS !! %x %x\n", c, t);
 			  /*
 			   * SJIS -> EUC mapping:
 			   *   First byte:
@@ -704,7 +704,7 @@ WriteString(struct win *wp, register char *buf, register int len)
 			      c = t;
 			      t = 0;
 			    }
-			  debug2("SJIS after %x %x\n", c, t);
+			  debug("SJIS after %x %x\n", c, t);
 			}
 		      if (t && curr->w_gr && font != 030 && font != 031)
 			{
@@ -847,7 +847,7 @@ Special(register int c)
 static void
 DoESC(int c, int intermediate)
 {
-  debug2("DoESC: %x - inter = %x\n", c, intermediate);
+  debug("DoESC: %x - inter = %x\n", c, intermediate);
   switch (intermediate)
     {
     case 0:
@@ -1219,7 +1219,7 @@ DoCSI(int c, int intermediate)
       for (a2 = 0; a2 < curr->w_NumArgs; a2++)
 	{
 	  a1 = curr->w_args[a2];
-	  debug2("\\E[?%d%c\n",a1,c);
+	  debug("\\E[?%d%c\n",a1,c);
 	  if (c != 'h' && c != 'l')
 	    break;
 	  i = (c == 'h');
@@ -1534,7 +1534,7 @@ PrintFlush()
 void
 WNewAutoFlow(struct win *win, int on)
 {
-  debug1("WNewAutoFlow: %d\n", on);
+  debug("WNewAutoFlow: %d\n", on);
   if (win->w_flow & FLOW_AUTOFLAG)
     win->w_flow = FLOW_AUTOFLAG | (FLOW_AUTO|FLOW_NOW) * on;
   else
@@ -2534,7 +2534,7 @@ MFindUsedLine(struct win *p, int ye, int ys)
   int y;
   struct mline *ml = p->w_mlines + ye;
 
-  debug2("MFindUsedLine: %d %d\n", ye, ys);
+  debug("MFindUsedLine: %d %d\n", ye, ys);
   for (y = ye; y >= ys; y--, ml--)
     {
       if (memcmp((char*)ml->image, blank, p->w_width))
@@ -2546,7 +2546,7 @@ MFindUsedLine(struct win *p, int ye, int ys)
       if (ml->colorx != null && memcmp((char*)ml->colorx, null, p->w_width))
 	break;
     }
-  debug1("MFindUsedLine returning  %d\n", y);
+  debug("MFindUsedLine returning  %d\n", y);
   return y;
 }
 

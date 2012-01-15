@@ -128,13 +128,13 @@ findrcfile(char *rcfile)
 	  if (access(buf, R_OK) == 0)
 	    return SaveStr(buf);
 	}
-      debug1("findrcfile: you specified '%s'\n", rcfile);
+      debug("findrcfile: you specified '%s'\n", rcfile);
       return SaveStr(rcfile);
     }
   debug("findrcfile: you specified nothing...\n");
   if ((p = getenv("SCREENRC")) != NULL && *p != '\0')
     {
-      debug1("  $SCREENRC has: '%s'\n", p);
+      debug("  $SCREENRC has: '%s'\n", p);
       return SaveStr(p);
     }
   else
@@ -182,11 +182,11 @@ StartRc(char *rcfilename, int nopanic)
            * this is the only case, where we get angry, if we can't read
            * the file.
            */
-	  debug3("StartRc: '%s','%s', '%s'\n", RcFileName, rc_name ? rc_name : "(null)", rcfilename);
+	  debug("StartRc: '%s','%s', '%s'\n", RcFileName, rc_name ? rc_name : "(null)", rcfilename);
           if (!nopanic) Panic(0, "Unable to open \"%s\".", rc_nonnull);
 	  /* possibly NOTREACHED */
 	}
-      debug1("StartRc: '%s' no good. ignored\n", rc_nonnull);
+      debug("StartRc: '%s' no good. ignored\n", rc_nonnull);
       if (rc_name)
 	Free(rc_name);
       rc_name = oldrc_name;
@@ -295,11 +295,11 @@ FinishRc(char *rcfilename)
 	   * this is the only case, where we get angry, if we can't read
 	   * the file.
 	   */
-  	  debug3("FinishRc:'%s','%s','%s'\n", RcFileName, rc_name ? rc_name : "(null)", rcfilename);
+  	  debug("FinishRc:'%s','%s','%s'\n", RcFileName, rc_name ? rc_name : "(null)", rcfilename);
           Panic(0, "Unable to open \"%s\".", rc_nonnull);
 	  /* NOTREACHED */
 	}
-      debug1("FinishRc: '%s' no good. ignored\n", rc_nonnull);
+      debug("FinishRc: '%s' no good. ignored\n", rc_nonnull);
       if (rc_name)
 	Free(rc_name);
       rc_name = oldrc_name;
@@ -424,7 +424,7 @@ WriteFile(struct acluser *user, char *fn, int dump)
       break;
     }
 
-  debug2("WriteFile(%d) %s\n", dump, fn);
+  debug("WriteFile(%d) %s\n", dump, fn);
   if (UserContext() > 0)
     {
       debug("Writefile: usercontext\n");
@@ -457,7 +457,7 @@ WriteFile(struct acluser *user, char *fn, int dump)
         f = fopen(fn, mode);
       if (f == NULL)
 	{
-	  debug2("WriteFile: fopen(%s,\"%s\") failed\n", fn, mode);
+	  debug("WriteFile: fopen(%s,\"%s\") failed\n", fn, mode);
 	  UserReturn(0);
 	}
       else
@@ -551,7 +551,7 @@ ReadFile(char *fn, int *lenp)
   struct stat stb;
 
   ASSERT(lenp);
-  debug1("ReadFile(%s)\n", fn);
+  debug("ReadFile(%s)\n", fn);
   if ((i = secopen(fn, O_RDONLY, 0)) < 0)
     {
       Msg(errno, "no %s -- no slurp", fn);
@@ -615,7 +615,7 @@ secfopen(char *name, char *mode)
   int flags, fd;
 #endif
 
-  debug2("secfopen(%s, %s)\n", name, mode);
+  debug("secfopen(%s, %s)\n", name, mode);
 #ifdef USE_SETEUID
   xseteuid(real_uid);
   xsetegid(real_gid);
@@ -660,7 +660,7 @@ secopen(char *name, int flags, int mode)
   struct stat stb;
 #endif
 
-  debug3("secopen(%s, 0x%x, 0%03o)\n", name, flags, mode);
+  debug("secopen(%s, 0x%x, 0%03o)\n", name, flags, mode);
 #ifdef USE_SETEUID
   xseteuid(real_uid);
   xsetegid(real_gid);
@@ -719,13 +719,13 @@ secopen(char *name, int flags, int mode)
         }
       if ((stb.st_mode & q) != q)
 	{
-          debug1("secopen: permission denied (%03o)\n", stb.st_mode & 07777);
+          debug("secopen: permission denied (%03o)\n", stb.st_mode & 07777);
 	  close(fd);
 	  errno = EACCES;
 	  return -1;
 	}
     }
-  debug1("secopen ok - returning %d\n", fd);
+  debug("secopen ok - returning %d\n", fd);
   return fd;
 #endif
 }

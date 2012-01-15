@@ -87,7 +87,7 @@ LGotoPos(struct layer *l, int x, int y)
 	continue;
       x2 = x + cv->c_xoff;
       y2 = y + cv->c_yoff;
-      debug2("---LGotoPos %d %d\n", x2, y2);
+      debug("---LGotoPos %d %d\n", x2, y2);
       if (x2 < cv->c_xs)
 	x2 = cv->c_xs;
       if (y2 < cv->c_ys)
@@ -191,8 +191,8 @@ LScrollV(struct layer *l, int n, int ys, int ye, int bce)
 	if (D_blocked)
 	  continue;
 	ScrollV(vp->v_xs, ys2, vp->v_xe, ye2, n, bce);
-	debug2("LScrollV: %d %d", ys, ye);
-	debug2(" -> %d %d\n", ys2, ye2);
+	debug("LScrollV: %d %d", ys, ye);
+	debug(" -> %d %d\n", ys2, ye2);
 	if (ye2 - ys2 == ye - ys)
 	  continue;
 	if (n > 0)
@@ -205,12 +205,12 @@ LScrollV(struct layer *l, int n, int ys, int ye, int bce)
 	    ye2 = ys2 - 1 - n;
 	    ys2 = ys + vp->v_yoff - n;
 	  }
-	debug2("LScrollV: - %d %d\n", ys2, ye2);
+	debug("LScrollV: - %d %d\n", ys2, ye2);
 	if (ys2 < vp->v_ys)
 	  ys2 = vp->v_ys;
 	if (ye2 > vp->v_ye)
 	  ye2 = vp->v_ye;
-	debug2("LScrollV: - %d %d\n", ys2, ye2);
+	debug("LScrollV: - %d %d\n", ys2, ye2);
 	if (ys2 <= ye2)
 	  RefreshArea(xs2, ys2, xe2, ye2, 1);
       }
@@ -528,8 +528,8 @@ LCDisplayLine(struct layer *l, struct mline *ml, int y, int xs, int xe, int isbl
 	  if (xs2 > xe2)
 	    continue;
 	  display = cv->c_display;
-	  debug3("LCDisplayLine: DisplayLine %d, %d-%d", y2, xs2, xe2);
-	  debug1("  mloff = %d\n", -vp->v_xoff);
+	  debug("LCDisplayLine: DisplayLine %d, %d-%d", y2, xs2, xe2);
+	  debug("  mloff = %d\n", -vp->v_xoff);
 	  DisplayLine(isblank ? &mline_blank : &mline_null, mloff(RECODE_MLINE(ml), -vp->v_xoff), y2, xs2, xe2);
 	}
     }
@@ -770,7 +770,7 @@ LRefreshAll(struct layer *l, int isblank)
   struct layer *oldflayer;
   int y;
 
-  debug1("LRefreshAll isblank=%d\n", isblank);
+  debug("LRefreshAll isblank=%d\n", isblank);
   oldflayer = flayer;
   flayer = l;
   if (!isblank)
@@ -801,7 +801,7 @@ LMsg(int err, const char *fmt, ...)
       *p++ = ' ';
       strncpy(p, strerror(err), buf + sizeof(buf) - p - 1);
     }
-  debug2("LMsg('%s') (%#x);\n", buf, (unsigned int)flayer);
+  debug("LMsg('%s') (%#x);\n", buf, (unsigned int)flayer);
   for (display = displays; display; display = display->d_next)
     {
       for (cv = D_cvlist; cv; cv = cv->c_next)
@@ -828,12 +828,12 @@ KillLayerChain(struct layer *lay)
   struct layer *l, *oldflayer;
 
   oldflayer = flayer;
-  debug1("KillLayerChain %#x\n", lay);
+  debug("KillLayerChain %#x\n", lay);
   for (l = lay; l; l = l->l_next)
     {
       if (l->l_layfn == &WinLf || l->l_layfn == &BlankLf)
 	break;
-      debug1("- killing %#x\n", l);
+      debug("- killing %#x\n", l);
       if (oldflayer == l)
 	oldflayer = 0;
       for (cv = l->l_cvlist; cv; cv = ncv)
@@ -870,7 +870,7 @@ InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
       Msg(0, "No memory for layer struct");
       return -1;
     }
-  debug2("Entering new layer on top of %#x: %#x\n", (unsigned int)flayer, newlay);
+  debug("Entering new layer on top of %#x: %#x\n", (unsigned int)flayer, newlay);
   data = 0;
   if (datasize)
     {
@@ -948,7 +948,7 @@ ExitOverlayPage()
   struct layout *lay;
 
   ASSERT(flayer);
-  debug1("Exiting layer %#x\n", (unsigned int)flayer);
+  debug("Exiting layer %#x\n", (unsigned int)flayer);
   oldlay = flayer;
   if (oldlay->l_data)
     {
@@ -966,7 +966,7 @@ ExitOverlayPage()
 	{
 	  ASSERT(p->w_blocked > 0);
 	  p->w_blocked--;
-          debug1("layer was blocking, -> w_blocked now %d\n", p->w_blocked);
+          debug("layer was blocking, -> w_blocked now %d\n", p->w_blocked);
 	}
       /* don't warp dead layers: check cvlist */
       if (p->w_blocked && p->w_savelayer && p->w_savelayer != flayer && oldlay->l_cvlist)

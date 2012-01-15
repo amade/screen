@@ -65,7 +65,7 @@ FindUserPtr(char *name)
   for (u = &users; *u; u = &(*u)->u_next)
     if (!strcmp((*u)->u_name, name))
       break;
-  debug2("FindUserPtr %s %sfound\n", name, (*u)?"":"not ");
+  debug("FindUserPtr %s %sfound\n", name, (*u)?"":"not ");
   return u;
 }
 
@@ -106,7 +106,7 @@ UserAdd(char *name, char *pass, struct acluser **up)
   (*up)->u_detachwin = -1;
   (*up)->u_detachotherwin = -1;
 
-  debug1("UserAdd %s\n", name);
+  debug("UserAdd %s\n", name);
   return 0;
 }
 
@@ -137,7 +137,7 @@ UserDel(char *name, struct acluser **up)
   display = old;
   *up = u->u_next;
 
-  debug1("FREEING user structure for %s\n", u->u_name);
+  debug("FREEING user structure for %s\n", u->u_name);
   UserFreeCopyBuffer(u);
   free((char *)u);
   if (!users)

@@ -178,8 +178,8 @@ is_bm(char *str, int l, int p, int end, int dir)
 
   /* *sigh* to make WIN work */
   fore = ((struct markdata *)flayer->l_next->l_data)->md_window;
-  debug2("is_bm: searching for %s len %d\n", str, l);
-  debug3("start at %d end %d dir %d\n", p, end, dir);
+  debug("is_bm: searching for %s len %d\n", str, l);
+  debug("start at %d end %d dir %d\n", p, end, dir);
   if (p < 0 || p + l > end)
     return -1;
   if (l == 0)
@@ -197,7 +197,7 @@ is_bm(char *str, int l, int p, int end, int dir)
     }
   if (dir > 0)
     p += l - 1;
-  debug1("first char to match: %c\n", *str);
+  debug("first char to match: %c\n", *str);
   while (p >= 0 && p < end)
     {
       q = p;
@@ -277,7 +277,7 @@ is_process(char *p, int n, char *data)	/* i-search */
       markdata->isstr[markdata->isstrl++] = *p;
       markdata->isistr[markdata->isistrl++] = *p;
       markdata->isstr[markdata->isstrl] = 0;
-      debug2("New char: %c - left %d\n", *p, (int)sizeof(markdata->isistr) - markdata->isistrl);
+      debug("New char: %c - left %d\n", *p, (int)sizeof(markdata->isistr) - markdata->isistrl);
     }
   if (*p && *p != '\b')
     pos = is_bm(markdata->isstr, markdata->isstrl, pos, flayer->l_width * (markdata->md_window->w_histheight + flayer->l_height), markdata->isdir);
