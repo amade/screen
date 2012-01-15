@@ -1091,11 +1091,5 @@ struct mode *m;
     {
       debug2("c_cc[%d] = %#x\n", i, m->tio.c_cc[i]);
     }
-  debug1("suspc     = %#02x\n", m->m_ltchars.t_suspc);
-  debug1("dsuspc    = %#02x\n", m->m_ltchars.t_dsuspc);
-  debug1("rprntc    = %#02x\n", m->m_ltchars.t_rprntc);
-  debug1("flushc    = %#02x\n", m->m_ltchars.t_flushc);
-  debug1("werasc    = %#02x\n", m->m_ltchars.t_werasc);
-  debug1("lnextc    = %#02x\n", m->m_ltchars.t_lnextc);
 }
 #endif /* DEBUG */
