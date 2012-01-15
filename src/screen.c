@@ -208,11 +208,11 @@ lf_secreopen(char *name, int wantfd, struct logfile *l)
       lf_move_fd(got_fd, wantfd) < 0)
     {
       logfclose(l);
-      debug1("lf_secreopen: failed for %s\n", name);
+      debug("lf_secreopen: failed for %s\n", name);
       return -1;
     }
   l->st->st_ino = l->st->st_dev = 0;
-  debug2("lf_secreopen: %d = %s\n", wantfd, name);
+  debug("lf_secreopen: %d = %s\n", wantfd, name);
   return 0;
 }
 
@@ -323,7 +323,7 @@ main(int argc, char **argv)
   snprintf(version, 59, "%d.%.2d.%.2d%s (%s%s) %s", REV, VERS,
 	  PATCHLEVEL, STATE, ORIGIN, GIT_REV, DATE);
   nversion = REV * 10000 + VERS * 100 + PATCHLEVEL;
-  debug2("-- screen debug started %s (%s)\n", *argv, version);
+  debug("-- screen debug started %s (%s)\n", *argv, version);
 #ifdef TERMIO
   debug("TERMIO\n");
 #endif
@@ -355,7 +355,7 @@ main(int argc, char **argv)
   debug("SHADOWPW\n");
 #endif
 #ifdef NAME_MAX
-  debug1("NAME_MAX = %d\n", NAME_MAX);
+  debug("NAME_MAX = %d\n", NAME_MAX);
 #endif
 
   BellString = SaveStr("Bell in window %n");
@@ -568,7 +568,7 @@ main(int argc, char **argv)
 		    {
 		      SockMatch = *++argv;
 		      argc--;
-		      debug2("rflag=%d, SockMatch=%s\n", dflag, SockMatch);
+		      debug("rflag=%d, SockMatch=%s\n", dflag, SockMatch);
 		    }
 		  if (*ap == 'x')
 		    xflag = 1;
@@ -588,7 +588,7 @@ main(int argc, char **argv)
 			{
 			  SockMatch = *++argv;
 			  argc--;
-			  debug2("dflag=%d, SockMatch=%s\n", dflag, SockMatch);
+			  debug("dflag=%d, SockMatch=%s\n", dflag, SockMatch);
 			}
 		    }
 		  break;
@@ -598,7 +598,7 @@ main(int argc, char **argv)
 		  if (ShellProg)
 		    free(ShellProg);
 		  ShellProg = SaveStr(*++argv);
-		  debug1("ShellProg: '%s'\n", ShellProg);
+		  debug("ShellProg: '%s'\n", ShellProg);
 		  break;
 		case 'S':
 		  if (!SockMatch)
@@ -650,12 +650,12 @@ main(int argc, char **argv)
       setlocale(LC_CTYPE, "");
 #  endif
       nwin_options.encoding = FindEncoding(nl_langinfo(CODESET));
-      debug1("locale says encoding = %d\n", nwin_options.encoding);
+      debug("locale says encoding = %d\n", nwin_options.encoding);
 # else
       char *s;
       if ((s = locale_name()) && InStr(s, "UTF-8"))
         nwin_options.encoding = UTF8;
-      debug1("environment says encoding=%d\n", nwin_options.encoding);
+      debug("environment says encoding=%d\n", nwin_options.encoding);
 #endif
     }
   {
@@ -863,7 +863,7 @@ main(int argc, char **argv)
 	    Panic(0, "Cannot open your terminal '%s' - please check.", attach_tty);
 	  close(n);
 	}
-      debug2("attach_tty is %s, attach_fd is %d\n", attach_tty, attach_fd);
+      debug("attach_tty is %s, attach_fd is %d\n", attach_tty, attach_fd);
 
       if ((attach_term = getenv("TERM")) == 0 || *attach_term == 0)
 	Panic(0, "Please set a terminal type.");
@@ -912,7 +912,7 @@ main(int argc, char **argv)
 	{
 	  if (access(SockDir, F_OK))
 	    {
-	      debug1("SockDir '%s' missing ...\n", SockDir);
+	      debug("SockDir '%s' missing ...\n", SockDir);
 	      if (UserContext() > 0)
 		{
 		  if (mkdir(SockDir, 0700))
@@ -989,7 +989,7 @@ main(int argc, char **argv)
   SockName = SockPath + strlen(SockPath) + 1;
   *SockName = 0;
   (void) umask(oumask);
-  debug2("SockPath: %s  SockMatch: %s\n", SockPath, SockMatch ? SockMatch : "NULL");
+  debug("SockPath: %s  SockMatch: %s\n", SockPath, SockMatch ? SockMatch : "NULL");
 
   (void) gethostname(HostName, MAXSTR);
   HostName[MAXSTR - 1] = '\0';
@@ -1158,7 +1158,7 @@ main(int argc, char **argv)
 	Panic(0, "Could not alloc display");
       PanicPid = 0;
       D_encoding = nwin_options.encoding > 0 ? nwin_options.encoding : 0;
-      debug1("D_encoding = %d\n", D_encoding);
+      debug("D_encoding = %d\n", D_encoding);
     }
 
   if (SockMatch)
@@ -1177,7 +1177,7 @@ main(int argc, char **argv)
 #ifdef NAME_MAX
   if (strlen(socknamebuf) > NAME_MAX)
     {
-      debug2("Socketname %s truncated to %d chars\n", socknamebuf, NAME_MAX);
+      debug("Socketname %s truncated to %d chars\n", socknamebuf, NAME_MAX);
       socknamebuf[NAME_MAX] = 0;
     }
 #endif
@@ -1253,7 +1253,7 @@ main(int argc, char **argv)
 #endif
   FinishRc(RcFileName);
 
-  debug2("UID %d  EUID %d\n", (int)getuid(), (int)geteuid());
+  debug("UID %d  EUID %d\n", (int)getuid(), (int)geteuid());
   if (windows == NULL)
     {
       debug("We open one default window, as screenrc did not specify one.\n");
@@ -1362,7 +1362,7 @@ WindowDied(struct win *p, int wstat, int wstat_valid)
       s = ctime(&now);
       if (s && *s)
         s[strlen(s) - 1] = '\0';
-      debug3("window %d (%s) going into zombie state fd %d",
+      debug("window %d (%s) going into zombie state fd %d",
 	     p->w_number, p->w_title, p->w_ptyfd);
 #ifdef UTMPOK
       if (p->w_slot != (slot_t)0 && p->w_slot != (slot_t)-1)
@@ -1403,17 +1403,17 @@ SigChldHandler()
     }
   if (stat(SockPath, &st) == -1)
     {
-      debug1("SigChldHandler: Yuck! cannot stat '%s'\n", SockPath);
+      debug("SigChldHandler: Yuck! cannot stat '%s'\n", SockPath);
       if (!RecoverSocket())
 	{
 	  debug("SCREEN cannot recover from corrupt Socket, bye\n");
 	  Finit(1);
 	}
       else
-	debug1("'%s' reconstructed\n", SockPath);
+	debug("'%s' reconstructed\n", SockPath);
     }
   else
-    debug2("SigChldHandler: stat '%s' o.k. (%03o)\n", SockPath, (int)st.st_mode);
+    debug("SigChldHandler: stat '%s' o.k. (%03o)\n", SockPath, (int)st.st_mode);
 }
 
 static void
@@ -1544,7 +1544,7 @@ DoWait()
 #ifdef BSDJOBS
 	      if (WIFSTOPPED(wstat))
 		{
-		  debug3("Window %d pid %d: WIFSTOPPED (sig %d)\n", p->w_number, pid, WSTOPSIG(wstat));
+		  debug("Window %d pid %d: WIFSTOPPED (sig %d)\n", p->w_number, pid, WSTOPSIG(wstat));
 #ifdef SIGTTIN
 		  if (WSTOPSIG(wstat) == SIGTTIN)
 		    {
@@ -1582,14 +1582,14 @@ DoWait()
 	    }
 	  if (p->w_pwin && pid == p->w_pwin->p_pid)
 	    {
-	      debug2("pseudo of win Nr %d died. pid == %d\n", p->w_number, p->w_pwin->p_pid);
+	      debug("pseudo of win Nr %d died. pid == %d\n", p->w_number, p->w_pwin->p_pid);
 	      FreePseudowin(p);
 	      break;
 	    }
 	}
       if (p == 0)
 	{
-	  debug1("pid %d not found - hope that's ok\n", pid);
+	  debug("pid %d not found - hope that's ok\n", pid);
 	}
     }
 }
@@ -1599,7 +1599,7 @@ static void
 FinitHandler (int sigsig)
 {
 #ifdef SIGHASARG
-  debug1("FinitHandler called, sig %d.\n", sigsig);
+  debug("FinitHandler called, sig %d.\n", sigsig);
 #else
   debug("FinitHandler called.\n");
 #endif
@@ -1612,7 +1612,7 @@ Finit(int i)
 {
   signal(SIGCHLD, SIG_DFL);
   signal(SIGHUP, SIG_IGN);
-  debug1("Finit(%d);\n", i);
+  debug("Finit(%d);\n", i);
   while (windows)
     {
       struct win *p = windows;
@@ -1621,7 +1621,7 @@ Finit(int i)
     }
   if (ServerSocket != -1)
     {
-      debug1("we unlink(%s)\n", SockPath);
+      debug("we unlink(%s)\n", SockPath);
 #ifdef USE_SETEUID
       xseteuid(real_uid);
       xsetegid(real_gid);
@@ -1660,7 +1660,7 @@ eexit(int e)
   debug("eexit\n");
   if (ServerSocket != -1)
     {
-      debug1("we unlink(%s)\n", SockPath);
+      debug("we unlink(%s)\n", SockPath);
       setgid(real_gid);
       setuid(real_uid);
       (void) unlink(SockPath);
@@ -1673,7 +1673,7 @@ Hangup()
 {
   if (display == 0)
     return;
-  debug1("Hangup %x\n", display);
+  debug("Hangup %x\n", display);
   if (D_userfd >= 0)
     {
       close(D_userfd);
@@ -1720,7 +1720,7 @@ Detach(int mode)
   } while (0)
 
   signal(SIGHUP, SIG_IGN);
-  debug1("Detach(%d)\n", mode);
+  debug("Detach(%d)\n", mode);
   if (D_status)
     RemoveStatus();
   FinitTerm();
@@ -1814,7 +1814,7 @@ Detach(int mode)
     }
 
   pid = D_userpid;
-  debug2("display: %#x displays: %#x\n", (unsigned int)display, (unsigned int)displays);
+  debug("display: %#x displays: %#x\n", (unsigned int)display, (unsigned int)displays);
   FreeDisplay();
   if (displays == 0)
     /* Flag detached-ness */
@@ -1825,7 +1825,7 @@ Detach(int mode)
    * if it was a power detach.
    */
   Kill(pid, sign);
-  debug2("Detach: Signal %d to Attacher(%d)!\n", sign, pid);
+  debug("Detach: Signal %d to Attacher(%d)!\n", sign, pid);
   debug("Detach returns, we are successfully detached.\n");
   signal(SIGHUP, SigHup);
 #undef AddStrSock
@@ -1897,7 +1897,7 @@ void Msg(int err, const char *fmt, ...)
   char buf[MAXPATHLEN*2];
   PROCESS_MESSAGE(buf);
 
-  debug2("Msg('%s') (%#x);\n", buf, (unsigned int)display);
+  debug("Msg('%s') (%#x);\n", buf, (unsigned int)display);
 
   if (display && displays)
     MakeStatus(buf);
@@ -1933,7 +1933,7 @@ void Panic(int err, const char *fmt, ...)
   char buf[MAXPATHLEN*2];
   PROCESS_MESSAGE(buf);
 
-  debug3("Panic('%s'); display=%x displays=%x\n", buf, display, displays);
+  debug("Panic('%s'); display=%x displays=%x\n", buf, display, displays);
   if (displays == 0 && display == 0)
     {
       printf("%s\r\n", buf);
@@ -1977,7 +1977,7 @@ void Panic(int err, const char *fmt, ...)
 # else
       setuid(own_uid);
 # endif
-      debug1("Panic: changing back modes from %s\n", attach_tty);
+      debug("Panic: changing back modes from %s\n", attach_tty);
       chmod(attach_tty, tty_oldmode);
     }
   eexit(1);
@@ -2090,18 +2090,18 @@ backtick_fn(struct event *ev, char *data)
   int i, j, k, l;
 
   bt = (struct backtick *)data;
-  debug1("backtick_fn for #%d\n", bt->num);
+  debug("backtick_fn for #%d\n", bt->num);
   i = bt->bufi;
   l = read(ev->fd, bt->buf + i, MAXSTR - i);
   if (l <= 0)
     {
-      debug1("EOF on backtick #%d\n", bt->num);
+      debug("EOF on backtick #%d\n", bt->num);
       evdeq(ev);
       close(ev->fd);
       ev->fd = -1;
       return;
     }
-  debug1("read %d bytes\n", l);
+  debug("read %d bytes\n", l);
   i += l;
   for (j = 0; j < l; j++)
     if (bt->buf[i - j - 1] == '\n')
@@ -2137,7 +2137,7 @@ setbacktick(int num, int lifespan, int tick, char **cmdv)
   struct backtick **btp, *bt;
   char **v;
 
-  debug1("setbacktick called for backtick #%d\n", num);
+  debug("setbacktick called for backtick #%d\n", num);
   for (btp = &backticks; (bt = *btp) != 0; btp = &bt->next)
     if (bt->num == num)
       break;
@@ -2206,12 +2206,12 @@ runbacktick(struct backtick *bt, int *tickp, time_t now)
   int f, i, l, j;
   time_t now2;
 
-  debug1("runbacktick called for backtick #%d\n", bt->num);
+  debug("runbacktick called for backtick #%d\n", bt->num);
   if (bt->tick && (!*tickp || bt->tick < *tickp))
     *tickp = bt->tick;
   if ((bt->lifespan == 0 && bt->tick == 0) || now < bt->bestbefore)
     {
-      debug1("returning old result (%d)\n", bt->lifespan);
+      debug("returning old result (%d)\n", bt->lifespan);
       return bt->result;
     }
   f = readpipe(bt->cmdv);
@@ -2220,7 +2220,7 @@ runbacktick(struct backtick *bt, int *tickp, time_t now)
   i = 0;
   while ((l = read(f, bt->result + i, sizeof(bt->result) - i)) > 0)
     {
-      debug1("runbacktick: read %d bytes\n", l);
+      debug("runbacktick: read %d bytes\n", l);
       i += l;
       for (j = 1; j < l; j++)
 	if (bt->result[i - j - 1] == '\n')
@@ -2240,7 +2240,7 @@ runbacktick(struct backtick *bt, int *tickp, time_t now)
   bt->result[sizeof(bt->result) - 1] = '\n';
   if (i && bt->result[i - 1] == '\n')
     i--;
-  debug1("runbacktick: finished, %d bytes\n", i);
+  debug("runbacktick: finished, %d bytes\n", i);
   bt->result[i] = 0;
   backtick_filter(bt);
   (void)time(&now2);
@@ -2482,7 +2482,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	      strncpy(savebuf, winmsg_buf, sizeof(winmsg_buf));
 	      winmsg_numrend = -winmsg_numrend;
 	      MakeWinMsgEv(*s == 'h' ? win->w_hstatus : runbacktick(bt, &oldtick, now.tv_sec), win, '\005', 0, (struct event *)0, rec + 1);
-	      debug2("oldtick=%d tick=%d\n", oldtick, tick);
+	      debug("oldtick=%d tick=%d\n", oldtick, tick);
 	      if (!tick || oldtick < tick)
 		tick = oldtick;
 	      if ((int)strlen(winmsg_buf) < l)
@@ -2552,7 +2552,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 	      {
 		r = -1;
 		rbuf[i] = 0;
-		debug1("MakeWinMsg attrcolor %s\n", rbuf);
+		debug("MakeWinMsg attrcolor %s\n", rbuf);
 	        if (i != 1 || rbuf[0] != '-')
 		  r = ParseAttrColor(rbuf, (char *)0, 0);
 	        if (r != -1 || (i == 1 && rbuf[0] == '-'))
@@ -2675,8 +2675,8 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 		  left = truncpos - trunc;
 		  if (left > p - winmsg_buf - num)
 		    left = p - winmsg_buf - num;
-		  debug1("lastpad = %d, ", lastpad);
-		  debug3("truncpos = %d, trunc = %d, left = %d\n", truncpos, trunc, left);
+		  debug("lastpad = %d, ", lastpad);
+		  debug("truncpos = %d, trunc = %d, left = %d\n", truncpos, trunc, left);
 		  if (left > 0)
 		    {
 		      if (left + lastpad > p - winmsg_buf)
@@ -2722,7 +2722,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 		  trunclong = 0;
 		  if (lastpad > p - winmsg_buf)
 		    lastpad = p - winmsg_buf;
-		  debug1("lastpad now %d\n", lastpad);
+		  debug("lastpad now %d\n", lastpad);
 		}
 	      if (*s == '=')
 		{
@@ -2731,7 +2731,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
 		  lastpad = p - winmsg_buf;
 		  truncpos = -1;
 		  trunclong = 0;
-		  debug1("lastpad2 now %d\n", lastpad);
+		  debug("lastpad2 now %d\n", lastpad);
 		}
 	      p--;
 	    }
@@ -2791,7 +2791,7 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
       else
 	now.tv_sec += tick - (now.tv_sec % tick);
       ev->timeout = now;
-      debug2("NEW timeout %d %d\n", ev->timeout.tv_sec, tick);
+      debug("NEW timeout %d %d\n", ev->timeout.tv_sec, tick);
     }
   return winmsg_buf;
 }
@@ -2813,7 +2813,7 @@ PutWinMsg(char *s, int start, int max)
   if (s != winmsg_buf)
     {
       /* sorry, no fancy coloring available */
-      debug1("PutWinMsg %s plain\n", s);
+      debug("PutWinMsg %s plain\n", s);
       l = strlen(s);
       if (l > max)
 	l = max;
@@ -2826,7 +2826,7 @@ PutWinMsg(char *s, int start, int max)
   rend = D_rend;
   p = 0;
   l = strlen(s);
-  debug2("PutWinMsg %s start attr %x\n", s, rend.attr);
+  debug("PutWinMsg %s start attr %x\n", s, rend.attr);
   for (i = 0; i < winmsg_numrend && max > 0; i++)
     {
       if (p > winmsg_rendpos[i] || winmsg_rendpos[i] > l)
@@ -2881,7 +2881,7 @@ fds1(int i, int j)
 {
   while (i < j)
     {
-      debug1("%d ", i);
+      debug("%d ", i);
       i++;
     }
   if ((j = open("/dev/null", 0)) >= 0)
@@ -2892,8 +2892,8 @@ fds1(int i, int j)
   else
     {
       while (dup(++i) < 0 && errno != EBADF)
-        debug1("%d ", i);
-      debug1(" [%d]\n", i);
+        debug("%d ", i);
+      debug(" [%d]\n", i);
     }
 }
 
@@ -2937,8 +2937,8 @@ serv_select_fn(struct event *ev, char *data)
 #endif
 	  write(W_UWP(fore) ? fore->w_pwin->p_ptyfd : fore->w_ptyfd,
 		&ibuf, 1);
-	  debug1("Backend wrote interrupt to %d", fore->w_number);
-	  debug1("%s\n", W_UWP(fore) ? " (pseudowin)" : "");
+	  debug("Backend wrote interrupt to %d", fore->w_number);
+	  debug("%s\n", W_UWP(fore) ? " (pseudowin)" : "");
 	}
       InterruptPlease = 0;
     }
@@ -2966,7 +2966,7 @@ serv_select_fn(struct event *ev, char *data)
 		  if (D_status)
 		    {
 		      D_status_bell = 1;
-		      debug1("using vbell timeout %d\n", VBellWait);
+		      debug("using vbell timeout %d\n", VBellWait);
 		      SetTimeout(&D_statusev, VBellWait );
 		    }
 		}
@@ -3103,7 +3103,7 @@ serv_select_fn(struct event *ev, char *data)
     {
       if (D_status == STATUS_ON_WIN || D_cvlist == 0 || D_cvlist->c_next == 0)
 	continue;
-      debug1("serv_select_fn: Restore on cv %#x\n", (int)D_forecv);
+      debug("serv_select_fn: Restore on cv %#x\n", (int)D_forecv);
       CV_CALL(D_forecv, LayRestore();LaySetCursor());
     }
 }

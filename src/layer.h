@@ -106,7 +106,7 @@ struct layer
 	  debug("LayCallUp\n");				\
 	  flayer = flayer->l_next;			\
 	  oldcvlist = flayer->l_cvlist;			\
-	  debug1("oldcvlist: %x\n", oldcvlist);		\
+	  debug("oldcvlist: %x\n", oldcvlist);		\
 	  flayer->l_cvlist = oldlay->l_cvlist;		\
 	  for (cv = flayer->l_cvlist; cv; cv = cv->c_lnext)	\
 		cv->c_layer = flayer;			\

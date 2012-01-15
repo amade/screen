@@ -1770,7 +1770,7 @@ ProcessInput(char *ibuf, int ilen)
   int i, l;
   char *p;
 
-  debug1("ProcessInput: %d bytes\n", ilen);
+  debug("ProcessInput: %d bytes\n", ilen);
   if (display == 0 || ilen == 0)
     return;
   if (D_seql)
@@ -1787,14 +1787,14 @@ ProcessInput(char *ibuf, int ilen)
 	}
       for (;;)
 	{
-	  debug3("cmp %c %c[%d]\n", ch, *D_seqp, D_seqp - D_kmaps);
+	  debug("cmp %c %c[%d]\n", ch, *D_seqp, D_seqp - D_kmaps);
 	  if (*D_seqp != ch)
 	    {
 	      l = D_seqp[D_seqp[-D_seql-1] + 1];
 	      if (l)
 		{
 		  D_seqp += l * 2 + 4;
-		  debug1("miss %d\n", D_seqp - D_kmaps);
+		  debug("miss %d\n", D_seqp - D_kmaps);
 		  continue;
 		}
 	      debug("complete miss\n");
@@ -1810,8 +1810,8 @@ ProcessInput(char *ibuf, int ilen)
 		  D_seqh = 0;
 		  i = q[0] << 8 | q[1];
 		  i &= ~KMAP_NOTIMEOUT;
-		  debug1("Mapping former hit #%d - ", i);
-		  debug2("%d(%s) - ", q[2], q + 3);
+		  debug("Mapping former hit #%d - ", i);
+		  debug("%d(%s) - ", q[2], q + 3);
 		  if (StuffKey(i))
 		    ProcessInput2((char *)q + 3, q[2]);
 		  if (display == 0)
@@ -1821,7 +1821,7 @@ ProcessInput(char *ibuf, int ilen)
 		}
 	      else
 	        D_dontmap = 1;
-	      debug1("flush old %d\n", l);
+	      debug("flush old %d\n", l);
 	      ProcessInput(p, l);
 	      if (display == 0)
 		return;
@@ -1832,7 +1832,7 @@ ProcessInput(char *ibuf, int ilen)
 	    {
 	      /* Finish old stuff */
 	      slen -= ilen + 1;
-	      debug1("finish old %d\n", slen);
+	      debug("finish old %d\n", slen);
 	      if (slen)
 	        ProcessInput2(ibuf, slen);
 	      if (display == 0)
@@ -1843,7 +1843,7 @@ ProcessInput(char *ibuf, int ilen)
 	  slen = ilen;
 	  D_seqp++;
 	  l = D_seql;
-	  debug2("length am %d, want %d\n", l, D_seqp[-l - 1]);
+	  debug("length am %d, want %d\n", l, D_seqp[-l - 1]);
 	  if (l == D_seqp[-l - 1])
 	    {
 	      if (D_seqp[l] != l)
@@ -1851,7 +1851,7 @@ ProcessInput(char *ibuf, int ilen)
 		  q = D_seqp + 1 + l;
 		  if (D_kmaps + D_nseqs > q && q[2] > l && !memcmp(D_seqp - l, q + 3, l))
 		    {
-		      debug1("have another mapping (%s), delay execution\n", q + 3);
+		      debug("have another mapping (%s), delay execution\n", q + 3);
 		      D_seqh = D_seqp - 3 - l;
 		      D_seqp = q + 3 + l;
 		      break;
@@ -1859,9 +1859,9 @@ ProcessInput(char *ibuf, int ilen)
 		}
 	      i = D_seqp[-l - 3] << 8 | D_seqp[-l - 2];
 	      i &= ~KMAP_NOTIMEOUT;
-	      debug1("Mapping #%d - ", i);
+	      debug("Mapping #%d - ", i);
 	      p = (char *)D_seqp - l;
-	      debug2("%d(%s) - ", l, p);
+	      debug("%d(%s) - ", l, p);
 	      D_seql = 0;
 	      D_seqp = D_kmaps + 3;
 	      D_seqh = 0;
@@ -1905,10 +1905,10 @@ ProcessInput2(char *ibuf, int ilen)
   int ch, slen;
   struct action *ktabp;
 
-  debug1("ProcessInput2: %d bytes\n", ilen);
+  debug("ProcessInput2: %d bytes\n", ilen);
   while (ilen && display)
     {
-      debug1(" - ilen now %d bytes\n", ilen);
+      debug(" - ilen now %d bytes\n", ilen);
       flayer = D_forecv->c_layer;
       fore = D_fore;
       slen = ilen;
@@ -2162,7 +2162,7 @@ DoAction(struct action *act, int key)
   user = display ? D_user : users;
   if (nr == RC_ILLEGAL)
     {
-      debug1("key '%c': No action\n", key);
+      debug("key '%c': No action\n", key);
       return;
     }
   n = comms[nr].flags;
@@ -2500,7 +2500,7 @@ DoAction(struct action *act, int key)
 	      {
 		for (u = users; u; u = u->u_next)
 		  {
-		    debug3("strncmp('%s', '%s', %d)\n", *args, u->u_name, n);
+		    debug("strncmp('%s', '%s', %d)\n", *args, u->u_name, n);
 		    if (!strncmp(*args, u->u_name, n))
 		      break;
 		  }
@@ -2511,7 +2511,7 @@ DoAction(struct action *act, int key)
 		    break;
 		  }
 	      }
-	    debug1("at all displays of user %s\n", u->u_name);
+	    debug("at all displays of user %s\n", u->u_name);
 	    for (display = displays; display; display = nd)
 	      {
 		nd = display->d_next;
@@ -2521,7 +2521,7 @@ DoAction(struct action *act, int key)
 		fore = D_fore;
 	        if (D_user != u)
 		  continue;
-		debug1("AT display %s\n", D_usertty);
+		debug("AT display %s\n", D_usertty);
 		DoCommand(args + 1, argl + 1);
 		if (display)
 		  OutputMsg(0, "command from %s: %s %s",
@@ -2536,7 +2536,7 @@ DoAction(struct action *act, int key)
 	  {
 	    struct display *nd;
 
-	    debug1("at display matching '%s'\n", args[0]);
+	    debug("at display matching '%s'\n", args[0]);
 	    for (display = displays; display; display = nd)
 	      {
 	        nd = display->d_next;
@@ -2550,7 +2550,7 @@ DoAction(struct action *act, int key)
 		    (strncmp("/dev/tty", D_usertty, 8) ||
 		     strncmp(args[0], D_usertty + 8, n)))
 		  continue;
-		debug1("AT display %s\n", D_usertty);
+		debug("AT display %s\n", D_usertty);
 		DoCommand(args + 1, argl + 1);
 		if (display)
 		  OutputMsg(0, "command from %s: %s %s",
@@ -2581,7 +2581,7 @@ DoAction(struct action *act, int key)
 		    nw = fore->w_next;
 		    if (strncmp(args[0], fore->w_title, n))
 		      continue;
-		    debug2("AT window %d(%s)\n", fore->w_number, fore->w_title);
+		    debug("AT window %d(%s)\n", fore->w_number, fore->w_title);
 		    /*
 		     * consider this a bug or a feature:
 		     * while looping through windows, we have fore AND
@@ -2611,7 +2611,7 @@ DoAction(struct action *act, int key)
 	    else if (i < maxwin && (fore = wtab[i]))
 	      {
 	        args[0][n] = ch;      /* must restore string in case of bind */
-	        debug2("AT window %d (%s)\n", fore->w_number, fore->w_title);
+	        debug("AT window %d (%s)\n", fore->w_number, fore->w_title);
 		if (fore->w_layer.l_cvlist)
 		  display = fore->w_layer.l_cvlist->c_display;
 		flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
@@ -3579,7 +3579,7 @@ DoAction(struct action *act, int key)
 	}
       strncpy(screenterm, s, 20);
       free(s);
-      debug1("screenterm set to %s\n", screenterm);
+      debug("screenterm set to %s\n", screenterm);
       MakeTermcap((display == 0));
       debug("new termcap made\n");
       break;
@@ -4054,7 +4054,7 @@ DoAction(struct action *act, int key)
 	      OutputMsg(errno, "%s: failed to rename(%s, %s)", rc_name, SockPath, buf);
 	      break;
 	    }
-	  debug2("rename(%s, %s) done\n", SockPath, buf);
+	  debug("rename(%s, %s) done\n", SockPath, buf);
 	  strncpy(SockPath, buf, MAXPATHLEN + 2 * MAXSTR);
 	  MakeNewEnv();
 	  WindowChanged((struct win *)0, 'S');
@@ -4063,7 +4063,7 @@ DoAction(struct action *act, int key)
     case RC_SETENV:
       if (!args[0] || !args[1])
         {
-	  debug1("RC_SETENV arguments missing: %s\n", args[0] ? args[0] : "");
+	  debug("RC_SETENV arguments missing: %s\n", args[0] ? args[0] : "");
           InputSetenv(args[0]);
 	}
       else
@@ -4097,7 +4097,7 @@ DoAction(struct action *act, int key)
 	  OutputMsg(0, "%s: markkeys: syntax error.", rc_name);
 	  break;
 	}
-      debug1("markkeys %s\n", *args);
+      debug("markkeys %s\n", *args);
       break;
     case RC_PASTEFONT:
       if (ParseSwitch(act, &pastefont) == 0 && msgok)
@@ -4131,7 +4131,7 @@ DoAction(struct action *act, int key)
 	  break;
 	}
       (void)ParseSaveStr(act, &VisualBellString);
-      debug1(" new vbellstr '%s'\n", VisualBellString);
+      debug(" new vbellstr '%s'\n", VisualBellString);
       break;
     case RC_DEFMODE:
       if (ParseBase(act, *args, &n, 8, "octal"))
@@ -4852,7 +4852,7 @@ DoAction(struct action *act, int key)
 	    break;
 	  ApplyAttrColor(i, &mchar_so);
 	  WindowChanged((struct win *)0, 0);
-	  debug2("--> %x %x\n", mchar_so.attr, mchar_so.color);
+	  debug("--> %x %x\n", mchar_so.attr, mchar_so.color);
 	}
       if (msgok)
         OutputMsg(0, "Standout attributes 0x%02x  color 0x%02x", (unsigned char)mchar_so.attr, 0x99 ^ (unsigned char)mchar_so.color);
@@ -5517,7 +5517,7 @@ Parse(char *buf, int bufl, char **args, int *argl)
   register int delim, argc;
   int *lp = argl;
 
-  debug2("Parse %d %s\n", bufl, buf);
+  debug("Parse %d %s\n", bufl, buf);
   argc = 0;
   pp = buf;
   delim = 0;
@@ -5538,7 +5538,7 @@ Parse(char *buf, int bufl, char **args, int *argl)
 	{
 	  *p = '\0';
 	  for (delim = 0; delim < argc; delim++)
-	    debug1("-- %s\n", args[delim]);
+	    debug("-- %s\n", args[delim]);
 	  args[argc] = 0;
 	  return argc;
 	}
@@ -5549,7 +5549,7 @@ Parse(char *buf, int bufl, char **args, int *argl)
 	}
       *ap++ = pp;
 
-      debug1("- new arg %s\n", p);
+      debug("- new arg %s\n", p);
       while (*p)
 	{
 	  if (*p == delim)
@@ -5591,7 +5591,7 @@ Parse(char *buf, int bufl, char **args, int *argl)
 	      int vl;
 
 	      ps = ++p;
-	      debug1("- var %s\n", ps);
+	      debug("- var %s\n", ps);
 	      p++;
 	      while (*p)
 		{
@@ -5615,7 +5615,7 @@ Parse(char *buf, int bufl, char **args, int *argl)
 		}
 	      op = *pe;
 	      *pe = 0;
-	      debug1("- var is '%s'\n", ps);
+	      debug("- var is '%s'\n", ps);
 	      if (*ps == ':')
 		v = gettermcapstring(ps + 1);
 	      else
@@ -5652,7 +5652,7 @@ Parse(char *buf, int bufl, char **args, int *argl)
 	      vl = v ? strlen(v) : 0;
 	      if (vl)
 		{
-		  debug1("- sub is '%s'\n", v);
+		  debug("- sub is '%s'\n", v);
 		  if (p - pp < vl)
 		    {
 		      int right = buf + bufl - (p + strlen(p) + 1);
@@ -5693,7 +5693,7 @@ Parse(char *buf, int bufl, char **args, int *argl)
       if (*p)
 	p++;
       *pp = 0;
-      debug2("- arg done, '%s' rest %s\n", ap[-1], p);
+      debug("- arg done, '%s' rest %s\n", ap[-1], p);
       *lp++ = pp - ap[-1];
       pp++;
     }
@@ -5808,7 +5808,7 @@ ParseNum(struct action *act, int *var)
 	}
       p++;
     }
-  debug1("ParseNum got %d\n", i);
+  debug("ParseNum got %d\n", i);
   *var = i;
   return 0;
 }
@@ -5856,7 +5856,7 @@ ParseNum1000(struct action *act, int *var)
       i *= 10;
   if (i < 0)
     i = (int)((unsigned int)~0 >> 1);
-  debug1("ParseNum1000 got %d\n", i);
+  debug("ParseNum1000 got %d\n", i);
   *var = i;
   return 0;
 }
@@ -5929,7 +5929,7 @@ ParseWinNum(struct action *act, int *var)
           rc_name, comms[act->nr].name);
       return -1;
     }
-  debug1("ParseWinNum got %d\n", i);
+  debug("ParseWinNum got %d\n", i);
   *var = i;
   return 0;
 }
@@ -5959,7 +5959,7 @@ ParseBase(struct action *act, char *p, int *var, int base, char *bname)
 	}
       i = base * i + c;
     }
-  debug1("ParseBase got %d\n", i);
+  debug("ParseBase got %d\n", i);
   *var = i;
   return 0;
 }
@@ -5993,7 +5993,7 @@ SwitchWindow(int n)
 {
   struct win *p;
 
-  debug1("SwitchWindow %d\n", n);
+  debug("SwitchWindow %d\n", n);
   if (n < 0 || n >= maxwin)
     {
       ShowWindows(-1);
@@ -6056,7 +6056,7 @@ SetForeWindow(struct win *win)
 void
 Activate(int norefresh)
 {
-  debug1("Activate(%d)\n", norefresh);
+  debug("Activate(%d)\n", norefresh);
   if (display == 0)
     return;
   if (D_status)
@@ -6715,7 +6715,7 @@ SetenvFin2(char *buf, int len, char *data)
 {
   if (!len || !display)
     return;
-  debug2("SetenvFin2: setenv '%s' '%s'\n", setenv_var, buf);
+  debug("SetenvFin2: setenv '%s' '%s'\n", setenv_var, buf);
   xsetenv(setenv_var, buf);
   MakeNewEnv();
 }
@@ -6882,7 +6882,7 @@ CompileKeys(char *s, int sl, unsigned char *array)
         array[i] = i;
       return 0;
     }
-  debug1("CompileKeys: '%s'\n", s);
+  debug("CompileKeys: '%s'\n", s);
   while (sl)
     {
       key = *(unsigned char *)s++;
@@ -7219,10 +7219,10 @@ StuffKey(int i)
   int discard = 0;
   int keyno = i;
 
-  debug1("StuffKey #%d", i);
+  debug("StuffKey #%d", i);
 #ifdef DEBUG
   if (i < KMAP_KEYS)
-    debug1(" - %s", term[i + T_CAPS].tcname);
+    debug(" - %s", term[i + T_CAPS].tcname);
 #endif
 
   if (i < KMAP_KEYS && D_ESCseen)
@@ -7242,7 +7242,7 @@ StuffKey(int i)
     i += T_OCAPS - T_CURSOR;
   else if (i >= T_KEYPAD - T_CAPS && i < T_OCAPS - T_CAPS && D_keypad)
     i += T_OCAPS - T_CURSOR;
-  debug1(" - action %d\n", i);
+  debug(" - action %d\n", i);
   flayer = D_forecv->c_layer;
   fore = D_fore;
   act = 0;
@@ -7290,7 +7290,7 @@ FindNiceWindow(struct win *win, char *presel)
 {
   int i;
 
-  debug2("FindNiceWindow %d %s\n", win ? win->w_number : -1 , presel ? presel : "NULL");
+  debug("FindNiceWindow %d %s\n", win ? win->w_number : -1 , presel ? presel : "NULL");
   if (presel)
     {
       i = WindowByNoN(presel);
@@ -7360,7 +7360,7 @@ ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, int percent)
   struct canvas *cv;
   int done, have, m, dir;
 
-  debug3("ChangeCanvasSize abs %d diff %d percent=%d\n", abs, diff, percent);
+  debug("ChangeCanvasSize abs %d diff %d percent=%d\n", abs, diff, percent);
   if (abs == 0 && diff == 0)
     return 0;
   if (abs == 2)
@@ -7393,14 +7393,14 @@ ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, int percent)
       if (wsum)
 	{
 	  up = gflag ? CalcSlicePercent(fcv->c_slback->c_slback, percent) : percent;
-          debug3("up=%d, wsum=%d percent=%d\n", up, wsum, percent);
+          debug("up=%d, wsum=%d percent=%d\n", up, wsum, percent);
 	  if (wsum < 1000)
 	    {
 	      int scale = wsum < 10 ? 1000 : 100;
 	      for (cv = fcv->c_slback->c_slperp; cv; cv = cv->c_slnext)
 		cv->c_slweight *= scale;
 	      wsum *= scale;
-	      debug1("scaled wsum to %d\n", wsum);
+	      debug("scaled wsum to %d\n", wsum);
 	    }
 	  for (cv = fcv->c_slback->c_slperp; cv; cv = cv->c_slnext)
 	    {
@@ -7410,7 +7410,7 @@ ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, int percent)
 		  if (cv->c_slweight == 0)
 		    cv->c_slweight = 1;
 		}
-	      debug1("  - weight %d\n", cv->c_slweight);
+	      debug("  - weight %d\n", cv->c_slweight);
 	    }
 	  diff = (diff * wsum) / percent;
 	  percent = wsum;
@@ -7424,12 +7424,12 @@ ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, int percent)
       for (cv = fcv->c_slback->c_slperp; cv; cv = cv->c_slnext)
 	{
 	  cv->c_slweight = cv->c_slorient == SLICE_VERT ? cv->c_ye - cv->c_ys + 2 : cv->c_xe - cv->c_xs + 2;
-	  debug1("  - weight %d\n", cv->c_slweight);
+	  debug("  - weight %d\n", cv->c_slweight);
 	}
     }
   if (abs)
     diff = diff - fcv->c_slweight;
-  debug1("diff = %d\n", diff);
+  debug("diff = %d\n", diff);
   if (diff == 0)
     return 0;
   if (diff < 0)
@@ -7445,7 +7445,7 @@ ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, int percent)
     {
       if (!cv)
 	{
-	  debug1("reached end, dir is %d\n", dir);
+	  debug("reached end, dir is %d\n", dir);
 	  if (dir == -1)
 	    break;
 	  dir = -1;
@@ -7456,13 +7456,13 @@ ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, int percent)
 	m = 1;
       else
         m = cv->c_slperp ? CountCanvasPerp(cv) * 2 : 2;
-      debug2("min is %d, have %d\n", m, cv->c_slweight);
+      debug("min is %d, have %d\n", m, cv->c_slweight);
       if (cv->c_slweight > m)
 	{
 	  have = cv->c_slweight - m;
 	  if (have > diff)
 	    have = diff;
-	  debug1("subtract %d\n", have);
+	  debug("subtract %d\n", have);
 	  cv->c_slweight -= have;
 	  done += have;
 	  diff -= have;
@@ -7476,7 +7476,7 @@ ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, int percent)
         done += ChangeCanvasSize(fcv->c_slback->c_slback, 0, diff, gflag, percent);
     }
   fcv->c_slweight += done;
-  debug1("ChangeCanvasSize returns %d\n", done);
+  debug("ChangeCanvasSize returns %d\n", done);
   return done;
 }
 
@@ -7806,7 +7806,7 @@ ParseAttrColor(char *s1, char *s2, int msgok)
 	Msg(0, "junk after description: '%c'", *s);
       return -1;
     }
-  debug1("ParseAttrColor %06x\n", r);
+  debug("ParseAttrColor %06x\n", r);
   return r;
 }
 
@@ -7821,7 +7821,7 @@ ParseAttrColor(char *s1, char *s2, int msgok)
 void
 ApplyAttrColor(int i, struct mchar *mc)
 {
-  debug1("ApplyAttrColor %06x\n", i);
+  debug("ApplyAttrColor %06x\n", i);
   mc->attr |= i >> 8 & 255;
   mc->attr ^= i & 255;
   i = (i >> 16) ^ 0xff;
@@ -7841,5 +7841,5 @@ ApplyAttrColor(int i, struct mchar *mc)
   if ((i & 0xe0) == 0xe0)
     i = (i & 0x0f) | (mc->color & 0xf0);
   mc->color = 0x99 ^ i;
-  debug2("ApplyAttrColor - %02x %02x\n", mc->attr, i);
+  debug("ApplyAttrColor - %02x %02x\n", mc->attr, i);
 }

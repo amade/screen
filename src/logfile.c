@@ -87,11 +87,11 @@ logfile_reopen(char *name, int wantfd, struct logfile *l)
       lf_move_fd(got_fd, wantfd) < 0)
     {
       logfclose(l);
-      debug1("logfile_reopen: failed for %s\n", name);
+      debug("logfile_reopen: failed for %s\n", name);
       return -1;
     }
   changed_logfile(l);
-  debug2("logfile_reopen: %d = %s\n", wantfd, name);
+  debug("logfile_reopen: %d = %s\n", wantfd, name);
   return 0;
 }
 
@@ -141,18 +141,18 @@ stolen_logfile(struct logfile *l)
        !(s->st_mtime == s->st_ctime && 		/*  and it was not a change */
          o.st_ctime < s->st_ctime)))		/* due to delayed nfs write */
     {
-      debug1("stolen_logfile: %s stolen!\n", l->name);
-      debug3("st_dev %d, st_ino %d, st_nlink %d\n",
+      debug("stolen_logfile: %s stolen!\n", l->name);
+      debug("st_dev %d, st_ino %d, st_nlink %d\n",
              (int)s->st_dev, (int)s->st_ino, (int)s->st_nlink);
-      debug2("s->st_size %d, o.st_size %d\n", (int)s->st_size, (int)o.st_size);
-      debug2("s->st_mtime %d, o.st_mtime %d\n",
+      debug("s->st_size %d, o.st_size %d\n", (int)s->st_size, (int)o.st_size);
+      debug("s->st_mtime %d, o.st_mtime %d\n",
              (int)s->st_mtime, (int)o.st_mtime);
-      debug2("s->st_ctime %d, o.st_ctime %d\n",
+      debug("s->st_ctime %d, o.st_ctime %d\n",
              (int)s->st_ctime, (int)o.st_ctime);
       return -1;
     }
 
-  debug1("stolen_logfile: %s o.k.\n", l->name);
+  debug("stolen_logfile: %s o.k.\n", l->name);
   return 0;
 }
 
