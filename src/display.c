@@ -353,7 +353,7 @@ InitTerm(int adapt)
   D_x = D_y = 0;
   Flush(3);
   ClearAll();
-  debug1("we %swant to adapt all our windows to the display\n", 
+  debug1("we %swant to adapt all our windows to the display\n",
 	 (adapt) ? "" : "don't ");
   /* In case the size was changed by a init sequence */
   CheckScreenSize((adapt) ? 2 : 0);
@@ -991,7 +991,7 @@ ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int uselayfn)
 	  D_y = D_x = 0;
 	  return;
 	}
-      /* 
+      /*
        * Workaround a hp700/22 terminal bug. Do not use CD where CE
        * is also appropriate.
        */
@@ -1243,7 +1243,7 @@ ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
   if (D_top != ys && !(alok && dlok))
     ChangeScrollRegion(ys, ye);
 
-  if (D_lp_missing && 
+  if (D_lp_missing &&
       (oldbot != D_bot ||
        (oldbot == D_bot && up && D_top == ys && D_bot == ye)))
     {
@@ -1454,7 +1454,7 @@ color256to16(int jj)
       if (min == max)
         jj = ((max + 1) & 2) << 2 | ((max + 1) & 4 ? 7 : 0);
       else
-        jj = (b - min) / (max - min) << 2 | (g - min) / (max - min) << 1 | (r - 
+        jj = (b - min) / (max - min) << 2 | (g - min) / (max - min) << 1 | (r -
 min) / (max - min) | (max > 3 ? 8 : 0);
     }
   return jj;
@@ -1682,7 +1682,7 @@ MakeStatus(char *msg)
 
   if (!display)
     return;
-  
+
   if (D_blocked)
     return;
   if (!D_tcinited)
@@ -2789,7 +2789,7 @@ NukePending()
   oldrend = D_rend;
   len = D_obufp - D_obuf;
   debug1("NukePending: nuking %d chars\n", len);
-  
+
   /* Throw away any output that we can... */
 # ifdef POSIX
   tcflush(D_userfd, TCOFLUSH);
@@ -2874,7 +2874,7 @@ disp_writeev_fn(struct event *ev, char *data)
     size = D_status_obufpos;
   ASSERT(len >= 0);
   size = write(D_userfd, D_obuf, size);
-  if (size >= 0) 
+  if (size >= 0)
     {
       len -= size;
       if (len)
@@ -3183,10 +3183,10 @@ disp_map_fn(struct event *ev, char *data)
   if ((q = D_seqh) != 0)
     {
       D_seqh = 0;
-      i = q[0] << 8 | q[1]; 
+      i = q[0] << 8 | q[1];
       i &= ~KMAP_NOTIMEOUT;
       debug1("Mapping former hit #%d - ", i);
-      debug2("%d(%s) - ", q[2], q + 3); 
+      debug2("%d(%s) - ", q[2], q + 3);
       if (StuffKey(i))
 	ProcessInput2((char *)q + 3, q[2]);
       if (display == 0)

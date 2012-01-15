@@ -1936,15 +1936,15 @@ ProcessInput2(char *ibuf, int ilen)
       }
       ch = (unsigned char)*s;
 
-      /* 
+      /*
        * As users have different esc characters, but a common ktab[],
        * we fold back the users esc and meta-esc key to the Default keys
        * that can be looked up in the ktab[]. grmbl. jw.
        * XXX: make ktab[] a per user thing.
        */
-      if (ch == D_user->u_Esc) 
+      if (ch == D_user->u_Esc)
         ch = DefaultEsc;
-      else if (ch == D_user->u_MetaEsc) 
+      else if (ch == D_user->u_MetaEsc)
         ch = DefaultMetaEsc;
 
       if (ch >= 0)
@@ -2026,7 +2026,7 @@ CheckArgNum(int nr, char **args)
 {
   int i, n;
   static char *argss[] = {"no", "one", "two", "three", "four", "OOPS"};
-  static char *orformat[] = 
+  static char *orformat[] =
     {
       "%s: %s: %s argument%s required",
       "%s: %s: %s or %s argument%s required",
@@ -2041,18 +2041,18 @@ CheckArgNum(int nr, char **args)
     {
       if (i < n)
 	{
-	  Msg(0, "%s: %s: at least %s argument%s required", 
+	  Msg(0, "%s: %s: at least %s argument%s required",
 	      rc_name, comms[nr].name, argss[n], n != 1 ? "s" : "");
 	  return -1;
 	}
     }
-  else if ((comms[nr].flags & ARGS_PLUS1) && 
+  else if ((comms[nr].flags & ARGS_PLUS1) &&
            (comms[nr].flags & ARGS_PLUS2) &&
 	   (comms[nr].flags & ARGS_PLUS3))
     {
       if (i != n && i != n + 1 && i != n + 2 && i != n + 3)
         {
-	  Msg(0, orformat[3], rc_name, comms[nr].name, argss[n], 
+	  Msg(0, orformat[3], rc_name, comms[nr].name, argss[n],
 	      argss[n + 1], argss[n + 2], argss[n + 3], "");
 	  return -1;
 	}
@@ -2062,7 +2062,7 @@ CheckArgNum(int nr, char **args)
     {
       if (i != n && i != n + 1 && i != n + 2)
 	{
-	  Msg(0, orformat[2], rc_name, comms[nr].name, argss[n], 
+	  Msg(0, orformat[2], rc_name, comms[nr].name, argss[n],
 	      argss[n + 1], argss[n + 2], "");
           return -1;
 	}
@@ -2072,7 +2072,7 @@ CheckArgNum(int nr, char **args)
     {
       if (i != n && i != n + 1 && i != n + 3)
         {
-	  Msg(0, orformat[2], rc_name, comms[nr].name, argss[n], 
+	  Msg(0, orformat[2], rc_name, comms[nr].name, argss[n],
 	      argss[n + 1], argss[n + 3], "");
 	  return -1;
 	}
@@ -2082,7 +2082,7 @@ CheckArgNum(int nr, char **args)
     {
       if (i != n && i != n + 2 && i != n + 3)
         {
-	  Msg(0, orformat[2], rc_name, comms[nr].name, argss[n], 
+	  Msg(0, orformat[2], rc_name, comms[nr].name, argss[n],
 	      argss[n + 2], argss[n + 3], "");
 	  return -1;
 	}
@@ -2091,7 +2091,7 @@ CheckArgNum(int nr, char **args)
     {
       if (i != n && i != n + 1)
         {
-	  Msg(0, orformat[1], rc_name, comms[nr].name, argss[n], 
+	  Msg(0, orformat[1], rc_name, comms[nr].name, argss[n],
 	      argss[n + 1], n != 0 ? "s" : "");
 	  return -1;
 	}
@@ -2100,7 +2100,7 @@ CheckArgNum(int nr, char **args)
     {
       if (i != n && i != n + 2)
         {
-	  Msg(0, orformat[1], rc_name, comms[nr].name, argss[n], 
+	  Msg(0, orformat[1], rc_name, comms[nr].name, argss[n],
 	      argss[n + 2], "s");
 	  return -1;
 	}
@@ -2109,7 +2109,7 @@ CheckArgNum(int nr, char **args)
     {
       if (i != n && i != n + 3)
         {
-	  Msg(0, orformat[1], rc_name, comms[nr].name, argss[n], 
+	  Msg(0, orformat[1], rc_name, comms[nr].name, argss[n],
 	      argss[n + 3], "");
 	  return -1;
 	}
@@ -2508,7 +2508,7 @@ DoAction(struct action *act, int key)
 		debug1("AT display %s\n", D_usertty);
 		DoCommand(args + 1, argl + 1);
 		if (display)
-		  OutputMsg(0, "command from %s: %s %s", 
+		  OutputMsg(0, "command from %s: %s %s",
 		      s, args[1], args[2] ? args[2] : "");
 		display = NULL;
 		flayer = 0;
@@ -2528,8 +2528,8 @@ DoAction(struct action *act, int key)
 		  continue;
 		fore = D_fore;
 		flayer = D_forecv->c_layer;
-	        if (strncmp(args[0], D_usertty, n) && 
-		    (strncmp("/dev/", D_usertty, 5) || 
+	        if (strncmp(args[0], D_usertty, n) &&
+		    (strncmp("/dev/", D_usertty, 5) ||
 		     strncmp(args[0], D_usertty + 5, n)) &&
 		    (strncmp("/dev/tty", D_usertty, 8) ||
 		     strncmp(args[0], D_usertty + 8, n)))
@@ -2537,7 +2537,7 @@ DoAction(struct action *act, int key)
 		debug1("AT display %s\n", D_usertty);
 		DoCommand(args + 1, argl + 1);
 		if (display)
-		  OutputMsg(0, "command from %s: %s %s", 
+		  OutputMsg(0, "command from %s: %s %s",
 		      s, args[1], args[2] ? args[2] : "");
 		display = NULL;
 		fore = NULL;
@@ -2567,10 +2567,10 @@ DoAction(struct action *act, int key)
 		      continue;
 		    debug2("AT window %d(%s)\n", fore->w_number, fore->w_title);
 		    /*
-		     * consider this a bug or a feature: 
+		     * consider this a bug or a feature:
 		     * while looping through windows, we have fore AND
-		     * display context. This will confuse users who try to 
-		     * set up loops inside of loops, but often allows to do 
+		     * display context. This will confuse users who try to
+		     * set up loops inside of loops, but often allows to do
 		     * what you mean, even when you adress your context wrong.
 		     */
 		    i = 0;
@@ -2582,7 +2582,7 @@ DoAction(struct action *act, int key)
 		    if (fore && fore->w_layer.l_cvlist)
 		      {
 		        display = fore->w_layer.l_cvlist->c_display;
-		        OutputMsg(0, "command from %s: %s %s", 
+		        OutputMsg(0, "command from %s: %s %s",
 			    s, args[1], args[2] ? args[2] : "");
 		      }
 		  }
@@ -2603,7 +2603,7 @@ DoAction(struct action *act, int key)
 		if (fore && fore->w_layer.l_cvlist)
 		  {
 		    display = fore->w_layer.l_cvlist->c_display;
-		    OutputMsg(0, "command from %s: %s %s", 
+		    OutputMsg(0, "command from %s: %s %s",
 		        s, args[1], args[2] ? args[2] : "");
 		  }
 		display = NULL;
@@ -2629,7 +2629,7 @@ DoAction(struct action *act, int key)
 	    }
 	  args += 2;
 	}
-      /* 
+      /*
        * Without arguments we prompt for a destination register.
        * It will receive the copybuffer contents.
        * This is not done by RC_PASTE, as we prompt for source
@@ -2646,7 +2646,7 @@ DoAction(struct action *act, int key)
 	  break;
 	}
       ch = args[0][0];
-      /* 
+      /*
        * With two arguments we *really* read register contents from file
        */
       if (args[1])
@@ -2889,7 +2889,7 @@ DoAction(struct action *act, int key)
       {
 	int w, h;
 	int what = 0;
-	
+
         i = 1;
 	if (*args && !strcmp(*args, "-w"))
 	  what = 1;
@@ -3210,7 +3210,7 @@ DoAction(struct action *act, int key)
 	  }
 	if (args[1] == 0 && !fore)	/* no window? */
 	  break;
-	/*	
+	/*
 	 * with two arguments we paste into a destination register
 	 * (no window needed here).
 	 */
@@ -3224,7 +3224,7 @@ DoAction(struct action *act, int key)
 	  enc = fore->w_encoding;
 
 	/*
-	 * measure length of needed buffer 
+	 * measure length of needed buffer
 	 */
         for (ss = s = *args; (ch = *ss); ss++)
           {
@@ -3253,7 +3253,7 @@ DoAction(struct action *act, int key)
 	    break;
 	  }
 	/*
-	 * shortcut: 
+	 * shortcut:
 	 * if there is only one source and the destination is a window, then
 	 * pass a pointer rather than duplicating the buffer.
 	 */
@@ -3288,7 +3288,7 @@ DoAction(struct action *act, int key)
 	    l += pp->len;
           }
 	/*
-	 * when called with one argument we paste our buffer into the window 
+	 * when called with one argument we paste our buffer into the window
 	 */
 	if (args[1] == 0)
 	  {
@@ -3666,7 +3666,7 @@ DoAction(struct action *act, int key)
       break;
     case RC_VERBOSE:
       if (!*args)
-	OutputMsg(0, "W%s echo command when creating windows.", 
+	OutputMsg(0, "W%s echo command when creating windows.",
 	  VerboseCreate ? "ill" : "on't");
       else if (ParseOnOff(act, &n) == 0)
         VerboseCreate = n;
@@ -3783,7 +3783,7 @@ DoAction(struct action *act, int key)
       if (n == 0)
 	  OutputMsg(0, "%s: releasing console %s", rc_name, HostName);
       else if (console_window)
-	  OutputMsg(0, "%s: stealing console %s from window %d (%s)", rc_name, 
+	  OutputMsg(0, "%s: stealing console %s from window %d (%s)", rc_name,
 	      HostName, console_window->w_number, console_window->w_title);
       else
 	  OutputMsg(0, "%s: grabbing console %s", rc_name, HostName);
@@ -3958,7 +3958,7 @@ DoAction(struct action *act, int key)
 	      break;
 	    }
 	  strncpy(buf, SockPath, SockName - SockPath);
-	  sprintf(buf + (SockName - SockPath), "%d.%s", (int)getpid(), s); 
+	  sprintf(buf + (SockName - SockPath), "%d.%s", (int)getpid(), s);
 	  free(s);
 	  if ((access(buf, F_OK) == 0) || (errno != ENOENT))
 	    {
@@ -3997,14 +3997,14 @@ DoAction(struct action *act, int key)
       break;
     case RC_SLOWPASTE:
       if (*args == 0)
-	OutputMsg(0, fore->w_slowpaste ? 
+	OutputMsg(0, fore->w_slowpaste ?
                "Slowpaste in window %d is %d milliseconds." :
-               "Slowpaste in window %d is unset.", 
+               "Slowpaste in window %d is unset.",
 	    fore->w_number, fore->w_slowpaste);
       else if (ParseNum(act, &fore->w_slowpaste) == 0 && msgok)
 	OutputMsg(0, fore->w_slowpaste ?
                "Slowpaste in window %d set to %d milliseconds." :
-               "Slowpaste in window %d now unset.", 
+               "Slowpaste in window %d now unset.",
 	    fore->w_number, fore->w_slowpaste);
       break;
     case RC_MARKKEYS:
@@ -4035,12 +4035,12 @@ DoAction(struct action *act, int key)
       (void)ParseOnOff(act, &hardcopy_append);
       break;
     case RC_VBELL_MSG:
-      if (*args == 0) 
-        { 
+      if (*args == 0)
+        {
 	  char buf[256];
           AddXChars(buf, sizeof(buf), VisualBellString);
 	  OutputMsg(0, "vbell_msg is '%s'", buf);
-	  break; 
+	  break;
 	}
       (void)ParseSaveStr(act, &VisualBellString);
       debug1(" new vbellstr '%s'\n", VisualBellString);
@@ -5228,7 +5228,7 @@ CollapseWindowlist()
 }
 
 void
-DoCommand(char **argv, int *argl) 
+DoCommand(char **argv, int *argl)
 {
   struct action act;
   const char *cmd = *argv;
@@ -5316,7 +5316,7 @@ SaveArgs(char **args)
  *
  * argc is returned.
  */
-int 
+int
 Parse(char *buf, int bufl, char **args, int *argl)
 {
   register char *p = buf, **ap = args, *pp;
@@ -5601,7 +5601,7 @@ ParseNum(struct action *act, int *var)
           rc_name, comms[act->nr].name);
       return -1;
     }
-  i = 0; 
+  i = 0;
   while (*p)
     {
       if (*p >= '0' && *p <= '9')
@@ -5611,7 +5611,7 @@ ParseNum(struct action *act, int *var)
 	  Msg(0, "%s: %s: invalid argument. Give numeric argument.",
 	      rc_name, comms[act->nr].name);
 	  return -1;
-	}    
+	}
       p++;
     }
   debug1("ParseNum got %d\n", i);
@@ -5633,7 +5633,7 @@ ParseNum1000(struct action *act, int *var)
           rc_name, comms[act->nr].name);
       return -1;
     }
-  i = 0; 
+  i = 0;
   while (*p)
     {
       if (*p >= '0' && *p <= '9')
@@ -5652,7 +5652,7 @@ ParseNum1000(struct action *act, int *var)
 	  Msg(0, "%s: %s: invalid argument. Give floating point argument.",
 	      rc_name, comms[act->nr].name);
 	  return -1;
-	}    
+	}
       p++;
     }
   if (dig == 0)
@@ -5696,7 +5696,7 @@ WindowByNumber(char *str)
   return *s ? -1 : i;
 }
 
-/* 
+/*
  * Get window number from Name or Number string.
  * Numbers are tried first, then names, a prefix match suffices.
  * Be careful when assigning numeric strings as WindowTitles.
@@ -5706,7 +5706,7 @@ WindowByNoN(char *str)
 {
   int i;
   struct win *p;
-  
+
   if ((i = WindowByNumber(str)) < 0 || i >= maxwin)
     {
       if ((p = WindowByName(str)))
@@ -5727,7 +5727,7 @@ ParseWinNum(struct action *act, int *var)
       Msg(0, "%s: %s: one argument required.", rc_name, comms[act->nr].name);
       return -1;
     }
-  
+
   i = WindowByNoN(*args);
   if (i < 0)
     {
@@ -5762,7 +5762,7 @@ ParseBase(struct action *act, char *p, int *var, int base, char *bname)
 	{
 	  Msg(0, "%s: %s: argument is not %s.", rc_name, comms[act->nr].name, bname);
 	  return -1;
-	}    
+	}
       i = base * i + c;
     }
   debug1("ParseBase got %d\n", i);
@@ -5820,7 +5820,7 @@ SwitchWindow(int n)
       return;
     }
   SetForeWindow(p);
-  Activate(fore->w_norefresh);  
+  Activate(fore->w_norefresh);
 }
 
 /*
@@ -5849,7 +5849,7 @@ SetForeWindow(struct win *win)
 
 /*****************************************************************/
 
-/* 
+/*
  *  Activate - make fore window active
  *  norefresh = -1 forces a refresh, disregard all_norefresh then.
  */
@@ -6220,7 +6220,7 @@ ShowInfo()
   sprintf(p += strlen(p), "+%d", wp->w_histheight);
   sprintf(p += strlen(p), " %c%sflow",
   	  (wp->w_flow & FLOW_NOW) ? '+' : '-',
-	  (wp->w_flow & FLOW_AUTOFLAG) ? "" : 
+	  (wp->w_flow & FLOW_AUTOFLAG) ? "" :
 	   ((wp->w_flow & FLOW_AUTO) ? "(+)" : "(-)"));
   if (!wp->w_wrap) sprintf(p += strlen(p), " -wrap");
   if (wp->w_insert) sprintf(p += strlen(p), " ins");
@@ -6473,7 +6473,7 @@ SelectLayoutFin(char *buf, int len, char *data)
     }
 }
 
-    
+
 static void
 InputSelect()
 {
@@ -6490,7 +6490,7 @@ SetenvFin1(char *buf, int len, char *data)
     return;
   InputSetenv(buf);
 }
-  
+
 static void
 SetenvFin2(char *buf, int len, char *data)
 {
@@ -6519,7 +6519,7 @@ InputSetenv(char *arg)
 /*
  * the following options are understood by this parser:
  * -f, -f0, -f1, -fy, -fa
- * -t title, -T terminal-type, -h height-of-scrollback, 
+ * -t title, -T terminal-type, -h height-of-scrollback,
  * -ln, -l0, -ly, -l1, -l
  * -a, -M, -L
  */
@@ -6580,7 +6580,7 @@ DoScreen(char *fn, char **av)
 	    nwin.histheight = atoi(av[0] + 2);
 	  else if (*++av)
 	    nwin.histheight = atoi(*av);
-	  else 
+	  else
 	    --av;
 	  break;
 #ifdef LOGOUTOK
@@ -6670,7 +6670,7 @@ CompileKeys(char *s, int sl, unsigned char *array)
       if (*s != '=' || sl < 3)
 	return -1;
       sl--;
-      do 
+      do
 	{
 	  s++;
 	  sl -= 2;
@@ -6678,7 +6678,7 @@ CompileKeys(char *s, int sl, unsigned char *array)
 	  array[value] = key;
 	}
       while (*s == '=' && sl >= 2);
-      if (sl == 0) 
+      if (sl == 0)
 	break;
       if (*s++ != ':')
 	return -1;
@@ -6834,7 +6834,7 @@ pass2(char *buf, int len, char *data)
       if (buf)
         memset(buf, 0, strlen(buf));
     }
-  
+
   if (u->u_password != NullStr)
     {
       for (st = 0; st < 2; st++)

@@ -210,7 +210,7 @@ InitTermcap(int wi, int he)
 	D_BE = 1;
     }
   if (nwin_options.flowflag == nwin_undef.flowflag)
-    nwin_default.flowflag = D_CNF ? FLOW_NOW * 0 : 
+    nwin_default.flowflag = D_CNF ? FLOW_NOW * 0 :
 			    D_NX ? FLOW_NOW * 1 :
 			    FLOW_AUTOFLAG;
   D_CLP |= (!D_AM || D_XV || D_XN);
@@ -286,7 +286,7 @@ InitTermcap(int wi, int he)
       D_attrtab[i] = D_tcs[T_ATTR + i].str;
       D_attrtyp[i] = i == ATTR_SO ? xse : (i == ATTR_US ? xue : xme);
     }
-  
+
   /* Set up missing entries (attributes are priority ordered) */
   s = 0;
   t = 0;
@@ -793,7 +793,7 @@ AddCap(char *s)
 }
 
 /*
- * Reads a displays capabilities and reconstructs a termcap entry in the 
+ * Reads a displays capabilities and reconstructs a termcap entry in the
  * global buffer "Termcap". A pointer to this buffer is returned.
  */
 char *
@@ -1132,7 +1132,7 @@ CreateTransTable(char *s)
       if (*s++ == 0)
 	break;
       while (*s && *s != ',')
-	{    
+	{
 	  c = (unsigned char)*s++;
 	  if (QUOTES((s - 1)))
 	    c = (unsigned char)*s++;

@@ -115,7 +115,7 @@ static struct ttyent *getttyent (void);
  * how = 0	try to withdraw a utmp slot.
  *
  * w_slot = -1  window not logged in.
- * w_slot = 0   window not logged in, but should be logged in. 
+ * w_slot = 0   window not logged in, but should be logged in.
  *              (unable to write utmp, or detached).
  */
 
@@ -353,7 +353,7 @@ RestoreLoginSlot()
  * down the name of his terminal line; else he is remote and we keep
  * the hostname here. The letter S and the window id will be appended.
  * A saved utmp entry in wi->w_savut serves as a template, usually.
- */ 
+ */
 
 int
 SetUtmp(struct win *win)

@@ -78,7 +78,7 @@ static void  AskPassword (struct msg *);
  *  If none exists or fdp is NULL SockPath is not changed.
  *
  *  Returns: number of good sockets.
- *    
+ *
  */
 
 int
@@ -472,10 +472,10 @@ MakeServerSocket()
     {
       debug("oooooh! socket already is alive!\n");
       if (quietflag)
-	{ 
+	{
 	  Kill(D_userpid, SIG_BYE);
-	  /* 
-	   * oh, well. nobody receives that return code. papa 
+	  /*
+	   * oh, well. nobody receives that return code. papa
 	   * dies by signal.
 	   */
 	  eexit(11);
@@ -958,7 +958,7 @@ ReceiveMsg()
 	  {
 	    /* XXX: hmmm, rework this? */
             display = wi->w_layer.l_cvlist ? wi->w_layer.l_cvlist->c_display : 0;
-	    debug2("but window %s %sfound.\n", m.m_tty, display ? "" : 
+	    debug2("but window %s %sfound.\n", m.m_tty, display ? "" :
 	    	   "(backfacing)");
 	    break;
           }
@@ -1090,7 +1090,7 @@ chsock()
         return UserStatus();
     }
   r = chmod(SockPath, SOCKMODE);
-  /* 
+  /*
    * Sockets usually reside in the /tmp/ area, where sysadmin scripts
    * may be happy to remove old files. We manually prevent the socket
    * from becoming old. (chmod does not touch mtime).
@@ -1147,7 +1147,7 @@ FinishAttach(struct msg *m)
    * We reboot our Terminal Emulator. Forget all we knew about
    * the old terminal, reread the termcap entries in .screenrc
    * (and nothing more from .screenrc is read. Mainly because
-   * I did not check, weather a full reinit is safe. jw) 
+   * I did not check, weather a full reinit is safe. jw)
    * and /etc/screenrc, and initialise anew.
    */
   if (extra_outcap)
@@ -1211,7 +1211,7 @@ FinishAttach(struct msg *m)
    * there may be a window that we remember from last detach:
    */
   debug1("D_user->u_detachwin = %d\n", D_user->u_detachwin);
-  if (D_user->u_detachwin >= 0) 
+  if (D_user->u_detachwin >= 0)
     fore = wtab[D_user->u_detachwin];
   else
     fore = 0;
@@ -1547,13 +1547,13 @@ SendAttachMsg(int s, struct msg *m, int fd)
   memset(&msg, 0, sizeof(msg));
   msg.msg_name = 0;
   msg.msg_namelen = 0;
-  msg.msg_iov = &iov; 
+  msg.msg_iov = &iov;
   msg.msg_iovlen = 1;
   msg.msg_control = buf;
   msg.msg_controllen = sizeof(buf);
   cmsg = CMSG_FIRSTHDR(&msg);
   cmsg->cmsg_level = SOL_SOCKET;
-  cmsg->cmsg_type = SCM_RIGHTS; 
+  cmsg->cmsg_type = SCM_RIGHTS;
   cmsg->cmsg_len = CMSG_LEN(sizeof(int));
   memmove(CMSG_DATA(cmsg), &fd, sizeof(int));
   msg.msg_controllen = cmsg->cmsg_len;

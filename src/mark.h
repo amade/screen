@@ -49,7 +49,7 @@ struct markdata
   struct {              /* bookkeeping for fFtT;, commands */
     int flag, target, direction;
   } f_cmd;
-    
+
 };
 
 

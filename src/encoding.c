@@ -1,19 +1,19 @@
 /* Copyright (c) 1993-2003
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
- * Copyright (c) 1987 Oliver Laumann 
+ * Copyright (c) 1987 Oliver Laumann
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option) 
+ * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
  *
- * This program is distributed in the hope that it will be useful, 
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License 
+ * You should have received a copy of the GNU General Public License
  * along with this program (see the file COPYING); if not, see
  * http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
@@ -40,7 +40,7 @@ struct encoding {
   int  deffont;
   int  usegr;
   int  noc1;
-  char *fontlist; 
+  char *fontlist;
 };
 
 /* big5 font:   ^X */
@@ -613,12 +613,12 @@ AddUtf8(int c)
   if (c >= 0x800)
     {
       AddChar((c & 0xf000) >> 12 | 0xe0);
-      c = (c & 0x0fff) | 0x1000; 
+      c = (c & 0x0fff) | 0x1000;
     }
   if (c >= 0x80)
     {
       AddChar((c & 0x1fc0) >> 6 ^ 0xc0);
-      c = (c & 0x3f) | 0x80; 
+      c = (c & 0x3f) | 0x80;
     }
   AddChar(c);
 }
@@ -643,16 +643,16 @@ ToUtf8(char *p, int c)
   if (c >= 0x800)
     {
       if (p)
-	*p++ = (c & 0xf000) >> 12 | 0xe0; 
+	*p++ = (c & 0xf000) >> 12 | 0xe0;
       l++;
-      c = (c & 0x0fff) | 0x1000; 
+      c = (c & 0x0fff) | 0x1000;
     }
   if (c >= 0x80)
     {
       if (p)
-	*p++ = (c & 0x1fc0) >> 6 ^ 0xc0; 
+	*p++ = (c & 0x1fc0) >> 6 ^ 0xc0;
       l++;
-      c = (c & 0x3f) | 0x80; 
+      c = (c & 0x3f) | 0x80;
     }
   if (p)
     *p++ = c;
@@ -1161,9 +1161,9 @@ DecodeChar(int c, int encoding, int *statep)
       if (0x40 <= t && t <= 0xfc && t != 0x7f)
 	{
 	  if (c <= 0x9f)
-	    c = (c - 0x81) * 2 + 0x21; 
+	    c = (c - 0x81) * 2 + 0x21;
 	  else
-	    c = (c - 0xc1) * 2 + 0x21; 
+	    c = (c - 0xc1) * 2 + 0x21;
 	  if (t <= 0x7e)
 	    t -= 0x1f;
 	  else if (t <= 0x9e)
@@ -1299,7 +1299,7 @@ EncodeChar(char *bp, int c, int encoding, int *fontp)
 	    return 2;
 	  t = c & 0xff;
 	  c = (c >> 8) & 0xff;
-	  t += (c & 1) ? ((t <= 0x5f) ? 0x1f : 0x20) : 0x7e; 
+	  t += (c & 1) ? ((t <= 0x5f) ? 0x1f : 0x20) : 0x7e;
 	  c = (c - 0x21) / 2 + ((c < 0x5f) ? 0x81 : 0xc1);
 	  *bp++ = c;
 	  *bp++ = t;
@@ -1439,7 +1439,7 @@ PrepareEncodedChar(int c)
         return c | 0x80;
       else if (f == KANJI)
 	{
-	  t += (c & 1) ? ((t <= 0x5f) ? 0x1f : 0x20) : 0x7e; 
+	  t += (c & 1) ? ((t <= 0x5f) ? 0x1f : 0x20) : 0x7e;
 	  c = (c - 0x21) / 2 + ((c < 0x5f) ? 0x81 : 0xc1);
 	  D_mbcs = t;
 	}

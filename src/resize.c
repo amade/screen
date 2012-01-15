@@ -93,7 +93,7 @@ CheckScreenSize(int change_flag)
   wi = D_CO;
   he = D_LI;
 #endif
-  
+
   debug2("CheckScreenSize: screen is (%d,%d)\n", wi, he);
 
   if (D_width == wi && D_height == he)
@@ -525,7 +525,7 @@ MakeBlankLine(register unsigned char *p, register int n)
         : &p->w_mlines[y - p->w_histheight])
 
 #define NEWWIN(y) ((y < hi) ? &nhlines[y] : &nmlines[y - hi])
-	
+
 
 int
 ChangeWindowSize(struct win *p, int wi, int he, int hi)
@@ -811,8 +811,8 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
 	      return -1;
 	    }
 	  for (; t < wi; t++)
-	    p->w_tabs[t] = t && !(t & 7) ? 1 : 0; 
-	  p->w_tabs[wi] = 0; 
+	    p->w_tabs[t] = t && !(t & 7) ? 1 : 0;
+	  p->w_tabs[wi] = 0;
 	}
       else
 	{

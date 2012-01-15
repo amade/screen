@@ -35,7 +35,7 @@
 # include <signal.h>
 #endif
 
-#include "config.h" 
+#include "config.h"
 #include "screen.h"
 #include "extern.h"
 
@@ -291,7 +291,7 @@ FinishRc(char *rcfilename)
       else if (RcFileName && !strcmp(RcFileName, rc_nonnull))
 	{
     	  /*
- 	   * User explicitly gave us that name, 
+ 	   * User explicitly gave us that name,
 	   * this is the only case, where we get angry, if we can't read
 	   * the file.
 	   */
@@ -540,7 +540,7 @@ WriteFile(struct acluser *user, char *fn, int dump)
 
 /*
  * returns an allocated buffer which holds a copy of the file named fn.
- * lenp (if nonzero) points to a location, where the buffer size should be 
+ * lenp (if nonzero) points to a location, where the buffer size should be
  * stored.
  */
 char *
@@ -573,14 +573,14 @@ ReadFile(char *fn, int *lenp)
   errno = 0;
   if ((l = read(i, buf, size)) != size)
     {
-      if (l < 0) 
+      if (l < 0)
         l = 0;
       Msg(errno, "Got only %d bytes from %s", l, fn);
     }
   else
     {
       if (read(i, &c, 1) > 0)
-	Msg(0, "Slurped only %d characters (of %d) into buffer - try again", 
+	Msg(0, "Slurped only %d characters (of %d) into buffer - try again",
 	    l, size);
       else
 	Msg(0, "Slurped %d characters into buffer", l);

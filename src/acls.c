@@ -53,8 +53,8 @@
 
 struct acluser *users;
 
-/* 
- * Returns an nonzero Address. Its contents is either a User-ptr, 
+/*
+ * Returns an nonzero Address. Its contents is either a User-ptr,
  * or NULL which may be replaced by a User-ptr to create the entry.
  */
 struct acluser **
@@ -73,7 +73,7 @@ int DefaultEsc = -1;		/* initialised by screen.c:main() */
 int DefaultMetaEsc = -1;
 
 /*
- * Add a new user. His password may be NULL or "" if none. His name must not 
+ * Add a new user. His password may be NULL or "" if none. His name must not
  * be "none", as this represents the NULL-pointer when dealing with groups.
  * He has default rights, determined by umask.
  */
@@ -105,16 +105,16 @@ UserAdd(char *name, char *pass, struct acluser **up)
     (*up)->u_password = NullStr;
   (*up)->u_detachwin = -1;
   (*up)->u_detachotherwin = -1;
-  
+
   debug1("UserAdd %s\n", name);
   return 0;
 }
 
-/* 
- * Remove a user from the list. 
+/*
+ * Remove a user from the list.
  * Destroy all his permissions and completely detach him from the session.
  */
-int 
+int
 UserDel(char *name, struct acluser **up)
 {
   struct acluser *u;
