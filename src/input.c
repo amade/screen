@@ -85,7 +85,7 @@ void
 inp_setprompt(char *p, char *s)
 {
   struct inpdata *inpdata;
-  
+
   inpdata = (struct inpdata *)flayer->l_data;
   if (p)
     {
@@ -119,7 +119,7 @@ Input(char *istr, int len, int mode, void (*finfunc) (char *buf, int len, char *
 {
   int maxlen;
   struct inpdata *inpdata;
-  
+
   if (!flayer)
     return;
 

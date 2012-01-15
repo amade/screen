@@ -33,7 +33,7 @@
  *
  * 08.07.91 -- 3.00.01 -wipe and a 'setenv TERM dumb' bugfix.
  * 17.07.91 -- 3.00.02 another patchlevel by Wayne Davison
- * 31.07.91 -- 3.00.03 E0, S0, C0 for flexible semi-graphics, nonblocking 
+ * 31.07.91 -- 3.00.03 E0, S0, C0 for flexible semi-graphics, nonblocking
  *                     window title input and 'C-a :' command input.
  * 10.08.91 -- 3.00.04 scrollback, markkeys and some bugfixes.
  * 13.08.91 -- 3.00.05 mark routine improved, ansi prototypes added.
@@ -55,9 +55,9 @@
  * 21.01.92 -- 3.01.05 '^A:screen 11' bug fixed. aflag in DoScreen().
  *                     Some code cleanup. attach_tty and display_tty[]
  *                     added.
- * 26.01.92 -- 3.01.06 apollo support, "hardcopy_append on", "bufferfile", 
+ * 26.01.92 -- 3.01.06 apollo support, "hardcopy_append on", "bufferfile",
  *                     SECURITY PROBLEM cleared..
- * 28.01.92 -- 3.01.07 screen after su allowed. Pid became part of 
+ * 28.01.92 -- 3.01.07 screen after su allowed. Pid became part of
  *                     SockName. sysvish 14 character restriction considered.
  * 31.01.92 -- 3.02.00 Ultrix port, Irix 3.3 SGI port, shadow pw support,
  *                     data loss on stdin overflow fixed. "refresh off".
@@ -78,7 +78,7 @@
  * 22.10.92 -- 3.02.10 screen.c/ansi.c splitted in several pieces.
  *                     Better ISearch. Cleanup of loadav.c
  * 29.10.92 -- 3.02.11 Key mechanism rewritten. New command names.
- *                     New iscreenrc syntax. 
+ *                     New iscreenrc syntax.
  * 02.11.92 -- 3.02.12 'bind g copy_reg' and 'bind x ins_reg' as suggested by
  *                     stillson@tsfsrv.mitre.org (Ken Stillson).
  * 03.11.92 -- 3.02.13 Ported to SunOs 4.1.2. Gulp. Some NULL ptrs fixed and
@@ -91,13 +91,13 @@
  *                     Tim's async output patch.
  *                     Fixed an ugly bug in WriteString().
  *                     New command: 'process'
- * 16.11.92 -- 3.02.17 Nuking unsent tty output is now optional, (toxic 
- *                     ESC radiation). 
+ * 16.11.92 -- 3.02.17 Nuking unsent tty output is now optional, (toxic
+ *                     ESC radiation).
  * 30.11.92 -- 3.02.18 Lots of multi display bugs fixed. New layer
  *                     function 'Restore'. MULTIUSER code cleanup.
  *                     Rudimental acls added for multiuser.
  *                     No more error output, when output gives write errors.
- * 02.12.92 -- 3.02.19 BROKEN_PIPE and SOCK_NOT_IN_FS defines added for 
+ * 02.12.92 -- 3.02.19 BROKEN_PIPE and SOCK_NOT_IN_FS defines added for
  *                     braindead systems. Bug in recover socket code fixed.
  *                     Can create windows again from shell.
  * 22.12.92 -- 3.02.20 Made a superb configure script. STY and break fixed.
@@ -110,20 +110,20 @@
  *                     in the redisplay and mark function.
  * 19.03.93 -- 3.03.00 Patched for BSD386. pseudos work.
  * 31.03.93 -- 3.03.01 Don't allocate so much empty attr and font lines.
- * 04.04.93 -- 3.03.02 fixed :exec !..| less and :|less, patched BELL_DONE & 
- *                     ^B/^F. Fixed auto_nuke attribute resetting. Better linux 
+ * 04.04.93 -- 3.03.02 fixed :exec !..| less and :|less, patched BELL_DONE &
+ *                     ^B/^F. Fixed auto_nuke attribute resetting. Better linux
  *                     configure. ^AW shows '&' when window has other attacher.
- *                     MAXWIN > 10 patch. KEEP_UNDEF in config.h.in, shellaka 
- *                     bug fixed. dec alpha port. Solaris port. 
- * 02.05.93 -- 3.03.03 Configure tweaked for sgi. Update environment with 
- *                     setenv command. Silence on|off, silencewait <sec>, 
+ *                     MAXWIN > 10 patch. KEEP_UNDEF in config.h.in, shellaka
+ *                     bug fixed. dec alpha port. Solaris port.
+ * 02.05.93 -- 3.03.03 Configure tweaked for sgi. Update environment with
+ *                     setenv command. Silence on|off, silencewait <sec>,
  *                     defautonuke commands added. Manual page updated.
  * 13.05.93 -- 3.03.04 exit in newsyntax script, finished _CX_UX port.
- *                     Texinfo page added by Jason Merrill. Much longish debug 
+ *                     Texinfo page added by Jason Merrill. Much longish debug
  *                     output removed. Select window by title (or number).
  * 16.06.93 -- 3.04.00 Replaced ^A- by ^A^H to be complementary to ^A SPACE.
  *                     Moved into CVS. Yacc.
- * 28.06.93 -- 3.04.01 Fixed selecting windows with numeric title. Silence 
+ * 28.06.93 -- 3.04.01 Fixed selecting windows with numeric title. Silence
  *                     now works without nethackoption set.
  * 01.07.93 -- 3.04.02 Implementing real acls.
  * 22.07.93 -- 3.05.00 Fixed SVR4, some multiuser bugs, -- DISTRIBUTED
@@ -136,7 +136,7 @@
  * 13.08.93 -- 3.05.02 ultrix support added. expand_vars removed from
  *                     register function. Paste bug fixed.
  *                     sysmacros.h now included in pty.c on sgis
- *                     Strange hpux hack added for TTYCMP. 
+ *                     Strange hpux hack added for TTYCMP.
  *                     Zombie feature improved.
  * 08.09.93 -- 3.05.03 Makefile and OSF1 fine tuning. Eased attach to
  *                     multi sessions. Writelock now obeys acl write
@@ -144,18 +144,18 @@
  *                     acladd/aclchg syntax improved. Updated
  *                     documentation. Bug in at command fixed.
  *                     MakeWindow() now obeys perm defaults.
- * 03.10.93 -- 3.05.90 Multiple displays can now share the same window. 
+ * 03.10.93 -- 3.05.90 Multiple displays can now share the same window.
  *                     Layers now belong to Windows. "Select -" yields a blank
  *                     page. Debug output can be switched on/off at runtime.
  *                     Number command changes window number and utmp-slot.
- * 14.10.93 -- 3.05.91 Mechanism to find the "best" window added. Much 
- *                     debugging done and still needed. Slowpaste setting now 
- *                     per window. Preserving fore AND other window when 
+ * 14.10.93 -- 3.05.91 Mechanism to find the "best" window added. Much
+ *                     debugging done and still needed. Slowpaste setting now
+ *                     per window. Preserving fore AND other window when
  *                     detached. Per user settings for `monitor' and `silence'.
  *                     New command `su'. BlankWindow performs now ColonInput.
  *                     History command fixed, it depended on paste code that
  *                     was previously changed to allow concatenation of buffers.
- *                     Fixing umask problem with WriteFile() reported by Jamie 
+ *                     Fixing umask problem with WriteFile() reported by Jamie
  *                     Mason.
  * 30.11.93 -- 3.05.04 Kanji support added. New keymap feature:
  *                     bindkey and various map commands. GR and C1
@@ -163,12 +163,12 @@
  * 30.11.93 -- 3.05.92 Kanji support added. New keymap feature:
  *                     bindkey and various map commands. GR and C1
  *                     flags now define the character processing.
- * 17.12.93 -- 3.05.93 Tcon authentification mechanism. AddChar macro broken up 
- *                     into 2 functions. Acl.c, network.c, misc.c, termcap.c 
- *                     and tty.c are now display free! 
+ * 17.12.93 -- 3.05.93 Tcon authentification mechanism. AddChar macro broken up
+ *                     into 2 functions. Acl.c, network.c, misc.c, termcap.c
+ *                     and tty.c are now display free!
  * 27.12.93 -- 3.05.94 Telnet login works, can export one window per mux.
  *                     Acl-groups added. Export rights is an acl.
- *                     connect works, can create shadow window thus import 
+ *                     connect works, can create shadow window thus import
  *                     command channel and switch windows. Can detach sessions
  *                     from each other. Can renumber imported and exported
  *                     windows. DL_LOOP prevents now SEGV, sessions have names
@@ -176,7 +176,7 @@
  * 03.01.94 -- 3.05.95 Import and export of any number of channels works,
  *                     except a small bug with margin handling when exporting.
  *                     Window titles are forwarded, break is forwarded and
- *                     tcon learned the mux protocoll. A few more bugs in 
+ *                     tcon learned the mux protocoll. A few more bugs in
  *                     network.c fixed. Tcon has Mux arrays, Protocoll is '\0'
  *                     free.
  * 08.01.94 -- 3.05.96 More tcon work. Solaris debugging.
@@ -184,8 +184,8 @@
  * 14.01.94 -- 3.05.05 New FindSocket() code. Nicer socket handling.
  * 20.01.94 -- 3.05.06 New attribute handling code. NeXT fixes.
  * 04.02.94 -- 3.05.07 Ugly bug in ScrollH fixed. Keymap defaults.
- * 10.03.94 -- 3.05.97 'defsilence' by Lloyd Zusman. Zombie resurrekt key. 
- *                     -b, -p options. Fixed Compilekeys(), gulp. config.h 
+ * 10.03.94 -- 3.05.97 'defsilence' by Lloyd Zusman. Zombie resurrekt key.
+ *                     -b, -p options. Fixed Compilekeys(), gulp. config.h
  *                     allows choice of VMIN/VTIME/NDELAY for ttys.
  * 13.04.94 -- 3.05.08 Kanji bug fixed. POSIX sigaction support.
  *                     os.h cleanup. UTNOKEEP splitted into
@@ -199,15 +199,15 @@
  * 09.05.94 -- 3.05.11 seteuid() support added. Security fixes.
  *                     _IBMR2 kludge makes call to sleep obsolete.
  *                     Small fixes in uname() code. djm suggests replace of
- *                     BSDI by __bsdi__. 
+ *                     BSDI by __bsdi__.
  * 27.07.94 -- 3.05.12 seteuid attacher bug fixed. ks/ke changed
  *                     in termcap/info and termcap.c
- * 01.09.94 -- 3.05.58 (There are a few more patches to come, subtracted 40) 
+ * 01.09.94 -- 3.05.58 (There are a few more patches to come, subtracted 40)
  *                     breaktype command to select how we cause breaks.
  *                     Testing logfile.c. Manual and texinfo documentation
  *                     updated to explain all new commands except keymapping.
- *                     Added modem lines to info of plain ttys. Using 
- *                     cfset{i,o}speed() for POSIX is better, much better. 
+ *                     Added modem lines to info of plain ttys. Using
+ *                     cfset{i,o}speed() for POSIX is better, much better.
  * 07.09.94 -- 3.05.59 Flushing logfiles every 5 seconds. Testing new
  *                     resize linewrap code. Resize with care.
  *                     Resurrect now displays its command string.
@@ -221,12 +221,12 @@
  *                     ':' removed. Termcap entry improved.
  *                     copy_reg and ins_reg obsoleted by better paste command:
  *                     paste        =>  paste .
- *                     copy_reg r   =>  paste . r 
+ *                     copy_reg r   =>  paste . r
  *                     ins_reg r    =>  paste r
  *                     ins_reg      =>  paste
  * 18.10.94 -- 3.05.62 breaktype changed. -L option added to enable logging
  *                     from both command line and screenrc. SIGXFSZ ignored.
- * 28.11.94 -- 3.05.63 ACL's sharpened. No user has any rights, unless 
+ * 28.11.94 -- 3.05.63 ACL's sharpened. No user has any rights, unless
  *                     explicitly given. Only two exceptions: 1) "acladd user"
  *                     without further parameters. 2) Evry user has a default
  *                     umask that gives himself all permissions on the windows
@@ -238,12 +238,12 @@
  *                     defbreaktype added. (breaktype is also global, still...)
  *                     SIGARGHACK cleared, to pamper poor little Ultrix4.4 cfe.
  *                     defescape added.
- *                     w_status changed to w_hstatus, it's a #define in 
+ *                     w_status changed to w_hstatus, it's a #define in
  *                     Domain/OS reported by ejackson@iastate.edu.
  * 05.12.94 -- 3.05.17 SVR4 pty bug fixed, don't update window status
  *                     line if not changed, onyx support. Manual
  *                     pages updated.
- * 14.12.94 -- 3.05.18 w_status changed to w_hstatus, it's a #define in 
+ * 14.12.94 -- 3.05.18 w_status changed to w_hstatus, it's a #define in
  *                     Domain/OS reported by ejackson@iastate.edu.
  *                     Screen manpage patches by larry.
  *                     Ugly seteuid bug in ForkWindow() fixed.
@@ -269,10 +269,10 @@
  * 07.02.95 -- 3.05.67 WinRewrite() also needs to clip. Users without unix
  *                     account, but with screen password allowed. Chacl
  *                     allows password change, su prompts for user name too.
- * 01.03.95 -- 3.05.68 Leaving a window may now cause a resize to match a 
+ * 01.03.95 -- 3.05.68 Leaving a window may now cause a resize to match a
  *                     remaining display. Simple ESC-CR fix in the vt100
  *                     state machine.
- * 26.03.95 -- 3.05.69 Markroutine() needs to resize the window to avoid 
+ * 26.03.95 -- 3.05.69 Markroutine() needs to resize the window to avoid
  *                     coredumps, just like WinProcess() already does.
  *                     More NEED_ flags added in comm.c to avoid coredumps.
  * 04.04.95 -- 3.06.02 Simple ESC-CR fix in the vt100 state machine.
@@ -286,8 +286,8 @@
  *                     Paste bug fixed (only worked with KANJI).
  *                     Check bcopy before memcpy/memmove.
  *                     FindSocket code much fixed & improved.
- * 10.04.95 -- 3.05.70 Display_displays() now shows the users permissions on 
- *                     the currently displayed window, this is easier than a 
+ * 10.04.95 -- 3.05.70 Display_displays() now shows the users permissions on
+ *                     the currently displayed window, this is easier than a
  *                     full featured lsacl, but also helps. chacl can now copy
  *                     users, but we need to copy windows.
  * 26.04.95 -- 3.05.71 Multi digit screen numbers in utmp. MakeWindow() now
@@ -298,8 +298,8 @@
  *                     'debug off' also shuts attacher debugging off now.
  * 03.05.95 -- 3.05.72 'connect' command bugfixed. colon prompt improved.
  *                     open(O_NONBLOCK) does not work on 4.1.3, using O_NDELAY.
- *                     There are writes to exp_wid2chan[-1], XXX I just added 
- *                     fillers to the mux structure, please debug this ASAP! 
+ *                     There are writes to exp_wid2chan[-1], XXX I just added
+ *                     fillers to the mux structure, please debug this ASAP!
  *                     WindowByName() prefers exact matches now. Esc forwarding
  *                     from Frontend to Backend suppressed unless specified.
  * 26.06.95 -- 3.05.73 Improving the combination of dflag and rflag: If both
@@ -307,7 +307,7 @@
  *                     if it was previously detached or attached elseewhere.
  *                     "screen -D -RR" is thus most powerful: Give me my screen
  *                     session here and now. No matter, if this means creating
- *                     a new session (due to the second R without warning 
+ *                     a new session (due to the second R without warning
  *                     message), detching the session first (and due to the
  *                     capitalised D logging out), or simply attaching to it.
  * 13.07.95 -- 3.05.74 Markroutine learned new join mode: comma seperated.
@@ -324,7 +324,7 @@
  *                     (includes sun C2).
  * 06.09.95 -- 3.05.76 Added support for braille displays (by Hadi Bargi Rangin
  *                     and Bill Barry, {bargy,barryb}@dots.physics.orst.edu
- *                     Added baud, cs8, istrip, ixon, ixoff  options for plain 
+ *                     Added baud, cs8, istrip, ixon, ixoff  options for plain
  *                     tty windows. Untested.
  * 09.09.95 -- 3.07.99 Merged 3.7.76 back into the main distribution but
  *                     without network, blankwindow and dlist support.
@@ -361,7 +361,7 @@
  * 17.11.95 -- 3.07.00 Added CheckEscape() function.
  *                     acl -> acls because of hpux10 nameclash
  *                     /stand/vmunix added to kernel list (hpux10)
- *                     stripdev changed to translate 
+ *                     stripdev changed to translate
  *                     /dev/pts<n> to /dev/pts/<n> (unixware)
  *                     -lgen added to GETUTENT configure test.
  * 20.11.95 -- 3.07.01 corrected vbell null ptr reference.
@@ -369,7 +369,7 @@
  * 27.11.95 -- 3.08.02 Added CheckEscape() function.
  *                     acl -> acls because of hpux10 nameclash
  *                     /stand/vmunix added to kernel list (hpux10)
- *                     stripdev changed to translate 
+ *                     stripdev changed to translate
  *                     /dev/pts<n> to /dev/pts/<n> (unixware)
  *                     -lgen added to GETUTENT configure test.
  *                     corrected vbell null ptr reference

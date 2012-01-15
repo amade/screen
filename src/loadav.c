@@ -75,17 +75,17 @@ GetLoadav()
 	break;
       for(;;)
 	{
-	  if (*s == '.') 
+	  if (*s == '.')
 	    e = 1;
-	  else if (*s >= '0' && *s <= '9') 
+	  else if (*s >= '0' && *s <= '9')
 	    {
-	      d = d * 10 + (*s - '0'); 
+	      d = d * 10 + (*s - '0');
 	      if (e)
 		e *= 10;
 	    }
-	  else    
+	  else
 	    break;
-	  s++;    
+	  s++;
 	}
       loadav[i] = e ? d / e : d;
     }

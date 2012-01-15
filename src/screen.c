@@ -165,7 +165,7 @@ int tty_oldmode = -1;
 char HostName[MAXSTR];
 int MasterPid, PanicPid;
 uid_t real_uid, eff_uid;
-gid_t real_gid, eff_gid; 
+gid_t real_gid, eff_gid;
 int default_startup;
 int ZombieKey_destroy, ZombieKey_resurrect, ZombieKey_onerror;
 char *preselect = NULL;		/* only used in Attach() */
@@ -198,7 +198,7 @@ char strnomem[] = "Out of memory.";
 static int InterruptPlease;
 static int GotSigChld;
 
-static int 
+static int
 lf_secreopen(char *name, int wantfd, struct logfile *l)
 {
   int got_fd;
@@ -229,7 +229,7 @@ getpwbyname(char *name, struct passwd *ppp)
   struct spwd *sss = NULL;
   static char *spw = NULL;
 #endif
- 
+
   if (!ppp && !(ppp = getpwnam(name)))
     return NULL;
 
@@ -245,9 +245,9 @@ pw_try_again:
     {
       char c = ppp->pw_passwd[n];
       if (!(c == '.' || c == '/' || c == '$' ||
-	    (c >= '0' && c <= '9') || 
-	    (c >= 'a' && c <= 'z') || 
-	    (c >= 'A' && c <= 'Z'))) 
+	    (c >= '0' && c <= '9') ||
+	    (c >= 'a' && c <= 'z') ||
+	    (c >= 'A' && c <= 'Z')))
 	break;
     }
 
@@ -690,7 +690,7 @@ main(int argc, char **argv)
           nwin_options.aka = SaveStr(nwin_options.aka);
         }
     }
-  
+
   if (SockMatch && strlen(SockMatch) >= MAXSTR)
     Panic(0, "Ridiculously long socketname - try again.");
   if (cmdflag && !rflag && !dflag && !xflag)
@@ -1145,7 +1145,7 @@ main(int argc, char **argv)
   freopen("/dev/null", "w", stderr);
   debug("-- screen.back debug started\n");
 
-  /* 
+  /*
    * This guarantees that the session owner is listed, even when we
    * start detached. From now on we should not refer to 'LoginName'
    * any more, use users->u_name instead.
@@ -1182,7 +1182,7 @@ main(int argc, char **argv)
     }
 #endif
   sprintf(SockPath + strlen(SockPath), "/%s", socknamebuf);
-  
+
   ServerSocket = MakeServerSocket();
   InitKeytab();
 #ifdef ETCSCREENRC
@@ -1196,7 +1196,7 @@ main(int argc, char **argv)
   (void)StartRc(RcFileName, 0);
 # ifdef UTMPOK
 #  ifndef UTNOKEEP
-  InitUtmp(); 
+  InitUtmp();
 #  endif /* UTNOKEEP */
 # endif /* UTMPOK */
   if (display)
@@ -1433,7 +1433,7 @@ SigHup (int sigsig)
   return;
 }
 
-/* 
+/*
  * the backend's Interrupt handler
  * we cannot insert the intrc directly, as we never know
  * if fore is valid.
@@ -1515,10 +1515,10 @@ DoWait()
   while ((pid = waitpid(-1, &wstat, WNOHANG | WUNTRACED)) > 0)
 # else
 # ifdef USE_WAIT2
-  /* 
-   * From: rouilj@sni-usa.com (John Rouillard) 
+  /*
+   * From: rouilj@sni-usa.com (John Rouillard)
    * note that WUNTRACED is not documented to work, but it is defined in
-   * /usr/include/sys/wait.h, so it may work 
+   * /usr/include/sys/wait.h, so it may work
    */
   while ((pid = wait2(&wstat, WNOHANG | WUNTRACED )) > 0)
 #  else /* USE_WAIT2 */
@@ -1540,7 +1540,7 @@ DoWait()
 	    {
 	      /* child has ceased to exist */
 	      p->w_pid = 0;
-		
+
 #ifdef BSDJOBS
 	      if (WIFSTOPPED(wstat))
 		{
@@ -1648,7 +1648,7 @@ Finit(int i)
       Kill(D_userpid, SIG_BYE);
     }
   /*
-   * we _cannot_ call eexit(i) here, 
+   * we _cannot_ call eexit(i) here,
    * instead of playing with the Socket above. Sigh.
    */
   exit(i);
@@ -2001,7 +2001,7 @@ void Dummy (int err, const char *fmt, ...)
 
 /*
  * '^' is allowed as an escape mechanism for control characters. jw.
- * 
+ *
  * Added time insertion using ideas/code from /\ndy Jones
  *   (andy@lingua.cltr.uq.OZ.AU) - thanks a lot!
  *
@@ -2285,12 +2285,12 @@ MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, 
   int truncper = 0;
   int trunclong = 0;
   struct backtick *bt = NULL;
- 
+
   if (winmsg_numrend >= 0)
     winmsg_numrend = 0;
   else
     winmsg_numrend = -winmsg_numrend;
-    
+
   tick = 0;
   tm = 0;
   ctrl = 0;
@@ -2935,7 +2935,7 @@ serv_select_fn(struct event *ev, char *data)
 #else
 	  char ibuf = displays->d_OldMode.m_tchars.t_intrc;
 #endif
-	  write(W_UWP(fore) ? fore->w_pwin->p_ptyfd : fore->w_ptyfd, 
+	  write(W_UWP(fore) ? fore->w_pwin->p_ptyfd : fore->w_ptyfd,
 		&ibuf, 1);
 	  debug1("Backend wrote interrupt to %d", fore->w_number);
 	  debug1("%s\n", W_UWP(fore) ? " (pseudowin)" : "");
@@ -3027,7 +3027,7 @@ serv_select_fn(struct event *ev, char *data)
 	      RethinkViewportOffsets(cv);
 	      if (n > cv->c_layer->l_height)
 		n = cv->c_layer->l_height;
-	      CV_CALL(cv, 
+	      CV_CALL(cv,
 		LScrollV(flayer, -n, 0, flayer->l_height - 1, 0);
 		LayRedisplayLine(-1, -1, -1, 1);
 		for (i = 0; i < n; i++)
@@ -3043,7 +3043,7 @@ serv_select_fn(struct event *ev, char *data)
 	      RethinkViewportOffsets(cv);
 	      if (n > cv->c_layer->l_height)
 		n = cv->c_layer->l_height;
-	      CV_CALL(cv, 
+	      CV_CALL(cv,
 	        LScrollV(flayer, n, 0, cv->c_layer->l_height - 1, 0);
 		LayRedisplayLine(-1, -1, -1, 1);
 		for (i = 0; i < n; i++)
@@ -3063,7 +3063,7 @@ serv_select_fn(struct event *ev, char *data)
 	      RethinkViewportOffsets(cv);
 	      if (n > cv->c_layer->l_width)
 		n = cv->c_layer->l_width;
-	      CV_CALL(cv, 
+	      CV_CALL(cv,
 		LayRedisplayLine(-1, -1, -1, 1);
 		for (i = 0; i < flayer->l_height; i++)
 		  {
@@ -3085,7 +3085,7 @@ serv_select_fn(struct event *ev, char *data)
 	      RethinkViewportOffsets(cv);
 	      if (n > cv->c_layer->l_width)
 		n = cv->c_layer->l_width;
-	      CV_CALL(cv, 
+	      CV_CALL(cv,
 		LayRedisplayLine(-1, -1, -1, 1);
 		for (i = 0; i < flayer->l_height; i++)
 		  {
@@ -3144,9 +3144,9 @@ logflush_fn(struct event *ev, char *data)
 /*
  * Interprets ^?, ^@ and other ^-control-char notation.
  * Interprets \ddd octal notation
- * 
- * The result is placed in *cp, p is advanced behind the parsed expression and 
- * returned. 
+ *
+ * The result is placed in *cp, p is advanced behind the parsed expression and
+ * returned.
  */
 static char *
 ParseChar(char *p, char *cp)
@@ -3175,7 +3175,7 @@ ParseChar(char *p, char *cp)
   return p;
 }
 
-static int 
+static int
 ParseEscape(char *p)
 {
   unsigned char buf[2];
