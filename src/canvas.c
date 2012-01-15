@@ -350,7 +350,7 @@ int
 MakeDefaultCanvas()
 {
   struct canvas *cv;
- 
+
   ASSERT(display);
   if ((cv = (struct canvas *)calloc(1, sizeof *cv)) == 0)
     return -1;

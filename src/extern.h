@@ -548,7 +548,7 @@ extern int DefaultEsc;
 extern int MasterPid;
 extern int MsgMinWait;
 extern int MsgWait;
-extern int ServerSocket; 
+extern int ServerSocket;
 extern int SilenceWait;
 extern int TtyMode;
 extern int VerboseCreate;

@@ -183,13 +183,13 @@ struct msg
 	  int detachfirst;      /* whether to detach remote sessions first */
 	}
       attach;
-      struct 
+      struct
 	{
 	  char duser[MAXLOGINLEN + 1];	/* username */
 	  int dpid;		/* pid of frontend */
 	}
       detach;
-      struct 
+      struct
 	{
 	  char auser[MAXLOGINLEN + 1];	/* username */
 	  int nargs;

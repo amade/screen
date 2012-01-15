@@ -58,7 +58,7 @@
  *  Parser state
  */
 /* keep state_t and state_t_string in sync! */
-enum state_t 
+enum state_t
 {
   LIT,				/* Literal input */
   ESC,				/* Start of escape sequence */
@@ -72,7 +72,7 @@ enum state_t
 };
 
 /* keep string_t and string_t_string in sync! */
-enum string_t 
+enum string_t
 {
   NONE,
   DCS,				/* Device control string */

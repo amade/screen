@@ -269,7 +269,7 @@
 # ifndef BSDWAIT /* if wait is NOT a union: */
 #  define WTERMSIG(status) (status & 0177)
 # else
-#  define WTERMSIG(status) status.w_T.w_Termsig 
+#  define WTERMSIG(status) status.w_T.w_Termsig
 # endif
 #endif
 
@@ -277,7 +277,7 @@
 # ifndef BSDWAIT /* if wait is NOT a union: */
 #  define WSTOPSIG(status) ((status >> 8) & 0377)
 # else
-#  define WSTOPSIG(status) status.w_S.w_Stopsig 
+#  define WSTOPSIG(status) status.w_S.w_Stopsig
 # endif
 #endif
 
@@ -314,7 +314,7 @@
 # define MAXPATHLEN 1024
 #endif
 
-/* 
+/*
  * you may try to vary this value. Use low values if your (VMS) system
  * tends to choke when pasting. Use high values if you want to test
  * how many characters your pty's can buffer.

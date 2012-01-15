@@ -87,7 +87,7 @@ struct pseudowin
  * ... wants to write to pseudo */
 #define W_WP(w) ((w)->w_pwin && ((w)->w_pwin->p_fdpat & F_PFRONT))
 
-/* ... wants to write to window: user writes to window 
+/* ... wants to write to window: user writes to window
  * or stdout/stderr of pseudo are duplicated to window */
 #define W_WW(w) (!((w)->w_pwin) || \
 (((w)->w_pwin->p_fdpat & F_PMASK) == F_PBACK) || \
@@ -290,7 +290,7 @@ struct win
  *   011  +(+)	flow on , auto would be on
  *   100  -	flow auto, currently off
  *   111  +	flow auto, currently on
- * Application controls auto_flow via TIOCPKT, if available, 
+ * Application controls auto_flow via TIOCPKT, if available,
  * else via application keypad mode.
  */
 #define FLOW_NOW	(1<<0)

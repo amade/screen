@@ -98,6 +98,6 @@ OpenPTY(char **ttyn)
   initmaster(f);
   pty_preopen = 1;
   *ttyn = TtyName;
-  return f;    
+  return f;
 }
 

@@ -300,7 +300,7 @@ Attach(int how)
     dflag = 0;
 
   /*
-   * Without -x, the mode must match. 
+   * Without -x, the mode must match.
    * With -x the mode is irrelevant unless -d.
    */
   if ((dflag || !xflag) && (st.st_mode & 0700) != (dflag ? 0700 : 0600))
@@ -309,7 +309,7 @@ Attach(int how)
       (how == MSG_DETACH || how == MSG_POW_DETACH))
     {
       m.m.detach.dpid = getpid();
-      strncpy(m.m.detach.duser, LoginName, sizeof(m.m.detach.duser) - 1); 
+      strncpy(m.m.detach.duser, LoginName, sizeof(m.m.detach.duser) - 1);
       m.m.detach.duser[sizeof(m.m.detach.duser) - 1] = 0;
       if (dflag == 2)
 	m.type = MSG_POW_DETACH;
@@ -337,7 +337,7 @@ Attach(int how)
   m.m.attach.envterm[sizeof(m.m.attach.envterm) - 1] = 0;
   debug1("attach: sending %d bytes... ", (int)sizeof(m));
 
-  strncpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1); 
+  strncpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1);
   m.m.attach.auser[sizeof(m.m.attach.auser) - 1] = 0;
   m.m.attach.esc = DefaultEsc;
   m.m.attach.meta_esc = DefaultMetaEsc;
@@ -492,7 +492,7 @@ AttacherNoDebug (int sigsig)
   debug("AttacherNoDebug()\n");
   signal(SIG_NODEBUG, AttacherNoDebug);
   if (dfp)
-    { 
+    {
       debug("debug: closing debug file.\n");
       fflush(dfp);
       fclose(dfp);
@@ -688,7 +688,7 @@ LockTerminal()
 	         ((wret == -1) && (errno == EINTR))
 	         )
 	    errno = 0;
-    
+
           if (errno)
 	    {
 	      Msg(errno, "Lock");

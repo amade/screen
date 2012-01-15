@@ -76,7 +76,7 @@ static char DefaultPath[] = ":/usr/ucb:/bin:/usr/bin";
 #endif
 
 /* keep this in sync with the structure definition in window.h */
-struct NewWindow nwin_undef   = 
+struct NewWindow nwin_undef   =
 {
   -1,		/* StartAt */
   (char *)0,	/* aka */
@@ -102,8 +102,8 @@ struct NewWindow nwin_undef   =
   0		/* poll_zombie_timeout */
 };
 
-struct NewWindow nwin_default = 
-{ 
+struct NewWindow nwin_default =
+{
   0, 		/* StartAt */
   0, 		/* aka */
   ShellArgs, 	/* args */
@@ -631,7 +631,7 @@ MakeWindow(struct NewWindow *newwin)
   strncpy(p->w_tty, TtyName, MAXSTR - 1);
 
   if (ChangeWindowSize(p, display ? D_forecv->c_xe - D_forecv->c_xs + 1: 80,
-		       display ? D_forecv->c_ye - D_forecv->c_ys + 1 : 24, 
+		       display ? D_forecv->c_ye - D_forecv->c_ys + 1 : 24,
 		       nwin.histheight))
     {
       FreeWindow(p);
@@ -1178,7 +1178,7 @@ ForkWindow(struct win *win, char **args, char *ttyn)
       /*
        * distribute filedescriptors between the ttys
        */
-      pat = pwin ? pwin->p_fdpat : 
+      pat = pwin ? pwin->p_fdpat :
 		   ((F_PFRONT<<(F_PSHIFT*2)) | (F_PFRONT<<F_PSHIFT) | F_PFRONT);
       debug1("Using window pattern 0x%x\n", pat);
       wfdused = 0;

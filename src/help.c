@@ -268,7 +268,7 @@ helppage()
 
   /* Clear the help screen */
   LClearAll(flayer, 0);
-  
+
   sprintf(cbuf,"Screen key bindings, page %d of %d.", helpdata->grow / (flayer->l_height-5) + 1, helpdata->numpages);
   centerline(cbuf, 0);
   crow = 2;
@@ -319,7 +319,7 @@ helppage()
 	    }
 	  helpdata->grow++;
 	}
-      else if (helpdata->grow-2-helpdata->numrows >= helpdata->numskip 
+      else if (helpdata->grow-2-helpdata->numrows >= helpdata->numskip
 	       && helpdata->grow-2-helpdata->numrows-helpdata->numskip < helpdata->command_bindings)
         {
 	  while ((n = ktabp[helpdata->command_search].nr) == RC_ILLEGAL
@@ -361,7 +361,7 @@ AddAction(struct action *act, int x, int y)
   if (fr <= 0)
     return;
   l = strlen(comms[act->nr].name);
-  
+
   if (l + 1 > fr)
     l = fr - 1;
   PadStr(comms[act->nr].name, l, x, y);
@@ -449,7 +449,7 @@ HelpRedisplayLine(int y, int xs, int xe, int isblank)
 
 /*
 **
-**    here is all the copyright stuff 
+**    here is all the copyright stuff
 **
 */
 
@@ -713,7 +713,7 @@ display_bindkey(char *title, struct action *tab)
   bindkeydata = (struct bindkeydata *)flayer->l_data;
   bindkeydata->title = title;
   bindkeydata->tab = tab;
-  
+
   n = 0;
   for (i = 0; i < KMAP_KEYS+KMAP_AKEYS+kmap_extn; i++)
     {
@@ -813,7 +813,7 @@ bindkeypage()
   centerline(tbuf, flayer->l_height - 2);
   LaySetCursor();
 }
- 
+
 static void
 BindkeyProcess(char **ppbuf, int *plen)
 {

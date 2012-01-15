@@ -58,17 +58,17 @@ changed_logfile(struct logfile *l)
 
 /*
  * Requires fd to be open and need_fd to be closed.
- * If possible, need_fd will be open afterwards and refer to 
+ * If possible, need_fd will be open afterwards and refer to
  * the object originally reffered by fd. fd will be closed then.
  * Works just like ``fcntl(fd, DUPFD, need_fd); close(fd);''
- * 
+ *
  * need_fd is returned on success, else -1 is returned.
  */
 int
 lf_move_fd(int fd, int need_fd)
 {
   int r = -1;
-  
+
   if (fd == need_fd)
     return fd;
   if (fd >=0 && fd < need_fd)
@@ -97,7 +97,7 @@ logfile_reopen(char *name, int wantfd, struct logfile *l)
 
 static int (* lf_reopen_fn)() = logfile_reopen;
 
-/* 
+/*
  * Whenever logfwrite discoveres that it is required to close and
  * reopen the logfile, the function registered here is called.
  * If you do not register anything here, the above logfile_reopen()
@@ -105,7 +105,7 @@ static int (* lf_reopen_fn)() = logfile_reopen;
  * Your function should perform the same steps as logfile_reopen():
  * a) close the original filedescriptor without flushing any output
  * b) open a new logfile for future output on the same filedescriptor number.
- * c) zero out st_dev, st_ino to tell the stolen_logfile() indcator to 
+ * c) zero out st_dev, st_ino to tell the stolen_logfile() indcator to
  *    reinitialise itself.
  * d) return 0 on success.
  */
@@ -142,12 +142,12 @@ stolen_logfile(struct logfile *l)
          o.st_ctime < s->st_ctime)))		/* due to delayed nfs write */
     {
       debug1("stolen_logfile: %s stolen!\n", l->name);
-      debug3("st_dev %d, st_ino %d, st_nlink %d\n", 
+      debug3("st_dev %d, st_ino %d, st_nlink %d\n",
              (int)s->st_dev, (int)s->st_ino, (int)s->st_nlink);
       debug2("s->st_size %d, o.st_size %d\n", (int)s->st_size, (int)o.st_size);
-      debug2("s->st_mtime %d, o.st_mtime %d\n", 
+      debug2("s->st_mtime %d, o.st_mtime %d\n",
              (int)s->st_mtime, (int)o.st_mtime);
-      debug2("s->st_ctime %d, o.st_ctime %d\n", 
+      debug2("s->st_ctime %d, o.st_ctime %d\n",
              (int)s->st_ctime, (int)o.st_ctime);
       return -1;
     }
@@ -237,7 +237,7 @@ logfclose(struct logfile *l)
   return 0;
 }
 
-/* 
+/*
  * XXX
  * write and flush both *should* check the file's stat, if it disappeared
  * or changed, re-open it.
@@ -252,7 +252,7 @@ logfwrite(struct logfile *l, char *buf, int n)
   r = fwrite(buf, n, 1, l->fp);
   l->writecount += l->flushcount + 1;
   l->flushcount = 0;
-  changed_logfile(l); 
+  changed_logfile(l);
   return r;
 }
 
@@ -268,7 +268,7 @@ logfflush(struct logfile *l)
 	  return -1;
 	r |= fflush(l->fp);
 	l->flushcount++;
-	changed_logfile(l); 
+	changed_logfile(l);
       }
   else
     {
@@ -276,7 +276,7 @@ logfflush(struct logfile *l)
 	return -1;
       r = fflush(l->fp);
       l->flushcount++;
-      changed_logfile(l); 
+      changed_logfile(l);
     }
   return r;
 }

@@ -142,9 +142,9 @@ nextchar(int *xp, int *yp, int direction, char target, int num)
   int step;   /* amount to increment x (+1 or -1) */
   int adjust; /* Final adjustment of cursor position. */
   char *displayed_line; /* Line in which search takes place. */
- 
+
   debug("nextchar\n");
- 
+
   x = *xp;
   step = 1;
   adjust = 0;
@@ -165,13 +165,13 @@ nextchar(int *xp, int *yp, int direction, char target, int num)
     default:
       ASSERT(0);
   }
- 
+
   x += step;
- 
+
   debug1("ml->image = %s\n", displayed_line);
   debug2("num = %d, width = %d\n",num, width);
   debug2("x = %d target = %c\n", x, target );
- 
+
   for ( ;x>=0 && x <= width; x += step) {
     if (displayed_line[x] == target) {
       if (--num == 0) {
