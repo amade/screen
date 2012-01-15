@@ -135,7 +135,7 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
     {
       int cmatch = 0;
       name = dp->d_name;
-      debug1("- %s\n",  name);
+      debug("- %s\n",  name);
       if (*name == 0 || *name == '.' || strlen(name) > 2*MAXSTR)
 	continue;
       if (matchlen)
@@ -168,17 +168,17 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	    }
 	  else
 	    cmatch = (*(n + matchlen) == 0);
-	  debug1("  -> matched %s\n", match);
+	  debug("  -> matched %s\n", match);
 	}
       sprintf(SockPath + sdirlen, "/%s", name);
 
-      debug1("stat %s\n", SockPath);
+      debug("stat %s\n", SockPath);
       errno = 0;
-      debug2("uid = %d, gid = %d\n", getuid(), getgid());
-      debug2("euid = %d, egid = %d\n", geteuid(), getegid());
+      debug("uid = %d, gid = %d\n", getuid(), getgid());
+      debug("euid = %d, egid = %d\n", geteuid(), getegid());
       if (stat(SockPath, &st))
 	{
-	  debug1("errno = %d\n", errno);
+	  debug("errno = %d\n", errno);
 	  continue;
 	}
 
@@ -198,14 +198,14 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 # endif
 #endif
 
-      debug2("st.st_uid = %d, real_uid = %d\n", st.st_uid, real_uid);
+      debug("st.st_uid = %d, real_uid = %d\n", st.st_uid, real_uid);
 #ifdef SOCKDIR /* if SOCKDIR is not defined, the socket is in $HOME.
                   in that case it does not make sense to compare uids. */
       if (st.st_uid != real_uid)
 	continue;
 #endif
       mode = (int)st.st_mode & 0777;
-      debug1("  has mode 0%03o\n", mode);
+      debug("  has mode 0%03o\n", mode);
       if (multi && ((mode & 0677) != 0601))
         {
 	  debug("  is not a MULTI-USER session");
@@ -236,7 +236,7 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 #endif
       if (sockfd == -1)
 	{
-	  debug2("  MakeClientSocket failed, unreachable? %d %d\n",
+	  debug("  MakeClientSocket failed, unreachable? %d %d\n",
 	         matchlen, wipeflag);
 	  sent->mode = -3;
 #ifndef SOCKDIR_IS_LOCAL_TO_HOST
@@ -267,8 +267,8 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 
       mode &= 0776;
       /* Shall we connect ? */
-      debug2("  connecting: mode=%03o, rflag=%d, ", mode, rflag);
-      debug2("xflag=%d, dflag=%d ?\n", xflag, dflag);
+      debug("  connecting: mode=%03o, rflag=%d, ", mode, rflag);
+      debug("xflag=%d, dflag=%d ?\n", xflag, dflag);
 
       /*
        * mode 600: socket is detached.
@@ -473,7 +473,7 @@ MakeClientSocket(int err)
     }
   if (err)
     Msg(errno, "%s", SockPath);
-  debug2("MakeClientSocket() open %s failed (%d)\n", SockPath, errno);
+  debug("MakeClientSocket() open %s failed (%d)\n", SockPath, errno);
   return -1;
 }
 
@@ -543,7 +543,7 @@ MakeServerSocket()
     Panic(errno, "listen");
 # ifdef F_SETOWN
   fcntl(s, F_SETOWN, getpid());
-  debug1("Serversocket owned by %d\n", fcntl(s, F_GETOWN, 0));
+  debug("Serversocket owned by %d\n", fcntl(s, F_GETOWN, 0));
 # endif /* F_SETOWN */
 # ifdef USE_SETEUID
   xseteuid(eff_uid);
@@ -571,7 +571,7 @@ MakeClientSocket(int err)
     {
       if (err)
 	Msg(errno, "%s", SockPath);
-      debug2("MakeClientSocket: access(%s): %d.\n", SockPath, errno);
+      debug("MakeClientSocket: access(%s): %d.\n", SockPath, errno);
       close(s);
       return -1;
     }
@@ -617,7 +617,7 @@ SendCreateMsg(char *sty, struct NewWindow *nwin)
   sprintf(SockPath + strlen(SockPath), "/%s", sty);
   if ((s = MakeClientSocket(1)) == -1)
     exit(1);
-  debug1("SendCreateMsg() to '%s'\n", SockPath);
+  debug("SendCreateMsg() to '%s'\n", SockPath);
   memset((char *)&m, 0, sizeof(m));
   m.type = MSG_CREATE;
   strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
@@ -651,7 +651,7 @@ SendCreateMsg(char *sty, struct NewWindow *nwin)
     strncpy(m.m.create.screenterm, nwin->term, 19);
   m.m.create.screenterm[19] = '\0';
   m.protocol_revision = MSG_REVISION;
-  debug1("SendCreateMsg writing '%s'\n", m.m.create.line);
+  debug("SendCreateMsg writing '%s'\n", m.m.create.line);
   if (write(s, (char *) &m, sizeof m) != sizeof m)
     Msg(errno, "write");
   close(s);
@@ -672,7 +672,7 @@ SendErrorMsg(char *tty, char *buf)
   strncpy(m.m_tty, tty, sizeof(m.m_tty) - 1);
   m.m_tty[sizeof(m.m_tty) - 1] = 0;
   m.protocol_revision = MSG_REVISION;
-  debug1("SendErrorMsg(): writing to '%s'\n", SockPath);
+  debug("SendErrorMsg(): writing to '%s'\n", SockPath);
   (void) write(s, (char *) &m, sizeof m);
   close(s);
   return 0;
@@ -733,7 +733,7 @@ ExecCreate(struct msg *mp)
 static int
 CheckPid(int pid)
 {
-  debug1("Checking pid %d\n", pid);
+  debug("Checking pid %d\n", pid);
   if (pid < 2)
     return -1;
   if (eff_uid == real_uid)
@@ -823,7 +823,7 @@ CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
 	      return -1;
 	  }
 
-      debug2("RecMsg: apid %d is o.k. and we just opened '%s'\n", pid, m->m_tty);
+      debug("RecMsg: apid %d is o.k. and we just opened '%s'\n", pid, m->m_tty);
     }
 
   /* create new display */
@@ -989,7 +989,7 @@ ReceiveMsg()
       return;
     }
 
-  debug2("*** RecMsg: type %d tty %s\n", m.type, m.m_tty);
+  debug("*** RecMsg: type %d tty %s\n", m.type, m.m_tty);
   if (m.type != MSG_ATTACH && recvfd != -1)
     {
       close(recvfd);
@@ -999,7 +999,7 @@ ReceiveMsg()
   for (display = displays; display; display = display->d_next)
     if (TTYCMP(D_usertty, m.m_tty) == 0)
       break;
-  debug2("display: %s display %sfound\n", m.m_tty, display ? "" : "not ");
+  debug("display: %s display %sfound\n", m.m_tty, display ? "" : "not ");
   wi = 0;
   if (!display)
     {
@@ -1008,7 +1008,7 @@ ReceiveMsg()
 	  {
 	    /* XXX: hmmm, rework this? */
             display = wi->w_layer.l_cvlist ? wi->w_layer.l_cvlist->c_display : 0;
-	    debug2("but window %s %sfound.\n", m.m_tty, display ? "" :
+	    debug("but window %s %sfound.\n", m.m_tty, display ? "" :
 	    	   "(backfacing)");
 	    break;
           }
@@ -1042,7 +1042,7 @@ ReceiveMsg()
     case MSG_CONT:
 	if (display && D_userpid != 0 && kill(D_userpid, 0) == 0)
 	  break;		/* Intruder Alert */
-      debug2("RecMsg: apid=%d,was %d\n", m.m.attach.apid, display ? D_userpid : 0);
+      debug("RecMsg: apid=%d,was %d\n", m.m.attach.apid, display ? D_userpid : 0);
       /* FALLTHROUGH */
 
     case MSG_ATTACH:
@@ -1205,7 +1205,7 @@ FinishAttach(struct msg *m)
   if (extra_incap)
     free(extra_incap);
   extra_incap = extra_outcap = 0;
-  debug2("Message says size (%dx%d)\n", m->m.attach.columns, m->m.attach.lines);
+  debug("Message says size (%dx%d)\n", m->m.attach.columns, m->m.attach.lines);
 #ifdef ETCSCREENRC
 # ifdef ALLOW_SYSSCREENRC
   if ((p = getenv("SYSSCREENRC")))
@@ -1260,7 +1260,7 @@ FinishAttach(struct msg *m)
   /*
    * there may be a window that we remember from last detach:
    */
-  debug1("D_user->u_detachwin = %d\n", D_user->u_detachwin);
+  debug("D_user->u_detachwin = %d\n", D_user->u_detachwin);
   if (D_user->u_detachwin >= 0)
     fore = wtab[D_user->u_detachwin];
   else
@@ -1322,7 +1322,7 @@ FinishAttach(struct msg *m)
   if (!dfp)
     {
       sleep(1);
-      debug1("Attacher %d must not debug, as we have debug off.\n", pid);
+      debug("Attacher %d must not debug, as we have debug off.\n", pid);
       kill(pid, SIG_NODEBUG);
     }
 # endif /* SIG_NODEBUG */
@@ -1594,7 +1594,7 @@ DoCommandMsg(struct msg *mp)
     {
       char *oldrcname = rc_name;
       rc_name = "-X";
-      debug3("Running command on display %x window %x (%d)\n", display, fore, fore ? fore->w_number : -1);
+      debug("Running command on display %x window %x (%d)\n", display, fore, fore ? fore->w_number : -1);
       flayer = fore ? &fore->w_layer : 0;
       if (fore && fore->w_savelayer && (fore->w_blocked || fore->w_savelayer->l_cvlist == 0))
 	flayer = fore->w_savelayer;

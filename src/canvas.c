@@ -358,7 +358,7 @@ MakeDefaultCanvas()
   cv->c_xe      = D_width - 1;
   cv->c_ys      = (D_has_hstatus == HSTATUS_FIRSTLINE);
   cv->c_ye      = D_height - 1 - (D_has_hstatus == HSTATUS_LASTLINE) - captionalways;
-  debug2("MakeDefaultCanvas 0,0 %d,%d\n", cv->c_xe, cv->c_ye);
+  debug("MakeDefaultCanvas 0,0 %d,%d\n", cv->c_xe, cv->c_ye);
   cv->c_xoff    = 0;
   cv->c_yoff    = 0;
   cv->c_next = 0;
@@ -444,8 +444,8 @@ ResizeCanvas(struct canvas *cv)
   xe = cv->c_xe;
   ye = cv->c_ye;
   cv = cv->c_slperp;
-  debug2("ResizeCanvas: %d,%d", xs, ys);
-  debug2(" %d,%d\n", xe, ye);
+  debug("ResizeCanvas: %d,%d", xs, ys);
+  debug(" %d,%d\n", xe, ye);
   if (cv == 0)
     return;
   if (cv->c_slorient == SLICE_UNKN)
@@ -477,7 +477,7 @@ ResizeCanvas(struct canvas *cv)
 		focusmin--;
 	      else if (focusmin < 0)
 		focusmin = cv->c_slorient == SLICE_VERT ? ye - ys + 2 : xe - xs + 2;
-	      debug1("found, focusmin=%d\n", focusmin);
+	      debug("found, focusmin=%d\n", focusmin);
 	    }
           cv2 = cv2->c_slback;
         }
@@ -491,16 +491,16 @@ ResizeCanvas(struct canvas *cv)
 	nh = 0;
       if (focusmin > nh)
 	focusmin = nh;
-      debug1("corrected to %d\n", focusmin);
+      debug("corrected to %d\n", focusmin);
     }
 
   /* pass 1: calculate weight sum */
   for (cv2 = cv, wsum = 0; cv2; cv2 = cv2->c_slnext)
     {
-      debug1("  weight %d\n", cv2->c_slweight);
+      debug("  weight %d\n", cv2->c_slweight);
       wsum += cv2->c_slweight;
     }
-  debug1("wsum = %d\n", wsum);
+  debug("wsum = %d\n", wsum);
   if (wsum == 0)
     wsum = 1;
   w = wsum;
@@ -515,13 +515,13 @@ ResizeCanvas(struct canvas *cv)
       hh = cv2->c_slweight ? nh * cv2->c_slweight / w : 0;
       w -= cv2->c_slweight;
       nh -= hh;
-      debug2("  should %d min %d\n", hh, m);
+      debug("  should %d min %d\n", hh, m);
       if (hh <= m + 1)
         need += m + 1 - hh;
       else
         got += hh - m - 1;
     }
-  debug2("need: %d, got %d\n", need, got);
+  debug("need: %d, got %d\n", need, got);
   if (need > got)
     need = got;
 
@@ -554,27 +554,27 @@ ResizeCanvas(struct canvas *cv)
       hh = cv->c_slweight ? nh * cv->c_slweight / w : 0;
       w -= cv->c_slweight;
       nh -= hh;
-      debug2("  should %d min %d\n", hh, m);
+      debug("  should %d min %d\n", hh, m);
       if (hh <= m + 1)
 	{
 	  hh = m + 1;
-	  debug1(" -> %d\n", hh);
+	  debug(" -> %d\n", hh);
 	}
       else
 	{
 	  int hx = need * (hh - m - 1) / got;
-	  debug3(" -> %d - %d = %d\n", hh, hx, hh - hx);
+	  debug(" -> %d - %d = %d\n", hh, hx, hh - hx);
 	  got -= (hh - m - 1);
 	  hh -= hx;
 	  need -= hx;
-          debug2("   now need=%d got=%d\n", need, got);
+          debug("   now need=%d got=%d\n", need, got);
 	}
       ASSERT(hh >= m + 1);
       /* hh is window size plus pation line */
       if (i + hh > maxi + 2)
 	{
 	  hh = maxi + 2 - i;
-	  debug1("  not enough space, reducing to %d\n", hh);
+	  debug("  not enough space, reducing to %d\n", hh);
 	}
       if (i + hh == maxi + 1)
 	{
@@ -663,7 +663,7 @@ AddCanvas(int orient)
   int h, num;
 
   cv = D_forecv;
-  debug2("AddCanvas orient %d, forecv is %d\n", orient, cv->c_slorient);
+  debug("AddCanvas orient %d, forecv is %d\n", orient, cv->c_slorient);
 
   if (cv->c_slorient != SLICE_UNKN && cv->c_slorient != orient)
     if (!AddPerp(cv))
@@ -676,11 +676,11 @@ AddCanvas(int orient)
   ye = cv->c_slback->c_ye;
   if (!captionalways && cv == D_canvas.c_slperp && !cv->c_slnext)
     ye--;	/* need space for caption */
-  debug2("Adding Canvas to slice %d,%d ", xs, ys);
-  debug2("%d,%d\n", xe, ye);
+  debug("Adding Canvas to slice %d,%d ", xs, ys);
+  debug("%d,%d\n", xe, ye);
 
   num = CountCanvas(cv->c_slback->c_slperp) + 1;
-  debug1("Num = %d\n", num);
+  debug("Num = %d\n", num);
   if (orient == SLICE_VERT)
     h = ye - ys + 1;
   else

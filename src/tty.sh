@@ -159,8 +159,8 @@ char *line, *opt;
  errno = 0;
  if (ioctl(f, TIOCEXCL, (char *) 0) < 0)
    Msg(errno, "%s: ioctl TIOCEXCL failed", line);
- debug3("%d %d %d\n", getuid(), geteuid(), getpid());
- debug2("%s TIOCEXCL errno %d\n", line, errno);
+ debug("%d %d %d\n", getuid(), geteuid(), getpid());
+ debug("%s TIOCEXCL errno %d\n", line, errno);
 #endif  /* TIOCEXCL */
   /*
    * We create a sane tty mode. We do not copy things from the display tty
@@ -168,7 +168,7 @@ char *line, *opt;
 #if WE_REALLY_WANT_TO_COPY_THE_TTY_MODE
   if (display)
     {
-      debug1("OpenTTY: using mode of display for %s\n", line);
+      debug("OpenTTY: using mode of display for %s\n", line);
       Mode = D_NewMode;
     }
   else
@@ -193,7 +193,7 @@ char *line, *opt;
   brktty(f);
   alarm(0);
   signal(SIGALRM, sigalrm);
-  debug2("'%s' CONNECT fd=%d.\n", line, f);
+  debug("'%s' CONNECT fd=%d.\n", line, f);
   return f;
 }
 
@@ -211,7 +211,7 @@ int ttyflag;
   /* struct termios tio
    * defaults, as seen on SunOS 4.1.3
    */
-  debug1("InitTTY: POSIX: termios defaults based on SunOS 4.1.3, but better (%d)\n", ttyflag);
+  debug("InitTTY: POSIX: termios defaults based on SunOS 4.1.3, but better (%d)\n", ttyflag);
 IF{BRKINT}	m->tio.c_iflag |= BRKINT;
 IF{IGNPAR}	m->tio.c_iflag |= IGNPAR;
 /* IF{ISTRIP}	m->tio.c_iflag |= ISTRIP;  may be needed, let's try. jw. */
@@ -418,7 +418,7 @@ XIF{VSTOP}	D_NewMode.tio.c_cc[VSTOP] = VDISABLE;
     tcflow(D_userfd, TCOON);
 #  endif
   if (tcsetattr(D_userfd, TCSANOW, &D_NewMode.tio))
-    debug1("SetFlow: ioctl errno %d\n", errno);
+    debug("SetFlow: ioctl errno %d\n", errno);
   D_flow = on;
 }
 
@@ -522,7 +522,7 @@ int fd;
   if (separate_sids)
     if (tcsetpgrp(fd, mypid))
       {
-        debug1("fgtty: tcsetpgrp: %d\n", errno);
+        debug("fgtty: tcsetpgrp: %d\n", errno);
         return -1;
       }
 #endif /* BSDJOBS */
@@ -556,7 +556,7 @@ int fd, n, type;
        * If you have this one, define the above symbol.
        * here we can use the second parameter to specify the duration.
        */
-      debug2("tcsendbreak(fd=%d, %d)\n", fd, n);
+      debug("tcsendbreak(fd=%d, %d)\n", fd, n);
       if (tcsendbreak(fd, n) < 0)
         Msg(errno, "cannot send BREAK (tcsendbreak)");
 # else
@@ -571,7 +571,7 @@ int fd, n, type;
        * - mot88: duration in milliseconds
        * - aix: duration in milliseconds, but 0 is 25 milliseconds.
        */
-      debug2("%d * tcsendbreak(fd=%d, 0)\n", n, fd);
+      debug("%d * tcsendbreak(fd=%d, 0)\n", n, fd);
 	{
 	  int i;
 
@@ -595,7 +595,7 @@ int fd, n, type;
        * Here too, we assume that short breaks can be concatenated to
        * perform long breaks. But for SOLARIS, this is not true, of course.
        */
-      debug2("%d * TCSBRK fd=%d\n", n, fd);
+      debug("%d * TCSBRK fd=%d\n", n, fd);
 	{
 	  int i;
 
@@ -661,7 +661,7 @@ int n, closeopen;
   if (wp->w_type != W_TYPE_PLAIN)
     return;
 
-  debug3("break(%d, %d) fd %d\n", n, closeopen, wp->w_ptyfd);
+  debug("break(%d, %d) fd %d\n", n, closeopen, wp->w_ptyfd);
 
   (void) tcflush(wp->w_ptyfd, TCIOFLUSH);
 
@@ -1092,15 +1092,15 @@ struct mode *m;
   int i;
 
   debug("struct termios tio:\n");
-  debug1("c_iflag = %#x\n", (unsigned int)m->tio.c_iflag);
-  debug1("c_oflag = %#x\n", (unsigned int)m->tio.c_oflag);
-  debug1("c_cflag = %#x\n", (unsigned int)m->tio.c_cflag);
-  debug1("c_lflag = %#x\n", (unsigned int)m->tio.c_lflag);
-  debug1("cfgetospeed() = %d\n", (int)cfgetospeed(&m->tio));
-  debug1("cfgetispeed() = %d\n", (int)cfgetispeed(&m->tio));
+  debug("c_iflag = %#x\n", (unsigned int)m->tio.c_iflag);
+  debug("c_oflag = %#x\n", (unsigned int)m->tio.c_oflag);
+  debug("c_cflag = %#x\n", (unsigned int)m->tio.c_cflag);
+  debug("c_lflag = %#x\n", (unsigned int)m->tio.c_lflag);
+  debug("cfgetospeed() = %d\n", (int)cfgetospeed(&m->tio));
+  debug("cfgetispeed() = %d\n", (int)cfgetispeed(&m->tio));
   for (i = 0; i < sizeof(m->tio.c_cc)/sizeof(*m->tio.c_cc); i++)
     {
-      debug2("c_cc[%d] = %#x\n", i, m->tio.c_cc[i]);
+      debug("c_cc[%d] = %#x\n", i, m->tio.c_cc[i]);
     }
 }
 #endif /* DEBUG */

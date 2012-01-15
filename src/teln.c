@@ -394,13 +394,13 @@ TelDocmd(struct win *p, int cmd, int opt)
   int repl = 0;
 
   if (cmd == TC_WONT)
-    debug2("[<-WONT %c %d]\n", TO_S[opt], opt);
+    debug("[<-WONT %c %d]\n", TO_S[opt], opt);
   if (cmd == TC_WILL)
-    debug2("[<-WILL %c %d]\n", TO_S[opt], opt);
+    debug("[<-WILL %c %d]\n", TO_S[opt], opt);
   if (cmd == TC_DONT)
-    debug2("[<-DONT %c %d]\n", TO_S[opt], opt);
+    debug("[<-DONT %c %d]\n", TO_S[opt], opt);
   if (cmd == TC_DO)
-    debug2("[<-DO  %c %d]\n", TO_S[opt], opt);
+    debug("[<-DO  %c %d]\n", TO_S[opt], opt);
 
   switch(cmd)
     {
@@ -444,13 +444,13 @@ TelDocmd(struct win *p, int cmd, int opt)
   b[2] = opt;
 
   if (repl == TC_WONT)
-    debug2("[->WONT %c %d]\n", TO_S[opt], opt);
+    debug("[->WONT %c %d]\n", TO_S[opt], opt);
   if (repl == TC_WILL)
-    debug2("[->WILL %c %d]\n", TO_S[opt], opt);
+    debug("[->WILL %c %d]\n", TO_S[opt], opt);
   if (repl == TC_DONT)
-    debug2("[->DONT %c %d]\n", TO_S[opt], opt);
+    debug("[->DONT %c %d]\n", TO_S[opt], opt);
   if (repl == TC_DO)
-    debug2("[->DO  %c %d]\n", TO_S[opt], opt);
+    debug("[->DO  %c %d]\n", TO_S[opt], opt);
 
   TelReply(p, (char *)b, 3);
   if (cmd == TC_DO && opt == TO_NAWS)
@@ -478,7 +478,7 @@ TelDosub(struct win *p)
     case TO_LFLOW:
       if (p->w_telsubidx != 2)
 	return;
-      debug1("[FLOW %d]\r\n", p->w_telsubbuf[1]);
+      debug("[FLOW %d]\r\n", p->w_telsubbuf[1]);
       break;
     default:
       break;
@@ -498,7 +498,7 @@ TelWindowSize(struct win *p)
   char s[20], trepl[20], *t;
   int i;
 
-  debug2("TelWindowSize %d %d\n", p->w_width, p->w_height);
+  debug("TelWindowSize %d %d\n", p->w_width, p->w_height);
   if (p->w_width == 0 || p->w_height == 0 || !p->w_telmopts[TO_NAWS])
     return;
   sprintf(s, "%c%c%c%c%c%c%c%c%c", TC_SB, TC_SB, TO_NAWS, p->w_width / 256, p->w_width & 255, p->w_height / 256, p->w_height & 255, TC_SE, TC_SE);
@@ -510,7 +510,7 @@ TelWindowSize(struct win *p)
   t[-2] = TC_IAC;
   debug(" - sending");
   for (i = 0; trepl + i < t; i++)
-    debug1(" %02x", (unsigned char)trepl[i]);
+    debug(" %02x", (unsigned char)trepl[i]);
   debug("\n");
   TelReply(p, trepl, t - trepl);
 }

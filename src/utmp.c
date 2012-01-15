@@ -133,7 +133,7 @@ static struct ttyent *getttyent (void);
 void
 SlotToggle(int how)
 {
-  debug1("SlotToggle (!UTMPOK) %d\n", how);
+  debug("SlotToggle (!UTMPOK) %d\n", how);
 # ifdef UTMPFILE
   Msg(0, "Unable to modify %s.\n", UTMPFILE);
 # else
@@ -149,7 +149,7 @@ SlotToggle(int how)
 void
 SlotToggle(int how)
 {
-  debug1("SlotToggle %d\n", how);
+  debug("SlotToggle %d\n", how);
   if (fore->w_type != W_TYPE_PTY)
     {
       Msg(0, "Can only work with normal windows.\n");
@@ -235,7 +235,7 @@ CarefulUtmp()
 void
 InitUtmp()
 {
-  debug1("InitUtmp testing '%s'...\n", UtmpName);
+  debug("InitUtmp testing '%s'...\n", UtmpName);
 #ifndef UTMP_HELPER
   if ((utmpfd = open(UtmpName, O_RDWR)) == -1)
     {
@@ -261,7 +261,7 @@ CountUsers()
   struct utmp *ut;
   int UserCount;
 
-  debug1("CountUsers() - utmpok=%d\n", utmpok);
+  debug("CountUsers() - utmpok=%d\n", utmpok);
   if (!utmpok)
     return 0;
   UserCount = 0;
@@ -316,7 +316,7 @@ RemoveLoginSlot()
 	}
       UT_CLOSE;
     }
-  debug1(" slot %d zapped\n", (int)D_loginslot);
+  debug(" slot %d zapped\n", (int)D_loginslot);
   if (D_loginslot == (slot_t)0)
     {
       /* couldn't remove slot, do a 'mesg n' at least. */
@@ -344,7 +344,7 @@ RestoreLoginSlot()
   ASSERT(display);
   if (utmpok && D_loginslot != (slot_t)0 && D_loginslot != (slot_t)-1)
     {
-      debug1(" logging you in again (slot %#x)\n", (int)D_loginslot);
+      debug(" logging you in again (slot %#x)\n", (int)D_loginslot);
       if (pututslot(D_loginslot, &D_utmp_logintty, D_loginhost, (struct win *)0) == 0)
         Msg(errno,"Could not write %s", UtmpName);
     }
@@ -383,10 +383,10 @@ SetUtmp(struct win *win)
     return -1;
   if ((slot = TtyNameSlot(win->w_tty)) == (slot_t)0)
     {
-      debug1("SetUtmp failed (tty %s).\n",win->w_tty);
+      debug("SetUtmp failed (tty %s).\n",win->w_tty);
       return -1;
     }
-  debug2("SetUtmp %d will get slot %d...\n", win->w_number, (int)slot);
+  debug("SetUtmp %d will get slot %d...\n", win->w_number, (int)slot);
 
   memset((char *)&u, 0, sizeof(u));
   if ((saved_ut = memcmp((char *) &win->w_savut, (char *)&u, sizeof(u))))
@@ -434,7 +434,7 @@ SetUtmp(struct win *win)
     strncpy(host, "local", sizeof(host) - 15);
 
   sprintf(host + strlen(host), ":S.%d", win->w_number);
-  debug1("rlogin hostname: '%s'\n", host);
+  debug("rlogin hostname: '%s'\n", host);
 
   strncpy(u.ut_host, host, sizeof(u.ut_host));
 #endif /* UTHOST */
@@ -464,7 +464,7 @@ RemoveUtmp(struct win *win)
   slot_t slot;
 
   slot = win->w_slot;
-  debug1("RemoveUtmp slot=%#x\n", slot);
+  debug("RemoveUtmp slot=%#x\n", slot);
   if (!utmpok)
     return -1;
   if (slot == (slot_t)0 || slot == (slot_t)-1)

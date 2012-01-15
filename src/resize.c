@@ -79,7 +79,7 @@ CheckScreenSize(int change_flag)
 #ifdef TIOCGWINSZ
   if (ioctl(D_userfd, TIOCGWINSZ, (char *)&glwz) != 0)
     {
-      debug2("CheckScreenSize: ioctl(%d, TIOCGWINSZ) errno %d\n", D_userfd, errno);
+      debug("CheckScreenSize: ioctl(%d, TIOCGWINSZ) errno %d\n", D_userfd, errno);
       wi = D_CO;
       he = D_LI;
     }
@@ -97,7 +97,7 @@ CheckScreenSize(int change_flag)
   he = D_LI;
 #endif
 
-  debug2("CheckScreenSize: screen is (%d,%d)\n", wi, he);
+  debug("CheckScreenSize: screen is (%d,%d)\n", wi, he);
 
   if (D_width == wi && D_height == he)
     {
@@ -116,8 +116,8 @@ ChangeScreenSize(int wi, int he, int change_fore)
   struct canvas *cv;
   int wwi;
 
-  debug2("ChangeScreenSize from (%d,%d) ", D_width, D_height);
-  debug3("to (%d,%d) (change_fore: %d)\n",wi, he, change_fore);
+  debug("ChangeScreenSize from (%d,%d) ", D_width, D_height);
+  debug("to (%d,%d) (change_fore: %d)\n",wi, he, change_fore);
 
   cv = &D_canvas;
   cv->c_xe = wi - 1;
@@ -153,7 +153,7 @@ ChangeScreenSize(int wi, int he, int change_fore)
         D_defwidth = wi;
       D_defheight = he;
     }
-  debug2("Default size: (%d,%d)\n", D_defwidth, D_defheight);
+  debug("Default size: (%d,%d)\n", D_defwidth, D_defheight);
   if (change_fore)
     ResizeLayersToCanvases();
   if (change_fore == 2 && D_CWS == NULL && displays->d_next == 0)
@@ -161,7 +161,7 @@ ChangeScreenSize(int wi, int he, int change_fore)
       /* adapt all windows  -  to be removed ? */
       for (p = windows; p; p = p->w_next)
         {
-          debug1("Trying to change window %d.\n", p->w_number);
+          debug("Trying to change window %d.\n", p->w_number);
           wwi = wi;
 	  if (p->w_savelayer && p->w_savelayer->l_cvlist == 0)
 	    ResizeLayer(p->w_savelayer, wwi, he, 0);
@@ -252,7 +252,7 @@ MayResizeLayer(struct layer *l)
       if (l->l_cvlist)
         if (++cvs > 1 || l->l_cvlist->c_lnext)
 	  {
-	    debug1("may not - cvs %d\n", cvs);
+	    debug("may not - cvs %d\n", cvs);
 	    return 0;
 	  }
     }
@@ -458,7 +458,7 @@ CheckMaxSize(int wi)
   if (wi <= maxwidth)
     return;
   maxwidth = wi + 1;
-  debug1("New maxwidth: %d\n", maxwidth);
+  debug("New maxwidth: %d\n", maxwidth);
   blank = (unsigned char *)xrealloc((char *)blank, maxwidth);
   null = (unsigned char *)xrealloc((char *)null, maxwidth);
   mline_old.image = (unsigned char *)xrealloc((char *)mline_old.image, maxwidth);
@@ -580,8 +580,8 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
   CheckMaxSize(wi);
 
   debug("ChangeWindowSize");
-  debug3(" from (%d,%d)+%d", p->w_width, p->w_height, p->w_histheight);
-  debug3(" to(%d,%d)+%d\n", wi, he, hi);
+  debug(" from (%d,%d)+%d", p->w_width, p->w_height, p->w_histheight);
+  debug(" to(%d,%d)+%d\n", wi, he, hi);
 
   fy = p->w_histheight + p->w_height - 1;
   ty = hi + he - 1;
@@ -604,7 +604,7 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
 	}
       else
 	{
-	  debug1("image stays the same: %d lines\n", he);
+	  debug("image stays the same: %d lines\n", he);
 	  nmlines = p->w_mlines;
 	  fy -= he;
 	  ty -= he;
@@ -627,7 +627,7 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
   addone = 0;
   if (p->w_width && p->w_x == p->w_width)
     {
-      debug2("Special addone case: %d %d\n", p->w_x, p->w_y);
+      debug("Special addone case: %d %d\n", p->w_x, p->w_y);
       addone = 1;
       p->w_x--;
     }
@@ -651,7 +651,7 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
       if (shift < 0)
 	shift = 0;
       else
-	debug1("resize: cursor out of bounds, shifting %d\n", shift);
+	debug("resize: cursor out of bounds, shifting %d\n", shift);
       ncy += shift;
       if (p->w_autoaka > 0)
 	{
@@ -666,7 +666,7 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
 	  fy--;
 	}
     }
-  debug2("fy %d ty %d\n", fy, ty);
+  debug("fy %d ty %d\n", fy, ty);
   if (fy >= 0)
     mlf = OLDWIN(fy);
   if (ty >= 0)
@@ -730,7 +730,7 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
 		shift = hi + he - 1 - ty;
 	      if (shift > 0)
 		{
-	          debug3("resize: cursor out of bounds, shifting %d [%d/%d]\n", shift, lt - lx, wi);
+	          debug("resize: cursor out of bounds, shifting %d [%d/%d]\n", shift, lt - lx, wi);
 		  for (y = hi + he - 1; y >= ty; y--)
 		    {
 		      mlt = NEWWIN(y);
@@ -884,7 +884,7 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
       glwz.ws_row = he;
       debug("Setting pty winsize.\n");
       if (ioctl(p->w_ptyfd, TIOCSWINSZ, (char *)&glwz))
-	debug2("SetPtySize: errno %d (fd:%d)\n", errno, p->w_ptyfd);
+	debug("SetPtySize: errno %d (fd:%d)\n", errno, p->w_ptyfd);
     }
 #endif /* TIOCSWINSZ */
 

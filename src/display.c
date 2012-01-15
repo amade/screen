@@ -233,7 +233,7 @@ MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struct mode *M
   D_dospeed = (short)D_OldMode.m_ttyb.sg_ospeed;
 # endif
 #endif
-  debug1("New displays ospeed = %d\n", D_dospeed);
+  debug("New displays ospeed = %d\n", D_dospeed);
 
   strncpy(D_usertty, utty, sizeof(D_usertty) - 1);
   D_usertty[sizeof(D_usertty) - 1] = 0;
@@ -355,7 +355,7 @@ InitTerm(int adapt)
   D_x = D_y = 0;
   Flush(3);
   ClearAll();
-  debug1("we %swant to adapt all our windows to the display\n",
+  debug("we %swant to adapt all our windows to the display\n",
 	 (adapt) ? "" : "don't ");
   /* In case the size was changed by a init sequence */
   CheckScreenSize((adapt) ? 2 : 0);
@@ -699,7 +699,7 @@ CallRewrite(int y, int xs, int xe, int doit)
   struct layer *oldflayer;
   int cost;
 
-  debug3("CallRewrite %d %d %d\n", y, xs, xe);
+  debug("CallRewrite %d %d %d\n", y, xs, xe);
   ASSERT(display);
   ASSERT(xe >= xs);
 
@@ -740,7 +740,7 @@ CallRewrite(int y, int xs, int xe, int doit)
     D_rend.font = 0;
   oldflayer = flayer;
   flayer = cv->c_layer;
-  debug3("Calling Rewrite %d %d %d\n", y - vp->v_yoff, xs - vp->v_xoff, xe - vp->v_xoff);
+  debug("Calling Rewrite %d %d %d\n", y - vp->v_yoff, xs - vp->v_xoff, xe - vp->v_xoff);
   cost = LayRewrite(y - vp->v_yoff, xs - vp->v_xoff, xe - vp->v_xoff, &D_rend, 0);
   flayer = oldflayer;
   if (D_insert)
@@ -778,8 +778,8 @@ GotoPos(int x2, int y2)
   dy = y2 - y1;
   if (dy == 0 && dx == 0)
     return;
-  debug2("GotoPos (%d,%d)", x1, y1);
-  debug2(" -> (%d,%d)\n", x2, y2);
+  debug("GotoPos (%d,%d)", x1, y1);
+  debug(" -> (%d,%d)\n", x2, y2);
   if (!D_MS)		/* Safe to move ? */
     SetRendition(&mchar_null);
   if (y1 < 0			/* don't know the y position */
@@ -961,10 +961,10 @@ ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int uselayfn)
   struct canvas *cv;
   struct viewport *vp;
 
-  debug2("Clear %d,%d", x1, y1);
-  debug2(" %d-%d", xs, xe);
-  debug2(" %d,%d", x2, y2);
-  debug2(" uselayfn=%d bce=%d\n", uselayfn, bce);
+  debug("Clear %d,%d", x1, y1);
+  debug(" %d-%d", xs, xe);
+  debug(" %d,%d", x2, y2);
+  debug(" uselayfn=%d bce=%d\n", uselayfn, bce);
   ASSERT(display);
   if (x1 == D_width)
     x1--;
@@ -1497,10 +1497,10 @@ SetColor(int f, int b)
     f = 0;
   if (b == 0x100)
     b = 0;
-  debug2("SetColor %d %d", coli2e(of), coli2e(ob));
-  debug2(" -> %d %d\n", coli2e(f), coli2e(b));
-  debug2("(%d %d", of, ob);
-  debug2(" -> %d %d)\n", f, b);
+  debug("SetColor %d %d", coli2e(of), coli2e(ob));
+  debug(" -> %d %d\n", coli2e(f), coli2e(b));
+  debug("(%d %d", of, ob);
+  debug(" -> %d %d)\n", f, b);
 
   if (!D_CAX && D_hascolor && ((f == 0 && f != of) || (b == 0 && b != ob)))
     {
@@ -1613,7 +1613,7 @@ SetRendition(struct mchar *mc)
               ApplyAttrColor(attr2color[i][0], &mmc);
 	  }
       mc = &mmc;
-      debug2("SetRendition: mapped to %02x %02x\n", (unsigned char)mc->attr, 0x99 - (unsigned char)mc->color);
+      debug("SetRendition: mapped to %02x %02x\n", (unsigned char)mc->attr, 0x99 - (unsigned char)mc->color);
     }
   if (D_hascolor && D_CC8 && (mc->attr & (A_BFG|A_BBG)))
     {
@@ -1750,7 +1750,7 @@ MakeStatus(char *msg)
   if (!use_hardstatus || D_has_hstatus == HSTATUS_IGNORE || D_has_hstatus == HSTATUS_MESSAGE)
     {
       D_status = STATUS_ON_WIN;
-      debug1("using STATLINE %d\n", STATLINE);
+      debug("using STATLINE %d\n", STATLINE);
       GotoPos(0, STATLINE);
       SetRendition(&mchar_so);
       InsertMode(0);
@@ -2043,8 +2043,8 @@ RefreshArea(int xs, int ys, int xe, int ye, int isblank)
 {
   int y;
   ASSERT(display);
-  debug2("Refresh Area: %d,%d", xs, ys);
-  debug3(" - %d,%d (isblank=%d)\n", xe, ye, isblank);
+  debug("Refresh Area: %d,%d", xs, ys);
+  debug(" - %d,%d (isblank=%d)\n", xe, ye, isblank);
   if (!isblank && xs == 0 && xe == D_width - 1 && ye == D_height - 1 && (ys == 0 || D_CD))
     {
       ClearArea(xs, ys, xs, xe, xe, ye, 0, 0);
@@ -2066,8 +2066,8 @@ RefreshLine(int y, int from, int to, int isblank)
 
   ASSERT(display);
 
-  debug2("RefreshLine %d %d", y, from);
-  debug2(" %d %d\n", to, isblank);
+  debug("RefreshLine %d %d", y, from);
+  debug(" %d %d\n", to, isblank);
 
   if (D_status == STATUS_ON_WIN && y == STATLINE)
     {
@@ -2130,12 +2130,12 @@ RefreshLine(int y, int from, int to, int isblank)
 	    }
 	  if (y < cv->c_ys || y > cv->c_ye || to < cv->c_xs || from > cv->c_xe)
 	    continue;
-	  debug2("- canvas hit: %d %d", cv->c_xs, cv->c_ys);
-	  debug2("  %d %d\n", cv->c_xe, cv->c_ye);
+	  debug("- canvas hit: %d %d", cv->c_xs, cv->c_ys);
+	  debug("  %d %d\n", cv->c_xe, cv->c_ye);
 	  for (vp = cv->c_vplist; vp; vp = vp->v_next)
 	    {
-	      debug2("  - vp: %d %d", vp->v_xs, vp->v_ys);
-	      debug2("  %d %d\n", vp->v_xe, vp->v_ye);
+	      debug("  - vp: %d %d", vp->v_xs, vp->v_ys);
+	      debug("  %d %d\n", vp->v_xe, vp->v_ye);
 	      /* find leftmost overlapping vp */
 	      if (y >= vp->v_ys && y <= vp->v_ye && from <= vp->v_xe && to >= vp->v_xs && (lvp == 0 || lvp->v_xs > vp->v_xs))
 		{
@@ -2218,7 +2218,7 @@ WriteLP(int x2, int y2)
   ASSERT(display);
   ASSERT(D_lp_missing);
   oldrend = D_rend;
-  debug2("WriteLP(%d,%d)\n", x2, y2);
+  debug("WriteLP(%d,%d)\n", x2, y2);
   if (D_lpchar.mbcs)
     {
       if (x2 > 0)
@@ -2242,7 +2242,7 @@ ClearLine(struct mline *oml, int y, int from, int to, int bce)
   int x;
   struct mchar bcechar;
 
-  debug3("ClearLine %d,%d-%d\n", y, from, to);
+  debug("ClearLine %d,%d-%d\n", y, from, to);
   if (D_UT)	/* Safe to erase ? */
     SetRendition(&mchar_null);
   if (D_BE)
@@ -2328,7 +2328,7 @@ DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 	    {
 	      x++;
 	    }
-	  debug1("DisplayLine on right side of dw char- x now %d\n", x);
+	  debug("DisplayLine on right side of dw char- x now %d\n", x);
 	  GotoPos(x, y);
 	}
       if (x == to && dw_left(ml, x, D_encoding))
@@ -2432,10 +2432,10 @@ WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int ins)
 
   bce = rend_getbg(c);
   debug("WrapChar:");
-  debug2("  x %d  y %d", x, y);
-  debug2("  Dx %d  Dy %d", D_x, D_y);
-  debug2("  xs %d  ys %d", xs, ys);
-  debug3("  xe %d  ye %d ins %d\n", xe, ye, ins);
+  debug("  x %d  y %d", x, y);
+  debug("  Dx %d  Dy %d", D_x, D_y);
+  debug("  xs %d  ys %d", xs, ys);
+  debug("  xe %d  ye %d ins %d\n", xe, ye, ins);
   if (xs != 0 || x != D_width || !D_AM)
     {
       if (y == ye)
@@ -2465,7 +2465,7 @@ WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int ins)
     {
       if (D_CLP && y >= 0)		/* don't even try if !LP */
         RefreshLine(y, D_width - 1, D_width - 1, 0);
-      debug2("- refresh last char -> x,y now %d,%d\n", D_x, D_y);
+      debug("- refresh last char -> x,y now %d,%d\n", D_x, D_y);
       if (D_x != D_width || D_y != y)	/* sorry, no bonus */
 	{
 	  if (y == ye)
@@ -2481,7 +2481,7 @@ WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int ins)
   if (ins && !D_insert)
     {
       InsChar(c, 0, xe, y, 0);
-      debug2(" -> done with insert (%d,%d)\n", D_x, D_y);
+      debug(" -> done with insert (%d,%d)\n", D_x, D_y);
       return;
     }
   D_y = y;
@@ -2494,14 +2494,14 @@ WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int ins)
 	D_rend.font = 0;
       RAW_PUTCHAR(c->mbcs);
     }
-  debug2(" -> done (%d,%d)\n", D_x, D_y);
+  debug(" -> done (%d,%d)\n", D_x, D_y);
 }
 
 int
 ResizeDisplay(int wi, int he)
 {
   ASSERT(display);
-  debug2("ResizeDisplay: to (%d,%d).\n", wi, he);
+  debug("ResizeDisplay: to (%d,%d).\n", wi, he);
   if (D_width == wi && D_height == he)
     {
       debug("ResizeDisplay: No change\n");
@@ -2543,7 +2543,7 @@ ChangeScrollRegion(int newtop, int newbot)
     }
   if (D_top == newtop && D_bot == newbot)
     return;
-  debug2("ChangeScrollRegion: (%d - %d)\n", newtop, newbot);
+  debug("ChangeScrollRegion: (%d - %d)\n", newtop, newbot);
   AddCStr(tgoto(D_CS, newbot, newtop));
   D_top = newtop;
   D_bot = newbot;
@@ -2639,7 +2639,7 @@ Flush(int progress)
 
   ASSERT(display);
   l = D_obufp - D_obuf;
-  debug1("Flush(): %d\n", l);
+  debug("Flush(): %d\n", l);
   if (l == 0)
     return;
   ASSERT(l + D_obuffree == D_obuflen);
@@ -2653,7 +2653,7 @@ Flush(int progress)
   if (!progress)
     {
       if (fcntl(D_userfd, F_SETFL, 0))
-	debug1("Warning: BLOCK fcntl failed: %d\n", errno);
+	debug("Warning: BLOCK fcntl failed: %d\n", errno);
     }
   while (l)
     {
@@ -2670,13 +2670,13 @@ Flush(int progress)
 	    {
 	      if (errno == EINTR)
 		continue;
-	      debug1("Warning: select failed: %d\n", errno);
+	      debug("Warning: select failed: %d\n", errno);
 	      break;
 	    }
 	  if (wr == 0)
 	    {
 	      /* no progress after 3 seconds. sorry. */
-	      debug1("Warning: no progress after %d seconds\n", progress);
+	      debug("Warning: no progress after %d seconds\n", progress);
 	      break;
 	    }
 	}
@@ -2685,7 +2685,7 @@ Flush(int progress)
 	{
 	  if (errno == EINTR)
 	    continue;
-	  debug1("Writing to display: %d\n", errno);
+	  debug("Writing to display: %d\n", errno);
 	  break;
 	}
       D_obuffree += wr;
@@ -2693,13 +2693,13 @@ Flush(int progress)
       l -= wr;
     }
   if (l)
-    debug1("Warning: Flush could not write %d bytes\n", l);
+    debug("Warning: Flush could not write %d bytes\n", l);
   D_obuffree += l;
   D_obufp = D_obuf;
   if (!progress)
     {
       if (fcntl(D_userfd, F_SETFL, FNBLOCK))
-	debug1("Warning: NBLOCK fcntl failed: %d\n", errno);
+	debug("Warning: NBLOCK fcntl failed: %d\n", errno);
     }
   if (D_blocked == 1)
     D_blocked = 0;
@@ -2711,7 +2711,7 @@ freetty()
 {
   if (D_userfd >= 0)
     close(D_userfd);
-  debug1("did freetty %d\n", D_userfd);
+  debug("did freetty %d\n", D_userfd);
   D_userfd = -1;
   D_obufp = 0;
   D_obuffree = 0;
@@ -2760,7 +2760,7 @@ Resize_obuf()
     Panic(0, "Out of memory");
   D_obufp = D_obuf + ind;
   D_obuflenmax = D_obuflen - D_obufmax;
-  debug1("ResizeObuf: resized to %d\n", D_obuflen);
+  debug("ResizeObuf: resized to %d\n", D_obuflen);
 }
 
 void
@@ -2788,7 +2788,7 @@ DisplaySleep1000(int n, int eat)
       if (eat)
         read(D_userfd, &buf, 1);
     }
-  debug2("DisplaySleep(%d) ending, eat was %d\n", n, eat);
+  debug("DisplaySleep(%d) ending, eat was %d\n", n, eat);
 }
 
 void
@@ -2803,7 +2803,7 @@ NukePending()
 
   oldrend = D_rend;
   len = D_obufp - D_obuf;
-  debug1("NukePending: nuking %d chars\n", len);
+  debug("NukePending: nuking %d chars\n", len);
 
   /* Throw away any output that we can... */
 # ifdef POSIX
@@ -2895,7 +2895,7 @@ disp_writeev_fn(struct event *ev, char *data)
       if (len)
 	{
 	  memmove(D_obuf, D_obuf + size, len);
-	  debug2("ASYNC: wrote %d - remaining %d\n", size, len);
+	  debug("ASYNC: wrote %d - remaining %d\n", size, len);
 	}
       D_obufp -= size;
       D_obuffree += size;
@@ -2930,19 +2930,19 @@ disp_writeev_fn(struct event *ev, char *data)
 	{
 	  if (D_obufp - D_obuf > D_obufmax / 2)
 	    {
-	      debug2("%s: resetting timeout to %g secs\n", D_usertty, D_nonblock/1000.);
+	      debug("%s: resetting timeout to %g secs\n", D_usertty, D_nonblock/1000.);
 	      SetTimeout(&D_blockedev, D_nonblock);
 	    }
 	  else
 	    {
-	      debug1("%s: deleting blocked timeout\n", D_usertty);
+	      debug("%s: deleting blocked timeout\n", D_usertty);
 	      evdeq(&D_blockedev);
 	    }
 	}
       if (D_blocked == 1 && D_obuf == D_obufp)
 	{
 	  /* empty again, restart output */
-          debug1("%s: buffer empty, unblocking\n", D_usertty);
+          debug("%s: buffer empty, unblocking\n", D_usertty);
 	  D_blocked = 0;
 	  Activate(D_fore ? D_fore->w_norefresh : 0);
 	  D_blocked_fuzz = D_obufp - D_obuf;
@@ -3010,7 +3010,7 @@ disp_readev_fn(struct event *ev, char *data)
       if (errno == EWOULDBLOCK)
 	return;
 #endif
-      debug1("Read error: %d - hangup!\n", errno);
+      debug("Read error: %d - hangup!\n", errno);
       Hangup();
       sleep(1);
       return;
@@ -3143,7 +3143,7 @@ static void
 disp_status_fn(struct event *ev, char *data)
 {
   display = (struct display *)data;
-  debug1("disp_status_fn for display %x\n", (int)display);
+  debug("disp_status_fn for display %x\n", (int)display);
   if (D_status)
     RemoveStatus();
 }
@@ -3167,7 +3167,7 @@ disp_blocked_fn(struct event *ev, char *data)
   struct win *p;
 
   display = (struct display *)data;
-  debug1("blocked timeout %s\n", D_usertty);
+  debug("blocked timeout %s\n", D_usertty);
   if (D_obufp - D_obuf > D_obufmax + D_blocked_fuzz)
     {
       debug("stopping output to display\n");
@@ -3176,7 +3176,7 @@ disp_blocked_fn(struct event *ev, char *data)
       for (p = windows; p; p = p->w_next)
 	if (p->w_readev.condneg == &D_obuflenmax)
 	  {
-	    debug1("freeing window #%d\n", p->w_number);
+	    debug("freeing window #%d\n", p->w_number);
 	    p->w_readev.condpos = p->w_readev.condneg = 0;
 	  }
     }
@@ -3200,8 +3200,8 @@ disp_map_fn(struct event *ev, char *data)
       D_seqh = 0;
       i = q[0] << 8 | q[1];
       i &= ~KMAP_NOTIMEOUT;
-      debug1("Mapping former hit #%d - ", i);
-      debug2("%d(%s) - ", q[2], q + 3);
+      debug("Mapping former hit #%d - ", i);
+      debug("%d(%s) - ", q[2], q + 3);
       if (StuffKey(i))
 	ProcessInput2((char *)q + 3, q[2]);
       if (display == 0)

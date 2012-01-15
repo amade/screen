@@ -95,7 +95,7 @@ InitTermcap(int wi, int he)
 
   ASSERT(display);
   memset(tbuf, 0, sizeof(tbuf));
-  debug1("InitTermcap: looking for tgetent('%s')\n", D_termname);
+  debug("InitTermcap: looking for tgetent('%s')\n", D_termname);
   if (*D_termname == 0 || e_tgetent(tbuf, D_termname) != 1)
     {
 #ifdef TERMINFO
@@ -105,12 +105,12 @@ InitTermcap(int wi, int he)
 #endif
       return -1;
     }
-  debug1("got it:\n%s\n", tbuf);
+  debug("got it:\n%s\n", tbuf);
 #ifdef DEBUG
   if (extra_incap)
-    debug1("Extra incap: %s\n", extra_incap);
+    debug("Extra incap: %s\n", extra_incap);
   if (extra_outcap)
-    debug1("Extra outcap: %s\n", extra_outcap);
+    debug("Extra outcap: %s\n", extra_outcap);
 #endif
 
   if ((D_tentry = (char *)malloc(TERMCAP_BUFSIZE + (extra_incap ? strlen(extra_incap) + 1 : 0))) == 0)
@@ -372,10 +372,10 @@ InitTermcap(int wi, int he)
   if (D_CC0)
     for (i = strlen(D_CC0) & ~1; i >= 0; i -= 2)
       D_c0_tab[(int)(unsigned char)D_CC0[i]] = D_CC0[i + 1];
-  debug1("ISO2022 = %d\n", D_CG0);
+  debug("ISO2022 = %d\n", D_CG0);
   if (D_PF == 0)
     D_PO = 0;
-  debug2("terminal size is %d, %d (says TERMCAP)\n", D_CO, D_LI);
+  debug("terminal size is %d, %d (says TERMCAP)\n", D_CO, D_LI);
 
   if (D_CXC)
     if (CreateTransTable(D_CXC))
@@ -428,7 +428,7 @@ InitTermcap(int wi, int he)
     }
   if (D_COL > 0)
     {
-      debug1("termcap has OL (%d), setting limit\n", D_COL);
+      debug("termcap has OL (%d), setting limit\n", D_COL);
       D_obufmax = D_COL;
       D_obuflenmax = D_obuflen - D_obufmax;
     }
@@ -521,7 +521,7 @@ remap(int n, int map)
     return 0;
   if (map && !domap)
     return 0;
-  debug3("%smapping %s %#x\n", map? "" :"un",s,n);
+  debug("%smapping %s %#x\n", map? "" :"un",s,n);
   if (map)
     return addmapseq(s, l, n | fl);
   else
@@ -747,7 +747,7 @@ dumpmap()
   while (p < D_kmaps + D_nseqs)
     {
       l = p[2];
-      debug1("%d: ", p - D_kmaps + 3);
+      debug("%d: ", p - D_kmaps + 3);
       for (j = 0; j < l; j++)
 	{
 	  o = oo = p[l + 4 + j];
@@ -755,13 +755,13 @@ dumpmap()
 	    o = 2 * o + 4 + (p + 3 + j - D_kmaps);
 	  if (p[j + 3] > ' ' && p[j + 3] < 0177)
 	    {
-              debug3("%c[%d:%d] ", p[j + 3], oo, o);
+              debug("%c[%d:%d] ", p[j + 3], oo, o);
 	    }
           else
-            debug3("\\%03o[%d:%d] ", p[j + 3], oo, o);
+            debug("\\%03o[%d:%d] ", p[j + 3], oo, o);
 	}
       n = p[0] << 8 | p[1];
-      debug2(" ==> %d%s\n", n & ~KMAP_NOTIMEOUT, (n & KMAP_NOTIMEOUT) ? " (no timeout)" : "");
+      debug(" ==> %d%s\n", n & ~KMAP_NOTIMEOUT, (n & KMAP_NOTIMEOUT) ? " (no timeout)" : "");
       p += 2 * l + 4;
     }
 }
@@ -815,7 +815,7 @@ MakeTermcap(int aflag)
       he = 24;
       tname = "vt100";
     }
-  debug1("MakeTermcap(%d)\n", aflag);
+  debug("MakeTermcap(%d)\n", aflag);
   if ((s = getenv("SCREENCAP")) && strlen(s) < TERMCAP_BUFSIZE)
     {
       sprintf(Termcap, "TERMCAP=%s", s);
@@ -824,8 +824,8 @@ MakeTermcap(int aflag)
       return Termcap;
     }
   Termcaplen = 0;
-  debug1("MakeTermcap screenterm='%s'\n", screenterm);
-  debug1("MakeTermcap termname='%s'\n", tname);
+  debug("MakeTermcap screenterm='%s'\n", screenterm);
+  debug("MakeTermcap termname='%s'\n", tname);
   if (*screenterm == '\0' || strlen(screenterm) > MAXSTR - 3)
     {
       debug("MakeTermcap sets screenterm=screen\n");
@@ -867,7 +867,7 @@ MakeTermcap(int aflag)
     strcpy(Term, "too_long");
   sprintf(Termcap, "TERMCAP=SC|%s|VT 100/ANSI X3.64 virtual terminal:", Term + 5);
   Termcaplen = strlen(Termcap);
-  debug1("MakeTermcap decided '%s'\n", p);
+  debug("MakeTermcap decided '%s'\n", p);
   if (extra_outcap && *extra_outcap)
     {
       for (cp = extra_outcap; (p = strchr(cp, ':')); cp = p)
@@ -879,7 +879,7 @@ MakeTermcap(int aflag)
 	}
       tcLineLen = 100;	/* Force NL */
     }
-  debug1("MakeTermcap after outcap '%s'\n", (char *)TermcapConst);
+  debug("MakeTermcap after outcap '%s'\n", (char *)TermcapConst);
   if (Termcaplen + strlen(TermcapConst) < TERMCAP_BUFSIZE)
     {
       strcpy(Termcap + Termcaplen, (char *)TermcapConst);
@@ -1172,7 +1172,7 @@ CreateTransTable(char *s)
 	    }
 	  *sx = 0;
 	  ASSERT(ctable[c] + l * templnsub + templlen == sx);
-	  debug3("XC: %c %c->%s\n", curchar, c, ctable[c]);
+	  debug("XC: %c %c->%s\n", curchar, c, ctable[c]);
 	}
       if (*s == ',')
 	s++;
@@ -1354,7 +1354,7 @@ findcap(char *cap, char **tepp, int n)
 	{
 	  *cp++ = 0;
 	  *tepp = cp;
-	  debug2("'%s' found in extra_incap -> %s\n", cap, tep);
+	  debug("'%s' found in extra_incap -> %s\n", cap, tep);
 	  return tep;
 	}
     }
