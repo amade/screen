@@ -738,7 +738,7 @@ main(int argc, char **argv)
     }
 #endif
 
-  if ((LoginName = getlogin()) && LoginName[0] != '\0')
+  if ((LoginName = getlogin()) != NULL)
     {
       if ((ppp = getpwnam(LoginName)) != (struct passwd *) 0)
 	if (ppp->pw_uid != real_uid)
