@@ -789,7 +789,7 @@ main(int argc, char **argv)
   if (SockMatch && *SockMatch == 0)
     SockMatch = 0;
 
-  if ((LoginName = getlogin()) && LoginName[0] != '\0')
+  if ((LoginName = getlogin()) != NULL)
     {
       if ((ppp = getpwnam(LoginName)) != (struct passwd *) 0)
 	if (ppp->pw_uid != real_uid)
