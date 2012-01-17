@@ -116,8 +116,7 @@ SigAlrmDummy (int sigsig)
  */
 
 int
-OpenTTY(line, opt)
-char *line, *opt;
+OpenTTY(char *line, char *opt)
 {
   int f;
   struct mode Mode;
@@ -203,9 +202,7 @@ char *line, *opt;
  */
 
 void
-InitTTY(m, ttyflag)
-struct mode *m;
-int ttyflag;
+InitTTY(struct mode *m, int ttyflag)
 {
   memset((char *)m, 0, sizeof(*m));
   /* struct termios tio
@@ -291,9 +288,7 @@ XIF{VSTATUS}	m->tio.c_cc[VSTATUS]  = Ctrl('T');
 }
 
 void
-SetTTY(fd, mp)
-int fd;
-struct mode *mp;
+SetTTY(int fd, struct mode *mp)
 {
   errno = 0;
   tcsetattr(fd, TCSADRAIN, &mp->tio);
@@ -306,9 +301,7 @@ struct mode *mp;
 }
 
 void
-GetTTY(fd, mp)
-int fd;
-struct mode *mp;
+GetTTY(int fd, struct mode *mp)
 {
   errno = 0;
   tcgetattr(fd, &mp->tio);
@@ -324,9 +317,7 @@ struct mode *mp;
  * needs interrupt = iflag and flow = d->d_flow
  */
 void
-SetMode(op, np, flow, interrupt)
-struct mode *op, *np;
-int flow, interrupt;
+SetMode(struct mode *op, struct mode *np, int flow, int interrupt)
 {
   *np = *op;
 
@@ -393,8 +384,7 @@ XIF{VWERASE}	np->tio.c_cc[VWERASE] = VDISABLE;
 
 /* operates on display */
 void
-SetFlow(on)
-int on;
+SetFlow(int on)
 {
   ASSERT(display);
   if (D_flow == on)
@@ -424,9 +414,7 @@ XIF{VSTOP}	D_NewMode.tio.c_cc[VSTOP] = VDISABLE;
 
 /* parse commands from opt and modify m */
 int
-SttyMode(m, opt)
-struct mode *m;
-char *opt;
+SttyMode(struct mode *m, char *opt)
 {
   static const char sep[] = " \t:;,";
 
@@ -503,16 +491,14 @@ char *opt;
 
 /*ARGSUSED*/
 void
-brktty(fd)
-int fd;
+brktty(int fd)
 {
   if (separate_sids)
     setsid();		/* will break terminal affiliation */
 }
 
 int
-fgtty(fd)
-int fd;
+fgtty(int fd)
 {
 #ifdef BSDJOBS
   int mypid;
@@ -551,8 +537,7 @@ int breaktype = 2;
  * n: approximate duration in 1/4 seconds.
  */
 static void
-DoSendBreak(fd, n, type)
-int fd, n, type;
+DoSendBreak(int fd, int n, int type)
 {
   switch (type)
     {
@@ -652,9 +637,7 @@ int fd, n, type;
  */
 
 void
-SendBreak(wp, n, closeopen)
-struct win *wp;
-int n, closeopen;
+SendBreak(struct win *wp, int n, int closeopen)
 {
   void (*sigalrm)(int);
 
@@ -697,9 +680,7 @@ static struct event consredir_ev;
 static int consredirfd[2] = {-1, -1};
 
 static void
-consredir_readev_fn(ev, data)
-struct event *ev;
-char *data;
+consredir_readev_fn(struct event *ev, char *data)
 {
   char *p, *n, buf[256];
   int l;
@@ -726,9 +707,7 @@ char *data;
 
 /*ARGSUSED*/
 int
-TtyGrabConsole(fd, on, rc_name)
-int fd, on;
-char *rc_name;
+TtyGrabConsole(int fd, int on, char *rc_name)
 {
   struct display *d;
 #  ifdef SRIOCSREDIR
@@ -826,9 +805,7 @@ char *rc_name;
  * Returns buf;
  */
 char *
-TtyGetModemStatus(fd, buf)
-int fd;
-char *buf;
+TtyGetModemStatus(int fd, char *buf)
 {
   char *p = buf;
 #ifdef TIOCGSOFTCAR
@@ -1024,8 +1001,7 @@ IF{B0}   	{	0,	0,	B0	},
  * value as returned by cfget?speed()
  */
 struct baud_values *
-lookup_baud(baud)
-int baud;
+lookup_baud(int baud)
 {
   struct baud_values *p;
 
@@ -1042,9 +1018,7 @@ int baud;
  * -1 means don't change.
  */
 int
-SetBaud(m, ibaud, obaud)
-struct mode *m;
-int ibaud, obaud;
+SetBaud(struct mode *m, int ibaud, int obaud)
 {
   struct baud_values *ip, *op;
 
@@ -1058,8 +1032,7 @@ int ibaud, obaud;
 }
 
 int
-CheckTtyname (tty)
-char *tty;
+CheckTtyname(char *tty)
 {
   struct stat st;
 
@@ -1075,8 +1048,7 @@ char *tty;
 
 #ifdef DEBUG
 void
-DebugTTY(m)
-struct mode *m;
+DebugTTY(struct mode *m)
 {
   int i;
 
