@@ -676,11 +676,7 @@ LockTerminal()
         Msg(errno, "Cannot lock terminal - fork failed");
       else
         {
-#ifdef BSDWAIT
-          union wait wstat;
-#else
           int wstat;
-#endif
           int wret;
 
           errno = 0;
