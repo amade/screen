@@ -740,11 +740,6 @@ AC_TRY_COMPILE([
 #include <utmp.h>
 #endif
 ],[struct utmp u; u.ut_host[0] = 0;], AC_DEFINE(UTHOST))
-AC_CHECK_HEADER(utempter.h, have_utempter=yes, have_utempter=no)
-if test "$have_utempter" = yes; then
-  AC_DEFINE(HAVE_UTEMPTER)
-  LIBS="$LIBS -lutempter"
-fi
 
 dnl
 dnl    ****  loadav  ****
