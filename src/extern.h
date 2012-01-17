@@ -49,11 +49,7 @@ extern char *MakeWinMsg (char *, struct win *, int);
 extern char *MakeWinMsgEv (char *, struct win *, int, int, struct event *, int);
 extern int   AddWinMsgRend (const char *, int);
 extern void  PutWinMsg (char *, int, int);
-#ifdef BSDWAIT
-extern void  WindowDied (struct win *, union wait, int);
-#else
 extern void  WindowDied (struct win *, int, int);
-#endif
 extern void  setbacktick (int, int, int, char **);
 
 /* ansi.c */

@@ -1693,21 +1693,13 @@ win_readev_fn(struct event *ev, char *data)
 	return;
 #endif
       debug("Window %d: read error (errno %d) - killing window\n", p->w_number, errno);
-#ifdef BSDWAIT
-      WindowDied(p, (union wait)0, 0);
-#else
       WindowDied(p, 0, 0);
-#endif
       return;
     }
   if (len == 0)
     {
       debug("Window %d: EOF - killing window\n", p->w_number);
-#ifdef BSDWAIT
-      WindowDied(p, (union wait)0, 0);
-#else
       WindowDied(p, 0, 0);
-#endif
       return;
     }
   debug(" -> %d bytes\n", len);

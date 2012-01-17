@@ -283,24 +283,6 @@
 #undef USESIGSET
 
 /*
- * Define BSDWAIT if your system defines a 'union wait' in <sys/wait.h>
- *
- * Only allow BSDWAIT i.e. wait3 on nonposix systems, since
- * posix implies wait(3) and waitpid(3). vdlinden@fwi.uva.nl
- *
- */
-#ifndef POSIX
-#undef BSDWAIT
-#endif
-
-/*
- * On RISCOS we prefer wait2() over wait3(). rouilj@sni-usa.com
- */
-#ifdef BSDWAIT
-#undef USE_WAIT2
-#endif
-
-/*
  * If your system has getutent(), pututline(), etc. to write to the
  * utmp file, define GETUTENT.
  */

@@ -1303,13 +1303,8 @@ main(int argc, char **argv)
   return 0;
 }
 
-#ifdef BSDWAIT
-void
-WindowDied(struct win *p, union wait wstat, int wstat_valid)
-#else
 void
 WindowDied(struct win *p, int wstat, int wstat_valid)
-#endif
 {
   int killit = 0;
 
@@ -1321,7 +1316,7 @@ WindowDied(struct win *p, int wstat, int wstat_valid)
       p->w_destroyev.data = 0;
     }
 
-#if defined(BSDJOBS) && !defined(BSDWAIT)
+#if defined(BSDJOBS)
   if (!wstat_valid && p->w_pid > 0)
     {
       /* EOF on file descriptor. The process is probably also dead.
@@ -1504,27 +1499,10 @@ DoWait()
 {
   register int pid;
   struct win *p, *next;
-#ifdef BSDWAIT
-  union wait wstat;
-#else
   int wstat;
-#endif
 
 #ifdef BSDJOBS
-# ifndef BSDWAIT
   while ((pid = waitpid(-1, &wstat, WNOHANG | WUNTRACED)) > 0)
-# else
-# ifdef USE_WAIT2
-  /*
-   * From: rouilj@sni-usa.com (John Rouillard)
-   * note that WUNTRACED is not documented to work, but it is defined in
-   * /usr/include/sys/wait.h, so it may work
-   */
-  while ((pid = wait2(&wstat, WNOHANG | WUNTRACED )) > 0)
-#  else /* USE_WAIT2 */
-  while ((pid = wait3(&wstat, WNOHANG | WUNTRACED, (struct rusage *) 0)) > 0)
-#  endif /* USE_WAIT2 */
-# endif
 #else	/* BSDJOBS */
   while ((pid = wait(&wstat)) < 0)
     if (errno != EINTR)
