@@ -169,7 +169,7 @@ newenv()
   for (i = 0; environ[i]; i++)
     ;
   esize = i + EXTRASIZE + 1;
-  env = (char **)malloc(esize * sizeof (elem));
+  env = malloc(esize * sizeof (elem));
   if (env == 0)
     return -1;
 
@@ -195,7 +195,7 @@ moreenv()
   register char **env;
 
   esize = envsize + EXTRASIZE;
-  env = (char **)realloc((char *)environ, esize * sizeof (*env));
+  env = realloc((char *)environ, esize * sizeof (*env));
   if (env == 0)
     return -1;
   environ = env;

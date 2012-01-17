@@ -173,7 +173,7 @@ MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struct mode *M
   if (!*(u = FindUserPtr(uname)) && UserAdd(uname, (char *)0, u))
     return 0;	/* could not find or add user */
 
-  if ((display = (struct display *)calloc(1, sizeof(*display))) == 0)
+  if ((display = calloc(1, sizeof(*display))) == 0)
     return 0;
   display->d_next = displays;
   displays = display;

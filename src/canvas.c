@@ -327,7 +327,7 @@ MakeDefaultCanvas()
   struct canvas *cv;
 
   ASSERT(display);
-  if ((cv = (struct canvas *)calloc(1, sizeof *cv)) == 0)
+  if ((cv = calloc(1, sizeof *cv)) == 0)
     return -1;
   cv->c_xs      = 0;
   cv->c_xe      = D_width - 1;
@@ -598,7 +598,7 @@ AddPerp(struct canvas *cv)
   struct canvas *pcv;
   debug("Creating new perp node\n");
 
-  if ((pcv = (struct canvas *)calloc(1, sizeof *cv)) == 0)
+  if ((pcv = calloc(1, sizeof *cv)) == 0)
     return 0;
   pcv->c_next = 0;
   pcv->c_display = cv->c_display;
@@ -665,7 +665,7 @@ AddCanvas(int orient)
   if (h < 0)
     return -1;		/* can't fit in */
 
-  if ((cv = (struct canvas *)calloc(1, sizeof *cv)) == 0)
+  if ((cv = calloc(1, sizeof *cv)) == 0)
     return -1;
 
   D_forecv->c_slback->c_ye = ye;	/* in case we modified it above */
@@ -823,14 +823,14 @@ DupLayoutCv(struct canvas *cvf, struct canvas *cvt, int save)
 	}
       if (cvf->c_slperp)
 	{
-	  cvt->c_slperp = (struct canvas *)calloc(1, sizeof(struct canvas));
+	  cvt->c_slperp = calloc(1, sizeof(struct canvas));
 	  cvt->c_slperp->c_slback = cvt;
 	  CanvasInitBlank(cvt->c_slperp);
 	  DupLayoutCv(cvf->c_slperp, cvt->c_slperp, save);
 	}
       if (cvf->c_slnext)
 	{
-	  cvt->c_slnext = (struct canvas *)calloc(1, sizeof(struct canvas));
+	  cvt->c_slnext = calloc(1, sizeof(struct canvas));
 	  cvt->c_slnext->c_slprev = cvt;
 	  cvt->c_slnext->c_slback = cvt->c_slback;
 	  CanvasInitBlank(cvt->c_slnext);

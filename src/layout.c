@@ -75,7 +75,7 @@ CreateLayout(char *title, int startat)
 	  return 0;
 	}
     }
-  lay = (struct layout *)calloc(1, sizeof(*lay));
+  lay = calloc(1, sizeof(*lay));
   lay->lay_title = SaveStr(title);
   lay->lay_autosave = 1;
   lay->lay_number = i;

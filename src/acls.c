@@ -89,7 +89,7 @@ UserAdd(char *name, char *pass, struct acluser **up)
       return 1;		/* he is already there */
     }
   if (strcmp("none", name))	/* "none" is a reserved word */
-    *up = (struct acluser *)calloc(1, sizeof(struct acluser));
+    *up = calloc(1, sizeof(struct acluser));
   if (!*up)
     return -1;		/* he still does not exist */
   (*up)->u_plop.buf = NULL;

@@ -289,7 +289,7 @@ extern void  ClearScrollbackBuffer (void);
 extern int   ChangeWindowSize (struct win *, int, int, int);
 extern void  ChangeScreenSize (int, int, int);
 extern void  CheckScreenSize (int);
-extern char *xrealloc (char *, int);
+extern void *xrealloc (char *, int);
 extern void  ResizeLayersToCanvases (void);
 extern void  ResizeLayer (struct layer *, int, int, struct display *);
 extern int   MayResizeLayer (struct layer *);

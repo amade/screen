@@ -445,7 +445,7 @@ GetHistory()	/* return value 1 if copybuffer changed */
     return 0;
   if (D_user->u_plop.buf)
     UserFreeCopyBuffer(D_user);
-  if ((D_user->u_plop.buf = (char *)malloc((unsigned) (i - x + 2))) == NULL)
+  if ((D_user->u_plop.buf = malloc((unsigned) (i - x + 2))) == NULL)
     {
       LMsg(0, "Not enough memory... Sorry.");
       return 0;

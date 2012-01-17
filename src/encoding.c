@@ -764,7 +764,7 @@ WinSwitchEncoding(struct win *p, int encoding)
 	    continue;
 	  if (ml->font == null)
 	    {
-	      if ((ml->font = (unsigned char *)calloc(p->w_width + 1, 1)) == 0)
+	      if ((ml->font = calloc(p->w_width + 1, 1)) == 0)
 		{
 		  ml->font = null;
 		  break;
@@ -984,11 +984,11 @@ utf8_handle_comb(int c, struct mchar *mc)
   isdouble = c1 >= 0x1100 && utf8_isdouble(c1);
   if (!combchars)
     {
-      combchars = (struct combchar **)calloc(0x802, sizeof(struct combchar *));
+      combchars = calloc(0x802, sizeof(struct combchar *));
       if (!combchars)
 	return;
-      combchars[0x800] = (struct combchar *)malloc(sizeof(struct combchar));
-      combchars[0x801] = (struct combchar *)malloc(sizeof(struct combchar));
+      combchars[0x800] = malloc(sizeof(struct combchar));
+      combchars[0x801] = malloc(sizeof(struct combchar));
       if (!combchars[0x800] || !combchars[0x801])
 	{
 	  if (combchars[0x800])
@@ -1033,7 +1033,7 @@ utf8_handle_comb(int c, struct mchar *mc)
     }
   else if (!combchars[i])
     {
-      combchars[i] = (struct combchar *)malloc(sizeof(struct combchar));
+      combchars[i] = malloc(sizeof(struct combchar));
       if (!combchars[i])
 	return;
       combchars[i]->prev = i;
