@@ -3333,7 +3333,7 @@ DoAction(struct action *act, int key)
 	/*
 	 * if no shortcut, we construct a buffer
 	 */
-        if ((dbuf = (char *)malloc(l)) == 0)
+        if ((dbuf = malloc(l)) == 0)
           {
 	    OutputMsg(0, "%s", strnomem);
 	    break;
@@ -4314,7 +4314,7 @@ DoAction(struct action *act, int key)
 		      break;
 		    }
 		  kmap_extn += 8;
-		  kmap_exts = (struct kmap_ext *)xrealloc((char *)kmap_exts, kmap_extn * sizeof(*kmap_exts));
+		  kmap_exts = xrealloc((char *)kmap_exts, kmap_extn * sizeof(*kmap_exts));
 		  kme = kmap_exts + i;
 		  memset((char *)kme, 0, 8 * sizeof(*kmap_exts));
 		  for (; i < kmap_extn; i++, kme++)
@@ -5469,9 +5469,9 @@ SaveAction(struct action *act, int nr, char **args, int *argl)
       act->argl = 0;
       return;
     }
-  if ((pp = (char **)malloc((unsigned)(argc + 1) * sizeof(char **))) == 0)
+  if ((pp = malloc((unsigned)(argc + 1) * sizeof(char **))) == 0)
     Panic(0, "%s", strnomem);
-  if ((lp = (int *)malloc((unsigned)(argc) * sizeof(int *))) == 0)
+  if ((lp = malloc((unsigned)(argc) * sizeof(int *))) == 0)
     Panic(0, "%s", strnomem);
   act->nr = nr;
   act->args = pp;
@@ -5492,7 +5492,7 @@ SaveArgs(char **args)
 
   while (args[argc])
     argc++;
-  if ((pp = ap = (char **)malloc((unsigned)(argc + 1) * sizeof(char **))) == 0)
+  if ((pp = ap = malloc((unsigned)(argc + 1) * sizeof(char **))) == 0)
     Panic(0, "%s", strnomem);
   while (argc--)
     *pp++ = SaveStr(*args++);
@@ -6945,7 +6945,7 @@ copy_reg_fn(char *buf, int len, char *data)
   pp->len = 0;
   if (D_user->u_plop.len)
     {
-      if ((pp->buf = (char *)malloc(D_user->u_plop.len)) == NULL)
+      if ((pp->buf = malloc(D_user->u_plop.len)) == NULL)
 	{
 	  Msg(0, "%s", strnomem);
 	  return;

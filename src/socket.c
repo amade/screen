@@ -220,7 +220,7 @@ FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	    }
 	}
       debug("  store it.\n");
-      if ((sent = (struct sent *)malloc(sizeof(struct sent))) == 0)
+      if ((sent = malloc(sizeof(struct sent))) == 0)
 	continue;
       sent->next = 0;
       sent->name = SaveStr(name);
@@ -886,7 +886,7 @@ ReceiveMsg()
 
   len = sizeof(a);
   debug("Ha, there was someone knocking on my socket??\n");
-  if ((ns = accept(ns, (struct sockaddr *) &a, (void *)&len)) < 0)
+  if ((ns = accept(ns, (struct sockaddr *) &a, (socklen_t *)&len)) < 0)
     {
       Msg(errno, "accept");
       return;
@@ -1111,7 +1111,7 @@ ReceiveRaw(int s)
 #else
   struct sockaddr_un a;
   len = sizeof(a);
-  if ((s = accept(s, (struct sockaddr *) &a, (void *)&len)) < 0)
+  if ((s = accept(s, (struct sockaddr *) &a, (socklen_t *)&len)) < 0)
     {
       Msg(errno, "accept");
       return;
@@ -1390,7 +1390,7 @@ AskPassword(struct msg *m)
 {
   struct pwdata *pwdata;
   ASSERT(display);
-  pwdata = (struct pwdata *)malloc(sizeof(struct pwdata));
+  pwdata = malloc(sizeof(struct pwdata));
   if (!pwdata)
     Panic(0, "%s", strnomem);
   pwdata->l = 0;

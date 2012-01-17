@@ -150,9 +150,7 @@ stripdev(char *nam)
  *    Signal handling
  */
 
-void (*xsignal(sig, func)) (int)
-int sig;
-void (*func) (int);
+void (*xsignal(int sig, void (*func) (int))) (int)
 {
   struct sigaction osa, sa;
   sa.sa_handler = func;
@@ -463,7 +461,7 @@ xsetenv(char *var, char *value)
   char *buf;
   int l;
 
-  if ((buf = (char *)malloc((l = strlen(var)) +
+  if ((buf = malloc((l = strlen(var)) +
 			    strlen(value) + 2)) == NULL)
     {
       Msg(0, strnomem);

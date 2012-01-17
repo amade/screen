@@ -113,7 +113,7 @@ InitTermcap(int wi, int he)
     debug("Extra outcap: %s\n", extra_outcap);
 #endif
 
-  if ((D_tentry = (char *)malloc(TERMCAP_BUFSIZE + (extra_incap ? strlen(extra_incap) + 1 : 0))) == 0)
+  if ((D_tentry = malloc(TERMCAP_BUFSIZE + (extra_incap ? strlen(extra_incap) + 1 : 0))) == 0)
     {
       Msg(0, "%s", strnomem);
       return -1;
@@ -649,7 +649,7 @@ addmapseq(char *seq, int k, int nr)
   i = p - D_kmaps;
   if (D_nseqs + 2 * k + 4 >= D_aseqs)
     {
-      D_kmaps = (unsigned char *)xrealloc((char *)D_kmaps, D_aseqs + 256);
+      D_kmaps = xrealloc((char *)D_kmaps, D_aseqs + 256);
       D_aseqs += 256;
       p = D_kmaps + i;
     }
@@ -1099,7 +1099,7 @@ CreateTransTable(char *s)
   char **ctable;
   int l, c;
 
-  if ((D_xtable = (char ***)calloc(256, sizeof(char **))) == 0)
+  if ((D_xtable = calloc(256, sizeof(char **))) == 0)
     {
       Msg(0, "%s", strnomem);
       return -1;
@@ -1117,7 +1117,7 @@ CreateTransTable(char *s)
       templnsub = 0;
       if (D_xtable[curchar] == 0)
         {
-          if ((D_xtable[curchar] = (char **)calloc(257, sizeof(char *))) == 0)
+          if ((D_xtable[curchar] = calloc(257, sizeof(char *))) == 0)
 	    {
 	      Msg(0, "%s", strnomem);
 	      FreeTransTable();
@@ -1151,7 +1151,7 @@ CreateTransTable(char *s)
 	  l = copyarg(&s, (char *)0);
 	  if (c != 256)
 	    l = l * templnsub + templlen;
-	  if ((ctable[c] = (char *)malloc(l + 1)) == 0)
+	  if ((ctable[c] = malloc(l + 1)) == 0)
 	    {
 	      Msg(0, "%s", strnomem);
 	      FreeTransTable();

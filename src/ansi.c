@@ -2167,7 +2167,7 @@ MFixLine(struct win *p, int y, struct mchar *mc)
   struct mline *ml = &p->w_mlines[y];
   if (mc->attr && ml->attr == null)
     {
-      if ((ml->attr = (unsigned char *)calloc(p->w_width + 1, 1)) == 0)
+      if ((ml->attr = calloc(p->w_width + 1, 1)) == 0)
 	{
 	  ml->attr = null;
 	  mc->attr = p->w_rend.attr = 0;
@@ -2176,7 +2176,7 @@ MFixLine(struct win *p, int y, struct mchar *mc)
     }
   if (mc->font && ml->font == null)
     {
-      if ((ml->font = (unsigned char *)calloc(p->w_width + 1, 1)) == 0)
+      if ((ml->font = calloc(p->w_width + 1, 1)) == 0)
 	{
 	  ml->font = null;
 	  p->w_FontL = p->w_charsets[p->w_ss ? p->w_ss : p->w_Charset] = 0;
@@ -2195,7 +2195,7 @@ MFixLine(struct win *p, int y, struct mchar *mc)
     }
   if (mc->color && ml->color == null)
     {
-      if ((ml->color = (unsigned char *)calloc(p->w_width + 1, 1)) == 0)
+      if ((ml->color = calloc(p->w_width + 1, 1)) == 0)
 	{
 	  ml->color = null;
 	  mc->color = p->w_rend.color = 0;
@@ -2204,7 +2204,7 @@ MFixLine(struct win *p, int y, struct mchar *mc)
     }
   if (mc->colorx && ml->colorx == null)
     {
-      if ((ml->colorx = (unsigned char *)calloc(p->w_width + 1, 1)) == 0)
+      if ((ml->colorx = calloc(p->w_width + 1, 1)) == 0)
 	{
 	  ml->colorx = null;
 	  mc->colorx = p->w_rend.colorx = 0;

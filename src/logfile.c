@@ -95,7 +95,7 @@ logfile_reopen(char *name, int wantfd, struct logfile *l)
   return 0;
 }
 
-static int (* lf_reopen_fn)() = logfile_reopen;
+static int (* lf_reopen_fn)( char*, int, struct logfile *) = logfile_reopen;
 
 /*
  * Whenever logfwrite discoveres that it is required to close and
@@ -180,9 +180,9 @@ logfopen(char *name, FILE *fp)
       return l;
     }
 
-  if (!(l = (struct logfile *)malloc(sizeof(struct logfile))))
+  if (!(l = malloc(sizeof(struct logfile))))
     return NULL;
-  if (!(l->st = (struct stat *)malloc(sizeof(struct stat))))
+  if (!(l->st = malloc(sizeof(struct stat))))
     {
       free((char *)l);
       return NULL;

@@ -1828,7 +1828,7 @@ MakeNewEnv()
     ;
   if (NewEnv)
     free((char *)NewEnv);
-  NewEnv = np = (char **) malloc((unsigned) (op - environ + 7 + 1) * sizeof(char **));
+  NewEnv = np = malloc((unsigned) (op - environ + 7 + 1) * sizeof(char **));
   if (!NewEnv)
     Panic(0, "%s", strnomem);
   sprintf(stybuf, "STY=%s", strlen(SockName) <= MAXSTR - 5 ? SockName : "?");
@@ -2140,7 +2140,7 @@ setbacktick(int num, int lifespan, int tick, char **cmdv)
     }
   if (!bt)
     {
-      bt = (struct backtick *)malloc(sizeof *bt);
+      bt = malloc(sizeof *bt);
       if (!bt)
 	{
 	  Msg(0, "%s", strnomem);
@@ -2162,7 +2162,7 @@ setbacktick(int num, int lifespan, int tick, char **cmdv)
   if (bt->tick == 0 && bt->lifespan == 0)
     {
       debug("setbacktick: continuous mode\n");
-      bt->buf = (char *)malloc(MAXSTR);
+      bt->buf = malloc(MAXSTR);
       if (bt->buf == 0)
 	{
 	  Msg(0, "%s", strnomem);
