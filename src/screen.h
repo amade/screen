@@ -48,7 +48,7 @@
 # define debug(format, ...) {if(dfp){fprintf(dfp, format, ##__VA_ARGS__);}}
   extern FILE *dfp;
 #else
-# define debug(format, ...)
+# define debug(format, ...) {}
 #endif
 
 #ifndef DEBUG
