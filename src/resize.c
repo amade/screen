@@ -405,14 +405,14 @@ BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int l, int w)
   memmove((char *)mlt->image + xt, (char *)mlf->image + xf, l);
   if (mlf->attr != null && mlt->attr == null)
     {
-      if ((mlt->attr = (unsigned char *)calloc(w, 1)) == 0)
+      if ((mlt->attr = calloc(w, 1)) == 0)
 	mlt->attr = null, r = -1;
     }
   if (mlt->attr != null)
     memmove((char *)mlt->attr + xt, (char *)mlf->attr + xf, l);
   if (mlf->font != null && mlt->font == null)
     {
-      if ((mlt->font = (unsigned char *)calloc(w, 1)) == 0)
+      if ((mlt->font = calloc(w, 1)) == 0)
 	mlt->font = null, r = -1;
     }
   if (mlt->font != null)
@@ -426,14 +426,14 @@ BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int l, int w)
     memmove((char *)mlt->fontx + xt, (char *)mlf->font + xf, l);
   if (mlf->color != null && mlt->color == null)
     {
-      if ((mlt->color = (unsigned char *)calloc(w, 1)) == 0)
+      if ((mlt->color = calloc(w, 1)) == 0)
 	mlt->color = null, r = -1;
     }
   if (mlt->color != null)
     memmove((char *)mlt->color + xt, (char *)mlf->color + xf, l);
   if (mlf->colorx != null && mlt->colorx == null)
     {
-      if ((mlt->colorx = (unsigned char *)calloc(w, 1)) == 0)
+      if ((mlt->colorx = calloc(w, 1)) == 0)
 	mlt->colorx = null, r = -1;
     }
   if (mlt->colorx != null)
@@ -459,14 +459,14 @@ CheckMaxSize(int wi)
     return;
   maxwidth = wi + 1;
   debug("New maxwidth: %d\n", maxwidth);
-  blank = (unsigned char *)xrealloc((char *)blank, maxwidth);
-  null = (unsigned char *)xrealloc((char *)null, maxwidth);
-  mline_old.image = (unsigned char *)xrealloc((char *)mline_old.image, maxwidth);
-  mline_old.attr = (unsigned char *)xrealloc((char *)mline_old.attr, maxwidth);
-  mline_old.font = (unsigned char *)xrealloc((char *)mline_old.font, maxwidth);
-  mline_old.fontx = (unsigned char *)xrealloc((char *)mline_old.fontx, maxwidth);
-  mline_old.color = (unsigned char *)xrealloc((char *)mline_old.color, maxwidth);
-  mline_old.colorx = (unsigned char *)xrealloc((char *)mline_old.colorx, maxwidth);
+  blank = xrealloc((char *)blank, maxwidth);
+  null = xrealloc((char *)null, maxwidth);
+  mline_old.image = xrealloc((char *)mline_old.image, maxwidth);
+  mline_old.attr = xrealloc((char *)mline_old.attr, maxwidth);
+  mline_old.font = xrealloc((char *)mline_old.font, maxwidth);
+  mline_old.fontx = xrealloc((char *)mline_old.fontx, maxwidth);
+  mline_old.color = xrealloc((char *)mline_old.color, maxwidth);
+  mline_old.colorx = xrealloc((char *)mline_old.colorx, maxwidth);
   if (!(blank && null && mline_old.image && mline_old.attr && mline_old.font && mline_old.fontx && mline_old.color && mline_old.colorx))
     Panic(0, "%s", strnomem);
 
@@ -517,7 +517,7 @@ CheckMaxSize(int wi)
 }
 
 
-char *
+void *
 xrealloc(char *mem, int len)
 {
   register char *nmem;
@@ -527,7 +527,7 @@ xrealloc(char *mem, int len)
   if ((nmem = realloc(mem, len)))
     return nmem;
   free(mem);
-  return (char *)0;
+  return (void *)0;
 }
 
 static void
@@ -595,7 +595,7 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
     {
       if (wi != p->w_width || he != p->w_height)
 	{
-	  if ((nmlines = (struct mline *)calloc(he, sizeof(struct mline))) == 0)
+	  if ((nmlines = calloc(he, sizeof(struct mline))) == 0)
 	    {
 	      KillWindow(p);
 	      Msg(0, "%s", strnomem);
@@ -615,7 +615,7 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
     }
   if (hi)
     {
-      if ((nhlines = (struct mline *)calloc(hi, sizeof(struct mline))) == 0)
+      if ((nhlines = calloc(hi, sizeof(struct mline))) == 0)
 	{
 	  Msg(0, "No memory for history buffer - turned off");
 	  hi = 0;

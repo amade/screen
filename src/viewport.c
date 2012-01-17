@@ -54,7 +54,7 @@ RethinkDisplayViewports()
 
   for (cv = display->d_cvlist; cv; cv = cv->c_next)
     {
-      if ((vp = (struct viewport *)malloc(sizeof *vp)) == 0)
+      if ((vp = malloc(sizeof *vp)) == 0)
 	return -1;
       vp->v_canvas = cv;
       vp->v_xs = cv->c_xs;

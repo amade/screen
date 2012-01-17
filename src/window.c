@@ -538,7 +538,7 @@ MakeWindow(struct NewWindow *newwin)
   if (type == W_TYPE_GROUP)
     f = -1;
 
-  if ((p = (struct win *)calloc(1, sizeof(struct win))) == 0)
+  if ((p = calloc(1, sizeof(struct win))) == 0)
     {
       close(f);
       Msg(0, "%s", strnomem);
@@ -1385,7 +1385,7 @@ winexec(char **av)
       Msg(0, "You feel dead inside.");
       return -1;
     }
-  if (!(pwin = (struct pseudowin *)calloc(1, sizeof(struct pseudowin))))
+  if (!(pwin = calloc(1, sizeof(struct pseudowin))))
     {
       Msg(0, "%s", strnomem);
       return -1;

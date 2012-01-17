@@ -867,7 +867,7 @@ InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
   if (display && D_forecv->c_layer == flayer)
     cv = D_forecv;	/* work only on this cv! */
 
-  if ((newlay = (struct layer *)calloc(1, sizeof(struct layer))) == 0)
+  if ((newlay = calloc(1, sizeof(struct layer))) == 0)
     {
       Msg(0, "No memory for layer struct");
       return -1;
