@@ -341,11 +341,7 @@ UserStatus()
 {
 #ifndef USE_SETEUID
   int i;
-# ifdef BSDWAIT
-  union wait wstat;
-# else
   int wstat;
-# endif
 
   if (eff_uid == real_uid && eff_gid == real_gid)
     return UserSTAT;

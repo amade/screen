@@ -947,16 +947,6 @@ AC_EGREP_CPP(yes,
 dnl
 dnl    ****  misc things  ****
 dnl
-AC_CHECKING(wait union)
-AC_TRY_COMPILE([#include <sys/types.h>
-#include <sys/wait.h>
-],[
-  union wait x;
-  int y;
-#ifdef WEXITSTATUS
-  y = WEXITSTATUS(x);
-#endif
-],AC_DEFINE(BSDWAIT))
 
 if test -z "$butterfly"; then
 AC_CHECKING(for termio or termios)

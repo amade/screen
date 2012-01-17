@@ -241,11 +241,7 @@ struct win
   } w_alt;
 
   struct event w_destroyev;	/* window destroy event */
-#ifdef BSDWAIT
-  union wait w_exitstatus;	/* window exit status */
-#else
   int w_exitstatus;
-#endif
 };
 
 

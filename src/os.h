@@ -262,19 +262,11 @@
 # include <sys/wait.h>
 
 #ifndef WTERMSIG
-# ifndef BSDWAIT /* if wait is NOT a union: */
-#  define WTERMSIG(status) (status & 0177)
-# else
-#  define WTERMSIG(status) status.w_T.w_Termsig
-# endif
+# define WTERMSIG(status) (status & 0177)
 #endif
 
 #ifndef WSTOPSIG
-# ifndef BSDWAIT /* if wait is NOT a union: */
-#  define WSTOPSIG(status) ((status >> 8) & 0377)
-# else
-#  define WSTOPSIG(status) status.w_S.w_Stopsig
-# endif
+# define WSTOPSIG(status) ((status >> 8) & 0377)
 #endif
 
 /* NET-2 uses WCOREDUMP */
@@ -283,19 +275,11 @@
 #endif
 
 #ifndef WIFCORESIG
-# ifndef BSDWAIT /* if wait is NOT a union: */
-#  define WIFCORESIG(status) (status & 0200)
-# else
-#  define WIFCORESIG(status) status.w_T.w_Coredump
-# endif
+# define WIFCORESIG(status) (status & 0200)
 #endif
 
 #ifndef WEXITSTATUS
-# ifndef BSDWAIT /* if wait is NOT a union: */
-#  define WEXITSTATUS(status) ((status >> 8) & 0377)
-# else
-#  define WEXITSTATUS(status) status.w_T.w_Retcode
-# endif
+# define WEXITSTATUS(status) ((status >> 8) & 0377)
 #endif
 
 /*****************************************************************
