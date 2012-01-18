@@ -957,10 +957,6 @@ fi
 )
 fi
 
-dnl AC_CHECK_HEADER(shadow.h, AC_DEFINE(SHADOWPW))
-AC_CHECKING(getspnam)
-AC_TRY_LINK([#include <shadow.h>], [getspnam("x");],AC_DEFINE(SHADOWPW))
-
 AC_CHECKING(getttyent)
 AC_TRY_LINK(,[getttyent();], AC_DEFINE(GETTTYENT))
 

@@ -34,9 +34,6 @@
 
 #ifdef CHECKLOGIN
 # include <pwd.h>
-# ifdef SHADOWPW
-#  include <shadow.h>
-# endif /* SHADOWPW */
 #endif /* CHECKLOGIN */
 
 #ifndef NOSYSLOG

@@ -396,12 +396,6 @@
 #undef NEEDPUTENV
 
 /*
- * If the passwords are stored in a shadow file and you want the
- * builtin lock to work properly, define SHADOWPW.
- */
-#undef SHADOWPW
-
-/*
  * define HAVE_NL_LANGINFO if your system has the nl_langinfo() call
  * and <langinfo.h> defines CODESET.
  */
