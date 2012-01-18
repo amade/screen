@@ -65,9 +65,6 @@ exit 0
 #include <sys/ioctl.h>
 
 #include "config.h"
-#ifdef HAVE_STROPTS_H
-#include <sys/stropts.h>	/* for I_POP */
-#endif
 
 #include "screen.h"
 #include "extern.h"
@@ -144,11 +141,6 @@ OpenTTY(char *line, char *opt)
       close(f);
       return -1;
     }
-#if defined(I_POP) && defined(POP_TTYMODULES)
-  debug("OpenTTY I_POP\n");
-  while (ioctl(f, I_POP, (char *)0) >= 0)
-    ;
-#endif
   /*
    * We come here exclusively. This is to stop all kermit and cu type things
    * accessing the same tty line.
