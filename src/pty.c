@@ -35,13 +35,6 @@
 #include "screen.h"
 
 #include <sys/ioctl.h>
-
-/* for solaris 2.1, Unixware (SVR4.2) and possibly others */
-#ifdef HAVE_STROPTS_H
-fdasfa
-# include <sys/stropts.h>
-#endif
-
 #include <pty.h>
 
 #include "extern.h"

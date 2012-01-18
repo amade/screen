@@ -39,12 +39,6 @@
 #include <sys/time.h>
 #include <sys/ioctl.h>
 
-
-/* for solaris 2.1, Unixware (SVR4.2) and possibly others: */
-#ifdef HAVE_STROPTS_H
-# include <sys/stropts.h>
-#endif
-
 #include "screen.h"
 #include "extern.h"
 #include "logfile.h"
