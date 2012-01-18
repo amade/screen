@@ -46,10 +46,6 @@
 
 #include "config.h"
 
-#ifdef HAVE_STROPTS_H
-# include <sys/stropts.h>
-#endif
-
 #if defined(USE_LOCALE)
 # include <locale.h>
 #endif
