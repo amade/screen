@@ -57,17 +57,7 @@
 
 #include "patchlevel.h"
 
-/*
- *  At the moment we only need the real password if the
- *  builtin lock is used. Therefore disable SHADOWPW if
- *  we do not really need it (kind of security thing).
- */
-#undef SHADOWPW
-
 #include <pwd.h>
-#ifdef SHADOWPW
-# include <shadow.h>
-#endif /* SHADOWPW */
 
 #include "logfile.h"	/* islogfile, logfflush */
 
@@ -221,18 +211,11 @@ static struct passwd *
 getpwbyname(char *name, struct passwd *ppp)
 {
   int n;
-#ifdef SHADOWPW
-  struct spwd *sss = NULL;
-  static char *spw = NULL;
-#endif
 
   if (!ppp && !(ppp = getpwnam(name)))
     return NULL;
 
   /* Do password sanity check..., allow ##user for SUN_C2 security */
-#ifdef SHADOWPW
-pw_try_again:
-#endif
   n = 0;
   if (ppp->pw_passwd[0] == '#' && ppp->pw_passwd[1] == '#' &&
       strcmp(ppp->pw_passwd + 2, ppp->pw_name) == 0)
@@ -247,22 +230,6 @@ pw_try_again:
 	break;
     }
 
-#ifdef SHADOWPW
-  /* try to determine real password */
-  if (n < 13 && sss == 0)
-    {
-      sss = getspnam(ppp->pw_name);
-      if (sss)
-	{
-	  if (spw)
-	    free(spw);
-	  ppp->pw_passwd = spw = SaveStr(sss->sp_pwdp);
-	  endspent();	/* this should delete all buffers ... */
-	  goto pw_try_again;
-	}
-      endspent();	/* this should delete all buffers ... */
-    }
-#endif
   if (n < 13)
     ppp->pw_passwd = 0;
   if (ppp->pw_passwd && strlen(ppp->pw_passwd) == 13 + 11)
@@ -346,9 +313,6 @@ main(int argc, char **argv)
 #endif
 #ifdef TERMINFO
   debug("TERMINFO\n");
-#endif
-#ifdef SHADOWPW
-  debug("SHADOWPW\n");
 #endif
 #ifdef NAME_MAX
   debug("NAME_MAX = %d\n", NAME_MAX);
@@ -1451,10 +1415,6 @@ CoreDump (int sigsig)
   char *dump_msg = " (core dumped)";
 
   int running_w_s_bit = (getuid() != geteuid());
-#if defined(SHADOWPW) && !defined(DEBUG) && !defined(DUMPSHADOW)
-  if (running_w_s_bit)
-    dump_msg = "";
-#endif
 
   setgid(getgid());
   setuid(getuid());
@@ -1478,12 +1438,7 @@ CoreDump (int sigsig)
 
   if (running_w_s_bit)
     {
-#if defined(SHADOWPW) && !defined(DEBUG) && !defined(DUMPSHADOW)
-      Kill(getpid(), SIGKILL);
-      eexit(11);
-#else /* SHADOWPW && !DEBUG */
       abort();
-#endif /* SHADOWPW  && !DEBUG */
     }
   else
     abort();
