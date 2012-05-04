@@ -624,6 +624,8 @@ ChangeWindowSize(struct win *p, int wi, int he, int hi)
       for (yy = p->w_y + p->w_histheight - 1; yy >= 0 && ncy + shift < he; yy--)
 	{
 	  ml = OLDWIN(yy);
+	  if (!ml->image)
+	    break;
 	  if (ml->image[p->w_width] == ' ')
 	    break;
 	  shift++;
