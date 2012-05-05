@@ -100,8 +100,14 @@ static int GrowBitfield(AclBits * bfp, int len, int delta, int defaultbit)
 }
 
 /*
- * Returns an nonzero Address. Its contents is either a User-ptr,
- * or NULL which may be replaced by a User-ptr to create the entry.
+ * =====================================================================
+ * FindUserPtr-
+ *       Searches for user
+ *
+ * Returns:
+ *       an nonzero Address. Its contents is either a User-ptr,
+ *       or NULL which may be replaced by a User-ptr to create the entry.
+ * =====================================================================
  */
 struct acluser **FindUserPtr(char *name)
 {
@@ -118,9 +124,16 @@ int DefaultEsc = -1;		/* initialised by screen.c:main() */
 int DefaultMetaEsc = -1;
 
 /*
- * Add a new user. His password may be NULL or "" if none. His name must not
- * be "none", as this represents the NULL-pointer when dealing with groups.
- * He has default rights, determined by umask.
+ * =====================================================================
+ * UserAdd-
+ *       Adds a new user. His password may be NULL or "" if none. His name must not
+ *       be "none", as this represents the NULL-pointer when dealing with groups.
+ *       He has default rights, determined by umask.
+ * Returns:
+ *       0 - on success
+ *       1 - he is already there
+ *      -1 - he still does not exist (didn't get memory)
+ * =====================================================================
  */
 int UserAdd(char *name, char *pass, struct acluser **up)
 {
@@ -131,12 +144,12 @@ int UserAdd(char *name, char *pass, struct acluser **up)
 	if (*up) {
 		if (pass)
 			(*up)->u_password = SaveStr(pass);
-		return 1;	/* he is already there */
+		return 1;
 	}
 	if (strcmp("none", name))	/* "none" is a reserved word */
 		*up = calloc(1, sizeof(struct acluser));
 	if (!*up)
-		return -1;	/* he still does not exist */
+		return -1;
 	(*up)->u_plop.buf = NULL;
 	(*up)->u_plop.len = 0;
 	(*up)->u_plop.enc = 0;
@@ -257,8 +270,14 @@ int UserAdd(char *name, char *pass, struct acluser **up)
 }
 
 /*
- * Remove a user from the list.
- * Destroy all his permissions and completely detach him from the session.
+ * =====================================================================
+ * UserDel-
+ *       Remove a user from the list.
+ *       Destroy all his permissions and completely detach him from the session.
+ * Returns
+ *       0 - success
+ *      -1 - he who does not exist cannot be removed
+ * =====================================================================
  */
 int UserDel(char *name, struct acluser **up)
 {
@@ -269,7 +288,7 @@ int UserDel(char *name, struct acluser **up)
 	if (!up)
 		up = FindUserPtr(name);
 	if (!(u = *up))
-		return -1;	/* he who does not exist cannot be removed */
+		return -1;
 	old = display;
 	for (display = displays; display; display = next) {
 		next = display->d_next;	/* read the next ptr now, Detach may zap it. */
@@ -315,8 +334,14 @@ int UserDel(char *name, struct acluser **up)
 }
 
 /*
- * returns 0 if the copy buffer was really deleted.
- * Also removes any references into the users copybuffer
+ * =====================================================================
+ * UserFreeCopyBuffer-
+ *       frees user buffer
+ *       Also removes any references into the users copybuffer
+ * Returns:
+ *       0 - if the copy buffer was really deleted.
+ *       1 - cannot remove something that does not exist
+ * =====================================================================
  */
 int UserFreeCopyBuffer(struct acluser *u)
 {
