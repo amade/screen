@@ -1,0 +1,95 @@
+I. Disclaimer
+
+This document includes some of my personal understanding about the internal
+structure of GNU Screen. It's written to serve as a remainder to myself. I
+hope that it can help those not familiar with GNU Screen already. But be aware
+of any possible mistake in this document.
+
+
+II. Architecture
+
+GNU Screen works in a client-server way. The two participants are called
+front-end and back-end respectively, sharing the same code base. When an
+instance of Screen launches, the command line arguments determines the role
+and the corresponding action.
+
+Front-end send requests to back-end through a named-pipe or socket. And the
+back-end gives feed back by signal. The requests include attach, detach,
+resize, window create and command execution. The front-end does nothing more
+than send requests and act upon responses. When there are no such events, it
+simply sleeps to kill it's boring time. All other works are handled by the
+back-end.
+
+
+III. Important objects
+
+There are several kinds of objects in Screen. Here are some of them.
+
+A. Display
+
+A Display stands for an attached display area. It corresponds to the real user
+tty that the attaching front-end runs in. Since there can be multiple users
+(or multiple attach from the same user), the possibly multiple displays are
+chained together in a single linked-list 'displays'. An Display object
+contains many global statuses and flags (terminal modes & flags etc.), also
+includes some events such as tty read & write.
+
+B. Canvas, Viewport & Layout
+
+Canvas is a place to draw contents on. They logically belong to a specific
+display.  However, a display can be further divided to several sub-regions,
+using the split command. As a result, the regions need corresponding canvases.
+Moreover, the way that a display is organised can be saved by Layout object.
+All Layout objects are linked together as a list. The active layout used by
+Display is stored with it. The canvas in a display that has input focus is
+called forecv.
+
+To track the Canvases in a Display, Screen uses a two-dimensional link list.
+One list link (slnext & slprev) together all adjacent Canvases that are
+spitted in the same direction. The other is the stacking direction, or the
+Z-axis in 3D graphics. All such adjacent Canvases shares one container Canvas,
+which is inserted when a split with different direction is about to happen.
+Each Canvas points to it's container using slback and a container points to
+one of its random child using slprep. This structure actually link the
+Canvases together as a tree, which is very helpful when doing free and resize. 
+
+Finally, to ease the clipping when drawing in the canvas, there is also a
+viewport object to track the boundary of each canvas. (But why not the canvas
+itself?)
+
+C. Window & Layer
+
+Each Window in screen stands for a pseudo-terminal (or telnet connection,
+depending on the type of window) that runs inside screen. All relevant
+statuses and events are stored in this object. Many Windows can be shown in
+Display at once, the one that has input focus is called the fore Window.
+
+To be shown in Canvases, a Window needs a object called Layer. A Layer can be
+drawn on multiple Canvases, either in one Display or in different Displays. So
+it also make sense to call it 'view'. However, the name Layer tells us that
+it's stackable. One can add an overlay to the existing one, such as the help
+page. Each Layer contains an operation function structure, providing important
+operation to process the input, draw line, clear, redraw, resize, abort and
+restore etc.
+
+E users & ACL
+
+TODO
+
+IV. Event dispatching.
+
+Screen uses asynchronous IO to handle all inputs/outputs in all ttys. Such
+asynchronous events, IO related or not, are organized as events, registered to
+a central event list and got scheduled by a scheduler.
+
+The scheduler loops indefinitely. In each turn, it waits for some events to go
+ready using the Select() system call. There are three types of events,
+READ/WRITE, TIMEOUT and ALWAYS. The READ/WRITE events are mostly used to carry
+data between outer tty and ptys within screen. And the TIMEOUT events are
+mostly used to do periodically update. Different from other kinds of events,
+the TIMEOUT event is one-off, and should be re-scheduled if periodic
+activation is desired. Note that the TIMEOUT event has lower priority than
+READ/WRITE events, and the timeout specified is never adjusted to compensate
+the elapsed time. As a result, the period of activation should typically
+longer then specified.
+

@@ -249,6 +249,10 @@ int main(int argc, char **argv)
 	int detached = 0;	/* start up detached */
 	char *sty = 0;
 
+#ifdef SCRIPT
+	char *script_file = 0;
+#endif
+
 	/*
 	 *  First, close all unused descriptors
 	 *  (otherwise, we might have problems with the select() call)
@@ -537,6 +541,15 @@ int main(int argc, char **argv)
 				case 'U':
 					nwin_options.encoding = nwin_options.encoding == -1 ? UTF8 : 0;
 					break;
+#ifdef SCRIPT
+				case 'u':
+					if (--argc == 0)
+						exit_with_usage(myname, "Specify lua script file with -u", NULL);
+					if (script_file)
+						free(script_file);
+					script_file = SaveStr(*++argv);
+					break;
+#endif
 				default:
 					exit_with_usage(myname, "Unknown option %s", --ap);
 				}
@@ -978,6 +991,16 @@ int main(int argc, char **argv)
 
 	ServerSocket = MakeServerSocket();
 	InitKeytab();
+
+#ifdef SCRIPT
+	LoadBindings();
+	if (script_file) {
+		ScriptSource(script_file);
+		free(script_file);
+		script_file = 0;
+	}
+#endif
+
 #ifdef ETCSCREENRC
 #ifdef ALLOW_SYSSCREENRC
 	if ((ap = getenv("SYSSCREENRC")))
@@ -1330,6 +1353,11 @@ void Finit(int i)
 	signal(SIGCHLD, SIG_DFL);
 	signal(SIGHUP, SIG_IGN);
 	debug("Finit(%d);\n", i);
+
+	#ifdef SCRIPT
+		FinalizeBindings();
+	#endif
+
 	while (windows) {
 		struct win *p = windows;
 		windows = windows->w_next;
@@ -1395,6 +1423,9 @@ void Hangup()
 		Finit(0);
 }
 
+#ifndef SCRIPT
+#define trigger_sevent(x,y,z)
+#endif
 /*
  * Detach now has the following modes:
  *D_DETACH	 SIG_BYE	detach backend and exit attacher
@@ -1442,6 +1473,7 @@ void Detach(int mode)
 	case D_DETACH:
 		AddStrSock("detached");
 		sign = SIG_BYE;
+		trigger_sevent(&globalevents.detached, display, 0x0);
 		break;
 #ifdef BSDJOBS
 	case D_STOP:
@@ -1451,6 +1483,7 @@ void Detach(int mode)
 	case D_REMOTE:
 		AddStrSock("remote detached");
 		sign = SIG_BYE;
+		trigger_sevent(&globalevents.detached, display, 0x1);
 		break;
 	case D_POWER:
 		AddStrSock("power detached");
@@ -1459,6 +1492,7 @@ void Detach(int mode)
 			AddStr("\r\n");
 		}
 		sign = SIG_POWER_BYE;
+		trigger_sevent(&globalevents.detached, display, 0x2);
 		break;
 	case D_REMOTE_POWER:
 		AddStrSock("remote power detached");
@@ -1467,6 +1501,7 @@ void Detach(int mode)
 			AddStr("\r\n");
 		}
 		sign = SIG_POWER_BYE;
+		trigger_sevent(&globalevents.detached, display, 0x1 | 0x2); /* Remote and power */
 		break;
 	case D_LOCK:
 		ClearAll();
@@ -1899,6 +1934,26 @@ static char *runbacktick(struct backtick *bt, int *tickp, time_t now)
 	return bt->result;
 }
 
+void AppendWinMsgRend(char *str, char *color)
+{
+	char *p;
+	int r = -1;
+	if (winmsg_numrend >= MAX_WINMSG_REND)
+		return;
+	p = winmsg_buf + strlen(winmsg_buf);
+	if (color) {
+		if (*color != '-') {
+			r = ParseAttrColor(color, 0, 0);
+			if (r == -1)
+				return;
+		}
+		winmsg_rend[winmsg_numrend] = r;
+		winmsg_rendpos[winmsg_numrend] = p - winmsg_buf;
+		winmsg_numrend++;
+	}
+	strncpy(p, str, winmsg_buf + sizeof(winmsg_buf) - p);
+}
+
 int AddWinMsgRend(const char *str, int r)
 {
 	if (winmsg_numrend >= MAX_WINMSG_REND || str < winmsg_buf || str >= winmsg_buf + MAXSTR)
@@ -1939,11 +1994,19 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 	else
 		winmsg_numrend = -winmsg_numrend;
 
+	*p = '\0';
+#ifdef SCRIPT
+	if (ScriptProcessCaption(str, win, padlen))
+		return winmsg_buf;
+#endif
+	if (!display)
+		return winmsg_buf;
+
 	tick = 0;
 	tm = 0;
 	ctrl = 0;
 	gettimeofday(&now, NULL);
-	for (; *s && (l = winmsg_buf + MAXSTR - 1 - p) > 0; s++, p++) {
+	for (s = str; *s && (l = winmsg_buf + MAXSTR - 1 - p) > 0; s++, p++) {
 		*p = *s;
 		if (ctrl) {
 			ctrl = 0;

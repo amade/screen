@@ -35,6 +35,7 @@
 #include "comm.h"
 #include "layer.h"
 #include "term.h"
+#include "script.h"
 
 
 #ifdef DEBUG

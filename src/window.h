@@ -242,6 +242,13 @@ struct win
 
   struct event w_destroyev;	/* window destroy event */
   int w_exitstatus;
+#ifdef SCRIPT
+  struct
+    {
+      struct script_event resize;
+      struct script_event canresize;
+    } w_sev; /*For Script events. */
+#endif
 };
 
 

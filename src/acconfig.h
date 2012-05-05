@@ -108,6 +108,17 @@
 #undef TOPSTAT
 
 /*
+ * define SCRIPT to add scripting support to screen.
+ */
+#define SCRIPT
+
+/*Include the binding you would like to use.*/
+#ifdef SCRIPT
+#define LUA_BINDING
+#define PY_BINDING
+#endif
+
+/*
  * As error messages are mostly meaningless to the user, we
  * try to throw out phrases that are somewhat more familiar
  * to ...well, at least familiar to us NetHack players.

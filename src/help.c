@@ -144,7 +144,7 @@ void display_help(char *class, struct action *ktabp)
 	mkey = 0;
 	for (key = 0; key < 256 + KMAP_KEYS; key++) {
 		n = ktabp[key].nr;
-		if (n == RC_ILLEGAL)
+		if (n == RC_ILLEGAL || n > RC_LAST )
 			continue;
 		if (ktabp[key].args == noargs) {
 			used[n] += (key <= ' ' || key == 0x7f) ? 3 : (key > 0x7f) ? 5 : 2;

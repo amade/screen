@@ -35,6 +35,7 @@
 struct comm comms[RC_LAST + 1] =
 {
   { "activity",		ARGS_1,				},
+  { "alias",		ARGS_12|ARGS_ORMORE },
   { "allpartial",	NEED_DISPLAY|ARGS_1,		},
   { "altscreen",	ARGS_01,			},
   { "at",		ARGS_2|ARGS_ORMORE,		},
@@ -174,6 +175,9 @@ struct comm comms[RC_LAST + 1] =
   { "reset",		NEED_FORE|ARGS_0,		},
   { "resize",		NEED_DISPLAY|ARGS_0|ARGS_ORMORE,},
   { "screen",		ARGS_0|ARGS_ORMORE,		},
+#ifdef SCRIPT
+  { "script",	        ARGS_2|ARGS_ORMORE },
+#endif
   { "scrollback",	NEED_FORE|ARGS_1,		},
   { "select",		CAN_QUERY|ARGS_01,		},
   { "sessionname",	ARGS_01,			},
