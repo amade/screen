@@ -164,7 +164,7 @@ int UserDel(char *name, struct acluser **up)
  *       Also removes any references into the users copybuffer
  * Returns:
  *       0 - if the copy buffer was really deleted.
- *       1 - cannot remove something that does not exist
+ *      -1 - cannot remove something that does not exist
  * =====================================================================
  */
 int UserFreeCopyBuffer(struct acluser *u)
@@ -173,7 +173,7 @@ int UserFreeCopyBuffer(struct acluser *u)
 	struct paster *pa;
 
 	if (!u->u_plop.buf)
-		return 1;
+		return -1;
 	for (w = windows; w; w = w->w_next) {
 		pa = &w->w_paster;
 		if (pa->pa_pasteptr >= u->u_plop.buf && pa->pa_pasteptr - u->u_plop.buf < u->u_plop.len)
