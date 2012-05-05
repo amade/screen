@@ -70,7 +70,7 @@ struct action
 
 EOF
 $AWK < ${srcdir}/comm.c >> comm.h '
-/^  [{] ".*/	{   if (old > $2) {
+/^\t[{]".*/	{   if (old > $2) {
 		printf("***ERROR: %s <= %s !!!\n\n", $2, old);
 		exit 1;
 	    }

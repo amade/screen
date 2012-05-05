@@ -34,7 +34,7 @@
 
 #include "extern.h"
 
-static int GetLoadav (void);
+static int GetLoadav(void);
 
 static LOADAV_TYPE loadav[LOADAV_NUM];
 static int loadok;
@@ -43,70 +43,61 @@ static int loadok;
  * This is the easy way. It relies in /proc being mounted.
  * For the big and ugly way refer to previous screen version.
  */
-void
-InitLoadav()
+void InitLoadav()
 {
-  loadok = 1;
+	loadok = 1;
 }
 
-static int
-GetLoadav()
+static int GetLoadav()
 {
-  FILE *fp;
-  char buf[128], *s;
-  int i;
-  double d, e;
+	FILE *fp;
+	char buf[128], *s;
+	int i;
+	double d, e;
 
-  if ((fp = secfopen("/proc/loadavg", "r")) == NULL)
-    return 0;
-  *buf = 0;
-  fgets(buf, sizeof(buf), fp);
-  fclose(fp);
-  /* can't use fscanf because the decimal point symbol depends on
-   * the locale but the kernel uses always '.'.
-   */
-  s = buf;
-  for (i = 0; i < (LOADAV_NUM > 3 ? 3 : LOADAV_NUM); i++)
-    {
-      d = e = 0;
-      while(*s == ' ')
-	s++;
-      if (*s == 0)
-	break;
-      for(;;)
-	{
-	  if (*s == '.')
-	    e = 1;
-	  else if (*s >= '0' && *s <= '9')
-	    {
-	      d = d * 10 + (*s - '0');
-	      if (e)
-		e *= 10;
-	    }
-	  else
-	    break;
-	  s++;
+	if ((fp = secfopen("/proc/loadavg", "r")) == NULL)
+		return 0;
+	*buf = 0;
+	fgets(buf, sizeof(buf), fp);
+	fclose(fp);
+	/* can't use fscanf because the decimal point symbol depends on
+	 * the locale but the kernel uses always '.'.
+	 */
+	s = buf;
+	for (i = 0; i < (LOADAV_NUM > 3 ? 3 : LOADAV_NUM); i++) {
+		d = e = 0;
+		while (*s == ' ')
+			s++;
+		if (*s == 0)
+			break;
+		for (;;) {
+			if (*s == '.')
+				e = 1;
+			else if (*s >= '0' && *s <= '9') {
+				d = d * 10 + (*s - '0');
+				if (e)
+					e *= 10;
+			} else
+				break;
+			s++;
+		}
+		loadav[i] = e ? d / e : d;
 	}
-      loadav[i] = e ? d / e : d;
-    }
-  return i;
+	return i;
 }
 
 #ifndef FIX_TO_DBL
 #define FIX_TO_DBL(l) ((double)(l) /  LOADAV_SCALE)
 #endif
 
-void
-AddLoadav(char *p)
+void AddLoadav(char *p)
 {
-  int i, j;
-  if (loadok == 0)
-    return;
-  j = GetLoadav();
-  for (i = 0; i < j; i++)
-    {
-      sprintf(p, " %2.2f" + !i, FIX_TO_DBL(loadav[i]));
-      p += strlen(p);
-    }
+	int i, j;
+	if (loadok == 0)
+		return;
+	j = GetLoadav();
+	for (i = 0; i < j; i++) {
+		sprintf(p, " %2.2f" + !i, FIX_TO_DBL(loadav[i]));
+		p += strlen(p);
+	}
 }
-

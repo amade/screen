@@ -64,144 +64,128 @@
 
 #ifdef NEEDPUTENV
 
-char  *malloc (int);
-char  *realloc (char *, int);
-void   free (char *);
-int    sprintf (char *, char *, ...);
+char *malloc(int);
+char *realloc(char *, int);
+void free(char *);
+int sprintf(char *, char *, ...);
 
 #define EXTRASIZE 5		/* increment to add to env. size */
 
-static int  envsize = -1;	/* current size of environment */
+static int envsize = -1;	/* current size of environment */
 extern char **environ;		/* the global which is your env. */
 
-static int  findenv (char *)	/* look for a name in the env. */
-static int  newenv (void)	/* copy env. from stack to heap */
-static int  moreenv (void)	/* incr. size of env. */
-
-int
-unsetenv(char *name)
+static int findenv(char *)	/* look for a name in the env. */
+static int newenv(void)		/* copy env. from stack to heap */
+static int moreenv(void)
+				    /* incr. size of env. */
+int unsetenv(char *name)
 {
-  register int i;
+	register int i;
 
-  if (envsize < 0)
-    {				/* first time putenv called */
-      if (newenv() < 0)		/* copy env. to heap */
-	return -1;
-    }
-  i = findenv(name);
-  if (i < 0)
-    return 0;			/* Already here */
-
-  free(environ[i]);
-  if (envsize > 0)
-    envsize--;
-  for (; environ[i]; i++)
-    environ[i] = environ[i+1];
-  return 0;			/* Already here */
-}
-
-int
-putenv(char *string)
-{
-  register int  i;
-  register char *p;
-
-  if (envsize < 0)
-    {				/* first time putenv called */
-      if (newenv() < 0)		/* copy env. to heap */
-	return -1;
-    }
-
-  i = findenv(string);		/* look for name in environment */
-
-  if (i < 0)
-    {			/* name must be added */
-      for (i = 0; environ[i]; i++);
-      if (i >= (envsize - 1))
-	{			/* need new slot */
-	  if (moreenv() < 0)
-	    return -1;
+	if (envsize < 0) {	/* first time putenv called */
+		if (newenv() < 0)	/* copy env. to heap */
+			return -1;
 	}
-      p = malloc(strlen(string) + 1);
-      if (p == 0)		/* not enough core */
-	return -1;
-      environ[i + 1] = 0;	/* new end of env. */
-    }
-  else
-    {			/* name already in env. */
-      p = realloc(environ[i], strlen(string) + 1);
-      if (p == 0)
-	return -1;
-    }
-  sprintf(p, "%s", string); /* copy into env. */
-  environ[i] = p;
+	i = findenv(name);
+	if (i < 0)
+		return 0;	/* Already here */
 
-  return 0;
+	free(environ[i]);
+	if (envsize > 0)
+		envsize--;
+	for (; environ[i]; i++)
+		environ[i] = environ[i + 1];
+	return 0;		/* Already here */
 }
 
-static int
-findenv(char *name)
+int putenv(char *string)
 {
-  register char *namechar, *envchar;
-  register int  i, found;
+	register int i;
+	register char *p;
 
-  found = 0;
-  for (i = 0; environ[i] && !found; i++)
-    {
-      envchar = environ[i];
-      namechar = name;
-      while (*namechar && *namechar != '=' && (*namechar == *envchar))
-        {
-	  namechar++;
-	  envchar++;
-        }
-      found = ((*namechar == '\0' || *namechar == '=') && *envchar == '=');
-    }
-  return found ? i - 1 : -1;
+	if (envsize < 0) {	/* first time putenv called */
+		if (newenv() < 0)	/* copy env. to heap */
+			return -1;
+	}
+
+	i = findenv(string);	/* look for name in environment */
+
+	if (i < 0) {		/* name must be added */
+		for (i = 0; environ[i]; i++) ;
+		if (i >= (envsize - 1)) {	/* need new slot */
+			if (moreenv() < 0)
+				return -1;
+		}
+		p = malloc(strlen(string) + 1);
+		if (p == 0)	/* not enough core */
+			return -1;
+		environ[i + 1] = 0;	/* new end of env. */
+	} else {		/* name already in env. */
+		p = realloc(environ[i], strlen(string) + 1);
+		if (p == 0)
+			return -1;
+	}
+	sprintf(p, "%s", string);	/* copy into env. */
+	environ[i] = p;
+
+	return 0;
 }
 
-static int
-newenv()
+static int findenv(char *name)
 {
-  register char **env, *elem;
-  register int i, esize;
+	register char *namechar, *envchar;
+	register int i, found;
 
-  for (i = 0; environ[i]; i++)
-    ;
-  esize = i + EXTRASIZE + 1;
-  env = malloc(esize * sizeof (elem));
-  if (env == 0)
-    return -1;
-
-  for (i = 0; environ[i]; i++)
-    {
-      elem = malloc(strlen(environ[i]) + 1);
-      if (elem == 0)
-	return -1;
-      env[i] = elem;
-      strcpy(elem, environ[i]);
-    }
-
-  env[i] = 0;
-  environ = env;
-  envsize = esize;
-  return 0;
+	found = 0;
+	for (i = 0; environ[i] && !found; i++) {
+		envchar = environ[i];
+		namechar = name;
+		while (*namechar && *namechar != '=' && (*namechar == *envchar)) {
+			namechar++;
+			envchar++;
+		}
+		found = ((*namechar == '\0' || *namechar == '=') && *envchar == '=');
+	}
+	return found ? i - 1 : -1;
 }
 
-static int
-moreenv()
+static int newenv()
 {
-  register int  esize;
-  register char **env;
+	register char **env, *elem;
+	register int i, esize;
 
-  esize = envsize + EXTRASIZE;
-  env = realloc((char *)environ, esize * sizeof (*env));
-  if (env == 0)
-    return -1;
-  environ = env;
-  envsize = esize;
-  return 0;
+	for (i = 0; environ[i]; i++) ;
+	esize = i + EXTRASIZE + 1;
+	env = malloc(esize * sizeof(elem));
+	if (env == 0)
+		return -1;
+
+	for (i = 0; environ[i]; i++) {
+		elem = malloc(strlen(environ[i]) + 1);
+		if (elem == 0)
+			return -1;
+		env[i] = elem;
+		strcpy(elem, environ[i]);
+	}
+
+	env[i] = 0;
+	environ = env;
+	envsize = esize;
+	return 0;
 }
 
-#endif /* NEEDPUTENV */
+static int moreenv()
+{
+	register int esize;
+	register char **env;
 
+	esize = envsize + EXTRASIZE;
+	env = realloc((char *)environ, esize * sizeof(*env));
+	if (env == 0)
+		return -1;
+	environ = env;
+	envsize = esize;
+	return 0;
+}
+
+#endif				/* NEEDPUTENV */

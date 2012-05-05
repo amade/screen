@@ -31,59 +31,51 @@
 #include "extern.h"
 #include "viewport.h"
 
-int
-RethinkDisplayViewports()
+int RethinkDisplayViewports()
 {
-  struct canvas *cv;
-  struct viewport *vp, *vpn;
+	struct canvas *cv;
+	struct viewport *vp, *vpn;
 
-  /* free old viewports */
-  for (cv = display->d_cvlist; cv; cv = cv->c_next)
-    {
-      for (vp = cv->c_vplist; vp; vp = vpn)
-	{
-	  vp->v_canvas = 0;
-	  vpn = vp->v_next;
-          memset((char *)vp, 0, sizeof(*vp));
-          free(vp);
+	/* free old viewports */
+	for (cv = display->d_cvlist; cv; cv = cv->c_next) {
+		for (vp = cv->c_vplist; vp; vp = vpn) {
+			vp->v_canvas = 0;
+			vpn = vp->v_next;
+			memset((char *)vp, 0, sizeof(*vp));
+			free(vp);
+		}
+		cv->c_vplist = 0;
 	}
-      cv->c_vplist = 0;
-    }
-  display->d_vpxmin = -1;
-  display->d_vpxmax = -1;
+	display->d_vpxmin = -1;
+	display->d_vpxmax = -1;
 
-  for (cv = display->d_cvlist; cv; cv = cv->c_next)
-    {
-      if ((vp = malloc(sizeof *vp)) == 0)
-	return -1;
-      vp->v_canvas = cv;
-      vp->v_xs = cv->c_xs;
-      vp->v_ys = cv->c_ys;
-      vp->v_xe = cv->c_xe;
-      vp->v_ye = cv->c_ye;
-      vp->v_xoff = cv->c_xoff;
-      vp->v_yoff = cv->c_yoff;
-      vp->v_next = cv->c_vplist;
-      cv->c_vplist = vp;
+	for (cv = display->d_cvlist; cv; cv = cv->c_next) {
+		if ((vp = malloc(sizeof *vp)) == 0)
+			return -1;
+		vp->v_canvas = cv;
+		vp->v_xs = cv->c_xs;
+		vp->v_ys = cv->c_ys;
+		vp->v_xe = cv->c_xe;
+		vp->v_ye = cv->c_ye;
+		vp->v_xoff = cv->c_xoff;
+		vp->v_yoff = cv->c_yoff;
+		vp->v_next = cv->c_vplist;
+		cv->c_vplist = vp;
 
-      if (cv->c_xs < display->d_vpxmin || display->d_vpxmin == -1)
-        display->d_vpxmin = cv->c_xs;
-      if (cv->c_xe > display->d_vpxmax || display->d_vpxmax == -1)
-        display->d_vpxmax = cv->c_xe;
-    }
-  return 0;
+		if (cv->c_xs < display->d_vpxmin || display->d_vpxmin == -1)
+			display->d_vpxmin = cv->c_xs;
+		if (cv->c_xe > display->d_vpxmax || display->d_vpxmax == -1)
+			display->d_vpxmax = cv->c_xe;
+	}
+	return 0;
 }
 
-void
-RethinkViewportOffsets(struct canvas *cv)
+void RethinkViewportOffsets(struct canvas *cv)
 {
-  struct viewport *vp;
+	struct viewport *vp;
 
-  for (vp = cv->c_vplist; vp; vp = vp->v_next)
-    {
-      vp->v_xoff = cv->c_xoff;
-      vp->v_yoff = cv->c_yoff;
-    }
+	for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+		vp->v_xoff = cv->c_xoff;
+		vp->v_yoff = cv->c_yoff;
+	}
 }
-
-

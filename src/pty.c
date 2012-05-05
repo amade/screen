@@ -43,15 +43,15 @@
  * if no PTYRANGE[01] is in the config file, we pick a default
  */
 #ifndef PTYRANGE0
-# define PTYRANGE0 "qpr"
+#define PTYRANGE0 "qpr"
 #endif
 #ifndef PTYRANGE1
-# define PTYRANGE1 "0123456789abcdef"
+#define PTYRANGE1 "0123456789abcdef"
 #endif
 
 static char TtyName[32];
 
-static void initmaster (int);
+static void initmaster(int);
 
 int pty_preopen = 0;
 
@@ -60,37 +60,33 @@ int pty_preopen = 0;
  *  (RISCos mips breaks otherwise)
  */
 #ifndef O_NOCTTY
-# define O_NOCTTY 0
+#define O_NOCTTY 0
 #endif
 
 /***************************************************************/
 
-static void
-initmaster(int f)
+static void initmaster(int f)
 {
-  tcflush(f, TCIOFLUSH);
+	tcflush(f, TCIOFLUSH);
 #ifdef LOCKPTY
-  (void) ioctl(f, TIOCEXCL, (char *) 0);
+	(void)ioctl(f, TIOCEXCL, (char *)0);
 #endif
 }
 
-void
-InitPTY(int f)
+void InitPTY(int f)
 {
-  if (f < 0)
-    return;
+	if (f < 0)
+		return;
 }
 
-int
-OpenPTY(char **ttyn)
+int OpenPTY(char **ttyn)
 {
-  int f, s;
-  if (openpty(&f, &s, TtyName, NULL, NULL) != 0)
-    return -1;
-  close(s);
-  initmaster(f);
-  pty_preopen = 1;
-  *ttyn = TtyName;
-  return f;
+	int f, s;
+	if (openpty(&f, &s, TtyName, NULL, NULL) != 0)
+		return -1;
+	close(s);
+	initmaster(f);
+	pty_preopen = 1;
+	*ttyn = TtyName;
+	return f;
 }
-

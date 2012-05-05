@@ -33,16 +33,15 @@
 /* XXX: WHY IS THIS HERE?? :XXX */
 
 #ifdef CHECKLOGIN
-# include <pwd.h>
-#endif /* CHECKLOGIN */
+#include <pwd.h>
+#endif				/* CHECKLOGIN */
 
 #ifndef NOSYSLOG
-# include <syslog.h>
+#include <syslog.h>
 #endif
 
-#include "screen.h"	/* includes acls.h */
+#include "screen.h"		/* includes acls.h */
 #include "extern.h"
-
 
 /************************************************************************
  * user managing code, this does not really belong into the acl stuff   *
@@ -54,16 +53,15 @@ struct acluser *users;
  * Returns an nonzero Address. Its contents is either a User-ptr,
  * or NULL which may be replaced by a User-ptr to create the entry.
  */
-struct acluser **
-FindUserPtr(char *name)
+struct acluser **FindUserPtr(char *name)
 {
-  struct acluser **u;
+	struct acluser **u;
 
-  for (u = &users; *u; u = &(*u)->u_next)
-    if (!strcmp((*u)->u_name, name))
-      break;
-  debug("FindUserPtr %s %sfound\n", name, (*u)?"":"not ");
-  return u;
+	for (u = &users; *u; u = &(*u)->u_next)
+		if (!strcmp((*u)->u_name, name))
+			break;
+	debug("FindUserPtr %s %sfound\n", name, (*u) ? "" : "not ");
+	return u;
 }
 
 int DefaultEsc = -1;		/* initialised by screen.c:main() */
@@ -74,101 +72,90 @@ int DefaultMetaEsc = -1;
  * be "none", as this represents the NULL-pointer when dealing with groups.
  * He has default rights, determined by umask.
  */
-int
-UserAdd(char *name, char *pass, struct acluser **up)
+int UserAdd(char *name, char *pass, struct acluser **up)
 {
-  if (!up)
-    up = FindUserPtr(name);
-  if (*up)
-    {
-      if (pass)
-        (*up)->u_password = SaveStr(pass);
-      return 1;		/* he is already there */
-    }
-  if (strcmp("none", name))	/* "none" is a reserved word */
-    *up = calloc(1, sizeof(struct acluser));
-  if (!*up)
-    return -1;		/* he still does not exist */
-  (*up)->u_plop.buf = NULL;
-  (*up)->u_plop.len = 0;
-  (*up)->u_plop.enc = 0;
-  (*up)->u_Esc = DefaultEsc;
-  (*up)->u_MetaEsc = DefaultMetaEsc;
-  strncpy((*up)->u_name, name, NAME_MAX);
-  (*up)->u_password = NULL;
-  if (pass)
-    (*up)->u_password = SaveStr(pass);
-  if (!(*up)->u_password)
-    (*up)->u_password = NullStr;
-  (*up)->u_detachwin = -1;
-  (*up)->u_detachotherwin = -1;
+	if (!up)
+		up = FindUserPtr(name);
+	if (*up) {
+		if (pass)
+			(*up)->u_password = SaveStr(pass);
+		return 1;	/* he is already there */
+	}
+	if (strcmp("none", name))	/* "none" is a reserved word */
+		*up = calloc(1, sizeof(struct acluser));
+	if (!*up)
+		return -1;	/* he still does not exist */
+	(*up)->u_plop.buf = NULL;
+	(*up)->u_plop.len = 0;
+	(*up)->u_plop.enc = 0;
+	(*up)->u_Esc = DefaultEsc;
+	(*up)->u_MetaEsc = DefaultMetaEsc;
+	strncpy((*up)->u_name, name, NAME_MAX);
+	(*up)->u_password = NULL;
+	if (pass)
+		(*up)->u_password = SaveStr(pass);
+	if (!(*up)->u_password)
+		(*up)->u_password = NullStr;
+	(*up)->u_detachwin = -1;
+	(*up)->u_detachotherwin = -1;
 
-  debug("UserAdd %s\n", name);
-  return 0;
+	debug("UserAdd %s\n", name);
+	return 0;
 }
 
 /*
  * Remove a user from the list.
  * Destroy all his permissions and completely detach him from the session.
  */
-int
-UserDel(char *name, struct acluser **up)
+int UserDel(char *name, struct acluser **up)
 {
-  struct acluser *u;
-  struct display *old, *next;
+	struct acluser *u;
+	struct display *old, *next;
 
-  if (!up)
-    up = FindUserPtr(name);
-  if (!(u = *up))
-    return -1;			/* he who does not exist cannot be removed */
-  old = display;
-  for (display = displays; display; display = next)
-    {
-      next = display->d_next;	/* read the next ptr now, Detach may zap it. */
-      if (D_user != u)
-	continue;
-      if (display == old)
-	old = NULL;
-      Detach(D_REMOTE);
-    }
-  display = old;
-  *up = u->u_next;
+	if (!up)
+		up = FindUserPtr(name);
+	if (!(u = *up))
+		return -1;	/* he who does not exist cannot be removed */
+	old = display;
+	for (display = displays; display; display = next) {
+		next = display->d_next;	/* read the next ptr now, Detach may zap it. */
+		if (D_user != u)
+			continue;
+		if (display == old)
+			old = NULL;
+		Detach(D_REMOTE);
+	}
+	display = old;
+	*up = u->u_next;
 
-  debug("FREEING user structure for %s\n", u->u_name);
-  UserFreeCopyBuffer(u);
-  free((char *)u);
-  if (!users)
-    {
-      debug("Last user deleted. Feierabend.\n");
-      Finit(0);	/* Destroying whole session. Noone could ever attach again. */
-    }
-  return 0;
+	debug("FREEING user structure for %s\n", u->u_name);
+	UserFreeCopyBuffer(u);
+	free((char *)u);
+	if (!users) {
+		debug("Last user deleted. Feierabend.\n");
+		Finit(0);	/* Destroying whole session. Noone could ever attach again. */
+	}
+	return 0;
 }
-
-
 
 /*
  * returns 0 if the copy buffer was really deleted.
  * Also removes any references into the users copybuffer
  */
-int
-UserFreeCopyBuffer(struct acluser *u)
+int UserFreeCopyBuffer(struct acluser *u)
 {
-  struct win *w;
-  struct paster *pa;
+	struct win *w;
+	struct paster *pa;
 
-  if (!u->u_plop.buf)
-    return 1;
-  for (w = windows; w; w = w->w_next)
-    {
-      pa = &w->w_paster;
-      if (pa->pa_pasteptr >= u->u_plop.buf &&
-          pa->pa_pasteptr - u->u_plop.buf < u->u_plop.len)
-        FreePaster(pa);
-    }
-  free((char *)u->u_plop.buf);
-  u->u_plop.len = 0;
-  u->u_plop.buf = 0;
-  return 0;
+	if (!u->u_plop.buf)
+		return 1;
+	for (w = windows; w; w = w->w_next) {
+		pa = &w->w_paster;
+		if (pa->pa_pasteptr >= u->u_plop.buf && pa->pa_pasteptr - u->u_plop.buf < u->u_plop.len)
+			FreePaster(pa);
+	}
+	free((char *)u->u_plop.buf);
+	u->u_plop.len = 0;
+	u->u_plop.buf = 0;
+	return 0;
 }
-
