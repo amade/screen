@@ -346,23 +346,11 @@ extern void  sleep1000 (int);
 extern void  opendebug (int, int);
 #endif
 
-
 /* acl.c */
 extern int   AclCheckPermWin (struct acluser *, int, struct win *);
 extern int   AclCheckPermCmd (struct acluser *, int, struct comm *);
-extern int   AclSetPerm (struct acluser *, struct acluser *, char *, char *);
-extern int   AclUmask (struct acluser *, char *, char **);
-extern int   UsersAcl (struct acluser *, int, char **);
-extern void  AclWinSwap (int, int);
 extern int   NewWindowAcl (struct win *, struct acluser *);
 extern void  FreeWindowAcl (struct win *);
-extern char *DoSu (struct acluser **, char *, char *, char *);
-extern int   AclLinkUser (char *, char *);
-extern int   UserFreeCopyBuffer (struct acluser *);
-extern struct acluser **FindUserPtr (char *);
-extern int   UserAdd (char *, char *, struct acluser **);
-extern int   UserDel (char *, struct acluser **);
-
 
 /* layer.c */
 extern void  LGotoPos (struct layer *, int, int);
