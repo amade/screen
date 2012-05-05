@@ -268,7 +268,7 @@ int trigger_sevent(struct script_event *ev, ...)
 	int res = 0;
 	struct listener *chain;
 	char *params;
-	VA_LIST(va);
+	va_list va;
 	/*invalid or un-registered event structure */
 	if (!ev || !ev->params)
 		return 0;
@@ -277,9 +277,9 @@ int trigger_sevent(struct script_event *ev, ...)
 	chain = ev->listeners.chain;
 	params = ev->params;
 	while (chain) {
-		VA_START(va, ev);
+		va_start(va, ev);
 		res = chain->dispatcher(chain->handler, params, va);
-		VA_END(va);
+		va_end(va);
 		if (res)
 			break;
 		chain = chain->chain;
