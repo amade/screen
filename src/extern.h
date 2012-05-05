@@ -347,14 +347,6 @@ extern void  sleep1000 (int);
 extern void  opendebug (int, int);
 #endif
 
-
-/* acl.c */
-extern int   UserFreeCopyBuffer (struct acluser *);
-extern struct acluser **FindUserPtr (char *);
-extern int   UserAdd (char *, char *, struct acluser **);
-extern int   UserDel (char *, struct acluser **);
-
-
 /* layer.c */
 extern void  LGotoPos (struct layer *, int, int);
 extern void  LPutChar (struct layer *, struct mchar *, int, int);

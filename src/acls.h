@@ -59,3 +59,7 @@ typedef struct acluser
 
 extern int DefaultEsc, DefaultMetaEsc;
 
+int UserFreeCopyBuffer (struct acluser *);
+struct acluser **FindUserPtr (char *);
+int UserAdd (char *, char *, struct acluser **);
+int UserDel (char *, struct acluser **);
