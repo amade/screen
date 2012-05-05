@@ -228,13 +228,13 @@ static char *locale_name(void)
 {
 	static char *s;
 
-	if (!s) {
-		s = getenv("LC_ALL");
-		if (s == NULL)
-			s = getenv("LC_CTYPE");
-		if (s == NULL)
-			s = getenv("LANG");
-	}
+	s = getenv("LC_ALL");
+	if (s == NULL)
+		s = getenv("LC_CTYPE");
+	if (s == NULL)
+		s = getenv("LANG");
+	if (s == NULL)
+		s = "C";
 	return s;
 }
 
