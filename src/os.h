@@ -230,11 +230,6 @@
 # define FNBLOCK O_NONBLOCK
 #endif
 
-#ifndef POSIX
-#undef mkfifo
-#define mkfifo(n,m) mknod(n,S_IFIFO|(m),0)
-#endif
-
 #if !defined(HAVE_LSTAT) && !defined(lstat)
 # define lstat stat
 #endif
