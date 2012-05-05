@@ -88,3 +88,13 @@ typedef struct acluser
 
 extern int DefaultEsc, DefaultMetaEsc;
 
+int AclSetPerm (struct acluser *, struct acluser *, char *, char *);
+int AclUmask (struct acluser *, char *, char **);
+int UsersAcl (struct acluser *, int, char **);
+void AclWinSwap (int, int);
+char *DoSu (struct acluser **, char *, char *, char *);
+int AclLinkUser (char *, char *);
+int UserFreeCopyBuffer (struct acluser *);
+struct acluser **FindUserPtr (char *);
+int UserAdd (char *, char *, struct acluser **);
+int UserDel (char *, struct acluser **);
