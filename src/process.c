@@ -6437,7 +6437,7 @@ int StuffKey(int i)
 void AddAlias(const char *name, const char *value, char **args, int *argl, int count)
 {
 	struct alias *nalias = NULL;
-	static next_command = RC_LAST;
+	static int next_command = RC_LAST;
 	int nr;
 
 	/* Make sure we don't already have this alias name defined. */
