@@ -1999,8 +1999,8 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 	if (ScriptProcessCaption(str, win, padlen))
 		return winmsg_buf;
 #endif
-	if (!display)
-		return winmsg_buf;
+	//if (!display)
+	//	return winmsg_buf;
 
 	tick = 0;
 	tm = 0;
