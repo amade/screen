@@ -282,7 +282,7 @@ static int get_window(lua_State * L, void *v)
 static int window_change_title(lua_State * L)
 {
 	struct win *w = check_window(L, 1);
-	unsigned int len;
+	size_t len;
 	const char *title = luaL_checklstring(L, 2, &len);
 	ChangeAKA(w, (char *)title, len);
 	return 0;
@@ -589,7 +589,7 @@ static int screen_get_display(lua_State * L)
 static int screen_exec_command(lua_State * L)
 {
 	const char *command;
-	unsigned int len;
+	size_t len;
 
 	command = luaL_checklstring(L, 1, &len);
 	if (command)
@@ -601,7 +601,7 @@ static int screen_exec_command(lua_State * L)
 static int screen_append_msg(lua_State * L)
 {
 	const char *msg, *color;
-	int len;
+	size_t len;
 	msg = luaL_checklstring(L, 1, &len);
 	if (lua_isnil(L, 2))
 		color = NULL;
@@ -659,7 +659,7 @@ int LuaInit(void)
 static void LuaShowErr(lua_State * L)
 {
 	struct display *d = display;
-	unsigned int len;
+	size_t len;
 	const char *message = luaL_checklstring(L, -1, &len);
 	LMsg(0, "%s", message ? message : "Unknown error");
 	lua_pop(L, 1);

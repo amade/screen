@@ -1824,7 +1824,7 @@ static void FillWithEs()
  *    FindAKA() searches for an autoaka match
  */
 
-void ChangeAKA(struct win *p, char *s, int l)
+void ChangeAKA(struct win *p, char *s, size_t l)
 {
 	int i, c;
 
