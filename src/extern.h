@@ -57,7 +57,7 @@ extern void  ResetAnsiState (struct win *);
 extern void  ResetWindow (struct win *);
 extern void  ResetCharsets (struct win *);
 extern void  WriteString (struct win *, char *, int);
-extern void  ChangeAKA (struct win *, char *, int);
+extern void  ChangeAKA (struct win *, char *, size_t);
 extern void  SetCharsets (struct win *, char *);
 extern int   GetAnsiStatus (struct win *, char *);
 extern void  WNewAutoFlow (struct win *, int);
