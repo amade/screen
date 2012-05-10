@@ -995,7 +995,7 @@ int main(int argc, char **argv)
 #ifdef SCRIPT
 	LoadBindings();
 	if (script_file) {
-		ScriptSource(script_file);
+		ScriptSource(1, (const char **)&script_file);
 		free(script_file);
 		script_file = 0;
 	}

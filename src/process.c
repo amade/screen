@@ -4348,7 +4348,7 @@ static void StuffFin(char *buf, int len, char *data)
 		break;
 #ifdef SCRIPT
 	case RC_SCRIPT:
-		ScriptCmd(argc, (const char **) args);
+		ScriptCmd(argc, (const char **)args);
 		break;
 #endif
 	case RC_SPLIT:
