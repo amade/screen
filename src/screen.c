@@ -1014,7 +1014,7 @@ int main(int argc, char **argv)
 		if ((dfp = fopen(buf, "w")) == NULL)
 			dfp = stderr;
 		else
-			(void)chmod(buf, 0666);
+			(void)fchmod(dfp, 0666);
 	}
 #endif
 	if (!detached) {

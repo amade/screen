@@ -312,7 +312,7 @@ void RestoreLoginSlot()
 	UT_CLOSE;
 	D_loginslot = (slot_t) 0;
 	if (D_loginttymode && (tty = ttyname(D_userfd)) && !CheckTtyname(tty))
-		chmod(tty, D_loginttymode);
+		fchmod(D_userfd, D_loginttymode);
 }
 
 /*
