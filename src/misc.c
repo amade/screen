@@ -392,7 +392,7 @@ void opendebug(int new, int shout)
 	if (!(dfp = fopen(buf, new ? "w" : "a")))
 		dfp = stderr;
 	else
-		(void)chmod(buf, 0666);
+		(void)fchmod(dfp, 0666);
 
 	(void)umask(oumask);
 	debug("opendebug: done.\n");
