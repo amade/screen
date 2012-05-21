@@ -1030,10 +1030,6 @@ enable_scripting=yes
 AC_ARG_ENABLE(scripting, [ --disable-scripting  disable scripting support], [enable_scripting=no])
 if test "$enable_scripting" = "yes"; then
   AC_DEFINE(SCRIPT)
-  enable_scripting_lua=yes
-  AC_ARG_ENABLE(scripting-lua, [ --disable-scripting-lua  disable scripting support], [enable_scripting_lua=no])
-  enable_scripting_python=yes
-  AC_ARG_ENABLE(scripting-python, [ --disable-scripting-python  disable scripting support], [enable_scripting_python=no])
 fi
 
 dnl
@@ -1047,7 +1043,6 @@ fi
 dnl Ptx bug workaround -- insert -lc after -ltermcap
 test -n "$seqptx" && LIBS="-ltermcap -lc -lsocket -linet -lnsl -lsec -lseq"
 
-if test "$enable_scripting_lua" = "yes"; then
 PKG_CHECK_MODULES(LUA, [lua >= 5.1], , [
     AC_MSG_RESULT(no)
     AC_MSG_ERROR([
@@ -1056,14 +1051,12 @@ PKG_CHECK_MODULES(LUA, [lua >= 5.1], , [
 *** If you don't want support for lua scripting, please use the official repository
 *** (http://git.savannah.gnu.org/gitweb/?p=screen.git;a=summary).
 ])])
-AC_SUBST(LUA_CFLAGS)
-AC_SUBST(LUA_LIBS)
-fi
 
-if test "$enable_scripting_python" = "yes"; then
 AM_CHECK_PYTHON_HEADERS(, [AC_MSG_ERROR(could not find Python headers.)])
 AC_SUBST(PYTHON_INCLUDES)
-fi
+
+AC_SUBST(LUA_CFLAGS)
+AC_SUBST(LUA_LIBS)
 
 AC_TRY_RUN(main(){exit(0);},,AC_MSG_ERROR(Can't run the compiler - internal error. Sorry.))
 
