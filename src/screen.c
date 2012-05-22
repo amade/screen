@@ -342,9 +342,9 @@ int main(int argc, char **argv)
 				argc--;
 				break;
 			}
-			if (ap[1] == '-' && !strcmp(ap, "--version"))
+			if (ap[1] == '-' && !strncmp(ap, "--version", 9))
 				Panic(0, "Screen version %s", version);
-			if (ap[1] == '-' && !strcmp(ap, "--help"))
+			if (ap[1] == '-' && !strncmp(ap, "--help", 6))
 				exit_with_usage(myname, NULL, NULL);
 			while (ap && *ap && *++ap) {
 				switch (*ap) {

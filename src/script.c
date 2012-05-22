@@ -181,16 +181,15 @@ struct sev_description {
 	int offset;
 } event_table[] = {
 	/* Global events */
-	{
-	"global_cmdexecuted", "sS", offsetof(struct gevents, cmdexecuted)}, {
-	"global_detached", "di", offsetof(struct gevents, detached)},
+	{ "global_cmdexecuted", "sS", offsetof(struct gevents, cmdexecuted)},
+	{ "global_detached", "di", offsetof(struct gevents, detached)},
 	    /* The command "detach" triggers both 'cmdexecuted' and 'detached' events.
 	       However, we need the 'detached' event to trigger callbacks from remote detaches.
 	     */
 	    /* Window events */
-	{
-	"window_resize", "", offsetof(struct win, w_sev.resize)}, {
-"window_can_resize", "", offsetof(struct win, w_sev.canresize)}};
+	{ "window_resize", "", offsetof(struct win, w_sev.resize)},
+	{ "window_can_resize", "", offsetof(struct win, w_sev.canresize)}
+};
 
 /* Get the event queue with the given name in the obj.  If the obj is NULL,
  * global events are searched.  If no event is found, a NULL is returned.
