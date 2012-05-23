@@ -51,6 +51,7 @@ extern int   AddWinMsgRend (const char *, int);
 extern void  PutWinMsg (char *, int, int);
 extern void  WindowDied (struct win *, int, int);
 extern void  setbacktick (int, int, int, char **);
+extern void  AppendWinMsgRend(char *str, char *color);
 
 /* ansi.c */
 extern void  ResetAnsiState (struct win *);
