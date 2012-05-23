@@ -51,6 +51,7 @@ extern int   AddWinMsgRend (const char *, int);
 extern void  PutWinMsg (char *, int, int);
 extern void  WindowDied (struct win *, int, int);
 extern void  setbacktick (int, int, int, char **);
+extern void  AppendWinMsgRend(char *str, char *color);
 
 /* ansi.c */
 extern void  ResetAnsiState (struct win *);
@@ -406,6 +407,10 @@ extern int   EncodeChar (char *, int, int, int *);
 /* layout.c */
 extern void  RemoveLayout (struct layout *);
 extern int   LayoutDumpCanvas (struct canvas *, char *);
+
+/* script.c */
+extern int register_listener(struct script_event *ev, struct listener *l);
+extern void unregister_listener(struct listener *l);
 
 /*
  * GLOBAL VARIABLES
