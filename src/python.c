@@ -39,10 +39,6 @@
 
 #define RETURN_NONE  do { Py_INCREF(Py_None); return Py_None; } while (0)
 
-extern struct win *windows;
-extern struct display *display, *displays;
-extern struct layer *flayer;
-
 static PyObject *SPy_Get(PyObject * obj, void *closure);
 static int SPy_Set(PyObject * obj, PyObject * value, void *closure);
 static int PyDispatch(void *handler, const char *params, va_list va);
