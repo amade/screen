@@ -513,7 +513,7 @@ int MakeWindow(struct NewWindow *newwin)
 	}
 
 	p->w_encoding = nwin.encoding;
-	ResetWindow(p);		/* sets w_wrap, w_c1, w_gr, w_bce */
+	ResetWindow(p);		/* sets w_wrap, w_c1, w_gr */
 
 	if (nwin.charset)
 		SetCharsets(p, nwin.charset);

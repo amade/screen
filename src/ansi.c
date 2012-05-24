@@ -139,8 +139,6 @@ static void MPutStr(struct win *, char *, int, struct mchar *, int, int);
 static void MWrapChar(struct win *, struct mchar *, int, int, int, int);
 static void MBceLine(struct win *, int, int, int, int);
 
-#define CURR_BCE (curr->w_bce ? rend_getbg(&curr->w_rend) : 0)
-
 void ResetAnsiState(struct win *p)
 {
 	p->w_state = LIT;
@@ -172,7 +170,6 @@ void ResetWindow(register struct win *p)
 		p->w_tabs[i] = 1;
 	p->w_rend = mchar_null;
 	ResetCharsets(p);
-	p->w_bce = nwin_default.bce;
 }
 
 /* adds max 22 bytes */
@@ -1524,16 +1521,16 @@ static void LineFeed(int out_mode)
 	}
 	if (curr->w_autoaka > 1)
 		curr->w_autoaka--;
-	MScrollV(curr, 1, curr->w_top, curr->w_bot, CURR_BCE);
-	LScrollV(&curr->w_layer, 1, curr->w_top, curr->w_bot, CURR_BCE);
+	MScrollV(curr, 1, curr->w_top, curr->w_bot, rend_getbg(&curr->w_rend));
+	LScrollV(&curr->w_layer, 1, curr->w_top, curr->w_bot, rend_getbg(&curr->w_rend));
 	LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
 }
 
 static void ReverseLineFeed()
 {
 	if (curr->w_y == curr->w_top) {
-		MScrollV(curr, -1, curr->w_top, curr->w_bot, CURR_BCE);
-		LScrollV(&curr->w_layer, -1, curr->w_top, curr->w_bot, CURR_BCE);
+		MScrollV(curr, -1, curr->w_top, curr->w_bot, rend_getbg(&curr->w_rend));
+		LScrollV(&curr->w_layer, -1, curr->w_top, curr->w_bot, rend_getbg(&curr->w_rend));
 		LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
 	} else if (curr->w_y > 0)
 		CursorUp(1);
@@ -1548,8 +1545,8 @@ static void InsertChar(int n)
 	if (x == cols)
 		x--;
 	save_mline(&curr->w_mlines[y], cols);
-	MScrollH(curr, -n, y, x, curr->w_width - 1, CURR_BCE);
-	LScrollH(&curr->w_layer, -n, y, x, curr->w_width - 1, CURR_BCE, &mline_old);
+	MScrollH(curr, -n, y, x, curr->w_width - 1, rend_getbg(&curr->w_rend));
+	LScrollH(&curr->w_layer, -n, y, x, curr->w_width - 1, rend_getbg(&curr->w_rend), &mline_old);
 	LGotoPos(&curr->w_layer, x, y);
 }
 
@@ -1560,8 +1557,8 @@ static void DeleteChar(int n)
 	if (x == cols)
 		x--;
 	save_mline(&curr->w_mlines[y], cols);
-	MScrollH(curr, n, y, x, curr->w_width - 1, CURR_BCE);
-	LScrollH(&curr->w_layer, n, y, x, curr->w_width - 1, CURR_BCE, &mline_old);
+	MScrollH(curr, n, y, x, curr->w_width - 1, rend_getbg(&curr->w_rend));
+	LScrollH(&curr->w_layer, n, y, x, curr->w_width - 1, rend_getbg(&curr->w_rend), &mline_old);
 	LGotoPos(&curr->w_layer, x, y);
 }
 
@@ -1571,8 +1568,8 @@ static void DeleteLine(int n)
 		return;
 	if (n > curr->w_bot - curr->w_y + 1)
 		n = curr->w_bot - curr->w_y + 1;
-	MScrollV(curr, n, curr->w_y, curr->w_bot, CURR_BCE);
-	LScrollV(&curr->w_layer, n, curr->w_y, curr->w_bot, CURR_BCE);
+	MScrollV(curr, n, curr->w_y, curr->w_bot, rend_getbg(&curr->w_rend));
+	LScrollV(&curr->w_layer, n, curr->w_y, curr->w_bot, rend_getbg(&curr->w_rend));
 	LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
 }
 
@@ -1582,15 +1579,15 @@ static void InsertLine(int n)
 		return;
 	if (n > curr->w_bot - curr->w_y + 1)
 		n = curr->w_bot - curr->w_y + 1;
-	MScrollV(curr, -n, curr->w_y, curr->w_bot, CURR_BCE);
-	LScrollV(&curr->w_layer, -n, curr->w_y, curr->w_bot, CURR_BCE);
+	MScrollV(curr, -n, curr->w_y, curr->w_bot, rend_getbg(&curr->w_rend));
+	LScrollV(&curr->w_layer, -n, curr->w_y, curr->w_bot, rend_getbg(&curr->w_rend));
 	LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
 }
 
 static void ScrollRegion(int n)
 {
-	MScrollV(curr, n, curr->w_top, curr->w_bot, CURR_BCE);
-	LScrollV(&curr->w_layer, n, curr->w_top, curr->w_bot, CURR_BCE);
+	MScrollV(curr, n, curr->w_top, curr->w_bot, rend_getbg(&curr->w_rend));
+	LScrollV(&curr->w_layer, n, curr->w_top, curr->w_bot, rend_getbg(&curr->w_rend));
 	LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
 }
 
@@ -1624,16 +1621,16 @@ static void BackwardTab()
 
 static void ClearScreen()
 {
-	LClearArea(&curr->w_layer, 0, 0, curr->w_width - 1, curr->w_height - 1, CURR_BCE, 1);
-	MScrollV(curr, curr->w_height, 0, curr->w_height - 1, CURR_BCE);
+	LClearArea(&curr->w_layer, 0, 0, curr->w_width - 1, curr->w_height - 1, rend_getbg(&curr->w_rend), 1);
+	MScrollV(curr, curr->w_height, 0, curr->w_height - 1, rend_getbg(&curr->w_rend));
 }
 
 static void ClearFromBOS()
 {
 	register int y = curr->w_y, x = curr->w_x;
 
-	LClearArea(&curr->w_layer, 0, 0, x, y, CURR_BCE, 1);
-	MClearArea(curr, 0, 0, x, y, CURR_BCE);
+	LClearArea(&curr->w_layer, 0, 0, x, y, rend_getbg(&curr->w_rend), 1);
+	MClearArea(curr, 0, 0, x, y, rend_getbg(&curr->w_rend));
 	RestorePosRendition();
 }
 
@@ -1646,16 +1643,16 @@ static void ClearToEOS()
 		RestorePosRendition();
 		return;
 	}
-	LClearArea(&curr->w_layer, x, y, cols - 1, rows - 1, CURR_BCE, 1);
-	MClearArea(curr, x, y, cols - 1, rows - 1, CURR_BCE);
+	LClearArea(&curr->w_layer, x, y, cols - 1, rows - 1, rend_getbg(&curr->w_rend), 1);
+	MClearArea(curr, x, y, cols - 1, rows - 1, rend_getbg(&curr->w_rend));
 	RestorePosRendition();
 }
 
 static void ClearLineRegion(int from, int to)
 {
 	register int y = curr->w_y;
-	LClearArea(&curr->w_layer, from, y, to, y, CURR_BCE, 1);
-	MClearArea(curr, from, y, to, y, CURR_BCE);
+	LClearArea(&curr->w_layer, from, y, to, y, rend_getbg(&curr->w_rend), 1);
+	MClearArea(curr, from, y, to, y, rend_getbg(&curr->w_rend));
 	RestorePosRendition();
 }
 

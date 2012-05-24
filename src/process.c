@@ -4074,10 +4074,6 @@ static void StuffFin(char *buf, int len, char *data)
 		if (ParseSwitch(act, &fore->w_c1) == 0 && msgok)
 			OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
 		break;
-	case RC_BCE:
-		if (ParseSwitch(act, &fore->w_bce) == 0 && msgok)
-			OutputMsg(0, "Will %serase with background color", fore->w_bce ? "" : "not ");
-		break;
 	case RC_KANJI:
 	case RC_ENCODING:
 		if (*args && !strcmp(args[0], "-d")) {
@@ -5758,8 +5754,6 @@ static void ShowInfo()
 		sprintf(p += strlen(p), " mon");
 	if (wp->w_mouse)
 		sprintf(p += strlen(p), " mouse");
-	if (wp->w_bce)
-		sprintf(p += strlen(p), " bce");
 	if (!wp->w_c1)
 		sprintf(p += strlen(p), " -c1");
 	if (wp->w_norefresh)
