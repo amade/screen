@@ -1732,8 +1732,9 @@ static char rendlist[] = {
 
 static void SelectRendition()
 {
-	register int j, i = 0, a = curr->w_rend.attr, c = curr->w_rend.color;
-	int cx = curr->w_rend.colorx;
+	register int j, i = 0, a = curr->w_rend.attr;
+	int colorbg = curr->w_rend.colorbg;
+	int colorfg = curr->w_rend.colorfg;
 
 	do {
 		j = curr->w_args[i];
@@ -1796,8 +1797,8 @@ static void SelectRendition()
 	}
 	while (++i < curr->w_NumArgs);
 	curr->w_rend.attr = a;
-	curr->w_rend.color = c;
-	curr->w_rend.colorx = cx;
+	curr->w_rend.colorbg = colorbg;
+	curr->w_rend.colorfg = colorfg;
 	LSetRendition(&curr->w_layer, &curr->w_rend);
 }
 
