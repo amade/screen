@@ -527,8 +527,8 @@ struct mline *recode_mline(struct mline *ml, int w, int from, int to)
 
 	rl = rml + last;
 	rl->attr = ml->attr;
-	rl->color = ml->color;
-	rl->colorx = ml->colorx;
+	rl->colorbg = ml->colorbg;
+	rl->colorfg = ml->colorfg;
 	for (i = 0; i < w; i++) {
 		c = ml->image[i] | (ml->font[i] << 8);
 		if (from == UTF8)

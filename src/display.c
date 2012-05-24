@@ -1416,6 +1416,7 @@ void SetRendition(struct mchar *mc)
 		static struct mchar mmc;
 		int i;
 		mmc = *mc;
+		/*
 		for (i = 0; i < 8; i++)
 			if (attr2color[i] && (mc->attr & (1 << i)) != 0) {
 				if (mc->color == 0 && attr2color[i][3])
@@ -1426,7 +1427,7 @@ void SetRendition(struct mchar *mc)
 					ApplyAttrColor(attr2color[i][1], &mmc);
 				else
 					ApplyAttrColor(attr2color[i][0], &mmc);
-			}
+			}*/
 		mc = &mmc;
 		debug("SetRendition: mapped to %02x %02x\n", (unsigned char)mc->attr, 0x99 - (unsigned char)mc->color);
 	}
@@ -1441,7 +1442,7 @@ void SetRendition(struct mchar *mc)
 	} else if (D_rend.attr != mc->attr)
 		SetAttr(mc->attr);
 
-	if (D_rend.color != mc->color || D_rend.colorx != mc->colorx || D_col16change)
+	if (D_rend.colorbg != mc->colorbg || D_rend.colorfg != mc->colorfg || D_col16change)
 		SetColor(rend_getfg(mc), rend_getbg(mc));
 	if (D_rend.font != mc->font)
 		SetFont(mc->font);
@@ -1469,8 +1470,8 @@ void SetRenditionMline(struct mline *ml, int x)
 			SetAttr(a);
 	} else if (D_rend.attr != ml->attr[x])
 		SetAttr(ml->attr[x]);
-	if (D_rend.color != ml->color[x]
-	    || D_rend.colorx != ml->colorx[x]
+	if (D_rend.colorbg != ml->colorbg[x]
+	    || D_rend.colorfg != ml->colorfg[x]
 	    || D_col16change) {
 		struct mchar mc;
 		copy_mline2mchar(&mc, ml, x);
