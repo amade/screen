@@ -52,8 +52,8 @@ static struct mline *mloff(struct mline *ml, int off)
 	mml.attr = ml->attr + off;
 	mml.font = ml->font + off;
 	mml.fontx = ml->fontx + off;
-	mml.color = ml->color + off;
-	mml.colorx = ml->colorx + off;
+	mml.colorbg = ml->colorbg + off;
+	mml.colorfg = ml->colorfg + off;
 	return &mml;
 }
 

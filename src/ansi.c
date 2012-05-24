@@ -1760,9 +1760,12 @@ static char rendlist[] = {
 
 static void SelectRendition()
 {
-	register int j, i = 0, a = curr->w_rend.attr, c = curr->w_rend.color;
-	int cx = curr->w_rend.colorx;
+	register int j, i = 0;
+	int attr = curr->w_rend.attr;
+	int colorbg = curr->w_rend.colorbg;
+	int colorfg = curr->w_rend.colorfg;
 
+/*
 	do {
 		j = curr->w_args[i];
 		if ((j == 38 || j == 48) && i + 2 < curr->w_NumArgs && curr->w_args[i + 1] == 5) {
@@ -1822,10 +1825,14 @@ static void SelectRendition()
 		else
 			a |= j;
 	}
+*/
+attr = 0;
+colorbg = 0;
+colorfg = 0;
 	while (++i < curr->w_NumArgs);
-	curr->w_rend.attr = a;
-	curr->w_rend.color = c;
-	curr->w_rend.colorx = cx;
+	curr->w_rend.attr = attr;
+	curr->w_rend.colorbg = colorbg;
+	curr->w_rend.colorfg = colorfg;
 	LSetRendition(&curr->w_layer, &curr->w_rend);
 }
 
@@ -1981,18 +1988,18 @@ static void MFixLine(struct win *p, int y, struct mchar *mc)
 			mc->fontx = 0;
 		}
 	}
-	if (mc->color && ml->color == null) {
-		if ((ml->color = calloc(p->w_width + 1, 1)) == 0) {
-			ml->color = null;
-			mc->color = p->w_rend.color = 0;
-			WMsg(p, 0, "Warning: no space for color - turned off");
+	if (mc->colorbg && ml->colorbg == null) {
+		if ((ml->colorbg = calloc(p->w_width + 1, 1)) == 0) {
+			ml->colorbg = null;
+			mc->colorbg = p->w_rend.colorbg = 0;
+			WMsg(p, 0, "Warning: no space for color background - turned off");
 		}
 	}
-	if (mc->colorx && ml->colorx == null) {
-		if ((ml->colorx = calloc(p->w_width + 1, 1)) == 0) {
-			ml->colorx = null;
-			mc->colorx = p->w_rend.colorx = 0;
-			WMsg(p, 0, "Warning: no space for extended colors - turned off");
+	if (mc->colorfg && ml->colorfg == null) {
+		if ((ml->colorfg = calloc(p->w_width + 1, 1)) == 0) {
+			ml->colorfg = null;
+			mc->colorfg = p->w_rend.colorfg = 0;
+			WMsg(p, 0, "Warning: no space for color foreground - turned off");
 		}
 	}
 }
@@ -2026,7 +2033,7 @@ static void MScrollH(struct win *p, int n, int y, int xs, int xe, int bce)
 	if (n > 0) {
 		if (xe - xs + 1 > n) {
 			MKillDwRight(p, ml, xs + n);
-			bcopy_mline(ml, xs + n, xs, xe + 1 - xs - n);
+			copy_mline(ml, xs + n, xs, xe + 1 - xs - n);
 		} else
 			n = xe - xs + 1;
 		clear_mline(ml, xe + 1 - n, n);
@@ -2036,7 +2043,7 @@ static void MScrollH(struct win *p, int n, int y, int xs, int xe, int bce)
 		n = -n;
 		if (xe - xs + 1 > n) {
 			MKillDwLeft(p, ml, xe - n);
-			bcopy_mline(ml, xs, xs + n, xe + 1 - xs - n);
+			copy_mline(ml, xs, xs + n, xe + 1 - xs - n);
 		} else
 			n = xe - xs + 1;
 		clear_mline(ml, xs, n);
@@ -2081,12 +2088,12 @@ static void MScrollV(struct win *p, int n, int ys, int ye, int bce)
 			if (ml->fontx != null)
 				free(ml->fontx);
 			ml->fontx = null;
-			if (ml->color != null)
-				free(ml->color);
-			ml->color = null;
-			if (ml->colorx != null)
-				free(ml->colorx);
-			ml->colorx = null;
+			if (ml->colorbg != null)
+				free(ml->colorbg);
+			ml->colorbg = null;
+			if (ml->colorfg != null)
+				free(ml->colorfg);
+			ml->colorfg = null;
 			bclear((char *)ml->image, p->w_width + 1);
 			if (bce)
 				MBceLine(p, i, 0, p->w_width, bce);
@@ -2117,12 +2124,12 @@ static void MScrollV(struct win *p, int n, int ys, int ye, int bce)
 			if (ml->fontx != null)
 				free(ml->fontx);
 			ml->fontx = null;
-			if (ml->color != null)
-				free(ml->color);
-			ml->color = null;
-			if (ml->colorx != null)
-				free(ml->colorx);
-			ml->colorx = null;
+			if (ml->colorbg != null)
+				free(ml->colorbg);
+			ml->colorbg = null;
+			if (ml->colorfg != null)
+				free(ml->colorfg);
+			ml->colorfg = null;
 			bclear((char *)ml->image, p->w_width + 1);
 			if (bce)
 				MBceLine(p, i, 0, p->w_width, bce);
@@ -2192,13 +2199,13 @@ static void MInsChar(struct win *p, struct mchar *c, int x, int y)
 	MKillDwRight(p, ml, x);
 	if (n > 0) {
 		MKillDwRight(p, ml, p->w_width - 1);
-		bcopy_mline(ml, x, x + 1, n);
+		copy_mline(ml, x, x + 1, n);
 	}
 	copy_mchar2mline(c, ml, x);
 	if (c->mbcs) {
 		if (--n > 0) {
 			MKillDwRight(p, ml, p->w_width - 1);
-			bcopy_mline(ml, x + 1, x + 2, n);
+			copy_mline(ml, x + 1, x + 2, n);
 		}
 		copy_mchar2mline(c, ml, x + 1);
 		ml->image[x + 1] = c->mbcs;
@@ -2280,15 +2287,15 @@ static void MPutStr(struct win *p, char *s, int n, struct mchar *r, int x, int y
 		for (i = n; i-- > 0;)
 			*b++ = r->fontx;
 	}
-	if (ml->color != null) {
-		b = ml->color + x;
+	if (ml->colorbg != null) {
+		b = ml->colorbg + x;
 		for (i = n; i-- > 0;)
-			*b++ = r->color;
+			*b++ = r->colorbg;
 	}
-	if (ml->colorx != null) {
-		b = ml->colorx + x;
+	if (ml->colorfg != null) {
+		b = ml->colorfg + x;
 		for (i = n; i-- > 0;)
-			*b++ = r->colorx;
+			*b++ = r->colorfg;
 	}
 }
 
@@ -2305,12 +2312,12 @@ static void MBceLine(struct win *p, int y, int xs, int xe, int bce)
 	if (mc.attr)
 		for (x = xs; x <= xe; x++)
 			ml->attr[x] = mc.attr;
-	if (mc.color)
+	if (mc.colorbg)
 		for (x = xs; x <= xe; x++)
-			ml->color[x] = mc.color;
-	if (mc.colorx)
+			ml->colorbg[x] = mc.colorbg;
+	if (mc.colorfg)
 		for (x = xs; x <= xe; x++)
-			ml->colorx[x] = mc.colorx;
+			ml->colorfg[x] = mc.colorfg;
 }
 
 static void WAddLineToHist(struct win *wp, struct mline *ml)
@@ -2331,7 +2338,6 @@ static void WAddLineToHist(struct win *wp, struct mline *ml)
 	ml->attr = null;
 	if (o != null)
 		free(o);
-
 	q = ml->font;
 	o = hml->font;
 	hml->font = q;
@@ -2344,16 +2350,16 @@ static void WAddLineToHist(struct win *wp, struct mline *ml)
 	ml->fontx = null;
 	if (o != null)
 		free(o);
-	q = ml->color;
-	o = hml->color;
-	hml->color = q;
-	ml->color = null;
+	q = ml->colorbg;
+	o = hml->colorbg;
+	hml->colorbg = q;
+	ml->colorbg = null;
 	if (o != null)
 		free(o);
-	q = ml->colorx;
-	o = hml->colorx;
-	hml->colorx = q;
-	ml->colorx = null;
+	q = ml->colorfg;
+	o = hml->colorfg;
+	hml->colorfg = q;
+	ml->colorfg = null;
 	if (o != null)
 		free(o);
 
@@ -2372,9 +2378,9 @@ int MFindUsedLine(struct win *p, int ye, int ys)
 			break;
 		if (ml->attr != null && memcmp((char *)ml->attr, null, p->w_width))
 			break;
-		if (ml->color != null && memcmp((char *)ml->color, null, p->w_width))
+		if (ml->colorbg != null && memcmp((char *)ml->colorbg, null, p->w_width))
 			break;
-		if (ml->colorx != null && memcmp((char *)ml->colorx, null, p->w_width))
+		if (ml->colorfg != null && memcmp((char *)ml->colorfg, null, p->w_width))
 			break;
 		if (p->w_encoding == UTF8) {
 			if (ml->font != null && bcmp((char *)ml->font, null, p->w_width))

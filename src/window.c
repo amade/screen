@@ -320,8 +320,8 @@ static int WinRewrite(int y, int x1, int x2, struct mchar *rend, int doit)
 	register unsigned char *p, *i;
 	register unsigned char *f;
 	register unsigned char *fx;
-	register unsigned char *c;
-	register unsigned char *cx;
+	register unsigned char *colorbg;
+	register unsigned char *colorfg;
 
 	debug("WinRewrite %d, %d-%d\n", y, x1, x2);
 	fore = (struct win *)flayer->l_data;
@@ -340,8 +340,8 @@ static int WinRewrite(int y, int x1, int x2, struct mchar *rend, int doit)
 	if (fore->w_encoding && fore->w_encoding != UTF8 && D_encoding == UTF8
 	    && ContainsSpecialDeffont(fore->w_mlines + y, x1, x2, fore->w_encoding))
 		return EXPENSIVE;
-	c = fore->w_mlines[y].color + x1;
-	cx = fore->w_mlines[y].colorx + x1;
+	colorbg = fore->w_mlines[y].colorbg + x1;
+	colorfg = fore->w_mlines[y].colorfg + x1;
 
 	cost = dx = x2 - x1 + 1;
 	while (dx-- > 0) {
@@ -351,9 +351,9 @@ static int WinRewrite(int y, int x1, int x2, struct mchar *rend, int doit)
 			return EXPENSIVE;
 		if (*fx++ != rend->fontx)
 			return EXPENSIVE;
-		if (*c++ != rend->color)
+		if (*colorbg++ != rend->colorbg)
 			return EXPENSIVE;
-		if (*cx++ != rend->colorx)
+		if (*colorfg++ != rend->colorfg)
 			return EXPENSIVE;
 	}
 	return cost;

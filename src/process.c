@@ -4441,8 +4441,8 @@ static void StuffFin(char *buf, int len, char *data)
 			debug("--> %x %x\n", mchar_so.attr, mchar_so.color);
 		}
 		if (msgok)
-			OutputMsg(0, "Standout attributes 0x%02x  color 0x%02x", (unsigned char)mchar_so.attr,
-				  0x99 ^ (unsigned char)mchar_so.color);
+			OutputMsg(0, "Standout attributes 0x%02x  colorbg 0x%02x  colorfg 0x%02x", (unsigned char)mchar_so.attr,
+				  (unsigned char)mchar_so.colorbg, (unsigned char)mchar_so.colorfg);
 		break;
 
 	case RC_SOURCE:
@@ -6902,143 +6902,7 @@ void RefreshXtermOSC()
 
 int ParseAttrColor(char *s1, char *s2, int msgok)
 {
-	int i, n;
-	char *s, *ss;
-	int r = 0;
-
-	s = s1;
-	while (*s == ' ')
-		s++;
-	ss = s;
-	while (*ss && *ss != ' ')
-		ss++;
-	while (*ss == ' ')
-		ss++;
-	if (*s && (s2 || *ss || !((*s >= 'a' && *s <= 'z') || (*s >= 'A' && *s <= 'Z') || *s == '.'))) {
-		int mode = 0, n = 0;
-		if (*s == '+') {
-			mode = 1;
-			s++;
-		} else if (*s == '-') {
-			mode = -1;
-			s++;
-		} else if (*s == '!') {
-			mode = 2;
-			s++;
-		} else if (*s == '=')
-			s++;
-		if (*s >= '0' && *s <= '9') {
-			n = *s++ - '0';
-			if (*s >= '0' && *s <= '9')
-				n = n * 16 + (*s++ - '0');
-			else if (*s >= 'a' && *s <= 'f')
-				n = n * 16 + (*s++ - ('a' - 10));
-			else if (*s >= 'A' && *s <= 'F')
-				n = n * 16 + (*s++ - ('A' - 10));
-			else if (*s && *s != ' ') {
-				if (msgok)
-					Msg(0, "Illegal attribute hexchar '%c'", *s);
-				return -1;
-			}
-		} else {
-			while (*s && *s != ' ') {
-				if (*s == 'd')
-					n |= A_DI;
-				else if (*s == 'u')
-					n |= A_US;
-				else if (*s == 'b')
-					n |= A_BD;
-				else if (*s == 'r')
-					n |= A_RV;
-				else if (*s == 's')
-					n |= A_SO;
-				else if (*s == 'B')
-					n |= A_BL;
-				else {
-					if (msgok)
-						Msg(0, "Illegal attribute specifier '%c'", *s);
-					return -1;
-				}
-				s++;
-			}
-		}
-		if (*s && *s != ' ') {
-			if (msgok)
-				Msg(0, "junk after attribute description: '%c'", *s);
-			return -1;
-		}
-		if (mode == -1)
-			r = n << 8 | n;
-		else if (mode == 1)
-			r = n << 8;
-		else if (mode == 2)
-			r = n;
-		else if (mode == 0)
-			r = 0xffff ^ n;
-	}
-	while (*s && *s == ' ')
-		s++;
-
-	if (s2) {
-		if (*s) {
-			if (msgok)
-				Msg(0, "junk after description: '%c'", *s);
-			return -1;
-		}
-		s = s2;
-		while (*s && *s == ' ')
-			s++;
-	}
-
-	if (*s) {
-		static char costr[] = "krgybmcw d    i.01234567 9     f               FKRGYBMCW      I ";
-		int numco = 0, j;
-
-		n = 0;
-		if (*s == '.') {
-			numco++;
-			n = 0x0f;
-			s++;
-		}
-		for (j = 0; j < 2 && *s && *s != ' '; j++) {
-			for (i = 0; costr[i]; i++)
-				if (*s == costr[i])
-					break;
-			if (!costr[i]) {
-				if (msgok)
-					Msg(0, "illegal color descriptor: '%c'", *s);
-				return -1;
-			}
-			numco++;
-			n = n << 4 | (i & 15);
-			if (i >= 48)
-				n = (n & 0x20ff) | 0x200;
-			s++;
-		}
-		if ((n & 0xf00) == 0xf00)
-			n ^= 0xf00;	/* clear superflous bits */
-		if (n & 0x2000)
-			n ^= 0x2400;	/* shift bit into right position */
-		if (numco == 1)
-			n |= 0xf0;	/* don't change bg color */
-		if (numco != 2 && n != 0xff)
-			n |= 0x100;	/* special invert mode */
-		if (*s && *s != ' ') {
-			if (msgok)
-				Msg(0, "junk after color description: '%c'", *s);
-			return -1;
-		}
-		n ^= 0xff;
-		r |= n << 16;
-	}
-
-	while (*s && *s == ' ')
-		s++;
-	if (*s) {
-		if (msgok)
-			Msg(0, "junk after description: '%c'", *s);
-		return -1;
-	}
+	int r = 9 | 3;
 	debug("ParseAttrColor %06x\n", r);
 	return r;
 }
@@ -7054,23 +6918,8 @@ int ParseAttrColor(char *s1, char *s2, int msgok)
 void ApplyAttrColor(int i, struct mchar *mc)
 {
 	debug("ApplyAttrColor %06x\n", i);
-	mc->attr |= i >> 8 & 255;
-	mc->attr ^= i & 255;
-	i = (i >> 16) ^ 0xff;
-	if ((i & 0x100) != 0) {
-		i &= 0xeff;
-		if (mc->attr & (A_SO | A_RV))
-			i = ((i & 0x0f) << 4) | ((i & 0xf0) >> 4) | ((i & 0x200) << 1) | ((i & 0x400) >> 1);
-	}
-	if ((i & 0x0f) != 0x0f)
-		mc->attr = (mc->attr & 0xbf) | ((i >> 3) & 0x40);
-	if ((i & 0xf0) != 0xf0)
-		mc->attr = (mc->attr & 0x7f) | ((i >> 3) & 0x80);
-	mc->color = 0x99 ^ mc->color;
-	if ((i & 0x0e) == 0x0e)
-		i = (i & 0xf0) | (mc->color & 0x0f);
-	if ((i & 0xe0) == 0xe0)
-		i = (i & 0x0f) | (mc->color & 0xf0);
-	mc->color = 0x99 ^ i;
+	mc->attr = 0;
+	mc->colorbg = 1;
+	mc->colorfg = 3;
 	debug("ApplyAttrColor - %02x %02x\n", mc->attr, i);
 }
