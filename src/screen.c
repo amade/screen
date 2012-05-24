@@ -807,7 +807,9 @@ int main(int argc, char **argv)
 			if (access(SockPath, F_OK)) {
 				if (mkdir(SockPath, 0700) == -1)
 					Panic(errno, "Cannot make directory '%s'", SockPath);
-				(void)chown(SockPath, real_uid, real_gid);
+				int s = open(SockPath, O_RDONLY);
+				fchown(s, real_uid, real_gid);
+				close(s);
 			}
 		}
 #endif
