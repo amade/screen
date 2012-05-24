@@ -198,7 +198,6 @@ struct win
   char  *w_hstatus;		/* hardstatus line */
   int	 w_gr;			/* enable GR flag */
   int	 w_c1;			/* enable C1 flag */
-  int	 w_bce;			/* enable backcol erase */
   int    w_decodestate;		/* state of our input decoder */
   int    w_mbcs;		/* saved char for multibytes charset */
   char	 w_string[MAXSTR];
