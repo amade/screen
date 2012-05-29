@@ -125,19 +125,19 @@ int Attach(int how)
 
 	if (how == MSG_CONT) {
 		if ((lasts = MakeClientSocket(0)) < 0) {
-			Panic(0, "Sorry, cannot contact session \"%s\" again.\r\n", SockName);
+			Panic(0, "Sorry, cannot contact session \"%s\" again.\r\n", SocketName);
 		}
 	} else {
-		n = FindSocket(&lasts, (int *)0, (int *)0, SockMatch);
+		n = FindSocket(&lasts, (int *)0, (int *)0, SocketMatch);
 		switch (n) {
 		case 0:
 			if (rflag && (rflag & 1) == 0)
 				return 0;
 			if (quietflag)
 				eexit(10);
-			if (SockMatch && *SockMatch) {
+			if (SocketMatch && *SocketMatch) {
 				Panic(0, "There is no screen to be %sed matching %s.",
-				      xflag ? "attach" : dflag ? "detach" : "resum", SockMatch);
+				      xflag ? "attach" : dflag ? "detach" : "resum", SocketMatch);
 			} else {
 				Panic(0, "There is no screen to be %sed.",
 				      xflag ? "attach" : dflag ? "detach" : "resum");
@@ -168,15 +168,15 @@ int Attach(int how)
 
 	debug("Attach: uid %d euid %d\n", (int)getuid(), (int)geteuid());
 	MasterPid = 0;
-	for (s = SockName; *s; s++) {
+	for (s = SocketName; *s; s++) {
 		if (*s > '9' || *s < '0')
 			break;
 		MasterPid = 10 * MasterPid + (*s - '0');
 	}
-	debug("Attach decided, it is '%s'\n", SockPath);
+	debug("Attach decided, it is '%s'\n", SocketPath);
 	debug("Attach found MasterPid == %d\n", MasterPid);
-	if (stat(SockPath, &st) == -1)
-		Panic(errno, "stat %s", SockPath);
+	if (stat(SocketPath, &st) == -1)
+		Panic(errno, "stat %s", SocketPath);
 	if ((st.st_mode & 0600) != 0600)
 		Panic(0, "Socket is in wrong mode (%03o)", (int)st.st_mode);
 
@@ -293,7 +293,7 @@ void AttacherFinit(int sigsig)
 	debug("AttacherFinit();\n");
 	signal(SIGHUP, SIG_IGN);
 	/* Check if signal comes from backend */
-	if (stat(SockPath, &statb) == 0 && (statb.st_mode & 0777) != 0600) {
+	if (stat(SocketPath, &statb) == 0 && (statb.st_mode & 0777) != 0600) {
 		debug("Detaching backend!\n");
 		memset((char *)&m, 0, sizeof(m));
 		strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
@@ -689,7 +689,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 #endif
 		if (strlen(sty) > 2 * MAXSTR - 1)
 			sty[2 * MAXSTR - 1] = 0;
-		sprintf(SockPath + strlen(SockPath), "/%s", sty);
+		sprintf(SocketPath + strlen(SocketPath), "/%s", sty);
 		if ((s = MakeClientSocket(1)) == -1)
 			exit(1);
 	}
@@ -716,20 +716,20 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 	debug("SendCommandMsg writing '%s'\n", m.m.command.cmd);
 	if (query) {
 		/* Create a server socket so we can get back the result */
-		char *sp = SockPath + strlen(SockPath);
+		char *sp = SocketPath + strlen(SocketPath);
 		char query[] = "-queryX";
 		char c;
 		int r = -1;
 		for (c = 'A'; c <= 'Z'; c++) {
 			query[6] = c;
-			strncpy(sp, query, strlen(SockPath));
+			strncpy(sp, query, strlen(SocketPath));
 			if ((r = MakeServerSocket()) >= 0)
 				break;
 		}
 		if (r < 0) {
 			for (c = '0'; c <= '9'; c++) {
 				query[6] = c;
-				strncpy(sp, query, strlen(SockPath));
+				strncpy(sp, query, strlen(SocketPath));
 				if ((r = MakeServerSocket()) >= 0)
 					break;
 			}
@@ -738,7 +738,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 		if (r < 0)
 			Panic(0, "Could not create a listening socket to read the results.");
 
-		strncpy(m.m.command.writeback, SockPath, sizeof(m.m.command.writeback) - 1);
+		strncpy(m.m.command.writeback, SocketPath, sizeof(m.m.command.writeback) - 1);
 
 		/* Send the message, then wait for a response */
 		signal(SIGCONT, QueryResultSuccess);
@@ -753,7 +753,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 
 		/* Read the result and spit it out to stdout */
 		ReceiveRaw(r);
-		unlink(SockPath);
+		unlink(SocketPath);
 		if (QueryResult == 2)	/* An error happened */
 			exit(1);
 	} else {

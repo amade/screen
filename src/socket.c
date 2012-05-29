@@ -66,13 +66,13 @@ static void AskPassword(struct msg *);
  *  notherp: pointer to store the number of sockets not matching.
  *  match: string to match socket name.
  *
- *  The socket directory must be in SockPath!
+ *  The socket directory must be in SocketPath!
  *  The global variables LoginName, multi, rflag, xflag, dflag,
- *  quietflag, SockPath are used.
+ *  quietflag, SocketPath are used.
  *
  *  The first good socket is stored in fdp and its name is
- *  appended to SockPath.
- *  If none exists or fdp is NULL SockPath is not changed.
+ *  appended to SocketPath.
+ *  If none exists or fdp is NULL SocketPath is not changed.
  *
  *  Returns: number of good sockets.
  *
@@ -106,19 +106,19 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	}
 
 	/*
-	 * SockPath contains the socket directory.
+	 * SocketPath contains the socket directory.
 	 * At the end of FindSocket the socket name will be appended to it.
 	 * Thus FindSocket() can only be called once!
 	 */
-	sdirlen = strlen(SockPath);
+	sdirlen = strlen(SocketPath);
 
 #ifdef USE_SETEUID
 	xseteuid(real_uid);
 	xsetegid(real_gid);
 #endif
 
-	if ((dirp = opendir(SockPath)) == 0)
-		Panic(errno, "Cannot opendir %s", SockPath);
+	if ((dirp = opendir(SocketPath)) == 0)
+		Panic(errno, "Cannot opendir %s", SocketPath);
 
 	slist = 0;
 	slisttail = &slist;
@@ -154,13 +154,13 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 				cmatch = (*(n + matchlen) == 0);
 			debug("  -> matched %s\n", match);
 		}
-		sprintf(SockPath + sdirlen, "/%s", name);
+		sprintf(SocketPath + sdirlen, "/%s", name);
 
-		debug("stat %s\n", SockPath);
+		debug("stat %s\n", SocketPath);
 		errno = 0;
 		debug("uid = %d, gid = %d\n", getuid(), getgid());
 		debug("euid = %d, egid = %d\n", geteuid(), getegid());
-		if (stat(SockPath, &st)) {
+		if (stat(SocketPath, &st)) {
 			debug("errno = %d\n", errno);
 			continue;
 		}
@@ -211,7 +211,7 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 			ndead++;
 			sent->mode = -1;
 			if (wipeflag) {
-				if (unlink(SockPath) == 0) {
+				if (unlink(SocketPath) == 0) {
 					sent->mode = -2;
 					nwipe++;
 				}
@@ -303,10 +303,10 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 			Msg(0, m, ndead > 1 ? "s" : "", ndead > 1 ? "" : "es");	/* other args for nethack */
 	}
 	if (firsts != -1) {
-		sprintf(SockPath + sdirlen, "/%s", firstn);
+		sprintf(SocketPath + sdirlen, "/%s", firstn);
 		*fdp = firsts;
 	} else
-		SockPath[sdirlen] = 0;
+		SocketPath[sdirlen] = 0;
 	for (sent = slist; sent; sent = nsent) {
 		nsent = sent->next;
 		free(sent->name);
@@ -338,12 +338,12 @@ int MakeServerSocket()
 	if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
 		Panic(errno, "socket");
 	a.sun_family = AF_UNIX;
-	strncpy(a.sun_path, SockPath, sizeof(a.sun_path));
+	strncpy(a.sun_path, SocketPath, sizeof(a.sun_path));
 #ifdef USE_SETEUID
 	xseteuid(real_uid);
 	xsetegid(real_gid);
 #endif
-	if (connect(s, (struct sockaddr *)&a, strlen(SockPath) + 2) != -1) {
+	if (connect(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) != -1) {
 		debug("oooooh! socket already is alive!\n");
 		if (quietflag) {
 			Kill(D_userpid, SIG_BYE);
@@ -353,8 +353,8 @@ int MakeServerSocket()
 			 */
 			eexit(11);
 		}
-		Msg(0, "There is already a screen running on %s.", Filename(SockPath));
-		if (stat(SockPath, &st) == -1)
+		Msg(0, "There is already a screen running on %s.", Filename(SocketPath));
+		if (stat(SocketPath, &st) == -1)
 			Panic(errno, "stat");
 		if (st.st_uid != real_uid)
 			Panic(0, "Unfortunately you are not its owner.");
@@ -364,20 +364,20 @@ int MakeServerSocket()
 			Panic(0, "It is not detached.");
 		/* NOTREACHED */
 	}
-	(void)unlink(SockPath);
-	if (bind(s, (struct sockaddr *)&a, strlen(SockPath) + 2) == -1)
-		Panic(errno, "bind (%s)", SockPath);
+	(void)unlink(SocketPath);
+	if (bind(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) == -1)
+		Panic(errno, "bind (%s)", SocketPath);
 #ifdef SOCK_NOT_IN_FS
 	{
 		int f;
-		if ((f = secopen(SockPath, O_RDWR | O_CREAT, SOCKMODE)) < 0)
+		if ((f = secopen(SocketPath, O_RDWR | O_CREAT, SOCKMODE)) < 0)
 			Panic(errno, "shadow socket open");
 		close(f);
 	}
 #else
-	chmod(SockPath, SOCKMODE);
+	chmod(SocketPath, SOCKMODE);
 #ifndef USE_SETEUID
-	chown(SockPath, real_uid, real_gid);
+	chown(SocketPath, real_uid, real_gid);
 #endif
 #endif				/* SOCK_NOT_IN_FS */
 	if (listen(s, 5) == -1)
@@ -401,22 +401,22 @@ int MakeClientSocket(int err)
 	if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
 		Panic(errno, "socket");
 	a.sun_family = AF_UNIX;
-	strncpy(a.sun_path, SockPath, sizeof(a.sun_path));
+	strncpy(a.sun_path, SocketPath, sizeof(a.sun_path));
 #ifdef USE_SETEUID
 	xseteuid(real_uid);
 	xsetegid(real_gid);
 #else
-	if (access(SockPath, W_OK)) {
+	if (access(SocketPath, W_OK)) {
 		if (err)
-			Msg(errno, "%s", SockPath);
-		debug("MakeClientSocket: access(%s): %d.\n", SockPath, errno);
+			Msg(errno, "%s", SocketPath);
+		debug("MakeClientSocket: access(%s): %d.\n", SocketPath, errno);
 		close(s);
 		return -1;
 	}
 #endif
-	if (connect(s, (struct sockaddr *)&a, strlen(SockPath) + 2) == -1) {
+	if (connect(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) == -1) {
 		if (err)
-			Msg(errno, "%s: connect", SockPath);
+			Msg(errno, "%s: connect", SocketPath);
 		debug("MakeClientSocket: connect failed.\n");
 		close(s);
 		s = -1;
@@ -448,10 +448,10 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 #endif
 	if (strlen(sty) > 2 * MAXSTR - 1)
 		sty[2 * MAXSTR - 1] = 0;
-	sprintf(SockPath + strlen(SockPath), "/%s", sty);
+	sprintf(SocketPath + strlen(SocketPath), "/%s", sty);
 	if ((s = MakeClientSocket(1)) == -1)
 		exit(1);
-	debug("SendCreateMsg() to '%s'\n", SockPath);
+	debug("SendCreateMsg() to '%s'\n", SocketPath);
 	memset((char *)&m, 0, sizeof(m));
 	m.type = MSG_CREATE;
 	strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
@@ -499,7 +499,7 @@ int SendErrorMsg(char *tty, char *buf)
 	m.type = MSG_ERROR;
 	strncpy(m.m_tty, tty, sizeof(m.m_tty) - 1);
 	m.protocol_revision = MSG_REVISION;
-	debug("SendErrorMsg(): writing to '%s'\n", SockPath);
+	debug("SendErrorMsg(): writing to '%s'\n", SocketPath);
 	(void)write(s, (char *)&m, sizeof m);
 	close(s);
 	return 0;
@@ -832,11 +832,11 @@ void ReceiveMsg()
 		break;
 	case MSG_QUERY:
 		{
-			char *oldSockPath = SaveStr(SockPath);
-			strncpy(SockPath, m.m.command.writeback, MAXPATHLEN + 2 * MAXSTR);
+			char *oldSocketPath = SaveStr(SocketPath);
+			strncpy(SocketPath, m.m.command.writeback, MAXPATHLEN + 2 * MAXSTR);
 			int s = MakeClientSocket(0);
-			strncpy(SockPath, oldSockPath, MAXPATHLEN + 2 * MAXSTR);
-			Free(oldSockPath);
+			strncpy(SocketPath, oldSocketPath, MAXPATHLEN + 2 * MAXSTR);
+			Free(oldSocketPath);
 			if (s >= 0) {
 				queryflag = s;
 				DoCommandMsg(&m);
@@ -884,13 +884,13 @@ int chsock()
 		if (UserContext() <= 0)
 			return UserStatus();
 	}
-	r = chmod(SockPath, SOCKMODE);
+	r = chmod(SocketPath, SOCKMODE);
 	/*
 	 * Sockets usually reside in the /tmp/ area, where sysadmin scripts
 	 * may be happy to remove old files. We manually prevent the socket
 	 * from becoming old. (chmod does not touch mtime).
 	 */
-	(void)utimes(SockPath, NULL);
+	(void)utimes(SocketPath, NULL);
 
 	if (euid != real_uid)
 		UserReturn(r);
@@ -905,10 +905,10 @@ int RecoverSocket()
 	close(ServerSocket);
 	if (geteuid() != real_uid) {
 		if (UserContext() > 0)
-			UserReturn(unlink(SockPath));
+			UserReturn(unlink(SocketPath));
 		(void)UserStatus();
 	} else
-		(void)unlink(SockPath);
+		(void)unlink(SocketPath);
 
 	if ((ServerSocket = MakeServerSocket()) < 0)
 		return 0;
