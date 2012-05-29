@@ -458,12 +458,10 @@ int MakeServerSocket()
 		close(f);
 	}
 #else
-	int socket = open(SockPath, O_RDONLY);
-	fchmod(socket, SOCKMODE);
+	chmod(SockPath, SOCKMODE);
 #ifndef USE_SETEUID
-	fchown(socket, real_uid, real_gid);
+	chown(SockPath, real_uid, real_gid);
 #endif
-	close(socket);
 #endif				/* SOCK_NOT_IN_FS */
 	if (listen(s, 5) == -1)
 		Panic(errno, "listen");
@@ -996,9 +994,7 @@ int chsock()
 		if (UserContext() <= 0)
 			return UserStatus();
 	}
-	int s = open(SockPath, O_RDONLY);
-	r = fchmod(s, SOCKMODE);
-	close(s);
+	r = chmod(SockPath, SOCKMODE);
 	/*
 	 * Sockets usually reside in the /tmp/ area, where sysadmin scripts
 	 * may be happy to remove old files. We manually prevent the socket

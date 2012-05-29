@@ -278,9 +278,7 @@ void RemoveLoginSlot()
 		if ((tty = ttyname(D_userfd)) && stat(tty, &stb) == 0 && stb.st_uid == real_uid && !CheckTtyname(tty)
 		    && ((int)stb.st_mode & 0777) != 0666) {
 			D_loginttymode = (int)stb.st_mode & 0777;
-			int utty = open(D_usertty, O_RDONLY);
-			fchmod(utty, stb.st_mode & 0600);
-			close(utty);
+			chmod(D_usertty, stb.st_mode & 0600);
 		}
 	}
 }

@@ -681,8 +681,8 @@ void CloseDevice(struct win *wp)
 		return;
 	if (wp->w_type == W_TYPE_PTY) {
 		/* pty 4 SALE */
-		chmod(wp->w_tty, 0666);
-		chown(wp->w_tty, 0, 0);
+		(void)chmod(wp->w_tty, 0666);
+		(void)chown(wp->w_tty, 0, 0);
 	}
 	close(wp->w_ptyfd);
 	wp->w_ptyfd = -1;
