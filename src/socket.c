@@ -30,13 +30,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#if !defined(NAMEDPIPE)
 #include <sys/socket.h>
 #ifdef _OpenBSD_
 #include <sys/uio.h>
 #endif
 #include <sys/un.h>
-#endif
 
 #ifndef SIGINT
 #include <signal.h>
@@ -170,18 +168,11 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 			continue;
 		}
 #ifndef SOCK_NOT_IN_FS
-#ifdef NAMEDPIPE
-#ifdef S_ISFIFO
-		debug("S_ISFIFO?\n");
-		if (!S_ISFIFO(st.st_mode))
-			continue;
-#endif
 #else
 #ifdef S_ISSOCK
 		debug("S_ISSOCK?\n");
 		if (!S_ISSOCK(st.st_mode))
 			continue;
-#endif
 #endif
 #endif
 
@@ -359,83 +350,6 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 **
 */
 
-#ifdef NAMEDPIPE
-
-int MakeServerSocket()
-{
-	register int s;
-	struct stat st;
-
-#ifdef USE_SETEUID
-	xseteuid(real_uid);
-	xsetegid(real_gid);
-#endif
-	if ((s = open(SockPath, O_WRONLY | O_NONBLOCK)) >= 0) {
-		debug("huii, my fifo already exists??\n");
-		if (quietflag) {
-			Kill(D_userpid, SIG_BYE);
-			eexit(11);
-		}
-		Msg(0, "There is already a screen running on %s.", Filename(SockPath));
-		if (stat(SockPath, &st) == -1)
-			Panic(errno, "stat");
-#ifdef SOCKDIR			/* if SOCKDIR is not defined, the socket is in $HOME.
-				   in that case it does not make sense to compare uids. */
-		if ((int)st.st_uid != real_uid)
-			Panic(0, "Unfortunately you are not its owner.");
-#endif
-		if ((st.st_mode & 0700) == 0600)
-			Panic(0, "To resume it, use \"screen -r\"");
-		else
-			Panic(0, "It is not detached.");
-		/* NOTREACHED */
-	}
-#ifdef USE_SETEUID
-	(void)unlink(SockPath);
-	if (mkfifo(SockPath, SOCKMODE))
-		Panic(0, "mkfifo %s failed", SockPath);
-#ifdef BROKEN_PIPE
-	if ((s = open(SockPath, O_RDWR | O_NONBLOCK, 0)) < 0)
-#else
-	if ((s = open(SockPath, O_RDONLY | O_NONBLOCK, 0)) < 0)
-#endif
-		Panic(errno, "open fifo %s", SockPath);
-	xseteuid(eff_uid);
-	xsetegid(eff_gid);
-	return s;
-#else				/* !USE_SETEUID */
-	if (UserContext() > 0) {
-		(void)unlink(SockPath);
-		UserReturn(mkfifo(SockPath, SOCKMODE));
-	}
-	if (UserStatus())
-		Panic(0, "mkfifo %s failed", SockPath);
-#ifdef BROKEN_PIPE
-	if ((s = secopen(SockPath, O_RDWR | O_NONBLOCK, 0)) < 0)
-#else
-	if ((s = secopen(SockPath, O_RDONLY | O_NONBLOCK, 0)) < 0)
-#endif
-		Panic(errno, "open fifo %s", SockPath);
-	return s;
-#endif				/* !USE_SETEUID */
-}
-
-int MakeClientSocket(int err)
-{
-	register int s = 0;
-
-	if ((s = secopen(SockPath, O_WRONLY | O_NONBLOCK, 0)) >= 0) {
-		(void)fcntl(s, F_SETFL, 0);
-		return s;
-	}
-	if (err)
-		Msg(errno, "%s", SockPath);
-	debug("MakeClientSocket() open %s failed (%d)\n", SockPath, errno);
-	return -1;
-}
-
-#else				/* NAMEDPIPE */
-
 int MakeServerSocket()
 {
 	register int s;
@@ -539,7 +453,6 @@ int MakeClientSocket(int err)
 #endif
 	return s;
 }
-#endif				/* NAMEDPIPE */
 
 /*
 **
@@ -798,13 +711,6 @@ void ReceiveMsg()
 	int recvfd = -1;
 	struct acluser *user;
 
-#ifdef NAMEDPIPE
-	debug("Ha, there was someone knocking on my fifo??\n");
-	if (fcntl(ServerSocket, F_SETFL, 0) == -1)
-		Panic(errno, "BLOCK fcntl");
-	p = (char *)&m;
-	left = sizeof(m);
-#else
 	struct sockaddr_un a;
 	struct msghdr msg;
 	struct iovec iov;
@@ -859,8 +765,6 @@ void ReceiveMsg()
 		break;
 	}
 
-#endif
-
 	while (left > 0) {
 		len = read(ns, p, left);
 		if (len < 0 && errno == EINTR)
@@ -871,19 +775,7 @@ void ReceiveMsg()
 		left -= len;
 	}
 
-#ifdef NAMEDPIPE
-#ifndef BROKEN_PIPE
-	/* Reopen pipe to prevent EOFs at the select() call */
-	close(ServerSocket);
-	if ((ServerSocket = secopen(SockPath, O_RDONLY | O_NONBLOCK, 0)) < 0)
-		Panic(errno, "reopen fifo %s", SockPath);
-	evdeq(&serv_read);
-	serv_read.fd = ServerSocket;
-	evenq(&serv_read);
-#endif
-#else
 	close(ns);
-#endif
 
 	if (len < 0) {
 		Msg(errno, "read");
@@ -1010,17 +902,12 @@ void ReceiveRaw(int s)
 {
 	char rd[256];
 	int len = 0;
-#ifdef NAMEDPIPE
-	if (fcntl(s, F_SETFL, 0) == -1)
-		Panic(errno, "BLOCK fcntl");
-#else
 	struct sockaddr_un a;
 	len = sizeof(a);
 	if ((s = accept(s, (struct sockaddr *)&a, (socklen_t *) & len)) < 0) {
 		Msg(errno, "accept");
 		return;
 	}
-#endif
 	while ((len = read(s, rd, 255)) > 0) {
 		rd[len] = 0;
 		printf("%s", rd);
@@ -1448,8 +1335,6 @@ static void DoCommandMsg(struct msg *mp)
 	EffectiveAclUser = 0;
 }
 
-#ifndef NAMEDPIPE
-
 int SendAttachMsg(int s, struct msg *m, int fd)
 {
 	int r;
@@ -1482,5 +1367,3 @@ int SendAttachMsg(int s, struct msg *m, int fd)
 		return 0;
 	}
 }
-
-#endif
