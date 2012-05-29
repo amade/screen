@@ -2594,31 +2594,31 @@ static void StuffFin(char *buf, int len, char *data)
 		break;
 	case RC_SESSIONNAME:
 		if (*args == 0)
-			OutputMsg(0, "This session is named '%s'\n", SockName);
+			OutputMsg(0, "This session is named '%s'\n", SocketName);
 		else {
 			char buf[MAXPATHLEN];
 
 			s = 0;
 			if (ParseSaveStr(act, &s))
 				break;
-			if (!*s || strlen(s) + (SockName - SockPath) > MAXPATHLEN - 13 || strchr(s, '/')) {
+			if (!*s || strlen(s) + (SocketName - SocketPath) > MAXPATHLEN - 13 || strchr(s, '/')) {
 				OutputMsg(0, "%s: bad session name '%s'\n", rc_name, s);
 				free(s);
 				break;
 			}
-			strncpy(buf, SockPath, SockName - SockPath);
-			sprintf(buf + (SockName - SockPath), "%d.%s", (int)getpid(), s);
+			strncpy(buf, SocketPath, SocketName - SocketPath);
+			sprintf(buf + (SocketName - SocketPath), "%d.%s", (int)getpid(), s);
 			free(s);
 			if ((access(buf, F_OK) == 0) || (errno != ENOENT)) {
 				OutputMsg(0, "%s: inappropriate path: '%s'.", rc_name, buf);
 				break;
 			}
-			if (rename(SockPath, buf)) {
-				OutputMsg(errno, "%s: failed to rename(%s, %s)", rc_name, SockPath, buf);
+			if (rename(SocketPath, buf)) {
+				OutputMsg(errno, "%s: failed to rename(%s, %s)", rc_name, SocketPath, buf);
 				break;
 			}
-			debug("rename(%s, %s) done\n", SockPath, buf);
-			strncpy(SockPath, buf, MAXPATHLEN + 2 * MAXSTR);
+			debug("rename(%s, %s) done\n", SocketPath, buf);
+			strncpy(SocketPath, buf, MAXPATHLEN + 2 * MAXSTR);
 			MakeNewEnv();
 			WindowChanged((struct win *)0, 'S');
 		}
@@ -3323,7 +3323,7 @@ static void StuffFin(char *buf, int len, char *data)
 	case RC_SU:
 		s = NULL;
 		if (!*args) {
-			OutputMsg(0, "%s:%s screen login", HostName, SockPath);
+			OutputMsg(0, "%s:%s screen login", HostName, SocketPath);
 			InputSu(D_fore, &D_user, NULL);
 		} else if (!args[1])
 			InputSu(D_fore, &D_user, args[0]);
@@ -4000,10 +4000,10 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 						else
 							v = path;
 					} else if (!strcmp(ps, "STY")) {
-						if ((v = strchr(SockName, '.')))	/* Skip the PID */
+						if ((v = strchr(SocketName, '.')))	/* Skip the PID */
 							v++;
 						else
-							v = SockName;
+							v = SocketName;
 					} else
 						v = getenv(ps);
 				}

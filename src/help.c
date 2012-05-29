@@ -65,7 +65,7 @@ void exit_with_usage(char *myname, char *message, char *arg)
 	printf("-l            Login mode on (update %s), -ln = off.\n", UTMPFILE);
 #endif
 	printf("-ls [match]   or\n");
-	printf("-list         Do nothing, just list our SockDir [on possible matches].\n");
+	printf("-list         Do nothing, just list our SocketDir [on possible matches].\n");
 	printf("-L            Turn on output logging.\n");
 	printf("-m            ignore $STY variable, do create a new screen session.\n");
 	printf("-O            Choose optimal output rather than exact vt100 emulation.\n");
@@ -80,7 +80,7 @@ void exit_with_usage(char *myname, char *message, char *arg)
 	printf("-T term       Use term as $TERM for windows, rather than \"screen\".\n");
 	printf("-U            Tell screen to use UTF-8 encoding.\n");
 	printf("-v            Print \"Screen version %s\".\n", version);
-	printf("-wipe [match] Do nothing, just clean up SockDir [on possible matches].\n");
+	printf("-wipe [match] Do nothing, just clean up SocketDir [on possible matches].\n");
 	printf("-x            Attach to a not detached screen. (Multi display mode).\n");
 	printf("-X            Execute <cmd> as a screen command in the specified session.\n");
 	if (message && *message) {
