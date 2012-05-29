@@ -480,7 +480,7 @@ char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 			sorry++;
 	}
 
-	debug("syslog(LOG_NOTICE, \"screen %s: \"su %s\" ", SockPath, name);
+	debug("syslog(LOG_NOTICE, \"screen %s: \"su %s\" ", SocketPath, name);
 	debug("%s for \"%s\"\n", sorry ? "failed" : "succeded", (*up)->u_name);
 #ifndef NOSYSLOG
 #ifdef BSD_42
@@ -488,7 +488,7 @@ char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 #else
 	openlog("screen", LOG_PID, LOG_AUTH);
 #endif				/* BSD_42 */
-	syslog(LOG_NOTICE, "%s: \"su %s\" %s for \"%s\"", SockPath, name, sorry ? "failed" : "succeded", (*up)->u_name);
+	syslog(LOG_NOTICE, "%s: \"su %s\" %s for \"%s\"", SocketPath, name, sorry ? "failed" : "succeded", (*up)->u_name);
 	closelog();
 #else
 	debug("NOT LOGGED.\n");

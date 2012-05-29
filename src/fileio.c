@@ -340,10 +340,10 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 	switch (dump) {
 	case DUMP_TERMCAP:
 		if (fn == 0) {
-			i = SockName - SockPath;
+			i = SocketName - SocketPath;
 			if (i > (int)sizeof(fnbuf) - 9)
 				i = 0;
-			strncpy(fnbuf, SockPath, i);
+			strncpy(fnbuf, SocketPath, i);
 			strncpy(fnbuf + i, ".termcap", 9);
 			fn = fnbuf;
 		}
