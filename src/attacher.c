@@ -87,10 +87,8 @@ static int WriteMessage(int s, struct msg *m)
 {
 	int r, l = sizeof(*m);
 
-#ifndef NAMEDPIPE
 	if (m->type == MSG_ATTACH)
 		return SendAttachMsg(s, m, attach_fd);
-#endif
 
 	while (l > 0) {
 		r = write(s, (char *)m + (sizeof(*m) - l), l);

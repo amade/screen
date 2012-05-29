@@ -267,9 +267,6 @@ int main(int argc, char **argv)
 #ifdef TERMIO
 	debug("TERMIO\n");
 #endif
-#ifdef NAMEDPIPE
-	debug("NAMEDPIPE\n");
-#endif
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 	debug("Window size changing enabled\n");
 #endif
@@ -720,18 +717,16 @@ int main(int argc, char **argv)
 	attach_tty = "";
 	if (!detached && !lsflag && !cmdflag && !(dflag && !mflag && !rflag && !xflag)
 	    && !(!mflag && !SockMatch && sty && !xflag)) {
-#ifndef NAMEDPIPE
+
 		int fl;
-#endif
 
 		/* ttyname implies isatty */
 		SET_TTYNAME(1);
 
-#ifndef NAMEDPIPE
 		fl = fcntl(0, F_GETFL, 0);
 		if (fl != -1 && (fl & (O_RDWR | O_RDONLY | O_WRONLY)) == O_RDWR)
 			attach_fd = 0;
-#endif
+
 		if (attach_fd == -1) {
 			if ((n = secopen(attach_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
 				Panic(0, "Cannot open your terminal '%s' - please check.", attach_tty);
