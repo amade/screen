@@ -290,9 +290,6 @@ void FreeDisplay()
 		if (p->w_readev.condneg == &D_status || p->w_readev.condneg == &D_obuflenmax)
 			p->w_readev.condpos = p->w_readev.condneg = 0;
 	}
-	for (p = windows; p; p = p->w_next)
-		if (p->w_zdisplay == display)
-			zmodem_abort(p, 0);
 	if (D_mousetrack) {
 		D_mousetrack = 0;
 		MouseMode(0);
@@ -2665,22 +2662,6 @@ static void disp_readev_fn(struct event *ev, char *data)
 		Activate(D_fore ? D_fore->w_norefresh : 0);
 		ResetIdle();
 		return;
-	}
-	if (D_blocked > 1) {	/* 2, 3 */
-		char *bufp;
-		struct win *p;
-
-		flayer = 0;
-		for (p = windows; p; p = p->w_next)
-			if (p->w_zdisplay == display) {
-				flayer = &p->w_layer;
-				bufp = buf;
-				while (size > 0)
-					LayProcess(&bufp, &size);
-				return;
-			}
-		debug("zmodem window gone, deblocking display");
-		zmodem_abort(0, display);
 	}
 	if (idletimo > 0)
 		ResetIdle();

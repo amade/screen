@@ -104,10 +104,6 @@ struct plop plop_tab[MAX_PLOP_DEFS];
 int TtyMode = PTYMODE;
 int hardcopy_append = 0;
 int all_norefresh = 0;
-int zmodem_mode = 0;
-char *zmodem_sendcmd;
-char *zmodem_recvcmd;
-static char *zmodes[4] = { "off", "auto", "catch", "pass" };
 
 int idletimo;
 struct action idleaction;
@@ -2280,40 +2276,6 @@ static void StuffFin(char *buf, int len, char *data)
 			OutputMsg(0, "Sorry, screen was compiled without -DDEBUG option.");
 #endif
 		break;
-	case RC_ZMODEM:
-		if (*args && !strcmp(*args, "sendcmd")) {
-			if (args[1]) {
-				free(zmodem_sendcmd);
-				zmodem_sendcmd = SaveStr(args[1]);
-			}
-			if (msgok)
-				OutputMsg(0, "zmodem sendcmd: %s", zmodem_sendcmd);
-			break;
-		}
-		if (*args && !strcmp(*args, "recvcmd")) {
-			if (args[1]) {
-				free(zmodem_recvcmd);
-				zmodem_recvcmd = SaveStr(args[1]);
-			}
-			if (msgok)
-				OutputMsg(0, "zmodem recvcmd: %s", zmodem_recvcmd);
-			break;
-		}
-		if (*args) {
-			for (i = 0; i < 4; i++)
-				if (!strcmp(zmodes[i], *args))
-					break;
-			if (i == 4 && !strcmp(*args, "on"))
-				i = 1;
-			if (i == 4) {
-				OutputMsg(0, "usage: zmodem off|auto|catch|pass");
-				break;
-			}
-			zmodem_mode = i;
-		}
-		if (msgok)
-			OutputMsg(0, "zmodem mode is %s", zmodes[zmodem_mode]);
-		break;
 	case RC_UNBINDALL:
 		{
 			register unsigned int i;
@@ -2906,8 +2868,6 @@ static void StuffFin(char *buf, int len, char *data)
 		break;
 	case RC_RESET:
 		ResetAnsiState(fore);
-		if (fore->w_zdisplay)
-			zmodem_abort(fore, fore->w_zdisplay);
 		WriteString(fore, "\033c", 2);
 		break;
 	case RC_MONITOR:
@@ -5519,10 +5479,6 @@ void KillWindow(struct win *win)
 			gotone = 1;
 		}
 		if (gotone) {
-			if (win->w_zdisplay == display) {
-				D_blocked = 0;
-				D_readev.condpos = D_readev.condneg = 0;
-			}
 			Activate(-1);
 		}
 	}

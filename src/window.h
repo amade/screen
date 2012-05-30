@@ -227,7 +227,6 @@ struct win
   char	 w_tty[MAXSTR];
 
   int    w_zauto;
-  struct display *w_zdisplay;
   struct {
     int    on;    /* Is the alternate buffer currently being used? */
     struct mline *mlines;

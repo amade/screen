@@ -298,8 +298,6 @@ int main(int argc, char **argv)
 	MsgWait = MSGWAIT * 1000;
 	MsgMinWait = MSGMINWAIT * 1000;
 	SilenceWait = SILENCEWAIT;
-	zmodem_sendcmd = SaveStr("!!! sz -vv -b ");
-	zmodem_recvcmd = SaveStr("!!! rz -vv -b -E");
 
 	CompileKeys((char *)0, 0, mark_key_tab);
 	InitBuiltinTabs();

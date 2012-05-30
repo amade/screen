@@ -219,6 +219,5 @@ struct comm comms[RC_LAST + 1] =
   { "writelock",	NEED_FORE|ARGS_01,		},
   { "xoff",		NEED_LAYER|ARGS_0,		},
   { "xon",		NEED_LAYER|ARGS_0,		},
-  { "zmodem",		ARGS_012,			},
   { "zombie",		ARGS_012,			}
 };

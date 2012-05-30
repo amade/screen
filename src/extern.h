@@ -143,7 +143,6 @@ extern int   DoStartLog (struct win *, char *, int);
 extern int   ReleaseAutoWritelock (struct display *, struct win *);
 extern int   ObtainAutoWritelock (struct display *, struct win *);
 extern void  CloseDevice (struct win *);
-extern void  zmodem_abort (struct win *, struct display *);
 #ifndef HAVE_EXECVPE
 extern void  execvpe (char *, char **, char **);
 #endif
@@ -443,8 +442,6 @@ extern char *screenlogfile;
 extern char *timestring;
 extern char *wliststr;
 extern char *wlisttit;
-extern char *zmodem_recvcmd;
-extern char *zmodem_sendcmd;
 extern char *ActivityString;
 extern char *BellString;
 extern char *BufferFile;
@@ -512,7 +509,6 @@ extern int use_hardstatus;
 extern int wipeflag;
 extern int xflag;
 extern int visual_bell;
-extern int zmodem_mode;
 extern int DefaultEsc;
 extern int MasterPid;
 extern int MsgMinWait;
