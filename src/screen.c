@@ -1234,8 +1234,6 @@ static void CoreDump(int sigsig)
 	struct display *disp;
 	char buf[80];
 
-	char *dump_msg = " (core dumped)";
-
 	int running_w_s_bit = (getuid() != geteuid());
 
 	setgid(getgid());
@@ -1243,9 +1241,9 @@ static void CoreDump(int sigsig)
 	unlink("core");
 
 #ifdef SIGHASARG
-	sprintf(buf, "\r\n[screen caught signal %d.%s]\r\n", sigsig, dump_msg);
+	sprintf(buf, "\r\n[screen caught signal %d. (core dumped)]\r\n", sigsig);
 #else
-	sprintf(buf, "\r\n[screen caught a fatal signal.%s]\r\n", dump_msg);
+	sprintf(buf, "\r\n[screen caught a fatal signal. (core dumped)]\r\n");
 #endif
 
 	for (disp = displays; disp; disp = disp->d_next) {
