@@ -2667,15 +2667,6 @@ static void StuffFin(char *buf, int len, char *data)
 		if (ParseSwitch(act, &compacthist) == 0 && msgok)
 			OutputMsg(0, "%scompacting history lines", compacthist ? "" : "not ");
 		break;
-#ifdef NETHACK
-	case RC_NETHACK:
-		(void)ParseOnOff(act, &nethackflag);
-		break;
-#else
-	case RC_NETHACK:
-		Msg(0, "nethack disabled at build time");
-		break;
-#endif
 	case RC_HARDCOPY_APPEND:
 		(void)ParseOnOff(act, &hardcopy_append);
 		break;
@@ -4421,7 +4412,7 @@ static int MoreWindows()
 		Msg(0, "No window available");
 		return 0;
 	}
-	Msg(0, m, fore->w_number);	/* other arg for nethack */
+	Msg(0, m, fore->w_number);
 	return 0;
 }
 

@@ -113,15 +113,6 @@
 #undef BUILTIN_TELNET
 
 /*
- * As error messages are mostly meaningless to the user, we
- * try to throw out phrases that are somewhat more familiar
- * to ...well, at least familiar to us NetHack players.
- */
-#ifndef NONETHACK
-# define NETHACK
-#endif /* NONETHACK */
-
-/*
  * If screen is installed with permissions to update /etc/utmp (such
  * as if it is installed set-uid root), define UTMPOK.
  */
