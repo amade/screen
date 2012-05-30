@@ -532,111 +532,27 @@ void KillBuffers()
 FILE *secfopen(char *name, char *mode)
 {
 	FILE *fi;
-#ifndef USE_SETEUID
-	int flags, fd;
-#endif
 
 	debug("secfopen(%s, %s)\n", name, mode);
-#ifdef USE_SETEUID
 	xseteuid(real_uid);
 	xsetegid(real_gid);
 	fi = fopen(name, mode);
 	xseteuid(eff_uid);
 	xsetegid(eff_gid);
 	return fi;
-#else
-	if (eff_uid == real_uid)
-		return fopen(name, mode);
-	if (mode[0] && mode[1] == '+')
-		flags = O_RDWR;
-	else
-		flags = (mode[0] == 'r') ? O_RDONLY : O_WRONLY;
-	if (mode[0] == 'w')
-		flags |= O_CREAT | O_TRUNC;
-	else if (mode[0] == 'a')
-		flags |= O_CREAT | O_APPEND;
-	else if (mode[0] != 'r') {
-		errno = EINVAL;
-		return 0;
-	}
-	if ((fd = secopen(name, flags, 0666)) < 0)
-		return 0;
-	if ((fi = fdopen(fd, mode)) == 0) {
-		close(fd);
-		return 0;
-	}
-	return fi;
-#endif
 }
 
 int secopen(char *name, int flags, int mode)
 {
 	int fd;
-#ifndef USE_SETEUID
-	int q;
-	struct stat stb;
-#endif
 
 	debug("secopen(%s, 0x%x, 0%03o)\n", name, flags, mode);
-#ifdef USE_SETEUID
 	xseteuid(real_uid);
 	xsetegid(real_gid);
 	fd = open(name, flags, mode);
 	xseteuid(eff_uid);
 	xsetegid(eff_gid);
 	return fd;
-#else
-	if (eff_uid == real_uid)
-		return open(name, flags, mode);
-	/* Truncation/creation is done in UserContext */
-	if ((flags & O_TRUNC) || ((flags & O_CREAT) && access(name, F_OK))) {
-		if (UserContext() > 0) {
-			if ((fd = open(name, flags, mode)) >= 0) {
-				close(fd);
-				UserReturn(0);
-			}
-			if (errno == 0)
-				errno = EACCES;
-			UserReturn(errno);
-		}
-		if ((q = UserStatus())) {
-			if (q > 0)
-				errno = q;
-			return -1;
-		}
-	}
-	if (access(name, F_OK))
-		return -1;
-	if ((fd = open(name, flags & ~(O_TRUNC | O_CREAT), 0)) < 0)
-		return -1;
-	debug("open successful\n");
-	if (fstat(fd, &stb)) {
-		close(fd);
-		return -1;
-	}
-	debug("fstat successful\n");
-	if (stb.st_uid != real_uid) {
-		switch (flags & (O_RDONLY | O_WRONLY | O_RDWR)) {
-		case O_RDONLY:
-			q = 0004;
-			break;
-		case O_WRONLY:
-			q = 0002;
-			break;
-		default:
-			q = 0006;
-			break;
-		}
-		if ((stb.st_mode & q) != q) {
-			debug("secopen: permission denied (%03o)\n", stb.st_mode & 07777);
-			close(fd);
-			errno = EACCES;
-			return -1;
-		}
-	}
-	debug("secopen ok - returning %d\n", fd);
-	return fd;
-#endif
 }
 
 int printpipe(struct win *p, char *cmd)

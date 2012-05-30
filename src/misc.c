@@ -157,8 +157,6 @@ void (*xsignal(int sig, void (*func) (int))) (int) {
  *    uid/gid handling
  */
 
-#ifdef HAVE_SETEUID
-
 void xseteuid(int euid)
 {
 	if (seteuid(euid) == 0)
@@ -173,38 +171,6 @@ void xsetegid(int egid)
 	if (setegid(egid))
 		Panic(errno, "setegid");
 }
-
-#else				/* HAVE_SETEUID */
-#ifdef HAVE_SETREUID
-
-void xseteuid(int euid)
-{
-	int oeuid;
-
-	oeuid = geteuid();
-	if (oeuid == euid)
-		return;
-	if ((int)getuid() != euid)
-		oeuid = getuid();
-	if (setreuid(oeuid, euid))
-		Panic(errno, "setreuid");
-}
-
-void xsetegid(int egid)
-{
-	int oegid;
-
-	oegid = getegid();
-	if (oegid == egid)
-		return;
-	if ((int)getgid() != egid)
-		oegid = getgid();
-	if (setregid(oegid, egid))
-		Panic(errno, "setregid");
-}
-
-#endif				/* HAVE_SETREUID */
-#endif				/* HAVE_SETEUID */
 
 void bclear(char *p, int n)
 {
@@ -254,79 +220,27 @@ void closeallfiles(int except)
  *  Security - switch to real uid
  */
 
-#ifndef USE_SETEUID
 static int UserPID;
 static void (*Usersigcld) (int);
-#endif
 static int UserSTAT;
 
 int UserContext()
 {
-#ifndef USE_SETEUID
-	if (eff_uid == real_uid && eff_gid == real_gid)
-		return 1;
-	Usersigcld = signal(SIGCHLD, SIG_DFL);
-	debug("UserContext: forking.\n");
-	switch (UserPID = fork()) {
-	case -1:
-		Msg(errno, "fork");
-		return -1;
-	case 0:
-		signal(SIGHUP, SIG_DFL);
-		signal(SIGINT, SIG_IGN);
-		signal(SIGQUIT, SIG_DFL);
-		signal(SIGTERM, SIG_DFL);
-#ifdef BSDJOBS
-		signal(SIGTTIN, SIG_DFL);
-		signal(SIGTTOU, SIG_DFL);
-#endif
-		setuid(real_uid);
-		setgid(real_gid);
-		return 1;
-	default:
-		return 0;
-	}
-#else
 	xseteuid(real_uid);
 	xsetegid(real_gid);
 	return 1;
-#endif
 }
 
 void UserReturn(int val)
 {
-#ifndef USE_SETEUID
-	if (eff_uid == real_uid && eff_gid == real_gid)
-		UserSTAT = val;
-	else
-		_exit(val);
-#else
 	xseteuid(eff_uid);
 	xsetegid(eff_gid);
 	UserSTAT = val;
-#endif
 }
 
 int UserStatus()
 {
-#ifndef USE_SETEUID
-	int i;
-	int wstat;
-
-	if (eff_uid == real_uid && eff_gid == real_gid)
-		return UserSTAT;
-	if (UserPID < 0)
-		return -1;
-	while ((errno = 0, i = wait(&wstat)) != UserPID)
-		if (i < 0 && errno != EINTR)
-			break;
-	(void)signal(SIGCHLD, Usersigcld);
-	if (i == -1)
-		return -1;
-	return WEXITSTATUS(wstat);
-#else
 	return UserSTAT;
-#endif
 }
 
 #ifndef HAVE_RENAME
