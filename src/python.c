@@ -85,7 +85,7 @@ register_##type(PyObject *module) \
   PyType_Ready(&PyType##Type); \
   Py_INCREF(&PyType##Type); \
   PyModule_AddObject(module, #Type, (PyObject *)&PyType##Type); \
-  return 1; \
+  return 0; \
 }
 
 #define DEFINE_TYPE(str, Type) \
@@ -155,6 +155,7 @@ static int register_object(PyObject * module)
 	PyType_Ready(&ScreenObjectType);
 	Py_INCREF(&ScreenObjectType);
 	PyModule_AddObject(module, "Generic Object", (PyObject *) & ScreenObjectType);
+	return 0;
 }
 
 /** }}} */
@@ -426,7 +427,7 @@ static PyObject *register_event_hook(PyObject * self, PyObject * args, PyObject 
 	l->handler = PyObject_FromCallback(scallback);
 	l->priv = 0;
 	l->dispatcher = PyDispatch;
-	if (register_listener(sev, l)) {
+	if (register_listener(sev, l) == 0) {
 		Py_DECREF((PyObject *) l->handler);
 		FreeCallback(scallback);
 		Free(l);
