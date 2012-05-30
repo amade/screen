@@ -326,11 +326,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 	char fnbuf[1024];
 	char *mode = "w";
 	int public = 0;
-#ifdef _MODE_T
 	mode_t old_umask;
-#else
-	int old_umask;
-#endif
 #ifdef HAVE_LSTAT
 	struct stat stb, stb2;
 	int fd, exists = 0;
