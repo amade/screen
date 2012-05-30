@@ -51,10 +51,6 @@ static void AttacherChld(int);
 #endif
 static void AttachSigCont(int);
 
-#ifndef USE_SETEUID
-static int multipipe[2];
-#endif
-
 static int ContinuePlease;
 
 static void AttachSigCont(int sigsig)
@@ -114,57 +110,6 @@ int Attach(int how)
 	char *s;
 
 	debug("Attach: how=%d, tty=%s\n", how, attach_tty);
-#ifndef USE_SETEUID
-	while ((how == MSG_ATTACH || how == MSG_CONT) && multiattach) {
-		int ret;
-
-		if (pipe(multipipe))
-			Panic(errno, "pipe");
-		if (chmod(attach_tty, 0666))
-			Panic(errno, "chmod %s", attach_tty);
-		tty_oldmode = tty_mode;
-		eff_uid = -1;	/* make UserContext fork */
-		real_uid = multi_uid;
-		if ((ret = UserContext()) <= 0) {
-			char dummy;
-			eff_uid = 0;
-			real_uid = own_uid;
-			if (ret < 0)
-				Panic(errno, "UserContext");
-			close(multipipe[1]);
-			read(multipipe[0], &dummy, 1);
-			if (tty_oldmode >= 0) {
-				chmod(attach_tty, tty_oldmode);
-				tty_oldmode = -1;
-			}
-			ret = UserStatus();
-			if (ret == SIG_LOCK)
-				LockTerminal();
-			else
-#ifdef SIGTSTP
-			if (ret == SIG_STOP)
-				kill(getpid(), SIGTSTP);
-			else
-#endif
-			if (ret == SIG_POWER_BYE) {
-				int ppid;
-				if (setgid(real_gid) || setuid(real_uid))
-					Panic(errno, "setuid/gid");
-				if ((ppid = getppid()) > 1)
-					Kill(ppid, SIGHUP);
-				exit(0);
-			} else
-				exit(ret);
-			dflag = 0;
-			xflag = 1;
-			how = MSG_ATTACH;
-			continue;
-		}
-		close(multipipe[0]);
-		eff_uid = real_uid;
-		break;
-	}
-#else				/* USE_SETEUID */
 	if ((how == MSG_ATTACH || how == MSG_CONT) && multiattach) {
 		real_uid = multi_uid;
 		eff_uid = own_uid;
@@ -179,7 +124,6 @@ int Attach(int how)
 			Panic(errno, "chmod %s", attach_tty);
 		tty_oldmode = tty_mode;
 	}
-#endif				/* USE_SETEUID */
 
 	memset((char *)&m, 0, sizeof(m));
 	m.type = how;
@@ -234,13 +178,10 @@ int Attach(int how)
 	if (!multiattach) {
 		if (setuid(real_uid))
 			Panic(errno, "setuid");
-	}
-#if defined(USE_SETEUID)
-	else {
+	} else {
 		/* This call to xsetuid should also set the saved uid */
 		xseteuid(real_uid);	/* multi_uid, allow backend to send signals */
 	}
-#endif
 	if (setgid(real_gid))
 		Panic(errno, "setgid");
 	eff_uid = real_uid;
@@ -337,16 +278,12 @@ int Attach(int how)
 			pause();	/* wait for SIGCONT */
 		signal(SIGCONT, SIG_DFL);
 		ContinuePlease = 0;
-#ifndef USE_SETEUID
-		close(multipipe[1]);
-#else
 		xseteuid(own_uid);
 		if (tty_oldmode >= 0)
 			if (chmod(attach_tty, tty_oldmode))
 				Panic(errno, "chmod %s", attach_tty);
 		tty_oldmode = -1;
 		xseteuid(real_uid);
-#endif
 	}
 	rflag = 0;
 	return 1;
@@ -424,10 +361,6 @@ static void AttacherFinitBye(int sigsig)
 {
 	int ppid;
 	debug("AttacherFintBye()\n");
-#if !defined(USE_SETEUID)
-	if (multiattach)
-		exit(SIG_POWER_BYE);
-#endif
 	if (setgid(real_gid))
 		Panic(errno, "setgid");
 	if (setuid(own_uid))
@@ -530,10 +463,6 @@ void Attacher()
 #ifdef BSDJOBS
 		if (SuspendPlease) {
 			SuspendPlease = 0;
-#if !defined(USE_SETEUID)
-			if (multiattach)
-				exit(SIG_STOP);
-#endif
 			signal(SIGTSTP, SIG_DFL);
 			debug("attacher: killing myself SIGTSTP\n");
 			kill(getpid(), SIGTSTP);
@@ -544,10 +473,6 @@ void Attacher()
 #endif
 		if (LockPlease) {
 			LockPlease = 0;
-#if !defined(USE_SETEUID)
-			if (multiattach)
-				exit(SIG_LOCK);
-#endif
 			LockTerminal();
 #ifdef SYSVSIGS
 			signal(SIG_LOCK, DoLock);

@@ -282,9 +282,6 @@ int main(int argc, char **argv)
 #ifdef HAVE_SETREUID
 	debug("SETREUID\n");
 #endif
-#ifdef HAVE_SETEUID
-	debug("SETEUID\n");
-#endif
 #ifdef UTMPOK
 	debug("UTMPOK\n");
 #endif
@@ -1426,15 +1423,11 @@ void Finit(int i)
 	}
 	if (ServerSocket != -1) {
 		debug("we unlink(%s)\n", SocketPath);
-#ifdef USE_SETEUID
 		xseteuid(real_uid);
 		xsetegid(real_gid);
-#endif
 		(void)unlink(SocketPath);
-#ifdef USE_SETEUID
 		xseteuid(eff_uid);
 		xsetegid(eff_gid);
-#endif
 	}
 	for (display = displays; display; display = display->d_next) {
 		if (D_status)

@@ -1088,15 +1088,11 @@ static int e_tgetent(char *bp, char *name)
 {
 	int r;
 
-#ifdef USE_SETEUID
 	xseteuid(real_uid);
 	xsetegid(real_gid);
-#endif
 	r = tgetent(bp, name);
-#ifdef USE_SETEUID
 	xseteuid(eff_uid);
 	xsetegid(eff_gid);
-#endif
 	return r;
 }
 

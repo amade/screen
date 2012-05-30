@@ -115,10 +115,8 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	 */
 	sdirlen = strlen(SocketPath);
 
-#ifdef USE_SETEUID
 	xseteuid(real_uid);
 	xsetegid(real_gid);
-#endif
 
 	if ((dirp = opendir(SocketPath)) == 0)
 		Panic(errno, "Cannot opendir %s", SocketPath);
@@ -203,11 +201,9 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 		slisttail = &sent->next;
 		nfound++;
 		sockfd = MakeClientSocket(0);
-#ifdef USE_SETEUID
 		/* MakeClientSocket sets ids back to eff */
 		xseteuid(real_uid);
 		xsetegid(real_gid);
-#endif
 		if (sockfd == -1) {
 			debug("  MakeClientSocket failed, unreachable? %d %d\n", matchlen, wipeflag);
 			sent->mode = -3;
@@ -333,10 +329,8 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 		free(sent->name);
 		free((char *)sent);
 	}
-#ifdef USE_SETEUID
 	xseteuid(eff_uid);
 	xsetegid(eff_gid);
-#endif
 	if (notherp)
 		*notherp = npriv;
 	if (nfoundp)
@@ -361,10 +355,8 @@ int MakeServerSocket()
 	a.sun_family = AF_UNIX;
 	strncpy(a.sun_path, SocketPath, sizeof(a.sun_path));
 	a.sun_path[sizeof(a.sun_path) - 1] = 0;
-#ifdef USE_SETEUID
 	xseteuid(real_uid);
 	xsetegid(real_gid);
-#endif
 	if (connect(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) != -1) {
 		debug("oooooh! socket already is alive!\n");
 		if (quietflag) {
@@ -401,9 +393,7 @@ int MakeServerSocket()
 	}
 #else
 	chmod(SocketPath, SOCKMODE);
-#ifndef USE_SETEUID
 	chown(SocketPath, real_uid, real_gid);
-#endif
 #endif				/* SOCK_NOT_IN_FS */
 	if (listen(s, 5) == -1)
 		Panic(errno, "listen");
@@ -411,10 +401,8 @@ int MakeServerSocket()
 	fcntl(s, F_SETOWN, getpid());
 	debug("Serversocket owned by %d\n", fcntl(s, F_GETOWN, 0));
 #endif				/* F_SETOWN */
-#ifdef USE_SETEUID
 	xseteuid(eff_uid);
 	xsetegid(eff_gid);
-#endif
 	return s;
 }
 
@@ -428,18 +416,8 @@ int MakeClientSocket(int err)
 	a.sun_family = AF_UNIX;
 	strncpy(a.sun_path, SocketPath, sizeof(a.sun_path));
 	a.sun_path[sizeof(a.sun_path) - 1] = 0;
-#ifdef USE_SETEUID
 	xseteuid(real_uid);
 	xsetegid(real_gid);
-#else
-	if (access(SocketPath, W_OK)) {
-		if (err)
-			Msg(errno, "%s", SocketPath);
-		debug("MakeClientSocket: access(%s): %d.\n", SocketPath, errno);
-		close(s);
-		return -1;
-	}
-#endif
 	if (connect(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) == -1) {
 		if (err)
 			Msg(errno, "%s: connect", SocketPath);
@@ -447,10 +425,8 @@ int MakeClientSocket(int err)
 		close(s);
 		s = -1;
 	}
-#ifdef USE_SETEUID
 	xseteuid(eff_uid);
 	xsetegid(eff_gid);
-#endif
 	return s;
 }
 
