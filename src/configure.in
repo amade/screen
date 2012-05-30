@@ -159,7 +159,8 @@ dnl   NeXT, AUX, ISC, and ultrix are still broken (no saved uid support)
 dnl   Solaris seteuid doesn't change the saved uid, bad for
 dnl     multiuser screen sessions
 AC_CHECKING(seteuid)
-AC_TRY_LINK(,[seteuid_is_broken(0);], AC_DEFINE(HAVE_SETEUID))
+AC_TRY_LINK(,[seteuid_is_broken(0);],
+AC_MSG_ERROR(!! no working seteuid - no screen))
 
 dnl execvpe
 AC_CHECKING(execvpe)

@@ -314,12 +314,6 @@
 #undef HAVE_SETREUID
 
 /*
- * If your system supports BSD4.4's seteuid() and setegid(), define
- * HAVE_SETEUID.
- */
-#undef HAVE_SETEUID
-
-/*
  * execvpe is now defined in some systems.
  */
 #undef HAVE_EXECVPE
