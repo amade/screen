@@ -756,12 +756,10 @@ int main(int argc, char **argv)
 			Panic(0, "Ridiculously long $SCREENDIR - try again.");
 	}
 	{
-#ifndef SOCKDIR
 		if (SocketDir == 0) {
 			sprintf(SocketPath, "%s/.screen", home);
 			SocketDir = SocketPath;
 		}
-#endif
 		if (SocketDir) {
 			if (access(SocketDir, F_OK)) {
 				debug("SocketDir '%s' missing ...\n", SocketDir);
@@ -776,37 +774,6 @@ int main(int argc, char **argv)
 			if (SocketDir != SocketPath)
 				strncpy(SocketPath, SocketDir, MAXPATHLEN + 2 * MAXSTR);
 		}
-#ifdef SOCKDIR
-		else {
-			SocketDir = SOCKDIR;
-			if (stat(SocketDir, &st)) {
-				n = (eff_uid == 0 && (real_uid || eff_gid == real_gid)) ? 0755 :
-				    (eff_gid != real_gid) ? 0775 :
-#ifdef S_ISVTX
-				    0777 | S_ISVTX;
-#else
-				    0777;
-#endif
-				if (mkdir(SocketDir, n) == -1)
-					Panic(errno, "Cannot make directory '%s'", SocketDir);
-			} else {
-				if (!S_ISDIR(st.st_mode))
-					Panic(0, "'%s' must be a directory.", SocketDir);
-				if (eff_uid == 0 && real_uid && st.st_uid != eff_uid)
-					Panic(0, "Directory '%s' must be owned by root.", SocketDir);
-				n = (eff_uid == 0 && (real_uid || (st.st_mode & 0775) != 0775)) ? 0755 :
-				    (eff_gid == st.st_gid && eff_gid != real_gid) ? 0775 : 0777;
-				if (((int)st.st_mode & 0777) != n)
-					Panic(0, "Directory '%s' must have mode %03o.", SocketDir, n);
-			}
-			sprintf(SocketPath, "%s/S-%s", SocketDir, LoginName);
-			if (access(SocketPath, F_OK)) {
-				if (mkdir(SocketPath, 0700) == -1)
-					Panic(errno, "Cannot make directory '%s'", SocketPath);
-				(void)chown(SocketPath, real_uid, real_gid);
-			}
-		}
-#endif
 	}
 
 	if (stat(SocketPath, &st) == -1)

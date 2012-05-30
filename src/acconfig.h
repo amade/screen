@@ -39,26 +39,6 @@
 #endif
 
 /*
- * Define SOCKDIR to be the directory to contain the named sockets
- * screen creates. This should be in a common subdirectory, such as
- * /usr/local or /tmp. It makes things a little more secure if you
- * choose a directory which is not writable by everyone or where the
- * "sticky" bit is on, but this isn't required.
- * If SOCKDIR is not defined screen will put the named sockets in
- * the user's home directory. Notice that this can cause you problems
- * if some user's HOME directories are AFS- or NFS-mounted. Especially
- * AFS is unlikely to support named sockets.
- *
- * Screen will name the subdirectories "S-$USER" (e.g /tmp/S-davison).
- */
-#undef SOCKDIR
-
-/*
- * Define this if the SOCKDIR is not shared between hosts.
- */
-#define SOCKDIR_IS_LOCAL_TO_HOST
-
-/*
  * Screen can look for the environment variable $SYSSCREENRC and -if it
  * exists- load the file specified in that variable as global screenrc.
  * If you want to enable this feature, define ALLOW_SYSSCREENRC to one (1).

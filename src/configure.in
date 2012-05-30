@@ -81,30 +81,6 @@ AC_CHECKING(for buggy tools)
 sh etc/toolcheck 1>&AC_FD_MSG
 fi
 
-
-
-dnl SOCKDIR
-AC_MSG_CHECKING(if a system-wide socket dir should be used) 
-AC_ARG_ENABLE(socket-dir,
-    [  --disable-socket-dir    disable system wide socket-dir and use ~/.screen instead],
-    [
-	AC_MSG_RESULT(no.  ~/.screen will be used instead.)
-    ],
-    [
-	AC_MSG_RESULT(yes)
-	AC_MSG_CHECKING(for the socket dir)
-	SOCKDIR="\"/run/screen\""
-	AC_ARG_WITH(socket-dir, [  --with-socket-dir=path  where to put the per-user sockets], [ 
-	  case "${withval}" in
-	    *\"*) SOCKDIR="${withval}" ;;
-	    *) SOCKDIR="\"${withval}\"" ;;
-	  esac
-        ])
-	AC_MSG_RESULT(${SOCKDIR})
-	AC_DEFINE_UNQUOTED(SOCKDIR, $SOCKDIR)
-    ]
-)
-
 dnl
 dnl    ****  typedefs ****
 dnl

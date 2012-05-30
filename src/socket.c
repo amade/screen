@@ -192,18 +192,6 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 		if (sockfd == -1) {
 			debug("  MakeClientSocket failed, unreachable? %d %d\n", matchlen, wipeflag);
 			sent->mode = -3;
-#ifndef SOCKDIR_IS_LOCAL_TO_HOST
-			/* Unreachable - it is dead if we detect that it's local
-			 * or we specified a match
-			 */
-			n = name + strlen(name) - 1;
-			while (n != name && *n != '.')
-				n--;
-			if (matchlen == 0 && !(*n == '.' && n[1] && strncmp(HostName, n + 1, strlen(n + 1)) == 0)) {
-				npriv++;	/* a good socket that was not for us */
-				continue;
-			}
-#endif
 			ndead++;
 			sent->mode = -1;
 			if (wipeflag) {
