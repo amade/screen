@@ -553,10 +553,6 @@ int main(int argc, char **argv)
 	eff_uid = geteuid();
 	eff_gid = getegid();
 
-	FILE* z = fopen("/home/amade/a", "w+");
-	fprintf(z, "%d :: %d :: %d :: %d\n", real_uid, real_gid, eff_uid, eff_gid);
-	fclose(z);
-
 #ifdef SIGBUS			/* OOPS, linux has no bus errors! */
 	signal(SIGBUS, CoreDump);
 #endif				/* SIGBUS */
