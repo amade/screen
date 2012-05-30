@@ -159,9 +159,6 @@ char *screenencodings;
 
 int cjkwidth;
 
-#ifdef NETHACK
-int nethackflag = 0;
-#endif
 int maxwin;
 
 struct layer *flayer;
@@ -279,9 +276,6 @@ int main(int argc, char **argv)
 #endif
 #ifdef LOADAV
 	debug("LOADAV\n");
-#endif
-#ifdef NETHACK
-	debug("NETHACK\n");
 #endif
 #ifdef TERMINFO
 	debug("TERMINFO\n");
@@ -643,16 +637,6 @@ int main(int argc, char **argv)
 		if (sty && *sty == 0)
 			sty = 0;
 	}
-#ifdef NETHACK
-	if (!(nethackflag = (getenv("NETHACKOPTIONS") != NULL))) {
-		char nethackrc[MAXPATHLEN];
-
-		if (home && (strlen(home) < (MAXPATHLEN - 20))) {
-			sprintf(nethackrc, "%s/.nethackrc", home);
-			nethackflag = !access(nethackrc, F_OK);
-		}
-	}
-#endif
 
 	own_uid = multi_uid = real_uid;
 	if (SocketMatch && (sockp = strchr(SocketMatch, '/'))) {
@@ -1627,7 +1611,6 @@ void MakeNewEnv()
     char *p = B;	\
     va_list ap;	\
     va_start(ap, fmt);	\
-    fmt = DoNLS(fmt);	\
     (void)vsnprintf(p, sizeof(B) - 100, fmt, ap);	\
     va_end(ap);	\
     if (err)	\

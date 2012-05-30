@@ -579,7 +579,6 @@ void LMsg(int err, const char *fmt, ...)
 	struct canvas *cv;
 
 	va_start(ap, fmt);
-	fmt = DoNLS(fmt);
 	(void)vsnprintf(p, sizeof(buf) - 100, fmt, ap);
 	va_end(ap);
 	if (err) {

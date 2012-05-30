@@ -317,7 +317,7 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 		if (wipeflag)
 			Msg(0, "%d socket%s wiped out.", nwipe, nwipe > 1 ? "s" : "");
 		else
-			Msg(0, m, ndead > 1 ? "s" : "", ndead > 1 ? "" : "es");	/* other args for nethack */
+			Msg(0, m, ndead > 1 ? "s" : "", ndead > 1 ? "" : "es");
 	}
 	if (firsts != -1) {
 		sprintf(SocketPath + sdirlen, "/%s", firstn);

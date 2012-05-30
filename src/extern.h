@@ -394,9 +394,6 @@ extern void  TelWindowSize (struct win *);
 extern void  TelStatus (struct win *, char *, int);
 #endif
 
-/* nethack.c */
-extern const char *DoNLS (const char *);
-
 /* encoding.c */
 extern void  InitBuiltinTabs (void);
 extern struct mchar *recode_mchar (struct mchar *, int, int);
@@ -581,10 +578,6 @@ extern gid_t eff_gid;
 extern gid_t real_gid;
 extern uid_t eff_uid;
 extern uid_t real_uid;
-
-#ifdef NETHACK
-extern int nethackflag;
-#endif
 
 #if defined(TIOCSWINSZ) || defined(TIOCGWINSZ)
 extern struct winsize glwz;
