@@ -220,8 +220,6 @@ void closeallfiles(int except)
  *  Security - switch to real uid
  */
 
-static int UserPID;
-static void (*Usersigcld) (int);
 static int UserSTAT;
 
 int UserContext()
