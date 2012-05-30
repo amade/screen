@@ -293,11 +293,7 @@ void opendebug(int new, int shout)
 {
 	char buf[256];
 
-#ifdef _MODE_T
 	mode_t oumask = umask(0);
-#else
-	int oumask = umask(0);
-#endif
 
 	ASSERT(!dfp);
 
