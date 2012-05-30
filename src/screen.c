@@ -248,11 +248,7 @@ int main(int argc, char **argv)
 	char *myname = (argc == 0) ? "screen" : argv[0];
 	char *SocketDir;
 	struct stat st;
-#ifdef _MODE_T			/* (jw) */
 	mode_t oumask;
-#else
-	int oumask;
-#endif
 	struct NewWindow nwin;
 	int detached = 0;	/* start up detached */
 	char *sockp;
@@ -773,12 +769,9 @@ int main(int argc, char **argv)
 		DebugTTY(&attach_Mode);
 #endif				/* DEBUG */
 	}
-#ifdef _MODE_T
+
 	oumask = umask(0);	/* well, unsigned never fails? jw. */
-#else
-	if ((oumask = (int)umask(0)) == -1)
-		Panic(errno, "Cannot change umask to zero");
-#endif
+
 	SocketDir = getenv("SCREENDIR");
 	if (SocketDir) {
 		if (strlen(SocketDir) >= MAXPATHLEN - 1)
