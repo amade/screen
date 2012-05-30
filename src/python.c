@@ -110,7 +110,7 @@ static PyTypeObject PyType##Type = \
 static PyObject * \
 PyObject_From##Type(str *_obj) \
 { \
-  Py##Type *obj = PyType##Type.tp_alloc(&PyType##Type, 0); \
+  Py##Type *obj = (Py##Type *)PyType##Type.tp_alloc(&PyType##Type, 0); \
   obj->_obj = _obj; \
   return (PyObject *)obj; \
 }
@@ -163,12 +163,12 @@ static int register_object(PyObject * module)
 /** Window {{{ */
 DEFINE_TYPE(struct win, Window)
 
-static int window_set_title(struct win *win, PyObject * value)
+static int window_set_title(void *win, PyObject * value)
 {
 	char *string = PyString_AsString(value);
 	if (!string || !*string)
 		return -1;
-	ChangeAKA(win, string, strlen(string));
+	ChangeAKA((struct win *)win, string, strlen(string));
 	return 0;
 }
 
@@ -179,7 +179,7 @@ static SPyClosure wclosures[] = {
 	SPY_CLOSURE("number", "Window number", T_INT, w_number, NULL, NULL),
 	SPY_CLOSURE("dir", "Window directory", T_STRING, w_dir, NULL, NULL),
 	SPY_CLOSURE("tty", "TTY belonging to the window", T_STRING_INPLACE, w_tty, NULL, NULL),
-	SPY_CLOSURE("group", "The group the window belongs to", T_OBJECT_EX, w_group, PyObject_FromWindow, NULL),
+	SPY_CLOSURE("group", "The group the window belongs to", T_OBJECT_EX, w_group, (PyObject *(*)(void *))PyObject_FromWindow, NULL),
 	SPY_CLOSURE("pid", "Window pid", T_INT, w_pid, NULL, NULL),
 	{NULL}
 };
@@ -523,7 +523,7 @@ static PyObject *screen_input(PyObject * self, PyObject * args, PyObject * kw)
 	RETURN_NONE;
 }
 
-const PyMethodDef py_methods[] = {
+PyMethodDef py_methods[] = {
 	{"display", (PyCFunction) screen_display, METH_NOARGS, "Get the current display."},
 	{"displays", (PyCFunction) screen_displays, METH_NOARGS, "Get the list of displays."},
 	{"hook", (PyCFunction) hook_event, METH_VARARGS | METH_KEYWORDS, "Hook a callback to an event."},
@@ -574,7 +574,7 @@ static int SPySource(const char *file, int async)
 	return 1;
 }
 
-static int SPyCall(char *func, char **argv)
+static int SPyCall(const char *func, const char **argv)
 {
 	PyObject *dict = PyModule_GetDict(module);
 	PyObject *f = PyDict_GetItemString(dict, func);
