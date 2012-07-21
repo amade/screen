@@ -81,7 +81,7 @@ char *gettermcapstring(char *s)
  * Input: tgetent(, D_termname) extra_incap, extra_outcap.
  * Effect: display initialisation.
  */
-int InitTermcap(int wi, int he)
+int InitTermcap(int width, int height)
 {
 	register char *s;
 	int i;
@@ -158,10 +158,10 @@ int InitTermcap(int wi, int he)
 		D_CO = i;
 	if ((s = getenv("LINES")) && (i = atoi(s)) > 0)
 		D_LI = i;
-	if (wi)
-		D_CO = wi;
-	if (he)
-		D_LI = he;
+	if (width)
+		D_CO = width;
+	if (height)
+		D_LI = height;
 	if (D_CO <= 0)
 		D_CO = 80;
 	if (D_LI <= 0)
@@ -714,15 +714,15 @@ char *MakeTermcap(int aflag)
 {
 	char buf[TERMCAP_BUFSIZE];
 	register char *p, *cp, *s, ch, *tname;
-	int i, wi, he;
+	int i, width, height;
 
 	if (display) {
-		wi = D_width;
-		he = D_height;
+		width = D_width;
+		height = D_height;
 		tname = D_termname;
 	} else {
-		wi = 80;
-		he = 24;
+		width = 80;
+		height = 24;
 		tname = "vt100";
 	}
 	debug("MakeTermcap(%d)\n", aflag);
@@ -746,7 +746,7 @@ char *MakeTermcap(int aflag)
 	if (e_tgetent(buf, p) != 1 && nwin_default.bce)
 		sprintf(p, "%s-bce", screenterm);
 #ifdef CHECK_SCREEN_W
-	if (e_tgetent(buf, p) != 1 && wi >= 132)
+	if (e_tgetent(buf, p) != 1 && width >= 132)
 		sprintf(p, "%s-w", screenterm);
 #endif
 	strcpy(p, screenterm);
@@ -773,7 +773,7 @@ char *MakeTermcap(int aflag)
 		strcpy(Termcap + Termcaplen, (char *)TermcapConst);
 		Termcaplen += strlen(TermcapConst);
 	}
-	sprintf(buf, "li#%d:co#%d:", he, wi);
+	sprintf(buf, "li#%d:co#%d:", height, width);
 	AddCap(buf);
 	AddCap("am:");
 	if (aflag || (force_vt && !D_COP) || D_CLP || !D_AM) {
