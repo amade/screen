@@ -132,7 +132,6 @@ struct win
 {
   struct win *w_next;		/* next window */
   int    w_type;		/* type of window */
-  void  *w_data;
   struct layer w_layer;		/* our layer */
   struct layer *w_savelayer;	/* the layer to keep */
   int    w_blocked;		/* block input */
