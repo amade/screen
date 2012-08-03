@@ -33,10 +33,6 @@
 
 #include <fcntl.h>
 
-#ifdef sgi
-#include <sys/sysmacros.h>
-#endif
-
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 
