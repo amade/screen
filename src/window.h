@@ -131,7 +131,6 @@ struct win
 {
   struct win *w_next;		/* next window */
   int    w_type;		/* type of window */
-  void  *w_data;
   struct layer w_layer;		/* our layer */
   struct layer *w_savelayer;	/* the layer to keep */
   int    w_blocked;		/* block input */
@@ -189,7 +188,6 @@ struct win
   char  *w_hstatus;		/* hardstatus line */
   int	 w_gr;			/* enable GR flag */
   int	 w_c1;			/* enable C1 flag */
-  int	 w_bce;			/* enable backcol erase */
   int    w_decodestate;		/* state of our input decoder */
   int    w_mbcs;		/* saved char for multibytes charset */
   char	 w_string[MAXSTR];
@@ -228,7 +226,6 @@ struct win
   char	 w_tty[MAXSTR];
 
   int    w_zauto;
-  struct display *w_zdisplay;
   struct {
     int    on;    /* Is the alternate buffer currently being used? */
     struct mline *mlines;

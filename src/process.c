@@ -104,10 +104,6 @@ struct plop plop_tab[MAX_PLOP_DEFS];
 int TtyMode = PTYMODE;
 int hardcopy_append = 0;
 int all_norefresh = 0;
-int zmodem_mode = 0;
-char *zmodem_sendcmd;
-char *zmodem_recvcmd;
-static char *zmodes[4] = { "off", "auto", "catch", "pass" };
 
 int idletimo;
 struct action idleaction;
@@ -2280,40 +2276,6 @@ static void StuffFin(char *buf, int len, char *data)
 			OutputMsg(0, "Sorry, screen was compiled without -DDEBUG option.");
 #endif
 		break;
-	case RC_ZMODEM:
-		if (*args && !strcmp(*args, "sendcmd")) {
-			if (args[1]) {
-				free(zmodem_sendcmd);
-				zmodem_sendcmd = SaveStr(args[1]);
-			}
-			if (msgok)
-				OutputMsg(0, "zmodem sendcmd: %s", zmodem_sendcmd);
-			break;
-		}
-		if (*args && !strcmp(*args, "recvcmd")) {
-			if (args[1]) {
-				free(zmodem_recvcmd);
-				zmodem_recvcmd = SaveStr(args[1]);
-			}
-			if (msgok)
-				OutputMsg(0, "zmodem recvcmd: %s", zmodem_recvcmd);
-			break;
-		}
-		if (*args) {
-			for (i = 0; i < 4; i++)
-				if (!strcmp(zmodes[i], *args))
-					break;
-			if (i == 4 && !strcmp(*args, "on"))
-				i = 1;
-			if (i == 4) {
-				OutputMsg(0, "usage: zmodem off|auto|catch|pass");
-				break;
-			}
-			zmodem_mode = i;
-		}
-		if (msgok)
-			OutputMsg(0, "zmodem mode is %s", zmodes[zmodem_mode]);
-		break;
 	case RC_UNBINDALL:
 		{
 			register unsigned int i;
@@ -2906,8 +2868,6 @@ static void StuffFin(char *buf, int len, char *data)
 		break;
 	case RC_RESET:
 		ResetAnsiState(fore);
-		if (fore->w_zdisplay)
-			zmodem_abort(fore, fore->w_zdisplay);
 		WriteString(fore, "\033c", 2);
 		break;
 	case RC_MONITOR:
@@ -3693,31 +3653,31 @@ static void StuffFin(char *buf, int len, char *data)
 		break;
 	case RC_SESSIONNAME:
 		if (*args == 0)
-			OutputMsg(0, "This session is named '%s'\n", SockName);
+			OutputMsg(0, "This session is named '%s'\n", SocketName);
 		else {
 			char buf[MAXPATHLEN];
 
 			s = 0;
 			if (ParseSaveStr(act, &s))
 				break;
-			if (!*s || strlen(s) + (SockName - SockPath) > MAXPATHLEN - 13 || strchr(s, '/')) {
+			if (!*s || strlen(s) + (SocketName - SocketPath) > MAXPATHLEN - 13 || strchr(s, '/')) {
 				OutputMsg(0, "%s: bad session name '%s'\n", rc_name, s);
 				free(s);
 				break;
 			}
-			strncpy(buf, SockPath, SockName - SockPath);
-			sprintf(buf + (SockName - SockPath), "%d.%s", (int)getpid(), s);
+			strncpy(buf, SocketPath, SocketName - SocketPath);
+			sprintf(buf + (SocketName - SocketPath), "%d.%s", (int)getpid(), s);
 			free(s);
 			if ((access(buf, F_OK) == 0) || (errno != ENOENT)) {
 				OutputMsg(0, "%s: inappropriate path: '%s'.", rc_name, buf);
 				break;
 			}
-			if (rename(SockPath, buf)) {
-				OutputMsg(errno, "%s: failed to rename(%s, %s)", rc_name, SockPath, buf);
+			if (rename(SocketPath, buf)) {
+				OutputMsg(errno, "%s: failed to rename(%s, %s)", rc_name, SocketPath, buf);
 				break;
 			}
-			debug("rename(%s, %s) done\n", SockPath, buf);
-			strncpy(SockPath, buf, MAXPATHLEN + 2 * MAXSTR);
+			debug("rename(%s, %s) done\n", SocketPath, buf);
+			strncpy(SocketPath, buf, MAXPATHLEN + 2 * MAXSTR);
 			MakeNewEnv();
 			WindowChanged((struct win *)0, 'S');
 		}
@@ -3766,11 +3726,6 @@ static void StuffFin(char *buf, int len, char *data)
 		if (ParseSwitch(act, &compacthist) == 0 && msgok)
 			OutputMsg(0, "%scompacting history lines", compacthist ? "" : "not ");
 		break;
-#ifdef NETHACK
-	case RC_NETHACK:
-		(void)ParseOnOff(act, &nethackflag);
-		break;
-#endif
 	case RC_HARDCOPY_APPEND:
 		(void)ParseOnOff(act, &hardcopy_append);
 		break;
@@ -4073,10 +4028,6 @@ static void StuffFin(char *buf, int len, char *data)
 	case RC_C1:
 		if (ParseSwitch(act, &fore->w_c1) == 0 && msgok)
 			OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
-		break;
-	case RC_BCE:
-		if (ParseSwitch(act, &fore->w_bce) == 0 && msgok)
-			OutputMsg(0, "Will %serase with background color", fore->w_bce ? "" : "not ");
 		break;
 	case RC_KANJI:
 	case RC_ENCODING:
@@ -5069,10 +5020,10 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 						else
 							v = path;
 					} else if (!strcmp(ps, "STY")) {
-						if ((v = strchr(SockName, '.')))	/* Skip the PID */
+						if ((v = strchr(SocketName, '.')))	/* Skip the PID */
 							v++;
 						else
-							v = SockName;
+							v = SocketName;
 					} else
 						v = getenv(ps);
 				}
@@ -5488,7 +5439,7 @@ static int MoreWindows()
 		Msg(0, "No window available");
 		return 0;
 	}
-	Msg(0, m, fore->w_number);	/* other arg for nethack */
+	Msg(0, m, fore->w_number);
 	return 0;
 }
 
@@ -5528,10 +5479,6 @@ void KillWindow(struct win *win)
 			gotone = 1;
 		}
 		if (gotone) {
-			if (win->w_zdisplay == display) {
-				D_blocked = 0;
-				D_readev.condpos = D_readev.condneg = 0;
-			}
 			Activate(-1);
 		}
 	}
@@ -5758,8 +5705,6 @@ static void ShowInfo()
 		sprintf(p += strlen(p), " mon");
 	if (wp->w_mouse)
 		sprintf(p += strlen(p), " mouse");
-	if (wp->w_bce)
-		sprintf(p += strlen(p), " bce");
 	if (!wp->w_c1)
 		sprintf(p += strlen(p), " -c1");
 	if (wp->w_norefresh)

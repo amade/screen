@@ -229,17 +229,8 @@ struct script_event *object_get_event(char *obj, const char *name)
  * Not insert duplicate entry. return zero if successful.*/
 int register_listener(struct script_event *ev, struct listener *l)
 {
-	unsigned int priv = l->priv;
 	struct listener *p, *iter = &ev->listeners;
 
-#if 0
-	while (iter->chain && priv >= iter->chain->priv) {
-		iter = iter->chain;
-		/* return if duplicate found */
-		if (iter->handler == l->handler && iter->dispatcher == l->dispatcher)
-			return 1;
-	}
-#endif
 	p = iter;
 
 	l->chain = p->chain;

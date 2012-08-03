@@ -145,9 +145,6 @@ struct comm comms[RC_LAST + 1] =
   { "mousetrack",	NEED_DISPLAY | ARGS_01,		},
   { "msgminwait",	ARGS_1,				},
   { "msgwait",		ARGS_1,				},
-#ifdef NETHACK
-  { "nethack",		ARGS_1,				},
-#endif
   { "next",		ARGS_0,				},
   { "nonblock",		NEED_DISPLAY|ARGS_01,		},
   { "number",		CAN_QUERY|NEED_FORE|ARGS_01,	},
@@ -222,6 +219,5 @@ struct comm comms[RC_LAST + 1] =
   { "writelock",	NEED_FORE|ARGS_01,		},
   { "xoff",		NEED_LAYER|ARGS_0,		},
   { "xon",		NEED_LAYER|ARGS_0,		},
-  { "zmodem",		ARGS_012,			},
   { "zombie",		ARGS_012,			}
 };

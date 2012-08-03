@@ -60,9 +60,6 @@ static void win_destroyev_fn(struct event *, char *);
 
 static int OpenDevice(char **, int, int *, char **);
 static int ForkWindow(struct win *, char **, char *);
-static void zmodem_found(struct win *, int, char *, int);
-static void zmodem_fin(char *, int, char *);
-static int zmodem_parse(struct win *, char *, int);
 
 struct win **wtab;		/* window table */
 
@@ -513,7 +510,7 @@ int MakeWindow(struct NewWindow *newwin)
 	}
 
 	p->w_encoding = nwin.encoding;
-	ResetWindow(p);		/* sets w_wrap, w_c1, w_gr, w_bce */
+	ResetWindow(p);		/* sets w_wrap, w_c1, w_gr */
 
 	if (nwin.charset)
 		SetCharsets(p, nwin.charset);
@@ -1369,12 +1366,11 @@ static void win_readev_fn(struct event *ev, char *data)
 	}
 	if (p->w_layer.l_cvlist && muchpending(p, ev))
 		return;
-	if (!p->w_zdisplay)
-		if (p->w_blocked) {
-			ev->condpos = &const_one;
-			ev->condneg = &p->w_blocked;
-			return;
-		}
+	if (p->w_blocked) {
+		ev->condpos = &const_one;
+		ev->condneg = &p->w_blocked;
+		return;
+	}
 	if (ev->condpos)
 		ev->condpos = ev->condneg = 0;
 
@@ -1416,8 +1412,6 @@ static void win_readev_fn(struct event *ev, char *data)
 	}
 #endif
 	if (len == 0)
-		return;
-	if (zmodem_mode && zmodem_parse(p, bp, len))
 		return;
 	if (wtop) {
 		debug("sending input to pwin\n");
@@ -1543,157 +1537,6 @@ static void win_destroyev_fn(struct event *ev, char *data)
 {
 	struct win *p = (struct win *)ev->data;
 	WindowDied(p, p->w_exitstatus, 1);
-}
-
-static int zmodem_parse(struct win *p, char *bp, int len)
-{
-	int i;
-	char *b2 = bp;
-	for (i = 0; i < len; i++, b2++) {
-		if (p->w_zauto == 0) {
-			for (; i < len; i++, b2++)
-				if (*b2 == 030)
-					break;
-			if (i == len)
-				break;
-			if (i > 1 && b2[-1] == '*' && b2[-2] == '*')
-				p->w_zauto = 3;
-			continue;
-		}
-		if (p->w_zauto > 5 || *b2 == "**\030B00"[p->w_zauto] || (p->w_zauto == 5 && *b2 == '1')
-		    || (p->w_zauto == 5 && p->w_zdisplay && *b2 == '8')) {
-			if (++p->w_zauto < 6)
-				continue;
-			if (p->w_zauto == 6)
-				p->w_zauto = 0;
-			if (!p->w_zdisplay) {
-				if (i > 6)
-					WriteString(p, bp, i + 1 - 6);
-				WriteString(p, "\r\n", 2);
-				zmodem_found(p, *b2 == '1', b2 + 1, len - i - 1);
-				return 1;
-			} else if (p->w_zauto == 7 || *b2 == '8') {
-				int se = p->w_zdisplay->d_blocked == 2 ? 'O' : '\212';
-				for (; i < len; i++, b2++)
-					if (*b2 == se)
-						break;
-				if (i < len) {
-					zmodem_abort(p, 0);
-					D_blocked = 0;
-					D_readev.condpos = D_readev.condneg = 0;
-					while (len-- > 0)
-						AddChar(*bp++);
-					Flush(0);
-					Activate(D_fore ? D_fore->w_norefresh : 0);
-					return 1;
-				}
-				p->w_zauto = 6;
-			}
-		} else
-			p->w_zauto = *b2 == '*' ? (p->w_zauto == 2 ? 2 : 1) : 0;
-	}
-	if (p->w_zauto == 0 && bp[len - 1] == '*')
-		p->w_zauto = len > 1 && bp[len - 2] == '*' ? 2 : 1;
-	if (p->w_zdisplay) {
-		display = p->w_zdisplay;
-		while (len-- > 0)
-			AddChar(*bp++);
-		return 1;
-	}
-	return 0;
-}
-
-static void zmodem_fin(char *buf, int len, char *data)
-{
-	char *s;
-	int n;
-
-	if (len)
-		RcLine(buf, strlen(buf) + 1);
-	else {
-		s = "\030\030\030\030\030\030\030\030\030\030";
-		n = strlen(s);
-		LayProcess(&s, &n);
-	}
-}
-
-static void zmodem_found(struct win *p, int send, char *bp, int len)
-{
-	char *s;
-	int i, n;
-
-	/* check for abort sequence */
-	n = 0;
-	for (i = 0; i < len; i++)
-		if (bp[i] != 030)
-			n = 0;
-		else if (++n > 4)
-			return;
-	if (zmodem_mode == 3 || (zmodem_mode == 1 && p->w_type != W_TYPE_PLAIN)) {
-		struct display *d, *olddisplay;
-
-		olddisplay = display;
-		d = p->w_lastdisp;
-		if (!d || d->d_fore != p)
-			for (d = displays; d; d = d->d_next)
-				if (d->d_fore == p)
-					break;
-		if (!d && p->w_layer.l_cvlist)
-			d = p->w_layer.l_cvlist->c_display;
-		if (!d)
-			d = displays;
-		if (!d)
-			return;
-		display = d;
-		RemoveStatus();
-		p->w_zdisplay = display;
-		D_blocked = 2 + send;
-		flayer = &p->w_layer;
-		ZmodemPage();
-		display = d;
-		evdeq(&D_blockedev);
-		D_readev.condpos = &const_IOSIZE;
-		D_readev.condneg = &p->w_inlen;
-		ClearAll();
-		GotoPos(0, 0);
-		SetRendition(&mchar_blank);
-		AddStr("Zmodem active\r\n\r\n");
-		AddStr(send ? "**\030B01" : "**\030B00");
-		while (len-- > 0)
-			AddChar(*bp++);
-		display = olddisplay;
-		return;
-	}
-	flayer = &p->w_layer;
-	Input(":", 100, INP_COOKED, zmodem_fin, NULL, 0);
-	s = send ? zmodem_sendcmd : zmodem_recvcmd;
-	n = strlen(s);
-	LayProcess(&s, &n);
-}
-
-void zmodem_abort(struct win *p, struct display *d)
-{
-	struct display *olddisplay = display;
-	struct layer *oldflayer = flayer;
-	if (p) {
-		if (p->w_savelayer && p->w_savelayer->l_next) {
-			if (oldflayer == p->w_savelayer)
-				oldflayer = flayer->l_next;
-			flayer = p->w_savelayer;
-			ExitOverlayPage();
-		}
-		p->w_zdisplay = 0;
-		p->w_zauto = 0;
-		LRefreshAll(&p->w_layer, 0);
-	}
-	if (d) {
-		display = d;
-		D_blocked = 0;
-		D_readev.condpos = D_readev.condneg = 0;
-		Activate(D_fore ? D_fore->w_norefresh : 0);
-	}
-	display = olddisplay;
-	flayer = oldflayer;
 }
 
 int SwapWindows(int old, int dest)

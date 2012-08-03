@@ -33,10 +33,6 @@
 
 #include <fcntl.h>
 
-#ifdef sgi
-#include <sys/sysmacros.h>
-#endif
-
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 
@@ -104,9 +100,9 @@ char *attach_term;
 char *LoginName;
 struct mode attach_Mode;
 
-char SockPath[MAXPATHLEN + 2 * MAXSTR];
-char *SockName;			/* SockName is pointer in SockPath */
-char *SockMatch = NULL;		/* session id command line argument */
+char SocketPath[MAXPATHLEN + 2 * MAXSTR];
+char *SocketName;			/* SockName is pointer in SockPath */
+char *SocketMatch = NULL;		/* session id command line argument */
 int ServerSocket = -1;
 struct event serv_read;
 struct event serv_select;
@@ -151,9 +147,6 @@ char *screenencodings;
 
 int cjkwidth;
 
-#ifdef NETHACK
-int nethackflag = 0;
-#endif
 int maxwin;
 
 struct layer *flayer;
@@ -238,13 +231,9 @@ int main(int argc, char **argv)
 	char socknamebuf[2 * MAXSTR];
 	int mflag = 0;
 	char *myname = (argc == 0) ? "screen" : argv[0];
-	char *SockDir;
+	char *SocketDir;
 	struct stat st;
-#ifdef _MODE_T			/* (jw) */
 	mode_t oumask;
-#else
-	int oumask;
-#endif
 	struct NewWindow nwin;
 	int detached = 0;	/* start up detached */
 	char *sty = 0;
@@ -267,26 +256,17 @@ int main(int argc, char **argv)
 #ifdef TERMIO
 	debug("TERMIO\n");
 #endif
-#ifdef NAMEDPIPE
-	debug("NAMEDPIPE\n");
-#endif
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 	debug("Window size changing enabled\n");
 #endif
 #ifdef HAVE_SETREUID
 	debug("SETREUID\n");
 #endif
-#ifdef HAVE_SETEUID
-	debug("SETEUID\n");
-#endif
 #ifdef UTMPOK
 	debug("UTMPOK\n");
 #endif
 #ifdef LOADAV
 	debug("LOADAV\n");
-#endif
-#ifdef NETHACK
-	debug("NETHACK\n");
 #endif
 #ifdef TERMINFO
 	debug("TERMINFO\n");
@@ -314,8 +294,6 @@ int main(int argc, char **argv)
 	MsgWait = MSGWAIT * 1000;
 	MsgMinWait = MSGMINWAIT * 1000;
 	SilenceWait = SILENCEWAIT;
-	zmodem_sendcmd = SaveStr("!!! sz -vv -b ");
-	zmodem_recvcmd = SaveStr("!!! rz -vv -b -E");
 
 	CompileKeys((char *)0, 0, mark_key_tab);
 	InitBuiltinTabs();
@@ -444,8 +422,8 @@ int main(int argc, char **argv)
 					case 's':	/* -ls */
 					case 'i':	/* -list */
 						lsflag = 1;
-						if (argc > 1 && !SockMatch) {
-							SockMatch = *++argv;
+						if (argc > 1 && !SocketMatch) {
+							SocketMatch = *++argv;
 							argc--;
 						}
 						ap = NULL;
@@ -457,8 +435,8 @@ int main(int argc, char **argv)
 				case 'w':
 					lsflag = 1;
 					wipeflag = 1;
-					if (argc > 1 && !SockMatch) {
-						SockMatch = *++argv;
+					if (argc > 1 && !SocketMatch) {
+						SocketMatch = *++argv;
 						argc--;
 					}
 					break;
@@ -490,10 +468,10 @@ int main(int argc, char **argv)
 				case 'r':
 				case 'R':
 				case 'x':
-					if (argc > 1 && *argv[1] != '-' && !SockMatch) {
-						SockMatch = *++argv;
+					if (argc > 1 && *argv[1] != '-' && !SocketMatch) {
+						SocketMatch = *++argv;
 						argc--;
-						debug("rflag=%d, SockMatch=%s\n", dflag, SockMatch);
+						debug("rflag=%d, SocketMatch=%s\n", dflag, SocketMatch);
 					}
 					if (*ap == 'x')
 						xflag = 1;
@@ -508,10 +486,10 @@ int main(int argc, char **argv)
 					if (!dflag)
 						dflag = 2;
 					if (argc == 2) {
-						if (*argv[1] != '-' && !SockMatch) {
-							SockMatch = *++argv;
+						if (*argv[1] != '-' && !SocketMatch) {
+							SocketMatch = *++argv;
 							argc--;
-							debug("dflag=%d, SockMatch=%s\n", dflag, SockMatch);
+							debug("dflag=%d, SocketMatch=%s\n", dflag, SocketMatch);
 						}
 					}
 					break;
@@ -524,12 +502,12 @@ int main(int argc, char **argv)
 					debug("ShellProg: '%s'\n", ShellProg);
 					break;
 				case 'S':
-					if (!SockMatch) {
+					if (!SocketMatch) {
 						if (--argc == 0)
 							exit_with_usage(myname, "Specify session-name with -S", NULL);
-						SockMatch = *++argv;
+						SocketMatch = *++argv;
 					}
-					if (!*SockMatch)
+					if (!*SocketMatch)
 						exit_with_usage(myname, "Empty session-name?", NULL);
 					break;
 				case 'X':
@@ -613,7 +591,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (SockMatch && strlen(SockMatch) >= MAXSTR)
+	if (SocketMatch && strlen(SocketMatch) >= MAXSTR)
 		Panic(0, "Ridiculously long socketname - try again.");
 	if (cmdflag && !rflag && !dflag && !xflag)
 		xflag = 1;
@@ -650,21 +628,11 @@ int main(int argc, char **argv)
 	}
 	ShellArgs[0] = ShellProg;
 	home = getenv("HOME");
-	if (!mflag && !SockMatch) {
+	if (!mflag && !SocketMatch) {
 		sty = getenv("STY");
 		if (sty && *sty == 0)
 			sty = 0;
 	}
-#ifdef NETHACK
-	if (!(nethackflag = (getenv("NETHACKOPTIONS") != NULL))) {
-		char nethackrc[MAXPATHLEN];
-
-		if (home && (strlen(home) < (MAXPATHLEN - 20))) {
-			sprintf(nethackrc, "%s/.nethackrc", home);
-			nethackflag = !access(nethackrc, F_OK);
-		}
-	}
-#endif
 
 	if ((LoginName = getlogin()) != NULL) {
 		if ((ppp = getpwnam(LoginName)) != (struct passwd *)0)
@@ -719,19 +687,17 @@ int main(int argc, char **argv)
 
 	attach_tty = "";
 	if (!detached && !lsflag && !cmdflag && !(dflag && !mflag && !rflag && !xflag)
-	    && !(!mflag && !SockMatch && sty && !xflag)) {
-#ifndef NAMEDPIPE
+	    && !(!mflag && !SocketMatch && sty && !xflag)) {
+
 		int fl;
-#endif
 
 		/* ttyname implies isatty */
 		SET_TTYNAME(1);
 
-#ifndef NAMEDPIPE
 		fl = fcntl(0, F_GETFL, 0);
 		if (fl != -1 && (fl & (O_RDWR | O_RDONLY | O_WRONLY)) == O_RDWR)
 			attach_fd = 0;
-#endif
+
 		if (attach_fd == -1) {
 			if ((n = secopen(attach_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
 				Panic(0, "Cannot open your terminal '%s' - please check.", attach_tty);
@@ -748,85 +714,49 @@ int main(int argc, char **argv)
 		DebugTTY(&attach_Mode);
 #endif				/* DEBUG */
 	}
-#ifdef _MODE_T
+
 	oumask = umask(0);	/* well, unsigned never fails? jw. */
-#else
-	if ((oumask = (int)umask(0)) == -1)
-		Panic(errno, "Cannot change umask to zero");
-#endif
-	SockDir = getenv("SCREENDIR");
-	if (SockDir) {
-		if (strlen(SockDir) >= MAXPATHLEN - 1)
+
+	SocketDir = getenv("SCREENDIR");
+	if (SocketDir) {
+		if (strlen(SocketDir) >= MAXPATHLEN - 1)
 			Panic(0, "Ridiculously long $SCREENDIR - try again.");
 	}
 	{
-#ifndef SOCKDIR
-		if (SockDir == 0) {
-			sprintf(SockPath, "%s/.screen", home);
-			SockDir = SockPath;
+		if (SocketDir == 0) {
+			sprintf(SocketPath, "%s/.screen", home);
+			SocketDir = SocketPath;
 		}
-#endif
-		if (SockDir) {
-			if (access(SockDir, F_OK)) {
-				debug("SockDir '%s' missing ...\n", SockDir);
+		if (SocketDir) {
+			if (access(SocketDir, F_OK)) {
+				debug("SocketDir '%s' missing ...\n", SocketDir);
 				if (UserContext() > 0) {
-					if (mkdir(SockDir, 0700))
+					if (mkdir(SocketDir, 0700))
 						UserReturn(0);
 					UserReturn(1);
 				}
 				if (UserStatus() <= 0)
-					Panic(0, "Cannot make directory '%s'.", SockDir);
+					Panic(0, "Cannot make directory '%s'.", SocketDir);
 			}
-			if (SockDir != SockPath)
-				strncpy(SockPath, SockDir, MAXPATHLEN + 2 * MAXSTR);
+			if (SocketDir != SocketPath)
+				strncpy(SocketPath, SocketDir, MAXPATHLEN + 2 * MAXSTR);
 		}
-#ifdef SOCKDIR
-		else {
-			SockDir = SOCKDIR;
-			if (stat(SockDir, &st)) {
-				n = (eff_uid == 0 && (real_uid || eff_gid == real_gid)) ? 0755 :
-				    (eff_gid != real_gid) ? 0775 :
-#ifdef S_ISVTX
-				    0777 | S_ISVTX;
-#else
-				    0777;
-#endif
-				if (mkdir(SockDir, n) == -1)
-					Panic(errno, "Cannot make directory '%s'", SockDir);
-			} else {
-				if (!S_ISDIR(st.st_mode))
-					Panic(0, "'%s' must be a directory.", SockDir);
-				if (eff_uid == 0 && real_uid && st.st_uid != eff_uid)
-					Panic(0, "Directory '%s' must be owned by root.", SockDir);
-				n = (eff_uid == 0 && (real_uid || (st.st_mode & 0775) != 0775)) ? 0755 :
-				    (eff_gid == st.st_gid && eff_gid != real_gid) ? 0775 : 0777;
-				if (((int)st.st_mode & 0777) != n)
-					Panic(0, "Directory '%s' must have mode %03o.", SockDir, n);
-			}
-			sprintf(SockPath, "%s/S-%s", SockDir, LoginName);
-			if (access(SockPath, F_OK)) {
-				if (mkdir(SockPath, 0700) == -1)
-					Panic(errno, "Cannot make directory '%s'", SockPath);
-				(void)chown(SockPath, real_uid, real_gid);
-			}
-		}
-#endif
 	}
 
-	if (stat(SockPath, &st) == -1)
-		Panic(errno, "Cannot access %s", SockPath);
+	if (stat(SocketPath, &st) == -1)
+		Panic(errno, "Cannot access %s", SocketPath);
 	else if (!S_ISDIR(st.st_mode))
-		Panic(0, "%s is not a directory.", SockPath);
+		Panic(0, "%s is not a directory.", SocketPath);
 	if (st.st_uid != real_uid)
-		Panic(0, "You are not the owner of %s.", SockPath);
+		Panic(0, "You are not the owner of %s.", SocketPath);
 	if ((st.st_mode & 0777) != 0700)
-		Panic(0, "Directory %s must have mode 700.", SockPath);
-	if (SockMatch && strchr(SockMatch, '/'))
-		Panic(0, "Bad session name '%s'", SockMatch);
-	SockName = SockPath + strlen(SockPath) + 1;
-	*SockName = 0;
+		Panic(0, "Directory %s must have mode 700.", SocketPath);
+	if (SocketMatch && strchr(SocketMatch, '/'))
+		Panic(0, "Bad session name '%s'", SocketMatch);
+	SocketName = SocketPath + strlen(SocketPath) + 1;
+	*SocketName = 0;
 	(void)umask(oumask);
-	debug("SockPath: %s  SockMatch: %s\n", SockPath, SockMatch ? SockMatch : "NULL");
+	debug("SocketPath: %s  SocketMatch: %s\n", SocketPath, SocketMatch ? SocketMatch : "NULL");
 
 	(void)gethostname(HostName, MAXSTR);
 	HostName[MAXSTR - 1] = '\0';
@@ -837,12 +767,12 @@ int main(int argc, char **argv)
 		int i, fo, oth;
 
 		SET_GUID();
-		i = FindSocket((int *)NULL, &fo, &oth, SockMatch);
+		i = FindSocket((int *)NULL, &fo, &oth, SocketMatch);
 		if (quietflag)
 			exit(8 + (fo ? ((oth || i) ? 2 : 1) : 0) + i);
 		if (fo == 0)
-			Panic(0, "No Sockets found in %s.\n", SockPath);
-		Panic(0, "%d Socket%s in %s.\n", fo, fo > 1 ? "s" : "", SockPath);
+			Panic(0, "No Sockets found in %s.\n", SocketPath);
+		Panic(0, "%d Socket%s in %s.\n", fo, fo > 1 ? "s" : "", SocketPath);
 		/* NOTREACHED */
 	}
 	signal(SIG_BYE, AttacherFinit);	/* prevent races */
@@ -852,7 +782,7 @@ int main(int argc, char **argv)
 		if (!*argv)
 			Panic(0, "Please specify a command.");
 		SET_GUID();
-		SendCmdMessage(sty, SockMatch, argv, queryflag >= 0);
+		SendCmdMessage(sty, SocketMatch, argv, queryflag >= 0);
 		exit(0);
 	} else if (rflag || xflag) {
 		debug("screen -r: - is there anybody out there?\n");
@@ -864,11 +794,11 @@ int main(int argc, char **argv)
 	} else if (dflag && !mflag) {
 		SET_TTYNAME(0);
 		Attach(MSG_DETACH);
-		Msg(0, "[%s %sdetached.]\n", SockName, (dflag > 1 ? "power " : ""));
+		Msg(0, "[%s %sdetached.]\n", SocketName, (dflag > 1 ? "power " : ""));
 		eexit(0);
 		/* NOTREACHED */
 	}
-	if (!SockMatch && !mflag && sty) {
+	if (!SocketMatch && !mflag && sty) {
 		/* attach_tty is not mandatory */
 		SET_TTYNAME(0);
 		SET_GUID();
@@ -893,8 +823,8 @@ int main(int argc, char **argv)
 	default:
 		if (detached)
 			exit(0);
-		if (SockMatch)
-			sprintf(socknamebuf, "%d.%s", MasterPid, SockMatch);
+		if (SocketMatch)
+			sprintf(socknamebuf, "%d.%s", MasterPid, SocketMatch);
 		else
 			sprintf(socknamebuf, "%d.%s.%s", MasterPid, stripdev(attach_tty), HostName);
 		for (ap = socknamebuf; *ap; ap++)
@@ -902,7 +832,7 @@ int main(int argc, char **argv)
 				*ap = '-';
 		if (strlen(socknamebuf) > NAME_MAX)
 			socknamebuf[NAME_MAX] = 0;
-		sprintf(SockPath + strlen(SockPath), "/%s", socknamebuf);
+		sprintf(SocketPath + strlen(SocketPath), "/%s", socknamebuf);
 		SET_GUID();
 		Attacher();
 		/* NOTREACHED */
@@ -972,9 +902,9 @@ int main(int argc, char **argv)
 		debug("D_encoding = %d\n", D_encoding);
 	}
 
-	if (SockMatch) {
+	if (SocketMatch) {
 		/* user started us with -S option */
-		sprintf(socknamebuf, "%d.%s", (int)getpid(), SockMatch);
+		sprintf(socknamebuf, "%d.%s", (int)getpid(), SocketMatch);
 	} else {
 		sprintf(socknamebuf, "%d.%s.%s", (int)getpid(), stripdev(attach_tty), HostName);
 	}
@@ -983,11 +913,11 @@ int main(int argc, char **argv)
 			*ap = '-';
 #ifdef NAME_MAX
 	if (strlen(socknamebuf) > NAME_MAX) {
-		debug("Socketname %s truncated to %d chars\n", socknamebuf, NAME_MAX);
+		debug("Socket name %s truncated to %d chars\n", socknamebuf, NAME_MAX);
 		socknamebuf[NAME_MAX] = 0;
 	}
 #endif
-	sprintf(SockPath + strlen(SockPath), "/%s", socknamebuf);
+	sprintf(SocketPath + strlen(SocketPath), "/%s", socknamebuf);
 
 	ServerSocket = MakeServerSocket();
 	InitKeytab();
@@ -1190,15 +1120,15 @@ static void SigChldHandler()
 		GotSigChld = 0;
 		DoWait();
 	}
-	if (stat(SockPath, &st) == -1) {
-		debug("SigChldHandler: Yuck! cannot stat '%s'\n", SockPath);
+	if (stat(SocketPath, &st) == -1) {
+		debug("SigChldHandler: Yuck! cannot stat '%s'\n", SocketPath);
 		if (!RecoverSocket()) {
 			debug("SCREEN cannot recover from corrupt Socket, bye\n");
 			Finit(1);
 		} else
-			debug("'%s' reconstructed\n", SockPath);
+			debug("'%s' reconstructed\n", SocketPath);
 	} else
-		debug("SigChldHandler: stat '%s' o.k. (%03o)\n", SockPath, (int)st.st_mode);
+		debug("SigChldHandler: stat '%s' o.k. (%03o)\n", SocketPath, (int)st.st_mode);
 }
 
 static void SigChld(int sigsig)
@@ -1238,8 +1168,6 @@ static void CoreDump(int sigsig)
 	struct display *disp;
 	char buf[80];
 
-	char *dump_msg = " (core dumped)";
-
 	int running_w_s_bit = (getuid() != geteuid());
 
 	setgid(getgid());
@@ -1247,9 +1175,9 @@ static void CoreDump(int sigsig)
 	unlink("core");
 
 #ifdef SIGHASARG
-	sprintf(buf, "\r\n[screen caught signal %d.%s]\r\n", sigsig, dump_msg);
+	sprintf(buf, "\r\n[screen caught signal %d. (core dumped)]\r\n", sigsig);
 #else
-	sprintf(buf, "\r\n[screen caught a fatal signal.%s]\r\n", dump_msg);
+	sprintf(buf, "\r\n[screen caught a fatal signal. (core dumped)]\r\n");
 #endif
 
 	for (disp = displays; disp; disp = disp->d_next) {
@@ -1364,16 +1292,12 @@ void Finit(int i)
 		FreeWindow(p);
 	}
 	if (ServerSocket != -1) {
-		debug("we unlink(%s)\n", SockPath);
-#ifdef USE_SETEUID
+		debug("we unlink(%s)\n", SocketPath);
 		xseteuid(real_uid);
 		xsetegid(real_gid);
-#endif
-		(void)unlink(SockPath);
-#ifdef USE_SETEUID
+		(void)unlink(SocketPath);
 		xseteuid(eff_uid);
 		xsetegid(eff_gid);
-#endif
 	}
 	for (display = displays; display; display = display->d_next) {
 		if (D_status)
@@ -1400,10 +1324,10 @@ void eexit(int e)
 {
 	debug("eexit\n");
 	if (ServerSocket != -1) {
-		debug("we unlink(%s)\n", SockPath);
+		debug("we unlink(%s)\n", SocketPath);
 		setgid(real_gid);
 		setuid(real_uid);
-		(void)unlink(SockPath);
+		(void)unlink(SocketPath);
 	}
 	exit(e);
 }
@@ -1448,11 +1372,11 @@ void Detach(int mode)
 	if (display == 0)
 		return;
 
-#define AddStrSock(msg) { \
-    if (SockName) \
+#define AddStrSocket(msg) { \
+    if (SocketName) \
       { \
 	AddStr("[" msg " from "); \
-	AddStr(SockName); \
+	AddStr(SocketName); \
 	AddStr("]\r\n"); \
       } \
     else \
@@ -1471,7 +1395,7 @@ void Detach(int mode)
 		sign = SIG_BYE;
 		break;
 	case D_DETACH:
-		AddStrSock("detached");
+		AddStrSocket("detached");
 		sign = SIG_BYE;
 		trigger_sevent(&globalevents.detached, display, 0x0);
 		break;
@@ -1481,12 +1405,12 @@ void Detach(int mode)
 		break;
 #endif
 	case D_REMOTE:
-		AddStrSock("remote detached");
+		AddStrSocket("remote detached");
 		sign = SIG_BYE;
 		trigger_sevent(&globalevents.detached, display, 0x1);
 		break;
 	case D_POWER:
-		AddStrSock("power detached");
+		AddStrSocket("power detached");
 		if (PowDetachString) {
 			AddStr(PowDetachString);
 			AddStr("\r\n");
@@ -1495,7 +1419,7 @@ void Detach(int mode)
 		trigger_sevent(&globalevents.detached, display, 0x2);
 		break;
 	case D_REMOTE_POWER:
-		AddStrSock("remote power detached");
+		AddStrSocket("remote power detached");
 		if (PowDetachString) {
 			AddStr(PowDetachString);
 			AddStr("\r\n");
@@ -1561,7 +1485,7 @@ void Detach(int mode)
 	debug("Detach: Signal %d to Attacher(%d)!\n", sign, pid);
 	debug("Detach returns, we are successfully detached.\n");
 	signal(SIGHUP, SigHup);
-#undef AddStrSock
+#undef AddStrSocket
 }
 
 static int IsSymbol(char *e, char *s)
@@ -1583,7 +1507,7 @@ void MakeNewEnv()
 	NewEnv = np = malloc((unsigned)(op - environ + 7 + 1) * sizeof(char **));
 	if (!NewEnv)
 		Panic(0, "%s", strnomem);
-	sprintf(stybuf, "STY=%s", strlen(SockName) <= MAXSTR - 5 ? SockName : "?");
+	sprintf(stybuf, "STY=%s", strlen(SocketName) <= MAXSTR - 5 ? SocketName : "?");
 	*np++ = stybuf;		/* NewEnv[0] */
 	*np++ = Term;		/* NewEnv[1] */
 	np++;			/* room for SHELL */
@@ -1608,7 +1532,6 @@ void MakeNewEnv()
     char *p = B;	\
     va_list ap;	\
     va_start(ap, fmt);	\
-    fmt = DoNLS(fmt);	\
     (void)vsnprintf(p, sizeof(B) - 100, fmt, ap);	\
     va_end(ap);	\
     if (err)	\
@@ -2281,7 +2204,7 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 			{
 				char *session_name;
 				*p = 0;
-				session_name = strchr(SockName, '.') + 1;
+				session_name = strchr(SocketName, '.') + 1;
 				if ((int)strlen(session_name) < l) {
 					strncpy(p, session_name, l);
 					if (*p)

@@ -143,7 +143,6 @@ extern int   DoStartLog (struct win *, char *, int);
 extern int   ReleaseAutoWritelock (struct display *, struct win *);
 extern int   ObtainAutoWritelock (struct display *, struct win *);
 extern void  CloseDevice (struct win *);
-extern void  zmodem_abort (struct win *, struct display *);
 #ifndef HAVE_EXECVPE
 extern void  execvpe (char *, char **, char **);
 #endif
@@ -376,9 +375,6 @@ extern void  ExitOverlayPage (void);
 extern int   LayProcessMouse (struct layer *, unsigned char);
 extern void  LayProcessMouseSwitch (struct layer *, int);
 
-/* nethack.c */
-extern const char *DoNLS (const char *);
-
 /* encoding.c */
 extern void  InitBuiltinTabs (void);
 extern struct mchar *recode_mchar (struct mchar *, int, int);
@@ -421,7 +417,7 @@ extern char version[];
 extern char DefaultShell[];
 extern char HostName[];
 extern char NullStr[];
-extern char SockPath[];
+extern char SocketPath[];
 extern char Term[];
 extern char Termcap[];
 extern char *attach_tty;
@@ -446,8 +442,6 @@ extern char *screenlogfile;
 extern char *timestring;
 extern char *wliststr;
 extern char *wlisttit;
-extern char *zmodem_recvcmd;
-extern char *zmodem_sendcmd;
 extern char *ActivityString;
 extern char *BellString;
 extern char *BufferFile;
@@ -456,8 +450,8 @@ extern char *PowDetachString;
 extern char *RcFileName;
 extern char *ShellArgs[];
 extern char *ShellProg;
-extern char *SockMatch;
-extern char *SockName;
+extern char *SocketMatch;
+extern char *SocketName;
 extern char *VisualBellString;
 extern char **environ;
 extern char **NewEnv;
@@ -515,7 +509,6 @@ extern int use_hardstatus;
 extern int wipeflag;
 extern int xflag;
 extern int visual_bell;
-extern int zmodem_mode;
 extern int DefaultEsc;
 extern int MasterPid;
 extern int MsgMinWait;
@@ -567,10 +560,6 @@ extern gid_t eff_gid;
 extern gid_t real_gid;
 extern uid_t eff_uid;
 extern uid_t real_uid;
-
-#ifdef NETHACK
-extern int nethackflag;
-#endif
 
 #if defined(TIOCSWINSZ) || defined(TIOCGWINSZ)
 extern struct winsize glwz;
