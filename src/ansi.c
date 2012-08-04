@@ -1734,6 +1734,7 @@ static void SelectRendition()
 	int colorbg = curr->w_rend.colorbg;
 	int colorfg = curr->w_rend.colorfg;
 
+/*
 	do {
 		j = curr->w_args[i];
 		if ((j == 38 || j == 48) && i + 2 < curr->w_NumArgs && curr->w_args[i + 1] == 5) {
@@ -1793,8 +1794,12 @@ static void SelectRendition()
 		else
 			a |= j;
 	}
+*/
+attr = 0;
+colorbg = 0;
+colorfg = 0;
 	while (++i < curr->w_NumArgs);
-	curr->w_rend.attr = a;
+	curr->w_rend.attr = attr;
 	curr->w_rend.colorbg = colorbg;
 	curr->w_rend.colorfg = colorfg;
 	LSetRendition(&curr->w_layer, &curr->w_rend);

@@ -4291,8 +4291,8 @@ static void StuffFin(char *buf, int len, char *data)
 			debug("--> %x %x\n", mchar_so.attr, mchar_so.color);
 		}
 		if (msgok)
-			OutputMsg(0, "Standout attributes 0x%02x  color 0x%02x", (unsigned char)mchar_so.attr,
-				  0x99 ^ (unsigned char)mchar_so.color);
+			OutputMsg(0, "Standout attributes 0x%02x  colorbg 0x%02x  colorfg 0x%02x", (unsigned char)mchar_so.attr,
+				  (unsigned char)mchar_so.colorbg, (unsigned char)mchar_so.colorfg);
 		break;
 	case RC_SOURCE:
 		do_source(*args);
@@ -6819,7 +6819,7 @@ void ApplyAttrColor(int i, struct mchar *mc)
 {
 	debug("ApplyAttrColor %06x\n", i);
 	mc->attr = 0;
-	mc->color = 1;
-	mc->colorx = 3;
+	mc->colorbg = 1;
+	mc->colorfg = 3;
 	debug("ApplyAttrColor - %02x %02x\n", mc->attr, i);
 }
