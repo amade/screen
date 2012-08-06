@@ -133,7 +133,7 @@ struct mline {
 #define rend_setbg(mc, c)	((mc)->colorbg = c)
 #define rend_getfg(mc)		((mc)->colorfg)
 #define rend_setfg(mc, c)	((mc)->colorfg = c)
-#define rend_setdefault(mc)	((mc)->colorbg = (mc)->colorfg = 0, (mc)->attr &= ~(A_BBG|A_BFG))
+#define rend_setdefault(mc)	((mc)->colorbg = (mc)->colorfg = 0)
 
 #define coli2e(c) ((((c) & 0x1f8) == 0x108 ? (c) ^ 0x108 : (c & 0xff)) ^ 9)
 #define cole2i(c) ((c) >= 8 && (c) < 16 ? (c) ^ 0x109 : (c) ^ 9)
