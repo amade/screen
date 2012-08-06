@@ -1177,7 +1177,7 @@ void SetAttr(register int new)
 
 	if (!display || (old = D_rend.attr) == new)
 		return;
-	D_col16change = (old ^ new) & (A_BFG | A_BBG);
+	D_col16change = (old ^ new);
 	new ^= D_col16change;
 	if (old == new)
 		return;
@@ -1411,6 +1411,7 @@ void SetRendition(struct mchar *mc)
 		static struct mchar mmc;
 		int i;
 		mmc = *mc;
+
 		/*
 		for (i = 0; i < 8; i++)
 			if (attr2color[i] && (mc->attr & (1 << i)) != 0) {
@@ -1426,11 +1427,11 @@ void SetRendition(struct mchar *mc)
 		mc = &mmc;
 		debug("SetRendition: mapped to %02x %02x\n", (unsigned char)mc->attr, 0x99 - (unsigned char)mc->color);
 	}
-	if (D_hascolor && D_CC8 && (mc->attr & (A_BFG | A_BBG))) {
+	if (D_hascolor && D_CC8 && (mc->attr) {
 		int a = mc->attr;
-		if ((mc->attr & A_BFG) && D_MD)
+		if ((mc->colorfg) && D_MD)
 			a |= A_BD;
-		if ((mc->attr & A_BBG) && D_MB)
+		if ((mc->colorbg) && D_MB)
 			a |= A_BL;
 		if (D_rend.attr != a)
 			SetAttr(a);
@@ -1453,11 +1454,11 @@ void SetRenditionMline(struct mline *ml, int x)
 		SetRendition(&mc);
 		return;
 	}
-	if (D_hascolor && D_CC8 && (ml->attr[x] & (A_BFG | A_BBG))) {
+	if (D_hascolor && D_CC8 && (ml->attr[x])) {
 		int a = ml->attr[x];
-		if ((ml->attr[x] & A_BFG) && D_MD)
+		if ((ml->colorfg[x]) && D_MD)
 			a |= A_BD;
-		if ((ml->attr[x] & A_BBG) && D_MB)
+		if ((ml->colorbg[x]) && D_MB)
 			a |= A_BL;
 		if (D_rend.attr != a)
 			SetAttr(a);

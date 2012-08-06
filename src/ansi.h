@@ -48,12 +48,6 @@
 #define ATYP_S		(1<<1)
 #define ATYP_U		(1<<2)
 
-/* pseudo attributes */
-# define ATTR_BFG	6	/* bright foreground */
-# define ATTR_BBG	7	/* bright background */
-# define A_BFG	(1<<ATTR_BFG)
-# define A_BBG	(1<<ATTR_BBG)
-
 /*
  *  Parser state
  */

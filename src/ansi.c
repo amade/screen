@@ -1734,6 +1734,9 @@ static void SelectRendition()
 	int colorbg = curr->w_rend.colorbg;
 	int colorfg = curr->w_rend.colorfg;
 
+	FILE *a = fopen("/home/amade/SRlog", "w");
+	fprintf(a, "SR: %d %d %d\n", curr->w_args[i], curr->w_args[i + 1], curr->w_args[i + 2]);
+	fclose (a);
 /*
 	do {
 		j = curr->w_args[i];
@@ -1746,20 +1749,20 @@ static void SelectRendition()
 				continue;
 			if (j == 38) {
 				c = (c & 0xf0) | ((jj & 0x0f) ^ 9);
-				a |= A_BFG;
+				//a |= A_BFG;
 				if (jj >= 8 && jj < 16)
 					c |= 0x08;
 				else
-					a ^= A_BFG;
+					//a ^= A_BFG;
 				a = (a & 0xbf) | (jj & 8 ? 0x40 : 0);
 				cx = (cx & 0xf0) | (jj >> 4 & 0x0f);
 			} else {
 				c = (c & 0x0f) | ((jj & 0x0f) ^ 9) << 4;
-				a |= A_BBG;
+				//a |= A_BBG;
 				if (jj >= 8 && jj < 16)
 					c |= 0x80;
 				else
-					a ^= A_BBG;
+					//a ^= A_BBG;
 				cx = (cx & 0x0f) | (jj & 0xf0);
 			}
 			continue;
