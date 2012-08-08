@@ -4282,8 +4282,8 @@ static void StuffFin(char *buf, int len, char *data)
 		/* FALLTHROUGH */
 	case RC_SORENDITION:
 		i = 0;
-		if (*args) {
-			i = ParseAttrColor(*args, args[1], 1);
+		if (args[0]) {
+			i = ParseAttrColor(args[0], args[1], 1);
 			if (i == -1)
 				break;
 			ApplyAttrColor(i, &mchar_so);
@@ -6800,26 +6800,31 @@ void RefreshXtermOSC()
 		SetXtermOSC(i, p ? p->w_xtermosc[i] : 0);
 }
 
+/*
+ *  ParseAttrColor - parses attributes and color
+ *  	s1 - string containing attributes
+ *  	s2 - string containing colors
+ *  	msgok - can we be verbose if something is wrong
+ *
+ *  returns value representing encoded value
+ */
 int ParseAttrColor(char *s1, char *s2, int msgok)
 {
-	int r = 9 | 3;
+	int r = 0x00000103;
 	debug("ParseAttrColor %06x\n", r);
 	return r;
 }
 
 /*
- *  Color coding:
- *    0-7 normal colors
- *    9   default color
- *    e   just set intensity
- *    f   don't change anything
- *  Intensity is encoded into bits 17(fg) and 18(bg).
+ *   ApplyAttrColor - decodes color attributes and sets them in structure
+ *   	i - coded color 0x000 .(attr) ..(bgcolor) ..(fgcolor)
+ *   	mc -structure to modify
  */
 void ApplyAttrColor(int i, struct mchar *mc)
 {
 	debug("ApplyAttrColor %06x\n", i);
-	mc->attr = 0;
-	mc->colorbg = 1;
-	mc->colorfg = 3;
+	mc->attr	= (0x00080000 & i) >> 16;
+	mc->colorbg	= (0x0000FF00 & i) >> 8;
+	mc->colorfg	= (0x000000FF & i);
 	debug("ApplyAttrColor - %02x %02x\n", mc->attr, i);
 }
