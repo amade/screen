@@ -1190,8 +1190,8 @@ void SetAttr(register int new)
 		char *tparm();
 		SetFont(ASCII);
 		ospeed = D_dospeed;
-		tputs(tparm(D_SA, new & A_SO, new & A_US, new & A_RV, new & A_BL,
-			    new & A_DI, new & A_BD, 0, 0, 0), 1, DoAddChar);
+		tputs(tparm(D_SA, new & A_STANDOUT, new & A_UNDERSCORE, new & A_REVERSE, new & A_BLINKING,
+			    new & A_DIM, new & A_BOLD, 0, 0, 0), 1, DoAddChar);
 		D_rend.attr = new;
 		D_atyp = 0;
 		if (D_hascolor)
@@ -1329,6 +1329,13 @@ void SetColor(int f, int b)
 	debug("(%d %d", of, ob);
 	debug(" -> %d %d)\n", f, b);
 
+        FILE *a = fopen("/home/amade/SRlog", "w");
+
+	fprintf(a, "SetColor %d %d", coli2e(of), coli2e(ob));
+	fprintf(a, " -> %d %d\n", coli2e(f), coli2e(b));
+	fprintf(a, "(%d %d", of, ob);
+	fprintf(a, " -> %d %d)\n", f, b);
+        fclose (a);
 	if (!D_CAX && D_hascolor && ((f == 0 && f != of) || (b == 0 && b != ob))) {
 		if (D_OP)
 			AddCStr(D_OP);
@@ -1416,27 +1423,27 @@ void SetRendition(struct mchar *mc)
 		int i;
 		mmc = *mc;
 
-		/*
+		
 		for (i = 0; i < 8; i++)
 			if (attr2color[i] && (mc->attr & (1 << i)) != 0) {
-				if (mc->color == 0 && attr2color[i][3])
+				/*if (mc->color == 0 && attr2color[i][3])
 					ApplyAttrColor(attr2color[i][3], &mmc);
-				else if ((mc->color & 0x0f) == 0 && attr2color[i][2])
+				else if ((mc->colorfg) == 0 && attr2color[i][2])
 					ApplyAttrColor(attr2color[i][2], &mmc);
-				else if ((mc->color & 0xf0) == 0 && attr2color[i][1])
+				else if ((mc->colorbg) == 0 && attr2color[i][1])
 					ApplyAttrColor(attr2color[i][1], &mmc);
 				else
-					ApplyAttrColor(attr2color[i][0], &mmc);
-			}*/
+					ApplyAttrColor(attr2color[i][0], &mmc);*/
+			}
 		mc = &mmc;
 		debug("SetRendition: mapped to %02x %02x\n", (unsigned char)mc->attr, 0x99 - (unsigned char)mc->color);
 	}
-	if (D_hascolor && D_CC8 && (mc->attr)) {
+	if (D_hascolor && D_CC8) {
 		int a = mc->attr;
 		if ((mc->colorfg) && D_MD)
-			a |= A_BD;
+			a |= A_BOLD;
 		if ((mc->colorbg) && D_MB)
-			a |= A_BL;
+			a |= A_BLINKING;
 		if (D_rend.attr != a)
 			SetAttr(a);
 	} else if (D_rend.attr != mc->attr)
@@ -1463,9 +1470,9 @@ void SetRenditionMline(struct mline *ml, int x)
 	if (D_hascolor && D_CC8 && (ml->attr[x])) {
 		int a = ml->attr[x];
 		if ((ml->colorfg[x]) && D_MD)
-			a |= A_BD;
+			a |= A_BOLD;
 		if ((ml->colorbg[x]) && D_MB)
-			a |= A_BL;
+			a |= A_BLINKING;
 		if (D_rend.attr != a)
 			SetAttr(a);
 	} else if (D_rend.attr != ml->attr[x])
