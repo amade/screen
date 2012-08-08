@@ -55,7 +55,7 @@ struct mline mline_null;
 
 struct mchar mchar_null;
 struct mchar mchar_blank = { ' ' /* , 0, 0, ... */  };
-struct mchar mchar_so = { ' ', A_SO /* , 0, 0, ... */  };
+struct mchar mchar_so = { ' ', A_STANDOUT /* , 0, 0, ... */  };
 
 int renditions[NUM_RENDS] = { 65529 /* =ub */ , 65531 /* =b */ , 65533 /* =u */  };
 
@@ -1753,9 +1753,9 @@ static void ASetMode(int on)
 }
 
 static char rendlist[] = {
-	~((1 << NATTR) - 1), A_BD, A_DI, A_SO, A_US, A_BL, 0, A_RV, 0, 0,
+	~((1 << NATTR) - 1), A_BOLD, A_DIM, A_STANDOUT, A_UNDERSCORE, A_BLINKING, 0, A_REVERSE, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, ~(A_BD | A_SO | A_DI), ~A_SO, ~A_US, ~A_BL, 0, ~A_RV
+	0, 0, ~(A_BOLD | A_STANDOUT | A_DIM), ~A_STANDOUT, ~A_UNDERSCORE, ~A_BLINKING, 0, ~A_REVERSE
 };
 
 static void SelectRendition()
@@ -1768,6 +1768,19 @@ static void SelectRendition()
 	FILE *a = fopen("/home/amade/SRlog", "w");
 	fprintf(a, "SR: %d %d %d\n", curr->w_args[i], curr->w_args[i + 1], curr->w_args[i + 2]);
 	fclose (a);
+
+//attr = 0;
+colorbg = 0;
+colorfg = 0;
+	do {
+		j = curr->w_args[i];
+
+		j = rendlist[j];
+		if (j & (1 << NATTR))
+			attr &= j;
+		else
+			attr |= j;
+	} while (++i < curr->w_NumArgs);
 /*
 	do {
 		j = curr->w_args[i];
@@ -1827,12 +1840,8 @@ static void SelectRendition()
 			a &= j;
 		else
 			a |= j;
-	}
+	} while (++i < curr->w_NumArgs);
 */
-attr = 0;
-colorbg = 0;
-colorfg = 0;
-	while (++i < curr->w_NumArgs);
 	curr->w_rend.attr = attr;
 	curr->w_rend.colorbg = colorbg;
 	curr->w_rend.colorfg = colorfg;

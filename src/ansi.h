@@ -29,20 +29,20 @@
 
 #define NATTR		6
 
-#define ATTR_DI		0	/* Dim mode */
-#define ATTR_US		1	/* Underscore mode */
-#define ATTR_BD		2	/* Bold mode */
-#define ATTR_RV		3	/* Reverse mode */
-#define ATTR_SO		4	/* Standout mode */
-#define ATTR_BL		5	/* Blinking */
+#define ATTR_DIM	0	/* Dim mode */
+#define ATTR_UNDERSCORE	1	/* Underscore mode */
+#define ATTR_BOLD	2	/* Bold mode */
+#define ATTR_REVERSE	3	/* Reverse mode */
+#define ATTR_STANDOUT	4	/* Standout mode */
+#define ATTR_BLINKING	5	/* Blinking */
 
-#define A_DI	(1<<ATTR_DI)
-#define A_US	(1<<ATTR_US)
-#define A_BD	(1<<ATTR_BD)
-#define A_RV	(1<<ATTR_RV)
-#define A_SO	(1<<ATTR_SO)
-#define A_BL	(1<<ATTR_BL)
-#define A_MAX	(1<<(NATTR-1))
+#define A_DIM		(1<<ATTR_DIM)
+#define A_UNDERSCORE	(1<<ATTR_UNDERSCORE)
+#define A_BOLD		(1<<ATTR_BOLD)
+#define A_REVERSE	(1<<ATTR_REVERSE)
+#define A_STANDOUT	(1<<ATTR_STANDOUT)
+#define A_BLINKING	(1<<ATTR_BLINKING)
+#define A_MAX		(1<<(NATTR-1))
 
 #define ATYP_M		(1<<0)
 #define ATYP_S		(1<<1)
