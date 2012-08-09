@@ -260,7 +260,7 @@ int InitTermcap(int width, int height)
 
 	for (i = 0; i < NATTR; i++) {
 		D_attrtab[i] = D_tcs[T_ATTR + i].str;
-		D_attrtyp[i] = i == ATTR_STANDOUT ? xse : (i == ATTR_UNDERSCORE ? xue : xme);
+		D_attrtyp[i] = i == ATTR_SO ? xse : (i == ATTR_US ? xue : xme);
 	}
 
 	/* Set up missing entries (attributes are priority ordered) */
