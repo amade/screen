@@ -6923,7 +6923,7 @@ int ParseAttrColor(char *s1, char *s2, int msgok)
 void ApplyAttrColor(int i, struct mchar *mc)
 {
 	debug("ApplyAttrColor %06x\n", i);
-	mc->attr	= (0x00080000 & i) >> 16;
+	mc->attr	= (0x00FF0000 & i) >> 16;
 	mc->colorbg	= (0x0000FF00 & i) >> 8;
 	mc->colorfg	= (0x000000FF & i);
 	debug("ApplyAttrColor - %02x %02x\n", mc->attr, i);

@@ -55,7 +55,7 @@ struct mline mline_null;
 
 struct mchar mchar_null;
 struct mchar mchar_blank = { ' ' /* , 0, 0, ... */  };
-struct mchar mchar_so = { ' ', A_STANDOUT /* , 0, 0, ... */  };
+struct mchar mchar_so = { ' ', A_SO /* , 0, 0, ... */  };
 
 int renditions[NUM_RENDS] = { 65529 /* =ub */ , 65531 /* =b */ , 65533 /* =u */  };
 
@@ -1753,9 +1753,9 @@ static void ASetMode(int on)
 }
 
 static char rendlist[] = {
-	~((1 << NATTR) - 1), A_BOLD, A_DIM, A_STANDOUT, A_UNDERSCORE, A_BLINKING, 0, A_REVERSE, 0, 0,
+	~((1 << NATTR) - 1), A_BD, A_DI, A_SO, A_US, A_BL, 0, A_RV, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, ~(A_BOLD | A_STANDOUT | A_DIM), ~A_STANDOUT, ~A_UNDERSCORE, ~A_BLINKING, 0, ~A_REVERSE
+	0, 0, ~(A_BD | A_SO | A_DI), ~A_SO, ~A_US, ~A_BL, 0, ~A_RV
 };
 
 static void SelectRendition()
@@ -1765,23 +1765,11 @@ static void SelectRendition()
 	int colorbg = curr->w_rend.colorbg;
 	int colorfg = curr->w_rend.colorfg;
 
-	FILE *a = fopen("/home/amade/SRlog", "w");
-	fprintf(a, "SR: %d %d %d\n", curr->w_args[i], curr->w_args[i + 1], curr->w_args[i + 2]);
-	fclose (a);
-
-//attr = 0;
-colorbg = 0;
-colorfg = 0;
-	do {
-		j = curr->w_args[i];
-
-		j = rendlist[j];
-		if (j & (1 << NATTR))
-			attr &= j;
-		else
-			attr |= j;
-	} while (++i < curr->w_NumArgs);
-/*
+FILE *a = fopen("/home/amade/SRlog", "w");
+fprintf(a, "SelectRendition\n");
+fprintf(a, "runs: %d\n", curr->w_NumArgs);
+fprintf(a, "entry: %d %d %d\n", attr, colorbg, colorfg);
+	
 	do {
 		j = curr->w_args[i];
 		if ((j == 38 || j == 48) && i + 2 < curr->w_NumArgs && curr->w_args[i + 1] == 5) {
@@ -1792,56 +1780,48 @@ colorfg = 0;
 			if (jj < 0 || jj > 255)
 				continue;
 			if (j == 38) {
-				c = (c & 0xf0) | ((jj & 0x0f) ^ 9);
-				//a |= A_BFG;
-				if (jj >= 8 && jj < 16)
-					c |= 0x08;
-				else
-					//a ^= A_BFG;
-				a = (a & 0xbf) | (jj & 8 ? 0x40 : 0);
-				cx = (cx & 0xf0) | (jj >> 4 & 0x0f);
+				colorfg = jj ^ 9;
+fprintf(a, "256 colorfg: %d\n", colorfg);
 			} else {
-				c = (c & 0x0f) | ((jj & 0x0f) ^ 9) << 4;
-				//a |= A_BBG;
-				if (jj >= 8 && jj < 16)
-					c |= 0x80;
-				else
-					//a ^= A_BBG;
-				cx = (cx & 0x0f) | (jj & 0xf0);
+				colorbg = jj ^ 9;
+fprintf(a, "256 colorbg: %d\n", colorbg);
 			}
-			continue;
+			continue; /* equivalent to break because of i += 2 */
 		}
 		if (j == 0 || (j >= 30 && j <= 39 && j != 38))
-			a &= 0xbf;
+			attr &= 0xbf;
 		if (j == 0 || (j >= 40 && j <= 49 && j != 48))
-			a &= 0x7f;
+			attr &= 0x7f;
 		if (j >= 90 && j <= 97)
-			a |= 0x40;
+			attr |= 0x40;
 		if (j >= 100 && j <= 107)
-			a |= 0x80;
+			attr |= 0x80;
+
 		if (j >= 90 && j <= 97)
 			j -= 60;
 		if (j >= 100 && j <= 107)
 			j -= 60;
 		if (j >= 30 && j <= 39 && j != 38)
-			c = (c & 0xf0) | ((j - 30) ^ 9);
+			colorfg = (j - 30) ^ 9;
 		else if (j >= 40 && j <= 49 && j != 48)
-			c = (c & 0x0f) | (((j - 40) ^ 9) << 4);
-		if (j == 0)
-			c = 0;
-		if (j == 0 || (j >= 30 && j <= 39 && j != 38))
-			cx &= 0xf0;
-		if (j == 0 || (j >= 40 && j <= 49 && j != 48))
-			cx &= 0x0f;
-		if (j < 0 || j >= (int)(sizeof(rendlist) / sizeof(*rendlist)))
+			colorbg = (j - 40) ^ 9;
+		if (j == 0) {
+			attr = 0;
+			colorbg = 0;
+			colorfg = 0;
+		}
+
+		if (j < 0 || j >= (int)(sizeof(rendlist)/sizeof(*rendlist)))
 			continue;
 		j = rendlist[j];
 		if (j & (1 << NATTR))
-			a &= j;
+			attr &= j;
 		else
-			a |= j;
+			attr |= j;
 	} while (++i < curr->w_NumArgs);
-*/
+	
+fprintf(a, "leave: %d %d %d\n", attr, colorbg, colorfg);
+fclose (a);
 	curr->w_rend.attr = attr;
 	curr->w_rend.colorbg = colorbg;
 	curr->w_rend.colorfg = colorfg;
