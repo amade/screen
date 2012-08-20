@@ -6902,15 +6902,129 @@ void RefreshXtermOSC()
 
 /*
  *  ParseAttrColor - parses attributes and color
- *  	s1 - string containing attributes
- *  	s2 - string containing colors
+ *  	s1,s2 - strings containing attributes and/or colors
+ *  	        d - dim
+ *  	        u - underscore
+ *  	        b - bold
+ *  	        r - reverse
+ *  	        s - standout
+ *  	        l - blinking
+ *  	        0-255;0-255 - foregroung;background
  *  	msgok - can we be verbose if something is wrong
  *
  *  returns value representing encoded value
  */
 int ParseAttrColor(char *s1, char *s2, int msgok)
 {
-	int r = 0x00000103;
+	debug("ParseAttrColor(%s, %s, %d)\n", s1, s2, msgok);
+
+	int r;
+
+	int attr = 0;
+	int bg = 0, fg = 0;
+
+	int *cl;
+	cl = &fg;
+
+	while (*s1) {
+		switch (*s1) {
+		case 'd':
+			attr |= A_DI;
+			break;
+		case 'u':
+			attr |= A_US;
+			break;
+		case 'b':
+			attr |= A_BD;
+			break;
+		case 'r':
+			attr |= A_RV;
+			break;
+		case 's':
+			attr |= A_SO;
+			break;
+		case 'l':
+			attr |= A_BL;
+			break;
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			*cl = *cl * 10 + (*s1 - '0');
+			break;
+		case ';':
+			cl = &bg;
+			break;
+		case ' ':
+			break;
+		default:
+			if (msgok)
+				Msg(0, "junk after description: '%c'\n", *s2);
+			break;
+		}
+		s1++;
+	}
+	if (s2) {
+	while (*s2) {
+		switch (*s2) {
+		case 'd':
+			attr |= A_DI;
+			break;
+		case 'u':
+			attr |= A_US;
+			break;
+		case 'b':
+			attr |= A_BD;
+			break;
+		case 'r':
+			attr |= A_RV;
+			break;
+		case 's':
+			attr |= A_SO;
+			break;
+		case 'l':
+			attr |= A_BL;
+			break;
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			*cl = *cl * 10 + (*s2 - '0');
+			break;
+		case ';':
+			cl = &bg;
+			break;
+		case ' ':
+			break;
+		default:
+			if (msgok)
+				Msg(0, "junk after description: '%c'\n", *s2);
+			break;
+		}
+		s2++;
+	}
+	}
+
+	if (fg > 255) fg = 0;
+	if (bg > 255) bg = 0;
+
+	r = (attr & 0x0FF) << 16;
+
+	r |= ((bg & 0x0FF) ^ 9) << 8;
+	r |= (fg & 0x0FF) ^ 9;
+
 	debug("ParseAttrColor %06x\n", r);
 	return r;
 }
