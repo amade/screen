@@ -264,7 +264,6 @@ extern void  CursorVisibility (int);
 extern void  MouseMode (int);
 extern void  SetFont (int);
 extern void  SetAttr (int);
-extern void  SetColor (int, int);
 extern void  SetRendition (struct mchar *);
 extern void  SetRenditionMline (struct mline *, int);
 extern void  MakeStatus (char *);

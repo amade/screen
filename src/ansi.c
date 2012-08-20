@@ -1765,11 +1765,6 @@ static void SelectRendition()
 	int colorbg = curr->w_rend.colorbg;
 	int colorfg = curr->w_rend.colorfg;
 
-FILE *a = fopen("/home/amade/SRlog", "w");
-fprintf(a, "SelectRendition\n");
-fprintf(a, "runs: %d\n", curr->w_NumArgs);
-fprintf(a, "entry: %d %d %d\n", attr, colorbg, colorfg);
-	
 	do {
 		j = curr->w_args[i];
 		if ((j == 38 || j == 48) && i + 2 < curr->w_NumArgs && curr->w_args[i + 1] == 5) {
@@ -1781,22 +1776,11 @@ fprintf(a, "entry: %d %d %d\n", attr, colorbg, colorfg);
 				continue;
 			if (j == 38) {
 				colorfg = jj ^ 9;
-fprintf(a, "256 colorfg: %d\n", colorfg);
 			} else {
 				colorbg = jj ^ 9;
-fprintf(a, "256 colorbg: %d\n", colorbg);
 			}
-			continue; /* equivalent to break because of i += 2 */
+			continue;
 		}
-		if (j == 0 || (j >= 30 && j <= 39 && j != 38))
-			attr &= 0xbf;
-		if (j == 0 || (j >= 40 && j <= 49 && j != 48))
-			attr &= 0x7f;
-		if (j >= 90 && j <= 97)
-			attr |= 0x40;
-		if (j >= 100 && j <= 107)
-			attr |= 0x80;
-
 		if (j >= 90 && j <= 97)
 			j -= 60;
 		if (j >= 100 && j <= 107)
@@ -1820,8 +1804,6 @@ fprintf(a, "256 colorbg: %d\n", colorbg);
 			attr |= j;
 	} while (++i < curr->w_NumArgs);
 	
-fprintf(a, "leave: %d %d %d\n", attr, colorbg, colorfg);
-fclose (a);
 	curr->w_rend.attr = attr;
 	curr->w_rend.colorbg = colorbg;
 	curr->w_rend.colorfg = colorfg;

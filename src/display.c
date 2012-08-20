@@ -1325,8 +1325,8 @@ void SetColor(int f, int b)
 		f = 0;
 	if (b == 0x100)
 		b = 0;
-	debug("SetColor %d %d", coli2e(of), coli2e(ob));
-	debug(" -> %d %d\n", coli2e(f), coli2e(b));
+	debug("SetColor %d %d", (of ^ 9), (ob ^ 9));
+	debug(" -> %d %d\n", (f ^ 9), (b ^ 9));
 	debug("(%d %d", of, ob);
 	debug(" -> %d %d)\n", f, b);
 
@@ -1353,10 +1353,10 @@ void SetColor(int f, int b)
 	D_col16change = 0;
 	if (!D_hascolor)
 		return;
-	f = f ? coli2e(f) : -1;
-	b = b ? coli2e(b) : -1;
-	of = of ? coli2e(of) : -1;
-	ob = ob ? coli2e(ob) : -1;
+	f = f ? (f ^ 9) : -1;
+	b = b ? (b ^ 9) : -1;
+	of = of ? (of ^ 9) : -1;
+	ob = ob ? (ob ^ 9) : -1;
 	if (f != of && f > 15 && D_CCO != 256)
 		f = D_CCO == 88 && D_CAF ? color256to88(f) : color256to16(f);
 	if (f != of && f > 15 && D_CAF) {
