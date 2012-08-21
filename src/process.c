@@ -5903,8 +5903,8 @@ int ParseAttrColor(char *s1, char *s2, int msgok)
 
 	r = (attr & 0x0FF) << 16;
 
-	r |= ((bg & 0x0FF) ^ 9) << 8;
-	r |= (fg & 0x0FF) ^ 9;
+	r |= ((bg & 0x0FF)) << 8;
+	r |= (fg & 0x0FF);
 
 	debug("ParseAttrColor %06x\n", r);
 	return r;

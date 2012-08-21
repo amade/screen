@@ -1775,20 +1775,20 @@ static void SelectRendition()
 			if (jj < 0 || jj > 255)
 				continue;
 			if (j == 38) {
-				colorfg = jj ^ 9;
+				colorfg = jj;
 			} else {
-				colorbg = jj ^ 9;
+				colorbg = jj;
 			}
 			continue;
 		}
 		if (j >= 90 && j <= 97)
-			j -= 60;
+			colorfg = (j - 90 + 8);
 		if (j >= 100 && j <= 107)
-			j -= 60;
+			colorbg = (j - 100 + 8);
 		if (j >= 30 && j <= 39 && j != 38)
-			colorfg = (j - 30) ^ 9;
-		else if (j >= 40 && j <= 49 && j != 48)
-			colorbg = (j - 40) ^ 9;
+			colorfg = (j - 30);
+		if (j >= 40 && j <= 49 && j != 48)
+			colorbg = (j - 40);
 		if (j == 0) {
 			attr = 0;
 			colorbg = 0;
