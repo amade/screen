@@ -1186,7 +1186,7 @@ void SetAttr(register int new)
 	new ^= D_col16change;
 	if (old == new)
 		return;
-#if defined(TERMINFO) && defined(USE_SGR)
+#if defined(USE_SGR)
 	if (D_SA) {
 		char *tparm();
 		SetFont(ASCII);
@@ -1386,18 +1386,10 @@ void SetColor(int f, int b)
 			AddCStr2(D_CSB, sftrans[b & 7]);
 	}
 	if (f != of && D_CXT && (f & 8) != 0 && f != -1) {
-#ifdef TERMINFO
 		AddCStr2("\033[9%p1%dm", f & 7);
-#else
-		AddCStr2("\033[9%dm", f & 7);
-#endif
 	}
 	if (b != ob && D_CXT && (b & 8) != 0 && b != -1) {
-#ifdef TERMINFO
 		AddCStr2("\033[10%p1%dm", b & 7);
-#else
-		AddCStr2("\033[10%dm", b & 7);
-#endif
 	}
 }
 

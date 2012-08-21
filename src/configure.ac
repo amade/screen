@@ -429,12 +429,6 @@ AC_CHECKING(libtinfo)
 AC_TRY_LINK(,tgetent((char *)0, (char *)0);,,
 AC_MSG_ERROR(!!! no tgetent - no screen)))))))))
 
-AC_TRY_RUN([
-main()
-{
- exit(strcmp(tgoto("%p1%d", 0, 1), "1") ? 0 : 1);
-}], AC_NOTE(- you use the termcap database),
-AC_NOTE(- you use the terminfo database) AC_DEFINE(TERMINFO))
 AC_CHECKING(ospeed)
 AC_TRY_LINK(extern short ospeed;,ospeed=5;,,AC_DEFINE(NEED_OSPEED))
 

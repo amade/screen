@@ -249,14 +249,6 @@
 #undef CYTERMIO
 
 /*
- * Define TERMINFO if your machine emulates the termcap routines
- * with the terminfo database.
- * Thus the .screenrc file is parsed for
- * the command 'terminfo' and not 'termcap'.
- */
-#undef TERMINFO
-
-/*
  * If your library does not define ospeed, define this.
  */
 #undef NEED_OSPEED
