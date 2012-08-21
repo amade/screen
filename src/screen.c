@@ -273,9 +273,6 @@ int main(int argc, char **argv)
 #ifdef LOADAV
 	debug("LOADAV\n");
 #endif
-#ifdef TERMINFO
-	debug("TERMINFO\n");
-#endif
 #ifdef NAME_MAX
 	debug("NAME_MAX = %d\n", NAME_MAX);
 #endif
