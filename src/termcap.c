@@ -92,11 +92,7 @@ int InitTermcap(int width, int height)
 	memset(tbuf, 0, sizeof(tbuf));
 	debug("InitTermcap: looking for tgetent('%s')\n", D_termname);
 	if (*D_termname == 0 || e_tgetent(tbuf, D_termname) != 1) {
-#ifdef TERMINFO
 		Msg(0, "Cannot find terminfo entry for '%s'.", D_termname);
-#else
-		Msg(0, "Cannot find termcap entry for '%s'.", D_termname);
-#endif
 		return -1;
 	}
 	debug("got it:\n%s\n", tbuf);
@@ -171,13 +167,8 @@ int InitTermcap(int width, int height)
 		/* standard fixes for xterms etc */
 		/* assume color for everything that looks ansi-compatible */
 		if (!D_CAF && D_ME && (InStr(D_ME, "\033[m") || InStr(D_ME, "\033[0m"))) {
-#ifdef TERMINFO
 			D_CAF = "\033[3%p1%dm";
 			D_CAB = "\033[4%p1%dm";
-#else
-			D_CAF = "\033[3%dm";
-			D_CAB = "\033[4%dm";
-#endif
 		}
 		if (D_OP && InStr(D_OP, "\033[39;49m"))
 			D_CAX = 1;
@@ -307,11 +298,7 @@ int InitTermcap(int width, int height)
 
 	if (D_CG0) {
 		if (D_CS0 == 0)
-#ifdef TERMINFO
 			D_CS0 = "\033(%p1%c";
-#else
-			D_CS0 = "\033(%.";
-#endif
 		if (D_CE0 == 0)
 			D_CE0 = "\033(B";
 		D_AC = 0;

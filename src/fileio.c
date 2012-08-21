@@ -201,11 +201,7 @@ int StartRc(char *rcfilename, int nopanic)
 			}
 			DisplaySleep1000(1000 * atoi(args[1]), 1);
 		}
-#ifdef TERMINFO
 		else if (!strcmp(args[0], "termcapinfo") || !strcmp(args[0], "terminfo"))
-#else
-		else if (!strcmp(args[0], "termcapinfo") || !strcmp(args[0], "termcap"))
-#endif
 		{
 			if (!display)
 				continue;
