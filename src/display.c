@@ -1352,10 +1352,10 @@ void SetColor(int f, int b)
 	D_col16change = 0;
 	if (!D_hascolor)
 		return;
-	f = f ? (f ^ 9) : -1;
-	b = b ? (b ^ 9) : -1;
-	of = of ? (of ^ 9) : -1;
-	ob = ob ? (ob ^ 9) : -1;
+	f = f ? (f) : -1;
+	b = b ? (b) : -1;
+	of = of ? (of) : -1;
+	ob = ob ? (ob) : -1;
 	if (f != of && f > 15 && D_CCO != 256)
 		f = D_CCO == 88 && D_CAF ? color256to88(f) : color256to16(f);
 	if (f != of && f > 15 && D_CAF) {
