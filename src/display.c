@@ -1320,10 +1320,8 @@ void SetColor(int f, int b)
 		f = 0;
 	if (b == 0x100)
 		b = 0;
-	debug("SetColor %d %d", (of ^ 9), (ob ^ 9));
-	debug(" -> %d %d\n", (f ^ 9), (b ^ 9));
-	debug("(%d %d", of, ob);
-	debug(" -> %d %d)\n", f, b);
+	debug("SetColor %d %d", of, ob);
+	debug(" -> %d %d\n", f, b);
 
 	if (!D_CAX && D_hascolor && ((f == 0 && f != of) || (b == 0 && b != ob))) {
 		if (D_OP)
@@ -1406,7 +1404,7 @@ void SetRendition(struct mchar *mc)
 
 		for (i = 0; i < 8; i++)
 			if (attr2color[i] && (mc->attr & (1 << i)) != 0) {
-				if (mc->colorbg == 0 && mc->colorfg == 0&& attr2color[i][3])
+				if (mc->colorbg == 0 && mc->colorfg == 0 && attr2color[i][3])
 					ApplyAttrColor(attr2color[i][3], &mmc);
 				else if ((mc->colorfg) == 0 && attr2color[i][2])
 					ApplyAttrColor(attr2color[i][2], &mmc);
