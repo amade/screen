@@ -1744,9 +1744,19 @@ static void SelectRendition()
 			if (jj < 0 || jj > 255)
 				continue;
 			if (j == 38) {
+				attr |= A_BFG;
 				colorfg = jj;
+				if (jj >= 8 && jj < 16)
+					colorfg |= 0x08;
+				else
+					attr ^= A_BFG;
 			} else {
+				attr |= A_BBG;
 				colorbg = jj;
+				if (jj >= 8 && jj < 16)
+					colorbg |= 0x08;
+				else
+					attr ^= A_BBG;
 			}
 			continue;
 		}
@@ -1760,8 +1770,8 @@ static void SelectRendition()
 			colorbg = (j - 40);
 		if (j == 0) {
 			attr = 0;
-			colorbg = 0;
-			colorfg = 0;
+			colorbg = 9;
+			colorfg = 9;
 		}
 
 		if (j < 0 || j >= (int)(sizeof(rendlist)/sizeof(*rendlist)))

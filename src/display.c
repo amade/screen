@@ -1317,13 +1317,13 @@ void SetColor(int f, int b)
 
 	/* intense default not invented yet */
 	if (f == 0x100)
-		f = 0;
+		f = 9;
 	if (b == 0x100)
-		b = 0;
+		b = 9;
 	debug("SetColor %d %d", of, ob);
 	debug(" -> %d %d\n", f, b);
 
-	if (!D_CAX && D_hascolor && ((f == 0 && f != of) || (b == 0 && b != ob))) {
+	if (!D_CAX && D_hascolor && ((f == 9 && f != of) || (b == 9 && b != ob))) {
 		if (D_OP)
 			AddCStr(D_OP);
 		else {
@@ -1339,17 +1339,17 @@ void SetColor(int f, int b)
 			D_rend.attr = 0;
 			SetAttr(oattr);
 		}
-		of = ob = 0;
+		of = ob = 9;
 	}
 	rend_setfg(&D_rend, f);
 	rend_setbg(&D_rend, b);
 	D_col16change = 0;
 	if (!D_hascolor)
 		return;
-	f = f ? (f) : -1;
-	b = b ? (b) : -1;
-	of = of ? (of) : -1;
-	ob = ob ? (ob) : -1;
+	f = f != 9 ? (f) : -1;
+	b = b != 9 ? (b) : -1;
+	of = of != 9 ? (of) : -1;
+	ob = ob != 9 ? (ob) : -1;
 	if (f != of && f > 15 && D_CCO != 256)
 		f = D_CCO == 88 && D_CAF ? color256to88(f) : color256to16(f);
 	if (f != of && f > 15 && D_CAF) {
