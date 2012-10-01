@@ -32,11 +32,11 @@ endif
 SCREENENCODINGS = $(datadir)/screen/utf8encodings
 
 CC = @CC@
-CFLAGS = @CFLAGS@ @LUA_CFLAGS@ @PYTHON_INCLUDES@ -Wall
+CFLAGS = @CFLAGS@ -Wall
 CPPFLAGS = @CPPFLAGS@ -DETCSCREENRC='"$(ETCSCREENRC)"' \
            -DSCREENENCODINGS='"$(SCREENENCODINGS)"'
 LDFLAGS = @LDFLAGS@
-LIBS = @LIBS@ @LUA_LIBS@ @PYTHON_LIBS@
+LIBS = @LIBS@
 
 CPP=@CPP@
 CPP_DEPEND=$(CC) -MM
@@ -65,15 +65,13 @@ CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
 	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
 	kmapdef.c acls.c logfile.c layer.c \
 	sched.c encoding.c canvas.c layout.c viewport.c \
-	list_display.c list_generic.c list_window.c \
-	lua.c script.c python.c
+	list_display.c list_generic.c list_window.c 
 OFILES=	screen.o ansi.o fileio.o mark.o misc.o resize.o socket.o \
 	search.o tty.o term.o window.o utmp.o loadav.o putenv.o help.o \
 	termcap.o input.o attacher.o pty.o process.o display.o comm.o \
 	kmapdef.o acls.o logfile.o layer.o \
 	list_generic.o list_display.o list_window.o \
-	sched.o encoding.o canvas.o layout.o viewport.o \
-	lua.o script.o python.o
+	sched.o encoding.o canvas.o layout.o viewport.o 
 
 all:	screen
 

@@ -238,10 +238,6 @@ int main(int argc, char **argv)
 	int detached = 0;	/* start up detached */
 	char *sty = 0;
 
-#ifdef SCRIPT
-	char *script_file = 0;
-#endif
-
 	/*
 	 *  First, close all unused descriptors
 	 *  (otherwise, we might have problems with the select() call)
@@ -516,15 +512,6 @@ int main(int argc, char **argv)
 				case 'U':
 					nwin_options.encoding = nwin_options.encoding == -1 ? UTF8 : 0;
 					break;
-#ifdef SCRIPT
-				case 'u':
-					if (--argc == 0)
-						exit_with_usage(myname, "Specify lua script file with -u", NULL);
-					if (script_file)
-						free(script_file);
-					script_file = SaveStr(*++argv);
-					break;
-#endif
 				default:
 					exit_with_usage(myname, "Unknown option %s", --ap);
 				}
@@ -919,15 +906,6 @@ int main(int argc, char **argv)
 	ServerSocket = MakeServerSocket();
 	InitKeytab();
 
-#ifdef SCRIPT
-	LoadBindings();
-	if (script_file) {
-		ScriptSource(1, (const char **)&script_file);
-		free(script_file);
-		script_file = 0;
-	}
-#endif
-
 #ifdef ETCSCREENRC
 #ifdef ALLOW_SYSSCREENRC
 	if ((ap = getenv("SYSSCREENRC")))
@@ -1279,10 +1257,6 @@ void Finit(int i)
 	signal(SIGHUP, SIG_IGN);
 	debug("Finit(%d);\n", i);
 
-	#ifdef SCRIPT
-		FinalizeBindings();
-	#endif
-
 	while (windows) {
 		struct win *p = windows;
 		windows = windows->w_next;
@@ -1344,9 +1318,6 @@ void Hangup()
 		Finit(0);
 }
 
-#ifndef SCRIPT
-#define trigger_sevent(x,y,z)
-#endif
 /*
  * Detach now has the following modes:
  *D_DETACH	 SIG_BYE	detach backend and exit attacher
@@ -1394,7 +1365,6 @@ void Detach(int mode)
 	case D_DETACH:
 		AddStrSocket("detached");
 		sign = SIG_BYE;
-		trigger_sevent(&globalevents.detached, display, 0x0);
 		break;
 #ifdef BSDJOBS
 	case D_STOP:
@@ -1404,7 +1374,6 @@ void Detach(int mode)
 	case D_REMOTE:
 		AddStrSocket("remote detached");
 		sign = SIG_BYE;
-		trigger_sevent(&globalevents.detached, display, 0x1);
 		break;
 	case D_POWER:
 		AddStrSocket("power detached");
@@ -1413,7 +1382,6 @@ void Detach(int mode)
 			AddStr("\r\n");
 		}
 		sign = SIG_POWER_BYE;
-		trigger_sevent(&globalevents.detached, display, 0x2);
 		break;
 	case D_REMOTE_POWER:
 		AddStrSocket("remote power detached");
@@ -1422,7 +1390,6 @@ void Detach(int mode)
 			AddStr("\r\n");
 		}
 		sign = SIG_POWER_BYE;
-		trigger_sevent(&globalevents.detached, display, 0x1 | 0x2); /* Remote and power */
 		break;
 	case D_LOCK:
 		ClearAll();
@@ -1915,10 +1882,6 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 		winmsg_numrend = -winmsg_numrend;
 
 	*p = '\0';
-#ifdef SCRIPT
-	if (ScriptProcessCaption(str, win, padlen))
-		return winmsg_buf;
-#endif
 	//if (!display)
 	//	return winmsg_buf;
 

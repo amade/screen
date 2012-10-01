@@ -402,10 +402,6 @@ extern int   EncodeChar (char *, int, int, int *);
 extern void  RemoveLayout (struct layout *);
 extern int   LayoutDumpCanvas (struct canvas *, char *);
 
-/* script.c */
-extern int register_listener(struct script_event *ev, struct listener *l);
-extern void unregister_listener(struct listener *l);
-
 /*
  * GLOBAL VARIABLES
  */

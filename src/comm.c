@@ -172,9 +172,6 @@ struct comm comms[RC_LAST + 1] =
   { "reset",		NEED_FORE|ARGS_0,		},
   { "resize",		NEED_DISPLAY|ARGS_0|ARGS_ORMORE,},
   { "screen",		ARGS_0|ARGS_ORMORE,		},
-#ifdef SCRIPT
-  { "script",	        ARGS_2|ARGS_ORMORE },
-#endif
   { "scrollback",	NEED_FORE|ARGS_1,		},
   { "select",		CAN_QUERY|ARGS_01,		},
   { "sessionname",	ARGS_01,			},

@@ -4297,11 +4297,6 @@ static void StuffFin(char *buf, int len, char *data)
 	case RC_SOURCE:
 		do_source(*args);
 		break;
-#ifdef SCRIPT
-	case RC_SCRIPT:
-		ScriptCmd(argc, (const char **)args);
-		break;
-#endif
 	case RC_SPLIT:
 		s = args[0];
 		if (s && !strcmp(s, "-v"))
@@ -4742,12 +4737,6 @@ static void StuffFin(char *buf, int len, char *data)
 	default:
 		break;
 	}
-
-#ifdef SCRIPT
-	if (nr < RC_LAST)
-		trigger_sevent(&globalevents.cmdexecuted, comms[nr].name, args);
-#endif
-
 
 	if (display != odisplay) {
 		for (display = displays; display; display = display->d_next)
@@ -5355,9 +5344,6 @@ void SetForeWindow(struct win *win)
 	if (win)
 		WindowChanged(win, 'u');
 	flayer = D_forecv->c_layer;
-#ifdef SCRIPT
-	ScriptForeWindowChanged();
-#endif
 	/* Activate called afterwards, so no RefreshHStatus needed */
 }
 

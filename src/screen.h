@@ -35,8 +35,6 @@
 #include "comm.h"
 #include "layer.h"
 #include "term.h"
-#include "script.h"
-
 
 #ifdef DEBUG
 # define STATIC		/* a function that the debugger should see */

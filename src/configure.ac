@@ -861,38 +861,6 @@ if test "$enable_use_locale" = "yes"; then
   AC_DEFINE(USE_LOCALE)
 fi
 
-enable_scripting=yes
-AC_ARG_ENABLE(scripting, [ --disable-scripting  disable scripting support], [enable_scripting=no])
-if test "$enable_scripting" = "yes"; then
-  AC_DEFINE(SCRIPT)
-fi
-
-dnl
-dnl    ****  the end  ****
-dnl
-if test -z "$old_CFLAGS"; then
-  if test "x$CFLAGS" = "x-g"; then
-    CFLAGS="-O"
-  fi
-fi
-dnl Ptx bug workaround -- insert -lc after -ltermcap
-test -n "$seqptx" && LIBS="-ltermcap -lc -lsocket -linet -lnsl -lsec -lseq"
-
-PKG_CHECK_MODULES(LUA, [lua >= 5.1], , [
-    AC_MSG_RESULT(no)
-    AC_MSG_ERROR([
-
-*** You need to have lua5.1 (http://www.lua.org/) installed.
-*** If you don't want support for lua scripting, please use the official repository
-*** (http://git.savannah.gnu.org/gitweb/?p=screen.git;a=summary).
-])])
-
-AM_CHECK_PYTHON_HEADERS(, [AC_MSG_ERROR(could not find Python headers.)])
-AC_SUBST(PYTHON_INCLUDES)
-
-AC_SUBST(LUA_CFLAGS)
-AC_SUBST(LUA_LIBS)
-
 AC_TRY_RUN(main(){exit(0);},,AC_MSG_ERROR(Can't run the compiler - internal error. Sorry.))
 
 ETCSCREENRC=
