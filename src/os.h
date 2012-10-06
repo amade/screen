@@ -166,6 +166,11 @@
 # define LOGINDEFAULT 1
 #endif
 
+#if defined(UT_NAMESIZE) && !defined(MAXLOGINLEN)
+# define MAXLOGINLEN UT_NAMESIZE
+#else
+# define MAXLOGINLEN 32
+#endif
 
 /*****************************************************************
  *    file stuff

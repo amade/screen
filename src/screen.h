@@ -136,7 +136,7 @@ struct mode
  * 					 carried version 1, but should have carried 2.
  * 2:	screen version 4.1.0devel	(revisions 8b46d8a upto YYYYYYY)
  */
-#define MSG_VERSION	3
+#define MSG_VERSION	4
 
 #define MSG_REVISION	(('m'<<24) | ('s'<<16) | ('g'<<8) | MSG_VERSION)
 struct msg
@@ -160,7 +160,7 @@ struct msg
       create;
       struct
 	{
-	  char auser[NAME_MAX + 1];	/* username */
+	  char auser[MAXLOGINLEN + 1];	/* username */
 	  int apid;		/* pid of frontend */
 	  int adaptflag;	/* adapt window size? */
 	  int lines, columns;	/* display size */
@@ -174,13 +174,13 @@ struct msg
       attach;
       struct
 	{
-	  char duser[NAME_MAX + 1];	/* username */
+	  char duser[MAXLOGINLEN + 1];	/* username */
 	  int dpid;		/* pid of frontend */
 	}
       detach;
       struct
 	{
-	  char auser[NAME_MAX + 1];	/* username */
+	  char auser[MAXLOGINLEN + 1];	/* username */
 	  int nargs;
 	  char cmd[MAXPATHLEN + 1];	/* command */
 	  int apid;		/* pid of frontend */

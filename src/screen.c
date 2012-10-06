@@ -664,7 +664,7 @@ int main(int argc, char **argv)
 
 	if (home == 0 || *home == '\0')
 		home = ppp->pw_dir;
-	if (strlen(LoginName) > NAME_MAX)
+	if (strlen(LoginName) > MAXLOGINLEN)
 		Panic(0, "LoginName too long - sorry.");
 	if (strlen(home) > MAXPATHLEN - NAME_MAX)
 		Panic(0, "$HOME too long - sorry.");
