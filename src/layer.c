@@ -399,7 +399,7 @@ void LWrapChar(struct layer *l, struct mchar *c, int y, int top, int bot, int in
 		/* XXX: 'y'? */
 		LayPauseUpdateRegion(l, 0, l->l_width - 1, top, bot);
 
-	bce = rend_getbg(c);
+	bce = c->colorbg;
 	if (y != bot) {
 		/* simple case: no scrolling */
 

@@ -1191,7 +1191,7 @@ void SetAttr(register int new)
 		D_rend.attr = new;
 		D_atyp = 0;
 		if (D_hascolor)
-			rend_setdefault(&D_rend);
+			D_rend.colorbg = D_rend.colorfg = 0;
 		return;
 	}
 #endif
@@ -1206,7 +1206,7 @@ void SetAttr(register int new)
 			AddCStr(D_ME);
 			/* ansi attrib handling: \E[m resets color, too */
 			if (D_hascolor)
-				rend_setdefault(&D_rend);
+				D_rend.colorbg = D_rend.colorfg = 0;
 			if (!D_CG0) {
 				/* D_ME may also reset the alternate charset */
 				D_rend.font = 0;
@@ -1312,8 +1312,8 @@ void SetColor(int f, int b)
 	if (!display)
 		return;
 
-	of = rend_getfg(&D_rend);
-	ob = rend_getbg(&D_rend);
+	of = D_rend.colorfg;
+	ob = D_rend.colorbg;
 
 	/* intense default not invented yet */
 	if (f == 0x100)
@@ -1341,8 +1341,8 @@ void SetColor(int f, int b)
 		}
 		of = ob = 9;
 	}
-	rend_setfg(&D_rend, f);
-	rend_setbg(&D_rend, b);
+	D_rend.colorfg = f;
+	D_rend.colorbg = b;
 	D_col16change = 0;
 	if (!D_hascolor)
 		return;
@@ -1390,7 +1390,7 @@ static void SetBackColor(int new)
 {
 	if (!display)
 		return;
-	SetColor(rend_getfg(&D_rend), new);
+	SetColor(D_rend.colorfg, new);
 }
 
 void SetRendition(struct mchar *mc)
@@ -1428,7 +1428,7 @@ void SetRendition(struct mchar *mc)
 		SetAttr(mc->attr);
 
 	if (D_rend.colorbg != mc->colorbg || D_rend.colorfg != mc->colorfg || D_col16change)
-		SetColor(rend_getfg(mc), rend_getbg(mc));
+		SetColor(mc->colorfg, mc->colorbg);
 	if (D_rend.font != mc->font)
 		SetFont(mc->font);
 }
@@ -1458,7 +1458,7 @@ void SetRenditionMline(struct mline *ml, int x)
 	    || D_col16change) {
 		struct mchar mc;
 		copy_mline2mchar(&mc, ml, x);
-		SetColor(rend_getfg(&mc), rend_getbg(&mc));
+		SetColor(mc.colorfg, mc.colorbg);
 	}
 	if (D_rend.font != ml->font[x])
 		SetFont(ml->font[x]);
@@ -1982,7 +1982,7 @@ void ClearLine(struct mline *oml, int y, int from, int to, int bce)
 		return;
 	}
 	bcechar = mchar_null;
-	rend_setbg(&bcechar, bce);
+	bcechar.colorbg = bce;
 	for (x = from; x <= to; x++)
 		copy_mchar2mline(&bcechar, &mline_old, x);
 	DisplayLine(oml, &mline_old, y, from, to);
@@ -2120,7 +2120,7 @@ void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int
 {
 	int bce;
 
-	bce = rend_getbg(c);
+	bce = c->colorbg;
 	debug("WrapChar:");
 	debug("  x %d  y %d", x, y);
 	debug("  Dx %d  Dy %d", D_x, D_y);
