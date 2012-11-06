@@ -121,13 +121,6 @@ struct mline {
 	(mc)->mbcs    = 0;				\
 }
 
-#define rend_getbg(mc)		((mc)->colorbg)
-#define rend_setbg(mc, c)	((mc)->colorbg = c)
-#define rend_getfg(mc)		((mc)->colorfg)
-#define rend_setfg(mc, c)	((mc)->colorfg = c)
-#define rend_setdefault(mc)	((mc)->colorbg = (mc)->colorfg = 0)
-
-
 enum
 {
   REND_BELL = 0,
