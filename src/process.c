@@ -3675,6 +3675,17 @@ static void StuffFin(char *buf, int len, char *data)
 		}
 		WindowChanged((struct win *)0, 0);
 		break;
+	case RC_ZOMBIE_TIMEOUT:
+		if (argc != 1) {
+			Msg(0, "Setting zombie polling needs a timeout arg\n");
+			break;
+		}
+		nwin_default.poll_zombie_timeout = atoi(args[0]);
+		if (fore)
+			fore->w_poll_zombie_timeout = nwin_default.poll_zombie_timeout;
+
+		debug("Setting zombie polling to %d\n", nwin_default.poll_zombie_timeout);
+		break;
 	case RC_SILENCE:
 		n = fore->w_silence != 0;
 		i = fore->w_silencewait;

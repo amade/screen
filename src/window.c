@@ -51,6 +51,7 @@ static int DoAutolf(char *, int *, int);
 static void ZombieProcess(char **, int *);
 static void win_readev_fn(struct event *, char *);
 static void win_writeev_fn(struct event *, char *);
+static void win_resurrect_zombie_fn (struct event *, char *);
 static int muchpending(struct win *, struct event *);
 static void paste_slowev_fn(struct event *, char *);
 static void pseu_readev_fn(struct event *, char *);
@@ -95,7 +96,8 @@ struct NewWindow nwin_undef = {
 	-1,			/* bce */
 	-1,			/* encoding */
 	(char *)0,		/* hstatus */
-	(char *)0		/* charset */
+	(char *)0,		/* charset */
+	0			/* poll_zombie_timeout */
 };
 
 struct NewWindow nwin_default = {
@@ -119,7 +121,8 @@ struct NewWindow nwin_default = {
 	0,			/* bce */
 	0,			/* encoding */
 	(char *)0,		/* hstatus */
-	(char *)0		/* charset */
+	(char *)0,		/* charset */
+	0			/* poll_zombie_timeout */
 };
 
 struct NewWindow nwin_options;
@@ -151,6 +154,7 @@ void nwin_compose(struct NewWindow *def, struct NewWindow *new, struct NewWindow
 	COMPOSE(encoding);
 	COMPOSE(hstatus);
 	COMPOSE(charset);
+	COMPOSE(poll_zombie_timeout);
 #undef COMPOSE
 }
 
@@ -660,6 +664,14 @@ int MakeWindow(struct NewWindow *newwin)
 		DoStartLog(p, buf, sizeof(buf));
 	}
 
+	/* Is this all where I have to init window poll timeout? */
+	if (nwin.poll_zombie_timeout)
+		p->w_poll_zombie_timeout = nwin.poll_zombie_timeout;
+
+	p->w_zombieev.type = EV_TIMEOUT;
+	p->w_zombieev.data = (char *)p;
+	p->w_zombieev.handler = win_resurrect_zombie_fn;
+
 	p->w_readev.fd = p->w_writeev.fd = p->w_ptyfd;
 	p->w_readev.type = EV_READ;
 	p->w_writeev.type = EV_WRITE;
@@ -850,6 +862,7 @@ void FreeWindow(struct win *wp)
 	evdeq(&wp->w_readev);	/* just in case */
 	evdeq(&wp->w_writeev);	/* just in case */
 	evdeq(&wp->w_silenceev);
+	evdeq(&wp->w_zombieev);
 	evdeq(&wp->w_destroyev);
 	FreePaster(&wp->w_paster);
 	free((char *)wp);
@@ -1564,6 +1577,17 @@ static void win_readev_fn(struct event *ev, char *data)
 	LayPause(&p->w_layer, 0);
 
 	return;
+}
+
+static void win_resurrect_zombie_fn(struct event *ev, char *data) {
+	struct win *p = (struct win *)data;
+	debug("Try to resurrecting Zombie event: %d [%s]\n", p->w_number, p->w_title);
+	/* Already reconnected? */
+	if (p->w_deadpid != p->w_pid)
+		return;
+	debug("Resurrecting Zombie: %d\n", p->w_number);
+	WriteString(p, "\r\n", 2);
+	RemakeWindow(p);
 }
 
 static void win_writeev_fn(struct event *ev, char *data)

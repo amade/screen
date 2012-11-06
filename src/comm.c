@@ -227,5 +227,6 @@ struct comm comms[RC_LAST + 1] =
   { "xoff",		NEED_LAYER|ARGS_0,		{NULL} },
   { "xon",		NEED_LAYER|ARGS_0,		{NULL} },
   { "zmodem",		ARGS_012,			{NULL} },
-  { "zombie",		ARGS_012,			{NULL} }
+  { "zombie",		ARGS_012,			{NULL} },
+  { "zombie_timeout",	ARGS_012,			{NULL} }
 };
