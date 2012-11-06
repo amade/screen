@@ -1236,6 +1236,8 @@ Send an XON character.  @xref{XON/XOFF}.
 Define how screen treats zmodem requests.  @xref{Zmodem}.
 @item zombie [@var{keys} [onerror] ]
 Keep dead windows.  @xref{Zombie}.
+@item zombie_timeout [@var{seconds}]
+Try to reconnect dead windows after timeout.  @xref{Zombie}.
 @end table
 
 @node New Window, Selecting, Commands, Top
@@ -5219,6 +5221,8 @@ Display the version and modification date in the message line.
 @section Zombie
 @deffn Command zombie [@var{keys} [onerror] ]
 @deffnx Command defzombie [@var{keys}]
+@deffn Command zombie_timeout [@var{seconds}]
+@end deffn
 (none)@*
 Per default windows are removed from the window list as soon as the
 windows process (e.g. shell) exits. When a string of two keys is
@@ -5238,6 +5242,11 @@ Optionally you can put the word @code{onerror} after the keys. This will
 cause screen to monitor exit status of the process running in the window.
 If it exits normally ('0'), the window disappears. Any other exit value
 causes the window to become a zombie.
+
+Additionally the @code{zombie_timeout} command exists.
+If a window is declared ``dead'', screen will automatically try to
+resurrect the window after the timeout.
+It only works if zombie keys are defined via @code{zombie} command.
 @end deffn
 
 @node Printcmd, Rendition, Zombie, Miscellaneous
