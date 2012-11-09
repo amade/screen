@@ -51,6 +51,7 @@ static int DoAutolf(char *, int *, int);
 static void ZombieProcess(char **, int *);
 static void win_readev_fn(struct event *, char *);
 static void win_writeev_fn(struct event *, char *);
+static void win_resurrect_zombie_fn (struct event *, char *);
 static int muchpending(struct win *, struct event *);
 static void paste_slowev_fn(struct event *, char *);
 static void pseu_readev_fn(struct event *, char *);
@@ -1440,11 +1441,11 @@ static void win_readev_fn(struct event *ev, char *data)
 
 static void win_resurrect_zombie_fn(struct event *ev, char *data) {
 	struct win *p = (struct win *)data;
-	debug2("Try to resurrecting Zombie event: %d [%s]\n", p->w_number, p->w_title);
+	debug("Try to resurrecting Zombie event: %d [%s]\n", p->w_number, p->w_title);
 	/* Already reconnected? */
 	if (p->w_deadpid != p->w_pid)
 		return;
-	debug1("Resurrecting Zombie: %d\n", p->w_number);
+	debug("Resurrecting Zombie: %d\n", p->w_number);
 	WriteString(p, "\r\n", 2);
 	RemakeWindow(p);
 }

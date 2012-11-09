@@ -3621,7 +3621,7 @@ static void StuffFin(char *buf, int len, char *data)
 		if (fore)
 			fore->w_poll_zombie_timeout = nwin_default.poll_zombie_timeout;
 
-		debug1("Setting zombie polling to %d\n", nwin_default.poll_zombie_timeout);
+		debug("Setting zombie polling to %d\n", nwin_default.poll_zombie_timeout);
 		break;
 	case RC_SILENCE:
 		n = fore->w_silence != 0;
