@@ -1887,8 +1887,6 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 		winmsg_numrend = -winmsg_numrend;
 
 	*p = '\0';
-	//if (!display)
-	//	return winmsg_buf;
 
 	tick = 0;
 	tm = 0;
