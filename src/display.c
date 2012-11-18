@@ -1267,46 +1267,46 @@ void SetFont(int new)
 		AddCStr2(D_CS0, new);
 }
 
-int color256to16(int jj)
+int color256to16(int color)
 {
 	int min, max;
 	int r, g, b;
 
-	if (jj >= 232) {
-		jj = (jj - 232) / 6;
-		jj = (jj & 1) << 3 | (jj & 2 ? 7 : 0);
-	} else if (jj >= 16) {
-		jj -= 16;
-		r = jj / 36;
-		g = (jj / 6) % 6;
-		b = jj % 6;
+	if (color >= 232) {
+		color = (color - 232) / 6;
+		color = (color & 1) << 3 | (color & 2 ? 7 : 0);
+	} else if (color >= 16) {
+		color -= 16;
+		r = color / 36;
+		g = (color / 6) % 6;
+		b = color % 6;
 		min = r < g ? (r < b ? r : b) : (g < b ? g : b);
 		max = r > g ? (r > b ? r : b) : (g > b ? g : b);
 		if (min == max)
-			jj = ((max + 1) & 2) << 2 | ((max + 1) & 4 ? 7 : 0);
+			color = ((max + 1) & 2) << 2 | ((max + 1) & 4 ? 7 : 0);
 		else
-			jj = (b - min) / (max - min) << 2 | (g - min) / (max - min) << 1 | (r -
-											    min) / (max - min) | (max >
-														  3 ? 8
-														  : 0);
+			color = (b - min) / (max - min) << 2 |
+				(g - min) / (max - min) << 1 |
+				(r - min) / (max - min) |
+				(max > 3 ? 8: 0);
 	}
-	return jj;
+	return color;
 }
 
-int color256to88(int jj)
+int color256to88(int color)
 {
 	int r, g, b;
 
-	if (jj >= 232)
-		return (jj - 232) / 3 + 80;
-	if (jj >= 16) {
-		jj -= 16;
-		r = jj / 36;
-		g = (jj / 6) % 6;
-		b = jj % 6;
+	if (color >= 232)
+		return (color - 232) / 3 + 80;
+	if (color >= 16) {
+		color -= 16;
+		r = color / 36;
+		g = (color / 6) % 6;
+		b = color % 6;
 		return ((r + 1) / 2) * 16 + ((g + 1) / 2) * 4 + ((b + 1) / 2) + 16;
 	}
-	return jj;
+	return color;
 }
 
 void SetColor(int f, int b)
