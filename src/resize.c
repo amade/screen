@@ -408,14 +408,14 @@ static void CheckMaxSize(int wi)
 		return;
 	maxwidth = wi;
 	debug("New maxwidth: %d\n", maxwidth);
-	blank = xrealloc((char *)blank, maxwidth);
-	null = xrealloc((char *)null, maxwidth);
-	mline_old.image = xrealloc((char *)mline_old.image, maxwidth);
-	mline_old.attr = xrealloc((char *)mline_old.attr, maxwidth);
-	mline_old.font = xrealloc((char *)mline_old.font, maxwidth);
-	mline_old.fontx = xrealloc((char *)mline_old.fontx, maxwidth);
-	mline_old.colorbg = xrealloc((char *)mline_old.colorbg, maxwidth);
-	mline_old.colorfg = xrealloc((char *)mline_old.colorfg, maxwidth);
+	blank = xrealloc(blank, maxwidth);
+	null = xrealloc(null, maxwidth);
+	mline_old.image = xrealloc(mline_old.image, maxwidth);
+	mline_old.attr = xrealloc(mline_old.attr, maxwidth);
+	mline_old.font = xrealloc(mline_old.font, maxwidth);
+	mline_old.fontx = xrealloc(mline_old.fontx, maxwidth);
+	mline_old.colorbg = xrealloc(mline_old.colorbg, maxwidth);
+	mline_old.colorfg = xrealloc(mline_old.colorfg, maxwidth);
 	if (!(blank && null && mline_old.image && mline_old.attr && mline_old.font && mline_old.fontx && mline_old.colorbg && mline_old.colorfg))
 		Panic(0, "%s", strnomem);
 
@@ -464,7 +464,7 @@ static void CheckMaxSize(int wi)
 	}
 }
 
-void *xrealloc(char *mem, int len)
+void *xrealloc(void *mem, int len)
 {
 	register char *nmem;
 
