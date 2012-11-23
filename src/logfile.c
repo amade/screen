@@ -84,27 +84,9 @@ static int logfile_reopen(char *name, int wantfd, struct logfile *l)
 		return -1;
 	}
 	changed_logfile(l);
+	l->st->st_ino = l->st->st_dev = 0;
 	debug("logfile_reopen: %d = %s\n", wantfd, name);
 	return 0;
-}
-
-static int (*lf_reopen_fn) (char *, int, struct logfile *) = logfile_reopen;
-
-/*
- * Whenever logfwrite discoveres that it is required to close and
- * reopen the logfile, the function registered here is called.
- * If you do not register anything here, the above logfile_reopen()
- * will be used instead.
- * Your function should perform the same steps as logfile_reopen():
- * a) close the original filedescriptor without flushing any output
- * b) open a new logfile for future output on the same filedescriptor number.
- * c) zero out st_dev, st_ino to tell the stolen_logfile() indcator to
- *    reinitialise itself.
- * d) return 0 on success.
- */
-void logreopen_register(int (*fn) (char *, int, struct logfile *))
-{
-	lf_reopen_fn = fn ? fn : logfile_reopen;
 }
 
 /*
@@ -226,7 +208,7 @@ int logfwrite(struct logfile *l, char *buf, int n)
 {
 	int r;
 
-	if (stolen_logfile(l) && lf_reopen_fn(l->name, fileno(l->fp), l))
+	if (stolen_logfile(l) && logfile_reopen(l->name, fileno(l->fp), l))
 		return -1;
 	r = fwrite(buf, n, 1, l->fp);
 	l->writecount += l->flushcount + 1;
@@ -241,13 +223,13 @@ int logfflush(struct logfile *l)
 
 	if (!l)
 		for (l = logroot; l; l = l->next) {
-			if (stolen_logfile(l) && lf_reopen_fn(l->name, fileno(l->fp), l))
+			if (stolen_logfile(l) && logfile_reopen(l->name, fileno(l->fp), l))
 				return -1;
 			r |= fflush(l->fp);
 			l->flushcount++;
 			changed_logfile(l);
 	} else {
-		if (stolen_logfile(l) && lf_reopen_fn(l->name, fileno(l->fp), l))
+		if (stolen_logfile(l) && logfile_reopen(l->name, fileno(l->fp), l))
 			return -1;
 		r = fflush(l->fp);
 		l->flushcount++;

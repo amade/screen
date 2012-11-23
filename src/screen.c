@@ -164,21 +164,6 @@ char strnomem[] = "Out of memory.";
 static int InterruptPlease;
 static int GotSigChld;
 
-static int lf_secreopen(char *name, int wantfd, struct logfile *l)
-{
-	int got_fd;
-
-	close(wantfd);
-	if (((got_fd = secopen(name, O_WRONLY | O_CREAT | O_APPEND, 0666)) < 0) || lf_move_fd(got_fd, wantfd) < 0) {
-		logfclose(l);
-		debug("lf_secreopen: failed for %s\n", name);
-		return -1;
-	}
-	l->st->st_ino = l->st->st_dev = 0;
-	debug("lf_secreopen: %d = %s\n", wantfd, name);
-	return 0;
-}
-
 /********************************************************************/
 /********************************************************************/
 /********************************************************************/
@@ -295,8 +280,6 @@ int main(int argc, char **argv)
 	nwin = nwin_undef;
 	nwin_options = nwin_undef;
 	strncpy(screenterm, "screen", 20);
-
-	logreopen_register(lf_secreopen);
 
 	av0 = *argv;
 	/* if this is a login screen, assume -RR */
