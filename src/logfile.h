@@ -67,16 +67,6 @@ int logfwrite (struct logfile *, char *, int);
 int logfflush (struct logfile *ifany);
 
 /*
- * a reopen function may be registered here, in case you want to bring your
- * own (more secure open), it may come along with a private data pointer.
- * this function is called, whenever logfwrite/logfflush detect that the
- * file has been (re)moved, truncated or changed by someone else.
- * if you provide NULL as parameter to logreopen_register, the builtin
- * reopen function will be reactivated.
- */
-void logreopen_register (int (*fn) (char *, int, struct logfile *) );
-
-/*
  * Your custom reopen function is required to reuse the exact
  * filedescriptor.
  * See logfile.c for further specs and an example.
