@@ -870,7 +870,7 @@ AC_TRY_LINK([
 
 AC_SEARCH_LIBS(gethostname, nsl)
 
-AC_CHECK_FUNCS(rename fchmod fchown strerror lstat _exit utimes vsnprintf getcwd setlocale strftime)
+AC_CHECK_FUNCS(vsnprintf strftime)
 
 AC_ARG_ENABLE(pam, [  --enable-pam            enable PAM support])
 if test "$enable_pam" = "yes"; then
