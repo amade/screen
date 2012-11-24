@@ -2973,7 +2973,6 @@ void RunBlanker(char **cmdv)
 		dup(0);
 		if (slave != -1)
 			close(slave);
-		InitPTY(0);
 		fgtty(0);
 		SetTTY(0, &D_OldMode);
 		np = NewEnv + 3;
