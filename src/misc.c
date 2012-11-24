@@ -72,20 +72,6 @@ char *InStr(char *str, const char *pat)
 	return 0;
 }
 
-#ifndef HAVE_STRERROR
-char *strerror(int err)
-{
-	extern int sys_nerr;
-	extern char *sys_errlist[];
-
-	static char er[20];
-	if (err > 0 && err < sys_nerr)
-		return sys_errlist[err];
-	sprintf(er, "Error %d", err);
-	return er;
-}
-#endif
-
 void centerline(char *str, int y)
 {
 	int l, n;
@@ -240,15 +226,6 @@ int UserStatus()
 {
 	return UserSTAT;
 }
-
-#ifndef HAVE_RENAME
-int rename(char *old, char *new)
-{
-	if (link(old, new) < 0)
-		return -1;
-	return unlink(old);
-}
-#endif
 
 int AddXChar(char *buf, int ch)
 {
