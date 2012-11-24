@@ -1020,7 +1020,6 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 			close(slave);
 		if (newfd >= 0) {
 			struct mode fakemode, *modep;
-			InitPTY(newfd);
 			if (fgtty(newfd))
 				Msg(errno, "fgtty");
 			if (display) {

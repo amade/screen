@@ -73,12 +73,6 @@ static void initmaster(int f)
 #endif
 }
 
-void InitPTY(int f)
-{
-	if (f < 0)
-		return;
-}
-
 int OpenPTY(char **ttyn)
 {
 	int f, s;

@@ -174,7 +174,6 @@ extern void  AddLoadav (char *);
 
 /* pty.c */
 extern int   OpenPTY (char **);
-extern void  InitPTY (int);
 
 /* process.c */
 extern void  InitKeytab (void);
