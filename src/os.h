@@ -77,10 +77,6 @@
 #include <time.h>
 #include <sys/time.h>
 
-#ifndef HAVE_GETCWD
-# define getcwd(b,l) getwd(b)
-#endif
-
 #if defined(HAVE_SETRESUID) && !defined(HAVE_SETREUID)
 # define setreuid(ruid, euid) setresuid(ruid, euid, -1)
 # define setregid(rgid, egid) setresgid(rgid, egid, -1)
