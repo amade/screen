@@ -571,8 +571,6 @@ static int CheckPid(int pid)
 	return UserStatus();
 }
 
-#define TTYCMP(a, b) strcmp(a, b)
-
 static int CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
 {
 	int pid;
@@ -780,13 +778,13 @@ void ReceiveMsg()
 	}
 
 	for (display = displays; display; display = display->d_next)
-		if (TTYCMP(D_usertty, m.m_tty) == 0)
+		if (strcmp(D_usertty, m.m_tty) == 0)
 			break;
 	debug("display: %s display %sfound\n", m.m_tty, display ? "" : "not ");
 	wi = 0;
 	if (!display) {
 		for (wi = windows; wi; wi = wi->w_next)
-			if (!TTYCMP(m.m_tty, wi->w_tty)) {
+			if (!strcmp(m.m_tty, wi->w_tty)) {
 				/* XXX: hmmm, rework this? */
 				display = wi->w_layer.l_cvlist ? wi->w_layer.l_cvlist->c_display : 0;
 				debug("but window %s %sfound.\n", m.m_tty, display ? "" : "(backfacing)");
@@ -1262,7 +1260,7 @@ static void DoCommandMsg(struct msg *mp)
 			if (D_user == user)
 				break;
 	for (fore = windows; fore; fore = fore->w_next)
-		if (!TTYCMP(mp->m_tty, fore->w_tty)) {
+		if (!strcmp(mp->m_tty, fore->w_tty)) {
 			if (!display)
 				display = fore->w_layer.l_cvlist ? fore->w_layer.l_cvlist->c_display : 0;
 
