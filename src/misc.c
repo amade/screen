@@ -293,47 +293,5 @@ void sleep1000(int msec)
 	select(0, (fd_set *) 0, (fd_set *) 0, (fd_set *) 0, &t);
 }
 
-/*
- * This uses either setenv() or putenv(). If it is putenv() we cannot dare
- * to free the buffer after putenv(), unless it it the one found in putenv.c
- */
-void xsetenv(char *var, char *value)
-{
-#ifndef USESETENV
-	char *buf;
-	int l;
-
-	if ((buf = malloc((l = strlen(var)) + strlen(value) + 2)) == NULL) {
-		Msg(0, strnomem);
-		return;
-	}
-	strncpy(buf, var, strlen(var) + 1);
-	buf[l] = '=';
-	strncpy(buf + l + 1, value, strlen(value) + 1);
-	putenv(buf);
-#ifdef NEEDPUTENV
-	/*
-	 * we use our own putenv(), knowing that it does a malloc()
-	 * the string space, we can free our buf now.
-	 */
-	free(buf);
-#else				/* NEEDPUTENV */
-	/*
-	 * For all sysv-ish systems that link a standard putenv()
-	 * the string-space buf is added to the environment and must not
-	 * be freed, or modified.
-	 * We are sorry to say that memory is lost here, when setting
-	 * the same variable again and again.
-	 */
-#endif				/* NEEDPUTENV */
-#else				/* USESETENV */
-#if HAVE_SETENV_3
-	setenv(var, value, 1);
-#else
-	setenv(var, value);
-#endif				/* HAVE_SETENV_3 */
-#endif				/* USESETENV */
-}
-
 #define xva_arg(s, t, tn) va_arg(s, t)
 #define xva_list va_list

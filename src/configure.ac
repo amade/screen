@@ -842,33 +842,6 @@ AC_TRY_LINK([#include <stdarg.h>],[va_list valist; vsprintf(0,0,valist);], AC_MS
 
 AC_HEADER_DIRENT
 
-AC_MSG_CHECKING(for setenv)
-if test -z "$ac_setenv_args"; then
-    AC_TRY_LINK(
-    [#include <stdlib.h>],
-    [
-        setenv((char *) 0, (char *) 0, 0);
-    ], ac_setenv_args=3)
-fi
-if test -z "$ac_setenv_args"; then
-    AC_TRY_LINK(
-    [#include <stdlib.h>],
-    [
-        setenv((char *) 0, (char *) 0);
-    ], ac_setenv_args=2)
-fi
-if test -n "$ac_setenv_args"; then
-    AC_DEFINE(USESETENV)
-    if test "$ac_setenv_args" = 3; then
-        AC_DEFINE(HAVE_SETENV_3)
-    elif test "$ac_setenv_args" = 2; then
-        AC_DEFINE(HAVE_SETENV_2)
-    fi
-else
-    AC_MSG_RESULT(no)
-    AC_MSG_CHECKING(for putenv)
-    AC_TRY_LINK(,[putenv((char *)0);unsetenv((char *)0);], AC_MSG_RESULT(yes) ,  AC_MSG_RESULT(no);AC_DEFINE(NEEDPUTENV))
-fi
 AC_MSG_CHECKING([for nl_langinfo(CODESET)])
 AC_TRY_LINK([
 #include <langinfo.h>

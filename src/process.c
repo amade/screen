@@ -2628,7 +2628,7 @@ static void StuffFin(char *buf, int len, char *data)
 			debug("RC_SETENV arguments missing: %s\n", args[0] ? args[0] : "");
 			InputSetenv(args[0]);
 		} else {
-			xsetenv(args[0], args[1]);
+			setenv(args[0], args[1], 1);
 			MakeNewEnv();
 		}
 		break;
@@ -4947,7 +4947,7 @@ static void SetenvFin2(char *buf, int len, char *data)
 	if (!len || !display)
 		return;
 	debug("SetenvFin2: setenv '%s' '%s'\n", setenv_var, buf);
-	xsetenv(setenv_var, buf);
+	setenv(setenv_var, buf, 1);
 	MakeNewEnv();
 }
 
