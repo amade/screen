@@ -332,7 +332,6 @@ extern void  xsetegid  (int);
 #endif
 extern int   AddXChar (char *, int);
 extern int   AddXChars (char *, int, char *);
-extern void  xsetenv  (char *, char *);
 extern void  sleep1000 (int);
 #ifdef DEBUG
 extern void  opendebug (int, int);
