@@ -353,27 +353,6 @@
 #undef SOCK_NOT_IN_FS
 
 /*
- * If your system has setenv() and unsetenv() define USESETENV
- */
-#undef USESETENV
-
-/*
- * If setenv() takes 3 arguments define HAVE_SETENV_3
- */
-#undef HAVE_SETENV_3
-
-/*
- * If setenv() takes 2 arguments define HAVE_SETENV_2
- */
-#undef HAVE_SETENV_2
-
-/*
- * If your system does not come with a setenv()/putenv()/getenv()
- * functions, you may bring in our own code by defining NEEDPUTENV.
- */
-#undef NEEDPUTENV
-
-/*
  * define HAVE_NL_LANGINFO if your system has the nl_langinfo() call
  * and <langinfo.h> defines CODESET.
  */
