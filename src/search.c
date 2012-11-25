@@ -111,7 +111,8 @@ static void backsearchend(char *buf, int len, char *dummy)
 
 static int matchword(char *pattern, int y, int sx, int ex)
 {
-	unsigned char *ip, *ipe, *cp, *pp;
+	uint32_t *ip, *ipe;
+	unsigned char *cp, *pp;
 	struct mline *ml;
 
 	/* *sigh* to make WIN work */
@@ -121,7 +122,7 @@ static int matchword(char *pattern, int y, int sx, int ex)
 	ip = ml->image + sx;
 	ipe = ml->image + flayer->l_width;
 	for (; sx <= ex; sx++) {
-		cp = ip++;
+		cp = (unsigned char *)ip++;
 		pp = (unsigned char *)pattern;
 		for (;;) {
 			if (*cp != *pp)
@@ -131,7 +132,7 @@ static int matchword(char *pattern, int y, int sx, int ex)
 			pp++;
 			if (*pp == 0)
 				return sx;
-			if (cp == ipe)
+			if (cp == (unsigned char *)ipe)
 				break;
 		}
 	}
