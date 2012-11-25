@@ -98,7 +98,7 @@ static int is_letter(int c)
 static int linestart(int y)
 {
 	register int x;
-	register unsigned char *i;
+	register uint32_t *i;
 
 	for (x = markdata->left_mar, i = WIN(y)->image + x; x < fore->w_width - 1; x++)
 		if (*i++ != ' ')
@@ -111,7 +111,7 @@ static int linestart(int y)
 static int lineend(int y)
 {
 	register int x;
-	register unsigned char *i;
+	register uint32_t *i;
 
 	for (x = markdata->right_mar, i = WIN(y)->image + x; x >= 0; x--)
 		if (*i-- != ' ')
@@ -244,10 +244,10 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
 {
 	int i, j, from, to, ry, c;
 	int l = 0;
-	unsigned char *im;
+	uint32_t *im;
 	struct mline *ml;
 	int cf, cfx, font;
-	unsigned char *fo, *fox;
+	uint32_t *fo, *fox;
 
 	markdata->second = 0;
 	if (y2 < y1 || ((y2 == y1) && (x2 < x1))) {
@@ -380,7 +380,7 @@ static int eq(int a, int b)
 int GetHistory()
 {				/* return value 1 if copybuffer changed */
 	int i = 0, q = 0, xx, yy, x, y;
-	unsigned char *linep;
+	uint32_t *linep;
 	struct mline *ml;
 
 	ASSERT(display && fore);
@@ -1000,7 +1000,7 @@ void revto_line(int tx, int ty, int line)
 	int x, y, t, revst, reven, qq, ff, tt, st, en, ce = 0;
 	int ystart = 0, yend = fore->w_height - 1;
 	int i, ry;
-	unsigned char *wi;
+	uint32_t *wi;
 	struct mline *ml;
 	struct mchar mc;
 
@@ -1157,7 +1157,7 @@ static void MarkRedisplayLine(int y, int xs, int xe, int isblank)
 {
 	int wy, x, i, rm;
 	int sta, sto, cp;	/* NOTE: these 3 are in WINDOW coords system */
-	unsigned char *wi;
+	uint32_t *wi;
 	struct mline *ml;
 	struct mchar mchar_marked;
 
@@ -1234,7 +1234,7 @@ static void MarkRedisplayLine(int y, int xs, int xe, int isblank)
 static int MarkRewrite(int ry, int xs, int xe, struct mchar *rend, int doit)
 {
 	int dx, x, y, st, en, t, rm;
-	unsigned char *i;
+	uint32_t *i;
 	struct mline *ml;
 	struct mchar mchar_marked;
 
