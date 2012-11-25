@@ -1304,9 +1304,9 @@ int color256to88(int color)
 	return color;
 }
 
-void SetColor(int f, int b)
+void SetColor(uint32_t f, uint32_t b)
 {
-	int of, ob;
+	uint32_t of, ob;
 	static unsigned char sftrans[8] = { 0, 4, 2, 6, 1, 5, 3, 7 };
 
 	if (!display)
@@ -1417,7 +1417,7 @@ void SetRendition(struct mchar *mc)
 		debug("SetRendition: mapped to %02x %02x\n", (unsigned char)mc->attr, 0x99 - (unsigned char)mc->color);
 	}
 	if (D_hascolor && D_CC8 && (mc->attr & (A_BFG | A_BBG))) {
-		int a = mc->attr;
+		uint32_t a = mc->attr;
 		if ((mc->attr & A_BFG) && D_MD)
 			a |= A_BD;
 		if ((mc->attr & A_BBG) && D_MB)

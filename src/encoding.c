@@ -482,13 +482,13 @@ struct mline *recode_mline(struct mline *ml, int w, int from, int to)
 	if (w > maxlen) {
 		for (i = 0; i < 2; i++) {
 			if (rml[i].image == 0)
-				rml[i].image = malloc(w);
+				rml[i].image = malloc(w * 4);
 			else
-				rml[i].image = realloc(rml[i].image, w);
+				rml[i].image = realloc(rml[i].image, w * 4);
 			if (rml[i].font == 0)
-				rml[i].font = malloc(w);
+				rml[i].font = malloc(w * 4);
 			else
-				rml[i].font = realloc(rml[i].font, w);
+				rml[i].font = realloc(rml[i].font, w * 4);
 			if (rml[i].image == 0 || rml[i].font == 0) {
 				maxlen = 0;
 				return ml;	/* sorry */
@@ -700,7 +700,7 @@ void WinSwitchEncoding(struct win *p, int encoding)
 			if (c < 256)
 				continue;
 			if (ml->font == null) {
-				if ((ml->font = calloc(p->w_width + 1, 1)) == 0) {
+				if ((ml->font = calloc(p->w_width + 1, 4)) == 0) {
 					ml->font = null;
 					break;
 				}
@@ -1345,7 +1345,7 @@ int RecodeBuf(unsigned char *fbuf, int flen, int fenc, int tenc, unsigned char *
 
 int ContainsSpecialDeffont(struct mline *ml, int xs, int xe, int encoding)
 {
-	unsigned char *f, *i;
+	uint32_t *f, *i;
 	int c, x, dx;
 
 	if (encoding == UTF8 || encodings[encoding].deffont == 0)
@@ -1408,7 +1408,7 @@ int LoadFontTranslation(int font, char *file)
 		getc(f);
 		while ((x = getc(f)) && x != EOF)
 			getc(f);	/* skip font name (padded to 2 bytes) */
-		if ((p = malloc(sizeof(*p) * (i + 1))) == 0)
+		if ((p = malloc(sizeof(*p) * (i + 1) * 4)) == 0)
 			break;
 		tab = p;
 		while (i > 0) {

@@ -281,10 +281,10 @@ static void WinRedisplayLine(int y, int from, int to, int isblank)
 static int WinRewrite(int y, int x1, int x2, struct mchar *rend, int doit)
 {
 	register int cost, dx;
-	register unsigned char *p, *i;
-	register unsigned char *f;
-	register unsigned char *colorbg;
-	register unsigned char *colorfg;
+	register uint32_t *p, *i;
+	register uint32_t *f;
+	register uint32_t *colorbg;
+	register uint32_t *colorfg;
 
 	debug("WinRewrite %d, %d-%d\n", y, x1, x2);
 	fore = (struct win *)flayer->l_data;

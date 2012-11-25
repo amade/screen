@@ -27,47 +27,49 @@
  * $Id$ GNU
  */
 
+#include <stdint.h>
+
 struct mchar {
-	unsigned char image;
-	unsigned char attr;
-	unsigned char font;
-	unsigned char colorbg;
-	unsigned char colorfg;
-	unsigned char mbcs;
+	uint32_t image;
+	uint32_t attr;
+	uint32_t font;
+	uint32_t colorbg;
+	uint32_t colorfg;
+	uint32_t mbcs;
 };
 
 struct mline {
-	unsigned char *image;
-	unsigned char *attr;
-	unsigned char *font;
-	unsigned char *colorbg;
-	unsigned char *colorfg;
+	uint32_t *image;
+	uint32_t *attr;
+	uint32_t *font;
+	uint32_t *colorbg;
+	uint32_t *colorfg;
 };
 
 
 
 #define save_mline(ml, n) {						\
-	memmove((char *)mline_old.image,   (char *)(ml)->image,   (n));	\
-	memmove((char *)mline_old.attr,    (char *)(ml)->attr,    (n));	\
-	memmove((char *)mline_old.font,    (char *)(ml)->font,    (n));	\
-	memmove((char *)mline_old.colorbg, (char *)(ml)->colorbg, (n));	\
-	memmove((char *)mline_old.colorfg, (char *)(ml)->colorfg, (n));	\
+	memmove(mline_old.image,   (ml)->image,   (n) * 4);	\
+	memmove(mline_old.attr,    (ml)->attr,    (n) * 4);	\
+	memmove(mline_old.font,    (ml)->font,    (n) * 4);	\
+	memmove(mline_old.colorbg, (ml)->colorbg, (n) * 4);	\
+	memmove(mline_old.colorfg, (ml)->colorfg, (n) * 4);	\
 }
 
 #define copy_mline(ml, xf, xt, n) {							\
-	memmove((char *)(ml)->image   + (xt), (char *)(ml)->image   + (xf), (n));	\
-	memmove((char *)(ml)->attr    + (xt), (char *)(ml)->attr    + (xf), (n));	\
-	memmove((char *)(ml)->font    + (xt), (char *)(ml)->font    + (xf), (n));	\
-	memmove((char *)(ml)->colorbg + (xt), (char *)(ml)->colorbg + (xf), (n));	\
-	memmove((char *)(ml)->colorfg + (xt), (char *)(ml)->colorfg + (xf), (n));	\
+	memmove((ml)->image   + (xt), (ml)->image   + (xf), (n) * 4);	\
+	memmove((ml)->attr    + (xt), (ml)->attr    + (xf), (n) * 4);	\
+	memmove((ml)->font    + (xt), (ml)->font    + (xf), (n) * 4);	\
+	memmove((ml)->colorbg + (xt), (ml)->colorbg + (xf), (n) * 4);	\
+	memmove((ml)->colorfg + (xt), (ml)->colorfg + (xf), (n) * 4);	\
 }
 
 #define clear_mline(ml, x, n) {							\
-	bclear((char *)(ml)->image + (x), (n));					\
-	if ((ml)->attr    != null) memset((char *)(ml)->attr    + (x), 0, (n));	\
-	if ((ml)->font    != null) memset((char *)(ml)->font    + (x), 0, (n));	\
-	if ((ml)->colorbg != null) memset((char *)(ml)->colorbg + (x), 0, (n));	\
-	if ((ml)->colorfg != null) memset((char *)(ml)->colorfg + (x), 0, (n));	\
+	memmove((ml)->image + (x), blank, (n) * 4);					\
+	if ((ml)->attr    != null) memset((ml)->attr    + (x), 0, (n) * 4);	\
+	if ((ml)->font    != null) memset((ml)->font    + (x), 0, (n) * 4);	\
+	if ((ml)->colorbg != null) memset((ml)->colorbg + (x), 0, (n) * 4);	\
+	if ((ml)->colorfg != null) memset((ml)->colorfg + (x), 0, (n) * 4);	\
 }
 
 #define cmp_mline(ml1, ml2, x) (			\
@@ -80,8 +82,8 @@ struct mline {
 
 #define cmp_mchar(mc1, mc2) (				\
 	    (mc1)->image  == (mc2)->image		\
-	&& (mc1)->attr    == (mc2)->attr			\
-	&& (mc1)->font    == (mc2)->font			\
+	&& (mc1)->attr    == (mc2)->attr		\
+	&& (mc1)->font    == (mc2)->font		\
 	&& (mc1)->colorbg == (mc2)->colorbg		\
 	&& (mc1)->colorfg == (mc2)->colorfg		\
 )
@@ -113,9 +115,9 @@ struct mline {
 
 enum
 {
-  REND_BELL = 0,
-  REND_MONITOR,
-  REND_SILENCE,
-  NUM_RENDS
+	REND_BELL = 0,
+	REND_MONITOR,
+	REND_SILENCE,
+	NUM_RENDS
 };
 

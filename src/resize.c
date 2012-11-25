@@ -37,7 +37,7 @@
 static void CheckMaxSize(int);
 static void FreeMline(struct mline *);
 static int AllocMline(struct mline *ml, int);
-static void MakeBlankLine(unsigned char *, int);
+static void MakeBlankLine(uint32_t *, int);
 static void kaablamm(void);
 static int BcopyMline(struct mline *, int, struct mline *, int, int, int);
 static void SwapAltScreen(struct win *);
@@ -47,11 +47,11 @@ struct winsize glwz;
 #endif
 
 static struct mline mline_zero = {
-	(unsigned char *)0,
-	(unsigned char *)0,
-	(unsigned char *)0,
-	(unsigned char *)0,
-	(unsigned char *)0
+	(uint32_t *)0,
+	(uint32_t *)0,
+	(uint32_t *)0,
+	(uint32_t *)0,
+	(uint32_t *)0
 };
 
 /*
@@ -338,7 +338,7 @@ static void FreeMline(struct mline *ml)
 
 static int AllocMline(struct mline *ml, int w)
 {
-	ml->image = malloc(w);
+	ml->image = malloc(w * 4);
 	ml->attr = null;
 	ml->font = null;
 	ml->colorbg = null;
@@ -352,31 +352,31 @@ static int BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int 
 {
 	int r = 0;
 
-	memmove((char *)mlt->image + xt, (char *)mlf->image + xf, l);
+	memmove(mlt->image + xt, mlf->image + xf, l * 4);
 	if (mlf->attr != null && mlt->attr == null) {
-		if ((mlt->attr = calloc(w, 1)) == 0)
+		if ((mlt->attr = calloc(w, 4)) == 0)
 			mlt->attr = null, r = -1;
 	}
 	if (mlt->attr != null)
-		memmove((char *)mlt->attr + xt, (char *)mlf->attr + xf, l);
+		memmove(mlt->attr + xt, mlf->attr + xf, l * 4);
 	if (mlf->font != null && mlt->font == null) {
-		if ((mlt->font = calloc(w, 1)) == 0)
+		if ((mlt->font = calloc(w, 4)) == 0)
 			mlt->font = null, r = -1;
 	}
 	if (mlt->font != null)
-		memmove((char *)mlt->font + xt, (char *)mlf->font + xf, l);
+		memmove(mlt->font + xt, mlf->font + xf, l * 4);
 	if (mlf->colorbg != null && mlt->colorbg == null) {
-		if ((mlt->colorbg = calloc(w, 1)) == 0)
+		if ((mlt->colorbg = calloc(w, 4)) == 0)
 			mlt->colorbg = null, r = -1;
 	}
 	if (mlt->colorbg != null)
-		memmove((char *)mlt->colorbg + xt, (char *)mlf->colorbg + xf, l);
+		memmove(mlt->colorbg + xt, mlf->colorbg + xf, l * 4);
 	if (mlf->colorfg != null && mlt->colorfg == null) {
-		if ((mlt->colorfg = calloc(w, 1)) == 0)
+		if ((mlt->colorfg = calloc(w, 4)) == 0)
 			mlt->colorfg = null, r = -1;
 	}
 	if (mlt->colorfg != null)
-		memmove((char *)mlt->colorfg + xt, (char *)mlf->colorfg + xf, l);
+		memmove(mlt->colorfg + xt, mlf->colorfg + xf, l * 4);
 	return r;
 }
 
@@ -384,8 +384,8 @@ static int maxwidth;
 
 static void CheckMaxSize(int wi)
 {
-	unsigned char *oldnull = null;
-	unsigned char *oldblank = blank;
+	uint32_t *oldnull = null;
+	uint32_t *oldblank = blank;
 	struct win *p;
 	int i;
 	struct mline *ml;
@@ -395,18 +395,18 @@ static void CheckMaxSize(int wi)
 		return;
 	maxwidth = wi;
 	debug("New maxwidth: %d\n", maxwidth);
-	blank = xrealloc(blank, maxwidth);
-	null = xrealloc(null, maxwidth);
-	mline_old.image = xrealloc(mline_old.image, maxwidth);
-	mline_old.attr = xrealloc(mline_old.attr, maxwidth);
-	mline_old.font = xrealloc(mline_old.font, maxwidth);
-	mline_old.colorbg = xrealloc(mline_old.colorbg, maxwidth);
-	mline_old.colorfg = xrealloc(mline_old.colorfg, maxwidth);
+	blank = xrealloc(blank, maxwidth * 4);
+	null = xrealloc(null, maxwidth * 4);
+	mline_old.image = xrealloc(mline_old.image, maxwidth * 4);
+	mline_old.attr = xrealloc(mline_old.attr, maxwidth * 4);
+	mline_old.font = xrealloc(mline_old.font, maxwidth * 4);
+	mline_old.colorbg = xrealloc(mline_old.colorbg, maxwidth * 4);
+	mline_old.colorfg = xrealloc(mline_old.colorfg, maxwidth * 4);
 	if (!(blank && null && mline_old.image && mline_old.attr && mline_old.font && mline_old.colorbg && mline_old.colorfg))
 		Panic(0, "%s", strnomem);
 
 	MakeBlankLine(blank, maxwidth);
-	memset((char *)null, 0, maxwidth);
+	memset(null, 0, maxwidth * 4);
 
 	mline_blank.image = blank;
 	mline_blank.attr = null;
@@ -447,7 +447,7 @@ static void CheckMaxSize(int wi)
 	}
 }
 
-void *xrealloc(void *mem, int len)
+void *xrealloc(void *mem, size_t len)
 {
 	register char *nmem;
 
@@ -459,7 +459,7 @@ void *xrealloc(void *mem, int len)
 	return (void *)0;
 }
 
-static void MakeBlankLine(register unsigned char *p, register int n)
+static void MakeBlankLine(register uint32_t *p, register int n)
 {
 	while (n--)
 		*p++ = ' ';
@@ -706,7 +706,7 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 	if (p->w_width != wi) {
 		if (wi) {
 			t = p->w_tabs ? p->w_width : 0;
-			p->w_tabs = xrealloc(p->w_tabs, wi + 1);
+			p->w_tabs = xrealloc(p->w_tabs, (wi + 1) * 4);
 			if (p->w_tabs == 0) {
  nomem:
 				if (nmlines) {

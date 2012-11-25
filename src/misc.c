@@ -158,11 +158,6 @@ void xsetegid(int egid)
 		Panic(errno, "setegid");
 }
 
-void bclear(char *p, int n)
-{
-	memmove(p, (char *)blank, n);
-}
-
 void Kill(int pid, int sig)
 {
 	if (pid < 2)

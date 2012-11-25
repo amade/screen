@@ -46,8 +46,8 @@ int use_hardstatus = 1;		/* display status line in hs */
 char *printcmd = 0;
 int use_altscreen = 0;		/* enable alternate screen support? */
 
-unsigned char *blank;		/* line filled with spaces */
-unsigned char *null;		/* line filled with '\0' */
+uint32_t *blank;		/* line filled with spaces */
+uint32_t *null;		/* line filled with '\0' */
 
 struct mline mline_old;
 struct mline mline_blank;
@@ -1790,7 +1790,7 @@ static void SelectRendition()
 static void FillWithEs()
 {
 	register int i;
-	register unsigned char *p, *ep;
+	register uint32_t *p, *ep;
 
 	LClearAll(&curr->w_layer, 1);
 	curr->w_y = curr->w_x = 0;
@@ -1836,7 +1836,7 @@ void ChangeAKA(struct win *p, char *s, size_t l)
 
 static void FindAKA()
 {
-	register unsigned char *cp, *line;
+	register uint32_t *cp, *line;
 	register struct win *wp = curr;
 	register int len = strlen(wp->w_akabuf);
 	int y;
@@ -1918,14 +1918,14 @@ static void MFixLine(struct win *p, int y, struct mchar *mc)
 {
 	struct mline *ml = &p->w_mlines[y];
 	if (mc->attr && ml->attr == null) {
-		if ((ml->attr = calloc(p->w_width + 1, 1)) == 0) {
+		if ((ml->attr = calloc(p->w_width + 1, 4)) == 0) {
 			ml->attr = null;
 			mc->attr = p->w_rend.attr = 0;
 			WMsg(p, 0, "Warning: no space for attr - turned off");
 		}
 	}
 	if (mc->font && ml->font == null) {
-		if ((ml->font = calloc(p->w_width + 1, 1)) == 0) {
+		if ((ml->font = calloc(p->w_width + 1, 4)) == 0) {
 			ml->font = null;
 			p->w_FontL = p->w_charsets[p->w_ss ? p->w_ss : p->w_Charset] = 0;
 			p->w_FontR = p->w_charsets[p->w_ss ? p->w_ss : p->w_CharsetR] = 0;
@@ -1934,14 +1934,14 @@ static void MFixLine(struct win *p, int y, struct mchar *mc)
 		}
 	}
 	if (mc->colorbg && ml->colorbg == null) {
-		if ((ml->colorbg = calloc(p->w_width + 1, 1)) == 0) {
+		if ((ml->colorbg = calloc(p->w_width + 1, 4)) == 0) {
 			ml->colorbg = null;
 			mc->colorbg = p->w_rend.colorbg = 0;
 			WMsg(p, 0, "Warning: no space for color background - turned off");
 		}
 	}
 	if (mc->colorfg && ml->colorfg == null) {
-		if ((ml->colorfg = calloc(p->w_width + 1, 1)) == 0) {
+		if ((ml->colorfg = calloc(p->w_width + 1, 4)) == 0) {
 			ml->colorfg = null;
 			mc->colorfg = p->w_rend.colorfg = 0;
 			WMsg(p, 0, "Warning: no space for color foreground - turned off");
@@ -2036,7 +2036,7 @@ static void MScrollV(struct win *p, int n, int ys, int ye, int bce)
 			if (ml->colorfg != null)
 				free(ml->colorfg);
 			ml->colorfg = null;
-			bclear((char *)ml->image, p->w_width + 1);
+			memmove(ml->image, blank, (p->w_width + 1) * 4);
 			if (bce)
 				MBceLine(p, i, 0, p->w_width, bce);
 		}
@@ -2069,7 +2069,7 @@ static void MScrollV(struct win *p, int n, int ys, int ye, int bce)
 			if (ml->colorfg != null)
 				free(ml->colorfg);
 			ml->colorfg = null;
-			bclear((char *)ml->image, p->w_width + 1);
+			memmove(ml->image, blank, (p->w_width + 1) * 4);
 			if (bce)
 				MBceLine(p, i, 0, p->w_width, bce);
 		}
@@ -2198,7 +2198,7 @@ static void MPutStr(struct win *p, char *s, int n, struct mchar *r, int x, int y
 {
 	struct mline *ml;
 	int i;
-	unsigned char *b;
+	uint32_t *b;
 
 	if (n <= 0)
 		return;
@@ -2206,7 +2206,7 @@ static void MPutStr(struct win *p, char *s, int n, struct mchar *r, int x, int y
 	ml = &p->w_mlines[y];
 	MKillDwRight(p, ml, x);
 	MKillDwLeft(p, ml, x + n - 1);
-	memmove((char *)ml->image + x, s, n);
+	memmove(ml->image + x, s, n * 4);
 	b = ml->attr + x;
 	for (i = n; i-- > 0;)
 		*b++ = r->attr;
@@ -2244,7 +2244,7 @@ static void MBceLine(struct win *p, int y, int xs, int xe, int bce)
 
 static void WAddLineToHist(struct win *wp, struct mline *ml)
 {
-	register unsigned char *q, *o;
+	register uint32_t *q, *o;
 	struct mline *hml;
 
 	if (wp->w_histheight == 0)
@@ -2292,13 +2292,13 @@ int MFindUsedLine(struct win *p, int ye, int ys)
 
 	debug("MFindUsedLine: %d %d\n", ye, ys);
 	for (y = ye; y >= ys; y--, ml--) {
-		if (memcmp((char *)ml->image, blank, p->w_width))
+		if (memcmp(ml->image, blank, p->w_width * 4))
 			break;
-		if (ml->attr != null && memcmp((char *)ml->attr, null, p->w_width))
+		if (ml->attr != null && memcmp(ml->attr, null, p->w_width * 4))
 			break;
-		if (ml->colorbg != null && memcmp((char *)ml->colorbg, null, p->w_width))
+		if (ml->colorbg != null && memcmp(ml->colorbg, null, p->w_width * 4))
 			break;
-		if (ml->colorfg != null && memcmp((char *)ml->colorfg, null, p->w_width))
+		if (ml->colorfg != null && memcmp(ml->colorfg, null, p->w_width * 4))
 			break;
 	}
 	debug("MFindUsedLine returning  %d\n", y);

@@ -283,7 +283,7 @@ extern void  ClearScrollbackBuffer (void);
 extern int   ChangeWindowSize (struct win *, int, int, int);
 extern void  ChangeScreenSize (int, int, int);
 extern void  CheckScreenSize (int);
-extern void *xrealloc (void *, int);
+extern void *xrealloc (void *, size_t);
 extern void  ResizeLayersToCanvases (void);
 extern void  ResizeLayer (struct layer *, int, int, struct display *);
 extern int   MayResizeLayer (struct layer *);
@@ -320,7 +320,6 @@ extern void  centerline (char *, int);
 extern void  leftline (char *, int, struct mchar *);
 extern char *Filename (char *);
 extern char *stripdev (char *);
-extern void  bclear (char*, int);
 extern void  closeallfiles (int);
 extern int   UserContext (void);
 extern void  UserReturn (int);
@@ -443,8 +442,8 @@ extern char **environ;
 extern char **NewEnv;
 
 extern unsigned char mark_key_tab[];
-extern unsigned char *blank;
-extern unsigned char *null;
+extern uint32_t *blank;
+extern uint32_t *null;
 
 extern int adaptflag;
 extern int attach_fd;
