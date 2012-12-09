@@ -442,7 +442,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	struct msg m;
 	register char *p;
 	register int len, n;
-	char **av = nwin->args;
+	char **av;
 
 #ifdef NAME_MAX
 	if (strlen(sty) > NAME_MAX)
