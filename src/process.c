@@ -4786,11 +4786,9 @@ static void ShowDInfo()
 	if (D_CG0) {
 		strncpy(p, " iso2022", l);
 		l -= strlen(p);
-		p += l;
 	} else if (D_CS0 && *D_CS0) {
 		strncpy(p, " altchar", l);
 		l -= strlen(p);
-		p += l;
 	}
 	Msg(0, "%s", buf);
 }
