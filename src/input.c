@@ -431,7 +431,6 @@ static void InpRedisplayLine(int y, int xs, int xe, int isblank)
 		q += l;
 		v -= l;
 	}
-	s = r;
 	r = flayer->l_width;
 	if (!isblank && v > 0 && q < r) {
 		l = v;

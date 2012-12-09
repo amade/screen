@@ -604,7 +604,6 @@ static int CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
 	if (recvfd != -1) {
 		char *myttyname;
 		i = recvfd;
-		recvfd = -1;
 		myttyname = ttyname(i);
 		if (myttyname == 0 || strcmp(myttyname, m->m_tty)) {
 			Msg(errno, "Attach: passed fd does not match tty: %s - %s!", m->m_tty,
