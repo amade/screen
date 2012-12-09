@@ -2694,7 +2694,7 @@ static void disp_readev_fn(struct event *ev, char *data)
 		D_fore->w_lastdisp = display;
 	if (D_mouse && D_forecv) {
 		unsigned char *bp = (unsigned char *)buf;
-		int x, y, i = size;
+		int x, y, i;
 
 		/* XXX this assumes that the string is read in as a whole... */
 		for (i = size; i > 0; i--, bp++) {

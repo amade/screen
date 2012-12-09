@@ -260,7 +260,7 @@ static void ListProcess(char **ppbuf, int *plen)
 					ch = 'k';
 				else if (button == ' ') {	/* Left click */
 					int y = flayer->l_mouseevent.buffer[2];
-					struct ListRow *r = ldata->top;
+					struct ListRow *r;
 					for (r = ldata->top; r && r->y != -1 && r->y != y; r = r->next) ;
 					if (r && r->y == y)
 						ldata->selected = r;
