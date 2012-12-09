@@ -436,6 +436,5 @@ static void InpRedisplayLine(int y, int xs, int xe, int isblank)
 		if (l > r - q)
 			l = r - q;
 		LClearArea(flayer, q, y, q + l - 1, y, 0, 0);
-		q += l;
 	}
 }
