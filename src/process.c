@@ -5060,7 +5060,6 @@ void DoScreen(char *fn, char **av)
 		}
 		++av;
 	}
-	num = 0;
 	if (av && *av && IsNumColon(*av, 10, buf, sizeof(buf))) {
 		if (*buf != '\0')
 			nwin.aka = buf;
