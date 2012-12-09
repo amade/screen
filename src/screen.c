@@ -2329,7 +2329,7 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 	if (numpad) {
 		if (padlen > MAXSTR - 1)
 			padlen = MAXSTR - 1;
-		p = pad_expand(winmsg_buf, p, numpad, padlen);
+		pad_expand(winmsg_buf, p, numpad, padlen);
 	}
 	if (ev) {
 		evdeq(ev);	/* just in case */

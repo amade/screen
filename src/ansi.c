@@ -1660,10 +1660,8 @@ static void CursorRight(register int n)
 {
 	register int x = curr->w_x;
 
-	if (x == cols) {
+	if (x == cols)
 		LineFeed(1);
-		x = 0;
-	}
 	if ((curr->w_x += n) >= cols)
 		curr->w_x = cols - 1;
 	LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
@@ -2443,7 +2441,7 @@ void WindowChanged(struct win *p, int what)
 	struct display *olddisplay = display;
 	struct canvas *cv;
 
-	inwstr = inhstr = 0;
+	inhstr = 0;
 
 	if (what == 'f') {
 		WindowChanged((struct win *)0, 'w' | 0x100);
