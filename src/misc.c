@@ -292,6 +292,3 @@ void sleep1000(int msec)
 	t.tv_usec = (long)((msec % 1000) * 1000);
 	select(0, (fd_set *) 0, (fd_set *) 0, (fd_set *) 0, &t);
 }
-
-#define xva_arg(s, t, tn) va_arg(s, t)
-#define xva_list va_list
