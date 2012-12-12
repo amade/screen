@@ -130,9 +130,6 @@ term.h: term.c term.sh
 
 kmapdef.c: term.h
 
-tty.c:	tty.sh 
-	sh $(srcdir)/tty.sh tty.c
-
 comm.h: comm.c comm.sh config.h
 	AWK=$(AWK) CC="$(CC) $(CFLAGS)" srcdir=${srcdir} sh $(srcdir)/comm.sh
 
@@ -146,7 +143,7 @@ mostlyclean:
 	rm -f $(OFILES) screen config.cache
 
 clean celan: mostlyclean
-	rm -f tty.c term.h comm.h kmapdef.c core
+	rm -f term.h comm.h kmapdef.c core
 
 # Delete all files from the current directory that are created by 
 # configuring or building the program.
@@ -167,7 +164,7 @@ maintainer-clean:
 realclean: .version mostlyclean
 	rm -f $(SCREEN).tar $(SCREEN).tar.gz
 	rm -f config.status Makefile doc/Makefile
-	rm -f tty.c term.h comm.h kmapdef.c
+	rm -f term.h comm.h kmapdef.c
 	rm -f config.h
 	echo "install all Makefiles and config:" > Makefile
 	echo "  sh ./configure" >> Makefile
@@ -178,18 +175,17 @@ tags TAGS: $(CFILES)
 
 dist: .version $(SCREEN).tar.gz
 
-$(SCREEN).tar: .version term.h comm.h tty.c kmapdef.c
+$(SCREEN).tar: .version term.h comm.h kmapdef.c
 	-rm -rf dist
 	mkdir dist
 	mkdir dist/$(SCREEN)
 	ln acls.h ansi.h display.h extern.h logfile.h mark.h os.h \
 	   layer.h patchlevel.h screen.h window.h image.h \
-	   term.sh tty.sh comm.sh \
+	   term.sh comm.sh \
 	   sched.h \
 	   $(CFILES) \
 	   ChangeLog COPYING INSTALL NEWS* TODO install.sh \
 	   dist/$(SCREEN)
-	cd dist/$(SCREEN); mv tty.c tty.c.dist
 	cd dist/$(SCREEN); mv kmapdef.c kmapdef.c.dist
 	ln configure.in configure dist/$(SCREEN)
 	sed -e 's@"/local/screens@"/tmp/screens@' -e 's@"/local@"/usr/local@g' < config.h.in > dist/$(SCREEN)/config.h.in
