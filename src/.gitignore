@@ -18,4 +18,3 @@ osdef.h
 term.h
 screen
 stamp-h.in
-tty.c

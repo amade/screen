@@ -1,29 +1,3 @@
-#! /bin/sh
-# sh tty.sh tty.c
-# This inserts all the needed #ifdefs for IF{} statements
-# and generates tty.c
-
-#
-# Stupid cpp on A/UX barfs on ``#if defined(FOO) && FOO < 17'' when
-# FOO is undefined. Reported by Robert C. Tindall (rtindall@uidaho.edu)
-#
-rm -f $1
-sed -e '1,26d' \
--e 's%^IF{\([^}]*\)}\(.*\)%#if defined(\1)\
-\2\
-#endif /* \1 */%' \
--e 's%^IFN{\([^}]*\)}\(.*\)%#if !defined(\1)\
-\2\
-#endif /* \1 */%' \
--e 's%^XIF{\([^}]*\)}\(.*\)%#if defined(\1)\
-#if (\1 < MAXCC)\
-\2\
-#endif \
-#endif /* \1 */%' \
- < $0 > $1
-chmod -w $1
-exit 0
-
 /* Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
@@ -201,20 +175,45 @@ InitTTY(struct mode *m, int ttyflag)
    * defaults, as seen on SunOS 4.1.3
    */
   debug("InitTTY: POSIX: termios defaults based on SunOS 4.1.3, but better (%d)\n", ttyflag);
-IF{BRKINT}	m->tio.c_iflag |= BRKINT;
-IF{IGNPAR}	m->tio.c_iflag |= IGNPAR;
-/* IF{ISTRIP}	m->tio.c_iflag |= ISTRIP;  may be needed, let's try. jw. */
-IF{IXON}	m->tio.c_iflag |= IXON;
-/* IF{IMAXBEL}	m->tio.c_iflag |= IMAXBEL; sorry, this one is ridiculus. jw */
+#if defined(BRKINT)
+	m->tio.c_iflag |= BRKINT;
+#endif /* BRKINT */
+#if defined(IGNPAR)
+	m->tio.c_iflag |= IGNPAR;
+#endif /* IGNPAR */
+/* #if defined(ISTRIP)
+ * 	m->tio.c_iflag |= ISTRIP;
+ * #endif
+ * may be needed, let's try. jw. */
+#if defined(IXON)
+	m->tio.c_iflag |= IXON;
+#endif /* IXON */
+/* #if defined(IMAXBEL)
+ * 	m->tio.c_iflag |= IMAXBEL;
+ * #endif
+ * sorry, this one is ridiculus. jw */
 
   if (!ttyflag)	/* may not even be good for ptys.. */
     {
-IF{ICRNL}	m->tio.c_iflag |= ICRNL;
-IF{ONLCR}	m->tio.c_oflag |= ONLCR;
-IF{TAB3}	m->tio.c_oflag |= TAB3;
-IF{OXTABS}      m->tio.c_oflag |= OXTABS;
-/* IF{PARENB}	m->tio.c_cflag |= PARENB;	nah! jw. */
-IF{OPOST}	m->tio.c_oflag |= OPOST;
+#if defined(ICRNL)
+	m->tio.c_iflag |= ICRNL;
+#endif /* ICRNL */
+#if defined(ONLCR)
+	m->tio.c_oflag |= ONLCR;
+#endif /* ONLCR */
+#if defined(TAB3)
+	m->tio.c_oflag |= TAB3;
+#endif /* TAB3 */
+#if defined(OXTABS)
+      m->tio.c_oflag |= OXTABS;
+#endif /* OXTABS */
+/* #if defined(PARENB)
+ * 	m->tio.c_cflag |= PARENB;
+ * #endif
+ * nah! jw. */
+#if defined(OPOST)
+	m->tio.c_oflag |= OPOST;
+#endif /* OPOST */
     }
 
 
@@ -222,49 +221,147 @@ IF{OPOST}	m->tio.c_oflag |= OPOST;
  * Or-ing the speed into c_cflags is dangerous.
  * It breaks on bsdi, where c_ispeed and c_ospeed are extra longs.
  *
- * IF{B9600}    m->tio.c_cflag |= B9600;
- * IF{IBSHIFT) && defined(B9600}        m->tio.c_cflag |= B9600 << IBSHIFT;
+ * #if defined(B9600)
+ * 	m->tio.c_cflag |= B9600;
+ * #endif
+ * #if defined(IBSHIFT) && defined(B9600)
+ * 	m->tio.c_cflag |= B9600 << IBSHIFT;
+ * #endif
  *
  * We hope that we have the posix calls to do it right:
  * If these are not available you might try the above.
  */
-IF{B9600}       cfsetospeed(&m->tio, B9600);
-IF{B9600}       cfsetispeed(&m->tio, B9600);
+#if defined(B9600)
+       cfsetospeed(&m->tio, B9600);
+#endif /* B9600 */
+#if defined(B9600)
+       cfsetispeed(&m->tio, B9600);
+#endif /* B9600 */
 
-IF{CS8} 	m->tio.c_cflag |= CS8;
-IF{CREAD}	m->tio.c_cflag |= CREAD;
-IF{CLOCAL}	m->tio.c_cflag |= CLOCAL;
+#if defined(CS8)
+ 	m->tio.c_cflag |= CS8;
+#endif /* CS8 */
+#if defined(CREAD)
+	m->tio.c_cflag |= CREAD;
+#endif /* CREAD */
+#if defined(CLOCAL)
+	m->tio.c_cflag |= CLOCAL;
+#endif /* CLOCAL */
 
-IF{ECHOCTL}	m->tio.c_lflag |= ECHOCTL;
-IF{ECHOKE}	m->tio.c_lflag |= ECHOKE;
+#if defined(ECHOCTL)
+	m->tio.c_lflag |= ECHOCTL;
+#endif /* ECHOCTL */
+#if defined(ECHOKE)
+	m->tio.c_lflag |= ECHOKE;
+#endif /* ECHOKE */
 
   if (!ttyflag)
     {
-IF{ISIG}	m->tio.c_lflag |= ISIG;
-IF{ICANON}	m->tio.c_lflag |= ICANON;
-IF{ECHO}	m->tio.c_lflag |= ECHO;
+#if defined(ISIG)
+	m->tio.c_lflag |= ISIG;
+#endif /* ISIG */
+#if defined(ICANON)
+	m->tio.c_lflag |= ICANON;
+#endif /* ICANON */
+#if defined(ECHO)
+	m->tio.c_lflag |= ECHO;
+#endif /* ECHO */
     }
-IF{ECHOE}	m->tio.c_lflag |= ECHOE;
-IF{ECHOK}	m->tio.c_lflag |= ECHOK;
-IF{IEXTEN}	m->tio.c_lflag |= IEXTEN;
+#if defined(ECHOE)
+	m->tio.c_lflag |= ECHOE;
+#endif /* ECHOE */
+#if defined(ECHOK)
+	m->tio.c_lflag |= ECHOK;
+#endif /* ECHOK */
+#if defined(IEXTEN)
+	m->tio.c_lflag |= IEXTEN;
+#endif /* IEXTEN */
 
-XIF{VINTR}	m->tio.c_cc[VINTR]    = Ctrl('C');
-XIF{VQUIT}	m->tio.c_cc[VQUIT]    = Ctrl('\\');
-XIF{VERASE}	m->tio.c_cc[VERASE]   = 0x7f; /* DEL */
-XIF{VKILL}	m->tio.c_cc[VKILL]    = Ctrl('H');
-XIF{VEOF}	m->tio.c_cc[VEOF]     = Ctrl('D');
-XIF{VEOL}	m->tio.c_cc[VEOL]     = 0000;
-XIF{VEOL2}	m->tio.c_cc[VEOL2]    = 0000;
-XIF{VSWTCH}	m->tio.c_cc[VSWTCH]   = 0000;
-XIF{VSTART}	m->tio.c_cc[VSTART]   = Ctrl('Q');
-XIF{VSTOP}	m->tio.c_cc[VSTOP]    = Ctrl('S');
-XIF{VSUSP}	m->tio.c_cc[VSUSP]    = Ctrl('Z');
-XIF{VDSUSP}	m->tio.c_cc[VDSUSP]   = Ctrl('Y');
-XIF{VREPRINT}	m->tio.c_cc[VREPRINT] = Ctrl('R');
-XIF{VDISCARD}	m->tio.c_cc[VDISCARD] = Ctrl('O');
-XIF{VWERASE}	m->tio.c_cc[VWERASE]  = Ctrl('W');
-XIF{VLNEXT}	m->tio.c_cc[VLNEXT]   = Ctrl('V');
-XIF{VSTATUS}	m->tio.c_cc[VSTATUS]  = Ctrl('T');
+#if defined(VINTR)
+#if (VINTR < MAXCC)
+	m->tio.c_cc[VINTR]    = Ctrl('C');
+#endif 
+#endif /* VINTR */
+#if defined(VQUIT)
+#if (VQUIT < MAXCC)
+	m->tio.c_cc[VQUIT]    = Ctrl('\\');
+#endif 
+#endif /* VQUIT */
+#if defined(VERASE)
+#if (VERASE < MAXCC)
+	m->tio.c_cc[VERASE]   = 0x7f; /* DEL */
+#endif 
+#endif /* VERASE */
+#if defined(VKILL)
+#if (VKILL < MAXCC)
+	m->tio.c_cc[VKILL]    = Ctrl('H');
+#endif 
+#endif /* VKILL */
+#if defined(VEOF)
+#if (VEOF < MAXCC)
+	m->tio.c_cc[VEOF]     = Ctrl('D');
+#endif 
+#endif /* VEOF */
+#if defined(VEOL)
+#if (VEOL < MAXCC)
+	m->tio.c_cc[VEOL]     = 0000;
+#endif 
+#endif /* VEOL */
+#if defined(VEOL2)
+#if (VEOL2 < MAXCC)
+	m->tio.c_cc[VEOL2]    = 0000;
+#endif 
+#endif /* VEOL2 */
+#if defined(VSWTCH)
+#if (VSWTCH < MAXCC)
+	m->tio.c_cc[VSWTCH]   = 0000;
+#endif 
+#endif /* VSWTCH */
+#if defined(VSTART)
+#if (VSTART < MAXCC)
+	m->tio.c_cc[VSTART]   = Ctrl('Q');
+#endif 
+#endif /* VSTART */
+#if defined(VSTOP)
+#if (VSTOP < MAXCC)
+	m->tio.c_cc[VSTOP]    = Ctrl('S');
+#endif 
+#endif /* VSTOP */
+#if defined(VSUSP)
+#if (VSUSP < MAXCC)
+	m->tio.c_cc[VSUSP]    = Ctrl('Z');
+#endif 
+#endif /* VSUSP */
+#if defined(VDSUSP)
+#if (VDSUSP < MAXCC)
+	m->tio.c_cc[VDSUSP]   = Ctrl('Y');
+#endif 
+#endif /* VDSUSP */
+#if defined(VREPRINT)
+#if (VREPRINT < MAXCC)
+	m->tio.c_cc[VREPRINT] = Ctrl('R');
+#endif 
+#endif /* VREPRINT */
+#if defined(VDISCARD)
+#if (VDISCARD < MAXCC)
+	m->tio.c_cc[VDISCARD] = Ctrl('O');
+#endif 
+#endif /* VDISCARD */
+#if defined(VWERASE)
+#if (VWERASE < MAXCC)
+	m->tio.c_cc[VWERASE]  = Ctrl('W');
+#endif 
+#endif /* VWERASE */
+#if defined(VLNEXT)
+#if (VLNEXT < MAXCC)
+	m->tio.c_cc[VLNEXT]   = Ctrl('V');
+#endif 
+#endif /* VLNEXT */
+#if defined(VSTATUS)
+#if (VSTATUS < MAXCC)
+	m->tio.c_cc[VSTATUS]  = Ctrl('T');
+#endif 
+#endif /* VSTATUS */
 
   if (ttyflag)
     {
@@ -319,15 +416,23 @@ SetMode(struct mode *op, struct mode *np, int flow, int interrupt)
   np->m_mapscreen = NOMAPSCREEN;
   np->tio.c_line = 0;
 # endif
-IF{ICRNL}  np->tio.c_iflag &= ~ICRNL;
-IF{ISTRIP}  np->tio.c_iflag &= ~ISTRIP;
-IF{ONLCR}  np->tio.c_oflag &= ~ONLCR;
+#if defined(ICRNL)
+  np->tio.c_iflag &= ~ICRNL;
+#endif /* ICRNL */
+#if defined(ISTRIP)
+  np->tio.c_iflag &= ~ISTRIP;
+#endif /* ISTRIP */
+#if defined(ONLCR)
+  np->tio.c_oflag &= ~ONLCR;
+#endif /* ONLCR */
   np->tio.c_lflag &= ~(ICANON | ECHO);
   /*
    * From Andrew Myers (andru@tonic.lcs.mit.edu)
    * to avoid ^V^V-Problem on OSF1
    */
-IF{IEXTEN}  np->tio.c_lflag &= ~IEXTEN;
+#if defined(IEXTEN)
+  np->tio.c_lflag &= ~IEXTEN;
+#endif /* IEXTEN */
 
   /*
    * Unfortunately, the master process never will get SIGINT if the real
@@ -357,21 +462,65 @@ IF{IEXTEN}  np->tio.c_lflag &= ~IEXTEN;
   np->tio.c_cc[VQUIT] = VDISABLE;
   if (flow == 0)
     {
-XIF{VSTART}	np->tio.c_cc[VSTART] = VDISABLE;
-XIF{VSTOP}	np->tio.c_cc[VSTOP] = VDISABLE;
+#if defined(VSTART)
+#if (VSTART < MAXCC)
+	np->tio.c_cc[VSTART] = VDISABLE;
+#endif 
+#endif /* VSTART */
+#if defined(VSTOP)
+#if (VSTOP < MAXCC)
+	np->tio.c_cc[VSTOP] = VDISABLE;
+#endif 
+#endif /* VSTOP */
       np->tio.c_iflag &= ~IXON;
     }
-XIF{VDISCARD}	np->tio.c_cc[VDISCARD] = VDISABLE;
-XIF{VLNEXT}	np->tio.c_cc[VLNEXT] = VDISABLE;
-XIF{VSTATUS}	np->tio.c_cc[VSTATUS] = VDISABLE;
-XIF{VSUSP}	np->tio.c_cc[VSUSP] = VDISABLE;
+#if defined(VDISCARD)
+#if (VDISCARD < MAXCC)
+	np->tio.c_cc[VDISCARD] = VDISABLE;
+#endif 
+#endif /* VDISCARD */
+#if defined(VLNEXT)
+#if (VLNEXT < MAXCC)
+	np->tio.c_cc[VLNEXT] = VDISABLE;
+#endif 
+#endif /* VLNEXT */
+#if defined(VSTATUS)
+#if (VSTATUS < MAXCC)
+	np->tio.c_cc[VSTATUS] = VDISABLE;
+#endif 
+#endif /* VSTATUS */
+#if defined(VSUSP)
+#if (VSUSP < MAXCC)
+	np->tio.c_cc[VSUSP] = VDISABLE;
+#endif 
+#endif /* VSUSP */
  /* Set VERASE to DEL, rather than VDISABLE, to avoid libvte
     "autodetect" issues. */
-XIF{VERASE}	np->tio.c_cc[VERASE] = 0x7f;
-XIF{VKILL}	np->tio.c_cc[VKILL] = VDISABLE;
-XIF{VDSUSP}	np->tio.c_cc[VDSUSP] = VDISABLE;
-XIF{VREPRINT}	np->tio.c_cc[VREPRINT] = VDISABLE;
-XIF{VWERASE}	np->tio.c_cc[VWERASE] = VDISABLE;
+#if defined(VERASE)
+#if (VERASE < MAXCC)
+	np->tio.c_cc[VERASE] = 0x7f;
+#endif 
+#endif /* VERASE */
+#if defined(VKILL)
+#if (VKILL < MAXCC)
+	np->tio.c_cc[VKILL] = VDISABLE;
+#endif 
+#endif /* VKILL */
+#if defined(VDSUSP)
+#if (VDSUSP < MAXCC)
+	np->tio.c_cc[VDSUSP] = VDISABLE;
+#endif 
+#endif /* VDSUSP */
+#if defined(VREPRINT)
+#if (VREPRINT < MAXCC)
+	np->tio.c_cc[VREPRINT] = VDISABLE;
+#endif 
+#endif /* VREPRINT */
+#if defined(VWERASE)
+#if (VWERASE < MAXCC)
+	np->tio.c_cc[VWERASE] = VDISABLE;
+#endif 
+#endif /* VWERASE */
 }
 
 /* operates on display */
@@ -384,15 +533,31 @@ SetFlow(int on)
   if (on)
     {
       D_NewMode.tio.c_cc[VINTR] = iflag ? D_OldMode.tio.c_cc[VINTR] : VDISABLE;
-XIF{VSTART}	D_NewMode.tio.c_cc[VSTART] = D_OldMode.tio.c_cc[VSTART];
-XIF{VSTOP}	D_NewMode.tio.c_cc[VSTOP] = D_OldMode.tio.c_cc[VSTOP];
+#if defined(VSTART)
+#if (VSTART < MAXCC)
+	D_NewMode.tio.c_cc[VSTART] = D_OldMode.tio.c_cc[VSTART];
+#endif 
+#endif /* VSTART */
+#if defined(VSTOP)
+#if (VSTOP < MAXCC)
+	D_NewMode.tio.c_cc[VSTOP] = D_OldMode.tio.c_cc[VSTOP];
+#endif 
+#endif /* VSTOP */
       D_NewMode.tio.c_iflag |= D_OldMode.tio.c_iflag & IXON;
     }
   else
     {
       D_NewMode.tio.c_cc[VINTR] = VDISABLE;
-XIF{VSTART}	D_NewMode.tio.c_cc[VSTART] = VDISABLE;
-XIF{VSTOP}	D_NewMode.tio.c_cc[VSTOP] = VDISABLE;
+#if defined(VSTART)
+#if (VSTART < MAXCC)
+	D_NewMode.tio.c_cc[VSTART] = VDISABLE;
+#endif 
+#endif /* VSTART */
+#if defined(VSTOP)
+#if (VSTOP < MAXCC)
+	D_NewMode.tio.c_cc[VSTOP] = VDISABLE;
+#endif 
+#endif /* VSTOP */
       D_NewMode.tio.c_iflag &= ~IXON;
     }
 #  ifdef TCOON
@@ -809,12 +974,24 @@ TtyGetModemStatus(int fd, char *buf)
 # ifdef MCGETA
   /* this is yet another interface, found on hpux. grrr */
   mflag mflags;
-IF{MDTR}#  define TIOCM_DTR MDTR
-IF{MRTS}#  define TIOCM_RTS MRTS
-IF{MDSR}#  define TIOCM_DSR MDSR
-IF{MDCD}#  define TIOCM_CAR MDCD
-IF{MRI}#  define TIOCM_RNG MRI
-IF{MCTS}#  define TIOCM_CTS MCTS
+#if defined(MDTR)
+#  define TIOCM_DTR MDTR
+#endif /* MDTR */
+#if defined(MRTS)
+#  define TIOCM_RTS MRTS
+#endif /* MRTS */
+#if defined(MDSR)
+#  define TIOCM_DSR MDSR
+#endif /* MDSR */
+#if defined(MDCD)
+#  define TIOCM_CAR MDCD
+#endif /* MDCD */
+#if defined(MRI)
+#  define TIOCM_RNG MRI
+#endif /* MRI */
+#if defined(MCTS)
+#  define TIOCM_CTS MCTS
+#endif /* MCTS */
 # endif
 #endif
 #if defined(CLOCAL) || defined(CRTSCTS)
@@ -960,31 +1137,81 @@ IF{MCTS}#  define TIOCM_CTS MCTS
  */
 static struct baud_values btable[] =
 {
-IF{B9600}	{	13,	9600,	B9600	},
-IF{B19200}	{	14,	19200,	B19200	},
-IF{EXTA}	{	14,	19200,	EXTA	},
-IF{B38400}	{	15,	38400,	B38400	},
-IF{EXTB}	{	15,	38400,	EXTB	},
-IF{B57600}	{	16,	57600,	B57600	},
-IF{B115200}	{	17,	115200,	B115200	},
-IF{B230400}	{	18,	230400,	B230400	},
-IF{B460800}	{	19,	460800,	B460800	},
-IF{B7200}	{	13,	7200,	B7200	},
-IF{B4800}	{	12,	4800,	B4800	},
-IF{B3600}	{	12,	3600,	B3600	},
-IF{B2400}	{	11,	2400,	B2400	},
-IF{B1800}	{	10,	1800,	B1800	},
-IF{B1200}	{	9,	1200,	B1200	},
-IF{B900} 	{	9,	900,	B900	},
-IF{B600} 	{	8,	600,	B600	},
-IF{B300} 	{	7,	300, 	B300	},
-IF{B200} 	{	6,	200, 	B200	},
-IF{B150} 	{	5,	150,	B150	},
-IF{B134} 	{	4,	134,	B134	},
-IF{B110} 	{	3,	110,	B110	},
-IF{B75}  	{	2,	75,	B75	},
-IF{B50}  	{	1,	50,	B50	},
-IF{B0}   	{	0,	0,	B0	},
+#if defined(B9600)
+	{	13,	9600,	B9600	},
+#endif /* B9600 */
+#if defined(B19200)
+	{	14,	19200,	B19200	},
+#endif /* B19200 */
+#if defined(EXTA)
+	{	14,	19200,	EXTA	},
+#endif /* EXTA */
+#if defined(B38400)
+	{	15,	38400,	B38400	},
+#endif /* B38400 */
+#if defined(EXTB)
+	{	15,	38400,	EXTB	},
+#endif /* EXTB */
+#if defined(B57600)
+	{	16,	57600,	B57600	},
+#endif /* B57600 */
+#if defined(B115200)
+	{	17,	115200,	B115200	},
+#endif /* B115200 */
+#if defined(B230400)
+	{	18,	230400,	B230400	},
+#endif /* B230400 */
+#if defined(B460800)
+	{	19,	460800,	B460800	},
+#endif /* B460800 */
+#if defined(B7200)
+	{	13,	7200,	B7200	},
+#endif /* B7200 */
+#if defined(B4800)
+	{	12,	4800,	B4800	},
+#endif /* B4800 */
+#if defined(B3600)
+	{	12,	3600,	B3600	},
+#endif /* B3600 */
+#if defined(B2400)
+	{	11,	2400,	B2400	},
+#endif /* B2400 */
+#if defined(B1800)
+	{	10,	1800,	B1800	},
+#endif /* B1800 */
+#if defined(B1200)
+	{	9,	1200,	B1200	},
+#endif /* B1200 */
+#if defined(B900)
+ 	{	9,	900,	B900	},
+#endif /* B900 */
+#if defined(B600)
+ 	{	8,	600,	B600	},
+#endif /* B600 */
+#if defined(B300)
+ 	{	7,	300, 	B300	},
+#endif /* B300 */
+#if defined(B200)
+ 	{	6,	200, 	B200	},
+#endif /* B200 */
+#if defined(B150)
+ 	{	5,	150,	B150	},
+#endif /* B150 */
+#if defined(B134)
+ 	{	4,	134,	B134	},
+#endif /* B134 */
+#if defined(B110)
+ 	{	3,	110,	B110	},
+#endif /* B110 */
+#if defined(B75)
+  	{	2,	75,	B75	},
+#endif /* B75 */
+#if defined(B50)
+  	{	1,	50,	B50	},
+#endif /* B50 */
+#if defined(B0)
+   	{	0,	0,	B0	},
+#endif /* B0 */
 		{	-1,	-1,	-1	}
 };
 
