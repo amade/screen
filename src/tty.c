@@ -26,11 +26,6 @@
  ****************************************************************
  */
 
-/*
- * NOTICE: tty.c is automatically generated from tty.sh
- * Do not change anything here. If you then change tty.sh.
- */
-
 #include <sys/types.h>
 #include <signal.h>
 #include <fcntl.h>
