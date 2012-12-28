@@ -1598,7 +1598,7 @@ static const char months[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
 
 static char winmsg_buf[MAXSTR];
 #define MAX_WINMSG_REND 256	/* rendition changes */
-static int winmsg_rend[MAX_WINMSG_REND];
+static uint64_t winmsg_rend[MAX_WINMSG_REND];
 static int winmsg_rendpos[MAX_WINMSG_REND];
 static int winmsg_numrend;
 
@@ -1812,14 +1812,14 @@ static char *runbacktick(struct backtick *bt, int *tickp, time_t now)
 void AppendWinMsgRend(char *str, char *color)
 {
 	char *p;
-	int r = -1;
+	uint64_t r = 0;
 	if (winmsg_numrend >= MAX_WINMSG_REND)
 		return;
 	p = winmsg_buf + strlen(winmsg_buf);
 	if (color) {
 		if (*color != '-') {
-			r = ParseAttrColor(color, 0, 0);
-			if (r == -1)
+			r = ParseAttrColor(color, 0);
+			if (r == 0)
 				return;
 		}
 		winmsg_rend[winmsg_numrend] = r;
@@ -1829,7 +1829,7 @@ void AppendWinMsgRend(char *str, char *color)
 	strncpy(p, str, winmsg_buf + sizeof(winmsg_buf) - p);
 }
 
-int AddWinMsgRend(const char *str, int r)
+int AddWinMsgRend(const char *str, uint64_t r)
 {
 	if (winmsg_numrend >= MAX_WINMSG_REND || str < winmsg_buf || str >= winmsg_buf + MAXSTR)
 		return -1;
@@ -1849,7 +1849,7 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 	register int ctrl;
 	struct timeval now;
 	struct tm *tm;
-	int l, i, r;
+	int l, i;
 	int num;
 	int zeroflg;
 	int longflg;
@@ -1862,6 +1862,7 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 	int truncpos = -1;
 	int truncper = 0;
 	int trunclong = 0;
+	uint64_t r;
 	struct backtick *bt = NULL;
 
 	if (winmsg_numrend >= 0)
@@ -2122,12 +2123,12 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 					else
 						break;
 				if (s[i] == '}' && winmsg_numrend < MAX_WINMSG_REND) {
-					r = -1;
+					r = 0;
 					rbuf[i] = 0;
 					debug("MakeWinMsg attrcolor %s\n", rbuf);
 					if (i != 1 || rbuf[0] != '-')
-						r = ParseAttrColor(rbuf, (char *)0, 0);
-					if (r != -1 || (i == 1 && rbuf[0] == '-')) {
+						r = ParseAttrColor(rbuf, 0);
+					if (r != 0 || (i == 1 && rbuf[0] == '-')) {
 						winmsg_rend[winmsg_numrend] = r;
 						winmsg_rendpos[winmsg_numrend] = p - winmsg_buf;
 						winmsg_numrend++;
@@ -2355,7 +2356,8 @@ char *MakeWinMsg(char *s, struct win *win, int esc)
 
 void PutWinMsg(char *s, int start, int max)
 {
-	int i, p, l, r, n;
+	int i, p, l, n;
+	uint64_t r;
 	struct mchar rend;
 	struct mchar rendstack[MAX_WINMSG_REND];
 	int rendstackn = 0;
@@ -2393,7 +2395,7 @@ void PutWinMsg(char *s, int start, int max)
 			}
 		}
 		r = winmsg_rend[i];
-		if (r == -1) {
+		if (r == 0) {
 			if (rendstackn > 0)
 				rend = rendstack[--rendstackn];
 		} else {
