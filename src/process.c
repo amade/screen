@@ -895,7 +895,8 @@ static void StuffFin(char *buf, int len, char *data)
 	char **args = act->args;
 	int *argl = act->argl;
 	struct win *p;
-	int argc, i, n, msgok;
+	int argc, n, msgok;
+	uint64_t i;
 	char *s;
 	char ch;
 	struct display *odisplay = display;
@@ -3234,8 +3235,8 @@ static void StuffFin(char *buf, int len, char *data)
 		if (*s >= '0' && *s <= '9')
 			i = *s - '0';
 		else
-			for (i = 0; i < 8; i++)
-				if (*s == "dubrsBiI"[i])
+			for (i = 0; i < 6; i++)
+				if (*s == "dubrsl"[i])
 					break;
 		s++;
 		nr = 0;
@@ -3250,18 +3251,18 @@ static void StuffFin(char *buf, int len, char *data)
 				s--;
 			s += 2;
 		}
-		if (*s || i < 0 || i >= 8) {
+		if (*s || i < 0 || i >= 6) {
 			OutputMsg(0, "%s: attrcolor: unknown attribute '%s'.", rc_name, args[0]);
 			break;
 		}
 		n = 0;
 		if (args[1])
-			n = ParseAttrColor(args[1], args[2], 1);
-		if (n == -1)
+			n = ParseAttrColor(args[1], 1);
+		if (n == 0)
 			break;
 		attr2color[i][nr] = n;
 		n = 0;
-		for (i = 0; i < 8; i++)
+		for (i = 0; i < 6; i++)
 			if (attr2color[i][0] || attr2color[i][1] || attr2color[i][2] || attr2color[i][3])
 				n |= 1 << i;
 		nattr2color = n;
@@ -3283,7 +3284,7 @@ static void StuffFin(char *buf, int len, char *data)
 		++argl;
 
 		if (i != -1) {
-			renditions[i] = ParseAttrColor(args[0], args[1], 1);
+			renditions[i] = ParseAttrColor(args[0], 1);
 			WindowChanged((struct win *)0, 'w');
 			WindowChanged((struct win *)0, 'W');
 			WindowChanged((struct win *)0, 0);
@@ -3295,8 +3296,8 @@ static void StuffFin(char *buf, int len, char *data)
 	case RC_SORENDITION:
 		i = 0;
 		if (args[0]) {
-			i = ParseAttrColor(args[0], args[1], 1);
-			if (i == -1)
+			i = ParseAttrColor(args[0], 1);
+			if (i == 0)
 				break;
 			ApplyAttrColor(i, &mchar_so);
 			WindowChanged((struct win *)0, 0);
@@ -5780,32 +5781,35 @@ void RefreshXtermOSC()
 
 /*
  *  ParseAttrColor - parses attributes and color
- *  	s1,s2 - strings containing attributes and/or colors
+ *  	str - string containing attributes and/or colors
  *  	        d - dim
  *  	        u - underscore
  *  	        b - bold
  *  	        r - reverse
  *  	        s - standout
  *  	        l - blinking
- *  	        0-255;0-255 - foregroung;background
+ *  	        0-255;0-255 - foreground;background
+ *  	        xABCDEF;xABCDEF - truecolor foreground;background
  *  	msgok - can we be verbose if something is wrong
  *
  *  returns value representing encoded value
  */
-int ParseAttrColor(char *s1, char *s2, int msgok)
+uint64_t ParseAttrColor(char *str, int msgok)
 {
-	debug("ParseAttrColor(%s, %s, %d)\n", s1, s2, msgok);
+	debug("ParseAttrColor(%s, %d)\n", str, msgok);
 
-	int r;
+	uint64_t r;
 
-	int attr = 0;
-	int bg = 0, fg = 0;
+	uint32_t attr = 0;
+	uint32_t bg = 0, fg = 0;
 
-	int *cl;
+	uint32_t *cl;
 	cl = &fg;
 
-	while (*s1) {
-		switch (*s1) {
+	uint32_t colormask = 0;
+
+	while (*str) {
+		switch (*str) {
 		case 'd':
 			attr |= A_DI;
 			break;
@@ -5824,6 +5828,8 @@ int ParseAttrColor(char *s1, char *s2, int msgok)
 		case 'l':
 			attr |= A_BL;
 			break;
+		case 'x':
+			colormask = 2;
 		case '0':
 		case '1':
 		case '2':
@@ -5834,7 +5840,8 @@ int ParseAttrColor(char *s1, char *s2, int msgok)
 		case '7':
 		case '8':
 		case '9':
-			*cl = *cl * 10 + (*s1 - '0');
+			if (!colormask) colormask = 1;
+			*cl = *cl * 10 + (*str - '0');
 			break;
 		case ';':
 			cl = &bg;
@@ -5843,80 +5850,58 @@ int ParseAttrColor(char *s1, char *s2, int msgok)
 			break;
 		default:
 			if (msgok)
-				Msg(0, "junk after description: '%c'\n", *s2);
+				Msg(0, "junk after description: '%c'\n", *str);
 			break;
 		}
-		s1++;
-	}
-	if (s2) {
-	while (*s2) {
-		switch (*s2) {
-		case 'd':
-			attr |= A_DI;
-			break;
-		case 'u':
-			attr |= A_US;
-			break;
-		case 'b':
-			attr |= A_BD;
-			break;
-		case 'r':
-			attr |= A_RV;
-			break;
-		case 's':
-			attr |= A_SO;
-			break;
-		case 'l':
-			attr |= A_BL;
-			break;
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			*cl = *cl * 10 + (*s2 - '0');
-			break;
-		case ';':
-			cl = &bg;
-			break;
-		case ' ':
-			break;
-		default:
-			if (msgok)
-				Msg(0, "junk after description: '%c'\n", *s2);
-			break;
-		}
-		s2++;
-	}
+		str++;
 	}
 
 	if (fg > 255) fg = 0;
 	if (bg > 255) bg = 0;
 
-	r = (attr & 0x0FF) << 16;
+	r = (((uint64_t)attr & 0x0FF) << 56);
 
-	r |= ((bg & 0x0FF)) << 8;
-	r |= (fg & 0x0FF);
+	r |= (((uint64_t)bg & 0x0FFFFFF) << 24);
+	r |= ((uint64_t)fg & 0x0FFFFFF);
+	//if (bg != 0)
+		r |= 0x0010000000000000;
+	//if (fg != 0)
+		r |= 0x0001000000000000;
 
-	debug("ParseAttrColor %06x\n", r);
+	debug("ParseAttrColor %016lx\n", r);
 	return r;
 }
 
 /*
  *   ApplyAttrColor - decodes color attributes and sets them in structure
- *   	i - coded color 0x000 .(attr) ..(bgcolor) ..(fgcolor)
+ *   	i - encoded attributes and color
+ *   	00 00 00 00 00 00 00 00
+ *	xx 00 00 00 00 00 00 00 - attr
+ *	00 x0 00 00 00 00 00 00 - what kind of background
+ *	00 0x 00 00 00 00 00 00 - what kind of foreground
+ *	                          0 - default, 1 - 256, 2 - truecolor
+ *	00 00 xx xx xx 00 00 00 - background
+ *	00 00 00 00 00 xx xx xx - foreground
  *   	mc -structure to modify
  */
-void ApplyAttrColor(int i, struct mchar *mc)
+void ApplyAttrColor(uint64_t i, struct mchar *mc)
 {
-	debug("ApplyAttrColor %06x\n", i);
-	mc->attr	= (0x00FF0000 & i) >> 16;
-	mc->colorbg	= (0x0000FF00 & i) >> 8;
-	mc->colorfg	= (0x000000FF & i);
-	debug("ApplyAttrColor - %02x %02x\n", mc->attr, i);
+	uint32_t a, b, f;
+	unsigned char h;
+	debug("ApplyAttrColor %016lx\n", i);
+	a = (0xFF00000000000000 & i) >> 56;
+	b = (0x0000FFFFFF000000 & i) >> 24;
+	f = (0x0000000000FFFFFF & i);
+
+	h = (0x00FF000000000000 & i) >> 48;
+
+	if (h & 0x20) b |= 0x02000000;
+	if (h & 0x10) b |= 0x01000000;
+	if (h & 0x02) f |= 0x02000000;
+	if (h & 0x01) f |= 0x01000000;
+	
+	mc->attr	= a;
+	mc->colorbg	= b;
+	mc->colorfg	= f;
+	debug("ApplyAttrColor - %08x %016lx\n", mc->attr, i);
 }

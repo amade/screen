@@ -177,7 +177,7 @@ struct comm comms[RC_LAST + 1] =
   { "register",		ARGS_24,			{NULL} },
   { "remove",		NEED_DISPLAY|ARGS_0,		{NULL} },
   { "removebuf",	ARGS_0,				{NULL} },
-  { "rendition",	ARGS_23,			{NULL} },
+  { "rendition",	ARGS_2,				{NULL} },
   { "reset",		NEED_FORE|ARGS_0,		{NULL} },
   { "resize",		NEED_DISPLAY|ARGS_0|ARGS_ORMORE,{NULL} },
   { "screen",		ARGS_0|ARGS_ORMORE,		{NULL} },

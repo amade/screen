@@ -47,7 +47,7 @@ char *printcmd = 0;
 int use_altscreen = 0;		/* enable alternate screen support? */
 
 uint32_t *blank;		/* line filled with spaces */
-uint32_t *null;		/* line filled with '\0' */
+uint32_t *null;			/* line filled with '\0' */
 
 struct mline mline_old;
 struct mline mline_blank;
@@ -57,7 +57,7 @@ struct mchar mchar_null;
 struct mchar mchar_blank = { ' ' /* , 0, 0, ... */  };
 struct mchar mchar_so = { ' ', A_SO /* , 0, 0, ... */  };
 
-int renditions[NUM_RENDS] = { 65529 /* =ub */ , 65531 /* =b */ , 65533 /* =u */  };
+uint64_t renditions[NUM_RENDS] = { 65529 /* =ub */ , 65531 /* =b */ , 65533 /* =u */  };
 
 /* keep string_t and string_t_string in sync! */
 static char *string_t_string[] = {
@@ -1773,19 +1773,9 @@ static void SelectRendition()
 			if (jj < 0 || jj > 255)
 				continue;
 			if (j == 38) {
-				attr |= A_BFG;
 				colorfg = jj;
-				if (jj >= 8 && jj < 16)
-					colorfg |= 0x08;
-				else
-					attr ^= A_BFG;
 			} else {
-				attr |= A_BBG;
 				colorbg = jj;
-				if (jj >= 8 && jj < 16)
-					colorbg |= 0x08;
-				else
-					attr ^= A_BBG;
 			}
 			continue;
 		}
@@ -1799,8 +1789,9 @@ static void SelectRendition()
 			colorbg = (j - 40);
 		if (j == 0) {
 			attr = 0;
-			colorbg = 9;
-			colorfg = 9;
+			/* will be xored to 0 */
+			colorbg = 0x01000000;
+			colorfg = 0x01000000;
 		}
 
 		if (j < 0 || j >= (int)(sizeof(rendlist)/sizeof(*rendlist)))
@@ -1813,8 +1804,8 @@ static void SelectRendition()
 	} while (++i < curr->w_NumArgs);
 	
 	curr->w_rend.attr = attr;
-	curr->w_rend.colorbg = colorbg;
-	curr->w_rend.colorfg = colorfg;
+	curr->w_rend.colorbg = colorbg ^ 0x01000000;
+	curr->w_rend.colorfg = colorfg ^ 0x01000000;
 	LSetRendition(&curr->w_layer, &curr->w_rend);
 }
 
