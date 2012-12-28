@@ -64,8 +64,8 @@ extern
 short ospeed;
 
 struct display *display, *displays;
-int attr2color[8][4];
-int nattr2color;
+uint64_t attr2color[8][4];
+uint64_t nattr2color;
 
 /*
  *  The default values
@@ -1308,26 +1308,30 @@ int color256to88(int color)
 	return color;
 }
 
-void SetColor(uint32_t f, uint32_t b)
+/*
+ * SetColor - Sets foreground and background color
+ * 0x00000000 <- default color ("transparent")
+ * 	one note here that "null" variable is pointer to array of 0 and that's one of reasons to use it this way 
+ * 0x010000xx <- 256 color
+ * 0x02xxxxxx <- truecolor
+ */
+void SetColor(uint32_t foreground, uint32_t background)
 {
-	uint32_t of, ob;
+	uint32_t f, b, of, ob;
 	static unsigned char sftrans[8] = { 0, 4, 2, 6, 1, 5, 3, 7 };
 
 	if (!display)
 		return;
 
+	f = foreground;
+	b = background;
 	of = D_rend.colorfg;
 	ob = D_rend.colorbg;
 
-	/* intense default not invented yet */
-	if (f == 0x100)
-		f = 9;
-	if (b == 0x100)
-		b = 9;
 	debug("SetColor %d %d", of, ob);
 	debug(" -> %d %d\n", f, b);
 
-	if (!D_CAX && D_hascolor && ((f == 9 && f != of) || (b == 9 && b != ob))) {
+	if (!D_CAX && D_hascolor && ((f == 0 && f != of) || (b == 0 && b != ob))) {
 		if (D_OP)
 			AddCStr(D_OP);
 		else {
@@ -1343,17 +1347,15 @@ void SetColor(uint32_t f, uint32_t b)
 			D_rend.attr = 0;
 			SetAttr(oattr);
 		}
-		of = ob = 9;
+		of = ob = 0;
 	}
 	D_rend.colorfg = f;
 	D_rend.colorbg = b;
+	f ^= 0x01000000;
+	b ^= 0x01000000;
 	D_col16change = 0;
 	if (!D_hascolor)
 		return;
-	f = f != 9 ? (f) : -1;
-	b = b != 9 ? (b) : -1;
-	of = of != 9 ? (of) : -1;
-	ob = ob != 9 ? (ob) : -1;
 	if (f != of && f > 15 && D_CCO != 256)
 		f = D_CCO == 88 && D_CAF ? color256to88(f) : color256to16(f);
 	if (f != of && f > 15 && D_CAF) {
@@ -1367,7 +1369,7 @@ void SetColor(uint32_t f, uint32_t b)
 		ob = b;
 	}
 	if (f != of && f != (of | 8)) {
-		if (f == -1)
+		if (foreground == 0)
 			AddCStr("\033[39m");	/* works because AX is set */
 		else if (D_CAF)
 			AddCStr2(D_CAF, f & 7);
@@ -1375,7 +1377,7 @@ void SetColor(uint32_t f, uint32_t b)
 			AddCStr2(D_CSF, sftrans[f & 7]);
 	}
 	if (b != ob && b != (ob | 8)) {
-		if (b == -1)
+		if (background == 0)
 			AddCStr("\033[49m");	/* works because AX is set */
 		else if (D_CAB)
 			AddCStr2(D_CAB, b & 7);
