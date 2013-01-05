@@ -44,11 +44,6 @@
 #define A_BL	(1<<ATTR_BL)
 #define A_MAX	(1<<(NATTR-1))
 
-# define ATTR_BFG	6	/* bright foreground */
-# define ATTR_BBG	7	/* bright background */
-# define A_BFG (1<<ATTR_BFG)
-# define A_BBG (1<<ATTR_BBG)
-
 #define ATYP_M		(1<<0)
 #define ATYP_S		(1<<1)
 #define ATYP_U		(1<<2)

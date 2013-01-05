@@ -4379,43 +4379,6 @@ static void StuffFin(char *buf, int len, char *data)
 			free(nwin_default.charset);
 		nwin_default.charset = SaveStr(*args);
 		break;
-	case RC_ATTRCOLOR:
-		s = args[0];
-		if (*s >= '0' && *s <= '9')
-			i = *s - '0';
-		else
-			for (i = 0; i < 6; i++)
-				if (*s == "dubrsl"[i])
-					break;
-		s++;
-		nr = 0;
-		if (*s && s[1] && !s[2]) {
-			if (*s == 'd' && s[1] == 'd')
-				nr = 3;
-			else if (*s == '.' && s[1] == 'd')
-				nr = 2;
-			else if (*s == 'd' && s[1] == '.')
-				nr = 1;
-			else if (*s != '.' || s[1] != '.')
-				s--;
-			s += 2;
-		}
-		if (*s || i < 0 || i >= 6) {
-			OutputMsg(0, "%s: attrcolor: unknown attribute '%s'.", rc_name, args[0]);
-			break;
-		}
-		n = 0;
-		if (args[1])
-			n = ParseAttrColor(args[1], 1);
-		if (n == 0)
-			break;
-		attr2color[i][nr] = n;
-		n = 0;
-		for (i = 0; i < 6; i++)
-			if (attr2color[i][0] || attr2color[i][1] || attr2color[i][2] || attr2color[i][3])
-				n |= 1 << i;
-		nattr2color = n;
-		break;
 	case RC_RENDITION:
 		i = -1;
 		if (strcmp(args[0], "bell") == 0) {
