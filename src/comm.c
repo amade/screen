@@ -39,7 +39,6 @@ struct comm comms[RC_LAST + 1] =
   { "allpartial",	NEED_DISPLAY|ARGS_1,		},
   { "altscreen",	ARGS_01,			},
   { "at",		ARGS_2|ARGS_ORMORE,		},
-  { "attrcolor",	ARGS_12,			},
   { "autodetach",	ARGS_1,				},
   { "autonuke",		NEED_DISPLAY|ARGS_1,		},
   { "backtick",		ARGS_1|ARGS_ORMORE,		},

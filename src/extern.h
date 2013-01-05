@@ -447,7 +447,6 @@ extern uint32_t *null;
 
 extern int adaptflag;
 extern int attach_fd;
-extern uint64_t attr2color[][4];
 extern int auto_detach;
 extern int captionalways;
 extern int breaktype;
@@ -476,7 +475,6 @@ extern int maxusercount;
 extern int maxwin;
 extern int multi_uid;
 extern int multiattach;
-extern uint64_t nattr2color;
 extern int nversion;
 extern int own_uid;
 extern int pastefont;

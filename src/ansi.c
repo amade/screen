@@ -1752,10 +1752,14 @@ static void SelectRendition()
 			colorfg = (j - 90 + 8);
 		if (j >= 100 && j <= 107)
 			colorbg = (j - 100 + 8);
-		if (j >= 30 && j <= 39 && j != 38)
+		if (j >= 30 && j < 38)
 			colorfg = (j - 30);
-		if (j >= 40 && j <= 49 && j != 48)
+		if (j >= 40 && j < 48)
 			colorbg = (j - 40);
+		if (j == 39)
+			colorfg = 0x01000000;
+		if (j == 49)
+			colorbg = 0x01000000;
 		if (j == 0) {
 			attr = 0;
 			/* will be xored to 0 */
@@ -1773,6 +1777,7 @@ static void SelectRendition()
 	} while (++i < curr->w_NumArgs);
 	
 	curr->w_rend.attr = attr;
+	
 	curr->w_rend.colorbg = colorbg ^ 0x01000000;
 	curr->w_rend.colorfg = colorfg ^ 0x01000000;
 	LSetRendition(&curr->w_layer, &curr->w_rend);

@@ -64,8 +64,6 @@ extern
 short ospeed;
 
 struct display *display, *displays;
-uint64_t attr2color[8][4];
-uint64_t nattr2color;
 
 /*
  *  The default values
@@ -1174,11 +1172,10 @@ void ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 void SetAttr(register int new)
 {
 	register int i, j, old, typ;
+	old = D_rend.attr;
 
-	if (!display || (old = D_rend.attr) == new)
+	if (!display)
 		return;
-	D_col16change = (old ^ new) & (A_BFG | A_BBG);
-	new ^= D_col16change;
 	if (old == new)
 		return;
 #if defined(USE_SGR)
@@ -1364,7 +1361,7 @@ void SetColor(uint32_t foreground, uint32_t background)
 		AddCStr2(D_CAB, b);
 		ob = b;
 	}
-	if (f != of && f != (of | 8)) {
+	if (f != of && f < 8) {
 		if (foreground == 0)
 			AddCStr("\033[39m");	/* works because AX is set */
 		else if (D_CAF)
@@ -1372,7 +1369,7 @@ void SetColor(uint32_t foreground, uint32_t background)
 		else if (D_CSF)
 			AddCStr2(D_CSF, sftrans[f & 7]);
 	}
-	if (b != ob && b != (ob | 8)) {
+	if (b != ob && b < 8) {
 		if (background == 0)
 			AddCStr("\033[49m");	/* works because AX is set */
 		else if (D_CAB)
@@ -1380,10 +1377,10 @@ void SetColor(uint32_t foreground, uint32_t background)
 		else if (D_CSB)
 			AddCStr2(D_CSB, sftrans[b & 7]);
 	}
-	if (f != of && D_CXT && (f & 8) != 0 && f != -1) {
+	if (f != of && D_CXT && (f & 8) != 0 && foreground != 0) {
 		AddCStr2("\033[9%p1%dm", f & 7);
 	}
-	if (b != ob && D_CXT && (b & 8) != 0 && b != -1) {
+	if (b != ob && D_CXT && (b & 8) != 0 && background != 0) {
 		AddCStr2("\033[10%p1%dm", b & 7);
 	}
 }
@@ -1399,36 +1396,8 @@ void SetRendition(struct mchar *mc)
 {
 	if (!display)
 		return;
-	if (nattr2color && D_hascolor && (mc->attr & nattr2color) != 0) {
-		static struct mchar mmc;
-		int i;
-		mmc = *mc;
-
-		for (i = 0; i < 8; i++)
-			if (attr2color[i] && (mc->attr & (1 << i)) != 0) {
-				if (mc->colorbg == 0 && mc->colorfg == 0 && attr2color[i][3])
-					ApplyAttrColor(attr2color[i][3], &mmc);
-				else if ((mc->colorfg) == 0 && attr2color[i][2])
-					ApplyAttrColor(attr2color[i][2], &mmc);
-				else if ((mc->colorbg) == 0 && attr2color[i][1])
-					ApplyAttrColor(attr2color[i][1], &mmc);
-				else
-					ApplyAttrColor(attr2color[i][0], &mmc);
-			}
-		mc = &mmc;
-		debug("SetRendition: mapped to %02x %02x\n", (unsigned char)mc->attr, 0x99 - (unsigned char)mc->color);
-	}
-	if (D_hascolor && D_CC8 && (mc->attr & (A_BFG | A_BBG))) {
-		uint32_t a = mc->attr;
-		if ((mc->attr & A_BFG) && D_MD)
-			a |= A_BD;
-		if ((mc->attr & A_BBG) && D_MB)
-			a |= A_BL;
-		if (D_rend.attr != a)
-			SetAttr(a);
-	} else if (D_rend.attr != mc->attr)
+	if (D_rend.attr != mc->attr)
 		SetAttr(mc->attr);
-
 	if (D_rend.colorbg != mc->colorbg || D_rend.colorfg != mc->colorfg || D_col16change)
 		SetColor(mc->colorfg, mc->colorbg);
 	if (D_rend.font != mc->font)
@@ -1439,21 +1408,7 @@ void SetRenditionMline(struct mline *ml, int x)
 {
 	if (!display)
 		return;
-	if (nattr2color && D_hascolor && (ml->attr[x] & nattr2color) != 0) {
-		struct mchar mc;
-		copy_mline2mchar(&mc, ml, x);
-		SetRendition(&mc);
-		return;
-	}
-	if (D_hascolor && D_CC8 && (ml->attr[x] & (A_BFG | A_BBG))) {
-		int a = ml->attr[x];
-		if ((ml->attr[x] & A_BFG) && D_MD)
-			a |= A_BD;
-		if ((ml->attr[x] & A_BBG) && D_MB)
-			a |= A_BL;
-		if (D_rend.attr != a)
-			SetAttr(a);
-	} else if (D_rend.attr != ml->attr[x])
+	if (D_rend.attr != ml->attr[x])
 		SetAttr(ml->attr[x]);
 	if (D_rend.colorbg != ml->colorbg[x]
 	    || D_rend.colorfg != ml->colorfg[x]
