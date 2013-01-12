@@ -166,12 +166,6 @@ extern void   CarefulUtmp (void);
 #endif /* CAREFULUTMP */
 
 
-/* loadav.c */
-#ifdef LOADAV
-extern void  InitLoadav (void);
-extern void  AddLoadav (char *);
-#endif
-
 /* pty.c */
 extern int   OpenPTY (char **);
 
