@@ -246,9 +246,6 @@ int main(int argc, char **argv)
 #ifdef UTMPOK
 	debug("UTMPOK\n");
 #endif
-#ifdef LOADAV
-	debug("LOADAV\n");
-#endif
 #ifdef NAME_MAX
 	debug("NAME_MAX = %d\n", NAME_MAX);
 #endif
@@ -919,9 +916,6 @@ int main(int argc, char **argv)
 #endif
 	} else
 		MakeTermcap(1);
-#ifdef LOADAV
-	InitLoadav();
-#endif				/* LOADAV */
 	MakeNewEnv();
 	signal(SIGHUP, SigHup);
 	signal(SIGINT, FinitHandler);
@@ -1848,7 +1842,6 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 	register char *p = winmsg_buf;
 	register int ctrl;
 	struct timeval now;
-	struct tm *tm;
 	int l, i;
 	int num;
 	int zeroflg;
@@ -1873,7 +1866,6 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 	*p = '\0';
 
 	tick = 0;
-	tm = 0;
 	ctrl = 0;
 	gettimeofday(&now, NULL);
 	for (s = str; *s && (l = winmsg_buf + MAXSTR - 1 - p) > 0; s++, p++) {
@@ -1940,95 +1932,6 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 					winmsg_numrend = qmnumrend;
 				omflag = -1;
 			}
-			break;
-		case 'd':
-		case 'D':
-		case 'm':
-		case 'M':
-		case 'y':
-		case 'Y':
-		case 'a':
-		case 'A':
-		case 's':
-		case 'c':
-		case 'C':
-			if (l < 4)
-				break;
-			if (tm == 0) {
-				time_t nowsec = now.tv_sec;
-				tm = localtime(&nowsec);
-			}
-			qmflag = 1;
-			if (!tick || tick > 3600)
-				tick = 3600;
-			switch (*s) {
-			case 'd':
-				sprintf(p, "%02d", tm->tm_mday % 100);
-				break;
-			case 'D':
-#ifdef USE_LOCALE
-				strftime(p, l, (longflg ? "%A" : "%a"), tm);
-#else
-				sprintf(p, "%3.3s", days + 3 * tm->tm_wday);
-#endif
-				break;
-			case 'm':
-				sprintf(p, "%02d", tm->tm_mon + 1);
-				break;
-			case 'M':
-#ifdef USE_LOCALE
-				strftime(p, l, (longflg ? "%B" : "%b"), tm);
-#else
-				sprintf(p, "%3.3s", months + 3 * tm->tm_mon);
-#endif
-				break;
-			case 'y':
-				sprintf(p, "%02d", tm->tm_year % 100);
-				break;
-			case 'Y':
-				sprintf(p, "%04d", tm->tm_year + 1900);
-				break;
-			case 'a':
-				sprintf(p, tm->tm_hour >= 12 ? "pm" : "am");
-				break;
-			case 'A':
-				sprintf(p, tm->tm_hour >= 12 ? "PM" : "AM");
-				break;
-			case 's':
-				sprintf(p, "%02d", tm->tm_sec);
-				tick = 1;
-				break;
-			case 'c':
-				sprintf(p, zeroflg ? "%02d:%02d" : "%2d:%02d", tm->tm_hour, tm->tm_min);
-				if (!tick || tick > 60)
-					tick = 60;
-				break;
-			case 'C':
-				sprintf(p, zeroflg ? "%02d:%02d" : "%2d:%02d", (tm->tm_hour + 11) % 12 + 1, tm->tm_min);
-				if (!tick || tick > 60)
-					tick = 60;
-				break;
-			default:
-				break;
-			}
-			p += strlen(p) - 1;
-			break;
-		case 'l':
-#ifdef LOADAV
-			*p = 0;
-			if (l > 20)
-				AddLoadav(p);
-			if (*p) {
-				qmflag = 1;
-				p += strlen(p) - 1;
-			} else
-				*p = '?';
-			if (!tick || tick > 60)
-				tick = 60;
-#else
-			*p = '?';
-#endif
-			p += strlen(p) - 1;
 			break;
 		case '`':
 		case 'h':
