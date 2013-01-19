@@ -54,8 +54,8 @@ struct mline mline_blank;
 struct mline mline_null;
 
 struct mchar mchar_null;
-struct mchar mchar_blank = { ' ' /* , 0, 0, ... */  };
-struct mchar mchar_so = { ' ', A_SO /* , 0, 0, ... */  };
+struct mchar mchar_blank = { ' ', 0, 0, 0, 0, 0 };
+struct mchar mchar_so = { ' ', A_SO, 0, 0, 0, 0 };
 
 uint64_t renditions[NUM_RENDS] = { 65529 /* =ub */ , 65531 /* =b */ , 65533 /* =u */  };
 
