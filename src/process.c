@@ -5765,11 +5765,13 @@ uint64_t ParseAttrColor(char *str, int msgok)
 
 	uint32_t attr = 0;
 	uint32_t bg = 0, fg = 0;
+	uint8_t bm = 0, fm = 0;
 
 	uint32_t *cl;
+	uint8_t *cm;
 	cl = &fg;
+	cm = &fm;
 
-	uint32_t colormask = 0;
 
 	while (*str) {
 		switch (*str) {
@@ -5791,8 +5793,11 @@ uint64_t ParseAttrColor(char *str, int msgok)
 		case 'l':
 			attr |= A_BL;
 			break;
+		case '-':
+			*cm = 0;
+			break;
 		case 'x':
-			colormask = 2;
+			*cm = 2;
 		case '0':
 		case '1':
 		case '2':
@@ -5803,11 +5808,12 @@ uint64_t ParseAttrColor(char *str, int msgok)
 		case '7':
 		case '8':
 		case '9':
-			if (!colormask) colormask = 1;
+			if (!*cm) *cm = 1;
 			*cl = *cl * 10 + (*str - '0');
 			break;
 		case ';':
 			cl = &bg;
+			cm = &bm;
 			break;
 		case ' ':
 			break;
@@ -5819,17 +5825,19 @@ uint64_t ParseAttrColor(char *str, int msgok)
 		str++;
 	}
 
-	if (fg > 255) fg = 0;
-	if (bg > 255) bg = 0;
+	if (fg > 255) {
+		fg = fm = 0;
+	}
+	if (bg > 255) {
+		bg = bm = 0;
+	}
 
 	r = (((uint64_t)attr & 0x0FF) << 56);
 
 	r |= (((uint64_t)bg & 0x0FFFFFF) << 24);
 	r |= ((uint64_t)fg & 0x0FFFFFF);
-	//if (bg != 0)
-		r |= 0x0010000000000000;
-	//if (fg != 0)
-		r |= 0x0001000000000000;
+	r |= ((uint64_t)fm << 48);
+	r |= ((uint64_t)bm << 52);
 
 	debug("ParseAttrColor %016lx\n", r);
 	return r;
