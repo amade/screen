@@ -93,10 +93,6 @@
 # include <arpa/inet.h>
 #endif
 
-#if defined(USE_LOCALE) && (!defined(HAVE_SETLOCALE) || !defined(HAVE_STRFTIME))
-# undef USE_LOCALE
-#endif
-
 /*****************************************************************
  *    terminal handling
  */
