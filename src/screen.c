@@ -42,9 +42,7 @@
 
 #include "config.h"
 
-#if defined(USE_LOCALE)
 #include <locale.h>
-#endif
 #if defined(HAVE_NL_LANGINFO)
 #include <langinfo.h>
 #endif
@@ -538,15 +536,10 @@ int main(int argc, char **argv)
 #endif				/* SIGBUS */
 	signal(SIGSEGV, CoreDump);
 
-#ifdef USE_LOCALE
 	setlocale(LC_ALL, "");
-#endif
 	if (nwin_options.encoding == -1) {
 		/* ask locale if we should start in UTF-8 mode */
 #ifdef HAVE_NL_LANGINFO
-#ifndef USE_LOCALE
-		setlocale(LC_CTYPE, "");
-#endif
 		nwin_options.encoding = FindEncoding(nl_langinfo(CODESET));
 		debug("locale says encoding = %d\n", nwin_options.encoding);
 #else
@@ -1717,11 +1710,6 @@ void Dummy(int err, const char *fmt, ...)
  *   (andy@lingua.cltr.uq.OZ.AU) - thanks a lot!
  *
  */
-
-#ifndef USE_LOCALE
-static const char days[] = "SunMonTueWedThuFriSat";
-static const char months[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
-#endif
 
 static char winmsg_buf[MAXSTR];
 #define MAX_WINMSG_REND 256	/* rendition changes */

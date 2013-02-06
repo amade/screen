@@ -726,10 +726,6 @@ if test "$enable_pam" = "yes"; then
        AC_MSG_RESULT(no);LIBS="$oldlibs")
 fi
 
-AC_ARG_ENABLE(use_locale, [  --enable-use-locale         use localized month/day names])
-if test "$enable_use_locale" = "yes"; then
-  AC_DEFINE(USE_LOCALE)
-fi
 AC_ARG_ENABLE(telnet, [  --enable-telnet         enable builtin telnet])
 if test "$enable_telnet" = "yes"; then
   AC_DEFINE(BUILTIN_TELNET)
