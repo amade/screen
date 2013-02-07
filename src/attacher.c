@@ -28,7 +28,6 @@
 
 #include <fcntl.h>
 #include <pwd.h>
-#include <security/pam_appl.h>
 #include <signal.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -481,63 +480,12 @@ static void LockTerminal()
 	}
 }				/* LockTerminal */
 
-
-static int PAM_conv(int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr)
-{
-	int replies = 0;
-	struct pam_response *reply = NULL;
-
-	reply = malloc(sizeof(struct pam_response) * num_msg);
-	if (!reply)
-		return PAM_CONV_ERR;
-
-	for (replies = 0; replies < num_msg; replies++) {
-		switch (msg[replies]->msg_style) {
-		case PAM_PROMPT_ECHO_OFF:
-			/* wants password */
-			reply[replies].resp_retcode = PAM_SUCCESS;
-			reply[replies].resp = appdata_ptr ? strdup((char *)appdata_ptr) : 0;
-			break;
-		case PAM_TEXT_INFO:
-			/* ignore the informational mesage */
-			/* but first clear out any drek left by malloc */
-			reply[replies].resp = NULL;
-			break;
-		case PAM_PROMPT_ECHO_ON:
-			/* user name given to PAM already */
-			/* fall through */
-		default:
-			/* unknown or PAM_ERROR_MSG */
-			free(reply);
-			return PAM_CONV_ERR;
-		}
-	}
-	*resp = reply;
-	return PAM_SUCCESS;
-}
-
-static struct pam_conv PAM_conversation = {
-	&PAM_conv,
-	NULL
-};
-
 static void screen_builtin_lck()
 {
-	char fullname[100], *cp1, message[100 + 100];
-	pam_handle_t *pamh = 0;
-	int pam_error;
-	char *tty_name;
+	char fullname[100], *password, message[100 + 100];
 
 	debug("screen_builtin_lck looking in gcos field\n");
 	strncpy(fullname, ppp->pw_gecos, sizeof(fullname) - 9);
-
-	if ((cp1 = strchr(fullname, ',')) != NULL)
-		*cp1 = '\0';
-	if ((cp1 = strchr(fullname, '&')) != NULL) {
-		strncpy(cp1, ppp->pw_name, 8);
-		if (*cp1 >= 'a' && *cp1 <= 'z')
-			*cp1 -= 'a' - 'A';
-	}
 
 	sprintf(message, "Screen used by %s%s<%s> on %s.\nPassword:\007",
 		fullname, fullname[0] ? " " : "", ppp->pw_name, HostName);
@@ -546,34 +494,18 @@ static void screen_builtin_lck()
 	for (;;) {
 		debug("screen_builtin_lck awaiting password\n");
 		errno = 0;
-		if ((cp1 = getpass(message)) == NULL) {
+		if ((password = getpass(message)) == NULL) {
 			AttacherFinit(0);
 			/* NOTREACHED */
 		}
 
-		PAM_conversation.appdata_ptr = cp1;
-		pam_error = pam_start("screen", ppp->pw_name, &PAM_conversation, &pamh);
-		if (pam_error != PAM_SUCCESS)
-			AttacherFinit(0);	/* goodbye */
-
-		if (strncmp(attach_tty, "/dev/", 5) == 0)
-			tty_name = attach_tty + 5;
-		else
-			tty_name = attach_tty;
-		pam_error = pam_set_item(pamh, PAM_TTY, tty_name);
-		if (pam_error != PAM_SUCCESS)
-			AttacherFinit(0);	/* goodbye */
-
-		pam_error = pam_authenticate(pamh, 0);
-		pam_end(pamh, pam_error);
-		PAM_conversation.appdata_ptr = 0;
-		if (pam_error == PAM_SUCCESS)
-			break;
+		if(CheckPassword(password)) {
+			break;	
+		}
 
 		debug("screen_builtin_lck: NO!!!!!\n");
-		memset(cp1, 0, strlen(cp1));
+		memset(password, 0, strlen(password));
 	}
-	memset(cp1, 0, strlen(cp1));
 	debug("password ok.\n");
 }
 
