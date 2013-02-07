@@ -487,26 +487,10 @@ static void screen_builtin_lck()
 	debug("screen_builtin_lck looking in gcos field\n");
 	strncpy(fullname, ppp->pw_gecos, sizeof(fullname) - 9);
 
-	sprintf(message, "Screen used by %s%s<%s> on %s.\nPassword:\007",
+	printf("\aScreen used by %s%s<%s> on %s.\n",
 		fullname, fullname[0] ? " " : "", ppp->pw_name, HostName);
 
-	/* loop here to wait for correct password */
-	for (;;) {
-		debug("screen_builtin_lck awaiting password\n");
-		errno = 0;
-		if ((password = getpass(message)) == NULL) {
-			AttacherFinit(0);
-			/* NOTREACHED */
-		}
-
-		if(CheckPassword(password)) {
-			break;	
-		}
-
-		debug("screen_builtin_lck: NO!!!!!\n");
-		memset(password, 0, strlen(password));
-	}
-	debug("password ok.\n");
+	Authenticate();
 }
 
 void SendCmdMessage(char *sty, char *match, char **av, int query)
