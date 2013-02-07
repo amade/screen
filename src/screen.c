@@ -244,9 +244,6 @@ int main(int argc, char **argv)
 #ifdef UTMPOK
 	debug("UTMPOK\n");
 #endif
-#ifdef NAME_MAX
-	debug("NAME_MAX = %d\n", NAME_MAX);
-#endif
 
 	BellString = SaveStr("Bell in window %n");
 	VisualBellString = SaveStr("   Wuff,  Wuff!!  ");
@@ -423,10 +420,10 @@ int main(int argc, char **argv)
 				case 'T':
 					if (--argc == 0)
 						exit_with_usage(myname, "Specify terminal-type with -T", NULL);
-					if (strlen(*++argv) < NAME_MAX)
-						strncpy(screenterm, *argv, NAME_MAX);
+					if (strlen(*++argv) < FILENAME_MAX)
+						strncpy(screenterm, *argv, FILENAME_MAX);
 					else
-						Panic(0, "-T: terminal name too long. (max. %d char)", NAME_MAX);
+						Panic(0, "-T: terminal name too long. (max. %d char)", FILENAME_MAX);
 					nwin_options.term = screenterm;
 					break;
 				case 'q':
@@ -639,7 +636,7 @@ int main(int argc, char **argv)
 		home = ppp->pw_dir;
 	if (strlen(LoginName) > MAXLOGINLEN)
 		Panic(0, "LoginName too long - sorry.");
-	if (strlen(home) > MAXPATHLEN - NAME_MAX)
+	if (strlen(home) > MAXPATHLEN)
 		Panic(0, "$HOME too long - sorry.");
 
 	attach_tty = "";
@@ -787,8 +784,8 @@ int main(int argc, char **argv)
 		for (ap = socknamebuf; *ap; ap++)
 			if (*ap == '/')
 				*ap = '-';
-		if (strlen(socknamebuf) > NAME_MAX)
-			socknamebuf[NAME_MAX] = 0;
+		if (strlen(socknamebuf) > FILENAME_MAX)
+			socknamebuf[FILENAME_MAX] = 0;
 		sprintf(SocketPath + strlen(SocketPath), "/%s", socknamebuf);
 		SET_GUID();
 		Attacher();
@@ -868,12 +865,10 @@ int main(int argc, char **argv)
 	for (ap = socknamebuf; *ap; ap++)
 		if (*ap == '/')
 			*ap = '-';
-#ifdef NAME_MAX
-	if (strlen(socknamebuf) > NAME_MAX) {
-		debug("Socket name %s truncated to %d chars\n", socknamebuf, NAME_MAX);
-		socknamebuf[NAME_MAX] = 0;
+	if (strlen(socknamebuf) > FILENAME_MAX) {
+		debug("Socket name %s truncated to %d chars\n", socknamebuf, FILENAME_MAX);
+		socknamebuf[FILENAME_MAX] = 0;
 	}
-#endif
 	sprintf(SocketPath + strlen(SocketPath), "/%s", socknamebuf);
 
 	ServerSocket = MakeServerSocket();

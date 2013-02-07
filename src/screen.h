@@ -81,11 +81,7 @@
  */
 #define MAXHISTHEIGHT		3000
 #define DEFAULTHISTHEIGHT	100
-#if defined(NAME_MAX) && NAME_MAX < 16
-# define DEFAULT_BUFFERFILE     "/tmp/screen-xchg"
-#else
-# define DEFAULT_BUFFERFILE	"/tmp/screen-exchange"
-#endif
+#define DEFAULT_BUFFERFILE	"/tmp/screen-exchange"
 
 struct mode
 {

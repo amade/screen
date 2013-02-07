@@ -100,10 +100,8 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 
 	if (match) {
 		matchlen = strlen(match);
-#ifdef NAME_MAX
-		if (matchlen > NAME_MAX)
-			matchlen = NAME_MAX;
-#endif
+		if (matchlen > FILENAME_MAX)
+			matchlen = FILENAME_MAX;
 	}
 
 	/*
@@ -407,10 +405,8 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	register int len, n;
 	char **av;
 
-#ifdef NAME_MAX
-	if (strlen(sty) > NAME_MAX)
-		sty[NAME_MAX] = 0;
-#endif
+	if (strlen(sty) > FILENAME_MAX)
+		sty[FILENAME_MAX] = 0;
 	if (strlen(sty) > 2 * MAXSTR - 1)
 		sty[2 * MAXSTR - 1] = 0;
 	sprintf(SocketPath + strlen(SocketPath), "/%s", sty);
