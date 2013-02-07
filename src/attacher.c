@@ -26,16 +26,19 @@
  ****************************************************************
  */
 
-#include "config.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
 #include <fcntl.h>
+#include <pwd.h>
 #include <signal.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include "config.h"
 #include "screen.h"
 #include "extern.h"
 
-#include <pwd.h>
+#ifdef USE_PAM
+#include <security/pam_appl.h>
+#endif
 
 static int WriteMessage(int, struct msg *);
 static void AttacherSigInt(int);
@@ -510,7 +513,6 @@ static void LockHup(int sigsig)
 
 static void LockTerminal()
 {
-	char *prg;
 	int sig, pid;
 	void (*sigs[NSIG]) (int);
 
@@ -519,51 +521,8 @@ static void LockTerminal()
 	signal(SIGHUP, LockHup);
 	printf("\n");
 
-	prg = getenv("LOCKPRG");
-	if (prg && strcmp(prg, "builtin") && !access(prg, X_OK)) {
-		signal(SIGCHLD, SIG_DFL);
-		debug("lockterminal: '%s' seems executable, execl it!\n", prg);
-		if ((pid = fork()) == 0) {
-			/* Child */
-			if (setgid(real_gid))
-				Panic(errno, "setgid");
-			if (setuid(own_uid))
-				Panic(errno, "setuid");
-			closeallfiles(0);	/* important: /etc/shadow may be open */
-			execl(prg, "SCREEN-LOCK", NULL);
-			exit(errno);
-		}
-		if (pid == -1)
-			Msg(errno, "Cannot lock terminal - fork failed");
-		else {
-			int wstat;
-			int wret;
+	screen_builtin_lck();
 
-			errno = 0;
-			while (((wret = wait(&wstat)) != pid) || ((wret == -1) && (errno == EINTR))
-			    )
-				errno = 0;
-
-			if (errno) {
-				Msg(errno, "Lock");
-				sleep(2);
-			} else if (WTERMSIG(wstat) != 0) {
-				fprintf(stderr, "Lock: %s: Killed by signal: %d%s\n", prg,
-					WTERMSIG(wstat), WIFCORESIG(wstat) ? " (Core dumped)" : "");
-				sleep(2);
-			} else if (WEXITSTATUS(wstat)) {
-				debug("Lock: %s: return code %d\n", prg, WEXITSTATUS(wstat));
-			} else
-				printf("%s", LockEnd);
-		}
-	} else {
-		if (prg) {
-			debug("lockterminal: '%s' seems NOT executable, we use our builtin\n", prg);
-		} else {
-			debug("lockterminal: using buitin.\n");
-		}
-		screen_builtin_lck();
-	}
 	/* reset signals */
 	for (sig = 1; sig < NSIG; sig++) {
 		if (sigs[sig] != (void (*)(int))-1)
@@ -572,12 +531,6 @@ static void LockTerminal()
 }				/* LockTerminal */
 
 #ifdef USE_PAM
-
-/*
- *  PAM support by Pablo Averbuj <pablo@averbuj.com>
- */
-
-#include <security/pam_appl.h>
 
 static int PAM_conv(int, const struct pam_message **, struct pam_response **, void *);
 
