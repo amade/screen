@@ -45,7 +45,6 @@ static void AttacherWinch(int);
 static void DoLock(int);
 static void LockTerminal(void);
 static void LockHup(int);
-static void screen_builtin_lck(void);
 #ifdef DEBUG
 static void AttacherChld(int);
 #endif
@@ -471,7 +470,7 @@ static void LockTerminal()
 	signal(SIGHUP, LockHup);
 	printf("\n");
 
-	screen_builtin_lck();
+	Authenticate();
 
 	/* reset signals */
 	for (sig = 1; sig < NSIG; sig++) {
@@ -479,19 +478,6 @@ static void LockTerminal()
 			signal(sig, sigs[sig]);
 	}
 }				/* LockTerminal */
-
-static void screen_builtin_lck()
-{
-	char fullname[100], *password, message[100 + 100];
-
-	debug("screen_builtin_lck looking in gcos field\n");
-	strncpy(fullname, ppp->pw_gecos, sizeof(fullname) - 9);
-
-	printf("\aScreen used by %s%s<%s> on %s.\n",
-		fullname, fullname[0] ? " " : "", ppp->pw_name, HostName);
-
-	Authenticate();
-}
 
 void SendCmdMessage(char *sty, char *match, char **av, int query)
 {
