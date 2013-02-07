@@ -32,10 +32,6 @@
 #include <sys/param.h>
 #include <signal.h>
 
-#if !defined(HAVE_LONG_FILE_NAMES) && !defined(NAME_MAX)
-#define NAME_MAX 14
-#endif
-
 #include <limits.h>
 
 #include <unistd.h>

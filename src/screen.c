@@ -257,9 +257,6 @@ int main(int argc, char **argv)
 #ifdef UTMPOK
 	debug("UTMPOK\n");
 #endif
-#ifdef NAME_MAX
-	debug("NAME_MAX = %d\n", NAME_MAX);
-#endif
 
 	BellString = SaveStr("Bell in window %n");
 	VisualBellString = SaveStr("   Wuff,  Wuff!!  ");
@@ -702,7 +699,7 @@ int main(int argc, char **argv)
 		Panic(0, "LoginName too long - sorry.");
 	if (multi && strlen(multi) > MAXLOGINLEN)
 		Panic(0, "Screen owner name too long - sorry.");
-	if (strlen(home) > MAXPATHLEN - 25)
+	if (strlen(home) > MAXPATHLEN)
 		Panic(0, "$HOME too long - sorry.");
 
 	attach_tty = "";
@@ -909,10 +906,8 @@ int main(int argc, char **argv)
 		for (ap = socknamebuf; *ap; ap++)
 			if (*ap == '/')
 				*ap = '-';
-#ifdef NAME_MAX
-		if (strlen(socknamebuf) > NAME_MAX)
-			socknamebuf[NAME_MAX - 1] = 0;
-#endif
+		if (strlen(socknamebuf) > FILENAME_MAX)
+			socknamebuf[FILENAME_MAX - 1] = 0;
 		sprintf(SocketPath + strlen(SocketPath), "/%s", socknamebuf);
 		SET_GUID();
 		Attacher();
@@ -992,12 +987,10 @@ int main(int argc, char **argv)
 	for (ap = socknamebuf; *ap; ap++)
 		if (*ap == '/')
 			*ap = '-';
-#ifdef NAME_MAX
-	if (strlen(socknamebuf) > NAME_MAX) {
-		debug("Socket name %s truncated to %d chars\n", socknamebuf, NAME_MAX);
-		socknamebuf[NAME_MAX] = 0;
+	if (strlen(socknamebuf) > FILENAME_MAX) {
+		debug("Socket name %s truncated to %d chars\n", socknamebuf, FILENAME_MAX);
+		socknamebuf[FILENAME_MAX] = 0;
 	}
-#endif
 	sprintf(SocketPath + strlen(SocketPath), "/%s", socknamebuf);
 
 	ServerSocket = MakeServerSocket();

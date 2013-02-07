@@ -746,10 +746,8 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 		if (i != 1)
 			Panic(0, "Use -S to specify a session.");
 	} else {
-#ifdef NAME_MAX
-		if (strlen(sty) > NAME_MAX)
-			sty[NAME_MAX] = 0;
-#endif
+		if (strlen(sty) > FILENAME_MAX)
+			sty[FILENAME_MAX] = 0;
 		if (strlen(sty) > 2 * MAXSTR - 1)
 			sty[2 * MAXSTR - 1] = 0;
 		sprintf(SocketPath + strlen(SocketPath), "/%s", sty);
