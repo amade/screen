@@ -30,12 +30,6 @@
 
 #include <sys/types.h>
 
-/* XXX: WHY IS THIS HERE?? :XXX */
-
-#ifdef CHECKLOGIN
-#include <pwd.h>
-#endif				/* CHECKLOGIN */
-
 #ifndef NOSYSLOG
 #include <syslog.h>
 #endif
@@ -125,8 +119,8 @@ int DefaultMetaEsc = -1;
 /*
  * =====================================================================
  * UserAdd-
- *       Adds a new user. His password may be NULL or "" if none. His name must not
- *       be "none", as this represents the NULL-pointer when dealing with groups.
+ *       Adds a new user. His name must not be "none", as this represents
+ *       the NULL-pointer when dealing with groups.
  *       He has default rights, determined by umask.
  * Returns:
  *       0 - on success
@@ -134,15 +128,13 @@ int DefaultMetaEsc = -1;
  *      -1 - he still does not exist (didn't get memory)
  * =====================================================================
  */
-int UserAdd(char *name, char *pass, struct acluser **up)
+int UserAdd(char *name, struct acluser **up)
 {
 	int j;
 
 	if (!up)
 		up = FindUserPtr(name);
 	if (*up) {
-		if (pass)
-			(*up)->u_password = SaveStr(pass);
 		return 1;
 	}
 	if (strcmp("none", name))	/* "none" is a reserved word */
@@ -155,11 +147,6 @@ int UserAdd(char *name, char *pass, struct acluser **up)
 	(*up)->u_Esc = DefaultEsc;
 	(*up)->u_MetaEsc = DefaultMetaEsc;
 	strncpy((*up)->u_name, name, MAXLOGINLEN);
-	(*up)->u_password = NULL;
-	if (pass)
-		(*up)->u_password = SaveStr(pass);
-	if (!(*up)->u_password)
-		(*up)->u_password = NullStr;
 	(*up)->u_detachwin = -1;
 	(*up)->u_detachotherwin = -1;
 

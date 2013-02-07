@@ -54,13 +54,13 @@ CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
 	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
 	kmapdef.c acls.c logfile.c layer.c \
 	sched.c teln.c encoding.c canvas.c layout.c viewport.c \
-	list_display.c list_generic.c list_window.c
+	list_display.c list_generic.c list_window.c authentication.c
 OFILES=	screen.o ansi.o fileio.o mark.o misc.o resize.o socket.o \
 	search.o tty.o term.o window.o utmp.o help.o \
 	termcap.o input.o attacher.o pty.o process.o display.o comm.o \
 	kmapdef.o acls.o logfile.o layer.o \
 	list_generic.o list_display.o list_window.o \
-	sched.o teln.o encoding.o canvas.o layout.o viewport.o
+	sched.o teln.o encoding.o canvas.o layout.o viewport.o authentication.o
 
 all:	screen
 
@@ -234,4 +234,3 @@ viewport.o: layout.h viewport.h canvas.h viewport.c config.h screen.h os.h ansi.
 list_generic.o: list_generic.h list_generic.c layer.h screen.h
 list_display.o: list_generic.h list_display.c layer.h screen.h
 list_window.o: list_generic.h list_window.c window.h layer.h screen.h
-

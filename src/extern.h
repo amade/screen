@@ -568,3 +568,6 @@ extern int separate_sids;
 
 extern struct utmp *getutline(), *pututline();
 
+/* authentication.c */
+int CheckPassword();
+void Authenticate();
