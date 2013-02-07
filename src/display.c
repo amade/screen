@@ -2875,7 +2875,7 @@ void RunBlanker(char **cmdv)
 	char *m;
 	int pid;
 	int slave = -1;
-	char termname[NAME_MAX + 1];
+	char termname[FILENAME_MAX + 1];
 #ifndef TIOCSWINSZ
 	char libuf[20], cobuf[20];
 #endif
