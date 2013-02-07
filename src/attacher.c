@@ -32,6 +32,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <security/pam_appl.h>
 #include "screen.h"
 #include "extern.h"
 
@@ -524,15 +525,6 @@ static void LockTerminal()
 	}
 }				/* LockTerminal */
 
-#ifdef USE_PAM
-
-/*
- *  PAM support by Pablo Averbuj <pablo@averbuj.com>
- */
-
-#include <security/pam_appl.h>
-
-static int PAM_conv(int, const struct pam_message **, struct pam_response **, void *);
 
 static int PAM_conv(int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr)
 {
@@ -542,7 +534,6 @@ static int PAM_conv(int num_msg, const struct pam_message **msg, struct pam_resp
 	reply = malloc(sizeof(struct pam_response) * num_msg);
 	if (!reply)
 		return PAM_CONV_ERR;
-#define COPY_STRING(s) (s) ? strdup(s) : NULL
 
 	for (replies = 0; replies < num_msg; replies++) {
 		switch (msg[replies]->msg_style) {
@@ -574,48 +565,12 @@ static struct pam_conv PAM_conversation = {
 	NULL
 };
 
-#endif
-
-/* -- original copyright by Luigi Cannelloni 1985 (luigi@faui70.UUCP) -- */
 static void screen_builtin_lck()
 {
 	char fullname[100], *cp1, message[100 + 100];
-#ifdef USE_PAM
 	pam_handle_t *pamh = 0;
 	int pam_error;
 	char *tty_name;
-#else
-	char *pass, mypass[16 + 1], salt[3];
-#endif
-
-#ifndef USE_PAM
-	pass = ppp->pw_passwd;
-	if (pass == 0 || *pass == 0) {
-		if ((pass = getpass("Key:   "))) {
-			strncpy(mypass, pass, sizeof(mypass) - 1);
-			if (*mypass == 0)
-				return;
-			if ((pass = getpass("Again: "))) {
-				if (strcmp(mypass, pass)) {
-					fprintf(stderr, "Passwords don't match.\007\n");
-					sleep(2);
-					return;
-				}
-			}
-		}
-		if (pass == 0) {
-			fprintf(stderr, "Getpass error.\007\n");
-			sleep(2);
-			return;
-		}
-
-		salt[0] = 'A' + (int)(time(0) % 26);
-		salt[1] = 'A' + (int)((time(0) >> 6) % 26);
-		salt[2] = 0;
-		pass = crypt(mypass, salt);
-		pass = ppp->pw_passwd = SaveStr(pass);
-	}
-#endif
 
 	debug("screen_builtin_lck looking in gcos field\n");
 	strncpy(fullname, ppp->pw_gecos, sizeof(fullname) - 9);
@@ -639,7 +594,7 @@ static void screen_builtin_lck()
 			AttacherFinit(0);
 			/* NOTREACHED */
 		}
-#ifdef USE_PAM
+
 		PAM_conversation.appdata_ptr = cp1;
 		pam_error = pam_start("screen", ppp->pw_name, &PAM_conversation, &pamh);
 		if (pam_error != PAM_SUCCESS)
@@ -658,10 +613,7 @@ static void screen_builtin_lck()
 		PAM_conversation.appdata_ptr = 0;
 		if (pam_error == PAM_SUCCESS)
 			break;
-#else
-		if (!strncmp(crypt(cp1, pass), pass, strlen(pass)))
-			break;
-#endif
+
 		debug("screen_builtin_lck: NO!!!!!\n");
 		memset(cp1, 0, strlen(cp1));
 	}
