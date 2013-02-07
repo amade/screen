@@ -29,9 +29,7 @@
 
 #include <stdio.h>
 #include <errno.h>
-
 #include <sys/param.h>
-
 #include <signal.h>
 
 #if !defined(HAVE_LONG_FILE_NAMES) && !defined(NAME_MAX)
@@ -47,47 +45,16 @@
 #endif
 
 #include <limits.h>
-
-#ifndef NAME_MAX
-# ifndef MAXNAMELEN
-#  define NAME_MAX 255
-# else
-#  define NAME_MAX MAXNAMELEN
-# endif
-#endif
-
-
 #include <unistd.h>
 #include <stdlib.h>
-
-#ifndef HAVE_STRERROR
-/* No macros, please */
-#undef strerror
-#endif
-
-#ifdef HAVE_STRINGS_H
-# include <strings.h>
-#endif
-#ifdef HAVE_STRING_H
-# include <string.h>
-#endif
-
+#include <string.h>
 #include <stdarg.h>
-
 #include <time.h>
 #include <sys/time.h>
 
 #if defined(HAVE_SETRESUID) && !defined(HAVE_SETREUID)
 # define setreuid(ruid, euid) setresuid(ruid, euid, -1)
 # define setregid(rgid, egid) setresgid(rgid, egid, -1)
-#endif
-
-#if defined(HAVE_SETEUID) || defined(HAVE_SETREUID) || defined(HAVE_SETRESUID)
-# define USE_SETEUID
-#endif
-
-#if !defined(HAVE__EXIT) && !defined(_exit)
-#define _exit(x) exit(x)
 #endif
 
 #ifndef HAVE_UTIMES
@@ -168,48 +135,6 @@
  *    file stuff
  */
 
-#ifndef F_OK
-#define F_OK 0
-#endif
-#ifndef X_OK
-#define X_OK 1
-#endif
-#ifndef W_OK
-#define W_OK 2
-#endif
-#ifndef R_OK
-#define R_OK 4
-#endif
-
-#ifndef S_IFIFO
-#define S_IFIFO  0010000
-#endif
-#ifndef S_IREAD
-#define S_IREAD  0000400
-#endif
-#ifndef S_IWRITE
-#define S_IWRITE 0000200
-#endif
-#ifndef S_IEXEC
-#define S_IEXEC  0000100
-#endif
-
-#if defined(S_IFIFO) && defined(S_IFMT) && !defined(S_ISFIFO)
-#define S_ISFIFO(mode) (((mode) & S_IFMT) == S_IFIFO)
-#endif
-#if defined(S_IFSOCK) && defined(S_IFMT) && !defined(S_ISSOCK)
-#define S_ISSOCK(mode) (((mode) & S_IFMT) == S_IFSOCK)
-#endif
-#if defined(S_IFCHR) && defined(S_IFMT) && !defined(S_ISCHR)
-#define S_ISCHR(mode) (((mode) & S_IFMT) == S_IFCHR)
-#endif
-#if defined(S_IFDIR) && defined(S_IFMT) && !defined(S_ISDIR)
-#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
-#endif
-#if defined(S_IFLNK) && defined(S_IFMT) && !defined(S_ISLNK)
-#define S_ISLNK(mode) (((mode) & S_IFMT) == S_IFLNK)
-#endif
-
 /*
  * SunOS 4.1.3: `man 2V open' has only one line that mentions O_NOBLOCK:
  *
@@ -233,10 +158,6 @@
 #endif
 #if !defined(FNBLOCK) && defined(O_NONBLOCK)
 # define FNBLOCK O_NONBLOCK
-#endif
-
-#if !defined(HAVE_LSTAT) && !defined(lstat)
-# define lstat stat
 #endif
 
 /*****************************************************************
@@ -288,10 +209,6 @@
 
 #ifndef TERMCAP_BUFSIZE
 # define TERMCAP_BUFSIZE 2048
-#endif
-
-#ifndef MAXPATHLEN
-# define MAXPATHLEN 1024
 #endif
 
 /*
