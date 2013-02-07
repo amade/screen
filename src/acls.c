@@ -30,12 +30,6 @@
 
 #include <sys/types.h>
 
-/* XXX: WHY IS THIS HERE?? :XXX */
-
-#ifdef CHECKLOGIN
-#include <pwd.h>
-#endif				/* CHECKLOGIN */
-
 #ifndef NOSYSLOG
 #include <syslog.h>
 #endif
