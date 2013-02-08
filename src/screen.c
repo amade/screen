@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 	register int n;
 	char *ap;
 	char *av0;
-	char socknamebuf[2 * MAXSTR];
+	char socknamebuf[FILENAME_MAX + 1];
 	int mflag = 0;
 	char *myname = (argc == 0) ? "screen" : argv[0];
 	char *SocketDir;
