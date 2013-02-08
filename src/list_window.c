@@ -217,13 +217,13 @@ static int gl_Window_row(struct ListData *ldata, struct ListRow *lrow)
 	str = MakeWinMsgEv(wliststr, w, '%', flayer->l_width - xoff, NULL, 0);
 	if (ldata->selected == lrow)
 		mchar = &mchar_so;
-	else if (w->w_monitor == MON_DONE && renditions[REND_MONITOR] != -1) {
+	else if (w->w_monitor == MON_DONE && renditions[REND_MONITOR] != 0) {
 		mchar = &mchar_rend;
 		ApplyAttrColor(renditions[REND_MONITOR], mchar);
-	} else if ((w->w_bell == BELL_DONE || w->w_bell == BELL_FOUND) && renditions[REND_BELL] != -1) {
+	} else if ((w->w_bell == BELL_DONE || w->w_bell == BELL_FOUND) && renditions[REND_BELL] != 0) {
 		mchar = &mchar_rend;
 		ApplyAttrColor(renditions[REND_BELL], mchar);
-	} else if ((w->w_silence == SILENCE_FOUND || w->w_silence == SILENCE_DONE) && renditions[REND_SILENCE] != -1) {
+	} else if ((w->w_silence == SILENCE_FOUND || w->w_silence == SILENCE_DONE) && renditions[REND_SILENCE] != 0) {
 		mchar = &mchar_rend;
 		ApplyAttrColor(renditions[REND_SILENCE], mchar);
 	} else
