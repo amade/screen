@@ -2326,7 +2326,7 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 				numpad++;
 			}
 			break;
-		case 'Z':
+		case 's':
 			*p = 0;
 			if (!win)
 				sprintf(p, "--x--");
