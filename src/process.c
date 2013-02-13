@@ -5532,11 +5532,7 @@ char *AddWindows(char *buf, int len, int flags, int where)
 			AddWinMsgRend(s, rend);
 		sprintf(s, "%d", p->w_number);
 		s += strlen(s);
-		if (display && p == D_fore)
-			*s++ = '*';
 		if (!(flags & 2)) {
-			if (display && p == D_other)
-				*s++ = '-';
 			s = AddWindowFlags(s, len, p);
 		}
 		*s++ = ' ';
@@ -5556,6 +5552,10 @@ char *AddWindowFlags(char *buf, int len, struct win *p)
 		*s = 0;
 		return s;
 	}
+	if (display && p == D_fore)
+		*s++ = '*';
+	if (display && p == D_other)
+		*s++ = '-';
 	if (p->w_layer.l_cvlist && p->w_layer.l_cvlist->c_lnext)
 		*s++ = '&';
 	if (p->w_monitor == MON_DONE)
