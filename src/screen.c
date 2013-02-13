@@ -2068,6 +2068,23 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 				p += strlen(p) - 1;
 			}
 			break;
+		case 'X': case 'x':
+			if (!win)
+				break;
+			if (win->w_cmdargs[0]) {
+				sprintf(p, "%s", win->w_cmdargs[0]);
+				p += strlen(p);
+			} else {
+				break;
+			}
+			if (*s == 'x') {
+				for (i = 1; win->w_cmdargs[i]; i++) {
+					sprintf(p, " %s", win->w_cmdargs[i]);
+					p += strlen(p);
+				}
+			}
+			p--;
+			break;
 		case 'w':
 		case 'W':
 			{
