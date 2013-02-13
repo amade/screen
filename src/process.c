@@ -2616,7 +2616,12 @@ static void StuffFin(char *buf, int len, char *data)
 		Activate(-1);
 		break;
 	case RC_WINDOWS:
-		ShowWindows(-1);
+		if (args[0]) {
+			s = SaveStr(args[0]);
+			ShowWindowsX(s);
+		} else {
+			ShowWindows(-1);
+		}
 		break;
 	case RC_VERSION:
 		OutputMsg(0, "screen %s", version);
@@ -5739,6 +5744,31 @@ char *AddOtherUsers(char *buf, int len, struct win *p)
 	*s = 0;
 	display = olddisplay;
 	return s;
+}
+
+/*
+ * String Escape based windows listing
+ * Unfortunately it is not possible to rebuild the exact
+ * output (flags) from ShowWindows() with a default
+ * string escape. But when there should be a new screen
+ * version where slight output changes get accepted,
+ * ShowWindowsX() should replace the rather static
+ * (in output and size) old ShowWindows() and AddWindows()
+ * functions
+ */
+void ShowWindowsX(char *string) {
+	int i;
+	char *s = "";
+
+	debug("ShowWindowsX: string [%s]", string);
+
+	for (i = 0; i < maxwin ; i++) {
+		if (wtab[i] == NULL)
+			continue;
+
+		s = MakeWinMsg(string, wtab[i], '%');
+		Msg(0, "%s", s);
+	}
 }
 
 void ShowWindows(int where)

@@ -219,7 +219,7 @@ struct comm comms[RC_LAST + 1] =
   { "wall",		NEED_DISPLAY|ARGS_1,		{NULL} },
   { "width",		ARGS_0123,			{NULL} },
   { "windowlist",	ARGS_012,			{NULL} },
-  { "windows",		CAN_QUERY|ARGS_0,		{NULL} },
+  { "windows",		CAN_QUERY|ARGS_01,		{NULL} },
   { "wrap",		NEED_FORE|ARGS_01,		{NULL} },
   { "writebuf",		ARGS_0123,			{NULL} },
   { "writelock",	NEED_FORE|ARGS_01,		{NULL} },
