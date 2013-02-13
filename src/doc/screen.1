@@ -3693,18 +3693,6 @@ is used instead.
 Here is the full list of supported escapes:
 .IP %
 the escape character itself
-.IP a
-either 'am' or 'pm'
-.IP A
-either 'AM' or 'PM'
-.IP c
-current time HH:MM in 24h format
-.IP C
-current time HH:MM in 12h format
-.IP d
-day number
-.IP D
-weekday name
 .IP E
 sets %? to true if the session has seen an escape string character
 .IP f
@@ -3715,12 +3703,6 @@ sets %? to true if the window has the focus
 hardstatus of the window
 .IP H
 hostname of the system
-.IP l
-current load of the system
-.IP m
-month number
-.IP M
-month name
 .IP n
 window number
 .IP P
@@ -3728,7 +3710,7 @@ sets %? to true if the current region is in copy/paste mode
 .IP S
 session name
 .IP s
-seconds
+window size
 .IP t
 window title
 .IP u
@@ -3743,10 +3725,6 @@ all window numbers and names except the current one
 the executed command including arguments running in this windows
 .IP X
 the executed command without arguments running in this windows
-.IP y
-last two digits of the year number
-.IP Y
-full year number
 .IP ?
 the part to the next '%?' is displayed only if a '%' escape
 inside the part expands to a non-empty string
