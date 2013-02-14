@@ -185,6 +185,7 @@ extern void  SetEscape (struct acluser *, int, int);
 extern void  DoScreen (char *, char **);
 extern int   IsNumColon (char *, int, char *, int);
 extern void  ShowWindows (int);
+extern void ShowWindowsX(char *string);
 extern char *AddWindows (char *, int, int, int);
 extern char *AddWindowFlags (char *, int, struct win *);
 extern char *AddOtherUsers (char *, int, struct win *);
