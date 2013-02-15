@@ -846,7 +846,7 @@ int main(int argc, char **argv)
 	 * start detached. From now on we should not refer to 'LoginName'
 	 * any more, use users->u_name instead.
 	 */
-	if (UserAdd(LoginName, (char *)0, (struct acluser **)0) < 0)
+	if (UserAdd(LoginName, (struct acluser **)0) < 0)
 		Panic(0, "Could not create user info");
 	if (!detached) {
 		if (MakeDisplay(LoginName, attach_tty, attach_term, n, getppid(), &attach_Mode) == 0)

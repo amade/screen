@@ -72,8 +72,6 @@ static void AKAfin(char *, int, char *);
 static void copy_reg_fn(char *, int, char *);
 static void ins_reg_fn(char *, int, char *);
 static void process_fn(char *, int, char *);
-static void pass1(char *, int, char *);
-static void pass2(char *, int, char *);
 static void pow_detach_fn(char *, int, char *);
 static void digraph_fn(char *, int, char *);
 static int digraph_find(const char *buf);
@@ -3773,27 +3771,6 @@ static void StuffFin(char *buf, int len, char *data)
 	case RC_STARTUP_MESSAGE:
 		(void)ParseOnOff(act, &default_startup);
 		break;
-	case RC_PASSWORD:
-		if (*args) {
-			n = (*user->u_password) ? 1 : 0;
-			if (user->u_password != NullStr)
-				free((char *)user->u_password);
-			user->u_password = SaveStr(*args);
-			if (!strcmp(user->u_password, "none")) {
-				if (n)
-					OutputMsg(0, "Password checking disabled");
-				free(user->u_password);
-				user->u_password = NullStr;
-			}
-		} else {
-			if (!fore) {
-				OutputMsg(0, "%s: password: window required", rc_name);
-				break;
-			}
-			Input("New screen password:", 100, INP_NOECHO, pass1, display ? (char *)D_user : (char *)users,
-			      0);
-		}
-		break;
 	case RC_BIND:
 		{
 			struct action *ktabp = ktab;
@@ -6190,61 +6167,6 @@ static void confirm_fn(char *buf, int len, char *data)
 	act.argl = 0;
 	act.quiet = 0;
 	DoAction(&act, -1);
-}
-
-static void pass1(char *buf, int len, char *data)
-{
-	struct acluser *u = (struct acluser *)data;
-
-	if (!*buf)
-		return;
-	ASSERT(u);
-	if (u->u_password != NullStr)
-		free((char *)u->u_password);
-	u->u_password = SaveStr(buf);
-	memset(buf, 0, strlen(buf));
-	Input("Retype new password:", 100, INP_NOECHO, pass2, data, 0);
-}
-
-static void pass2(char *buf, int len, char *data)
-{
-	int st;
-	char salt[3];
-	struct acluser *u = (struct acluser *)data;
-
-	ASSERT(u);
-	if (!buf || strcmp(u->u_password, buf)) {
-		Msg(0, "[ Passwords don't match - checking turned off ]");
-		if (u->u_password != NullStr) {
-			memset(u->u_password, 0, strlen(u->u_password));
-			free((char *)u->u_password);
-		}
-		u->u_password = NullStr;
-	} else if (u->u_password[0] == '\0') {
-		Msg(0, "[ No password - no secure ]");
-		if (buf)
-			memset(buf, 0, strlen(buf));
-	}
-
-	if (u->u_password != NullStr) {
-		for (st = 0; st < 2; st++)
-			salt[st] = 'A' + (int)((time(0) >> 6 * st) % 26);
-		salt[2] = 0;
-		buf = crypt(u->u_password, salt);
-		memset(u->u_password, 0, strlen(u->u_password));
-		free((char *)u->u_password);
-		u->u_password = SaveStr(buf);
-		memset(buf, 0, strlen(buf));
-		if (u->u_plop.buf)
-			UserFreeCopyBuffer(u);
-		u->u_plop.len = strlen(u->u_password);
-		u->u_plop.enc = 0;
-		if (!(u->u_plop.buf = SaveStr(u->u_password))) {
-			Msg(0, "%s", strnomem);
-			D_user->u_plop.len = 0;
-		} else
-			Msg(0, "[ Password moved into copybuffer ]");
-	}
 }
 
 static int digraph_find(const char *buf)
