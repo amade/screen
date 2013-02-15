@@ -158,6 +158,9 @@ int Attach(int how)
 	 * when things go wrong. Any disadvantages? jw.
 	 * Do this before the attach to prevent races!
 	 */
+
+	LockTerminal();
+
 	if (setuid(real_uid))
 		Panic(errno, "setuid");
 	if (setgid(real_gid))
