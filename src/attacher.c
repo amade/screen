@@ -465,7 +465,7 @@ static void LockHup(int sigsig)
 
 static void LockTerminal()
 {
-	int sig, pid;
+	int sig;
 	void (*sigs[NSIG]) (int);
 
 	for (sig = 1; sig < NSIG; sig++)

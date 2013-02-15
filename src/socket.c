@@ -624,7 +624,6 @@ void ReceiveMsg()
 	int ns = ServerSocket;
 	struct win *wi;
 	int recvfd = -1;
-	struct acluser *user;
 
 	struct sockaddr_un a;
 	struct msghdr msg;
