@@ -297,8 +297,6 @@ static int WinRewrite(int y, int x1, int x2, struct mchar *rend, int doit)
 	}
 	p = fore->w_mlines[y].attr + x1;
 	f = fore->w_mlines[y].font + x1;
-	if (is_dw_font(rend->font))
-		return EXPENSIVE;
 	if (fore->w_encoding && fore->w_encoding != UTF8 && D_encoding == UTF8
 	    && ContainsSpecialDeffont(fore->w_mlines + y, x1, x2, fore->w_encoding))
 		return EXPENSIVE;

@@ -35,7 +35,6 @@ struct mchar {
 	uint32_t font;
 	uint32_t colorbg;
 	uint32_t colorfg;
-	uint32_t mbcs;
 };
 
 struct mline {
@@ -110,7 +109,6 @@ struct mline {
 	(mc)->font    = (ml)->font[x];			\
 	(mc)->colorbg = (ml)->colorbg[x];		\
 	(mc)->colorfg = (ml)->colorfg[x];		\
-	(mc)->mbcs    = 0;				\
 }
 
 enum

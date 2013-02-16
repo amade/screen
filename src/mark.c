@@ -284,8 +284,6 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
 		if (redisplay != 2 && pt == 0)	/* don't count/copy */
 			continue;
 		j = from;
-		if (dw_right(ml, j, fore->w_encoding))
-			j--;
 		im = ml->image + j;
 		fo = ml->font + j;
 		font = ASCII;
@@ -301,11 +299,6 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
 				if (pt)
 					pt += c;
 				continue;
-			}
-			if (is_dw_font(cf)) {
-				c = c << 8 | (unsigned char)*im++;
-				fo++;
-				j++;
 			}
 			if (pastefont) {
 				c = EncodeChar(pt, c | cf << 16, fore->w_encoding, &font);
@@ -1014,13 +1007,6 @@ void revto_line(int tx, int ty, int line)
 	fx = markdata->cx;
 	fy = markdata->cy;
 
-	/* don't just move inside of a kanji, the user wants to see something */
-	ml = WIN(ty);
-	if (ty == fy && fx + 1 == tx && dw_right(ml, tx, fore->w_encoding) && tx < D_width - 1)
-		tx++;
-	if (ty == fy && fx - 1 == tx && dw_right(ml, fx, fore->w_encoding) && tx)
-		tx--;
-
 	markdata->cx = tx;
 	markdata->cy = ty;
 
@@ -1098,12 +1084,6 @@ void revto_line(int tx, int ty, int line)
 					break;
 		}
 		if (x <= ce && x >= markdata->left_mar && x <= markdata->right_mar) {
-			if (dw_right(ml, x, fore->w_encoding)) {
-				if (t == revst)
-					revst--;
-				t--;
-				x--;
-			}
 			if (t >= revst && t <= reven) {
 				mc = mchar_so;
 				if (pastefont)
@@ -1111,14 +1091,7 @@ void revto_line(int tx, int ty, int line)
 				mc.image = ml->image[x];
 			} else
 				copy_mline2mchar(&mc, ml, x);
-			if (dw_left(ml, x, fore->w_encoding)) {
-				mc.mbcs = ml->image[x + 1];
-				LPutChar(flayer, &mc, x, W2D(y));
-				t++;
-			}
 			LPutChar(flayer, &mc, x, W2D(y));
-			if (dw_left(ml, x, fore->w_encoding))
-				x++;
 		}
 	}
 	flayer->l_x = tx;
@@ -1199,8 +1172,6 @@ static void MarkRedisplayLine(int y, int xs, int xe, int isblank)
 	for (x = xs; x <= xe; x++, cp++)
 		if (cp >= sta && x >= markdata->left_mar)
 			break;
-	if (dw_right(ml, x, fore->w_encoding))
-		x--;
 	if (x > xs)
 		LCDisplayLine(flayer, ml, y, xs, x - 1, isblank);
 	for (; x <= xe; x++, cp++) {
@@ -1209,14 +1180,7 @@ static void MarkRedisplayLine(int y, int xs, int xe, int isblank)
 		if (pastefont)
 			mchar_marked.font = ml->font[x];
 		mchar_marked.image = ml->image[x];
-		mchar_marked.mbcs = 0;
-		if (dw_left(ml, x, fore->w_encoding)) {
-			mchar_marked.mbcs = ml->image[x + 1];
-			cp++;
-		}
 		LPutChar(flayer, &mchar_marked, x, y);
-		if (dw_left(ml, x, fore->w_encoding))
-			x++;
 	}
 	if (x <= xe)
 		LCDisplayLine(flayer, ml, y, x, xe, isblank);
