@@ -409,6 +409,13 @@ void PUTCHARLP(int c)
 	D_lp_missing = 1;
 	D_rend.image = c;
 	D_lpchar = D_rend;
+	/* XXX -> PutChar ? */
+	if (D_mbcs) {
+		D_lpchar.mbcs = c;
+		D_lpchar.image = D_mbcs;
+		D_mbcs = 0;
+		D_x--;
+	}
 }
 
 /*
@@ -422,6 +429,16 @@ STATIC void RAW_PUTCHAR(int c)
 
 	if (D_encoding == UTF8) {
 		c = (c & 255) | (unsigned char)D_rend.font << 8;
+		if (D_mbcs) {
+			c = D_mbcs;
+			if (D_x == D_width)
+				D_x += D_AM ? 1 : -1;
+			D_mbcs = 0;
+		} else if (utf8_isdouble(c)) {
+			D_mbcs = c;
+			D_x++;
+			return;
+		}
 		if (c < 32) {
 			AddCStr2(D_CS0, '0');
 			AddChar(c + 0x5f);
@@ -438,6 +455,22 @@ STATIC void RAW_PUTCHAR(int c)
 			AddUtf8(c);
 		goto addedutf8;
 	}
+	if (is_dw_font(D_rend.font)) {
+		int t = c;
+		if (D_mbcs == 0) {
+			D_mbcs = c;
+			D_x++;
+			return;
+		}
+		D_x--;
+		if (D_x == D_width - 1)
+			D_x += D_AM ? 1 : -1;
+		c = D_mbcs;
+		D_mbcs = t;
+	}
+	if (D_encoding)
+		c = PrepareEncodedChar(c);
+ kanjiloop:
 	if (D_xtable && D_xtable[(int)(unsigned char)D_rend.font]
 	    && D_xtable[(int)(unsigned char)D_rend.font][(int)(unsigned char)c])
 		AddStr(D_xtable[(int)(unsigned char)D_rend.font][(int)(unsigned char)c]);
@@ -453,6 +486,11 @@ STATIC void RAW_PUTCHAR(int c)
 			if (D_y < D_height - 1 && D_y != D_bot)
 				D_y++;
 		}
+	}
+	if (D_mbcs) {
+		c = D_mbcs;
+		D_mbcs = 0;
+		goto kanjiloop;
 	}
 }
 
@@ -1212,7 +1250,12 @@ void SetFont(int new)
 
 	if (new == ASCII)
 		AddCStr(D_CE0);
-	else
+	else if (new < ' ') {
+		AddStr("\033$");
+		if (new > 2)
+			AddChar('(');
+		AddChar(new + '@');
+	} else
 		AddCStr2(D_CS0, new);
 }
 
@@ -1853,10 +1896,18 @@ static void WriteLP(int x2, int y2)
 	ASSERT(D_lp_missing);
 	oldrend = D_rend;
 	debug("WriteLP(%d,%d)\n", x2, y2);
+	if (D_lpchar.mbcs) {
+		if (x2 > 0)
+			x2--;
+		else
+			D_lpchar = mchar_blank;
+	}
 	/* Can't use PutChar */
 	GotoPos(x2, y2);
 	SetRendition(&D_lpchar);
 	PUTCHAR(D_lpchar.image);
+	if (D_lpchar.mbcs)
+		PUTCHAR(D_lpchar.mbcs);
 	D_lp_missing = 0;
 	SetRendition(&oldrend);
 }
@@ -1905,7 +1956,7 @@ void DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 	ASSERT(to >= 0 && to < D_width);
 	if (!D_CLP && y == D_bot && to == D_width - 1) {
 		if (D_lp_missing || !cmp_mline(oml, ml, to)) {
-			if ((D_IC || D_IM) && from < to) {
+			if ((D_IC || D_IM) && from < to && !dw_left(ml, to, D_encoding)) {
 				last2flag = 1;
 				D_lp_missing = 0;
 				to--;
@@ -1917,6 +1968,13 @@ void DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 		}
 		to--;
 	}
+	if (D_mbcs) {
+		/* finish dw-char (can happen after a wrap) */
+		debug("DisplayLine finishing kanji\n");
+		SetRenditionMline(ml, from);
+		PUTCHAR(ml->image[from]);
+		from++;
+	}
 	for (x = from; x <= to; x++) {
 		{
 			if (x < to || x != D_width - 1 || ml->image[x + 1])
@@ -1924,8 +1982,21 @@ void DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 					continue;
 			GotoPos(x, y);
 		}
+		if (dw_right(ml, x, D_encoding)) {
+			if (x > 0) {
+				x--;
+			} else {
+				x++;
+			}
+			debug("DisplayLine on right side of dw char- x now %d\n", x);
+			GotoPos(x, y);
+		}
+		if (x == to && dw_left(ml, x, D_encoding))
+			break;	/* don't start new kanji */
 		SetRenditionMline(ml, x);
 		PUTCHAR(ml->image[x]);
+		if (dw_left(ml, x, D_encoding))
+			PUTCHAR(ml->image[++x]);
 	}
 	if (last2flag) {
 		GotoPos(x, y);
@@ -1951,6 +2022,11 @@ void PutChar(struct mchar *c, int x, int y)
 	GotoPos(x, y);
 	SetRendition(c);
 	PUTCHARLP(c->image);
+	if (c->mbcs) {
+		if (D_encoding == UTF8)
+			D_rend.font = 0;
+		PUTCHARLP(c->mbcs);
+	}
 }
 
 void InsChar(struct mchar *c, int x, int xe, int y, struct mline *oml)
@@ -1978,13 +2054,23 @@ void InsChar(struct mchar *c, int x, int xe, int y, struct mline *oml)
 	}
 	InsertMode(1);
 	if (!D_insert) {
+		if (c->mbcs && D_IC)
+			AddCStr(D_IC);
 		if (D_IC)
 			AddCStr(D_IC);
 		else
-			AddCStr2(D_CIC, 1);
+			AddCStr2(D_CIC, c->mbcs ? 2 : 1);
 	}
 	SetRendition(c);
 	RAW_PUTCHAR(c->image);
+	if (c->mbcs) {
+		if (D_encoding == UTF8)
+			D_rend.font = 0;
+		if (D_x == D_width - 1)
+			PUTCHARLP(c->mbcs);
+		else
+			RAW_PUTCHAR(c->mbcs);
+	}
 }
 
 void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int ins)
@@ -2042,6 +2128,11 @@ void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int
 	D_x = 0;
 	SetRendition(c);
 	RAW_PUTCHAR(c->image);
+	if (c->mbcs) {
+		if (D_encoding == UTF8)
+			D_rend.font = 0;
+		RAW_PUTCHAR(c->mbcs);
+	}
 	debug(" -> done (%d,%d)\n", D_x, D_y);
 }
 

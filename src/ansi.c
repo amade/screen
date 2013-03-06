@@ -54,8 +54,8 @@ struct mline mline_blank;
 struct mline mline_null;
 
 struct mchar mchar_null;
-struct mchar mchar_blank = { ' ', 0, 0, 0, 0 };
-struct mchar mchar_so = { ' ', A_SO, 0, 0, 0 };
+struct mchar mchar_blank = { ' ', 0, 0, 0, 0, 0 };
+struct mchar mchar_so = { ' ', A_SO, 0, 0, 0, 0 };
 
 uint64_t renditions[NUM_RENDS] = { 65529 /* =ub */ , 65531 /* =b */ , 65533 /* =u */  };
 
@@ -258,11 +258,14 @@ void WriteString(struct win *wp, register char *buf, register int len)
 	if (cols > 0 && rows > 0) {
 		do {
 			c = (unsigned char)*buf++;
-			curr->w_rend.font = curr->w_FontL;	/* Default: GL */
+			if (!curr->w_mbcs)
+				curr->w_rend.font = curr->w_FontL;	/* Default: GL */
 
 			/* The next part is only for speedup */
 			if (curr->w_state == LIT &&
 			    curr->w_encoding != UTF8 &&
+			    !is_dw_font(curr->w_rend.font) &&
+			    curr->w_rend.font != KANA && !curr->w_mbcs &&
 			    curr->w_rend.font != '<' &&
 			    c >= ' ' && c != 0x7f &&
 			    ((c & 0x80) == 0 || ((c >= 0xa0 || !curr->w_c1) && !curr->w_gr)) && !curr->w_ss &&
@@ -437,7 +440,10 @@ void WriteString(struct win *wp, register char *buf, register int len)
 					debug("not special. c = %x\n", c);
 					if (c >= ' ' && c <= '/') {
 						if (curr->w_intermediate) {
-							c = -1;
+							if (curr->w_intermediate == '$')
+								c |= '$' << 8;
+							else
+								c = -1;
 						}
 						curr->w_intermediate = c;
 					} else if (c >= '0' && c <= '~') {
@@ -491,6 +497,9 @@ void WriteString(struct win *wp, register char *buf, register int len)
 				break;
 			case LIT:
 			default:
+				if (curr->w_mbcs)
+					if (c <= ' ' || c == 0x7f || (c >= 0x80 && c < 0xa0 && curr->w_c1))
+						curr->w_mbcs = 0;
 				if (c < ' ') {
 					if (c == '\033') {
 						curr->w_intermediate = 0;
@@ -529,18 +538,21 @@ void WriteString(struct win *wp, register char *buf, register int len)
 						break;
 					}
 
-				if (c < 0x80 || curr->w_gr == 0)
-					curr->w_rend.font = curr->w_FontL;
-				else if (curr->w_gr == 2 && !curr->w_ss)
-					curr->w_rend.font = curr->w_FontE;
-				else
-					curr->w_rend.font = curr->w_FontR;
+				if (!curr->w_mbcs) {
+					if (c < 0x80 || curr->w_gr == 0)
+						curr->w_rend.font = curr->w_FontL;
+					else if (curr->w_gr == 2 && !curr->w_ss)
+						curr->w_rend.font = curr->w_FontE;
+					else
+						curr->w_rend.font = curr->w_FontR;
+				}
 				if (curr->w_encoding == UTF8) {
 					if (curr->w_rend.font == '0') {
 						struct mchar mc, *mcp;
 
 						debug("SPECIAL %x\n", c);
 						mc.image = c;
+						mc.mbcs = 0;
 						mc.font = '0';
 						mcp = recode_mchar(&mc, 0, UTF8);
 						debug("%02x %02x\n", mcp->image, mcp->font);
@@ -548,6 +560,8 @@ void WriteString(struct win *wp, register char *buf, register int len)
 					}
 					curr->w_rend.font = 0;
 				}
+				if (curr->w_encoding == UTF8 && utf8_isdouble(c))
+					curr->w_mbcs = 0xff;
 				if (curr->w_encoding == UTF8 && c >= 0x0300 && utf8_iscomb(c)) {
 					int ox, oy;
 					struct mchar omc;
@@ -565,6 +579,7 @@ void WriteString(struct win *wp, register char *buf, register int len)
 						ox--;
 						if (ox >= 0) {
 							copy_mline2mchar(&omc, &curr->w_mlines[oy], ox);
+							omc.mbcs = 0xff;
 						}
 					}
 					if (ox >= 0) {
@@ -577,6 +592,72 @@ void WriteString(struct win *wp, register char *buf, register int len)
 					break;
 				}
 				font = curr->w_rend.font;
+				if (font == KANA && curr->w_encoding == SJIS && curr->w_mbcs == 0) {
+					/* Lets see if it is the first byte of a kanji */
+					debug("%x may be first of SJIS\n", c);
+					if ((0x81 <= c && c <= 0x9f) || (0xe0 <= c && c <= 0xef)) {
+						debug("YES!\n");
+						curr->w_mbcs = c;
+						break;
+					}
+				}
+				if (font == 031 && c == 0x80 && !curr->w_mbcs)
+					font = curr->w_rend.font = 0;
+				if (is_dw_font(font) && c == ' ')
+					font = curr->w_rend.font = 0;
+				if (is_dw_font(font) || curr->w_mbcs) {
+					int t = c;
+					if (curr->w_mbcs == 0) {
+						curr->w_mbcs = c;
+						break;
+					}
+					if (curr->w_x == cols - 1) {
+						curr->w_x += curr->w_wrap ? 1 : -1;
+						debug("Patched w_x to %d\n", curr->w_x);
+					}
+					if (curr->w_encoding != UTF8) {
+						c = curr->w_mbcs;
+						if (font == KANA && curr->w_encoding == SJIS) {
+							debug("SJIS !! %x %x\n", c, t);
+							/*
+							 * SJIS -> EUC mapping:
+							 *   First byte:
+							 *     81,82...9f -> 21,23...5d
+							 *     e0,e1...ef -> 5f,61...7d
+							 *   Second byte:
+							 *     40-7e -> 21-5f
+							 *     80-9e -> 60-7e
+							 *     9f-fc -> 21-7e (increment first byte!)
+							 */
+							if (0x40 <= t && t <= 0xfc && t != 0x7f) {
+								if (c <= 0x9f)
+									c = (c - 0x81) * 2 + 0x21;
+								else
+									c = (c - 0xc1) * 2 + 0x21;
+								if (t <= 0x7e)
+									t -= 0x1f;
+								else if (t <= 0x9e)
+									t -= 0x20;
+								else
+									t -= 0x7e, c++;
+								curr->w_rend.font = KANJI;
+							} else {
+								/* Incomplete shift-jis - skip first byte */
+								c = t;
+								t = 0;
+							}
+							debug("SJIS after %x %x\n", c, t);
+						}
+						if (t && curr->w_gr && font != 030 && font != 031) {
+							t &= 0x7f;
+							if (t < ' ')
+								goto tryagain;
+						}
+						if (t == '\177')
+							break;
+						curr->w_mbcs = t;
+					}
+				}
 				if (font == '<' && c >= ' ') {
 					font = curr->w_rend.font = 0;
 					c |= 0x80;
@@ -593,6 +674,7 @@ void WriteString(struct win *wp, register char *buf, register int len)
 				curr->w_rend.image = c;
 				if (curr->w_encoding == UTF8)
 					curr->w_rend.font = c >> 8;
+				curr->w_rend.mbcs = curr->w_mbcs;
 				if (curr->w_x < cols - 1) {
 					if (curr->w_insert) {
 						save_mline(&curr->w_mlines[curr->w_y], cols);
@@ -618,6 +700,10 @@ void WriteString(struct win *wp, register char *buf, register int len)
 					if (curr->w_y != curr->w_bot && curr->w_y != curr->w_height - 1)
 						curr->w_y++;
 					curr->w_x = 1;
+				}
+				if (curr->w_mbcs) {
+					curr->w_rend.mbcs = curr->w_mbcs = 0;
+					curr->w_x++;
 				}
 				if (curr->w_ss) {
 					curr->w_FontL = curr->w_charsets[curr->w_Charset];
@@ -791,6 +877,26 @@ static void DoESC(int c, int intermediate)
 		break;
 	case '+':
 		DesignateCharset(c, G3);
+		break;
+/*
+ * ESC $ ( Fn: invoke multi-byte charset, Fn, to G0
+ * ESC $ Fn: same as above.  (old sequence)
+ * ESC $ ) Fn: invoke multi-byte charset, Fn, to G1
+ * ESC $ * Fn: invoke multi-byte charset, Fn, to G2
+ * ESC $ + Fn: invoke multi-byte charset, Fn, to G3
+ */
+	case '$':
+	case '$' << 8 | '(':
+		DesignateCharset(c & 037, G0);
+		break;
+	case '$' << 8 | ')':
+		DesignateCharset(c & 037, G1);
+		break;
+	case '$' << 8 | '*':
+		DesignateCharset(c & 037, G2);
+		break;
+	case '$' << 8 | '+':
+		DesignateCharset(c & 037, G3);
 		break;
 	}
 }
@@ -1841,6 +1947,21 @@ static void MFixLine(struct win *p, int y, struct mchar *mc)
 
 /*****************************************************************/
 
+#define MKillDwRight(p, ml, x)					\
+  if (dw_right(ml, x, p->w_encoding))				\
+    {								\
+      if (x > 0)						\
+	copy_mchar2mline(&mchar_blank, ml, x - 1);		\
+      copy_mchar2mline(&mchar_blank, ml, x);			\
+    }
+
+#define MKillDwLeft(p, ml, x)					\
+  if (dw_left(ml, x, p->w_encoding))				\
+    {								\
+      copy_mchar2mline(&mchar_blank, ml, x);			\
+      copy_mchar2mline(&mchar_blank, ml, x + 1);		\
+    }
+
 static void MScrollH(struct win *p, int n, int y, int xs, int xe, int bce)
 {
 	struct mline *ml;
@@ -1848,8 +1969,11 @@ static void MScrollH(struct win *p, int n, int y, int xs, int xe, int bce)
 	if (n == 0)
 		return;
 	ml = &p->w_mlines[y];
+	MKillDwRight(p, ml, xs);
+	MKillDwLeft(p, ml, xe);
 	if (n > 0) {
 		if (xe - xs + 1 > n) {
+			MKillDwRight(p, ml, xs + n);
 			copy_mline(ml, xs + n, xs, xe + 1 - xs - n);
 		} else
 			n = xe - xs + 1;
@@ -1859,6 +1983,7 @@ static void MScrollH(struct win *p, int n, int y, int xs, int xe, int bce)
 	} else {
 		n = -n;
 		if (xe - xs + 1 > n) {
+			MKillDwLeft(p, ml, xe - n);
 			copy_mline(ml, xs, xs + n, xe + 1 - xs - n);
 		} else
 			n = xe - xs + 1;
@@ -1982,6 +2107,8 @@ static void MClearArea(struct win *p, int xs, int ys, int xe, int ye, int bce)
 	if (xe >= p->w_width)
 		xe = p->w_width - 1;
 
+	MKillDwRight(p, p->w_mlines + ys, xs);
+	MKillDwLeft(p, p->w_mlines + ye, xe);
 
 	ml = p->w_mlines + ys;
 	for (y = ys; y <= ye; y++, ml++) {
@@ -2004,10 +2131,24 @@ static void MInsChar(struct win *p, struct mchar *c, int x, int y)
 	MFixLine(p, y, c);
 	ml = p->w_mlines + y;
 	n = p->w_width - x - 1;
+	MKillDwRight(p, ml, x);
 	if (n > 0) {
+		MKillDwRight(p, ml, p->w_width - 1);
 		copy_mline(ml, x, x + 1, n);
 	}
 	copy_mchar2mline(c, ml, x);
+	if (c->mbcs) {
+		if (--n > 0) {
+			MKillDwRight(p, ml, p->w_width - 1);
+			copy_mline(ml, x + 1, x + 2, n);
+		}
+		copy_mchar2mline(c, ml, x + 1);
+		ml->image[x + 1] = c->mbcs;
+		if (p->w_encoding != UTF8)
+			ml->font[x + 1] |= 0x80;
+		else if (p->w_encoding == UTF8 && c->mbcs)
+			ml->font[x + 1] = c->mbcs;
+	}
 }
 
 static void MPutChar(struct win *p, struct mchar *c, int x, int y)
@@ -2016,7 +2157,18 @@ static void MPutChar(struct win *p, struct mchar *c, int x, int y)
 
 	MFixLine(p, y, c);
 	ml = &p->w_mlines[y];
+	MKillDwRight(p, ml, x);
+	MKillDwLeft(p, ml, x);
 	copy_mchar2mline(c, ml, x);
+	if (c->mbcs) {
+		MKillDwLeft(p, ml, x + 1);
+		copy_mchar2mline(c, ml, x + 1);
+		ml->image[x + 1] = c->mbcs;
+		if (p->w_encoding != UTF8)
+			ml->font[x + 1] |= 0x80;
+		else if (p->w_encoding == UTF8 && c->mbcs)
+			ml->font[x + 1] = c->mbcs;
+	}
 }
 
 static void MWrapChar(struct win *p, struct mchar *c, int y, int top, int bot, int ins)
@@ -2048,6 +2200,8 @@ static void MPutStr(struct win *p, char *s, int n, struct mchar *r, int x, int y
 		return;
 	MFixLine(p, y, r);
 	ml = &p->w_mlines[y];
+	MKillDwRight(p, ml, x);
+	MKillDwLeft(p, ml, x + n - 1);
 	memmove(ml->image + x, s, n * 4);
 	b = ml->attr + x;
 	for (i = n; i-- > 0;)

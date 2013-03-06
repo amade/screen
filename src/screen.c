@@ -143,6 +143,8 @@ char *preselect = NULL;		/* only used in Attach() */
 
 char *screenencodings;
 
+int cjkwidth;
+
 int maxwin;
 
 struct layer *flayer;
@@ -266,6 +268,7 @@ int main(int argc, char **argv)
 	CompileKeys((char *)0, 0, mark_key_tab);
 	InitBuiltinTabs();
 	screenencodings = SaveStr(SCREENENCODINGS);
+	cjkwidth = 0;
 	nwin = nwin_undef;
 	nwin_options = nwin_undef;
 	strncpy(screenterm, "screen", 20);
@@ -514,6 +517,14 @@ int main(int argc, char **argv)
 			nwin_options.encoding = UTF8;
 		debug("environment says encoding=%d\n", nwin_options.encoding);
 #endif
+	}
+	{
+		char *s;
+		if ((s = locale_name())) {
+			if (!strncmp(s, "zh_", 3) || !strncmp(s, "ja_", 3) || !strncmp(s, "ko_", 3)) {
+				cjkwidth = 1;
+			}
+		}
 	}
 	if (nwin_options.aka) {
 		if (nwin_options.encoding > 0) {

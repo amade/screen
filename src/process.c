@@ -4684,6 +4684,13 @@ static void StuffFin(char *buf, int len, char *data)
 		} else
 			OutputMsg(0, "unknown layout subcommand");
 		break;
+	case RC_CJKWIDTH:
+		if (ParseSwitch(act, &cjkwidth) == 0) {
+			if (msgok)
+				OutputMsg(0, "Treat ambiguous width characters as %s width",
+					  cjkwidth ? "full" : "half");
+		}
+		break;
 	default:
 		break;
 	}

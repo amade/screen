@@ -58,6 +58,7 @@ struct comm comms[RC_LAST + 1] =
   { "caption",		ARGS_12,			},
   { "charset",          NEED_FORE|ARGS_1,		},
   { "chdir",		ARGS_01,			},
+  { "cjkwidth",		ARGS_01,			},
   { "clear",		NEED_FORE|ARGS_0,		},
   { "collapse",		ARGS_0,				},
   { "colon",		NEED_LAYER|ARGS_01,		},

@@ -381,6 +381,7 @@ extern void  ResetEncoding (struct win *);
 extern int   CanEncodeFont (int, int);
 extern int   DecodeChar (int, int, int *);
 extern int   RecodeBuf (unsigned char *, int, int, int, unsigned char *);
+extern int   PrepareEncodedChar (int);
 extern int   EncodeChar (char *, int, int, int *);
 
 /* layout.c */

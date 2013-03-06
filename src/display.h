@@ -76,6 +76,7 @@ struct display
   struct mchar d_rend;		/* current rendition */
   int   d_col16change;		/* the 16col bits changed in attr */
   char	d_atyp;			/* current attribute types */
+  int   d_mbcs;			/* saved char for multibytes charset */
   int   d_encoding;		/* what encoding type the display is */
   int   d_decodestate;		/* state of our decoder */
   int   d_realfont;		/* real font of terminal */
@@ -184,6 +185,7 @@ struct display
 #define D_rend		DISPLAY(d_rend)
 #define D_col16change	DISPLAY(d_col16change)
 #define D_atyp		DISPLAY(d_atyp)
+#define D_mbcs		DISPLAY(d_mbcs)
 #define D_encoding	DISPLAY(d_encoding)
 #define D_decodestate	DISPLAY(d_decodestate)
 #define D_realfont	DISPLAY(d_realfont)

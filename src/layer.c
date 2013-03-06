@@ -195,7 +195,7 @@ void LPutChar(struct layer *l, struct mchar *c, int x, int y)
 	int x2, y2;
 
 	if (l->l_pause.d)
-		LayPauseUpdateRegion(l, x, x
+		LayPauseUpdateRegion(l, x, x + (c->mbcs ? 1 : 0)
 				     , y, y);
 
 	FOR_EACH_UNPAUSED_CANVAS(l, {
@@ -366,6 +366,10 @@ void LCDisplayLineWrap(struct layer *l, struct mline *ml, int y, int from, int t
 {
 	struct mchar nc;
 	copy_mline2mchar(&nc, ml, 0);
+	if (dw_left(ml, 0, l->l_encoding)) {
+		nc.mbcs = ml->image[1];
+		from++;
+	}
 	LWrapChar(l, &nc, y - 1, -1, -1, 0);
 	from++;
 	if (from <= to)
@@ -829,6 +833,12 @@ void LayPause(struct layer *layer, int pause)
 						xs = vp->v_xs;
 					if (xe > vp->v_xe)
 						xe = vp->v_xe;
+
+					if (layer->l_encoding == UTF8 && xe < vp->v_xe && win) {
+						struct mline *ml = win->w_mlines + line;
+						if (dw_left(ml, xe, UTF8))
+							xe++;
+					}
 
 					if (xs <= xe)
 						RefreshLine(line + vp->v_yoff, xs, xe, 0);
