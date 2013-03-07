@@ -1742,29 +1742,29 @@ static void SelectRendition()
 			if (jj < 0 || jj > 255)
 				continue;
 			if (j == 38) {
-				colorfg = jj;
+				colorfg = jj | 0x01000000;
 			} else {
-				colorbg = jj;
+				colorbg = jj | 0x01000000;
 			}
 			continue;
 		}
 		if (j >= 90 && j <= 97)
-			colorfg = (j - 90 + 8);
+			colorfg = (j - 90 + 8) | 0x01000000;
 		if (j >= 100 && j <= 107)
-			colorbg = (j - 100 + 8);
+			colorbg = (j - 100 + 8) | 0x01000000;
 		if (j >= 30 && j < 38)
-			colorfg = (j - 30);
+			colorfg = (j - 30) | 0x01000000;
 		if (j >= 40 && j < 48)
-			colorbg = (j - 40);
+			colorbg = (j - 40) | 0x01000000;
 		if (j == 39)
-			colorfg = 0x01000000;
+			colorfg = 0;
 		if (j == 49)
-			colorbg = 0x01000000;
+			colorbg = 0;
 		if (j == 0) {
 			attr = 0;
 			/* will be xored to 0 */
-			colorbg = 0x01000000;
-			colorfg = 0x01000000;
+			colorbg = 0;
+			colorfg = 0;
 		}
 
 		if (j < 0 || j >= (int)(sizeof(rendlist)/sizeof(*rendlist)))
@@ -1778,8 +1778,8 @@ static void SelectRendition()
 	
 	curr->w_rend.attr = attr;
 	
-	curr->w_rend.colorbg = colorbg ^ 0x01000000;
-	curr->w_rend.colorfg = colorfg ^ 0x01000000;
+	curr->w_rend.colorbg = colorbg;
+	curr->w_rend.colorfg = colorfg;
 	LSetRendition(&curr->w_layer, &curr->w_rend);
 }
 

@@ -1320,6 +1320,8 @@ void SetColor(uint32_t foreground, uint32_t background)
 	b = background;
 	of = D_rend.colorfg;
 	ob = D_rend.colorbg;
+	D_rend.colorfg = f;
+	D_rend.colorbg = b;
 
 	debug("SetColor %d %d", of, ob);
 	debug(" -> %d %d\n", f, b);
@@ -1342,11 +1344,10 @@ void SetColor(uint32_t foreground, uint32_t background)
 		}
 		of = ob = 0;
 	}
-	D_rend.colorfg = f;
-	D_rend.colorbg = b;
-	f ^= 0x01000000;
-	b ^= 0x01000000;
-	D_col16change = 0;
+	if (f & 0x01000000)
+		f &= 0x0ff;
+	if (b & 0x01000000)
+		b &= 0x0ff;
 	if (!D_hascolor)
 		return;
 	if (f != of && f > 15 && D_CCO != 256)
@@ -1398,7 +1399,7 @@ void SetRendition(struct mchar *mc)
 		return;
 	if (D_rend.attr != mc->attr)
 		SetAttr(mc->attr);
-	if (D_rend.colorbg != mc->colorbg || D_rend.colorfg != mc->colorfg || D_col16change)
+	if (D_rend.colorbg != mc->colorbg || D_rend.colorfg != mc->colorfg)
 		SetColor(mc->colorfg, mc->colorbg);
 	if (D_rend.font != mc->font)
 		SetFont(mc->font);
@@ -1411,8 +1412,7 @@ void SetRenditionMline(struct mline *ml, int x)
 	if (D_rend.attr != ml->attr[x])
 		SetAttr(ml->attr[x]);
 	if (D_rend.colorbg != ml->colorbg[x]
-	    || D_rend.colorfg != ml->colorfg[x]
-	    || D_col16change) {
+	    || D_rend.colorfg != ml->colorfg[x]) {
 		struct mchar mc;
 		copy_mline2mchar(&mc, ml, x);
 		SetColor(mc.colorfg, mc.colorbg);

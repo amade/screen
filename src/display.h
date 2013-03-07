@@ -74,7 +74,6 @@ struct display
   int	d_top, d_bot;		/* scrollregion start/end */
   int	d_x, d_y;		/* cursor position */
   struct mchar d_rend;		/* current rendition */
-  int   d_col16change;		/* the 16col bits changed in attr */
   char	d_atyp;			/* current attribute types */
   int   d_mbcs;			/* saved char for multibytes charset */
   int   d_encoding;		/* what encoding type the display is */
@@ -183,7 +182,6 @@ struct display
 #define D_x		DISPLAY(d_x)
 #define D_y		DISPLAY(d_y)
 #define D_rend		DISPLAY(d_rend)
-#define D_col16change	DISPLAY(d_col16change)
 #define D_atyp		DISPLAY(d_atyp)
 #define D_mbcs		DISPLAY(d_mbcs)
 #define D_encoding	DISPLAY(d_encoding)
