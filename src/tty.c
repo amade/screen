@@ -641,7 +641,6 @@ SttyMode(struct mode *m, char *opt)
  *  the bsdish variant.
  */
 
-/*ARGSUSED*/
 void
 brktty(int fd)
 {
@@ -857,7 +856,6 @@ consredir_readev_fn(struct event *ev, char *data)
     WriteString(console_window, p, n - p);
 }
 
-/*ARGSUSED*/
 int
 TtyGrabConsole(int fd, int on, char *rc_name)
 {

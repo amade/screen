@@ -788,7 +788,7 @@ static struct LayFuncs ZmodemLf = {
 	0
 };
 
- /*ARGSUSED*/ static int ZmodemResize(int wi, int he)
+static int ZmodemResize(int wi, int he)
 {
 	flayer->l_width = wi;
 	flayer->l_height = he;
