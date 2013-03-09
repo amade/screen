@@ -199,7 +199,7 @@ static int is_bm(char *str, int l, int p, int end, int dir)
 	return -1;
 }
 
- /*ARGSUSED*/ static void is_process(char *p, int n, char *data)
+static void is_process(char *p, int n, char *data)
 {				/* i-search */
 	int pos, x, y, dir;
 	struct markdata *markdata;

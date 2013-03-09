@@ -98,12 +98,12 @@ void DefClearLine(int y, int xs, int xe, int bce)
 	LClearLine(flayer, y, xs, xe, bce, (struct mline *)0);
 }
 
- /*ARGSUSED*/ int DefRewrite(int y, int xs, int xe, struct mchar *rend, int doit)
+int DefRewrite(int y, int xs, int xe, struct mchar *rend, int doit)
 {
 	return EXPENSIVE;
 }
 
- /*ARGSUSED*/ int DefResize(int wi, int he)
+int DefResize(int wi, int he)
 {
 	return -1;
 }
@@ -135,7 +135,7 @@ struct LayFuncs BlankLf = {
 	0
 };
 
- /*ARGSUSED*/ static int BlankResize(int wi, int he)
+static int BlankResize(int wi, int he)
 {
 	flayer->l_width = wi;
 	flayer->l_height = he;
@@ -602,7 +602,6 @@ void MouseMode(int mode)
 
 static int StrCost;
 
-/* ARGSUSED */
 static int CountChars(int c)
 {
 	StrCost++;
