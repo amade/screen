@@ -261,38 +261,6 @@ void WriteString(struct win *wp, register char *buf, register int len)
 			if (!curr->w_mbcs)
 				curr->w_rend.font = curr->w_FontL;	/* Default: GL */
 
-			/* The next part is only for speedup */
-			if (curr->w_state == LIT &&
-			    curr->w_encoding != UTF8 &&
-			    !is_dw_font(curr->w_rend.font) &&
-			    curr->w_rend.font != KANA && !curr->w_mbcs &&
-			    curr->w_rend.font != '<' &&
-			    c >= ' ' && c != 0x7f &&
-			    ((c & 0x80) == 0 || ((c >= 0xa0 || !curr->w_c1) && !curr->w_gr)) && !curr->w_ss &&
-			    !curr->w_insert && curr->w_x < cols - 1) {
-				register int currx = curr->w_x;
-				char *imp = buf - 1;
-
-				while (currx < cols - 1) {
-					currx++;
-					if (--len == 0)
-						break;
-					c = (unsigned char)*buf++;
-					if (c < ' ' || c == 0x7f
-					    || ((c & 0x80) && ((c < 0xa0 && curr->w_c1) || curr->w_gr)))
-						break;
-				}
-				currx -= curr->w_x;
-				if (currx > 0) {
-					MPutStr(curr, imp, currx, &curr->w_rend, curr->w_x, curr->w_y);
-					LPutStr(&curr->w_layer, imp, currx, &curr->w_rend, curr->w_x, curr->w_y);
-					curr->w_x += currx;
-				}
-				if (len == 0)
-					break;
-			}
-			/* end of speedup code */
-
 			if (curr->w_encoding == UTF8) {
 				c = FromUtf8(c, &curr->w_decodestate);
 				if (c == -1)
