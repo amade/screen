@@ -2043,7 +2043,7 @@ static void StuffFin(char *buf, int len, char *data)
  */
 #define OutputMsg	(!act->quiet ? Msg : queryflag >= 0 ? QueryMsg : Dummy)
 
- /*ARGSUSED*/ void DoAction(struct action *act, int key)
+void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
 	char **args = act->args;
