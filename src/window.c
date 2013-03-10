@@ -1592,11 +1592,20 @@ static void win_resurrect_zombie_fn(struct event *ev, char *data) {
 static void win_writeev_fn(struct event *ev, char *data)
 {
 	struct win *p = (struct win *)data;
+	struct win *win;
 	int len;
 	if (p->w_inlen) {
 		debug("writing %d bytes to win %d\n", p->w_inlen, p->w_number);
 		if ((len = write(ev->fd, p->w_inbuf, p->w_inlen)) <= 0)
 			len = p->w_inlen;	/* dead window */
+
+		if (p->w_miflag) { /* don't loop if not needed */
+			for (win = windows; win; win = win->w_next) {
+				if (win != p && win->w_miflag)
+					write(win->w_ptyfd, p->w_inbuf, p->w_inlen);
+			}
+		}
+
 		if ((p->w_inlen -= len))
 			memmove(p->w_inbuf, p->w_inbuf + len, p->w_inlen);
 	}

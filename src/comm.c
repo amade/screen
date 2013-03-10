@@ -152,6 +152,7 @@ struct comm comms[RC_LAST + 1] =
   { "mousetrack",	NEED_DISPLAY | ARGS_01,		{NULL} },
   { "msgminwait",	ARGS_1,				{NULL} },
   { "msgwait",		ARGS_1,				{NULL} },
+  { "multiinput",	ARGS_01,			{NULL} },
   { "multiuser",	ARGS_1,				{NULL} },
   { "next",		ARGS_0,				{NULL} },
   { "nonblock",		NEED_DISPLAY|ARGS_01,		{NULL} },
