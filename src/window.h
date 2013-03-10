@@ -242,6 +242,7 @@ struct win
 
   struct event w_destroyev;	/* window destroy event */
   int w_exitstatus;
+  int w_miflag;
 };
 
 

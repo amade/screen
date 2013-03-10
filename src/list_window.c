@@ -282,7 +282,10 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 		glist_remove_rows(ldata);
 		gl_Window_rebuild(ldata);
 		break;
-
+	case '>':
+		win->w_miflag = win->w_miflag ? 0 : 1;
+		//SwapWindows(win, win->w_number);
+		break;
 	case 'a':
 		/* All-window view */
 		if (wdata->group) {

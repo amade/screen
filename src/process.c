@@ -2134,6 +2134,24 @@ void DoAction(struct action *act, int key)
 		else if (queryflag >= 0)
 			queryflag = -1;	/* ParseWinNum already prints out an appropriate error message. */
 		break;
+	case RC_MULTIINPUT:
+		if (!*args) {
+			if (!fore)
+				OutputMsg(0, "multiinput needs a window");
+			else
+				fore->w_miflag = fore->w_miflag ? 0 : 1;
+		} else {
+			if (ParseWinNum(act, &n) == 0) {
+				struct win *p;
+				if ((p = wtab[n]) == 0) {
+					ShowWindows(n);
+					break;
+				} else {
+					p->w_miflag = p->w_miflag ? 0 : 1;
+				}
+			}
+		}
+		break;
 	case RC_DEFAUTONUKE:
 		if (ParseOnOff(act, &defautonuke) == 0 && msgok)
 			OutputMsg(0, "Default autonuke turned %s", defautonuke ? "on" : "off");
@@ -5554,6 +5572,8 @@ char *AddWindowFlags(char *buf, int len, struct win *p)
 	}
 	if (p->w_ptyfd < 0 && p->w_type != W_TYPE_GROUP)
 		*s++ = 'Z';
+	if (p->w_miflag)
+		*s++ = '>';
 	*s = 0;
 	return s;
 }
