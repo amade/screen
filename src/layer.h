@@ -43,7 +43,6 @@ struct LayFuncs
   void	(*lf_LayAbort) (void);
   void	(*lf_LayRedisplayLine) (int, int, int, int);
   void	(*lf_LayClearLine) (int, int, int, int);
-  int	(*lf_LayRewrite) (int, int, int, struct mchar *, int);
   int	(*lf_LayResize) (int, int);
   void	(*lf_LayRestore) (void);
   void  (*lf_LayFree) (void *);		/* Should only free any data kept in
@@ -89,7 +88,6 @@ struct layer
 #define LayAbort		(*flayer->l_layfn->lf_LayAbort)
 #define LayRedisplayLine	(*flayer->l_layfn->lf_LayRedisplayLine)
 #define LayClearLine		(*flayer->l_layfn->lf_LayClearLine)
-#define LayRewrite		(*flayer->l_layfn->lf_LayRewrite)
 #define LayResize		(*flayer->l_layfn->lf_LayResize)
 #define LayRestore		(*flayer->l_layfn->lf_LayRestore)
 #define LayFree		(*flayer->l_layfn->lf_LayFree)

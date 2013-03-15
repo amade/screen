@@ -219,7 +219,6 @@ extern void  FreeDisplay (void);
 extern void  DefProcess (char **, int *);
 extern void  DefRedisplayLine (int, int, int, int);
 extern void  DefClearLine (int, int, int, int);
-extern int   DefRewrite (int, int, int, struct mchar *, int);
 extern int   DefResize (int, int);
 extern void  DefRestore (void);
 extern void  AddCStr (char *);
