@@ -71,6 +71,8 @@ struct display *display, *displays;
 int defobuflimit = OBUF_MAX;
 int defnonblock = -1;
 int defmousetrack = 0;
+int defbracketed = 0;
+int defcursorstyle = 0;
 int defautonuke = 0;
 int captionalways;
 int hardstatusemu = HSTATUS_IGNORE;
@@ -116,6 +118,8 @@ void DefRestore()
 	LCursorkeysMode(flayer, 0);
 	LCursorVisibility(flayer, 0);
 	LMouseMode(flayer, 0);
+	LBracketedPasteMode(flayer, 0);
+	LCursorStyle(flayer, 0);
 	LSetRendition(flayer, &mchar_null);
 	LSetFlow(flayer, nwin_default.flowflag & FLOW_NOW);
 }
@@ -225,6 +229,8 @@ struct display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid
 	D_user = *u;
 	D_processinput = ProcessInput;
 	D_mousetrack = defmousetrack;
+	D_bracketed = defbracketed;
+	D_cursorstyle = defcursorstyle;
 	return display;
 }
 
@@ -350,6 +356,8 @@ void FinitTerm()
 		if (D_mousetrack)
 			D_mousetrack = 0;
 		MouseMode(0);
+		BracketedPasteMode(0);
+		CursorStyle(0);
 		SetRendition(&mchar_null);
 		SetFlow(FLOW_NOW);
 		AddCStr(D_KE);
@@ -597,6 +605,42 @@ void MouseMode(int mode)
 			AddStr(mousebuf);
 		}
 		D_mouse = mode;
+	}
+}
+
+void BracketedPasteMode(int mode)
+{
+	if (!display)
+		return;
+
+	if (D_bracketed != mode) {
+		if (!D_CXT)
+			return;
+		if (D_bracketed) {
+			AddStr("\033[?2004l\a");
+		}
+		if (mode) {
+			AddStr("\033[?2004h\a");
+		}
+		D_bracketed = mode;
+	}
+}
+
+void CursorStyle(int mode)
+{
+	char buf[32];
+
+	if (!display)
+		return;
+
+	if (D_cursorstyle != mode) {
+		if (!D_CXT)
+			return;
+		if (mode < 0)
+			return;
+		sprintf(buf, "\033[%d q", mode);
+		AddStr(buf);
+		D_cursorstyle = mode;
 	}
 }
 
@@ -965,6 +1009,8 @@ void Redisplay(int cur_only)
 	CursorkeysMode(0);
 	CursorVisibility(0);
 	MouseMode(0);
+	BracketedPasteMode(0);
+	CursorStyle(0);
 	SetRendition(&mchar_null);
 	SetFlow(FLOW_NOW);
 
@@ -2426,6 +2472,8 @@ void NukePending()
 	int oldkeypad = D_keypad, oldcursorkeys = D_cursorkeys;
 	int oldcurvis = D_curvis;
 	int oldmouse = D_mouse;
+	int oldbracketed = D_bracketed;
+	int oldcursorstyle = D_cursorstyle;
 
 	oldrend = D_rend;
 	len = D_obufp - D_obuf;
@@ -2476,6 +2524,8 @@ void NukePending()
 	CursorkeysMode(oldcursorkeys);
 	CursorVisibility(oldcurvis);
 	MouseMode(oldmouse);
+	BracketedPasteMode(oldbracketed);
+	CursorStyle(oldcursorstyle);
 	if (D_CWS) {
 		debug("ResizeDisplay: using WS\n");
 		AddCStr(tgoto(D_CWS, D_width, D_height));

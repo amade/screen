@@ -393,6 +393,8 @@ static void WinRestore()
 		ReverseVideo(fore->w_revvid);
 		CursorVisibility(fore->w_curinv ? -1 : fore->w_curvvis);
 		MouseMode(fore->w_mouse);
+		BracketedPasteMode(fore->w_bracketed);
+		CursorStyle(fore->w_cursorstyle);
 	}
 }
 

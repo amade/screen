@@ -154,6 +154,8 @@ void ResetWindow(register struct win *p)
 	p->w_insert = 0;
 	p->w_revvid = 0;
 	p->w_mouse = 0;
+	p->w_bracketed = 0;
+	p->w_cursorstyle = 0;
 	p->w_curinv = 0;
 	p->w_curvvis = 0;
 	p->w_autolf = 0;
@@ -1098,6 +1100,12 @@ static void DoCSI(int c, int intermediate)
 			break;
 		}
 		break;
+	case ' ':
+		if (c == 'q') {
+			curr->w_cursorstyle = a1;
+			LCursorStyle(&curr->w_layer, curr->w_cursorstyle);
+		}
+		break;
 	case '?':
 		for (a2 = 0; a2 < curr->w_NumArgs; a2++) {
 			a1 = curr->w_args[a2];
@@ -1209,6 +1217,10 @@ static void DoCSI(int c, int intermediate)
 			case 1003:	/* any event mouse */
 				curr->w_mouse = i ? a1 : 0;
 				LMouseMode(&curr->w_layer, curr->w_mouse);
+				break;
+			case 2004:	/* bracketed paste mode */
+				curr->w_bracketed = i ? 1 : 0;
+				LBracketedPasteMode(&curr->w_layer, curr->w_bracketed);
 				break;
 			}
 		}

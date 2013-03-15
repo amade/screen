@@ -90,6 +90,8 @@ struct display
   int   d_mouse;		/* mouse mode */
   int	d_mousetrack;		/* set when user wants to use mouse even when the window
 				   does not */
+  int   d_bracketed;		/* bracketed paste mode */
+  int   d_cursorstyle;		/* cursor style */
   int   d_xtermosc[4];		/* osc used */
   struct mchar d_lpchar;	/* missing char */
   struct timeval d_status_time;	/* time of status display */
@@ -159,6 +161,8 @@ struct display
 
 #define D_user		DISPLAY(d_user)
 #define D_username	(DISPLAY(d_user) ? DISPLAY(d_user)->u_name : 0)
+#define D_bracketed	DISPLAY(d_bracketed)
+#define D_cursorstyle	DISPLAY(d_cursorstyle)
 #define D_canvas	DISPLAY(d_canvas)
 #define D_cvlist	DISPLAY(d_cvlist)
 #define D_layout	DISPLAY(d_layout)

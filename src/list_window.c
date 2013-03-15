@@ -286,7 +286,7 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 		break;
 	case '>':
 		win->w_miflag = win->w_miflag ? 0 : 1;
-		//SwapWindows(win, win->w_number);
+		SwapWindows(win, win->w_number);
 		break;
 	case 'a':
 		/* All-window view */
