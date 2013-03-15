@@ -152,7 +152,6 @@ int TelOpenAndConnect(struct win *p)
 				p->w_telconnev.data = (char *)p;
 				p->w_telconnev.type = EV_WRITE;
 				p->w_telconnev.pri = 1;
-				debug("telnet connect in progress...\n");
 				evenq(&p->w_telconnev);
 			} else {
 				close(fd);
@@ -354,15 +353,6 @@ static void TelDocmd(struct win *p, int cmd, int opt)
 	unsigned char b[3];
 	int repl = 0;
 
-	if (cmd == TC_WONT)
-		debug("[<-WONT %c %d]\n", TO_S[opt], opt);
-	if (cmd == TC_WILL)
-		debug("[<-WILL %c %d]\n", TO_S[opt], opt);
-	if (cmd == TC_DONT)
-		debug("[<-DONT %c %d]\n", TO_S[opt], opt);
-	if (cmd == TC_DO)
-		debug("[<-DO  %c %d]\n", TO_S[opt], opt);
-
 	switch (cmd) {
 	case TC_WILL:
 		if (p->w_telropts[opt] || opt == TO_TM)
@@ -402,15 +392,6 @@ static void TelDocmd(struct win *p, int cmd, int opt)
 	b[1] = repl;
 	b[2] = opt;
 
-	if (repl == TC_WONT)
-		debug("[->WONT %c %d]\n", TO_S[opt], opt);
-	if (repl == TC_WILL)
-		debug("[->WILL %c %d]\n", TO_S[opt], opt);
-	if (repl == TC_DONT)
-		debug("[->DONT %c %d]\n", TO_S[opt], opt);
-	if (repl == TC_DO)
-		debug("[->DO  %c %d]\n", TO_S[opt], opt);
-
 	TelReply(p, (char *)b, 3);
 	if (cmd == TC_DO && opt == TO_NAWS)
 		TelWindowSize(p);
@@ -434,7 +415,6 @@ static void TelDosub(struct win *p)
 	case TO_LFLOW:
 		if (p->w_telsubidx != 2)
 			return;
-		debug("[FLOW %d]\r\n", p->w_telsubbuf[1]);
 		break;
 	default:
 		break;
@@ -452,7 +432,6 @@ void TelWindowSize(struct win *p)
 	char s[20], trepl[20], *t;
 	int i;
 
-	debug("TelWindowSize %d %d\n", p->w_width, p->w_height);
 	if (p->w_width == 0 || p->w_height == 0 || !p->w_telmopts[TO_NAWS])
 		return;
 	sprintf(s, "%c%c%c%c%c%c%c%c%c", TC_SB, TC_SB, TO_NAWS, p->w_width / 256, p->w_width & 255, p->w_height / 256,
@@ -463,10 +442,6 @@ void TelWindowSize(struct win *p)
 			*t++ = TC_IAC;
 	trepl[0] = TC_IAC;
 	t[-2] = TC_IAC;
-	debug(" - sending");
-	for (i = 0; trepl + i < t; i++)
-		debug(" %02x", (unsigned char)trepl[i]);
-	debug("\n");
 	TelReply(p, trepl, t - trepl);
 }
 

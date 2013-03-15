@@ -71,12 +71,10 @@ void CheckScreenSize(int change_flag)
 	int wi, he;
 
 	if (display == 0) {
-		debug("CheckScreenSize: No display -> no check.\n");
 		return;
 	}
 #ifdef TIOCGWINSZ
 	if (ioctl(D_userfd, TIOCGWINSZ, (char *)&glwz) != 0) {
-		debug("CheckScreenSize: ioctl(%d, TIOCGWINSZ) errno %d\n", D_userfd, errno);
 		wi = D_CO;
 		he = D_LI;
 	} else {
@@ -92,10 +90,7 @@ void CheckScreenSize(int change_flag)
 	he = D_LI;
 #endif
 
-	debug("CheckScreenSize: screen is (%d,%d)\n", wi, he);
-
 	if (D_width == wi && D_height == he) {
-		debug("CheckScreenSize: No change -> return.\n");
 		return;
 	}
 	KillBlanker();
@@ -108,9 +103,6 @@ void ChangeScreenSize(int wi, int he, int change_fore)
 	struct win *p;
 	struct canvas *cv;
 	int wwi;
-
-	debug("ChangeScreenSize from (%d,%d) ", D_width, D_height);
-	debug("to (%d,%d) (change_fore: %d)\n", wi, he, change_fore);
 
 	cv = &D_canvas;
 	cv->c_xe = wi - 1;
@@ -142,13 +134,11 @@ void ChangeScreenSize(int wi, int he, int change_fore)
 			D_defwidth = wi;
 		D_defheight = he;
 	}
-	debug("Default size: (%d,%d)\n", D_defwidth, D_defheight);
 	if (change_fore)
 		ResizeLayersToCanvases();
 	if (change_fore == 2 && D_CWS == NULL && displays->d_next == 0) {
 		/* adapt all windows  -  to be removed ? */
 		for (p = windows; p; p = p->w_next) {
-			debug("Trying to change window %d.\n", p->w_number);
 			wwi = wi;
 			if (p->w_savelayer && p->w_savelayer->l_cvlist == 0)
 				ResizeLayer(p->w_savelayer, wwi, he, 0);
@@ -162,21 +152,15 @@ void ResizeLayersToCanvases()
 	struct layer *l;
 	int lx, ly;
 
-	debug("ResizeLayersToCanvases\n");
 	D_kaablamm = 0;
 	for (cv = D_cvlist; cv; cv = cv->c_next) {
 		l = cv->c_layer;
 		if (l == 0)
 			continue;
-		debug("Doing canvas: ");
 		if (l->l_width == cv->c_xe - cv->c_xs + 1 && l->l_height == cv->c_ye - cv->c_ys + 1) {
-			debug("already fitting.\n");
 			continue;
 		}
-		if (!MayResizeLayer(l)) {
-			debug("may not resize.\n");
-		} else {
-			debug("doing resize.\n");
+		if (MayResizeLayer(l)) {
 			ResizeLayer(l, cv->c_xe - cv->c_xs + 1, cv->c_ye - cv->c_ys + 1, display);
 		}
 
@@ -218,15 +202,12 @@ void ResizeLayersToCanvases()
 int MayResizeLayer(struct layer *l)
 {
 	int cvs = 0;
-	debug("MayResizeLayer:\n");
 	for (; l; l = l->l_next) {
 		if (l->l_cvlist)
 			if (++cvs > 1 || l->l_cvlist->c_lnext) {
-				debug("may not - cvs %d\n", cvs);
 				return 0;
 			}
 	}
-	debug("may resize\n");
 	return 1;
 }
 
@@ -407,7 +388,6 @@ static void CheckMaxSize(int wi)
 	if (wi <= maxwidth)
 		return;
 	maxwidth = wi + 1;
-	debug("New maxwidth: %d\n", maxwidth);
 	blank = xrealloc(blank, maxwidth * 4);
 	null = xrealloc(null, maxwidth * 4);
 	mline_old.image = xrealloc(mline_old.image, maxwidth * 4);
@@ -512,15 +492,10 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 	}
 
 	if (p->w_width == wi && p->w_height == he && p->w_histheight == hi) {
-		debug("ChangeWindowSize: No change.\n");
 		return 0;
 	}
 
 	CheckMaxSize(wi);
-
-	debug("ChangeWindowSize");
-	debug(" from (%d,%d)+%d", p->w_width, p->w_height, p->w_histheight);
-	debug(" to(%d,%d)+%d\n", wi, he, hi);
 
 	fy = p->w_histheight + p->w_height - 1;
 	ty = hi + he - 1;
@@ -538,7 +513,6 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 				return -1;
 			}
 		} else {
-			debug("image stays the same: %d lines\n", he);
 			nmlines = p->w_mlines;
 			fy -= he;
 			ty -= he;
@@ -558,7 +532,6 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 	/* special case: cursor is at magic margin position */
 	addone = 0;
 	if (p->w_width && p->w_x == p->w_width) {
-		debug("Special addone case: %d %d\n", p->w_x, p->w_y);
 		addone = 1;
 		p->w_x--;
 	}
@@ -579,8 +552,6 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 		}
 		if (shift < 0)
 			shift = 0;
-		else
-			debug("resize: cursor out of bounds, shifting %d\n", shift);
 		ncy += shift;
 		if (p->w_autoaka > 0) {
 			naka = p->w_autoaka + he - p->w_height + shift;
@@ -593,7 +564,6 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 			fy--;
 		}
 	}
-	debug("fy %d ty %d\n", fy, ty);
 	if (fy >= 0)
 		mlf = OLDWIN(fy);
 	if (ty >= 0)
@@ -650,8 +620,6 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 				if (ty + shift > hi + he - 1)
 					shift = hi + he - 1 - ty;
 				if (shift > 0) {
-					debug("resize: cursor out of bounds, shifting %d [%d/%d]\n", shift, lt - lx,
-					      wi);
 					for (y = hi + he - 1; y >= ty; y--) {
 						mlt = NEWWIN(y);
 						FreeMline(mlt);
@@ -667,7 +635,6 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 					if (naka > 0)
 						naka = naka + shift > he ? 0 : naka + shift;
 				}
-				ASSERT(ncy >= 0);
 			}
 			/* did we copy autoaka line ? */
 			if (p->w_autoaka > 0 && fy == p->w_autoaka - 1 + p->w_histheight && lf - lx <= 0)
@@ -688,7 +655,6 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 					mlt = NEWWIN(ty);
 			}
 		}
-		ASSERT(l != 0 || fy == yy);
 	}
 	while (fy >= 0) {
 		FreeMline(mlf);
@@ -702,14 +668,6 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 		if (--ty >= 0)
 			mlt = NEWWIN(ty);
 	}
-
-#ifdef DEBUG
-	if (nmlines != p->w_mlines)
-		for (fy = 0; fy < p->w_height + p->w_histheight; fy++) {
-			ml = OLDWIN(fy);
-			ASSERT(ml->image == 0);
-		}
-#endif
 
 	if (p->w_mlines && p->w_mlines != nmlines)
 		free((char *)p->w_mlines);
@@ -789,9 +747,7 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 	    && p->w_width != 0 && p->w_height != 0 && p->w_ptyfd >= 0 && p->w_pid) {
 		glwz.ws_col = wi;
 		glwz.ws_row = he;
-		debug("Setting pty winsize.\n");
-		if (ioctl(p->w_ptyfd, TIOCSWINSZ, (char *)&glwz))
-			debug("SetPtySize: errno %d (fd:%d)\n", errno, p->w_ptyfd);
+		ioctl(p->w_ptyfd, TIOCSWINSZ, (char *)&glwz);
 	}
 #endif				/* TIOCSWINSZ */
 
@@ -806,19 +762,6 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 		TelWindowSize(p);
 #endif
 
-#ifdef DEBUG
-	/* Test if everything was ok */
-	for (fy = 0; fy < p->w_height + p->w_histheight; fy++) {
-		ml = OLDWIN(fy);
-		ASSERT(ml->image);
-		if (p->w_encoding == UTF8) {
-			for (l = 0; l < p->w_width; l++)
-				ASSERT(ml->image[l] >= ' ' || ml->font[l] || ml->fontx);
-		} else
-			for (l = 0; l < p->w_width; l++)
-				ASSERT(ml->image[l] >= ' ');
-	}
-#endif
 	return 0;
 }
 

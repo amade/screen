@@ -220,7 +220,6 @@ struct display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid
 	D_dospeed = (short)D_OldMode.m_ttyb.sg_ospeed;
 #endif
 #endif
-	debug("New displays ospeed = %d\n", D_dospeed);
 
 	strncpy(D_usertty, utty, sizeof(D_usertty) - 1);
 	D_usertty[sizeof(D_usertty) - 1] = 0;
@@ -277,7 +276,6 @@ void FreeDisplay()
 	for (dp = &displays; (d = *dp); dp = &d->d_next)
 		if (d == display)
 			break;
-	ASSERT(d);
 	if (D_status_lastmsg)
 		free(D_status_lastmsg);
 	if (D_obuf)
@@ -313,8 +311,6 @@ void FreeDisplay()
  */
 void InitTerm(int adapt)
 {
-	ASSERT(display);
-	ASSERT(D_tcinited);
 	D_top = D_bot = -1;
 	AddCStr(D_IS);
 	AddCStr(D_TI);
@@ -337,14 +333,12 @@ void InitTerm(int adapt)
 	D_x = D_y = 0;
 	Flush(3);
 	ClearAll();
-	debug("we %swant to adapt all our windows to the display\n", (adapt) ? "" : "don't ");
 	/* In case the size was changed by a init sequence */
 	CheckScreenSize((adapt) ? 2 : 0);
 }
 
 void FinitTerm()
 {
-	ASSERT(display);
 	KillBlanker();
 	if (D_tcinited) {
 		ResizeDisplay(D_defwidth, D_defheight);
@@ -376,7 +370,6 @@ void FinitTerm()
 
 static void INSERTCHAR(int c)
 {
-	ASSERT(display);
 	if (!D_insert && D_x < D_width - 1) {
 		if (D_IC || D_CIC) {
 			if (D_IC)
@@ -397,7 +390,6 @@ static void INSERTCHAR(int c)
 
 void PUTCHAR(int c)
 {
-	ASSERT(display);
 	if (D_insert && D_x < D_width - 1)
 		InsertMode(0);
 	RAW_PUTCHAR(c);
@@ -418,7 +410,6 @@ void PUTCHARLP(int c)
 			GotoPos(D_width - 1, y);
 		return;
 	}
-	debug("PUTCHARLP: lp_missing!\n");
 	D_lp_missing = 1;
 	D_rend.image = c;
 	D_lpchar = D_rend;
@@ -436,9 +427,8 @@ void PUTCHARLP(int c)
  * NOTE: charset Nr. 0 has a conversion table, but c1, c2, ... don't.
  */
 
-STATIC void RAW_PUTCHAR(int c)
+static void RAW_PUTCHAR(int c)
 {
-	ASSERT(display);
 
 	if (D_encoding == UTF8) {
 		c = (c & 255) | (unsigned char)D_rend.font << 8 | (unsigned char)D_rend.fontx << 16;
@@ -654,7 +644,6 @@ static int CountChars(int c)
 
 int CalcCost(register char *s)
 {
-	ASSERT(display);
 	if (s) {
 		StrCost = 0;
 		ospeed = D_dospeed;
@@ -670,10 +659,6 @@ static int CallRewrite(int y, int xs, int xe, int doit)
 	struct viewport *vp;
 	struct layer *oldflayer;
 	int cost;
-
-	debug("CallRewrite %d %d %d\n", y, xs, xe);
-	ASSERT(display);
-	ASSERT(xe >= xs);
 
 	vp = 0;
 	for (cv = D_cvlist; cv; cv = cv->c_next) {
@@ -710,7 +695,6 @@ static int CallRewrite(int y, int xs, int xe, int doit)
 		D_rend.font = 0;
 	oldflayer = flayer;
 	flayer = cv->c_layer;
-	debug("Calling Rewrite %d %d %d\n", y - vp->v_yoff, xs - vp->v_xoff, xe - vp->v_xoff);
 	cost = LayRewrite(y - vp->v_yoff, xs - vp->v_xoff, xe - vp->v_xoff, &D_rend, 0);
 	flayer = oldflayer;
 	if (D_insert)
@@ -745,8 +729,6 @@ void GotoPos(int x2, int y2)
 	dy = y2 - y1;
 	if (dy == 0 && dx == 0)
 		return;
-	debug("GotoPos (%d,%d)", x1, y1);
-	debug(" -> (%d,%d)\n", x2, y2);
 	if (!D_MS)		/* Safe to move ? */
 		SetRendition(&mchar_null);
 	if (y1 < 0		/* don't know the y position */
@@ -894,7 +876,6 @@ void GotoPos(int x2, int y2)
 
 void ClearAll()
 {
-	ASSERT(display);
 	ClearArea(0, 0, 0, D_width - 1, D_width - 1, D_height - 1, 0, 0);
 }
 
@@ -904,11 +885,6 @@ void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int usel
 	struct canvas *cv;
 	struct viewport *vp;
 
-	debug("Clear %d,%d", x1, y1);
-	debug(" %d-%d", xs, xe);
-	debug(" %d,%d", x2, y2);
-	debug(" uselayfn=%d bce=%d\n", uselayfn, bce);
-	ASSERT(display);
 	if (x1 == D_width)
 		x1--;
 	if (x2 == D_width)
@@ -1000,8 +976,6 @@ void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int usel
  */
 void Redisplay(int cur_only)
 {
-	ASSERT(display);
-
 	/* XXX do em all? */
 	InsertMode(0);
 	ChangeScrollRegion(0, D_height - 1);
@@ -1113,7 +1087,6 @@ void ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 	int alok, dlok, aldlfaster;
 	int missy = 0;
 
-	ASSERT(display);
 	if (n == 0)
 		return;
 	if (n >= ye - ys + 1 || -n >= ye - ys + 1) {
@@ -1373,9 +1346,6 @@ void SetColor(uint32_t foreground, uint32_t background)
 	D_rend.colorfg = f;
 	D_rend.colorbg = b;
 
-	debug("SetColor %d %d", of, ob);
-	debug(" -> %d %d\n", f, b);
-
 	if (!D_CAX && D_hascolor && ((f == 0 && f != of) || (b == 0 && b != ob))) {
 		if (D_OP)
 			AddCStr(D_OP);
@@ -1486,7 +1456,6 @@ void MakeStatus(char *msg)
 	if (D_blocked)
 		return;
 	if (!D_tcinited) {
-		debug("tc not inited, just writing msg\n");
 		if (D_processinputdata)
 			return;	/* XXX: better */
 		AddStr(msg);
@@ -1503,7 +1472,6 @@ void MakeStatus(char *msg)
 	if (D_status) {
 		/* same message? */
 		if (strcmp(msg, D_status_lastmsg) == 0) {
-			debug("same message - increase timeout");
 			if (!D_status_obufpos)
 				SetTimeout(&D_statusev, MsgWait);
 			return;
@@ -1536,7 +1504,6 @@ void MakeStatus(char *msg)
 	D_status_lasty = D_y;
 	if (!use_hardstatus || D_has_hstatus == HSTATUS_IGNORE || D_has_hstatus == HSTATUS_MESSAGE) {
 		D_status = STATUS_ON_WIN;
-		debug("using STATLINE %d\n", STATLINE);
 		GotoPos(0, STATLINE);
 		SetRendition(&mchar_so);
 		InsertMode(0);
@@ -1560,7 +1527,6 @@ void MakeStatus(char *msg)
 	}
 
 	D_status_obufpos = D_obufp - D_obuf;
-	ASSERT(D_status_obufpos > 0);
 
 	if (D_status == STATUS_ON_WIN) {
 		struct display *olddisplay = display;
@@ -1591,7 +1557,6 @@ void RemoveStatus()
 	if (!(where = D_status))
 		return;
 
-	debug("RemoveStatus\n");
 	if (D_status_obuffree >= 0) {
 		D_obuflen = D_status_obuflen;
 		D_obuffree = D_status_obuffree;
@@ -1687,7 +1652,6 @@ void ShowHStatus(char *str)
 	if (D_HS && D_has_hstatus == HSTATUS_HS) {
 		if (!D_hstatus && (str == 0 || *str == 0))
 			return;
-		debug("ShowHStatus: using HS\n");
 		SetRendition(&mchar_null);
 		InsertMode(0);
 		if (D_hstatus)
@@ -1704,7 +1668,6 @@ void ShowHStatus(char *str)
 		AddCStr(D_FS);
 		D_hstatus = 1;
 	} else if (D_has_hstatus == HSTATUS_LASTLINE) {
-		debug("ShowHStatus: using last line\n");
 		ox = D_x;
 		oy = D_y;
 		str = str ? str : "";
@@ -1724,7 +1687,6 @@ void ShowHStatus(char *str)
 		D_hstatus = *str ? 1 : 0;
 		SetRendition(&mchar_null);
 	} else if (D_has_hstatus == HSTATUS_FIRSTLINE) {
-		debug("ShowHStatus: using first line\n");
 		ox = D_x;
 		oy = D_y;
 		str = str ? str : "";
@@ -1744,7 +1706,6 @@ void ShowHStatus(char *str)
 		D_hstatus = *str ? 1 : 0;
 		SetRendition(&mchar_null);
 	} else if (str && *str && D_has_hstatus == HSTATUS_MESSAGE) {
-		debug("ShowHStatus: using message\n");
 		Msg(0, "%s", str);
 	}
 }
@@ -1784,8 +1745,6 @@ void RefreshAll(int isblank)
 {
 	struct canvas *cv;
 
-	ASSERT(display);
-	debug("Signalling full refresh!\n");
 	for (cv = D_cvlist; cv; cv = cv->c_next) {
 		CV_CALL(cv, LayRedisplayLine(-1, -1, -1, isblank));
 		display = cv->c_display;	/* just in case! */
@@ -1796,9 +1755,6 @@ void RefreshAll(int isblank)
 void RefreshArea(int xs, int ys, int xe, int ye, int isblank)
 {
 	int y;
-	ASSERT(display);
-	debug("Refresh Area: %d,%d", xs, ys);
-	debug(" - %d,%d (isblank=%d)\n", xe, ye, isblank);
 	if (!isblank && xs == 0 && xe == D_width - 1 && ye == D_height - 1 && (ys == 0 || D_CD)) {
 		ClearArea(xs, ys, xs, xe, xe, ye, 0, 0);
 		isblank = 1;
@@ -1815,11 +1771,6 @@ void RefreshLine(int y, int from, int to, int isblank)
 	int xx, yy, l;
 	char *buf;
 	struct win *p;
-
-	ASSERT(display);
-
-	debug("RefreshLine %d %d", y, from);
-	debug(" %d %d\n", to, isblank);
 
 	if (D_status == STATUS_ON_WIN && y == STATLINE) {
 		if (to >= D_status_len)
@@ -1878,11 +1829,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 			}
 			if (y < cv->c_ys || y > cv->c_ye || to < cv->c_xs || from > cv->c_xe)
 				continue;
-			debug("- canvas hit: %d %d", cv->c_xs, cv->c_ys);
-			debug("  %d %d\n", cv->c_xe, cv->c_ye);
 			for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-				debug("  - vp: %d %d", vp->v_xs, vp->v_ys);
-				debug("  %d %d\n", vp->v_xe, vp->v_ye);
 				/* find leftmost overlapping vp */
 				if (y >= vp->v_ys && y <= vp->v_ye && from <= vp->v_xe && to >= vp->v_xs
 				    && (lvp == 0 || lvp->v_xs > vp->v_xs)) {
@@ -1956,10 +1903,7 @@ static void WriteLP(int x2, int y2)
 {
 	struct mchar oldrend;
 
-	ASSERT(display);
-	ASSERT(D_lp_missing);
 	oldrend = D_rend;
-	debug("WriteLP(%d,%d)\n", x2, y2);
 	if (D_lpchar.mbcs) {
 		if (x2 > 0)
 			x2--;
@@ -1981,7 +1925,6 @@ void ClearLine(struct mline *oml, int y, int from, int to, int bce)
 	int x;
 	struct mchar bcechar;
 
-	debug("ClearLine %d,%d-%d\n", y, from, to);
 	if (D_UT)		/* Safe to erase ? */
 		SetRendition(&mchar_null);
 	if (D_BE)
@@ -2014,10 +1957,6 @@ void DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 	register int x;
 	int last2flag = 0, delete_lp = 0;
 
-	ASSERT(display);
-	ASSERT(y >= 0 && y < D_height);
-	ASSERT(from >= 0 && from < D_width);
-	ASSERT(to >= 0 && to < D_width);
 	if (!D_CLP && y == D_bot && to == D_width - 1) {
 		if (D_lp_missing || !cmp_mline(oml, ml, to)) {
 			if ((D_IC || D_IM) && from < to && !dw_left(ml, to, D_encoding)) {
@@ -2034,7 +1973,6 @@ void DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 	}
 	if (D_mbcs) {
 		/* finish dw-char (can happen after a wrap) */
-		debug("DisplayLine finishing kanji\n");
 		SetRenditionMline(ml, from);
 		PUTCHAR(ml->image[from]);
 		from++;
@@ -2052,7 +1990,6 @@ void DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 			} else {
 				x++;
 			}
-			debug("DisplayLine on right side of dw char- x now %d\n", x);
 			GotoPos(x, y);
 		}
 		if (x == to && dw_left(ml, x, D_encoding))
@@ -2142,11 +2079,6 @@ void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int
 	int bce;
 
 	bce = c->colorbg;
-	debug("WrapChar:");
-	debug("  x %d  y %d", x, y);
-	debug("  Dx %d  Dy %d", D_x, D_y);
-	debug("  xs %d  ys %d", xs, ys);
-	debug("  xe %d  ye %d ins %d\n", xe, ye, ins);
 	if (xs != 0 || x != D_width || !D_AM) {
 		if (y == ye)
 			ScrollV(xs, ys, xe, ye, 1, bce);
@@ -2159,10 +2091,8 @@ void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int
 		return;
 	}
 	if (y == ye) {		/* we have to scroll */
-		debug("- scrolling\n");
 		ChangeScrollRegion(ys, ye);
 		if (D_bot != y || D_x != D_width || (!bce && !D_BE)) {
-			debug("- have to call ScrollV\n");
 			ScrollV(xs, ys, xe, ye, 1, bce);
 			y--;
 		}
@@ -2171,21 +2101,18 @@ void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int
 	if (D_x != D_width || D_y != y) {
 		if (D_CLP && y >= 0)	/* don't even try if !LP */
 			RefreshLine(y, D_width - 1, D_width - 1, 0);
-		debug("- refresh last char -> x,y now %d,%d\n", D_x, D_y);
 		if (D_x != D_width || D_y != y) {	/* sorry, no bonus */
 			if (y == ye)
 				ScrollV(xs, ys, xe, ye, 1, bce);
 			GotoPos(xs, y == ye || y == D_height - 1 ? y : y + 1);
 		}
 	}
-	debug("- writeing new char");
 	if (y != ye && y < D_height - 1)
 		y++;
 	if (ins != D_insert)
 		InsertMode(ins);
 	if (ins && !D_insert) {
 		InsChar(c, 0, xe, y, 0);
-		debug(" -> done with insert (%d,%d)\n", D_x, D_y);
 		return;
 	}
 	D_y = y;
@@ -2197,25 +2124,19 @@ void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int
 			D_rend.font = 0;
 		RAW_PUTCHAR(c->mbcs);
 	}
-	debug(" -> done (%d,%d)\n", D_x, D_y);
 }
 
 int ResizeDisplay(int wi, int he)
 {
-	ASSERT(display);
-	debug("ResizeDisplay: to (%d,%d).\n", wi, he);
 	if (D_width == wi && D_height == he) {
-		debug("ResizeDisplay: No change\n");
 		return 0;
 	}
 	if (D_width != wi && (D_height == he || !D_CWS) && D_CZ0 && (wi == Z0width || wi == Z1width)) {
-		debug("ResizeDisplay: using Z0/Z1\n");
 		AddCStr(wi == Z0width ? D_CZ0 : D_CZ1);
 		ChangeScreenSize(wi, D_height, 0);
 		return (he == D_height) ? 0 : -1;
 	}
 	if (D_CWS) {
-		debug("ResizeDisplay: using WS\n");
 		AddCStr(tgoto(D_CWS, wi, he));
 		ChangeScreenSize(wi, he, 0);
 		return 0;
@@ -2240,7 +2161,6 @@ void ChangeScrollRegion(int newtop, int newbot)
 	}
 	if (D_top == newtop && D_bot == newbot)
 		return;
-	debug("ChangeScrollRegion: (%d - %d)\n", newtop, newbot);
 	AddCStr(tgoto(D_CS, newbot, newtop));
 	D_top = newtop;
 	D_bot = newbot;
@@ -2258,7 +2178,6 @@ void SetXtermOSC(int i, char *s)
 		{"49;", "white"}	/* default background (white?) */
 	};
 
-	ASSERT(display);
 	if (!D_CXT)
 		return;
 	if (!s)
@@ -2295,8 +2214,6 @@ void AddStr(char *str)
 {
 	register char c;
 
-	ASSERT(display);
-
 	if (D_encoding == UTF8) {
 		while ((c = *str++))
 			AddUtf8((unsigned char)c);
@@ -2310,7 +2227,6 @@ void AddStrn(char *str, int n)
 {
 	register char c;
 
-	ASSERT(display);
 	if (D_encoding == UTF8) {
 		while ((c = *str++) && n-- > 0)
 			AddUtf8((unsigned char)c);
@@ -2327,12 +2243,9 @@ void Flush(int progress)
 	int wr;
 	register char *p;
 
-	ASSERT(display);
 	l = D_obufp - D_obuf;
-	debug("Flush(): %d\n", l);
 	if (l == 0)
 		return;
-	ASSERT(l + D_obuffree == D_obuflen);
 	if (D_userfd < 0) {
 		D_obuffree += l;
 		D_obufp = D_obuf;
@@ -2340,8 +2253,7 @@ void Flush(int progress)
 	}
 	p = D_obuf;
 	if (!progress) {
-		if (fcntl(D_userfd, F_SETFL, 0))
-			debug("Warning: BLOCK fcntl failed: %d\n", errno);
+		fcntl(D_userfd, F_SETFL, 0);
 	}
 	while (l) {
 		if (progress) {
@@ -2355,12 +2267,10 @@ void Flush(int progress)
 			if (wr == -1) {
 				if (errno == EINTR)
 					continue;
-				debug("Warning: select failed: %d\n", errno);
 				break;
 			}
 			if (wr == 0) {
 				/* no progress after 3 seconds. sorry. */
-				debug("Warning: no progress after %d seconds\n", progress);
 				break;
 			}
 		}
@@ -2368,20 +2278,16 @@ void Flush(int progress)
 		if (wr <= 0) {
 			if (errno == EINTR)
 				continue;
-			debug("Writing to display: %d\n", errno);
 			break;
 		}
 		D_obuffree += wr;
 		p += wr;
 		l -= wr;
 	}
-	if (l)
-		debug("Warning: Flush could not write %d bytes\n", l);
 	D_obuffree += l;
 	D_obufp = D_obuf;
 	if (!progress) {
-		if (fcntl(D_userfd, F_SETFL, FNBLOCK))
-			debug("Warning: NBLOCK fcntl failed: %d\n", errno);
+		fcntl(D_userfd, F_SETFL, FNBLOCK);
 	}
 	if (D_blocked == 1)
 		D_blocked = 0;
@@ -2392,7 +2298,6 @@ void freetty()
 {
 	if (D_userfd >= 0)
 		close(D_userfd);
-	debug("did freetty %d\n", D_userfd);
 	D_userfd = -1;
 	D_obufp = 0;
 	D_obuffree = 0;
@@ -2414,9 +2319,7 @@ void Resize_obuf()
 {
 	register int ind;
 
-	ASSERT(display);
 	if (D_status_obuffree >= 0) {
-		ASSERT(D_obuffree == -1);
 		RemoveStatusMinWait();
 		if (--D_obuffree > 0)	/* redo AddChar decrement */
 			return;
@@ -2436,7 +2339,6 @@ void Resize_obuf()
 		Panic(0, "Out of memory");
 	D_obufp = D_obuf + ind;
 	D_obuflenmax = D_obuflen - D_obufmax;
-	debug("ResizeObuf: resized to %d\n", D_obuflen);
 }
 
 void DisplaySleep1000(int n, int eat)
@@ -2448,7 +2350,6 @@ void DisplaySleep1000(int n, int eat)
 	if (n <= 0)
 		return;
 	if (!display) {
-		debug("DisplaySleep has no display sigh\n");
 		sleep1000(n);
 		return;
 	}
@@ -2457,11 +2358,9 @@ void DisplaySleep1000(int n, int eat)
 	FD_ZERO(&r);
 	FD_SET(D_userfd, &r);
 	if (select(FD_SETSIZE, &r, (fd_set *) 0, (fd_set *) 0, &t) > 0) {
-		debug("display activity stopped sleep\n");
 		if (eat)
 			read(D_userfd, &buf, 1);
 	}
-	debug("DisplaySleep(%d) ending, eat was %d\n", n, eat);
 }
 
 void NukePending()
@@ -2477,7 +2376,6 @@ void NukePending()
 
 	oldrend = D_rend;
 	len = D_obufp - D_obuf;
-	debug("NukePending: nuking %d chars\n", len);
 
 	/* Throw away any output that we can... */
 #ifdef POSIX
@@ -2527,10 +2425,8 @@ void NukePending()
 	BracketedPasteMode(oldbracketed);
 	CursorStyle(oldcursorstyle);
 	if (D_CWS) {
-		debug("ResizeDisplay: using WS\n");
 		AddCStr(tgoto(D_CWS, D_width, D_height));
 	} else if (D_CZ0 && (D_width == Z0width || D_width == Z1width)) {
-		debug("ResizeDisplay: using Z0/Z1\n");
 		AddCStr(D_width == Z0width ? D_CZ0 : D_CZ1);
 	}
 }
@@ -2557,20 +2453,17 @@ static void disp_writeev_fn(struct event *ev, char *data)
 		size = len;
 	if (D_status_obufpos && size > D_status_obufpos)
 		size = D_status_obufpos;
-	ASSERT(len >= 0);
 	size = write(D_userfd, D_obuf, size);
 	if (size >= 0) {
 		len -= size;
 		if (len) {
 			memmove(D_obuf, D_obuf + size, len);
-			debug("ASYNC: wrote %d - remaining %d\n", size, len);
 		}
 		D_obufp -= size;
 		D_obuffree += size;
 		if (D_status_obufpos) {
 			D_status_obufpos -= size;
 			if (!D_status_obufpos) {
-				debug("finished writing the status message\n");
 				/* we're finished displaying the message! */
 				if (D_status == STATUS_ON_WIN) {
 					/* setup continue trigger */
@@ -2592,16 +2485,13 @@ static void disp_writeev_fn(struct event *ev, char *data)
 		}
 		if (D_blockedev.queued) {
 			if (D_obufp - D_obuf > D_obufmax / 2) {
-				debug("%s: resetting timeout to %g secs\n", D_usertty, D_nonblock / 1000.);
 				SetTimeout(&D_blockedev, D_nonblock);
 			} else {
-				debug("%s: deleting blocked timeout\n", D_usertty);
 				evdeq(&D_blockedev);
 			}
 		}
 		if (D_blocked == 1 && D_obuf == D_obufp) {
 			/* empty again, restart output */
-			debug("%s: buffer empty, unblocking\n", D_usertty);
 			D_blocked = 0;
 			Activate(D_fore ? D_fore->w_norefresh : 0);
 			D_blocked_fuzz = D_obufp - D_obuf;
@@ -2662,12 +2552,10 @@ static void disp_readev_fn(struct event *ev, char *data)
 		if (errno == EWOULDBLOCK)
 			return;
 #endif
-		debug("Read error: %d - hangup!\n", errno);
 		Hangup();
 		sleep(1);
 		return;
 	} else if (size == 0) {
-		debug("Found EOF - hangup!\n");
 		Hangup();
 		sleep(1);
 		return;
@@ -2692,7 +2580,6 @@ static void disp_readev_fn(struct event *ev, char *data)
 					LayProcess(&bufp, &size);
 				return;
 			}
-		debug("zmodem window gone, deblocking display");
 		zmodem_abort(0, display);
 	}
 	if (idletimo > 0)
@@ -2775,7 +2662,6 @@ static void disp_readev_fn(struct event *ev, char *data)
 static void disp_status_fn(struct event *ev, char *data)
 {
 	display = (struct display *)data;
-	debug("disp_status_fn for display %x\n", (int)display);
 	if (D_status)
 		RemoveStatus();
 }
@@ -2796,14 +2682,11 @@ static void disp_blocked_fn(struct event *ev, char *data)
 	struct win *p;
 
 	display = (struct display *)data;
-	debug("blocked timeout %s\n", D_usertty);
 	if (D_obufp - D_obuf > D_obufmax + D_blocked_fuzz) {
-		debug("stopping output to display\n");
 		D_blocked = 1;
 		/* re-enable all windows */
 		for (p = windows; p; p = p->w_next)
 			if (p->w_readev.condneg == &D_obuflenmax) {
-				debug("freeing window #%d\n", p->w_number);
 				p->w_readev.condpos = p->w_readev.condneg = 0;
 			}
 	}
@@ -2815,7 +2698,6 @@ static void disp_map_fn(struct event *ev, char *data)
 	int l, i;
 	unsigned char *q;
 	display = (struct display *)data;
-	debug("Flushing map sequence\n");
 	if (!(l = D_seql))
 		return;
 	p = (char *)D_seqp - l;
@@ -2825,8 +2707,6 @@ static void disp_map_fn(struct event *ev, char *data)
 		D_seqh = 0;
 		i = q[0] << 8 | q[1];
 		i &= ~KMAP_NOTIMEOUT;
-		debug("Mapping former hit #%d - ", i);
-		debug("%d(%s) - ", q[2], q + 3);
 		if (StuffKey(i))
 			ProcessInput2((char *)q + 3, q[2]);
 		if (display == 0)
@@ -2842,7 +2722,6 @@ static void disp_idle_fn(struct event *ev, char *data)
 {
 	struct display *olddisplay;
 	display = (struct display *)data;
-	debug("idle timeout\n");
 	if (idletimo <= 0 || idleaction.nr == RC_ILLEGAL)
 		return;
 	olddisplay = display;
@@ -2959,12 +2838,6 @@ void RunBlanker(char **cmdv)
 		return;
 	case 0:
 		displays = 0;
-#ifdef DEBUG
-		if (dfp && dfp != stderr) {
-			fclose(dfp);
-			dfp = 0;
-		}
-#endif
 		if (setgid(real_gid) || setuid(real_uid))
 			Panic(errno, "setuid/setgid");
 		brktty(D_userfd);

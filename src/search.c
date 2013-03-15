@@ -161,8 +161,6 @@ static int is_bm(char *str, int l, int p, int end, int dir)
 
 	/* *sigh* to make WIN work */
 	fore = ((struct markdata *)flayer->l_next->l_data)->md_window;
-	debug("is_bm: searching for %s len %d\n", str, l);
-	debug("start at %d end %d dir %d\n", p, end, dir);
 	if (p < 0 || p + l > end)
 		return -1;
 	if (l == 0)
@@ -179,7 +177,6 @@ static int is_bm(char *str, int l, int p, int end, int dir)
 	}
 	if (dir > 0)
 		p += l - 1;
-	debug("first char to match: %c\n", *str);
 	while (p >= 0 && p < end) {
 		q = p;
 		s = (unsigned char *)str;
@@ -206,7 +203,6 @@ static void is_process(char *p, int n, char *data)
 
 	if (n == 0)
 		return;
-	ASSERT(p);
 	markdata = (struct markdata *)flayer->l_next->l_data;
 
 	pos = markdata->cx + markdata->cy * flayer->l_width;
@@ -250,7 +246,6 @@ static void is_process(char *p, int n, char *data)
 		markdata->isstr[markdata->isstrl++] = *p;
 		markdata->isistr[markdata->isistrl++] = *p;
 		markdata->isstr[markdata->isstrl] = 0;
-		debug("New char: %c - left %d\n", *p, (int)sizeof(markdata->isistr) - markdata->isistrl);
 	}
 	if (*p && *p != '\b')
 		pos =

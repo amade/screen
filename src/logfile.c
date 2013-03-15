@@ -80,12 +80,10 @@ static int logfile_reopen(char *name, int wantfd, struct logfile *l)
 	close(wantfd);
 	if (((got_fd = open(name, O_WRONLY | O_CREAT | O_APPEND, 0666)) < 0) || lf_move_fd(got_fd, wantfd) < 0) {
 		logfclose(l);
-		debug("logfile_reopen: failed for %s\n", name);
 		return -1;
 	}
 	changed_logfile(l);
 	l->st->st_ino = l->st->st_dev = 0;
-	debug("logfile_reopen: %d = %s\n", wantfd, name);
 	return 0;
 }
 
@@ -102,7 +100,6 @@ static int stolen_logfile(struct logfile *l)
 	o = *s;
 	if (fstat(fileno(l->fp), s) < 0)	/* remember that stat failed */
 		s->st_ino = s->st_dev = 0;
-	ASSERT(s == l->st);
 	if (!o.st_dev && !o.st_ino)	/* nothing to compare with */
 		return 0;
 
@@ -113,15 +110,9 @@ static int stolen_logfile(struct logfile *l)
 	    ((s->st_ctime != o.st_ctime) &&	/*     file changed (moved) */
 	     !(s->st_mtime == s->st_ctime &&	/*  and it was not a change */
 	       o.st_ctime < s->st_ctime))) {	/* due to delayed nfs write */
-		debug("stolen_logfile: %s stolen!\n", l->name);
-		debug("st_dev %d, st_ino %d, st_nlink %d\n", (int)s->st_dev, (int)s->st_ino, (int)s->st_nlink);
-		debug("s->st_size %d, o.st_size %d\n", (int)s->st_size, (int)o.st_size);
-		debug("s->st_mtime %d, o.st_mtime %d\n", (int)s->st_mtime, (int)o.st_mtime);
-		debug("s->st_ctime %d, o.st_ctime %d\n", (int)s->st_ctime, (int)o.st_ctime);
 		return -1;
 	}
 
-	debug("stolen_logfile: %s o.k.\n", l->name);
 	return 0;
 }
 

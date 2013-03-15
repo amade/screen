@@ -150,7 +150,6 @@ void Input(char *istr, int len, int mode, void (*finfunc) (char *buf, int len, c
 static void erase_chars(struct inpdata *inpdata, char *from, char *to, int x, int mv)
 {
 	int chng;
-	ASSERT(from < to);
 	if (inpdata->inp.len > to - inpdata->inp.buf)
 		memmove(from, to, inpdata->inp.len - (to - inpdata->inp.buf));
 	chng = to - from;

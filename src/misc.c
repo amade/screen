@@ -76,7 +76,6 @@ void centerline(char *str, int y)
 {
 	int l, n;
 
-	ASSERT(flayer);
 	n = strlen(str);
 	if (n > flayer->l_width - 1)
 		n = flayer->l_width - 1;
@@ -92,7 +91,6 @@ void leftline(char *str, int y, struct mchar *rend)
 	mchar_dol = mchar_blank;
 	mchar_dol.image = '$';
 
-	ASSERT(flayer);
 	l = n = strlen(str);
 	if (n > flayer->l_width - 1)
 		n = flayer->l_width - 1;
@@ -257,27 +255,6 @@ int AddXChars(char *buf, int len, char *str)
 	*p = 0;
 	return p - buf;
 }
-
-#ifdef DEBUG
-void opendebug(int new, int shout)
-{
-	char buf[256];
-
-	mode_t oumask = umask(0);
-
-	ASSERT(!dfp);
-
-	(void)mkdir(DEBUGDIR, 0777);
-	sprintf(buf, shout ? "%s/SCREEN.%d" : "%s/screen.%d", DEBUGDIR, getpid());
-	if (!(dfp = fopen(buf, new ? "w" : "a")))
-		dfp = stderr;
-	else
-		(void)fchmod(dfp, 0666);
-
-	(void)umask(oumask);
-	debug("opendebug: done.\n");
-}
-#endif				/* DEBUG */
 
 void sleep1000(int msec)
 {

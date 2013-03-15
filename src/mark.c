@@ -134,8 +134,6 @@ static int nextchar(int *xp, int *yp, int direction, char target, int num)
 	int adjust;		/* Final adjustment of cursor position. */
 	char *displayed_line;	/* Line in which search takes place. */
 
-	debug("nextchar\n");
-
 	x = *xp;
 	step = 1;
 	adjust = 0;
@@ -153,15 +151,9 @@ static int nextchar(int *xp, int *yp, int direction, char target, int num)
 	case 'F':
 		step = -1;
 		break;
-	default:
-		ASSERT(0);
 	}
 
 	x += step;
-
-	debug("ml->image = %s\n", displayed_line);
-	debug("num = %d, width = %d\n", num, width);
-	debug("x = %d target = %c\n", x, target);
 
 	for (; x >= 0 && x <= width; x += step) {
 		if (displayed_line[x] == target) {
@@ -383,17 +375,14 @@ int GetHistory()
 	uint32_t *linep;
 	struct mline *ml;
 
-	ASSERT(display && fore);
 	x = fore->w_x;
 	if (x >= fore->w_width)
 		x = fore->w_width - 1;
 	y = fore->w_y + fore->w_histheight;
-	debug("cursor is at x=%d, y=%d\n", x, y);
 	ml = WIN(y);
 	for (xx = x - 1, linep = ml->image + xx; xx >= 0; xx--)
 		if ((q = *linep--) != ' ')
 			break;
-	debug("%c at (%d,%d)\n", q, xx, y);
 	for (yy = y - 1; yy >= 0; yy--) {
 		ml = WIN(yy);
 		linep = ml->image;
@@ -424,10 +413,6 @@ int GetHistory()
 void MarkRoutine()
 {
 	int x, y;
-
-	ASSERT(fore && display && D_user);
-
-	debug("MarkRoutine called: fore nr %d, display %s\n", fore->w_number, D_usertty);
 
 	if (InitOverlayPage(sizeof(*markdata), &MarkLf, 1))
 		return;
@@ -521,7 +506,6 @@ static void MarkProcess(char **inbufp, int *inlenp)
 		cy = markdata->cy;
 
 		if (markdata->f_cmd.flag) {
-			debug("searching for %c:%d\n", od, rep_cnt);
 			markdata->f_cmd.flag = 0;
 			markdata->rep_cnt = 0;
 
@@ -550,7 +534,6 @@ static void MarkProcess(char **inbufp, int *inlenp)
 			 */
 			markdata->f_cmd.flag = 1;
 			markdata->f_cmd.direction = od;
-			debug("entering char search\n");
 			continue;
 		case ';':
 		case ',':
@@ -747,7 +730,6 @@ static void MarkProcess(char **inbufp, int *inlenp)
 			break;
 		case 'a':
 			markdata->append_mode = 1 - markdata->append_mode;
-			debug("append mode %d--\n", markdata->append_mode);
 			LMsg(0, (markdata->append_mode) ? ":set append" : ":set noappend");
 			break;
 		case 'v':
@@ -1134,7 +1116,6 @@ static void MarkAbort()
 {
 	int yend, redisp;
 
-	debug("MarkAbort\n");
 	markdata = (struct markdata *)flayer->l_data;
 	fore = markdata->md_window;
 	yend = fore->w_height - 1;
@@ -1240,7 +1221,6 @@ static int MarkRewrite(int ry, int xs, int xe, struct mchar *rend, int doit)
 
 	mchar_marked = mchar_so;
 
-	debug("MarkRewrite %d, %d-%d\n", ry, xs, xe);
 	markdata = (struct markdata *)flayer->l_data;
 	fore = markdata->md_window;
 	y = D2W(ry);
@@ -1300,7 +1280,6 @@ static int MarkScrollUpDisplay(int n)
 {
 	int i;
 
-	debug("MarkScrollUpDisplay(%d)\n", n);
 	if (n <= 0)
 		return 0;
 	if (n > fore->w_histheight - markdata->hist_offset)
@@ -1317,7 +1296,6 @@ static int MarkScrollDownDisplay(int n)
 {
 	int i;
 
-	debug("MarkScrollDownDisplay(%d)\n", n);
 	if (n <= 0)
 		return 0;
 	if (n > markdata->hist_offset)

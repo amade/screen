@@ -49,16 +49,12 @@ static void DoLock(int);
 static void LockTerminal(void);
 static void LockHup(int);
 static void screen_builtin_lck(void);
-#ifdef DEBUG
-static void AttacherChld(int);
-#endif
 static void AttachSigCont(int);
 
 static int ContinuePlease;
 
 static void AttachSigCont(int sigsig)
 {
-	debug("SigCont()\n");
 	ContinuePlease = 1;
 	return;
 }
@@ -112,7 +108,6 @@ int Attach(int how)
 	struct stat st;
 	char *s;
 
-	debug("Attach: how=%d, tty=%s\n", how, attach_tty);
 	if ((how == MSG_ATTACH || how == MSG_CONT) && multiattach) {
 		real_uid = multi_uid;
 		eff_uid = own_uid;
@@ -190,15 +185,12 @@ int Attach(int how)
 	eff_uid = real_uid;
 	eff_gid = real_gid;
 
-	debug("Attach: uid %d euid %d\n", (int)getuid(), (int)geteuid());
 	MasterPid = 0;
 	for (s = SocketName; *s; s++) {
 		if (*s > '9' || *s < '0')
 			break;
 		MasterPid = 10 * MasterPid + (*s - '0');
 	}
-	debug("Attach decided, it is '%s'\n", SocketPath);
-	debug("Attach found MasterPid == %d\n", MasterPid);
 	if (stat(SocketPath, &st) == -1)
 		Panic(errno, "stat %s", SocketPath);
 	if ((st.st_mode & 0600) != 0600)
@@ -241,10 +233,8 @@ int Attach(int how)
 			Panic(0, "Cannot contact screen again. Sigh.");
 		m.type = how;
 	}
-	ASSERT(how == MSG_ATTACH || how == MSG_CONT);
 	strncpy(m.m.attach.envterm, attach_term, sizeof(m.m.attach.envterm) - 1);
 	m.m.attach.envterm[sizeof(m.m.attach.envterm) - 1] = 0;
-	debug("attach: sending %d bytes... ", (int)sizeof(m));
 
 	strncpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1);
 	m.m.attach.auser[sizeof(m.m.attach.auser) - 1] = 0;
@@ -275,7 +265,6 @@ int Attach(int how)
 	if (WriteMessage(lasts, &m))
 		Panic(errno, "WriteMessage");
 	close(lasts);
-	debug("Attach(%d): sent\n", m.type);
 	if (multi && (how == MSG_ATTACH || how == MSG_CONT)) {
 		while (!ContinuePlease)
 			pause();	/* wait for SIGCONT */
@@ -294,21 +283,8 @@ int Attach(int how)
 
 static int AttacherPanic = 0;
 
-#ifdef DEBUG
-static void AttacherChld(int sigsig)
-{
-	AttacherPanic = 1;
-	return;
-}
-#endif
-
 static void AttacherSigAlarm(int sigsig)
 {
-#ifdef DEBUG
-	static int tick_cnt = 0;
-	if ((tick_cnt = (tick_cnt + 1) % 4) == 0)
-		debug("tick\n");
-#endif
 	return;
 }
 
@@ -334,15 +310,12 @@ void AttacherFinit(int sigsig)
 	struct msg m;
 	int s;
 
-	debug("AttacherFinit();\n");
 	signal(SIGHUP, SIG_IGN);
 	/* Check if signal comes from backend */
 	if (stat(SocketPath, &statb) == 0 && (statb.st_mode & 0777) != 0600) {
-		debug("Detaching backend!\n");
 		memset((char *)&m, 0, sizeof(m));
 		strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
 		m.m_tty[sizeof(m.m_tty) - 1] = 0;
-		debug("attach_tty is %s\n", attach_tty);
 		m.m.detach.dpid = getpid();
 		m.type = MSG_HANGUP;
 		m.protocol_revision = MSG_REVISION;
@@ -363,7 +336,6 @@ void AttacherFinit(int sigsig)
 static void AttacherFinitBye(int sigsig)
 {
 	int ppid;
-	debug("AttacherFintBye()\n");
 	if (setgid(real_gid))
 		Panic(errno, "setgid");
 	if (setuid(own_uid))
@@ -375,26 +347,10 @@ static void AttacherFinitBye(int sigsig)
 	return;
 }
 
-#if defined(DEBUG) && defined(SIG_NODEBUG)
-static void AttacherNoDebug(int sigsig)
-{
-	debug("AttacherNoDebug()\n");
-	signal(SIG_NODEBUG, AttacherNoDebug);
-	if (dfp) {
-		debug("debug: closing debug file.\n");
-		fflush(dfp);
-		fclose(dfp);
-		dfp = NULL;
-	}
-	return;
-}
-#endif				/* SIG_NODEBUG */
-
 static int SuspendPlease;
 
 static void SigStop(int sigsig)
 {
-	debug("SigStop()\n");
 	SuspendPlease = 1;
 	return;
 }
@@ -406,7 +362,6 @@ static void DoLock(int sigsig)
 #ifdef SYSVSIGS
 	signal(SIG_LOCK, DoLock);
 #endif
-	debug("DoLock()\n");
 	LockPlease = 1;
 	return;
 }
@@ -416,7 +371,6 @@ static int SigWinchPlease;
 
 static void AttacherWinch(int sigsig)
 {
-	debug("AttacherWinch()\n");
 	SigWinchPlease = 1;
 	return;
 }
@@ -431,9 +385,6 @@ void Attacher()
 	signal(SIGHUP, AttacherFinit);
 	signal(SIG_BYE, AttacherFinit);
 	signal(SIG_POWER_BYE, AttacherFinitBye);
-#if defined(DEBUG) && defined(SIG_NODEBUG)
-	signal(SIG_NODEBUG, AttacherNoDebug);
-#endif
 	signal(SIG_LOCK, DoLock);
 	signal(SIGINT, AttacherSigInt);
 #ifdef BSDJOBS
@@ -442,10 +393,6 @@ void Attacher()
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 	signal(SIGWINCH, AttacherWinch);
 #endif
-#ifdef DEBUG
-	signal(SIGCHLD, AttacherChld);
-#endif
-	debug("attacher: going for a nap.\n");
 	dflag = 0;
 	xflag = 1;
 	for (;;) {
@@ -454,7 +401,6 @@ void Attacher()
 		pause();
 		alarm(0);
 		if (kill(MasterPid, 0) < 0 && errno != EPERM) {
-			debug("attacher: Panic! MasterPid %d does not exist.\n", MasterPid);
 			AttacherPanic++;
 		}
 		if (AttacherPanic) {
@@ -467,9 +413,7 @@ void Attacher()
 		if (SuspendPlease) {
 			SuspendPlease = 0;
 			signal(SIGTSTP, SIG_DFL);
-			debug("attacher: killing myself SIGTSTP\n");
 			kill(getpid(), SIGTSTP);
-			debug("attacher: continuing from stop\n");
 			signal(SIG_STOP, SigStop);
 			(void)Attach(MSG_CONT);
 		}
@@ -628,7 +572,6 @@ static void screen_builtin_lck()
 	}
 #endif
 
-	debug("screen_builtin_lck looking in gcos field\n");
 	strncpy(fullname, ppp->pw_gecos, sizeof(fullname) - 9);
 	fullname[sizeof(fullname) - 9] = 0;
 
@@ -646,7 +589,6 @@ static void screen_builtin_lck()
 
 	/* loop here to wait for correct password */
 	for (;;) {
-		debug("screen_builtin_lck awaiting password\n");
 		errno = 0;
 		if ((cp1 = getpass(message)) == NULL) {
 			AttacherFinit(0);
@@ -678,11 +620,9 @@ static void screen_builtin_lck()
 			if (buf && !strncmp(buf, pass, strlen(pass)))
 				break;
 		}
-		debug("screen_builtin_lck: NO!!!!!\n");
 		memset(cp1, 0, strlen(cp1));
 	}
 	memset(cp1, 0, strlen(cp1));
-	debug("password ok.\n");
 }
 
 void SendCmdMessage(char *sty, char *match, char **av, int query)
@@ -730,7 +670,6 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 	strncpy(m.m.command.preselect, preselect ? preselect : "", sizeof(m.m.command.preselect) - 1);
 	m.m.command.preselect[sizeof(m.m.command.preselect) - 1] = 0;
 	m.m.command.apid = getpid();
-	debug("SendCommandMsg writing '%s'\n", m.m.command.cmd);
 	if (query) {
 		/* Create a server socket so we can get back the result */
 		char *sp = SocketPath + strlen(SocketPath);
