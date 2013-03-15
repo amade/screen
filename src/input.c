@@ -67,7 +67,6 @@ static struct LayFuncs InpLf = {
 	InpAbort,
 	InpRedisplayLine,
 	DefClearLine,
-	DefRewrite,
 	DefResize,
 	DefRestore,
 	0

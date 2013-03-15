@@ -32,7 +32,6 @@ static void ListProcess(char **, int *);
 static void ListAbort(void);
 static void ListRedisplayLine(int, int, int, int);
 static void ListClearLine(int, int, int, int);
-static int ListRewrite(int, int, int, struct mchar *, int);
 static int ListResize(int, int);
 static void ListRestore(void);
 static void ListFree(void *);
@@ -42,7 +41,6 @@ struct LayFuncs ListLf = {
 	ListAbort,
 	ListRedisplayLine,
 	ListClearLine,
-	ListRewrite,
 	ListResize,
 	ListRestore,
 	ListFree
@@ -339,11 +337,6 @@ static void ListRedisplayLine(int y, int xs, int xe, int isblank)
 static void ListClearLine(int y, int xs, int xe, int bce)
 {
 	DefClearLine(y, xs, xe, bce);
-}
-
-static int ListRewrite(int y, int xs, int xe, struct mchar *rend, int doit)
-{
-	return EXPENSIVE;
 }
 
 static int ListResize(int wi, int he)

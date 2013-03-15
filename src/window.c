@@ -44,7 +44,6 @@
 static void WinProcess(char **, int *);
 static void WinRedisplayLine(int, int, int, int);
 static void WinClearLine(int, int, int, int);
-static int WinRewrite(int, int, int, struct mchar *, int);
 static int WinResize(int, int);
 static void WinRestore(void);
 static int DoAutolf(char *, int *, int);
@@ -165,7 +164,6 @@ struct LayFuncs WinLf = {
 	0,
 	WinRedisplayLine,
 	WinClearLine,
-	WinRewrite,
 	WinResize,
 	WinRestore,
 	0
@@ -270,46 +268,6 @@ static void WinRedisplayLine(int y, int from, int to, int isblank)
 		LCDisplayLineWrap(&fore->w_layer, &fore->w_mlines[y], y, from, to, isblank);
 	else
 		LCDisplayLine(&fore->w_layer, &fore->w_mlines[y], y, from, to, isblank);
-}
-
-static int WinRewrite(int y, int x1, int x2, struct mchar *rend, int doit)
-{
-	register int cost, dx;
-	register uint32_t *p, *i;
-	register uint32_t *f;
-	register uint32_t *colorbg;
-	register uint32_t *colorfg;
-
-	fore = (struct win *)flayer->l_data;
-	dx = x2 - x1 + 1;
-	if (doit) {
-		i = fore->w_mlines[y].image + x1;
-		while (dx-- > 0)
-			PUTCHAR(*i++);
-		return 0;
-	}
-	p = fore->w_mlines[y].attr + x1;
-	f = fore->w_mlines[y].font + x1;
-	if (is_dw_font(rend->font))
-		return EXPENSIVE;
-	if (fore->w_encoding && fore->w_encoding != UTF8 && D_encoding == UTF8
-	    && ContainsSpecialDeffont(fore->w_mlines + y, x1, x2, fore->w_encoding))
-		return EXPENSIVE;
-	colorbg = fore->w_mlines[y].colorbg + x1;
-	colorfg = fore->w_mlines[y].colorfg + x1;
-
-	cost = dx = x2 - x1 + 1;
-	while (dx-- > 0) {
-		if (*p++ != rend->attr)
-			return EXPENSIVE;
-		if (*f++ != rend->font)
-			return EXPENSIVE;
-		if (*colorbg++ != rend->colorbg)
-			return EXPENSIVE;
-		if (*colorfg++ != rend->colorfg)
-			return EXPENSIVE;
-	}
-	return cost;
 }
 
 static void WinClearLine(int y, int xs, int xe, int bce)

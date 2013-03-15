@@ -114,7 +114,6 @@ static struct LayFuncs HelpLf = {
 	HelpAbort,
 	HelpRedisplayLine,
 	DefClearLine,
-	DefRewrite,
 	DefResize,
 	DefRestore,
 	0
@@ -417,7 +416,6 @@ static struct LayFuncs CopyrightLf = {
 	CopyrightAbort,
 	CopyrightRedisplayLine,
 	DefClearLine,
-	DefRewrite,
 	DefResize,
 	DefRestore,
 	0
@@ -606,7 +604,6 @@ static struct LayFuncs BindkeyLf = {
 	BindkeyAbort,
 	BindkeyRedisplayLine,
 	DefClearLine,
-	DefRewrite,
 	DefResize,
 	DefRestore,
 	0
@@ -775,7 +772,6 @@ static struct LayFuncs ZmodemLf = {
 	0,
 	ZmodemRedisplayLine,
 	DefClearLine,
-	DefRewrite,
 	ZmodemResize,
 	DefRestore,
 	0

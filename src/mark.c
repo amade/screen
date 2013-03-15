@@ -55,7 +55,6 @@ static int MarkScrollUpDisplay(int);
 static void MarkProcess(char **, int *);
 static void MarkAbort(void);
 static void MarkRedisplayLine(int, int, int, int);
-static int MarkRewrite(int, int, int, struct mchar *, int);
 
 int pastefont = 1;
 
@@ -64,7 +63,6 @@ struct LayFuncs MarkLf = {
 	MarkAbort,
 	MarkRedisplayLine,
 	DefClearLine,
-	MarkRewrite,
 	DefResize,
 	DefRestore,
 	0
@@ -1201,68 +1199,6 @@ static void MarkRedisplayLine(int y, int xs, int xe, int isblank)
 	}
 	if (x <= xe)
 		LCDisplayLine(flayer, ml, y, x, xe, isblank);
-}
-
-/*
- * This ugly routine is to speed up GotoPos()
- */
-static int MarkRewrite(int ry, int xs, int xe, struct mchar *rend, int doit)
-{
-	int dx, x, y, st, en, t, rm;
-	uint32_t *i;
-	struct mline *ml;
-	struct mchar mchar_marked;
-
-	mchar_marked = mchar_so;
-
-	markdata = (struct markdata *)flayer->l_data;
-	fore = markdata->md_window;
-	y = D2W(ry);
-	ml = WIN(y);
-	if (fore->w_encoding && fore->w_encoding != UTF8 && D_encoding == UTF8
-	    && ContainsSpecialDeffont(ml, xs, xe, fore->w_encoding))
-		return EXPENSIVE;
-	dx = xe - xs + 1;
-	if (doit) {
-		i = ml->image + xs;
-		while (dx--)
-			PUTCHAR(*i++);
-		return 0;
-	}
-
-	if (markdata->second == 0)
-		st = en = -1;
-	else {
-		st = markdata->y1 * fore->w_width + markdata->x1;
-		en = markdata->cy * fore->w_width + markdata->cx;
-		if (st > en) {
-			t = st;
-			st = en;
-			en = t;
-		}
-	}
-	t = y * fore->w_width + xs;
-	for (rm = fore->w_width, i = ml->image + fore->w_width; rm >= 0; rm--)
-		if (*i-- != ' ')
-			break;
-	if (rm > markdata->right_mar)
-		rm = markdata->right_mar;
-	x = xs;
-	while (dx--) {
-		if (t >= st && t <= en && x >= markdata->left_mar && x <= rm) {
-			if (pastefont)
-				mchar_marked.font = ml->font[x];
-			rend->image = mchar_marked.image;
-			if (!cmp_mchar(rend, &mchar_marked))
-				return EXPENSIVE;
-		} else {
-			rend->image = ml->image[x];
-			if (!cmp_mchar_mline(rend, ml, x))
-				return EXPENSIVE;
-		}
-		x++;
-	}
-	return xe - xs + 1;
 }
 
 /*
