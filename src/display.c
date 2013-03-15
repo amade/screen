@@ -39,7 +39,6 @@
 static int CountChars(int);
 static int DoAddChar(int);
 static int BlankResize(int, int);
-static int CallRewrite(int, int, int, int);
 static void disp_readev_fn(struct event *, char *);
 static void disp_writeev_fn(struct event *, char *);
 static void disp_writeev_eagain(struct event *, char *);
@@ -100,11 +99,6 @@ void DefClearLine(int y, int xs, int xe, int bce)
 	LClearLine(flayer, y, xs, xe, bce, (struct mline *)0);
 }
 
-int DefRewrite(int y, int xs, int xe, struct mchar *rend, int doit)
-{
-	return EXPENSIVE;
-}
-
 int DefResize(int wi, int he)
 {
 	return -1;
@@ -133,7 +127,6 @@ struct LayFuncs BlankLf = {
 	0,
 	DefRedisplayLine,
 	DefClearLine,
-	DefRewrite,
 	BlankResize,
 	DefRestore,
 	0
@@ -653,55 +646,6 @@ int CalcCost(register char *s)
 		return EXPENSIVE;
 }
 
-static int CallRewrite(int y, int xs, int xe, int doit)
-{
-	struct canvas *cv, *cvlist, *cvlnext;
-	struct viewport *vp;
-	struct layer *oldflayer;
-	int cost;
-
-	vp = 0;
-	for (cv = D_cvlist; cv; cv = cv->c_next) {
-		if (y < cv->c_ys || y > cv->c_ye || xe < cv->c_xs || xs > cv->c_xe)
-			continue;
-		for (vp = cv->c_vplist; vp; vp = vp->v_next)
-			if (y >= vp->v_ys && y <= vp->v_ye && xe >= vp->v_xs && xs <= vp->v_xe)
-				break;
-		if (vp)
-			break;
-	}
-	if (doit) {
-		oldflayer = flayer;
-		flayer = cv->c_layer;
-		cvlist = flayer->l_cvlist;
-		cvlnext = cv->c_lnext;
-		flayer->l_cvlist = cv;
-		cv->c_lnext = 0;
-		LayRewrite(y - vp->v_yoff, xs - vp->v_xoff, xe - vp->v_xoff, &D_rend, 1);
-		flayer->l_cvlist = cvlist;
-		cv->c_lnext = cvlnext;
-		flayer = oldflayer;
-		return 0;
-	}
-	if (cv == 0 || cv->c_layer == 0)
-		return EXPENSIVE;	/* not found or nothing on it */
-	if (xs < vp->v_xs || xe > vp->v_xe)
-		return EXPENSIVE;	/* crosses viewport boundaries */
-	if (y - vp->v_yoff < 0 || y - vp->v_yoff >= cv->c_layer->l_height)
-		return EXPENSIVE;	/* line not on layer */
-	if (xs - vp->v_xoff < 0 || xe - vp->v_xoff >= cv->c_layer->l_width)
-		return EXPENSIVE;	/* line not on layer */
-	if (D_encoding == UTF8)
-		D_rend.font = 0;
-	oldflayer = flayer;
-	flayer = cv->c_layer;
-	cost = LayRewrite(y - vp->v_yoff, xs - vp->v_xoff, xe - vp->v_xoff, &D_rend, 0);
-	flayer = oldflayer;
-	if (D_insert)
-		cost += D_EIcost + D_IMcost;
-	return cost;
-}
-
 void GotoPos(int x2, int y2)
 {
 	register int dy, dx, x1, y1;
@@ -769,11 +713,6 @@ void GotoPos(int x2, int y2)
 				costx = m;
 				xm = M_RI;
 			}
-			/* Speedup: dx <= LayRewrite() */
-			if (dx < costx && (m = CallRewrite(y1, x1, x2 - 1, 0)) < costx) {
-				costx = m;
-				xm = M_RW;
-			}
 		} else if (dx < 0) {
 			if (D_CLE && (dx < -1 || !D_BC)) {
 				costx = CalcCost(tgoto(D_CLE, 0, -dx));
@@ -786,9 +725,8 @@ void GotoPos(int x2, int y2)
 		} else
 			costx = 0;
 	}
-	/* Speedup: LayRewrite() >= x2 */
-	if (x2 + D_CRcost < costx && (m = (x2 ? CallRewrite(y1, 0, x2 - 1, 0) : 0) + D_CRcost) < costx) {
-		costx = m;
+	if (x2 + D_CRcost < costx && (m = (D_CRcost < costx))) {
+		costx = EXPENSIVE;
 		xm = M_CR;
 	}
 
@@ -844,8 +782,6 @@ void GotoPos(int x2, int y2)
 		x1 = 0;
 		/* FALLTHROUGH */
 	case M_RW:
-		if (x1 < x2)
-			(void)CallRewrite(y1, x1, x2 - 1, 1);
 		break;
 	default:
 		break;
