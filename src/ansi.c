@@ -135,7 +135,6 @@ static void MScrollV(struct win *, int, int, int, int);
 static void MClearArea(struct win *, int, int, int, int, int);
 static void MInsChar(struct win *, struct mchar *, int, int);
 static void MPutChar(struct win *, struct mchar *, int, int);
-static void MPutStr(struct win *, char *, int, struct mchar *, int, int);
 static void MWrapChar(struct win *, struct mchar *, int, int, int, int);
 static void MBceLine(struct win *, int, int, int, int);
 
@@ -2153,33 +2152,6 @@ static void MWrapChar(struct win *p, struct mchar *c, int y, int top, int bot, i
 		MInsChar(p, c, 0, y);
 	else
 		MPutChar(p, c, 0, y);
-}
-
-static void MPutStr(struct win *p, char *s, int n, struct mchar *r, int x, int y)
-{
-	struct mline *ml;
-	int i;
-	uint32_t *b;
-
-	if (n <= 0)
-		return;
-	MFixLine(p, y, r);
-	ml = &p->w_mlines[y];
-	MKillDwRight(p, ml, x);
-	MKillDwLeft(p, ml, x + n - 1);
-	memmove(ml->image + x, s, n * 4);
-	b = ml->attr + x;
-	for (i = n; i-- > 0;)
-		*b++ = r->attr;
-	b = ml->font + x;
-	for (i = n; i-- > 0;)
-		*b++ = r->font;
-	b = ml->colorbg + x;
-	for (i = n; i-- > 0;)
-		*b++ = r->colorbg;
-	b = ml->colorfg + x;
-	for (i = n; i-- > 0;)
-		*b++ = r->colorfg;
 }
 
 static void MBceLine(struct win *p, int y, int xs, int xe, int bce)
