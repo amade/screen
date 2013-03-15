@@ -206,7 +206,9 @@ struct win
   char	 w_vbwait;
   char	 w_norefresh;		/* dont redisplay when switching to that win */
   char	 w_xtermosc[4][MAXSTR];	/* special xterm/rxvt escapes */
-  int    w_mouse;		/* mouse mode 0,9,1000 */
+  int	 w_mouse;		/* mouse mode 0,9,1000 */
+  int	 w_bracketed;		/* bracketed paste mode */
+  int	 w_cursorstyle;		/* cursor style */
 
   int    w_slowpaste;		/* do careful writes to the window */
   int	 w_histheight;		/* all histbases are malloced with width * histheight */
