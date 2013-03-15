@@ -43,9 +43,6 @@ static int findseq_ge(char *, int, unsigned char **);
 static void setseqoff(unsigned char *, int, int);
 static int addmapseq(char *, int, int);
 static int remmapseq(char *, int);
-#ifdef DEBUGG
-static void dumpmap(void);
-#endif
 
 char Termcap[TERMCAP_BUFSIZE + 8];	/* new termcap +8:"TERMCAP=" */
 static int Termcaplen;
@@ -88,20 +85,11 @@ int InitTermcap(int width, int height)
 	char tbuf[TERMCAP_BUFSIZE], *tp;
 	int t, xue, xse, xme;
 
-	ASSERT(display);
 	memset(tbuf, 0, sizeof(tbuf));
-	debug("InitTermcap: looking for tgetent('%s')\n", D_termname);
 	if (*D_termname == 0 || e_tgetent(tbuf, D_termname) != 1) {
 		Msg(0, "Cannot find terminfo entry for '%s'.", D_termname);
 		return -1;
 	}
-	debug("got it:\n%s\n", tbuf);
-#ifdef DEBUG
-	if (extra_incap)
-		debug("Extra incap: %s\n", extra_incap);
-	if (extra_outcap)
-		debug("Extra outcap: %s\n", extra_outcap);
-#endif
 
 	if ((D_tentry = malloc(TERMCAP_BUFSIZE + (extra_incap ? strlen(extra_incap) + 1 : 0))) == 0) {
 		Msg(0, "%s", strnomem);
@@ -324,10 +312,8 @@ int InitTermcap(int width, int height)
 	if (D_CC0)
 		for (i = strlen(D_CC0) & ~1; i >= 0; i -= 2)
 			D_c0_tab[(int)(unsigned char)D_CC0[i]] = D_CC0[i + 1];
-	debug("ISO2022 = %d\n", D_CG0);
 	if (D_PF == 0)
 		D_PO = 0;
-	debug("terminal size is %d, %d (says TERMCAP)\n", D_CO, D_LI);
 
 	if (D_CXC)
 		if (CreateTransTable(D_CXC))
@@ -344,7 +330,6 @@ int InitTermcap(int width, int height)
 	if (D_TS == 0 || D_FS == 0 || D_DS == 0)
 		D_HS = 0;
 	if (D_HS) {
-		debug("oy! we have a hardware status line, says termcap\n");
 		if (D_WS < 0)
 			D_WS = 0;
 	}
@@ -372,11 +357,9 @@ int InitTermcap(int width, int height)
 	D_EIcost = CalcCost(D_EI);
 
 	if (D_CAN) {
-		debug("termcap has AN, setting autonuke\n");
 		D_auto_nuke = 1;
 	}
 	if (D_COL > 0) {
-		debug("termcap has OL (%d), setting limit\n", D_COL);
 		D_obufmax = D_COL;
 		D_obuflenmax = D_obuflen - D_obufmax;
 	}
@@ -460,7 +443,6 @@ int remap(int n, int map)
 		return 0;
 	if (map && !domap)
 		return 0;
-	debug("%smapping %s %#x\n", map ? "" : "un", s, n);
 	if (map)
 		return addmapseq(s, l, n | fl);
 	else
@@ -610,9 +592,6 @@ static int addmapseq(char *seq, int k, int nr)
 				setseqoff(q, j, q[l + 4 + j] + k + 2);
 		}
 	}
-#ifdef DEBUGG
-	dumpmap();
-#endif
 	return 0;
 }
 
@@ -639,39 +618,8 @@ static int remmapseq(char *seq, int k)
 	D_seql = 0;
 	D_seqh = 0;
 	evdeq(&D_mapev);
-#ifdef DEBUGG
-	dumpmap();
-#endif
 	return 0;
 }
-
-#ifdef DEBUGG
-static void dumpmap()
-{
-	unsigned char *p;
-	int j, n, l, o, oo;
-	debug("Mappings:\n");
-	p = D_kmaps;
-	if (!p)
-		return;
-	while (p < D_kmaps + D_nseqs) {
-		l = p[2];
-		debug("%d: ", p - D_kmaps + 3);
-		for (j = 0; j < l; j++) {
-			o = oo = p[l + 4 + j];
-			if (o)
-				o = 2 * o + 4 + (p + 3 + j - D_kmaps);
-			if (p[j + 3] > ' ' && p[j + 3] < 0177) {
-				debug("%c[%d:%d] ", p[j + 3], oo, o);
-			} else
-				debug("\\%03o[%d:%d] ", p[j + 3], oo, o);
-		}
-		n = p[0] << 8 | p[1];
-		debug(" ==> %d%s\n", n & ~KMAP_NOTIMEOUT, (n & KMAP_NOTIMEOUT) ? " (no timeout)" : "");
-		p += 2 * l + 4;
-	}
-}
-#endif				/* DEBUGG */
 
 /*
  * Appends to the static variable Termcap
@@ -712,18 +660,13 @@ char *MakeTermcap(int aflag)
 		height = 24;
 		tname = "vt100";
 	}
-	debug("MakeTermcap(%d)\n", aflag);
 	if ((s = getenv("SCREENCAP")) && strlen(s) < TERMCAP_BUFSIZE) {
 		sprintf(Termcap, "TERMCAP=%s", s);
 		strncpy(Term, "TERM=screen", sizeof(Term));
-		debug("getenvSCREENCAP o.k.\n");
 		return Termcap;
 	}
 	Termcaplen = 0;
-	debug("MakeTermcap screenterm='%s'\n", screenterm);
-	debug("MakeTermcap termname='%s'\n", tname);
 	if (*screenterm == '\0' || strlen(screenterm) > MAXSTR - 3) {
-		debug("MakeTermcap sets screenterm=screen\n");
 		strncpy(screenterm, "screen", 20);
 	}
 	strncpy(Term, "TERM=", sizeof(Term));
@@ -745,7 +688,6 @@ char *MakeTermcap(int aflag)
 		strncpy(Term, "too_long", sizeof(Term));
 	sprintf(Termcap, "TERMCAP=SC|%s|VT 100/ANSI X3.64 virtual terminal:", Term + 5);
 	Termcaplen = strlen(Termcap);
-	debug("MakeTermcap decided '%s'\n", p);
 	if (extra_outcap && *extra_outcap) {
 		for (cp = extra_outcap; (p = strchr(cp, ':')); cp = p) {
 			ch = *++p;
@@ -755,7 +697,6 @@ char *MakeTermcap(int aflag)
 		}
 		tcLineLen = 100;	/* Force NL */
 	}
-	debug("MakeTermcap after outcap '%s'\n", (char *)TermcapConst);
 	if (Termcaplen + strlen(TermcapConst) < TERMCAP_BUFSIZE) {
 		strcpy(Termcap + Termcaplen, (char *)TermcapConst);
 		Termcaplen += strlen(TermcapConst);
@@ -894,7 +835,6 @@ char *MakeTermcap(int aflag)
 			break;
 		}
 	}
-	debug("MakeTermcap: end\n");
 	return Termcap;
 }
 
@@ -1014,8 +954,6 @@ int CreateTransTable(char *s)
 				*sx++ = *p;
 			}
 			*sx = 0;
-			ASSERT(ctable[c] + l * templnsub + templlen == sx);
-			debug("XC: %c %c->%s\n", curchar, c, ctable[c]);
 		}
 		if (*s == ',')
 			s++;
@@ -1172,7 +1110,6 @@ static char *findcap(char *cap, char **tepp, int n)
 		if (cp) {
 			*cp++ = 0;
 			*tepp = cp;
-			debug("'%s' found in extra_incap -> %s\n", cap, tep);
 			return tep;
 		}
 	}

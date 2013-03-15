@@ -60,7 +60,6 @@ struct acluser **FindUserPtr(char *name)
 	for (u = &users; *u; u = &(*u)->u_next)
 		if (!strcmp((*u)->u_name, name))
 			break;
-	debug("FindUserPtr %s %sfound\n", name, (*u) ? "" : "not ");
 	return u;
 }
 
@@ -99,7 +98,6 @@ int UserAdd(char *name, struct acluser **up)
 	(*up)->u_detachwin = -1;
 	(*up)->u_detachotherwin = -1;
 
-	debug("UserAdd %s\n", name);
 	return 0;
 }
 
@@ -134,11 +132,9 @@ int UserDel(char *name, struct acluser **up)
 	display = old;
 	*up = u->u_next;
 
-	debug("FREEING user structure for %s\n", u->u_name);
 	UserFreeCopyBuffer(u);
 	free((char *)u);
 	if (!users) {
-		debug("Last user deleted. Feierabend.\n");
 		Finit(0);	/* Destroying whole session. Noone could ever attach again. */
 	}
 	return 0;

@@ -92,9 +92,6 @@ extern void  SetFlow (int);
 extern void  SendBreak (struct win *, int, int);
 extern int   TtyGrabConsole (int, int, char *);
 extern char *TtyGetModemStatus (int, char *);
-#ifdef DEBUG
-extern void  DebugTTY (struct mode *);
-#endif /* DEBUG */
 extern int   fgtty (int);
 extern void  brktty (int);
 extern struct baud_values *lookup_baud (int bps);
@@ -329,9 +326,6 @@ extern void  xsetegid  (int);
 extern int   AddXChar (char *, int);
 extern int   AddXChars (char *, int, char *);
 extern void  sleep1000 (int);
-#ifdef DEBUG
-extern void  opendebug (int, int);
-#endif
 
 /* layer.c */
 extern void  LGotoPos (struct layer *, int, int);

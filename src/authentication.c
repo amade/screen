@@ -41,14 +41,11 @@ int CheckPassword() {
 
 void Authenticate() {
 	while (1) {
-		debug("Authenticate: awaiting password\n");
 		errno = 0;
 
 		if(CheckPassword()) {
 			break;
 		}
 
-		debug("Authenticate: bad password\n");
 	}
-	debug("Authenticate: good password\n");
 }

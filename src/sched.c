@@ -44,7 +44,6 @@ static struct event *calctimo(void);
 void evenq(struct event *ev)
 {
 	struct event *evp, **evpp;
-	debug("New event fd %d type %d queued %d\n", ev->fd, ev->type, ev->queued);
 	if (ev->queued)
 		return;
 	evpp = &evs;
@@ -63,7 +62,6 @@ void evenq(struct event *ev)
 void evdeq(struct event *ev)
 {
 	struct event *evp, **evpp;
-	debug("Deq event fd %d type %d queued %d\n", ev->fd, ev->type, ev->queued);
 	if (!ev->queued)
 		return;
 	evpp = &evs;
@@ -74,7 +72,6 @@ void evdeq(struct event *ev)
 	for (; (evp = *evpp); evpp = &evp->next)
 		if (evp == ev)
 			break;
-	ASSERT(evp);
 	*evpp = ev->next;
 	ev->queued = 0;
 	if (ev == nextev)
@@ -90,7 +87,6 @@ static struct event *calctimo()
 		return 0;
 	mins = min->timeout.tv_sec;
 	for (ev = tevs->next; ev; ev = ev->next) {
-		ASSERT(ev->type == EV_TIMEOUT);
 		if (mins < ev->timeout.tv_sec)
 			continue;
 		if (mins > ev->timeout.tv_sec || min->timeout.tv_usec > ev->timeout.tv_usec) {
@@ -126,24 +122,11 @@ void sched()
 				timeout.tv_sec = 0;
 			}
 		}
-#ifdef DEBUG
-		debug("waiting for events");
-		if (timeoutev)
-			debug(" timeout %d secs %d usecs", timeout.tv_sec, timeout.tv_usec);
-		debug(":\n");
-		for (ev = evs; ev; ev = ev->next)
-			debug(" - fd %d type %d pri %d\n", ev->fd, ev->type, ev->pri);
-		if (tevs)
-			debug("timed events:\n");
-		for (ev = tevs; ev; ev = ev->next)
-			debug(" - pri %d sec %d usec %d\n", ev->pri, ev->timeout.tv_sec, ev->timeout.tv_usec);
-#endif
 
 		FD_ZERO(&r);
 		FD_ZERO(&w);
 		for (ev = evs; ev; ev = ev->next) {
 			if (ev->condpos && *ev->condpos <= (ev->condneg ? *ev->condneg : 0)) {
-				debug(" - cond ev fd %d type %d failed\n", ev->fd, ev->type);
 				continue;
 			}
 			if (ev->type == EV_READ)
@@ -152,19 +135,6 @@ void sched()
 				FD_SET(ev->fd, &w);
 		}
 
-#ifdef DEBUG
-		debug("readfds:");
-		for (nsel = 0; nsel < FD_SETSIZE; nsel++)
-			if (FD_ISSET(nsel, &r))
-				debug(" %d", nsel);
-		debug("\n");
-		debug("writefds:");
-		for (nsel = 0; nsel < FD_SETSIZE; nsel++)
-			if (FD_ISSET(nsel, &w))
-				debug(" %d", nsel);
-		debug("\n");
-#endif
-
 		nsel = select(FD_SETSIZE, &r, &w, (fd_set *) 0, timeoutev ? &timeout : (struct timeval *)0);
 		if (nsel < 0) {
 			if (errno != EINTR) {
@@ -172,8 +142,6 @@ void sched()
 			}
 			nsel = 0;
 		} else if (nsel == 0) {	/* timeout */
-			debug("TIMEOUT!\n");
-			ASSERT(timeoutev);
 			evdeq(timeoutev);
 			timeoutev->handler(timeoutev, timeoutev->data);
 		}
@@ -196,7 +164,6 @@ void sched()
 			}
 			if (ev->condpos && *ev->condpos <= (ev->condneg ? *ev->condneg : 0))
 				continue;
-			debug(" + hit ev fd %d type %d!\n", ev->fd, ev->type);
 			ev->handler(ev, ev->data);
 		}
 	}
@@ -204,8 +171,6 @@ void sched()
 
 void SetTimeout(struct event *ev, int timo)
 {
-	ASSERT(ev->type == EV_TIMEOUT);
-	debug("event %x new timeout %d ms\n", ev, timo);
 	gettimeofday(&ev->timeout, NULL);
 	ev->timeout.tv_sec += timo / 1000;
 	ev->timeout.tv_usec += (timo % 1000) * 1000;

@@ -72,7 +72,6 @@ static void SigAlrmDummy (int);
 static void
 SigAlrmDummy (int sigsig)
 {
-  debug("SigAlrmDummy()\n");
   return;
 }
 
@@ -119,8 +118,6 @@ OpenTTY(char *line, char *opt)
  errno = 0;
  if (ioctl(f, TIOCEXCL, (char *) 0) < 0)
    Msg(errno, "%s: ioctl TIOCEXCL failed", line);
- debug("%d %d %d\n", getuid(), geteuid(), getpid());
- debug("%s TIOCEXCL errno %d\n", line, errno);
 #endif  /* TIOCEXCL */
   /*
    * We create a sane tty mode. We do not copy things from the display tty
@@ -128,7 +125,6 @@ OpenTTY(char *line, char *opt)
 #if WE_REALLY_WANT_TO_COPY_THE_TTY_MODE
   if (display)
     {
-      debug("OpenTTY: using mode of display for %s\n", line);
       Mode = D_NewMode;
     }
   else
@@ -136,9 +132,6 @@ OpenTTY(char *line, char *opt)
     InitTTY(&Mode, W_TYPE_PLAIN);
 
   SttyMode(&Mode, opt);
-#ifdef DEBUG
-  DebugTTY(&Mode);
-#endif
   SetTTY(f, &Mode);
 
 #if defined(TIOCMSET)
@@ -153,7 +146,6 @@ OpenTTY(char *line, char *opt)
   brktty(f);
   alarm(0);
   signal(SIGALRM, sigalrm);
-  debug("'%s' CONNECT fd=%d.\n", line, f);
   return f;
 }
 
@@ -169,7 +161,6 @@ InitTTY(struct mode *m, int ttyflag)
   /* struct termios tio
    * defaults, as seen on SunOS 4.1.3
    */
-  debug("InitTTY: POSIX: termios defaults based on SunOS 4.1.3, but better (%d)\n", ttyflag);
 #if defined(BRKINT)
 	m->tio.c_iflag |= BRKINT;
 #endif /* BRKINT */
@@ -405,7 +396,6 @@ SetMode(struct mode *op, struct mode *np, int flow, int interrupt)
 {
   *np = *op;
 
-  ASSERT(display);
 # ifdef CYTERMIO
   np->m_mapkey = NOMAPKEY;
   np->m_mapscreen = NOMAPSCREEN;
@@ -522,7 +512,6 @@ SetMode(struct mode *op, struct mode *np, int flow, int interrupt)
 void
 SetFlow(int on)
 {
-  ASSERT(display);
   if (D_flow == on)
     return;
   if (on)
@@ -559,8 +548,7 @@ SetFlow(int on)
   if (!on)
     tcflow(D_userfd, TCOON);
 #  endif
-  if (tcsetattr(D_userfd, TCSANOW, &D_NewMode.tio))
-    debug("SetFlow: ioctl errno %d\n", errno);
+  tcsetattr(D_userfd, TCSANOW, &D_NewMode.tio);
   D_flow = on;
 }
 
@@ -666,7 +654,6 @@ fgtty(int fd)
   if (separate_sids)
     if (tcsetpgrp(fd, mypid))
       {
-        debug("fgtty: tcsetpgrp: %d\n", errno);
         return -1;
       }
 #endif /* BSDJOBS */
@@ -699,7 +686,6 @@ DoSendBreak(int fd, int n, int type)
        * If you have this one, define the above symbol.
        * here we can use the second parameter to specify the duration.
        */
-      debug("tcsendbreak(fd=%d, %d)\n", fd, n);
       if (tcsendbreak(fd, n) < 0)
         Msg(errno, "cannot send BREAK (tcsendbreak)");
 # else
@@ -714,7 +700,6 @@ DoSendBreak(int fd, int n, int type)
        * - mot88: duration in milliseconds
        * - aix: duration in milliseconds, but 0 is 25 milliseconds.
        */
-      debug("%d * tcsendbreak(fd=%d, 0)\n", n, fd);
 	{
 	  int i;
 
@@ -738,7 +723,6 @@ DoSendBreak(int fd, int n, int type)
        * Here too, we assume that short breaks can be concatenated to
        * perform long breaks. But for SOLARIS, this is not true, of course.
        */
-      debug("%d * TCSBRK fd=%d\n", n, fd);
 	{
 	  int i;
 
@@ -760,7 +744,6 @@ DoSendBreak(int fd, int n, int type)
        * This is very rude. Screen actively celebrates the break.
        * But it may be the only save way to issue long breaks.
        */
-      debug("TIOCSBRK TIOCCBRK\n");
       if (ioctl(fd, TIOCSBRK, (char *)0) < 0)
         {
 	  Msg(errno, "Can't send BREAK (TIOCSBRK)");
@@ -795,8 +778,6 @@ SendBreak(struct win *wp, int n, int closeopen)
   if (wp->w_type != W_TYPE_PLAIN)
     return;
 
-  debug("break(%d, %d) fd %d\n", n, closeopen, wp->w_ptyfd);
-
   (void) tcflush(wp->w_ptyfd, TCIOFLUSH);
 
   if (closeopen)
@@ -820,7 +801,6 @@ SendBreak(struct win *wp, int n, int closeopen)
       alarm(0);
       signal(SIGALRM, sigalrm);
     }
-  debug("            broken.\n");
 }
 
 /*
@@ -1253,27 +1233,3 @@ CheckTtyname(char *tty)
     return -1;
   return 0;
 }
-
-/*
- *  Write out the mode struct in a readable form
- */
-
-#ifdef DEBUG
-void
-DebugTTY(struct mode *m)
-{
-  int i;
-
-  debug("struct termios tio:\n");
-  debug("c_iflag = %#x\n", (unsigned int)m->tio.c_iflag);
-  debug("c_oflag = %#x\n", (unsigned int)m->tio.c_oflag);
-  debug("c_cflag = %#x\n", (unsigned int)m->tio.c_cflag);
-  debug("c_lflag = %#x\n", (unsigned int)m->tio.c_lflag);
-  debug("cfgetospeed() = %d\n", (int)cfgetospeed(&m->tio));
-  debug("cfgetispeed() = %d\n", (int)cfgetispeed(&m->tio));
-  for (i = 0; i < sizeof(m->tio.c_cc)/sizeof(*m->tio.c_cc); i++)
-    {
-      debug("c_cc[%d] = %#x\n", i, m->tio.c_cc[i]);
-    }
-}
-#endif /* DEBUG */

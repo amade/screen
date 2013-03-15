@@ -103,10 +103,8 @@ struct layer
 	{ 						\
 	  struct layer *oldlay = flayer; 		\
 	  struct canvas *oldcvlist, *cv;		\
-	  debug("LayCallUp\n");				\
 	  flayer = flayer->l_next;			\
 	  oldcvlist = flayer->l_cvlist;			\
-	  debug("oldcvlist: %x\n", oldcvlist);		\
 	  flayer->l_cvlist = oldlay->l_cvlist;		\
 	  for (cv = flayer->l_cvlist; cv; cv = cv->c_lnext)	\
 		cv->c_layer = flayer;			\

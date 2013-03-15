@@ -36,34 +36,6 @@
 #include "layer.h"
 #include "term.h"
 
-#ifdef DEBUG
-# define STATIC		/* a function that the debugger should see */
-#else
-# define STATIC static
-#endif
-
-#ifdef DEBUG
-# define DEBUGDIR "/tmp/debug"
-# define debug(format, ...) {if(dfp){fprintf(dfp, format, ##__VA_ARGS__);}}
-  extern FILE *dfp;
-#else
-# define debug(format, ...) {}
-#endif
-
-#ifndef DEBUG
-# define NOASSERT
-#endif
-
-#ifndef NOASSERT
-# if defined(__STDC__)
-#  define ASSERT(lousy_cpp) {if (!(lousy_cpp)) {if (!dfp) opendebug(0, 1);debug("ASSERT("#lousy_cpp") failed file %s line %d\n", __FILE__, __LINE__);abort();}}
-# else
-#  define ASSERT(lousy_cpp) {if (!(lousy_cpp)) {if (!dfp) opendebug(0, 1);debug("ASSERT(lousy_cpp) failed file %s line %d\n", __FILE__, __LINE__);abort();}}
-# endif
-#else
-# define ASSERT(lousy_cpp) {}
-#endif
-
 /* here comes my own Free: jw. */
 #define Free(a) {if ((a) == 0) abort(); else free((void *)(a)); (a)=0;}
 
@@ -196,10 +168,6 @@ struct msg
 #define SIG_POWER_BYE	SIGUSR1
 #define SIG_LOCK	SIGUSR2
 #define SIG_STOP	SIGTSTP
-#ifdef SIGIO
-#define SIG_NODEBUG	SIGIO		/* triggerd by command 'debug off' */
-#endif
-
 
 #define BELL		(Ctrl('g'))
 #define VBELLWAIT	1 /* No. of seconds a vbell will be displayed */

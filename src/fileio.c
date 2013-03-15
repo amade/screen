@@ -112,15 +112,11 @@ static char *findrcfile(char *rcfile)
 			if (access(buf, R_OK) == 0)
 				return SaveStr(buf);
 		}
-		debug("findrcfile: you specified '%s'\n", rcfile);
 		return SaveStr(rcfile);
 	}
-	debug("findrcfile: you specified nothing...\n");
 	if ((p = getenv("SCREENRC")) != NULL && *p != '\0') {
-		debug("  $SCREENRC has: '%s'\n", p);
 		return SaveStr(p);
 	} else {
-		debug("  ...nothing in $SCREENRC, defaulting $HOME/.screenrc\n");
 		if (strlen(home) > sizeof(buf) - 12)
 			Panic(0, "Rc: home too large");
 		sprintf(buf, "%s/.screenrc", home);
@@ -163,12 +159,10 @@ int StartRc(char *rcfilename, int nopanic)
 			 * this is the only case, where we get angry, if we can't read
 			 * the file.
 			 */
-			debug("StartRc: '%s','%s', '%s'\n", RcFileName, rc_name ? rc_name : "(null)", rcfilename);
 			if (!nopanic)
 				Panic(0, "Unable to open \"%s\".", rc_nonnull);
 			/* possibly NOTREACHED */
 		}
-		debug("StartRc: '%s' no good. ignored\n", rc_nonnull);
 		if (rc_name)
 			Free(rc_name);
 		rc_name = oldrc_name;
@@ -194,7 +188,6 @@ int StartRc(char *rcfilename, int nopanic)
 		} else if (strcmp(args[0], "sleep") == 0) {
 			if (!display)
 				continue;
-			debug("sleeeeeeep\n");
 			if (argc != 2) {
 				Msg(0, "%s: sleep: one numeric argument expected.", rc_name);
 				continue;
@@ -256,18 +249,15 @@ void FinishRc(char *rcfilename)
 			 * this is the only case, where we get angry, if we can't read
 			 * the file.
 			 */
-			debug("FinishRc:'%s','%s','%s'\n", RcFileName, rc_name ? rc_name : "(null)", rcfilename);
 			Panic(0, "Unable to open \"%s\".", rc_nonnull);
 			/* NOTREACHED */
 		}
-		debug("FinishRc: '%s' no good. ignored\n", rc_nonnull);
 		if (rc_name)
 			Free(rc_name);
 		rc_name = oldrc_name;
 		return;
 	}
 
-	debug("finishrc is going...\n");
 	while (fgets(buf, sizeof buf, fp) != NULL)
 		RcLine(buf, sizeof buf);
 	(void)fclose(fp);
@@ -369,9 +359,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 		break;
 	}
 
-	debug("WriteFile(%d) %s\n", dump, fn);
 	if (UserContext() > 0) {
-		debug("Writefile: usercontext\n");
 		if (dump == DUMP_EXCHANGE && public) {
 			old_umask = umask(0);
 #ifdef HAVE_LSTAT
@@ -395,7 +383,6 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 		} else
 			f = fopen(fn, mode);
 		if (f == NULL) {
-			debug("WriteFile: fopen(%s,\"%s\") failed\n", fn, mode);
 			UserReturn(0);
 		} else {
 			switch (dump) {
@@ -473,8 +460,6 @@ char *ReadFile(char *fn, int *lenp)
 	char c, *bp, *buf;
 	struct stat stb;
 
-	ASSERT(lenp);
-	debug("ReadFile(%s)\n", fn);
 	if ((i = secopen(fn, O_RDONLY, 0)) < 0) {
 		Msg(errno, "no %s -- no slurp", fn);
 		return NULL;
@@ -525,7 +510,6 @@ FILE *secfopen(char *name, char *mode)
 {
 	FILE *fi;
 
-	debug("secfopen(%s, %s)\n", name, mode);
 	xseteuid(real_uid);
 	xsetegid(real_gid);
 	fi = fopen(name, mode);
@@ -538,7 +522,6 @@ int secopen(char *name, int flags, int mode)
 {
 	int fd;
 
-	debug("secopen(%s, 0x%x, 0%03o)\n", name, flags, mode);
 	xseteuid(real_uid);
 	xsetegid(real_gid);
 	fd = open(name, flags, mode);
@@ -561,10 +544,6 @@ int printpipe(struct win *p, char *cmd)
 	case 0:
 		display = p->w_pdisplay;
 		displays = 0;
-#ifdef DEBUG
-		if (dfp && dfp != stderr)
-			fclose(dfp);
-#endif
 		close(0);
 		dup(pi[0]);
 		closeallfiles(0);
@@ -596,10 +575,6 @@ int readpipe(char **cmdv)
 		return -1;
 	case 0:
 		displays = 0;
-#ifdef DEBUG
-		if (dfp && dfp != stderr)
-			fclose(dfp);
-#endif
 		close(1);
 		if (dup(pi[1]) != 1) {
 			close(pi[1]);

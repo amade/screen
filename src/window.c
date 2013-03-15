@@ -198,7 +198,6 @@ static void WinProcess(char **bufpp, int *lenp)
 	int l2 = 0, f, *ilen, l = *lenp, trunc;
 	char *ibuf;
 
-	debug("WinProcess: %d bytes\n", *lenp);
 	fore = (struct win *)flayer->l_data;
 
 	if (fore->w_type == W_TYPE_GROUP) {
@@ -242,20 +241,16 @@ static void ZombieProcess(char **bufpp, int *lenp)
 	int l = *lenp;
 	char *buf = *bufpp, b1[10], b2[10];
 
-	debug("ZombieProcess: %d bytes\n", *lenp);
 	fore = (struct win *)flayer->l_data;
 
-	ASSERT(fore->w_ptyfd < 0);
 	*bufpp += *lenp;
 	*lenp = 0;
 	for (; l-- > 0; buf++) {
 		if (*(unsigned char *)buf == ZombieKey_destroy) {
-			debug("Turning undead: %d\n", fore->w_number);
 			KillWindow(fore);
 			return;
 		}
 		if (*(unsigned char *)buf == ZombieKey_resurrect) {
-			debug("Resurrecting Zombie: %d\n", fore->w_number);
 			WriteString(fore, "\r\n", 2);
 			RemakeWindow(fore);
 			return;
@@ -268,7 +263,6 @@ static void ZombieProcess(char **bufpp, int *lenp)
 
 static void WinRedisplayLine(int y, int from, int to, int isblank)
 {
-	debug("WinRedisplayLine %d %d %d\n", y, from, to);
 	if (y < 0)
 		return;
 	fore = (struct win *)flayer->l_data;
@@ -286,7 +280,6 @@ static int WinRewrite(int y, int x1, int x2, struct mchar *rend, int doit)
 	register uint32_t *colorbg;
 	register uint32_t *colorfg;
 
-	debug("WinRewrite %d, %d-%d\n", y, x1, x2);
 	fore = (struct win *)flayer->l_data;
 	dx = x2 - x1 + 1;
 	if (doit) {
@@ -322,7 +315,6 @@ static int WinRewrite(int y, int x1, int x2, struct mchar *rend, int doit)
 static void WinClearLine(int y, int xs, int xe, int bce)
 {
 	fore = (struct win *)flayer->l_data;
-	debug("WinClearLine %d %d-%d\n", y, xs, xe);
 	LClearLine(flayer, y, xs, xe, bce, &fore->w_mlines[y]);
 }
 
@@ -337,7 +329,6 @@ static void WinRestore()
 {
 	struct canvas *cv;
 	fore = (struct win *)flayer->l_data;
-	debug("WinRestore: win %p\n", fore);
 	for (cv = flayer->l_cvlist; cv; cv = cv->c_next) {
 		display = cv->c_display;
 		if (cv != D_forecv)
@@ -370,8 +361,6 @@ int DoStartLog(struct win *w, char *buf, int bufsize)
 		return -1;
 
 	strncpy(buf, MakeWinMsg(screenlogfile, w, '%'), bufsize - 1);
-
-	debug("DoStartLog: win %d, file %s\n", w->w_number, buf);
 
 	if (w->w_log != NULL)
 		logfclose(w->w_log);
@@ -407,15 +396,7 @@ int MakeWindow(struct NewWindow *newwin)
 		wtab = calloc(maxwin, sizeof(struct win *));
 	}
 
-	debug("NewWindow: StartAt %d\n", newwin->StartAt);
-	debug("NewWindow: aka     %s\n", newwin->aka ? newwin->aka : "NULL");
-	debug("NewWindow: dir     %s\n", newwin->dir ? newwin->dir : "NULL");
-	debug("NewWindow: term    %s\n", newwin->term ? newwin->term : "NULL");
-
 	nwin_compose(&nwin_default, newwin, &nwin);
-	debug("NWin: aka     %s\n", nwin.aka ? nwin.aka : "NULL");
-	debug("NWin: wlock   %d\n", nwin.wlock);
-	debug("NWin: Lflag   %d\n", nwin.Lflag);
 
 	startat = nwin.StartAt < maxwin ? nwin.StartAt : 0;
 	pp = wtab + startat;
@@ -441,7 +422,6 @@ int MakeWindow(struct NewWindow *newwin)
 	}
 #endif
 	n = pp - wtab;
-	debug("Makewin creating %d\n", n);
 
 	if ((f = OpenDevice(nwin.args, nwin.lflag, &type, &TtyName)) < 0)
 		return -1;
@@ -569,10 +549,7 @@ int MakeWindow(struct NewWindow *newwin)
 #ifdef UTMPOK
 	p->w_slot = (slot_t) - 1;
 #ifdef LOGOUTOK
-	debug("MakeWindow will %slog in.\n", nwin.lflag ? "" : "not ");
 	if (nwin.lflag & 1)
-#else				/* LOGOUTOK */
-	debug("MakeWindow will log in, LOGOUTOK undefined in config.h%s.\n", nwin.lflag ? "" : " (although lflag=0)");
 #endif				/* LOGOUTOK */
 	{
 		p->w_slot = (slot_t) 0;
@@ -613,7 +590,6 @@ int MakeWindow(struct NewWindow *newwin)
 	p->w_silenceev.data = (char *)p;
 	p->w_silenceev.handler = win_silenceev_fn;
 	if (p->w_silence > 0) {
-		debug("New window has silence enabled.\n");
 		SetTimeout(&p->w_silenceev, p->w_silencewait * 1000);
 		evenq(&p->w_silenceev);
 	}
@@ -710,7 +686,6 @@ void FreeWindow(struct win *wp)
 	struct canvas *cv, *ncv;
 	struct layer *l;
 
-	debug("FreeWindow %d\n", wp ? wp->w_number : -1);
 	if (wp->w_pwin)
 		FreePseudowin(wp);
 #ifdef UTMPOK
@@ -805,7 +780,6 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 			Msg(errno, "Cannot access line '%s' for R/W", arg);
 			return -1;
 		}
-		debug("OpenDevice: OpenTTY\n");
 		if ((f = OpenTTY(arg, args[1])) < 0)
 			return -1;
 		lflag = 0;
@@ -829,7 +803,6 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 		}
 #endif				/* TIOCPKT */
 	}
-	debug("fcntl(%d, F_SETFL, FNBLOCK)\n", f);
 	(void)fcntl(f, F_SETFL, FNBLOCK);
 	/*
 	 * Tenebreux (zeus@ns.acadiacom.net) has Linux 1.3.70 where select
@@ -904,14 +877,12 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 
 #ifdef O_NOCTTY
 	if (pty_preopen) {
-		debug("pre-opening slave...\n");
 		if ((slave = open(ttyn, O_RDWR | O_NOCTTY)) == -1) {
 			Msg(errno, "ttyn");
 			return -1;
 		}
 	}
 #endif
-	debug("forking...\n");
 	proc = *args;
 	if (proc == 0) {
 		args = ShellArgs;
@@ -953,10 +924,6 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 			freetty();
 		} else
 			brktty(-1);
-#ifdef DEBUG
-		if (dfp && dfp != stderr)
-			fclose(dfp);
-#endif
 		if (slave != -1) {
 			close(0);
 			dup(slave);
@@ -965,18 +932,6 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 			slave = dup(0);
 		} else
 			closeallfiles(win->w_ptyfd);
-#ifdef DEBUG
-		if (dfp) {	/* do not produce child debug, when debug is "off" */
-			char buf[256];
-
-			sprintf(buf, "%s/screen.child", DEBUGDIR);
-			if ((dfp = fopen(buf, "a")) == 0)
-				dfp = stderr;
-			else
-				(void)chmod(buf, 0666);
-		}
-		debug("=== ForkWindow: pid %d\n", (int)getpid());
-#endif
 		/* Close the three /dev/null descriptors */
 		close(0);
 		close(1);
@@ -986,7 +941,6 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 		 * distribute filedescriptors between the ttys
 		 */
 		pat = pwin ? pwin->p_fdpat : ((F_PFRONT << (F_PSHIFT * 2)) | (F_PFRONT << F_PSHIFT) | F_PFRONT);
-		debug("Using window pattern 0x%x\n", pat);
 		wfdused = 0;
 		for (i = 0; i < 3; i++) {
 			if (pat & F_PFRONT << F_PSHIFT * i) {
@@ -1013,7 +967,6 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 			 * the pseudo window process should not be surprised with a
 			 * nonblocking filedescriptor. Poor Backend!
 			 */
-			debug("Clearing NBLOCK on window-fd(%d)\n", win->w_ptyfd);
 			if (fcntl(win->w_ptyfd, F_SETFL, 0))
 				Msg(errno, "Warning: clear NBLOCK fcntl failed");
 		}
@@ -1025,21 +978,15 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 			if (fgtty(newfd))
 				Msg(errno, "fgtty");
 			if (display) {
-				debug("ForkWindow: using display tty mode for new child.\n");
 				modep = &D_OldMode;
 			} else {
-				debug("No display - creating tty setting\n");
 				modep = &fakemode;
 				InitTTY(modep, 0);
-#ifdef DEBUG
-				DebugTTY(modep);
-#endif
 			}
 			/* We only want echo if the users input goes to the pseudo
 			 * and the pseudo's stdout is not send to the window.
 			 */
 			if (pwin && (!(pat & F_UWP) || (pat & F_PBACK << F_PSHIFT))) {
-				debug("clearing echo on pseudywin fd (pat %x)\n", pat);
 #if defined(POSIX) || defined(TERMIO)
 				modep->tio.c_lflag &= ~ECHO;
 				modep->tio.c_iflag &= ~ICRNL;
@@ -1066,12 +1013,10 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 		strncpy(shellbuf, "SHELL=", 7);
 		strncpy(shellbuf + 6, ShellProg + (*ShellProg == '-'), sizeof(shellbuf) - 6);
 		NewEnv[4] = shellbuf;
-		debug("ForkWindow: NewEnv[4] = '%s'\n", shellbuf);
 		if (win->w_term && *win->w_term && strcmp(screenterm, win->w_term) && (strlen(win->w_term) < 20)) {
 			char *s1, *s2, tl;
 
 			sprintf(tebuf, "TERM=%s", win->w_term);
-			debug("Makewindow %d with %s\n", win->w_number, tebuf);
 			tl = strlen(win->w_term);
 			NewEnv[1] = tebuf;
 			if ((s1 = strchr(NewEnv[2], '|'))) {
@@ -1090,9 +1035,7 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 			proc++;
 		if (!*proc)
 			proc = DefaultShell;
-		debug("calling execvpe %s\n", proc);
 		execvpe(proc, args, NewEnv);
-		debug("exec error: %d\n", errno);
 		Panic(errno, "Cannot exec '%s'", proc);
 	default:
 		break;
@@ -1212,7 +1155,6 @@ int winexec(char **av)
 		l |= F_UWP;
 	*t++ = ' ';
 	pwin->p_fdpat = l;
-	debug("winexec: '%#x'\n", pwin->p_fdpat);
 
 	l = MAXSTR - 4;
 	for (pp = av; *pp; pp++) {
@@ -1224,7 +1166,6 @@ int winexec(char **av)
 		*t++ = ' ';
 	}
 	*--t = '\0';
-	debug("%s\n", pwin->p_cmd);
 
 	if ((pwin->p_ptyfd = OpenDevice(av, 0, &type, &t)) < 0) {
 		free((char *)pwin);
@@ -1278,7 +1219,6 @@ void FreePseudowin(struct win *w)
 {
 	struct pseudowin *pwin = w->w_pwin;
 
-	ASSERT(pwin);
 	if (fcntl(w->w_ptyfd, F_SETFL, FNBLOCK))
 		Msg(errno, "Warning: FreePseudowin: NBLOCK fcntl failed");
 #ifdef TIOCPKT
@@ -1329,26 +1269,20 @@ static int muchpending(struct win *p, struct event *ev)
 		display = cv->c_display;
 		if (D_status == STATUS_ON_WIN && !D_status_bell) {
 			/* wait 'til status is gone */
-			debug("BLOCKING because of status\n");
 			ev->condpos = &const_one;
 			ev->condneg = &D_status;
 			return 1;
 		}
-		debug("muchpending %s %d: ", D_usertty, D_blocked);
-		debug("%d %d %d\n", D_obufp - D_obuf, D_obufmax, D_blocked_fuzz);
 		if (D_blocked)
 			continue;
 		if (D_obufp - D_obuf > D_obufmax + D_blocked_fuzz) {
 			if (D_nonblock == 0) {
-				debug("obuf is full, stopping output to display %s\n", D_usertty);
 				D_blocked = 1;
 				continue;
 			}
-			debug("BLOCKING because of full obuf\n");
 			ev->condpos = &D_obuffree;
 			ev->condneg = &D_obuflenmax;
 			if (D_nonblock > 0 && !D_blockedev.queued) {
-				debug("created timeout of %g secs\n", D_nonblock / 1000.);
 				SetTimeout(&D_blockedev, D_nonblock);
 				evenq(&D_blockedev);
 			}
@@ -1370,7 +1304,6 @@ static void win_readev_fn(struct event *ev, char *data)
 
 	wtop = p->w_pwin && W_WTOP(p);
 	if (wtop) {
-		ASSERT(sizeof(p->w_pwin->p_inbuf) == IOSIZE);
 		size = IOSIZE - p->w_pwin->p_inlen;
 		if (size <= 0) {
 			ev->condpos = &const_IOSIZE;
@@ -1394,7 +1327,6 @@ static void win_readev_fn(struct event *ev, char *data)
 		return;
 	}
 
-	debug("going to read from window fd %d\n", ev->fd);
 	if ((len = read(ev->fd, buf, size)) < 0) {
 		if (errno == EINTR || errno == EAGAIN)
 			return;
@@ -1402,20 +1334,16 @@ static void win_readev_fn(struct event *ev, char *data)
 		if (errno == EWOULDBLOCK)
 			return;
 #endif
-		debug("Window %d: read error (errno %d) - killing window\n", p->w_number, errno);
 		WindowDied(p, 0, 0);
 		return;
 	}
 	if (len == 0) {
-		debug("Window %d: EOF - killing window\n", p->w_number);
 		WindowDied(p, 0, 0);
 		return;
 	}
-	debug(" -> %d bytes\n", len);
 #ifdef TIOCPKT
 	if (p->w_type == W_TYPE_PTY) {
 		if (buf[0]) {
-			debug("PAKET %x\n", buf[0]);
 			if (buf[0] & TIOCPKT_NOSTOP)
 				WNewAutoFlow(p, 0);
 			if (buf[0] & TIOCPKT_DOSTOP)
@@ -1428,7 +1356,6 @@ static void win_readev_fn(struct event *ev, char *data)
 	if (len == 0)
 		return;
 	if (wtop) {
-		debug("sending input to pwin\n");
 		memmove(p->w_pwin->p_inbuf + p->w_pwin->p_inlen, bp, len);
 		p->w_pwin->p_inlen += len;
 	}
@@ -1442,11 +1369,9 @@ static void win_readev_fn(struct event *ev, char *data)
 
 static void win_resurrect_zombie_fn(struct event *ev, char *data) {
 	struct win *p = (struct win *)data;
-	debug("Try to resurrecting Zombie event: %d [%s]\n", p->w_number, p->w_title);
 	/* Already reconnected? */
 	if (p->w_deadpid != p->w_pid)
 		return;
-	debug("Resurrecting Zombie: %d\n", p->w_number);
 	WriteString(p, "\r\n", 2);
 	RemakeWindow(p);
 }
@@ -1457,7 +1382,6 @@ static void win_writeev_fn(struct event *ev, char *data)
 	struct win *win;
 	int len;
 	if (p->w_inlen) {
-		debug("writing %d bytes to win %d\n", p->w_inlen, p->w_number);
 		if ((len = write(ev->fd, p->w_inbuf, p->w_inlen)) <= 0)
 			len = p->w_inlen;	/* dead window */
 
@@ -1490,7 +1414,6 @@ static void pseu_readev_fn(struct event *ev, char *data)
 
 	ptow = W_PTOW(p);
 	if (ptow) {
-		ASSERT(sizeof(p->w_inbuf) == IOSIZE);
 		size = IOSIZE - p->w_inlen;
 		if (size <= 0) {
 			ev->condpos = &const_IOSIZE;
@@ -1521,8 +1444,6 @@ static void pseu_readev_fn(struct event *ev, char *data)
 		if (errno == EWOULDBLOCK)
 			return;
 #endif
-		debug("Window %d: pseudowin read error (errno %d) -- removing pseudowin\n", p->w_number,
-		      len ? errno : 0);
 		FreePseudowin(p);
 		return;
 	}
@@ -1541,7 +1462,6 @@ static void pseu_writeev_fn(struct event *ev, char *data)
 	struct pseudowin *pw = p->w_pwin;
 	int len;
 
-	ASSERT(pw);
 	if (pw->p_inlen == 0)
 		return;
 	if ((len = write(ev->fd, pw->p_inbuf, pw->p_inlen)) <= 0)
@@ -1554,7 +1474,6 @@ static void win_silenceev_fn(struct event *ev, char *data)
 {
 	struct win *p = (struct win *)data;
 	struct canvas *cv;
-	debug("FOUND silence win %d\n", p->w_number);
 	for (display = displays; display; display = display->d_next) {
 		for (cv = D_cvlist; cv; cv = cv->c_next)
 			if (cv->c_layer->l_bottom == &p->w_layer)
