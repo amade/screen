@@ -47,17 +47,6 @@ INSTALL_DATA = @INSTALL_DATA@
 
 AWK = @AWK@
 
-### Chose some debug configuration options:
-# -DDEBUG
-#	Turn on really heavy debug output. This is written to 
-#	/tmp/debug/{SCREEN,screen}.<pid>. Look at these files and quote 
-#	questionable sections when sending bug-reports to the author.
-# -DDUMPSHADOW
-#	With shadow-pw screen would never dump core. Use this option if
-#	you still want to have a core. Use only for debugging.
-OPTIONS=
-#OPTIONS= -DDEBUG
-
 SHELL=/bin/sh
 
 CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
@@ -80,7 +69,7 @@ screen: $(OFILES)
 
 .c.o:
 	$(CC) -c -I. -I$(srcdir) $(M_CFLAGS) $(CPPFLAGS) $(DEFS) \
-	    $(OPTIONS) $(CFLAGS) $<
+	    $(CFLAGS) $<
 
 install_bin: .version screen
 	-if [ -f $(DESTDIR)$(bindir)/$(SCREEN) ] && [ ! -f $(DESTDIR)$(bindir)/$(SCREEN).old ]; \

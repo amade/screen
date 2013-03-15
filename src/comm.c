@@ -75,7 +75,6 @@ struct comm comms[RC_LAST + 1] =
   { "console",		NEED_FORE|ARGS_01,		{NULL} },
   { "copy",		NEED_FORE|NEED_DISPLAY|ARGS_0,	{NULL} },
   { "crlf",		ARGS_01,			{NULL} },
-  { "debug",		ARGS_01,			{NULL} },
   { "defautonuke",	ARGS_1,				{NULL} },
   { "defbce",		ARGS_1,				{NULL} },
   { "defbreaktype",	ARGS_01,			{NULL} },

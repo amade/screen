@@ -448,7 +448,6 @@ struct mchar *recode_mchar(struct mchar *mc, int from, int to)
 	static struct mchar rmc;
 	int c;
 
-	debug("recode_mchar %02x from %d to %d\n", mc->image, from, to);
 	if (from == to || (from != UTF8 && to != UTF8))
 		return mc;
 	rmc = *mc;
@@ -505,26 +504,6 @@ struct mline *recode_mline(struct mline *ml, int w, int from, int to)
 		maxlen = w;
 	}
 
-	debug("recode_mline: from\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(ml->image[i] >> 4) & 15]);
-	debug("\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(ml->image[i]) & 15]);
-	debug("\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(ml->font[i] >> 4) & 15]);
-	debug("\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(ml->font[i]) & 15]);
-	debug("\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(ml->fontx[i] >> 4) & 15]);
-	debug("\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(ml->fontx[i]) & 15]);
-	debug("\n");
-
 	rl = rml + last;
 	rl->attr = ml->attr;
 	rl->colorbg = ml->colorbg;
@@ -557,25 +536,6 @@ struct mline *recode_mline(struct mline *ml, int w, int from, int to)
 			rl->fontx[i] = c >> 16 & 255;
 	}
 	last ^= 1;
-	debug("recode_mline: to\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(rl->image[i] >> 4) & 15]);
-	debug("\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(rl->image[i]) & 15]);
-	debug("\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(rl->font[i] >> 4) & 15]);
-	debug("\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(rl->font[i]) & 15]);
-	debug("\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(rl->fontx[i] >> 4) & 15]);
-	debug("\n");
-	for (i = 0; i < w; i++)
-		debug("%c", "0123456789abcdef"[(rl->fontx[i]) & 15]);
-	debug("\n");
 	return rl;
 }
 
@@ -589,7 +549,6 @@ struct combchar **combchars;
 
 void AddUtf8(int c)
 {
-	ASSERT(D_encoding == UTF8);
 	if (c >= 0xd800 && c < 0xe000 && combchars && combchars[c - 0xd800]) {
 		AddUtf8(combchars[c - 0xd800]->c1);
 		c = combchars[c - 0xd800]->c2;
@@ -959,7 +918,6 @@ int utf8_iscomb(int c)
 static void comb_tofront(int root, int i)
 {
 	for (;;) {
-		debug("bring to front: %x\n", i);
 		combchars[combchars[i]->prev]->next = combchars[i]->next;
 		combchars[combchars[i]->next]->prev = combchars[i]->prev;
 		combchars[i]->next = combchars[root]->next;
@@ -1017,7 +975,6 @@ void utf8_handle_comb(int c, struct mchar *mc)
 		i = combchars[root]->prev;
 		if (c1 == i + 0xd800) {
 			/* completely full, can't recycle */
-			debug("utf8_handle_comp: completely full!\n");
 			mc->image = '?';
 			mc->font = 0;
 			return;
@@ -1035,7 +992,6 @@ void utf8_handle_comb(int c, struct mchar *mc)
 	mc->image = i & 0xff;
 	mc->font = (i >> 8) + 0xd8;
 	mc->fontx = 0;
-	debug("combinig char %x %x -> %x\n", c1, c, i + 0xd800);
 	comb_tofront(root, i);
 }
 
@@ -1070,7 +1026,6 @@ int FindEncoding(char *name)
 {
 	int encoding;
 
-	debug("FindEncoding %s\n", name);
 	if (name == 0 || *name == 0)
 		return 0;
 	if (encmatch(name, "euc"))
@@ -1127,7 +1082,6 @@ int DecodeChar(int c, int encoding, int *statep)
 {
 	int t;
 
-	debug("Decoding char %02x for encoding %d\n", c, encoding);
 	if (encoding == UTF8) {
 		c = FromUtf8(c, statep);
 		if (c >= 0x10000)
@@ -1216,7 +1170,6 @@ int EncodeChar(char *bp, int c, int encoding, int *fontp)
 {
 	int t, f, l;
 
-	debug("Encoding char %02x for encoding %d\n", c, encoding);
 	if (c == -1 && fontp) {
 		if (*fontp == 0)
 			return 0;
@@ -1253,7 +1206,6 @@ int EncodeChar(char *bp, int c, int encoding, int *fontp)
 			c = recode_char_to_encoding(c, encoding);
 			c = ((c & 0xff00) << 8) | (c & 0xff);
 		}
-		debug("Encode: char mapped from utf8 to %x\n", c);
 		f = c >> 16;
 	}
 	if (f & 0x80)		/* map special 96-fonts to latin1 */
@@ -1448,11 +1400,9 @@ int ContainsSpecialDeffont(struct mline *ml, int xs, int xe, int encoding)
 		c = *i++;
 		x = recode_char_to_encoding(c | (encodings[encoding].deffont << 8), UTF8);
 		if (c != x) {
-			debug("ContainsSpecialDeffont: yes %02x != %02x\n", c, x);
 			return 1;
 		}
 	}
-	debug("ContainsSpecialDeffont: no\n");
 	return 0;
 }
 
@@ -1474,7 +1424,6 @@ int LoadFontTranslation(int font, char *file)
 		sprintf(buf, "%s/%02x", screenencodings, font & 0xff);
 		myfile = buf;
 	}
-	debug("LoadFontTranslation: trying %s\n", myfile);
 	if ((f = secfopen(myfile, "r")) == 0)
 		return -1;
 	i = ok = 0;
@@ -1523,7 +1472,6 @@ int LoadFontTranslation(int font, char *file)
 			free(recodetabs[fo].tab);
 		recodetabs[fo].tab = tab;
 		recodetabs[fo].flags = RECODETAB_ALLOCED;
-		debug("Successful load of recodetab %02x\n", fo);
 		c = getc(f);
 		if (c == EOF) {
 			ok = 1;
@@ -1544,7 +1492,6 @@ void LoadFontTranslationsForEncoding(int encoding)
 	char *c;
 	int f;
 
-	debug("LoadFontTranslationsForEncoding: encoding %d\n", encoding);
 	if ((c = encodings[encoding].fontlist) != 0)
 		while ((f = (unsigned char)*c++) != 0)
 			if (recodetabs[f].flags == 0)

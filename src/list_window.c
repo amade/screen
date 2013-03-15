@@ -114,8 +114,6 @@ static struct ListRow *gl_Window_add_group(struct ListData *ldata, struct ListRo
 	struct win *group = row->data, *w;
 	struct ListRow *cur = row;
 
-	ASSERT(wdata->nested);
-
 	FOR_EACH_WINDOW(wdata, w, if (w->w_group != group)
 			continue; cur = glist_add_row(ldata, w, cur); if (w == wdata->fore)
 			ldata->selected = cur; if (w->w_type == W_TYPE_GROUP)
@@ -447,7 +445,6 @@ void display_windows(int onblank, int order, struct win *group)
 		onblank = 0;	/* When drawing a group window, ignore 'onblank' */
 
 	if (onblank) {
-		debug("flayer %x %d %x\n", flayer, flayer->l_width, flayer->l_height);
 		if (!display) {
 			LMsg(0, "windowlist -b: display required");
 			return;

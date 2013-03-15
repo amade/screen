@@ -312,7 +312,6 @@ static void ListFree(void *d)
 static void ListRedisplayLine(int y, int xs, int xe, int isblank)
 {
 	struct ListData *ldata;
-	ASSERT(flayer);
 
 	ldata = flayer->l_data;
 	if (y < 0) {

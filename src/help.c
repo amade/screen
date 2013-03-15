@@ -162,8 +162,6 @@ void display_help(char *class, struct action *ktabp)
 				mkey = used[n];
 			helpdata->nact[i++] = n;
 		}
-	debug("help: %d commands bound to keys with no arguments\n", i);
-	debug("mcom: %d  mkey: %d\n", mcom, mkey);
 	helpdata->num_names = i;
 
 	if (mkey > MAXKLEN)
@@ -177,16 +175,13 @@ void display_help(char *class, struct action *ktabp)
 	helpdata->inter = (flayer->l_width - (mcom + mkey) * helpdata->numcols) / (helpdata->numcols + 1);
 	if (helpdata->inter <= 0)
 		helpdata->inter = 1;
-	debug("inter: %d\n", helpdata->inter);
 	helpdata->mcom = mcom;
 	helpdata->mkey = mkey;
 	helpdata->numrows = (helpdata->num_names + helpdata->numcols - 1) / helpdata->numcols;
-	debug("Numrows: %d\n", helpdata->numrows);
 	helpdata->numskip = flayer->l_height - 5 - (2 + helpdata->numrows);
 	while (helpdata->numskip < 0)
 		helpdata->numskip += flayer->l_height - 5;
 	helpdata->numskip %= flayer->l_height - 5;
-	debug("Numskip: %d\n", helpdata->numskip);
 	if (helpdata->numskip > flayer->l_height / 3 || helpdata->numskip > helpdata->command_bindings)
 		helpdata->numskip = 1;
 	helpdata->maxrow = 2 + helpdata->numrows + helpdata->numskip + helpdata->command_bindings;
@@ -522,7 +517,6 @@ static void copypage()
 	char cbuf[80];
 	struct copydata *copydata;
 
-	ASSERT(flayer);
 	copydata = (struct copydata *)flayer->l_data;
 
 	LClearAll(flayer, 0);
@@ -579,7 +573,6 @@ static void copypage()
 
 static void CopyrightRedisplayLine(int y, int xs, int xe, int isblank)
 {
-	ASSERT(flayer);
 	if (y < 0) {
 		struct copydata *copydata;
 
