@@ -5615,7 +5615,7 @@ char *AddWindows(char *buf, int len, int flags, int where)
 		strncpy(s, cmd, l);
 		s += l;
 		if (rend != -1)
-			AddWinMsgRend(s, -1);
+			AddWinMsgRend(s, 0);
 	}
 	*s = 0;
 	return ss;
