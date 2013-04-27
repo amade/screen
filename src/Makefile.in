@@ -133,6 +133,7 @@ distclean: .version mostlyclean
 	rm -f config.status Makefile doc/Makefile
 	rm -f term.h comm.h kmapdef.c
 	rm -f config.h
+	rm -rf autom4te.cache
 
 ###############################################################################
 
