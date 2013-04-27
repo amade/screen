@@ -853,10 +853,8 @@ int main(int argc, char **argv)
 	signal(SIGINT, FinitHandler);
 	signal(SIGQUIT, FinitHandler);
 	signal(SIGTERM, FinitHandler);
-#ifdef BSDJOBS
 	signal(SIGTTIN, SIG_IGN);
 	signal(SIGTTOU, SIG_IGN);
-#endif
 
 	if (display) {
 		brktty(D_userfd);
@@ -931,7 +929,6 @@ void WindowDied(struct win *p, int wstat, int wstat_valid)
 		evdeq(&p->w_destroyev);
 		p->w_destroyev.data = 0;
 	}
-#if defined(BSDJOBS)
 	if (!wstat_valid && p->w_pid > 0) {
 		/* EOF on file descriptor. The process is probably also dead.
 		 * try a waitpid */
@@ -940,7 +937,6 @@ void WindowDied(struct win *p, int wstat, int wstat_valid)
 			wstat_valid = 1;
 		}
 	}
-#endif
 	if (ZombieKey_destroy && ZombieKey_onerror && wstat_valid && WIFEXITED(wstat) && WEXITSTATUS(wstat) == 0)
 		killit = 1;
 
@@ -1078,14 +1074,7 @@ static void DoWait()
 	struct win *p, *next;
 	int wstat;
 
-#ifdef BSDJOBS
 	while ((pid = waitpid(-1, &wstat, WNOHANG | WUNTRACED)) > 0)
-#else				/* BSDJOBS */
-	while ((pid = wait(&wstat)) < 0)
-		if (errno != EINTR)
-			break;
-	if (pid > 0)
-#endif				/* BSDJOBS */
 	{
 		for (p = windows; p; p = next) {
 			next = p->w_next;
@@ -1093,7 +1082,6 @@ static void DoWait()
 				/* child has ceased to exist */
 				p->w_pid = 0;
 
-#ifdef BSDJOBS
 				if (WIFSTOPPED(wstat)) {
 #ifdef SIGTTIN
 					if (WSTOPSIG(wstat) == SIGTTIN) {
@@ -1111,9 +1099,7 @@ static void DoWait()
 					Msg(0, "Child has been stopped, restarting.");
 					if (killpg(pid, SIGCONT))
 						kill(pid, SIGCONT);
-				} else
-#endif
-				{
+				} else {
 					/* Screen will detect the window has died when the window's
 					 * file descriptor signals EOF (which it will do when the process in
 					 * the window terminates). So do this in a timeout of 10 seconds.
@@ -1250,11 +1236,9 @@ void Detach(int mode)
 		AddStrSocket("detached");
 		sign = SIG_BYE;
 		break;
-#ifdef BSDJOBS
 	case D_STOP:
 		sign = SIG_STOP;
 		break;
-#endif
 	case D_REMOTE:
 		AddStrSocket("remote detached");
 		sign = SIG_BYE;

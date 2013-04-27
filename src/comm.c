@@ -188,9 +188,7 @@ struct comm comms[RC_LAST + 1] =
   { "split",		NEED_DISPLAY|ARGS_01,		},
   { "startup_message",	ARGS_1,				},
   { "stuff",		NEED_LAYER|ARGS_012,		},
-#ifdef BSDJOBS
   { "suspend",		NEED_DISPLAY|ARGS_0,		},
-#endif
   { "term",		ARGS_1,				},
   { "termcap",		ARGS_23,			},
   { "termcapinfo",	ARGS_23,			},

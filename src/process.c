@@ -1571,9 +1571,7 @@ void InitKeytab()
 	}
 
 	ktab['h'].nr = RC_HARDCOPY;
-#ifdef BSDJOBS
 	ktab['z'].nr = ktab[Ctrl('z')].nr = RC_SUSPEND;
-#endif
 	ktab['c'].nr = ktab[Ctrl('c')].nr = RC_SCREEN;
 	ktab[' '].nr = ktab[Ctrl(' ')].nr = ktab['n'].nr = ktab[Ctrl('n')].nr = RC_NEXT;
 	ktab['N'].nr = RC_NUMBER;
@@ -2192,11 +2190,9 @@ void DoAction(struct action *act, int key)
 		ParseSwitch(act, &n);
 		LogToggle(n);
 		break;
-#ifdef BSDJOBS
 	case RC_SUSPEND:
 		Detach(D_STOP);
 		break;
-#endif
 	case RC_NEXT:
 		if (MoreWindows())
 			SwitchWindow(NextWindow());

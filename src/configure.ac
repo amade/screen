@@ -101,23 +101,6 @@ dnl ],AC_DEFINE(UID_T_DEFINED))
 dnl
 
 dnl
-dnl   ****     Job control     ****
-dnl
-
-AC_CHECKING(BSD job jontrol)
-AC_TRY_LINK(
-[#include <sys/types.h>
-#include <sys/ioctl.h>
-], [
-#ifdef POSIX
-tcsetpgrp(0, 0);
-#else
-int x = TIOCSPGRP;
-int y = TIOCNOTTY;
-#endif
-], AC_NOTE(- you have jobcontrol) AC_DEFINE(BSDJOBS), AC_NOTE(- you don't have jobcontrol))
-
-dnl
 dnl    ****  setresuid(), setreuid(), seteuid()  ****
 dnl
 AC_CHECKING(setresuid)
