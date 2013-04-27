@@ -36,9 +36,7 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 
-#ifndef SIGINT
 #include <signal.h>
-#endif
 
 #include "config.h"
 
@@ -1167,11 +1165,7 @@ static void CoreDump(int sigsig)
 	setuid(getuid());
 	unlink("core");
 
-#ifdef SIGHASARG
-	sprintf(buf, "\r\n[screen caught signal %d. (core dumped)]\r\n", sigsig);
-#else
 	sprintf(buf, "\r\n[screen caught a fatal signal. (core dumped)]\r\n");
-#endif
 
 	for (disp = displays; disp; disp = disp->d_next) {
 		if (disp->d_nonblock < -1 || disp->d_nonblock > 1000000)

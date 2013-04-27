@@ -36,10 +36,7 @@
 #endif
 #include <sys/un.h>
 #include <utime.h>
-
-#ifndef SIGINT
 #include <signal.h>
-#endif
 
 #include "screen.h"
 
