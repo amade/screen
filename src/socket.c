@@ -33,10 +33,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <utime.h>
-
-#ifndef SIGINT
 #include <signal.h>
-#endif
 
 #include "screen.h"
 

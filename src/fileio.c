@@ -31,9 +31,7 @@
 #include <sys/stat.h>
 #include <pwd.h>
 
-#ifndef SIGINT
 #include <signal.h>
-#endif
 
 #include "config.h"
 #include "screen.h"
