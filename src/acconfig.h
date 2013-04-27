@@ -225,12 +225,6 @@
 #undef POSIX
 
 /*
- * Define BSDJOBS if you have BSD-style job control (both process
- * groups and a tty that deals correctly with them).
- */
-#undef BSDJOBS
-
-/*
  * Define TERMIO if you have struct termio instead of struct sgttyb.
  * This is usually the case for SVID systems, where BSD uses sgttyb.
  * POSIX systems should define this anyway, even though they use
