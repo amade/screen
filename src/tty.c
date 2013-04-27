@@ -639,7 +639,6 @@ brktty(int fd)
 int
 fgtty(int fd)
 {
-#ifdef BSDJOBS
   int mypid;
 
   mypid = getpid();
@@ -649,7 +648,6 @@ fgtty(int fd)
       {
         return -1;
       }
-#endif /* BSDJOBS */
   return 0;
 }
 

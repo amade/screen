@@ -946,10 +946,8 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 		signal(SIGINT, SIG_DFL);
 		signal(SIGQUIT, SIG_DFL);
 		signal(SIGTERM, SIG_DFL);
-#ifdef BSDJOBS
 		signal(SIGTTIN, SIG_DFL);
 		signal(SIGTTOU, SIG_DFL);
-#endif
 #ifdef SIGPIPE
 		signal(SIGPIPE, SIG_DFL);
 #endif

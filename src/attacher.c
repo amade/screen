@@ -387,9 +387,7 @@ void Attacher()
 	signal(SIG_POWER_BYE, AttacherFinitBye);
 	signal(SIG_LOCK, DoLock);
 	signal(SIGINT, AttacherSigInt);
-#ifdef BSDJOBS
 	signal(SIG_STOP, SigStop);
-#endif
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 	signal(SIGWINCH, AttacherWinch);
 #endif
@@ -409,7 +407,6 @@ void Attacher()
 			printf("\nError: Cannot find master process to attach to!\n");
 			eexit(1);
 		}
-#ifdef BSDJOBS
 		if (SuspendPlease) {
 			SuspendPlease = 0;
 			signal(SIGTSTP, SIG_DFL);
@@ -417,7 +414,6 @@ void Attacher()
 			signal(SIG_STOP, SigStop);
 			(void)Attach(MSG_CONT);
 		}
-#endif
 		if (LockPlease) {
 			LockPlease = 0;
 			LockTerminal();
