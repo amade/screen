@@ -67,17 +67,6 @@
 #define ALLOW_SYSSCREENRC 1
 
 /*
- * Define CHECKLOGIN to force Screen users to enter their Unix password
- * in addition to the screen password.
- *
- * Define NOSYSLOG if yo do not have logging facilities. Currently
- * syslog() will be used to trace ``su'' commands only.
- */
-#define CHECKLOGIN 1
-#undef NOSYSLOG
-
-
-/*
  * define PTYMODE if you do not like the default of 0622, which allows
  * public write to your pty.
  * define PTYGROUP to some numerical group-id if you do not want the
