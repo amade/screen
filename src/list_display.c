@@ -70,7 +70,7 @@ static int gl_Display_header(__attribute__((unused))struct ListData *ldata)
 
 static int gl_Display_footer(__attribute__((unused))struct ListData *ldata)
 {
-	centerline("[Press Space to refresh; Return to end.]", flayer->l_height - 1);
+	centerline("[Press ctrl-l to refresh; Return to end.]", flayer->l_height - 1);
 	return 0;
 }
 
@@ -135,7 +135,7 @@ static int gl_Display_input(struct ListData *ldata, char **inp, int *len)
 	--*len;
 
 	switch (ch) {
-	case ' ':		/* Space to refresh */
+	case '':		/* Ctrl-l to refresh */
 		glist_remove_rows(ldata);
 		gl_Display_rebuild(ldata);
 		break;

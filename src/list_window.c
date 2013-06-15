@@ -194,6 +194,7 @@ static int gl_Window_header(struct ListData *ldata)
 
 static int gl_Window_footer(__attribute__((unused))struct ListData *ldata)
 {
+	centerline("[Press ctrl-l to refresh; Return to end.]", flayer->l_height - 1);
 	return 0;
 }
 
@@ -254,6 +255,10 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 
 	win = ldata->selected->data;
 	switch (ch) {
+	case '':		/* Ctrl-l to refresh */
+		glist_remove_rows(ldata);
+		gl_Window_rebuild(ldata);
+		break;
 	case ' ':
 	case '\n':
 	case '\r':
