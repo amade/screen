@@ -2766,9 +2766,6 @@ void RunBlanker(char **cmdv)
 		*np++ = libuf;
 		*np++ = cobuf;
 #endif
-#ifdef SIGPIPE
-		signal(SIGPIPE, SIG_DFL);
-#endif
 		display = 0;
 		execvpe(*cmdv, cmdv, NewEnv + 3);
 		Panic(errno, "%s", *cmdv);

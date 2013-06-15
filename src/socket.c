@@ -849,6 +849,8 @@ static void FinishAttach(struct msg *m)
 	int noshowwin;
 	struct win *wi;
 
+	struct sigaction sigact;
+
 	pid = D_userpid;
 
 	if (m->m.attach.detachfirst == MSG_DETACH || m->m.attach.detachfirst == MSG_POW_DETACH)
@@ -884,7 +886,10 @@ static void FinishAttach(struct msg *m)
 	InitTerm(m->m.attach.adaptflag);	/* write init string on fd */
 	if (displays->d_next == 0)
 		(void)chsock();
-	signal(SIGHUP, SigHup);
+	sigemptyset (&sigact.sa_mask);
+	sigact.sa_flags = 0;
+	sigact.sa_handler = SigHup;
+	sigaction(SIGHUP, &sigact, NULL);
 	if (m->m.attach.esc != -1 && m->m.attach.meta_esc != -1) {
 		D_user->u_Esc = m->m.attach.esc;
 		D_user->u_MetaEsc = m->m.attach.meta_esc;

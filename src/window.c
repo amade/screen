@@ -841,6 +841,7 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 	int i, pat, wfdused;
 	struct pseudowin *pwin = win->w_pwin;
 	int slave = -1;
+	struct sigaction sigact;
 
 #ifdef O_NOCTTY
 	if (pty_preopen) {
@@ -862,18 +863,15 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 		Msg(errno, "fork");
 		break;
 	case 0:
-		signal(SIGHUP, SIG_DFL);
-		signal(SIGINT, SIG_DFL);
-		signal(SIGQUIT, SIG_DFL);
-		signal(SIGTERM, SIG_DFL);
-		signal(SIGTTIN, SIG_DFL);
-		signal(SIGTTOU, SIG_DFL);
-#ifdef SIGPIPE
-		signal(SIGPIPE, SIG_DFL);
-#endif
-#ifdef SIGXFSZ
-		signal(SIGXFSZ, SIG_DFL);
-#endif
+		sigemptyset (&sigact.sa_mask);
+		sigact.sa_flags = 0;
+		sigact.sa_handler = SIG_DFL;
+		sigaction(SIGHUP, &sigact, NULL);
+		sigaction(SIGINT, &sigact, NULL);
+		sigaction(SIGQUIT, &sigact, NULL);
+		sigaction(SIGTERM, &sigact, NULL);
+		sigaction(SIGTTIN, &sigact, NULL);
+		sigaction(SIGTTOU, &sigact, NULL);
 
 		displays = 0;	/* beware of Panic() */
 		if (setgid(real_gid) || setuid(real_uid))

@@ -191,21 +191,29 @@ int Attach(int how)
 	if ((dflag || !xflag) && (st.st_mode & 0700) != (dflag ? 0700 : 0600))
 		Panic(0, "That screen is %sdetached.", dflag ? "already " : "not ");
 	if (dflag && (how == MSG_DETACH || how == MSG_POW_DETACH)) {
+		struct sigaction sigact;
+		sigemptyset (&sigact.sa_mask);
+		sigact.sa_flags = 0;
+
 		m.m.detach.dpid = getpid();
 		strncpy(m.m.detach.duser, LoginName, sizeof(m.m.detach.duser) - 1);
 		if (dflag == 2)
 			m.type = MSG_POW_DETACH;
 		else
 			m.type = MSG_DETACH;
+
 		/* If there is no password for the session, or the user enters the correct
 		 * password, then we get a SIGCONT. Otherwise we get a SIG_BYE */
-		signal(SIGCONT, AttachSigCont);
+		sigact.sa_handler = AttachSigCont;
+		sigaction(SIGCONT, &sigact, NULL);
 		if (WriteMessage(lasts, &m))
 			Panic(errno, "WriteMessage");
 		close(lasts);
 		while (!ContinuePlease)
 			pause();	/* wait for SIGCONT */
-		signal(SIGCONT, SIG_DFL);
+
+		sigact.sa_handler = SIG_DFL;
+		sigaction(SIGCONT, &sigact, NULL);
 		ContinuePlease = 0;
 		if (how != MSG_ATTACH)
 			return 0;	/* we detached it. jw. */
@@ -256,7 +264,11 @@ static void AttacherSigAlarm(__attribute__((unused))int sigsig)
  */
 static void AttacherSigInt(__attribute__((unused))int sigsig)
 {
-	signal(SIGINT, AttacherSigInt);
+	struct sigaction sigact;
+	sigemptyset (&sigact.sa_mask);
+	sigact.sa_flags = 0;
+	sigact.sa_handler = AttacherSigInt;
+	sigaction(SIGINT, &sigact, NULL);
 	Kill(MasterPid, SIGINT);
 	return;
 }
@@ -271,8 +283,12 @@ void AttacherFinit(__attribute__((unused))int sigsig)
 	struct stat statb;
 	struct msg m;
 	int s;
+	struct sigaction sigact;
 
-	signal(SIGHUP, SIG_IGN);
+	sigemptyset (&sigact.sa_mask);
+	sigact.sa_flags = 0;
+	sigact.sa_handler = SIG_IGN;
+	sigaction(SIGHUP, &sigact, NULL);
 	/* Check if signal comes from backend */
 	if (stat(SocketPath, &statb) == 0 && (statb.st_mode & 0777) != 0600) {
 		memset((char *)&m, 0, sizeof(m));
@@ -315,9 +331,6 @@ static int LockPlease;
 
 static void DoLock(__attribute__((unused))int sigsig)
 {
-#ifdef SYSVSIGS
-	signal(SIG_LOCK, DoLock);
-#endif
 	LockPlease = 1;
 	return;
 }
@@ -338,19 +351,34 @@ static void AttacherWinch(__attribute__((unused))int sigsig)
 
 void Attacher()
 {
-	signal(SIGHUP, AttacherFinit);
-	signal(SIG_BYE, AttacherFinit);
-	signal(SIG_POWER_BYE, AttacherFinitBye);
-	signal(SIG_LOCK, DoLock);
-	signal(SIGINT, AttacherSigInt);
-	signal(SIG_STOP, SigStop);
+	struct sigaction sigact;
+
+	sigemptyset (&sigact.sa_mask);
+	sigact.sa_flags = 0;
+	sigact.sa_handler = AttacherFinit;
+	sigaction(SIGHUP, &sigact, NULL);
+	sigaction(SIG_BYE, &sigact, NULL);
+
+	sigact.sa_handler = AttacherFinitBye;
+	sigaction(SIG_POWER_BYE, &sigact, NULL);
+
+	sigact.sa_handler = DoLock;
+	sigaction(SIG_LOCK, &sigact, NULL);
+	
+	sigact.sa_handler = AttacherSigInt;
+	sigaction(SIGINT, &sigact, NULL);
+	
+	sigact.sa_handler = SigStop;
+	sigaction(SIG_STOP, &sigact, NULL);
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
-	signal(SIGWINCH, AttacherWinch);
+	sigact.sa_handler = AttacherWinch;
+	sigaction(SIGWINCH, &sigact, NULL);
 #endif
 	dflag = 0;
 	xflag = 1;
 	for (;;) {
-		signal(SIGALRM, AttacherSigAlarm);
+		sigact.sa_handler = AttacherSigAlarm;
+		sigaction(SIGALRM, &sigact, NULL);
 		alarm(15);
 		pause();
 		alarm(0);
@@ -365,25 +393,23 @@ void Attacher()
 		}
 		if (SuspendPlease) {
 			SuspendPlease = 0;
-			signal(SIGTSTP, SIG_DFL);
+
+			sigact.sa_handler = SIG_DFL;
+			sigaction(SIGTSTP, &sigact, NULL);
 			kill(getpid(), SIGTSTP);
-			signal(SIG_STOP, SigStop);
+
+			sigact.sa_handler = SigStop;
+			sigaction(SIG_STOP, &sigact, NULL);
 			(void)Attach(MSG_CONT);
 		}
 		if (LockPlease) {
 			LockPlease = 0;
 			LockTerminal();
-#ifdef SYSVSIGS
-			signal(SIG_LOCK, DoLock);
-#endif
 			(void)Attach(MSG_CONT);
 		}
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 		if (SigWinchPlease) {
 			SigWinchPlease = 0;
-#ifdef SYSVSIGS
-			signal(SIGWINCH, AttacherWinch);
-#endif
 			(void)Attach(MSG_WINCH);
 		}
 #endif				/* SIGWINCH */
@@ -408,19 +434,28 @@ static void LockHup(__attribute__((unused))int sigsig)
 static void LockTerminal()
 {
 	int sig;
-	void (*sigs[NSIG]) (int);
 
-	for (sig = 1; sig < NSIG; sig++)
-		sigs[sig] = signal(sig, sig == SIGCHLD ? SIG_DFL : SIG_IGN);
-	signal(SIGHUP, LockHup);
+	struct sigaction sigact, sigold[NSIG];
+	sigemptyset (&sigact.sa_mask);
+	sigact.sa_flags = 0;
+
+	for (sig = 1; sig < NSIG; sig++) {
+		sigact.sa_handler = (sig == SIGCHLD ? SIG_DFL : SIG_IGN);
+		if (sigaction(sig, &sigact, &sigold[sig])) {
+			sigold[sig].sa_handler = (void (*)(int))-1;
+		}
+	}
+
+	sigact.sa_handler = LockHup;
+	sigaction(SIGHUP, &sigact, NULL);
 	printf("\n");
 
 	Authenticate();
 
 	/* reset signals */
 	for (sig = 1; sig < NSIG; sig++) {
-		if (sigs[sig] != (void (*)(int))-1)
-			signal(sig, sigs[sig]);
+		if (sigold[sig].sa_handler != (void (*)(int))-1)
+			sigaction(sig, &sigold[sig], NULL);
 	}
 }				/* LockTerminal */
 
@@ -472,6 +507,8 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 		char query[] = "-queryX";
 		char c;
 		int r = -1;
+		struct sigaction sigact;
+
 		for (c = 'A'; c <= 'Z'; c++) {
 			query[6] = c;
 			strncpy(sp, query, strlen(SocketPath));
@@ -493,15 +530,21 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 		strncpy(m.m.command.writeback, SocketPath, sizeof(m.m.command.writeback) - 1);
 
 		/* Send the message, then wait for a response */
-		signal(SIGCONT, QueryResultSuccess);
-		signal(SIG_BYE, QueryResultFail);
+		sigemptyset (&sigact.sa_mask);
+		sigact.sa_flags = 0;
+		sigact.sa_handler = QueryResultSuccess;
+		sigaction(SIGCONT, &sigact, NULL);
+		sigact.sa_handler = QueryResultFail;
+		sigaction(SIG_BYE, &sigact, NULL);
 		if (WriteMessage(s, &m))
 			Msg(errno, "write");
 		close(s);
 		while (!QueryResult)
 			pause();
-		signal(SIGCONT, SIG_DFL);
-		signal(SIG_BYE, SIG_DFL);
+		sigact.sa_handler = SIG_DFL;
+		sigaction(SIGCONT, &sigact, NULL);
+		sigact.sa_handler = SIG_DFL;
+		sigaction(SIG_BYE, &sigact, NULL);
 
 		/* Read the result and spit it out to stdout */
 		ReceiveRaw(r);

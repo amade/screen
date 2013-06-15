@@ -47,7 +47,6 @@ static void consredir_readev_fn (struct event *, char *);
 int separate_sids = 1;
 
 static void DoSendBreak (int, int, int);
-static void SigAlrmDummy (int);
 
 
 /* Frank Schulz (fschulz@pyramid.com):
@@ -72,13 +71,6 @@ static void SigAlrmDummy (int);
 #define TTYVTIME 0
 #endif
 
-
-static void
-SigAlrmDummy (__attribute__((unused))int sigsig)
-{
-  return;
-}
-
 /*
  *  Carefully open a charcter device. Not used to open display ttys.
  *  The second parameter is parsed for a few stty style options.
@@ -89,9 +81,9 @@ OpenTTY(char *line, char *opt)
 {
   int f;
   struct mode Mode;
-  void (*sigalrm)(int);
+struct sigaction sigalrm;
+sigaction(SIGALRM, NULL, &sigalrm);
 
-  sigalrm = signal(SIGALRM, SigAlrmDummy);
   alarm(2);
 
   /* this open only succeeds, if real uid is allowed */
@@ -102,14 +94,14 @@ OpenTTY(char *line, char *opt)
       else
         Msg(errno, "Cannot open line '%s' for R/W", line);
       alarm(0);
-      signal(SIGALRM, sigalrm);
+sigaction(SIGALRM, &sigalrm, NULL);
       return -1;
     }
   if (!isatty(f))
     {
       Msg(0, "'%s' is not a tty", line);
       alarm(0);
-      signal(SIGALRM, sigalrm);
+sigaction(SIGALRM, &sigalrm, NULL);
       close(f);
       return -1;
     }
@@ -149,7 +141,7 @@ OpenTTY(char *line, char *opt)
 
   brktty(f);
   alarm(0);
-  signal(SIGALRM, sigalrm);
+sigaction(SIGALRM, &sigalrm, NULL);
   return f;
 }
 
@@ -775,7 +767,7 @@ DoSendBreak(int fd, int n, int type)
 void
 SendBreak(struct win *wp, int n, int closeopen)
 {
-  void (*sigalrm)(int);
+struct sigaction sigalrm;
 
   if (wp->w_type != W_TYPE_PLAIN)
     return;
@@ -795,13 +787,13 @@ SendBreak(struct win *wp, int n, int closeopen)
     }
   else
     {
-      sigalrm = signal(SIGALRM, SigAlrmDummy);
+sigaction(SIGALRM, NULL, &sigalrm);
       alarm(15);
 
       DoSendBreak(wp->w_ptyfd, n, breaktype);
 
       alarm(0);
-      signal(SIGALRM, sigalrm);
+sigaction(SIGALRM, &sigalrm, NULL);
     }
 }
 

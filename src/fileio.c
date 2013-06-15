@@ -31,8 +31,6 @@
 #include <sys/stat.h>
 #include <pwd.h>
 
-#include <signal.h>
-
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
@@ -552,9 +550,6 @@ int printpipe(struct win *p, char *cmd)
 		closeallfiles(0);
 		if (setgid(real_gid) || setuid(real_uid))
 			Panic(errno, "printpipe setuid");
-#ifdef SIGPIPE
-		signal(SIGPIPE, SIG_DFL);
-#endif
 		execl("/bin/sh", "sh", "-c", cmd, (char *)0);
 		Panic(errno, "/bin/sh");
 	default:
@@ -588,9 +583,6 @@ int readpipe(char **cmdv)
 			close(1);
 			Panic(errno, "setuid/setgid");
 		}
-#ifdef SIGPIPE
-		signal(SIGPIPE, SIG_DFL);
-#endif
 		execvp(*cmdv, cmdv);
 		close(1);
 		Panic(errno, "%s", *cmdv);

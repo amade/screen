@@ -120,24 +120,6 @@ char *stripdev(char *nam)
 }
 
 /*
- *    Signal handling
- */
-
-void (*xsignal(int sig, void (*func) (int))) (int) {
-	struct sigaction osa, sa;
-	sa.sa_handler = func;
-	(void)sigemptyset(&sa.sa_mask);
-#ifdef SA_RESTART
-	sa.sa_flags = (sig == SIGCHLD ? SA_RESTART : 0);
-#else
-	sa.sa_flags = 0;
-#endif
-	if (sigaction(sig, &sa, &osa))
-		return (void (*)(int))-1;
-	return osa.sa_handler;
-}
-
-/*
  *    uid/gid handling
  */
 

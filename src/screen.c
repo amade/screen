@@ -222,6 +222,7 @@ int main(int argc, char **argv)
 	struct NewWindow nwin;
 	int detached = 0;	/* start up detached */
 	char *sty = 0;
+	struct sigaction sigact;
 
 	/*
 	 *  First, close all unused descriptors
@@ -483,10 +484,10 @@ int main(int argc, char **argv)
 	eff_uid = geteuid();
 	eff_gid = getegid();
 
-#ifdef SIGBUS			/* OOPS, linux has no bus errors! */
-	signal(SIGBUS, CoreDump);
-#endif				/* SIGBUS */
-	signal(SIGSEGV, CoreDump);
+	sigemptyset (&sigact.sa_mask);
+	sigact.sa_flags = 0;
+	sigact.sa_handler = CoreDump;
+	sigaction(SIGINT, &sigact, NULL);
 
 	setlocale(LC_ALL, "");
 	if (nwin_options.encoding == -1) {
@@ -536,24 +537,6 @@ int main(int argc, char **argv)
 	nwin.encoding = nwin_undef.encoding;	/* let screenrc overwrite it */
 	if (argc)
 		nwin.args = argv;
-
-	/* make the write() calls return -1 on all errors */
-#ifdef SIGXFSZ
-	/*
-	 * Ronald F. Guilmette, Oct 29 '94, bug-gnu-utils@prep.ai.mit.edu:
-	 * It appears that in System V Release 4, UNIX, if you are writing
-	 * an output file and you exceed the currently set file size limit,
-	 * you _don't_ just get the call to `write' returning with a
-	 * failure code.  Rather, you get a signal called `SIGXFSZ' which,
-	 * if neither handled nor ignored, will cause your program to crash
-	 * with a core dump.
-	 */
-	signal(SIGXFSZ, SIG_IGN);
-#endif				/* SIGXFSZ */
-
-#ifdef SIGPIPE
-	signal(SIGPIPE, SIG_IGN);
-#endif
 
 	if (!ShellProg) {
 		register char *sh;
@@ -704,7 +687,8 @@ int main(int argc, char **argv)
 		Panic(0, "%d Socket%s in %s.\n", fo, fo > 1 ? "s" : "", SocketPath);
 		/* NOTREACHED */
 	}
-	signal(SIG_BYE, AttacherFinit);	/* prevent races */
+	sigact.sa_handler = AttacherFinit;
+	sigaction(SIG_BYE, &sigact, NULL); /* prevent races */
 	if (cmdflag) {
 		/* attach_tty is not mandatory */
 		SET_TTYNAME(0);
@@ -858,12 +842,15 @@ int main(int argc, char **argv)
 	} else
 		MakeTermcap(1);
 	MakeNewEnv();
-	signal(SIGHUP, SigHup);
-	signal(SIGINT, FinitHandler);
-	signal(SIGQUIT, FinitHandler);
-	signal(SIGTERM, FinitHandler);
-	signal(SIGTTIN, SIG_IGN);
-	signal(SIGTTOU, SIG_IGN);
+	sigact.sa_handler = SigHup;
+	sigaction(SIGHUP, &sigact, NULL);
+	sigact.sa_handler = FinitHandler;
+	sigaction(SIGINT, &sigact, NULL);
+	sigaction(SIGQUIT, &sigact, NULL);
+	sigaction(SIGTERM, &sigact, NULL);
+	sigact.sa_handler = SIG_IGN;
+	sigaction(SIGTTIN, &sigact, NULL);
+	sigaction(SIGTTOU, &sigact, NULL);
 
 	if (display) {
 		brktty(D_userfd);
@@ -874,7 +861,8 @@ int main(int argc, char **argv)
 			Msg(errno, "Warning: NBLOCK fcntl failed");
 	} else
 		brktty(-1);	/* just try */
-	signal(SIGCHLD, SigChld);
+	sigact.sa_handler = SigChld;
+	sigaction(SIGCHLD, &sigact, NULL);
 #ifdef ETCSCREENRC
 #ifdef ALLOW_SYSSCREENRC
 	if ((ap = getenv("SYSSCREENRC")))
@@ -904,7 +892,8 @@ int main(int argc, char **argv)
 
 	if (display && default_startup)
 		display_copyright();
-	signal(SIGINT, SigInt);
+	sigact.sa_handler = SigInt;
+	sigaction(SIGINT, &sigact, NULL);
 	if (rflag && (rflag & 1) == 0 && !quietflag) {
 		Msg(0, "New screen...");
 		rflag = 0;
@@ -1035,7 +1024,11 @@ void SigHup(__attribute__((unused))int sigsig)
  */
 static void SigInt(__attribute__((unused))int sigsig)
 {
-	signal(SIGINT, SigInt);
+	struct sigaction sigact;
+	sigemptyset (&sigact.sa_mask);
+	sigact.sa_flags = 0;
+	sigact.sa_handler = SigInt;
+	sigaction(SIGINT, &sigact, NULL);
 	InterruptPlease = 1;
 	return;
 }
@@ -1134,8 +1127,13 @@ static void FinitHandler(__attribute__((unused))int sigsig)
 
 void Finit(int i)
 {
-	signal(SIGCHLD, SIG_DFL);
-	signal(SIGHUP, SIG_IGN);
+	struct sigaction sigact;
+	sigemptyset (&sigact.sa_mask);
+	sigact.sa_flags = 0;
+	sigact.sa_handler = SIG_DFL;
+	sigaction(SIGCHLD, &sigact, NULL);
+	sigact.sa_handler = SIG_IGN;
+	sigaction(SIGHUP, &sigact, NULL);
 
 	while (windows) {
 		struct win *p = windows;
@@ -1212,6 +1210,7 @@ void Detach(int mode)
 	int sign = 0, pid;
 	struct canvas *cv;
 	struct win *p;
+	struct sigaction sigact;
 
 	if (display == 0)
 		return;
@@ -1227,7 +1226,10 @@ void Detach(int mode)
       AddStr("[" msg "]\r\n"); \
   }
 
-	signal(SIGHUP, SIG_IGN);
+	sigemptyset (&sigact.sa_mask);
+	sigact.sa_flags = 0;
+	sigact.sa_handler = SIG_IGN;
+	sigaction(SIGHUP, &sigact, NULL);
 	if (D_status)
 		RemoveStatus();
 	FinitTerm();
@@ -1317,7 +1319,8 @@ void Detach(int mode)
 	 * if it was a power detach.
 	 */
 	Kill(pid, sign);
-	signal(SIGHUP, SigHup);
+	sigact.sa_handler = SigHup;
+	sigaction(SIGHUP, &sigact, NULL);
 #undef AddStrSocket
 }
 
