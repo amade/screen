@@ -49,4 +49,9 @@ struct event {
 #define EV_WRITE	2
 #define EV_ALWAYS	3
 
+void  evenq (struct event *);
+void  evdeq (struct event *);
+void  SetTimeout (struct event *, int);
+void  sched (void);
+
 #endif /* SCREEN_SCHED_H */

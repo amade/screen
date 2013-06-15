@@ -55,31 +55,29 @@
  *  Parser state
  */
 /* keep state_t and state_t_string in sync! */
-enum state_t
-{
-  LIT,				/* Literal input */
-  ESC,				/* Start of escape sequence */
-  ASTR,				/* Start of control string */
-  STRESC,			/* ESC seen in control string */
-  CSI,				/* Reading arguments in "CSI Pn ;...*/
-  PRIN,				/* Printer mode */
-  PRINESC,			/* ESC seen in printer mode */
-  PRINCSI,			/* CSI seen in printer mode */
-  PRIN4				/* CSI 4 seen in printer mode */
+enum state_t {
+	LIT,				/* Literal input */
+	ESC,				/* Start of escape sequence */
+	ASTR,				/* Start of control string */
+	STRESC,			/* ESC seen in control string */
+	CSI,				/* Reading arguments in "CSI Pn ;...*/
+	PRIN,				/* Printer mode */
+	PRINESC,			/* ESC seen in printer mode */
+	PRINCSI,			/* CSI seen in printer mode */
+	PRIN4				/* CSI 4 seen in printer mode */
 };
 
 /* keep string_t and string_t_string in sync! */
-enum string_t
-{
-  NONE,
-  DCS,				/* Device control string */
-  OSC,				/* Operating system command */
-  APC,				/* Application program command */
-				/*  - used for status change */
-  PM,				/* Privacy message */
-  AKA,				/* title for current screen */
-  GM,				/* Global message to every display */
-  STATUS			/* User hardstatus line */
+enum string_t {
+	NONE,
+	DCS,				/* Device control string */
+	OSC,				/* Operating system command */
+	APC,				/* Application program command */
+					/*  - used for status change */
+	PM,				/* Privacy message */
+	AKA,				/* title for current screen */
+	GM,				/* Global message to every display */
+	STATUS				/* User hardstatus line */
 };
 
 /*
@@ -101,10 +99,10 @@ enum move_t {
 
 #define EXPENSIVE	 1000
 
-#define G0			 0
-#define G1			 1
-#define G2			 2
-#define G3			 3
+#define G0		 0
+#define G1		 1
+#define G2		 2
+#define G3		 3
 
 #define ASCII		 0
 
@@ -149,5 +147,20 @@ enum move_t {
 	((ml)->font[x] & 0xe0) == 0x80 \
 	)
 
+struct win;
+
+void  ResetAnsiState (struct win *);
+void  ResetWindow (struct win *);
+void  ResetCharsets (struct win *);
+void  WriteString (struct win *, char *, int);
+void  ChangeAKA (struct win *, char *, size_t);
+void  SetCharsets (struct win *, char *);
+int   GetAnsiStatus (struct win *, char *);
+void  WNewAutoFlow (struct win *, int);
+void  WBell (struct win *, int);
+void  WMsg (struct win *, int, char *);
+void  WChangeSize (struct win *, int, int);
+void  WindowChanged (struct win *, int);
+int   MFindUsedLine (struct win *, int, int);
 
 #endif /* SCREEN_ANSI_H */

@@ -34,6 +34,10 @@
 #include "screen.h"
 #include "extern.h"
 
+#include "misc.h"
+#include "tty.h"
+#include "utmp.h"
+
 /*
  *  UTNOKEEP: A (ugly) hack for apollo that does two things:
  *    1) Always close and reopen the utmp file descriptor. (I don't know

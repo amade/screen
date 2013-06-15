@@ -285,6 +285,19 @@ struct win {
 
 #define Layer2Window(l) ((struct win *)(l)->l_bottom->l_data)
 
-int SwapWindows (int, int);
+int   SwapWindows (int, int);
+int   MakeWindow (struct NewWindow *);
+int   RemakeWindow (struct win *);
+void  FreeWindow (struct win *);
+int   winexec (char **);
+void  FreePseudowin (struct win *);
+void  nwin_compose (struct NewWindow *, struct NewWindow *, struct NewWindow *);
+int   DoStartLog (struct win *, char *, int);
+int   ReleaseAutoWritelock (struct display *, struct win *);
+int   ObtainAutoWritelock (struct display *, struct win *);
+void  CloseDevice (struct win *);
+#ifndef HAVE_EXECVPE
+void  execvpe (char *, char **, char **);
+#endif
 
 #endif /* SCREEN_WINDOW_H */

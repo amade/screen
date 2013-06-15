@@ -57,4 +57,12 @@ struct markdata {
 #define W2D(y) ((y) - markdata->hist_offset)
 #define D2W(y) ((y) + markdata->hist_offset)
 
+int   GetHistory (void);
+void  MarkRoutine (void);
+void  revto_line (int, int, int);
+void  revto (int, int);
+int   InMark (void);
+void  MakePaster (struct paster *, char *, int, int);
+void  FreePaster (struct paster *);
+
 #endif /* SCREEN_MARK_H */

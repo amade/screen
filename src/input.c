@@ -27,9 +27,12 @@
  */
 
 #include <sys/types.h>
+
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
+
+#include "misc.h"
 
 #define INPUTLINE (flayer->l_height - 1)
 

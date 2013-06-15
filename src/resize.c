@@ -34,6 +34,9 @@
 #include "screen.h"
 #include "extern.h"
 
+#include "process.h"
+#include "resize.h"
+
 static void CheckMaxSize(int);
 static void FreeMline(struct mline *);
 static int AllocMline(struct mline *ml, int);

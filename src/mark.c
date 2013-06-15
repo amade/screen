@@ -31,8 +31,13 @@
 
 #include "config.h"
 #include "screen.h"
-#include "mark.h"
 #include "extern.h"
+
+#include "encoding.h"
+#include "fileio.h"
+#include "mark.h"
+#include "process.h"
+#include "search.h"
 
 /*
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -32,10 +32,11 @@
 /* Deals with the list of displays */
 
 #include "config.h"
-
 #include "screen.h"
 #include "extern.h"
+
 #include "list_generic.h"
+#include "misc.h"
 
 static char ListID[] = "display";
 

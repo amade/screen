@@ -29,22 +29,34 @@
  ****************************************************************
  */
 
-#include "config.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <signal.h>
 #include <fcntl.h>
-#include <time.h>
-#include <sys/time.h>
+#include <signal.h>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <time.h>
 
+#include "config.h"
 #include "screen.h"
 #include "extern.h"
-#include "logfile.h"
+
+#include "encoding.h"
+#include "fileio.h"
+#include "help.h"
+#include "input.h"
 #include "layout.h"
-#include "viewport.h"
 #include "list_generic.h"
+#include "logfile.h"
+#include "mark.h"
+#include "misc.h"
+#include "process.h"
+#include "resize.h"
+#include "termcap.h"
+#include "tty.h"
+#include "utmp.h"
+#include "viewport.h"
+
 
 static int CheckArgNum(int, char **);
 static void ClearAction(struct action *);

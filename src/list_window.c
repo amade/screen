@@ -29,9 +29,13 @@
 
 #include "config.h"
 #include "screen.h"
-#include "layer.h"
 #include "extern.h"
+
+#include "input.h"
+#include "layer.h"
 #include "list_generic.h"
+#include "misc.h"
+#include "process.h"
 
 static char ListID[] = "window";
 

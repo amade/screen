@@ -37,6 +37,11 @@
 #include "screen.h"
 #include "extern.h"
 
+#include "fileio.h"
+#include "misc.h"
+#include "process.h"
+#include "termcap.h"
+
 static char *CatExtra(char *, char *);
 static char *findrcfile(char *);
 

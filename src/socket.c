@@ -45,7 +45,17 @@
 #endif
 
 #include "extern.h"
+
+#include "encoding.h"
+#include "fileio.h"
 #include "list_generic.h"
+#include "misc.h"
+#include "process.h"
+#include "resize.h"
+#include "socket.h"
+#include "termcap.h"
+#include "tty.h"
+#include "utmp.h"
 
 static int CheckPid(int);
 static void ExecCreate(struct msg *);

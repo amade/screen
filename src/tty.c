@@ -37,6 +37,10 @@
 
 #include "screen.h"
 #include "extern.h"
+#include "fileio.h"
+#include "misc.h"
+#include "pty.h"
+#include "tty.h"
 
 static void consredir_readev_fn (struct event *, char *);
 

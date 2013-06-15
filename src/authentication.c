@@ -6,6 +6,8 @@
 #include "screen.h"
 #include "extern.h"
 
+#include "attacher.h"
+
 int CheckPassword() {
 	pam_handle_t *pamh = 0;
 	struct pam_conv pamc;

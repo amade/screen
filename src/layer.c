@@ -30,8 +30,11 @@
 
 #include "config.h"
 #include "screen.h"
-#include "mark.h"
 #include "extern.h"
+
+#include "encoding.h"
+#include "mark.h"
+#include "tty.h"
 
 /*
  * Layer subsystem.

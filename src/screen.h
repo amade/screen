@@ -211,4 +211,22 @@ struct baud_values {
 #define WLIST_MRU 1
 #define WLIST_NESTED 2
 
+void  SigHup (int);
+void  eexit (int) __attribute__((__noreturn__));
+void  Detach (int);
+void  Hangup (void);
+void  Kill (int, int);
+void  Msg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
+void  Panic (int, const char *, ...) __attribute__((format(printf, 2, 3))) __attribute__((__noreturn__));
+void  QueryMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
+void  Dummy (int, const char *, ...) __attribute__((format(printf, 2, 3)));
+void  Finit (int);
+void  MakeNewEnv (void);
+char *MakeWinMsg (char *, struct win *, int);
+char *MakeWinMsgEv (char *, struct win *, int, int, struct event *, int);
+int   AddWinMsgRend (const char *, uint64_t);
+void  PutWinMsg (char *, int, int);
+void  WindowDied (struct win *, int, int);
+void  setbacktick (int, int, int, char **);
+
 #endif /* SCREEN_SCREEN_H */

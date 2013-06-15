@@ -37,49 +37,48 @@
 #define SLICE_THIS (1 << 2)	/* used in equal test */
 #define SLICE_GLOBAL (1 << 3)
 
-struct canvas
-{
-  struct canvas   *c_next;	/* next canvas on display */
-  struct display  *c_display;	/* back pointer to display */
+struct canvas {
+	struct canvas   *c_next;	/* next canvas on display */
+	struct display  *c_display;	/* back pointer to display */
 
-  struct canvas   *c_slnext;	/* next canvas in display slice */
-  struct canvas   *c_slprev;	/* prev canvas in display slice */
-  struct canvas   *c_slperp;	/* perpendicular slice */
-  struct canvas   *c_slback;	/* perpendicular slice back pointer */
-  int              c_slorient;  /* our slice orientation */
-  int              c_slweight;	/* size ratio */
+	struct canvas   *c_slnext;	/* next canvas in display slice */
+	struct canvas   *c_slprev;	/* prev canvas in display slice */
+	struct canvas   *c_slperp;	/* perpendicular slice */
+	struct canvas   *c_slback;	/* perpendicular slice back pointer */
+	int              c_slorient;  /* our slice orientation */
+	int              c_slweight;	/* size ratio */
 
-  struct viewport *c_vplist;
-  struct layer    *c_layer;	/* layer on this canvas */
-  struct canvas   *c_lnext;	/* next canvas that displays layer */
-  struct layer     c_blank;	/* bottom layer, always blank */
-  int              c_xoff;	/* canvas x offset on display */
-  int              c_yoff;	/* canvas y offset on display */
-  int              c_xs;
-  int              c_xe;
-  int              c_ys;
-  int              c_ye;
-  struct event     c_captev;	/* caption changed event */
+	struct viewport *c_vplist;
+	struct layer    *c_layer;	/* layer on this canvas */
+	struct canvas   *c_lnext;	/* next canvas that displays layer */
+	struct layer     c_blank;	/* bottom layer, always blank */
+	int              c_xoff;	/* canvas x offset on display */
+	int              c_yoff;	/* canvas y offset on display */
+	int              c_xs;
+	int              c_xe;
+	int              c_ys;
+	int              c_ye;
+	struct event     c_captev;	/* caption changed event */
 };
 
 struct win;			/* forward declaration */
 
-extern void  SetCanvasWindow (struct canvas *, struct win *);
-extern void  SetForeCanvas (struct display *, struct canvas *);
-extern struct canvas *FindCanvas (int, int);
-extern int   MakeDefaultCanvas (void);
-extern int   AddCanvas (int);
-extern void  RemCanvas (void);
-extern void  OneCanvas (void);
-extern void  FreeCanvas (struct canvas *);
-extern int   CountCanvas (struct canvas *);
-extern void  ResizeCanvas (struct canvas *);
-extern void  RecreateCanvasChain (void);
-extern void  RethinkViewportOffsets (struct canvas *);
-extern int   CountCanvasPerp (struct canvas *);
-extern void  EqualizeCanvas (struct canvas *, int);
-extern void  DupLayoutCv (struct canvas *, struct canvas *, int);
-extern void  PutWindowCv (struct canvas *);
+void  SetCanvasWindow (struct canvas *, struct win *);
+void  SetForeCanvas (struct display *, struct canvas *);
+struct canvas *FindCanvas (int, int);
+int   MakeDefaultCanvas (void);
+int   AddCanvas (int);
+void  RemCanvas (void);
+void  OneCanvas (void);
+void  FreeCanvas (struct canvas *);
+int   CountCanvas (struct canvas *);
+void  ResizeCanvas (struct canvas *);
+void  RecreateCanvasChain (void);
+void  RethinkViewportOffsets (struct canvas *);
+int   CountCanvasPerp (struct canvas *);
+void  EqualizeCanvas (struct canvas *, int);
+void  DupLayoutCv (struct canvas *, struct canvas *, int);
+void  PutWindowCv (struct canvas *);
 
 #define CV_CALL(cv, cmd)			\
 {						\
@@ -99,4 +98,3 @@ extern void  PutWindowCv (struct canvas *);
 }
 
 #endif /* SCREEN_CANVAS_H */
-
