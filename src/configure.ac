@@ -612,13 +612,6 @@ LIBS="$LIBS -lsun"
 AC_CHECKING(IRIX sun library)
 AC_TRY_LINK(,,,LIBS="$oldlibs")
 
-AC_CHECKING(syslog)
-AC_TRY_LINK(,[closelog();], , [oldlibs="$LIBS"
-LIBS="$LIBS -lbsd"
-AC_CHECKING(syslog in libbsd.a)
-AC_TRY_LINK(, [closelog();], AC_NOTE(- found.), [LIBS="$oldlibs"
-AC_NOTE(- bad news: syslog missing.) AC_DEFINE(NOSYSLOG)])])
-
 AC_EGREP_CPP(yes,
 [#ifdef M_UNIX
    yes;
