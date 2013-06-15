@@ -52,6 +52,7 @@
 #include <pwd.h>
 
 #include "logfile.h"		/* islogfile, logfflush */
+#include "fileio.h"
 
 int force_vt = 1;
 int VBellWait, MsgWait, MsgMinWait, SilenceWait;
@@ -159,6 +160,16 @@ int af;
  * Do this last
  */
 #include "extern.h"
+
+#include "attacher.h"
+#include "encoding.h"
+#include "help.h"
+#include "misc.h"
+#include "process.h"
+#include "socket.h"
+#include "termcap.h"
+#include "tty.h"
+#include "utmp.h"
 
 char strnomem[] = "Out of memory.";
 

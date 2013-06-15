@@ -43,7 +43,7 @@ struct viewport {
 	int              v_ye;	/* vp lower right */
 };
 
-extern int    RethinkDisplayViewports (void);
-extern void   RethinkViewportOffsets (struct canvas *);
+int    RethinkDisplayViewports (void);
+void   RethinkViewportOffsets (struct canvas *);
 
 #endif /* SCREEN_VIEWPORT_H */

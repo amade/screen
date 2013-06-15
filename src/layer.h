@@ -36,52 +36,51 @@
  */
 
 struct mchar;	/* forward declaration */
+struct mline;	/* forward declaration */
 
-struct LayFuncs
-{
-  void	(*lf_LayProcess) (char **, int *);
-  void	(*lf_LayAbort) (void);
-  void	(*lf_LayRedisplayLine) (int, int, int, int);
-  void	(*lf_LayClearLine) (int, int, int, int);
-  int	(*lf_LayResize) (int, int);
-  void	(*lf_LayRestore) (void);
-  void  (*lf_LayFree) (void *);		/* Should only free any data kept in
-					   flayer->l_data (but not flayer->l_data itself). */
+struct LayFuncs {
+	void	(*lf_LayProcess) (char **, int *);
+	void	(*lf_LayAbort) (void);
+	void	(*lf_LayRedisplayLine) (int, int, int, int);
+	void	(*lf_LayClearLine) (int, int, int, int);
+	int	(*lf_LayResize) (int, int);
+	void	(*lf_LayRestore) (void);
+	void	(*lf_LayFree) (void *);		/* Should only free any data kept in
+						   flayer->l_data (but not flayer->l_data itself). */
 };
 
-struct layer
-{
-  struct canvas *l_cvlist;	/* list of canvases displaying layer */
-  int	 l_width;
-  int	 l_height;
-  int    l_x;			/* cursor position */
-  int    l_y;
-  int    l_encoding;
-  struct LayFuncs *l_layfn;
-  void	*l_data;
+struct layer {
+struct canvas *l_cvlist;	/* list of canvases displaying layer */
+	int	l_width;
+	int	l_height;
+	int	l_x;		/* cursor position */
+	int	l_y;
+	int	l_encoding;
+	struct LayFuncs *l_layfn;
+	void	*l_data;
 
-  struct layer *l_next;		/* layer stack, should be in data? */
-  struct layer *l_bottom;	/* bottom element of layer stack */
-  int	 l_blocking;
-  int	 l_mode;		/* non-zero == edit mode */
+	struct layer *l_next;	/* layer stack, should be in data? */
+	struct layer *l_bottom;	/* bottom element of layer stack */
+	int	 l_blocking;
+	int	 l_mode;	/* non-zero == edit mode */
 
-  struct {
-    unsigned char buffer[3];	/* [0]: the button
-				   [1]: x
-				   [2]: y
-				*/
-    unsigned int len;
-    int start;
-  } l_mouseevent;
+	struct {
+		unsigned char buffer[3];	/* [0]: the button
+						   [1]: x
+						   [2]: y
+						*/
+		unsigned int len;
+		int start;
+	} l_mouseevent;
 
-  struct {
-    int d : 1;		/* Is the output for the layer blocked? */
+	struct {
+		int d : 1;		/* Is the output for the layer blocked? */
 
-    /* After unpausing, what region should we refresh? */
-    int *left, *right;
-    int top, bottom;
-    int lines;
-  } l_pause;
+		/* After unpausing, what region should we refresh? */
+		int *left, *right;
+		int top, bottom;
+		int lines;
+	} l_pause;
 };
 
 #define LayProcess		(*flayer->l_layfn->lf_LayProcess)
@@ -155,5 +154,34 @@ void LayPauseUpdateRegion (struct layer *layer, int xs, int xe, int ys, int ye);
  * @param layer The layer.
  */
 void LayerCleanupMemory (struct layer *layer);
+
+void  LGotoPos (struct layer *, int, int);
+void  LPutChar (struct layer *, struct mchar *, int, int);
+void  LInsChar (struct layer *, struct mchar *, int, int, struct mline *);
+void  LPutStr (struct layer *, char *, int, struct mchar *, int, int);
+void  LPutWinMsg (struct layer *, char *, int, struct mchar *, int, int);
+void  LScrollH (struct layer *, int, int, int, int, int, struct mline *);
+void  LScrollV (struct layer *, int, int, int, int);
+void  LClearAll (struct layer *, int);
+void  LClearArea (struct layer *, int, int, int, int, int, int);
+void  LClearLine (struct layer *, int, int, int, int, struct mline *);
+void  LRefreshAll (struct layer *, int);
+void  LCDisplayLine (struct layer *, struct mline *, int, int, int, int);
+void  LCDisplayLineWrap (struct layer *, struct mline *, int, int, int, int);
+void  LSetRendition (struct layer *, struct mchar *);
+void  LWrapChar  (struct layer *, struct mchar *, int, int, int, int);
+void  LCursorVisibility (struct layer *, int);
+void  LSetFlow (struct layer *, int);
+void  LKeypadMode (struct layer *, int);
+void  LCursorkeysMode (struct layer *, int);
+void  LMouseMode (struct layer *, int);
+void  LBracketedPasteMode (struct layer *, int);
+void  LCursorStyle (struct layer *, int);
+void  LMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
+void  KillLayerChain (struct layer *);
+int   InitOverlayPage (int, struct LayFuncs *, int);
+void  ExitOverlayPage (void);
+int   LayProcessMouse (struct layer *, unsigned char);
+void  LayProcessMouseSwitch (struct layer *, int);
 
 #endif /* SCREEN_LAYER_H */

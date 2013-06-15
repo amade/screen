@@ -34,7 +34,15 @@
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
+
 #include "canvas.h"
+#include "encoding.h"
+#include "misc.h"
+#include "process.h"
+#include "pty.h"
+#include "resize.h"
+#include "termcap.h"
+#include "tty.h"
 
 static int CountChars(int);
 static int DoAddChar(int);

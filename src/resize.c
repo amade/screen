@@ -34,6 +34,9 @@
 #include "screen.h"
 #include "extern.h"
 
+#include "process.h"
+#include "resize.h"
+
 /* maximum window width */
 #define MAXWIDTH 1000
 

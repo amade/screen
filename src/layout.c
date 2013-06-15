@@ -29,7 +29,12 @@
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
+
+#include "fileio.h"
 #include "layout.h"
+#include "misc.h"
+#include "process.h"
+#include "resize.h"
 
 struct layout *layouts;
 struct layout *laytab[MAXLAY];

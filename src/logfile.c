@@ -33,7 +33,9 @@
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
+
 #include "logfile.h"
+#include "misc.h"
 
 static void changed_logfile(struct logfile *);
 static struct logfile *lookup_logfile(char *);

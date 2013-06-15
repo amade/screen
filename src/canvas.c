@@ -29,8 +29,11 @@
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
+
 #include "canvas.h"
+#include "help.h"
 #include "list_generic.h"
+#include "resize.h"
 
 static void CanvasInitBlank(struct canvas *cv)
 {

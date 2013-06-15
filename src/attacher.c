@@ -32,6 +32,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
@@ -39,6 +40,10 @@
 #ifdef USE_PAM
 #include <security/pam_appl.h>
 #endif
+
+#include "misc.h"
+#include "socket.h"
+#include "tty.h"
 
 static int WriteMessage(int, struct msg *);
 static void AttacherSigInt(int);

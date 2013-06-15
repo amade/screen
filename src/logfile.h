@@ -30,15 +30,14 @@
 #ifndef SCREEN_LOGFILE_H
 #define SCREEN_LOGFILE_H
 
-struct logfile
-{
-  struct logfile *next;
-  FILE *fp;		/* a hopefully uniq filepointer to the log file */
-  char *name;		/* the name. used to reopen, when stat fails. */
-  int opencount;	/* synchronize logfopen() and logfclose() */
-  int writecount;	/* increments at logfwrite(), counts write() and fflush() */
-  int flushcount;	/* increments at logfflush(), zeroed at logfwrite() */
-  struct stat *st;	/* how the file looks like */
+struct logfile {
+	struct logfile *next;
+	FILE *fp;		/* a hopefully uniq filepointer to the log file */
+	char *name;		/* the name. used to reopen, when stat fails. */
+	int opencount;	/* synchronize logfopen() and logfclose() */
+	int writecount;	/* increments at logfwrite(), counts write() and fflush() */
+	int flushcount;	/* increments at logfflush(), zeroed at logfwrite() */
+	struct stat *st;	/* how the file looks like */
 };
 
 /*

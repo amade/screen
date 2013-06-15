@@ -32,10 +32,10 @@
 #include <sys/types.h>
 
 #include "config.h"
-
 #include "screen.h"
 #include "extern.h"
 
+#include "misc.h"
 #include "list_generic.h"
 
 char version[60];		/* initialised by main() */

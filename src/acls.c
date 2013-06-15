@@ -42,6 +42,7 @@
 
 #include "screen.h"		/* includes acls.h */
 #include "extern.h"
+#include "mark.h"
 
 /************************************************************************
  * user managing code, this does not really belong into the acl stuff   *

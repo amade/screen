@@ -26,6 +26,8 @@
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
+#include "encoding.h"
+#include "fileio.h"
 
 static int encmatch(char *, char *);
 static int recode_char(int, int, int);

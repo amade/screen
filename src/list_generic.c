@@ -22,9 +22,12 @@
 
 #include "config.h"
 #include "screen.h"
-#include "list_generic.h"
-#include "layer.h"
 #include "extern.h"
+
+#include "input.h"
+#include "layer.h"
+#include "list_generic.h"
+#include "misc.h"
 
 /* Deals with a generic list display */
 

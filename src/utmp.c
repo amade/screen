@@ -30,13 +30,17 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#ifdef HAVE_UTEMPTER
+#include <utempter.h>
+#endif
+
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
 
-#ifdef HAVE_UTEMPTER
-#include <utempter.h>
-#endif
+#include "misc.h"
+#include "tty.h"
+#include "utmp.h"
 
 /*
  *  UTNOKEEP: A (ugly) hack for apollo that does two things:

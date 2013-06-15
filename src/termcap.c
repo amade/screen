@@ -27,9 +27,16 @@
  */
 
 #include <sys/types.h>
+
 #include "config.h"
 #include "screen.h"
 #include "extern.h"
+
+#include "encoding.h"
+#include "misc.h"
+#include "process.h"
+#include "resize.h"
+#include "termcap.h"
 
 static void AddCap(char *);
 static void MakeString(char *, char *, int, char *);
