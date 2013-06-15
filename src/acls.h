@@ -26,18 +26,13 @@
  ****************************************************************
  */
 
-/***************
- *  ==> user.h
- */
+#ifndef SCREEN_ACLS_H
+#define SCREEN_ACLS_H
 
-/*
- * a copy buffer
- */
-struct plop
-{
-  char *buf;
-  int len;
-  int enc;
+struct plop {
+	char *buf;
+	int len;
+	int enc;
 };
 
 /*
@@ -61,3 +56,5 @@ int UserFreeCopyBuffer (struct acluser *);
 struct acluser **FindUserPtr (char *);
 int UserAdd (char *, struct acluser **);
 int UserDel (char *, struct acluser **);
+
+#endif /* SCREEN_ACLS_H */

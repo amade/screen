@@ -129,7 +129,6 @@ struct layer
 	  display = olddisplay;				\
 	}
 
-#endif /* SCREEN_LAYER_H */
 
 /**
  * (Un)Pauses a layer.
@@ -157,3 +156,4 @@ void LayPauseUpdateRegion (struct layer *layer, int xs, int xe, int ys, int ye);
  */
 void LayerCleanupMemory (struct layer *layer);
 
+#endif /* SCREEN_LAYER_H */

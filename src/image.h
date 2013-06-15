@@ -27,6 +27,9 @@
  * $Id$ GNU
  */
 
+#ifndef SCREEN_IMAGE_H
+#define SCREEN_IMAGE_H
+
 #include <stdint.h>
 
 struct mchar {
@@ -121,3 +124,4 @@ enum
 	NUM_RENDS
 };
 
+#endif /* SCREEN_IMAGE_H */
