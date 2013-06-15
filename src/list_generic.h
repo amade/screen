@@ -20,6 +20,9 @@
  ****************************************************************
  */
 
+#ifndef SCREEN_LIST_GENERIC_H
+#define SCREEN_LIST_GENERIC_H
+
 struct ListData;
 
 struct ListRow {
@@ -68,3 +71,4 @@ void display_displays (void);
 
 void display_windows (int onblank, int order, struct win *group);
 
+#endif /* SCREEN_LIST_GENERIC_H */

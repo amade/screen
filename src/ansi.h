@@ -27,6 +27,9 @@
  * $Id$ GNU
  */
 
+#ifndef SCREEN_ANSI_H
+#define SCREEN_ANSI_H
+
 #define NATTR		6
 
 #define ATTR_DI		0	/* Dim mode */
@@ -146,3 +149,5 @@ enum move_t {
 	((ml)->font[x] & 0xe0) == 0x80 \
 	)
 
+
+#endif /* SCREEN_ANSI_H */
