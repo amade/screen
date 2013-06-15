@@ -22,36 +22,33 @@
 
 struct ListData;
 
-struct ListRow
-{
-  void *data;		/* Some data relevant to this row */
-  struct ListRow *next, *prev;	/* doubly linked list */
-  int y;	/* -1 if not on display */
+struct ListRow {
+	void *data;			/* Some data relevant to this row */
+	struct ListRow *next, *prev;	/* doubly linked list */
+	int y;				/* -1 if not on display */
 };
 
-struct GenericList
-{
-  int (*gl_printheader) (struct ListData *);			/* Print the header */
-  int (*gl_printfooter) (struct ListData *);			/* Print the footer */
-  int (*gl_printrow) (struct ListData *, struct ListRow *);	/* Print one row */
-  int (*gl_pinput) (struct ListData *, char **inp, int *len);	/* Process input */
-  int (*gl_freerow) (struct ListData *, struct ListRow *);	/* Free data for a row */
-  int (*gl_free) (struct ListData *);				/* Free data for the list */
-  int (*gl_matchrow) (struct ListData *, struct ListRow *, const char *);
+struct GenericList {
+	int (*gl_printheader) (struct ListData *);			/* Print the header */
+	int (*gl_printfooter) (struct ListData *);			/* Print the footer */
+	int (*gl_printrow) (struct ListData *, struct ListRow *);	/* Print one row */
+	int (*gl_pinput) (struct ListData *, char **inp, int *len);	/* Process input */
+	int (*gl_freerow) (struct ListData *, struct ListRow *);	/* Free data for a row */
+	int (*gl_free) (struct ListData *);				/* Free data for the list */
+	int (*gl_matchrow) (struct ListData *, struct ListRow *, const char *);
 };
 
-struct ListData
-{
-  const char *name;		/* An identifier for the list */
-  struct ListRow *root;		/* The first item in the list */
-  struct ListRow *selected;	/* The selected row */
-  struct ListRow *top;		/* The topmost visible row */
+struct ListData {
+	const char *name;		/* An identifier for the list */
+	struct ListRow *root;		/* The first item in the list */
+	struct ListRow *selected;	/* The selected row */
+	struct ListRow *top;		/* The topmost visible row */
 
-  struct GenericList *list_fn;	/* The functions that deal with the list */
+	struct GenericList *list_fn;	/* The functions that deal with the list */
 
-  char *search;			/* The search term, if any */
+	char *search;			/* The search term, if any */
 
-  void *data;			/* List specific data */
+	void *data;			/* List specific data */
 };
 
 extern struct LayFuncs ListLf;
