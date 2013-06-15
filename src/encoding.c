@@ -22,6 +22,7 @@
  */
 
 #include <sys/types.h>
+#include <wchar.h>
 
 #include "config.h"
 #include "screen.h"

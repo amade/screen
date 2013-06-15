@@ -30,6 +30,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <wchar.h>
 
 #include "config.h"
 #include "screen.h"
