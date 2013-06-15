@@ -1014,13 +1014,13 @@ static void SigChldHandler()
 	}
 }
 
-static void SigChld(int sigsig)
+static void SigChld(__attribute__((unused))int sigsig)
 {
 	GotSigChld = 1;
 	return;
 }
 
-void SigHup(int sigsig)
+void SigHup(__attribute__((unused))int sigsig)
 {
 	/* Hangup all displays */
 	while ((display = displays) != 0)
@@ -1033,14 +1033,14 @@ void SigHup(int sigsig)
  * we cannot insert the intrc directly, as we never know
  * if fore is valid.
  */
-static void SigInt(int sigsig)
+static void SigInt(__attribute__((unused))int sigsig)
 {
 	signal(SIGINT, SigInt);
 	InterruptPlease = 1;
 	return;
 }
 
-static void CoreDump(int sigsig)
+static void CoreDump(__attribute__((unused))int sigsig)
 {
 	/* if running with s-bit, we must reset the s-bit, so that we get a
 	 * core file anyway.
@@ -1126,7 +1126,7 @@ static void DoWait()
 	}
 }
 
-static void FinitHandler(int sigsig)
+static void FinitHandler(__attribute__((unused))int sigsig)
 {
 	Finit(1);
 	return;
@@ -1455,7 +1455,7 @@ void QueryMsg(int err, const char *fmt, ...)
 	write(queryflag, buf, strlen(buf));
 }
 
-void Dummy(int err, const char *fmt, ...)
+void Dummy(__attribute__((unused))int err, __attribute__((unused))const char *fmt, ...)
 {
 }
 
@@ -2198,12 +2198,12 @@ void PutWinMsg(char *s, int start, int max)
 	}
 }
 
-static void serv_read_fn(struct event *ev, char *data)
+static void serv_read_fn(__attribute__((unused))struct event *ev, __attribute__((unused))char *data)
 {
 	ReceiveMsg();
 }
 
-static void serv_select_fn(struct event *ev, char *data)
+static void serv_select_fn(__attribute__((unused))struct event *ev, __attribute__((unused))char *data)
 {
 	struct win *p;
 
@@ -2353,7 +2353,7 @@ static void serv_select_fn(struct event *ev, char *data)
 	}
 }
 
-static void logflush_fn(struct event *ev, char *data)
+static void logflush_fn(__attribute__((unused))struct event *ev, __attribute__((unused))char *data)
 {
 	struct win *p;
 	char *buf;

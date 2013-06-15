@@ -63,7 +63,7 @@ void Search(int dir)
 		      (dir > 0 ? searchend : backsearchend), NULL, 0);
 }
 
-static void searchend(char *buf, int len, char *dummy)
+static void searchend(char *buf, int len, __attribute__((unused))char *dummy)
 {
 	int x = 0, sx, ex, y;
 	struct markdata *markdata;
@@ -87,7 +87,7 @@ static void searchend(char *buf, int len, char *dummy)
 		revto(x, y);
 }
 
-static void backsearchend(char *buf, int len, char *dummy)
+static void backsearchend(char *buf, int len, __attribute__((unused))char *dummy)
 {
 	int sx, ex, x = -1, y;
 	struct markdata *markdata;
@@ -198,7 +198,7 @@ static int is_bm(char *str, int l, int p, int end, int dir)
 	return -1;
 }
 
-static void is_process(char *p, int n, char *data)
+static void is_process(char *p, int n, __attribute__((unused))char *data)
 {				/* i-search */
 	int pos, x, y, dir;
 	struct markdata *markdata;

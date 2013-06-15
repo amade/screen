@@ -192,7 +192,7 @@ static int gl_Window_header(struct ListData *ldata)
 	return 2 + g;
 }
 
-static int gl_Window_footer(struct ListData *ldata)
+static int gl_Window_footer(__attribute__((unused))struct ListData *ldata)
 {
 	return 0;
 }
@@ -403,7 +403,7 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 	return 1;
 }
 
-static int gl_Window_freerow(struct ListData *ldata, struct ListRow *row)
+static int gl_Window_freerow(__attribute__((unused))struct ListData *ldata, __attribute__((unused))struct ListRow *row)
 {
 	return 0;
 }
@@ -414,7 +414,7 @@ static int gl_Window_free(struct ListData *ldata)
 	return 0;
 }
 
-static int gl_Window_match(struct ListData *ldata, struct ListRow *row, const char *needle)
+static int gl_Window_match(__attribute__((unused))struct ListData *ldata, struct ListRow *row, const char *needle)
 {
 	struct win *w = row->data;
 	if (InStr(w->w_title, needle))

@@ -423,7 +423,7 @@ static struct utmp *getutslot(slot_t slot)
 	return getutline(&u);
 }
 
-static int pututslot(slot_t slot, struct utmp *u, char *host, struct win *win)
+static int pututslot(__attribute__((unused))slot_t slot, struct utmp *u, __attribute__((unused))char *host, __attribute__((unused))struct win *win)
 {
 	setutent();
 	return pututline(u) != 0;
