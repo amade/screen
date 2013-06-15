@@ -2056,6 +2056,7 @@ void DoAction(struct action *act, int key)
 	struct win *p;
 	int argc, n, msgok;
 	uint64_t i;
+	int j;
 	char *s;
 	char ch;
 	struct display *odisplay = display;
@@ -3601,15 +3602,15 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_SILENCE:
 		n = fore->w_silence != 0;
-		i = fore->w_silencewait;
+		j = fore->w_silencewait;
 		if (args[0] && (args[0][0] == '-' || (args[0][0] >= '0' && args[0][0] <= '9'))) {
-			if (ParseNum(act, &i))
+			if (ParseNum(act, &j))
 				break;
-			n = i > 0;
+			n = j > 0;
 		} else if (ParseSwitch(act, &n))
 			break;
 		if (n) {
-			fore->w_silencewait = i;
+			fore->w_silencewait = j;
 			fore->w_silence = SILENCE_ON;
 			SetTimeout(&fore->w_silenceev, fore->w_silencewait * 1000);
 			evenq(&fore->w_silenceev);
@@ -3946,21 +3947,21 @@ void DoAction(struct action *act, int key)
 		winexec(args);
 		break;
 	case RC_NONBLOCK:
-		i = D_nonblock >= 0;
+		j = D_nonblock >= 0;
 		if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
-			if (ParseNum1000(act, &i))
+			if (ParseNum1000(act, &j))
 				break;
-		} else if (!ParseSwitch(act, &i))
-			i = i == 0 ? -1 : 1000;
+		} else if (!ParseSwitch(act, &j))
+			j = j == 0 ? -1 : 1000;
 		else
 			break;
-		if (msgok && i == -1)
+		if (msgok && j == -1)
 			OutputMsg(0, "display set to blocking mode");
-		else if (msgok && i == 0)
+		else if (msgok && j == 0)
 			OutputMsg(0, "display set to nonblocking mode, no timeout");
 		else if (msgok)
-			OutputMsg(0, "display set to nonblocking mode, %.10gs timeout", i / 1000.);
-		D_nonblock = i;
+			OutputMsg(0, "display set to nonblocking mode, %.10gs timeout", j / 1000.);
+		D_nonblock = j;
 		if (D_nonblock <= 0)
 			evdeq(&D_blockedev);
 		break;
