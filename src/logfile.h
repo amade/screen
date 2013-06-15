@@ -27,6 +27,9 @@
  * $Id$ GNU
  */
 
+#ifndef SCREEN_LOGFILE_H
+#define SCREEN_LOGFILE_H
+
 struct logfile
 {
   struct logfile *next;
@@ -75,3 +78,5 @@ int logfflush (struct logfile *ifany);
  * It closes fd and opens wantfd to access whatever fd accessed.
  */
 int lf_move_fd (int fd, int wantfd);
+
+#endif /*  SCREEN_LOGFILE_H */

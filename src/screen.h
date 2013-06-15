@@ -27,6 +27,9 @@
  * $Id$ GNU
  */
 
+#ifndef SCREEN_SCREEN_H
+#define SCREEN_SCREEN_H
+
 #include "os.h"
 
 #include "ansi.h"
@@ -55,12 +58,11 @@
 #define DEFAULTHISTHEIGHT	100
 #define DEFAULT_BUFFERFILE	"/tmp/screen-exchange"
 
-struct mode
-{
-  struct termios tio;
+struct mode {
+	struct termios tio;
 #if defined(KANJI) && defined(TIOCKSET)
-  struct jtchars m_jtchars;
-  int m_knjmode;
+	struct jtchars m_jtchars;
+	int m_knjmode;
 #endif
 };
 
@@ -109,58 +111,48 @@ struct mode
 #define MSG_VERSION	4
 
 #define MSG_REVISION	(('m'<<24) | ('s'<<16) | ('g'<<8) | MSG_VERSION)
-struct msg
-{
-  int protocol_revision;	/* reduce harm done by incompatible messages */
-  int type;
-  char m_tty[MAXPATHLEN];	/* ttyname */
-  union
-    {
-      struct
-	{
-	  int lflag;
-	  int aflag;
-	  int flowflag;
-	  int hheight;		/* size of scrollback buffer */
-	  int nargs;
-	  char line[MAXPATHLEN];
-	  char dir[MAXPATHLEN];
-	  char screenterm[MAXTERMLEN];	/* is screen really "screen" ? */
-	}
-      create;
-      struct
-	{
-	  char auser[MAXLOGINLEN + 1];	/* username */
-	  int apid;		/* pid of frontend */
-	  int adaptflag;	/* adapt window size? */
-	  int lines, columns;	/* display size */
-	  char preselect[20];
-	  int esc;		/* his new escape character unless -1 */
-	  int meta_esc;		/* his new meta esc character unless -1 */
-	  char envterm[MAXTERMLEN + 1];	/* terminal type */
-	  int encoding;		/* encoding of display */
-	  int detachfirst;      /* whether to detach remote sessions first */
-	}
-      attach;
-      struct
-	{
-	  char duser[MAXLOGINLEN + 1];	/* username */
-	  int dpid;		/* pid of frontend */
-	}
-      detach;
-      struct
-	{
-	  char auser[MAXLOGINLEN + 1];	/* username */
-	  int nargs;
-	  char cmd[MAXPATHLEN + 1];	/* command */
-	  int apid;		/* pid of frontend */
-	  char preselect[20];
-	  char writeback[MAXPATHLEN];  /* The socket to write the result.
-					  Only used for MSG_QUERY */
-	}
-      command;
-      char message[MAXPATHLEN * 2];
-    } m;
+struct msg {
+	int protocol_revision;	/* reduce harm done by incompatible messages */
+	int type;
+	char m_tty[MAXPATHLEN];	/* ttyname */
+	union {
+		struct {
+			int lflag;
+			int aflag;
+			int flowflag;
+			int hheight;			/* size of scrollback buffer */
+			int nargs;
+			char line[MAXPATHLEN];
+			char dir[MAXPATHLEN];
+			char screenterm[MAXTERMLEN];	/* is screen really "screen" ? */
+		} create;
+		struct {
+			char auser[MAXLOGINLEN + 1];	/* username */
+			int apid;			/* pid of frontend */
+			int adaptflag;			/* adapt window size? */
+			int lines, columns;		/* display size */
+			char preselect[20];
+			int esc;			/* his new escape character unless -1 */
+			int meta_esc;			/* his new meta esc character unless -1 */
+			char envterm[MAXTERMLEN + 1];	/* terminal type */
+			int encoding;			/* encoding of display */
+			int detachfirst;		/* whether to detach remote sessions first */
+		} attach;
+		struct {
+			char duser[MAXLOGINLEN + 1];	/* username */
+			int dpid;			/* pid of frontend */
+		} detach;
+		struct {
+			char auser[MAXLOGINLEN + 1];	/* username */
+			int nargs;
+			char cmd[MAXPATHLEN + 1];	/* command */
+			int apid;		/* pid of frontend */
+			char preselect[20];
+			char writeback[MAXPATHLEN];	/* The socket to write the result.
+							   Only used for MSG_QUERY */
+			} command;
+		char message[MAXPATHLEN * 2];
+	} m;
 };
 
 /*
@@ -215,11 +207,10 @@ struct acl
 /* register list */
 #define MAX_PLOP_DEFS 256
 
-struct baud_values
-{
-  int idx;	/* the index in the bsd-is padding lookup table */
-  int bps;	/* bits per seconds */
-  int sym;	/* symbol defined in ttydev.h */
+struct baud_values {
+	int idx;	/* the index in the bsd-is padding lookup table */
+	int bps;	/* bits per seconds */
+	int sym;	/* symbol defined in ttydev.h */
 };
 
 /*
@@ -228,3 +219,5 @@ struct baud_values
 #define WLIST_NUM 0
 #define WLIST_MRU 1
 #define WLIST_NESTED 2
+
+#endif /* SCREEN_SCREEN_H */
