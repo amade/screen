@@ -1332,7 +1332,7 @@ int ObtainAutoWritelock(struct display *d, struct win *w)
 
 /********************************************************************/
 
-static void paste_slowev_fn(struct event *ev, char *data)
+static void paste_slowev_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	struct paster *pa = (struct paster *)data;
 	struct win *p;
@@ -1464,10 +1464,7 @@ static void win_readev_fn(struct event *ev, char *data)
 	return;
 }
 
-static void win_resurrect_zombie_fn(ev, data)
-struct event *ev;
-char *data;
-{
+static void win_resurrect_zombie_fn(__attribute__((unused))struct event *ev, char *data) {
 	struct win *p = (struct win *)data;
 	/* Already reconnected? */
 	if (p->w_deadpid != p->w_pid)
@@ -1570,7 +1567,7 @@ static void pseu_writeev_fn(struct event *ev, char *data)
 		memmove(p->w_pwin->p_inbuf, p->w_pwin->p_inbuf + len, p->w_pwin->p_inlen);
 }
 
-static void win_silenceev_fn(struct event *ev, char *data)
+static void win_silenceev_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	struct win *p = (struct win *)data;
 	struct canvas *cv;
@@ -1588,7 +1585,7 @@ static void win_silenceev_fn(struct event *ev, char *data)
 	}
 }
 
-static void win_destroyev_fn(struct event *ev, char *data)
+static void win_destroyev_fn(struct event *ev, __attribute__((unused))char *data)
 {
 	struct win *p = (struct win *)ev->data;
 	WindowDied(p, p->w_exitstatus, 1);

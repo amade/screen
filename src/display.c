@@ -107,7 +107,7 @@ void DefClearLine(int y, int xs, int xe, int bce)
 	LClearLine(flayer, y, xs, xe, bce, (struct mline *)0);
 }
 
-int DefResize(int wi, int he)
+int DefResize(__attribute__((unused))int wi, __attribute__((unused))int he)
 {
 	return -1;
 }
@@ -952,7 +952,7 @@ void RedisplayDisplays(int cur_only)
 }
 
 /* XXX: use oml! */
-void ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
+void ScrollH(int y, int xs, int xe, int n, int bce, __attribute__((unused))struct mline *oml)
 {
 	int i;
 
@@ -1974,7 +1974,7 @@ void PutChar(struct mchar *c, int x, int y)
 	}
 }
 
-void InsChar(struct mchar *c, int x, int xe, int y, struct mline *oml)
+void InsChar(struct mchar *c, int x, int xe, int y, __attribute__((unused))struct mline *oml)
 {
 	GotoPos(x, y);
 	if (y == D_bot && !D_CLP) {
@@ -2378,7 +2378,7 @@ void NukePending()
 /* linux' select can't handle flow control, so wait 100ms if
  * we get EAGAIN
  */
-static void disp_writeev_eagain(struct event *ev, char *data)
+static void disp_writeev_eagain(__attribute__((unused))struct event *ev, char *data)
 {
 	display = (struct display *)data;
 	evdeq(&D_writeev);
@@ -2387,7 +2387,7 @@ static void disp_writeev_eagain(struct event *ev, char *data)
 	evenq(&D_writeev);
 }
 
-static void disp_writeev_fn(struct event *ev, char *data)
+static void disp_writeev_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	int len, size = OUTPUT_BLOCK_SIZE;
 
@@ -2457,7 +2457,7 @@ static void disp_writeev_fn(struct event *ev, char *data)
 	}
 }
 
-static void disp_readev_fn(struct event *ev, char *data)
+static void disp_readev_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	int size;
 	char buf[IOSIZE];
@@ -2603,7 +2603,7 @@ static void disp_readev_fn(struct event *ev, char *data)
 	(*D_processinput) (buf, size);
 }
 
-static void disp_status_fn(struct event *ev, char *data)
+static void disp_status_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	display = (struct display *)data;
 	if (D_status)
@@ -2621,7 +2621,7 @@ static void disp_hstatus_fn(struct event *ev, char *data)
 	RefreshHStatus();
 }
 
-static void disp_blocked_fn(struct event *ev, char *data)
+static void disp_blocked_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	struct win *p;
 
@@ -2636,7 +2636,7 @@ static void disp_blocked_fn(struct event *ev, char *data)
 	}
 }
 
-static void disp_map_fn(struct event *ev, char *data)
+static void disp_map_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	char *p;
 	int l, i;
@@ -2662,7 +2662,7 @@ static void disp_map_fn(struct event *ev, char *data)
 	ProcessInput(p, l);
 }
 
-static void disp_idle_fn(struct event *ev, char *data)
+static void disp_idle_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	struct display *olddisplay;
 	display = (struct display *)data;
@@ -2691,7 +2691,7 @@ void ResetIdle()
 		evdeq(&D_idleev);
 }
 
-static void disp_blanker_fn(struct event *ev, char *data)
+static void disp_blanker_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	char buf[IOSIZE], *b;
 	int size;

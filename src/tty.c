@@ -74,7 +74,7 @@ static void SigAlrmDummy (int);
 
 
 static void
-SigAlrmDummy (int sigsig)
+SigAlrmDummy (__attribute__((unused))int sigsig)
 {
   return;
 }
@@ -634,7 +634,7 @@ SttyMode(struct mode *m, char *opt)
  */
 
 void
-brktty(int fd)
+brktty(__attribute__((unused))int fd)
 {
   if (separate_sids)
     setsid();		/* will break terminal affiliation */
@@ -813,7 +813,7 @@ static struct event consredir_ev;
 static int consredirfd[2] = {-1, -1};
 
 static void
-consredir_readev_fn(struct event *ev, char *data)
+consredir_readev_fn(struct event *ev, __attribute__((unused))char *data)
 {
   char *p, *n, buf[256];
   int l;
@@ -839,7 +839,7 @@ consredir_readev_fn(struct event *ev, char *data)
 }
 
 int
-TtyGrabConsole(int fd, int on, char *rc_name)
+TtyGrabConsole(__attribute__((unused))int fd, int on, char *rc_name)
 {
   struct display *d;
 #  ifdef SRIOCSREDIR

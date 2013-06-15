@@ -435,7 +435,7 @@ static struct utmp *getutslot(slot_t slot)
 	return getutline(&u);
 }
 
-static int pututslot(slot_t slot, struct utmp *u, char *host, struct win *win)
+static int pututslot(__attribute__((unused))slot_t slot, struct utmp *u, __attribute__((unused))char *host, __attribute__((unused))struct win *win)
 {
 #ifdef HAVE_UTEMPTER
 	if (eff_uid && win && win->w_ptyfd != -1) {

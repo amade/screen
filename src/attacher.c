@@ -58,7 +58,7 @@ static void AttachSigCont(int);
 
 static int ContinuePlease;
 
-static void AttachSigCont(int sigsig)
+static void AttachSigCont(__attribute__((unused))int sigsig)
 {
 	ContinuePlease = 1;
 	return;
@@ -66,13 +66,13 @@ static void AttachSigCont(int sigsig)
 
 static int QueryResult;
 
-static void QueryResultSuccess(int sigsig)
+static void QueryResultSuccess(__attribute__((unused))int sigsig)
 {
 	QueryResult = 1;
 	return;
 }
 
-static void QueryResultFail(int sigsig)
+static void QueryResultFail(__attribute__((unused))int sigsig)
 {
 	QueryResult = 2;
 	return;
@@ -288,7 +288,7 @@ int Attach(int how)
 
 static int AttacherPanic = 0;
 
-static void AttacherSigAlarm(int sigsig)
+static void AttacherSigAlarm(__attribute__((unused))int sigsig)
 {
 	return;
 }
@@ -297,7 +297,7 @@ static void AttacherSigAlarm(int sigsig)
  * the frontend's Interrupt handler
  * we forward SIGINT to the poor backend
  */
-static void AttacherSigInt(int sigsig)
+static void AttacherSigInt(__attribute__((unused))int sigsig)
 {
 	signal(SIGINT, AttacherSigInt);
 	Kill(MasterPid, SIGINT);
@@ -309,7 +309,7 @@ static void AttacherSigInt(int sigsig)
  * check if the backend is already detached.
  */
 
-void AttacherFinit(int sigsig)
+void AttacherFinit(__attribute__((unused))int sigsig)
 {
 	struct stat statb;
 	struct msg m;
@@ -338,7 +338,7 @@ void AttacherFinit(int sigsig)
 	return;
 }
 
-static void AttacherFinitBye(int sigsig)
+static void AttacherFinitBye(__attribute__((unused))int sigsig)
 {
 	int ppid;
 	if (setgid(real_gid))
@@ -354,7 +354,7 @@ static void AttacherFinitBye(int sigsig)
 
 static int SuspendPlease;
 
-static void SigStop(int sigsig)
+static void SigStop(__attribute__((unused))int sigsig)
 {
 	SuspendPlease = 1;
 	return;
@@ -362,7 +362,7 @@ static void SigStop(int sigsig)
 
 static int LockPlease;
 
-static void DoLock(int sigsig)
+static void DoLock(__attribute__((unused))int sigsig)
 {
 #ifdef SYSVSIGS
 	signal(SIG_LOCK, DoLock);
@@ -374,7 +374,7 @@ static void DoLock(int sigsig)
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 static int SigWinchPlease;
 
-static void AttacherWinch(int sigsig)
+static void AttacherWinch(__attribute__((unused))int sigsig)
 {
 	SigWinchPlease = 1;
 	return;
@@ -444,7 +444,7 @@ void Attacher()
 
 static char LockEnd[] = "Welcome back to screen !!\n";
 
-static void LockHup(int sigsig)
+static void LockHup(__attribute__((unused))int sigsig)
 {
 	int ppid = getppid();
 	if (setgid(real_gid))
