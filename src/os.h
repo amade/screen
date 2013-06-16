@@ -30,7 +30,6 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sys/param.h>
-#include <signal.h>
 
 #if !defined(MAXTERMLEN)
 # if !defined(HAVE_LONG_FILE_NAMES)
@@ -155,22 +154,6 @@
 #if !defined(FNBLOCK) && defined(O_NONBLOCK)
 # define FNBLOCK O_NONBLOCK
 #endif
-
-/*****************************************************************
- *    signal handling
- */
-
-#ifndef SIGCHLD
-#define SIGCHLD SIGCLD
-#endif
-
-#define signal xsignal
-
-/* used in screen.c and attacher.c */
-#ifndef NSIG		/* kbeal needs these w/o SYSV */
-# define NSIG 32
-#endif /* !NSIG */
-
 
 /*****************************************************************
  *    Wait stuff

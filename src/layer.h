@@ -50,7 +50,7 @@ struct LayFuncs {
 };
 
 struct layer {
-struct canvas *l_cvlist;	/* list of canvases displaying layer */
+	struct canvas *l_cvlist;	/* list of canvases displaying layer */
 	int	l_width;
 	int	l_height;
 	int	l_x;		/* cursor position */

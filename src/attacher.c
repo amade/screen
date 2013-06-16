@@ -435,11 +435,11 @@ static void LockTerminal()
 {
 	int sig;
 
-	struct sigaction sigact, sigold[NSIG];
+	struct sigaction sigact, sigold[_NSIG];
 	sigemptyset (&sigact.sa_mask);
 	sigact.sa_flags = 0;
 
-	for (sig = 1; sig < NSIG; sig++) {
+	for (sig = 1; sig < _NSIG; sig++) {
 		sigact.sa_handler = (sig == SIGCHLD ? SIG_DFL : SIG_IGN);
 		if (sigaction(sig, &sigact, &sigold[sig])) {
 			sigold[sig].sa_handler = (void (*)(int))-1;
@@ -453,7 +453,7 @@ static void LockTerminal()
 	Authenticate();
 
 	/* reset signals */
-	for (sig = 1; sig < NSIG; sig++) {
+	for (sig = 1; sig < _NSIG; sig++) {
 		if (sigold[sig].sa_handler != (void (*)(int))-1)
 			sigaction(sig, &sigold[sig], NULL);
 	}
