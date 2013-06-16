@@ -1,6 +1,7 @@
 #include <pwd.h>
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
+#include <stdbool.h>
 
 #include "config.h"
 #include "screen.h"
@@ -8,7 +9,7 @@
 
 #include "attacher.h"
 
-int CheckPassword() {
+bool CheckPassword() {
 	pam_handle_t *pamh = 0;
 	struct pam_conv pamc;
 	int pam_error;
@@ -36,9 +37,9 @@ int CheckPassword() {
 	pam_error = pam_authenticate(pamh, 0);
 	pam_end(pamh, pam_error);
 	if (pam_error == PAM_SUCCESS) {
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 void Authenticate() {

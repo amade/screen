@@ -28,6 +28,7 @@
 
 #include <sys/types.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "config.h"
 #include "screen.h"
@@ -53,7 +54,7 @@ static void nextword(int *, int *, int, int);
 static int linestart(int);
 static int lineend(int);
 static int rem(int, int, int, int, int, char *, int);
-static int eq(int, int);
+static bool eq(int, int);
 static int MarkScrollDownDisplay(int);
 static int MarkScrollUpDisplay(int);
 
@@ -87,9 +88,7 @@ static struct markdata *markdata;
  */
 static int is_letter(int c)
 {
-	if ((c >= 'a' && c <= 'z') ||
-	    (c >= 'A' && c <= 'Z') ||
-	    (c >= '0' && c <= '9') ||
+	if (isalnum(c) ||
 	    c == '_' || c == '.' || c == '@' || c == ':' || c == '%' || c == '!' || c == '-' || c == '+')
 		/* thus we can catch email-addresses as a word :-) */
 		return 1;
@@ -357,15 +356,15 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
  * as same. Used for GetHistory()
  */
 
-static int eq(int a, int b)
+static bool eq(int a, int b)
 {
 	if (a == b)
-		return 1;
+		return true;
 	if (a == 0 || b == 0)
-		return 1;
-	if (a <= '9' && a >= '0' && b <= '9' && b >= '0')
-		return 1;
-	return 0;
+		return true;
+	if (isdigit(a) && isdigit(b))
+		return true;
+	return false;
 }
 
 /**********************************************************************/
@@ -487,7 +486,7 @@ static void MarkProcess(char **inbufp, int *inlenp)
 		}
 		od = mark_key_tab[(int)ch];
 		rep_cnt = markdata->rep_cnt;
-		if (od >= '0' && od <= '9' && !markdata->f_cmd.flag) {
+		if (isdigit(od) && !markdata->f_cmd.flag) {
 			if (rep_cnt < 1001 && (od != '0' || rep_cnt != 0)) {
 				markdata->rep_cnt = 10 * rep_cnt + od - '0';
 				continue;
