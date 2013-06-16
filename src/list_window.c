@@ -255,7 +255,7 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 
 	win = ldata->selected->data;
 	switch (ch) {
-	case '':		/* Ctrl-l to refresh */
+	case '\f':		/* ^L to refresh */
 		glist_remove_rows(ldata);
 		gl_Window_rebuild(ldata);
 		break;

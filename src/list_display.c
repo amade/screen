@@ -135,7 +135,7 @@ static int gl_Display_input(struct ListData *ldata, char **inp, int *len)
 	--*len;
 
 	switch (ch) {
-	case '':		/* Ctrl-l to refresh */
+	case '\f':		/* ^L to refresh */
 		glist_remove_rows(ldata);
 		gl_Display_rebuild(ldata);
 		break;
