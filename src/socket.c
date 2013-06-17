@@ -583,7 +583,7 @@ static int CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
 	}
 
 	if (iflag && olddisplays) {
-		iflag = 0;
+		iflag = false;
 #if defined(TERMIO) || defined(POSIX)
 		olddisplays->d_NewMode.tio.c_cc[VINTR] = VDISABLE;
 		olddisplays->d_NewMode.tio.c_lflag &= ~ISIG;
