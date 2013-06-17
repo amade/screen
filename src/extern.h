@@ -27,6 +27,8 @@
  * $Id$ GNU
  */
 
+#include <stdbool.h>
+
 /*
  * GLOBAL VARIABLES
  */
@@ -81,7 +83,7 @@ extern unsigned char mark_key_tab[];
 extern uint32_t *blank;
 extern uint32_t *null;
 
-extern int adaptflag;
+extern bool adaptflag;
 extern int attach_fd;
 extern int auto_detach;
 extern int captionalways;
@@ -100,10 +102,10 @@ extern int force_vt;
 extern int hardcopy_append;
 extern int hardstatusemu;
 extern int idletimo;
-extern int iflag;
+extern bool iflag;
 extern int join_with_cr;
 extern int kmap_extn;
-extern int lsflag;
+extern bool lsflag;
 extern int log_flush;
 extern int logtstamp_on;
 extern int logtstamp_after;
@@ -118,15 +120,15 @@ extern int pty_preopen;
 extern int search_ic;
 extern int separate_sids;
 extern int queryflag;
-extern int quietflag;
+extern bool quietflag;
 extern uint64_t renditions[];
 extern int rflag;
 extern int tty_mode;
 extern int tty_oldmode;
 extern int use_altscreen;
 extern int use_hardstatus;
-extern int wipeflag;
-extern int xflag;
+extern bool wipeflag;
+extern bool xflag;
 extern int visual_bell;
 extern int zmodem_mode;
 extern int DefaultEsc;

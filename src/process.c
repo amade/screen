@@ -2237,7 +2237,7 @@ void DoAction(struct action *act, int key)
 #endif
 	case RC_DEFFLOW:
 		if (args[0] && args[1] && args[1][0] == 'i') {
-			iflag = 1;
+			iflag = true;
 			for (display = displays; display; display = display->d_next) {
 				if (!D_flow)
 					continue;

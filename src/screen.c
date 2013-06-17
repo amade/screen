@@ -28,15 +28,14 @@
  ****************************************************************
  */
 
-#include <sys/types.h>
 #include <ctype.h>
-
 #include <fcntl.h>
-
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-
+#include <pwd.h>
 #include <signal.h>
+#include <stdbool.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "config.h"
 
@@ -48,9 +47,6 @@
 #include "screen.h"
 
 #include "patchlevel.h"
-
-#include <pwd.h>
-
 #include "logfile.h"		/* islogfile, logfflush */
 #include "fileio.h"
 
@@ -120,10 +116,9 @@ char *timestring;
 char *wliststr;
 char *wlisttit;
 int auto_detach = 1;
-int iflag, rflag, dflag, lsflag, quietflag, wipeflag, xflag;
-int cmdflag;
+bool adaptflag, cmdflag, iflag, lsflag, quietflag, wipeflag, xflag;
+int rflag, dflag;
 int queryflag = -1;
-int adaptflag;
 
 char *multi;
 char *multi_home;
@@ -258,7 +253,7 @@ int main(int argc, char **argv)
 	ShellProg = NULL;
 	PowDetachString = 0;
 	default_startup = (argc > 1) ? 0 : 1;
-	adaptflag = 0;
+	adaptflag = false;
 	VBellWait = VBELLWAIT * 1000;
 	MsgWait = MSGWAIT * 1000;
 	MsgMinWait = MSGMINWAIT * 1000;
@@ -281,7 +276,7 @@ int main(int argc, char **argv)
 	/* if this is a login screen, assume -RR */
 	if (*av0 == '-') {
 		rflag = 4;
-		xflag = 1;
+		xflag = true;
 		ShellProg = SaveStr(DefaultShell);	/* to prevent nasty circles */
 	}
 	while (argc > 0) {
@@ -310,7 +305,7 @@ int main(int argc, char **argv)
 					nwin_options.aflag = 1;
 					break;
 				case 'A':
-					adaptflag = 1;
+					adaptflag = true;
 					break;
 				case 'p':	/* preselect */
 					if (*++ap)
@@ -375,7 +370,7 @@ int main(int argc, char **argv)
 						exit_with_usage(myname, "-h: %s: negative scrollback size?", *argv);
 					break;
 				case 'i':
-					iflag = 1;
+					iflag = true;
 					break;
 				case 't':	/* title, the former AkA == -k */
 					if (--argc == 0)
@@ -401,7 +396,7 @@ int main(int argc, char **argv)
 						break;
 					case 's':	/* -ls */
 					case 'i':	/* -list */
-						lsflag = 1;
+						lsflag = true;
 						if (argc > 1 && !SocketMatch) {
 							SocketMatch = *++argv;
 							argc--;
@@ -415,8 +410,8 @@ int main(int argc, char **argv)
 				case 'w':
 					if (strcmp(ap + 1, "ipe"))
 						exit_with_usage(myname, "Unknown option %s", --ap);
-					lsflag = 1;
-					wipeflag = 1;
+					lsflag = true;
+					wipeflag = true;
 					if (argc > 1 && !SocketMatch) {
 						SocketMatch = *++argv;
 						argc--;
@@ -441,11 +436,11 @@ int main(int argc, char **argv)
 					nwin_options.term = screenterm;
 					break;
 				case 'q':
-					quietflag = 1;
+					quietflag = true;
 					break;
 				case 'Q':
 					queryflag = 1;
-					cmdflag = 1;
+					cmdflag = true;
 					break;
 				case 'r':
 				case 'R':
@@ -455,7 +450,7 @@ int main(int argc, char **argv)
 						argc--;
 					}
 					if (*ap == 'x')
-						xflag = 1;
+						xflag = true;
 					if (rflag)
 						rflag = 2;
 					rflag += (*ap == 'R') ? 2 : 1;
@@ -490,7 +485,7 @@ int main(int argc, char **argv)
 						exit_with_usage(myname, "Empty session-name?", NULL);
 					break;
 				case 'X':
-					cmdflag = 1;
+					cmdflag = true;
 					break;
 				case 'v':
 					Panic(0, "Screen version %s", version);
@@ -554,7 +549,7 @@ int main(int argc, char **argv)
 	if (SocketMatch && strlen(SocketMatch) >= MAXSTR)
 		Panic(0, "Ridiculously long socketname - try again.");
 	if (cmdflag && !rflag && !dflag && !xflag)
-		xflag = 1;
+		xflag = true;
 	if (!cmdflag && dflag && mflag && !(rflag || xflag))
 		detached = 1;
 	nwin = nwin_options;
