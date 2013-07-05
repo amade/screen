@@ -171,6 +171,11 @@
 
 
 /*
+ *
+ */
+#undef USE_PAM
+
+/*
  * Define CHECK_SCREEN_W if you want screen to set TERM to screen-w
  * if the terminal width is greater than 131 columns. No longer needed
  * on modern systems which use $COLUMNS or the tty settings instead.

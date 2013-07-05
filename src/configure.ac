@@ -654,7 +654,6 @@ AC_SEARCH_LIBS(gethostname, nsl)
 
 AC_CHECK_FUNCS(vsnprintf strftime)
 
-AC_DEFINE([USE_PAM], [], [Enables PAM support when checking user password])
 AC_ARG_ENABLE(pam, [  --enable-pam            enable PAM support])
 if test "$enable_pam" = "yes"; then
     AC_MSG_CHECKING(for PAM support)
