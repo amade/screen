@@ -654,16 +654,20 @@ AC_SEARCH_LIBS(gethostname, nsl)
 
 AC_CHECK_FUNCS(vsnprintf strftime)
 
-AC_MSG_CHECKING(for PAM support)
-oldlibs="$LIBS"
-LIBS="$LIBS -lpam"
-LIBS="$LIBS -lpam_misc"
-AC_TRY_LINK([#include <security/pam_appl.h>], [
-    pam_start(0, 0, 0, 0);
-    pam_authenticate(0, 0);
-    pam_end(0,0);
-], AC_MSG_RESULT(yes),
-   AC_MSG_RESULT(no);LIBS="$oldlibs")
+AC_DEFINE([USE_PAM], [], [Enables PAM support when checking user password])
+AC_ARG_ENABLE(pam, [  --enable-pam            enable PAM support])
+if test "$enable_pam" = "yes"; then
+    AC_MSG_CHECKING(for PAM support)
+    oldlibs="$LIBS"
+    LIBS="$LIBS -lpam -lpam_misc"
+    AC_TRY_LINK([#include <security/pam_appl.h>
+#include <security/pam_misc.h>], [
+	pam_start(0, 0, 0, 0);
+	pam_authenticate(0, 0);
+	pam_end(0,0);
+    ], AC_MSG_RESULT(yes);AC_DEFINE(USE_PAM),
+       AC_MSG_RESULT(no);LIBS="$oldlibs")
+fi
 
 AC_TRY_RUN(main(){exit(0);},,AC_MSG_ERROR(Can't run the compiler - internal error. Sorry.))
 

@@ -1,6 +1,8 @@
 #include <pwd.h>
+#if USE_PAM
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
+#endif
 #include <stdbool.h>
 
 #include "config.h"
@@ -10,6 +12,7 @@
 #include "attacher.h"
 
 bool CheckPassword() {
+#if USE_PAM
 	pam_handle_t *pamh = 0;
 	struct pam_conv pamc;
 	int pam_error;
@@ -40,6 +43,9 @@ bool CheckPassword() {
 		return true;
 	}
 	return false;
+#else
+	return true;
+#endif
 }
 
 void Authenticate() {
