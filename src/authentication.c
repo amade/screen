@@ -1,8 +1,4 @@
 #include <pwd.h>
-#if USE_PAM
-#include <security/pam_appl.h>
-#include <security/pam_misc.h>
-#endif
 #include <stdbool.h>
 
 #include "config.h"
@@ -10,6 +6,11 @@
 #include "extern.h"
 
 #include "attacher.h"
+
+#if USE_PAM
+#include <security/pam_appl.h>
+#include <security/pam_misc.h>
+#endif
 
 bool CheckPassword() {
 #if USE_PAM
