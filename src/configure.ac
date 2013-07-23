@@ -29,11 +29,11 @@ define(AC_NOTE,
 ])dnl
 
 dnl
-dnl Extract version from patchlevel.h
+dnl Extract version from version.h
 dnl
-rev=`sed < ${srcdir}/patchlevel.h -n -e '/#define REV/s/#define REV  *//p'`
-vers=`sed < ${srcdir}/patchlevel.h -n -e '/#define VERS/s/#define VERS  *//p'`
-pat=`sed < ${srcdir}/patchlevel.h -n -e '/#define PATCHLEVEL/s/#define PATCHLEVEL  *//p'`
+rev=`sed < ${srcdir}/version.h -n -e '/#define REV/s/#define REV  *//p'`
+vers=`sed < ${srcdir}/version.h -n -e '/#define VERS/s/#define VERS  *//p'`
+pat=`sed < ${srcdir}/version.h -n -e '/#define PATCHLEVEL/s/#define PATCHLEVEL  *//p'`
 VERSION="$rev.$vers.$pat"
 AC_NOTE(this is screen version $VERSION)
 AC_SUBST(VERSION)
