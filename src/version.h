@@ -27,7 +27,6 @@
  * $Id$ GNU
  */
 
-#define ORIGIN "GNU"
 #define REV 4
 #define VERS 99
 #define PATCHLEVEL 0

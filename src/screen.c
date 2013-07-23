@@ -46,7 +46,7 @@
 
 #include "screen.h"
 
-#include "patchlevel.h"
+#include "version.h"
 #include "logfile.h"		/* islogfile, logfflush */
 #include "fileio.h"
 
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
 	 *  (otherwise, we might have problems with the select() call)
 	 */
 	closeallfiles(0);
-	snprintf(version, 59, "%d.%.2d.%.2d%s (%s) %s", REV, VERS, PATCHLEVEL, STATE, ORIGIN, DATE);
+	snprintf(version, 59, "%d.%d.%d-%s (build on %s %s) ", REV, VERS, PATCHLEVEL, STATE, __DATE__, __TIME__);
 	nversion = REV * 10000 + VERS * 100 + PATCHLEVEL;
 
 	BellString = SaveStr("Bell in window %n");
