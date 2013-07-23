@@ -30,6 +30,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#define __USE_XOPEN
 #include <wchar.h>
 
 #include "config.h"
@@ -1315,7 +1316,6 @@ void SetColor(uint32_t foreground, uint32_t background)
 		f &= 0x0ff;
 		if (f > 15 && D_CCO != 256) {
 			f = D_CCO == 88 && D_CAF ? color256to88(f) : color256to16(f);
-			of = f;
 		}
 		if (f > 15 && D_CAF) {
 			AddCStr2(D_CAF, f);
@@ -1339,7 +1339,6 @@ void SetColor(uint32_t foreground, uint32_t background)
 		b &= 0x0ff;
 		if (b > 15 && D_CCO != 256) {
 			b = D_CCO == 88 && D_CAB ? color256to88(b) : color256to16(b);
-			ob = b;
 		}
 		if (b > 15 && D_CAB) {
 			AddCStr2(D_CAB, b);
