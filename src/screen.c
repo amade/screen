@@ -224,7 +224,7 @@ int main(int argc, char **argv)
 	 *  (otherwise, we might have problems with the select() call)
 	 */
 	closeallfiles(0);
-	snprintf(version, 59, "%d.%.2d.%.2d%s (%s%s) %s", REV, VERS, PATCHLEVEL, STATE, ORIGIN, GIT_REV, DATE);
+	snprintf(version, 59, "%d.%.2d.%.2d%s (%s) %s", REV, VERS, PATCHLEVEL, STATE, ORIGIN, DATE);
 	nversion = REV * 10000 + VERS * 100 + PATCHLEVEL;
 
 	BellString = SaveStr("Bell in window %n");
