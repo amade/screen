@@ -1304,45 +1304,53 @@ void SetColor(uint32_t foreground, uint32_t background)
 		}
 		of = ob = 0;
 	}
-	if (f & 0x01000000)
-		f &= 0x0ff;
-	if (b & 0x01000000)
-		b &= 0x0ff;
 	if (!D_hascolor)
 		return;
-	if (f != of && f > 15 && D_CCO != 256)
-		f = D_CCO == 88 && D_CAF ? color256to88(f) : color256to16(f);
-	if (f != of && f > 15 && D_CAF) {
-		AddCStr2(D_CAF, f);
-		of = f;
+
+/* FOREGROUND */
+	if (f != of && f == 0) {
+		AddCStr("\033[m");	/* works because AX is set */
 	}
-	if (b != ob && b > 15 && D_CCO != 256)
-		b = D_CCO == 88 && D_CAB ? color256to88(b) : color256to16(b);
-	if (b != ob && b > 15 && D_CAB) {
-		AddCStr2(D_CAB, b);
-		ob = b;
+	if (f != of && (f & 0x01000000)) {
+		f &= 0x0ff;
+		if (f > 15 && D_CCO != 256)
+			f = D_CCO == 88 && D_CAF ? color256to88(f) : color256to16(f);
+		if (f > 15 && D_CAF) {
+			AddCStr2(D_CAF, f);
+			//of = f;
+		}
+		if (f < 8) {
+			if (D_CAF)
+				AddCStr2(D_CAF, f & 7);
+			else if (D_CSF)
+				AddCStr2(D_CSF, sftrans[f & 7]);
+		}
+		if (D_CXT && f >= 8 && f <= 15) {
+			AddCStr2("\033[9%p1%dm", f & 7);
+		}
 	}
-	if (f != of && f < 8) {
-		if (foreground == 0)
-			AddCStr("\033[39m");	/* works because AX is set */
-		else if (D_CAF)
-			AddCStr2(D_CAF, f & 7);
-		else if (D_CSF)
-			AddCStr2(D_CSF, sftrans[f & 7]);
+
+/* BACKGROUND */
+	if (b != ob && b == 0) {
+		AddCStr("\033[m");	/* works because AX is set */
 	}
-	if (b != ob && b < 8) {
-		if (background == 0)
-			AddCStr("\033[49m");	/* works because AX is set */
-		else if (D_CAB)
-			AddCStr2(D_CAB, b & 7);
-		else if (D_CSB)
-			AddCStr2(D_CSB, sftrans[b & 7]);
-	}
-	if (f != of && D_CXT && (f & 8) != 0 && foreground != 0) {
-		AddCStr2("\033[9%p1%dm", f & 7);
-	}
-	if (b != ob && D_CXT && (b & 8) != 0 && background != 0) {
-		AddCStr2("\033[10%p1%dm", b & 7);
+	if (b != ob && (b & 0x01000000)) {
+		b &= 0x0ff;
+		if (b > 15 && D_CCO != 256)
+			b = D_CCO == 88 && D_CAB ? color256to88(b) : color256to16(b);
+		if (b > 15 && D_CAB) {
+			AddCStr2(D_CAB, b);
+			//ob = b;
+		}
+		if (b < 8) {
+			if (D_CAB)
+				AddCStr2(D_CAB, b & 7);
+			else if (D_CSB)
+				AddCStr2(D_CSB, sftrans[b & 7]);
+		}
+		if (D_CXT && b >= 8 && b <= 15) {
+			AddCStr2("\033[10%p1%dm", b & 7);
+		}
 	}
 }
 
