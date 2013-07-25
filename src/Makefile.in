@@ -65,8 +65,7 @@ screen: $(OFILES)
 	$(CC) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
 .c.o:
-	$(CC) -c $(M_CFLAGS) $(CPPFLAGS) \
-	    $(CFLAGS) $<
+	$(CC) -c $(M_CFLAGS) $(CPPFLAGS) $(CFLAGS) $<
 
 install_bin: .version screen
 	-if [ -f $(DESTDIR)$(bindir)/$(SCREEN) ] && [ ! -f $(DESTDIR)$(bindir)/$(SCREEN).old ]; \
