@@ -2055,7 +2055,7 @@ void DoAction(struct action *act, int key)
 	int *argl = act->argl;
 	struct win *p;
 	int argc, n, msgok;
-	uint64_t i;
+	int64_t i;
 	int j;
 	char *s;
 	char ch;
@@ -5455,12 +5455,12 @@ char *AddWindows(char *buf, int len, int flags, int where)
 				break;
 		}
 		if (!(flags & 4) || where < 0 || ((flags & 4) && where < p->w_number)) {
-			if (p->w_monitor == MON_DONE && renditions[REND_MONITOR] != -1)
+			if (p->w_monitor == MON_DONE && renditions[REND_MONITOR] != 0)
 				rend = renditions[REND_MONITOR];
-			else if ((p->w_bell == BELL_DONE || p->w_bell == BELL_FOUND) && renditions[REND_BELL] != -1)
+			else if ((p->w_bell == BELL_DONE || p->w_bell == BELL_FOUND) && renditions[REND_BELL] != 0)
 				rend = renditions[REND_BELL];
 			else if ((p->w_silence == SILENCE_FOUND || p->w_silence == SILENCE_DONE)
-				 && renditions[REND_SILENCE] != -1)
+				 && renditions[REND_SILENCE] != 0)
 				rend = renditions[REND_SILENCE];
 		}
 		if (rend != -1)
@@ -6120,7 +6120,7 @@ static void confirm_fn(char *buf, int len, char *data)
 
 static int digraph_find(const char *buf)
 {
-	int i;
+	uint32_t i;
 	for (i = 0; i < sizeof(digraphs) && digraphs[i].d[0]; i++)
 		if ((digraphs[i].d[0] == (unsigned char)buf[0] && digraphs[i].d[1] == (unsigned char)buf[1]))
 			break;
