@@ -30,7 +30,10 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+
+#if defined(__UCLIBC__)
 #define __USE_XOPEN
+#endif
 #include <wchar.h>
 
 #include "config.h"

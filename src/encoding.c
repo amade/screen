@@ -22,7 +22,10 @@
  */
 
 #include <sys/types.h>
+
+#if defined(__UCLIBC__)
 #define __USE_XOPEN
+#endif
 #include <wchar.h>
 
 #include "config.h"
