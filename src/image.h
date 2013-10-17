@@ -36,6 +36,7 @@ struct mchar {
 	uint32_t image;
 	uint32_t attr;
 	uint32_t font;
+	uint32_t fontx;
 	uint32_t colorbg;
 	uint32_t colorfg;
 	uint32_t mbcs;
@@ -45,6 +46,7 @@ struct mline {
 	uint32_t *image;
 	uint32_t *attr;
 	uint32_t *font;
+	uint32_t *fontx;
 	uint32_t *colorbg;
 	uint32_t *colorfg;
 };
@@ -55,6 +57,7 @@ struct mline {
 	memmove(mline_old.image,   (ml)->image,   (n) * 4);	\
 	memmove(mline_old.attr,    (ml)->attr,    (n) * 4);	\
 	memmove(mline_old.font,    (ml)->font,    (n) * 4);	\
+	memmove(mline_old.fontx,   (ml)->fontx,    (n) * 4);	\
 	memmove(mline_old.colorbg, (ml)->colorbg, (n) * 4);	\
 	memmove(mline_old.colorfg, (ml)->colorfg, (n) * 4);	\
 }
@@ -63,6 +66,7 @@ struct mline {
 	memmove((ml)->image   + (xt), (ml)->image   + (xf), (n) * 4);	\
 	memmove((ml)->attr    + (xt), (ml)->attr    + (xf), (n) * 4);	\
 	memmove((ml)->font    + (xt), (ml)->font    + (xf), (n) * 4);	\
+	memmove((ml)->fontx   + (xt), (ml)->fontx   + (xf), (n) * 4);	\
 	memmove((ml)->colorbg + (xt), (ml)->colorbg + (xf), (n) * 4);	\
 	memmove((ml)->colorfg + (xt), (ml)->colorfg + (xf), (n) * 4);	\
 }
@@ -71,6 +75,7 @@ struct mline {
 	memmove((ml)->image + (x), blank, (n) * 4);					\
 	if ((ml)->attr    != null) memset((ml)->attr    + (x), 0, (n) * 4);	\
 	if ((ml)->font    != null) memset((ml)->font    + (x), 0, (n) * 4);	\
+	if ((ml)->fontx   != null) memset((ml)->fontx   + (x), 0, (n) * 4);	\
 	if ((ml)->colorbg != null) memset((ml)->colorbg + (x), 0, (n) * 4);	\
 	if ((ml)->colorfg != null) memset((ml)->colorfg + (x), 0, (n) * 4);	\
 }
@@ -79,6 +84,7 @@ struct mline {
 	   (ml1)->image[x]   == (ml2)->image[x]		\
 	&& (ml1)->attr[x]    == (ml2)->attr[x]		\
 	&& (ml1)->font[x]    == (ml2)->font[x]		\
+	&& (ml1)->fontx[x]   == (ml2)->fontx[x]		\
 	&& (ml1)->colorbg[x] == (ml2)->colorbg[x]	\
 	&& (ml1)->colorfg[x] == (ml2)->colorfg[x]	\
 )
@@ -87,6 +93,7 @@ struct mline {
 	    (mc1)->image  == (mc2)->image		\
 	&& (mc1)->attr    == (mc2)->attr		\
 	&& (mc1)->font    == (mc2)->font		\
+	&& (mc1)->fontx   == (mc2)->fontx		\
 	&& (mc1)->colorbg == (mc2)->colorbg		\
 	&& (mc1)->colorfg == (mc2)->colorfg		\
 )
@@ -95,6 +102,7 @@ struct mline {
 	   (mc)->image   == (ml)->image[x]		\
 	&& (mc)->attr    == (ml)->attr[x]		\
 	&& (mc)->font    == (ml)->font[x]		\
+	&& (mc)->fontx   == (ml)->fontx[x]		\
 	&& (mc)->colorbg == (ml)->colorbg[x]		\
 	&& (mc)->colorfg == (ml)->colorfg[x]		\
 )
@@ -103,6 +111,7 @@ struct mline {
 	(ml)->image[x]   = (mc)->image;			\
 	(ml)->attr[x]    = (mc)->attr;			\
 	(ml)->font[x]    = (mc)->font;			\
+	(ml)->fontx[x]   = (mc)->fontx;			\
 	(ml)->colorbg[x] = (mc)->colorbg;		\
 	(ml)->colorfg[x] = (mc)->colorfg;		\
 }
@@ -111,6 +120,7 @@ struct mline {
 	(mc)->image   = (ml)->image[x];			\
 	(mc)->attr    = (ml)->attr[x];			\
 	(mc)->font    = (ml)->font[x];			\
+	(mc)->fontx   = (ml)->fontx[x];			\
 	(mc)->colorbg = (ml)->colorbg[x];		\
 	(mc)->colorfg = (ml)->colorfg[x];		\
 	(mc)->mbcs    = 0;				\

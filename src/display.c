@@ -432,7 +432,7 @@ static void RAW_PUTCHAR(int c)
 {
 
 	if (D_encoding == UTF8) {
-		c = (c & 255) | (unsigned char)D_rend.font << 8;
+		c = (c & 255) | (unsigned char)D_rend.font << 8 | (unsigned char)D_rend.fontx << 16;
 		if (D_mbcs) {
 			c = D_mbcs;
 			if (D_x == D_width)
@@ -1375,6 +1375,8 @@ void SetRendition(struct mchar *mc)
 		SetColor(mc->colorfg, mc->colorbg);
 	if (D_rend.font != mc->font)
 		SetFont(mc->font);
+	if (D_encoding == UTF8)
+		SetFont(mc->font);
 }
 
 void SetRenditionMline(struct mline *ml, int x)
@@ -1391,6 +1393,8 @@ void SetRenditionMline(struct mline *ml, int x)
 	}
 	if (D_rend.font != ml->font[x])
 		SetFont(ml->font[x]);
+	if (D_encoding == UTF8)
+		D_rend.fontx = ml->fontx[x];
 }
 
 void MakeStatus(char *msg)

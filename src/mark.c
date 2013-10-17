@@ -240,8 +240,8 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
 	int l = 0;
 	uint32_t *im;
 	struct mline *ml;
-	int cf, font;
-	uint32_t *fo;
+	int cf, cfx, font;
+	uint32_t *fo, *fox;
 
 	markdata->second = 0;
 	if (y2 < y1 || ((y2 == y1) && (x2 < x1))) {
@@ -282,12 +282,13 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
 			j--;
 		im = ml->image + j;
 		fo = ml->font + j;
+		fox = ml->fontx + j;
 		font = ASCII;
 		for (; j <= to; j++) {
 			c = (unsigned char)*im++;
 			cf = (unsigned char)*fo++;
 			if (fore->w_encoding == UTF8) {
-				c |= cf << 8;
+				c |= cf << 8 | cfx << 16;
 				if (c == UCS_HIDDEN)
 					continue;
 				c = ToUtf8_comb(pt, c);
@@ -1189,8 +1190,10 @@ static void MarkRedisplayLine(int y, int xs, int xe, int isblank)
 	for (; x <= xe; x++, cp++) {
 		if (cp > sto || x > rm)
 			break;
-		if (pastefont)
+		if (pastefont) {
 			mchar_marked.font = ml->font[x];
+			mchar_marked.fontx = ml->fontx[x];
+		}
 		mchar_marked.image = ml->image[x];
 		mchar_marked.mbcs = 0;
 		if (dw_left(ml, x, fore->w_encoding)) {
