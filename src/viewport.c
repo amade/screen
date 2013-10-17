@@ -33,7 +33,7 @@
 
 int RethinkDisplayViewports()
 {
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp, *vpn;
 
 	/* free old viewports */
@@ -70,7 +70,7 @@ int RethinkDisplayViewports()
 	return 0;
 }
 
-void RethinkViewportOffsets(struct canvas *cv)
+void RethinkViewportOffsets(Canvas *cv)
 {
 	Viewport *vp;
 

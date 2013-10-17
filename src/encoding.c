@@ -682,7 +682,7 @@ void WinSwitchEncoding(struct win *p, int encoding)
 	int i, j, c;
 	struct mline *ml;
 	struct display *d;
-	struct canvas *cv;
+	Canvas *cv;
 	struct layer *oldflayer;
 
 	if ((p->w_encoding == UTF8) == (encoding == UTF8)) {

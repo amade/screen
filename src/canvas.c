@@ -35,7 +35,7 @@
 #include "list_generic.h"
 #include "resize.h"
 
-static void CanvasInitBlank(struct canvas *cv)
+static void CanvasInitBlank(Canvas *cv)
 {
 	cv->c_blank.l_cvlist = cv;
 	cv->c_blank.l_width = cv->c_xe - cv->c_xs + 1;
@@ -49,9 +49,9 @@ static void CanvasInitBlank(struct canvas *cv)
 	cv->c_layer = &cv->c_blank;
 }
 
-static void FreePerp(struct canvas *pcv)
+static void FreePerp(Canvas *pcv)
 {
-	struct canvas *cv;
+	Canvas *cv;
 
 	if (!pcv->c_slperp)
 		return;
@@ -77,10 +77,10 @@ static void FreePerp(struct canvas *pcv)
 	free(pcv);
 }
 
-void FreeCanvas(struct canvas *cv)
+void FreeCanvas(Canvas *cv)
 {
 	Viewport *vp, *nvp;
-	struct canvas **cvp;
+	Canvas **cvp;
 	struct win *p;
 
 	if (cv->c_slprev)
@@ -125,12 +125,12 @@ void FreeCanvas(struct canvas *cv)
 	free(cv);
 }
 
-int CountCanvas(struct canvas *cv)
+int CountCanvas(Canvas *cv)
 {
 	int num = 0;
 	for (; cv; cv = cv->c_slnext) {
 		if (cv->c_slperp) {
-			struct canvas *cvp;
+			Canvas *cvp;
 			int nump = 1, n;
 			for (cvp = cv->c_slperp; cvp; cvp = cvp->c_slnext)
 				if (cvp->c_slperp) {
@@ -145,9 +145,9 @@ int CountCanvas(struct canvas *cv)
 	return num;
 }
 
-int CountCanvasPerp(struct canvas *cv)
+int CountCanvasPerp(Canvas *cv)
 {
-	struct canvas *cvp;
+	Canvas *cvp;
 	int num = 1, n;
 	for (cvp = cv->c_slperp; cvp; cvp = cvp->c_slnext)
 		if (cvp->c_slperp) {
@@ -158,9 +158,9 @@ int CountCanvasPerp(struct canvas *cv)
 	return num;
 }
 
-struct canvas *FindCanvas(int x, int y)
+Canvas *FindCanvas(int x, int y)
 {
-	struct canvas *cv, *mcv = 0;
+	Canvas *cv, *mcv = 0;
 	int m, mm = 0;
 
 	for (cv = D_cvlist; cv; cv = cv->c_next) {
@@ -202,11 +202,11 @@ struct canvas *FindCanvas(int x, int y)
 	return mcv ? mcv : D_forecv;
 }
 
-void SetCanvasWindow(struct canvas *cv, struct win *win)
+void SetCanvasWindow(Canvas *cv, struct win *win)
 {
 	struct win *p = 0, **pp;
 	struct layer *l;
-	struct canvas *cvp, **cvpp;
+	Canvas *cvp, **cvpp;
 
 	l = cv->c_layer;
 	display = cv->c_display;
@@ -297,7 +297,7 @@ struct event *ev;
 char *data;
 {
 	int ox, oy;
-	struct canvas *cv = (struct canvas *)data;
+	Canvas *cv = (Canvas *)data;
 
 	display = cv->c_display;
 	if (D_status == STATUS_ON_WIN) {
@@ -315,7 +315,7 @@ char *data;
 
 int MakeDefaultCanvas()
 {
-	struct canvas *cv;
+	Canvas *cv;
 
 	if ((cv = calloc(1, sizeof *cv)) == 0)
 		return -1;
@@ -352,7 +352,7 @@ int MakeDefaultCanvas()
 	return 0;
 }
 
-static struct canvas **CreateCanvasChainRec(struct canvas *cv, struct canvas **cvp)
+static Canvas **CreateCanvasChainRec(Canvas *cv, Canvas **cvp)
 {
 	for (; cv; cv = cv->c_slnext) {
 		if (cv->c_slperp)
@@ -367,14 +367,14 @@ static struct canvas **CreateCanvasChainRec(struct canvas *cv, struct canvas **c
 
 void RecreateCanvasChain()
 {
-	struct canvas **cvp;
+	Canvas **cvp;
 	cvp = CreateCanvasChainRec(D_canvas.c_slperp, &D_cvlist);
 	*cvp = 0;
 }
 
-void EqualizeCanvas(struct canvas *cv, int gflag)
+void EqualizeCanvas(Canvas *cv, int gflag)
 {
-	struct canvas *cv2;
+	Canvas *cv2;
 	for (; cv; cv = cv->c_slnext) {
 		if (cv->c_slperp && gflag) {
 			cv->c_slweight = CountCanvasPerp(cv);
@@ -386,9 +386,9 @@ void EqualizeCanvas(struct canvas *cv, int gflag)
 	}
 }
 
-void ResizeCanvas(struct canvas *cv)
+void ResizeCanvas(Canvas *cv)
 {
-	struct canvas *cv2, *cvn, *fcv;
+	Canvas *cv2, *cvn, *fcv;
 	int nh, i, maxi, hh, m, w, wsum;
 	int need, got;
 	int xs, ys, xe, ye;
@@ -534,9 +534,9 @@ void ResizeCanvas(struct canvas *cv)
 	}
 }
 
-static struct canvas *AddPerp(struct canvas *cv)
+static Canvas *AddPerp(Canvas *cv)
 {
-	struct canvas *pcv;
+	Canvas *pcv;
 
 	if ((pcv = calloc(1, sizeof *cv)) == 0)
 		return 0;
@@ -572,7 +572,7 @@ static struct canvas *AddPerp(struct canvas *cv)
 
 int AddCanvas(int orient)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	int xs, xe, ys, ye;
 	int h, num;
 
@@ -642,7 +642,7 @@ int AddCanvas(int orient)
 void RemCanvas()
 {
 	int ye;
-	struct canvas *cv;
+	Canvas *cv;
 
 	cv = D_forecv;
 	if (cv->c_slorient == SLICE_UNKN)
@@ -689,7 +689,7 @@ void RemCanvas()
 
 void OneCanvas()
 {
-	struct canvas *cv = D_forecv, *ocv = 0;
+	Canvas *cv = D_forecv, *ocv = 0;
 
 	if (cv->c_slprev) {
 		ocv = cv->c_slprev;
@@ -719,7 +719,7 @@ void OneCanvas()
 	ResizeLayersToCanvases();
 }
 
-void DupLayoutCv(struct canvas *cvf, struct canvas *cvt, int save)
+void DupLayoutCv(Canvas *cvf, Canvas *cvt, int save)
 {
 	while (cvf) {
 		cvt->c_slorient = cvf->c_slorient;
@@ -742,13 +742,13 @@ void DupLayoutCv(struct canvas *cvf, struct canvas *cvt, int save)
 			cvt->c_layer = p ? &p->w_layer : 0;
 		}
 		if (cvf->c_slperp) {
-			cvt->c_slperp = calloc(1, sizeof(struct canvas));
+			cvt->c_slperp = calloc(1, sizeof(Canvas));
 			cvt->c_slperp->c_slback = cvt;
 			CanvasInitBlank(cvt->c_slperp);
 			DupLayoutCv(cvf->c_slperp, cvt->c_slperp, save);
 		}
 		if (cvf->c_slnext) {
-			cvt->c_slnext = calloc(1, sizeof(struct canvas));
+			cvt->c_slnext = calloc(1, sizeof(Canvas));
 			cvt->c_slnext->c_slprev = cvt;
 			cvt->c_slnext->c_slback = cvt->c_slback;
 			CanvasInitBlank(cvt->c_slnext);
@@ -758,7 +758,7 @@ void DupLayoutCv(struct canvas *cvf, struct canvas *cvt, int save)
 	}
 }
 
-void PutWindowCv(struct canvas *cv)
+void PutWindowCv(Canvas *cv)
 {
 	struct win *p;
 	for (; cv; cv = cv->c_slnext) {

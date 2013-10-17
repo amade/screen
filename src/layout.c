@@ -41,9 +41,9 @@ struct layout *laytab[MAXLAY];
 struct layout *layout_last, layout_last_marker;
 struct layout *layout_attach = &layout_last_marker;
 
-void FreeLayoutCv(struct canvas *cv)
+void FreeLayoutCv(Canvas *cv)
 {
-	struct canvas *cnext, *c = cv;
+	Canvas *cnext, *c = cv;
 	for (; cv; cv = cnext) {
 		if (cv->c_slperp) {
 			FreeLayoutCv(cv->c_slperp);
@@ -88,10 +88,10 @@ struct layout *CreateLayout(char *title, int startat)
 	return lay;
 }
 
-void SaveLayout(char *name, struct canvas *cv)
+void SaveLayout(char *name, Canvas *cv)
 {
 	struct layout *lay;
-	struct canvas *fcv;
+	Canvas *fcv;
 	for (lay = layouts; lay; lay = lay->lay_next)
 		if (!strcmp(lay->lay_title, name))
 			break;
@@ -110,7 +110,7 @@ void SaveLayout(char *name, struct canvas *cv)
 
 void AutosaveLayout(struct layout *lay)
 {
-	struct canvas *fcv;
+	Canvas *fcv;
 	if (!lay || !lay->lay_autosave)
 		return;
 	FreeLayoutCv(&lay->lay_canvas);
@@ -167,7 +167,7 @@ void LoadLayout(struct layout *lay)
 void NewLayout(char *title, int startat)
 {
 	struct layout *lay;
-	struct canvas *fcv;
+	Canvas *fcv;
 
 	lay = CreateLayout(title, startat);
 	if (!lay)
@@ -275,7 +275,7 @@ void RemoveLayout(struct layout *lay)
 	Activate(0);
 }
 
-void UpdateLayoutCanvas(struct canvas *cv, struct win *wi)
+void UpdateLayoutCanvas(Canvas *cv, struct win *wi)
 {
 	for (; cv; cv = cv->c_slnext) {
 		if (cv->c_layer && Layer2Window(cv->c_layer) == wi) {
@@ -299,9 +299,9 @@ void UpdateLayoutCanvas(struct canvas *cv, struct win *wi)
 	}
 }
 
-static void dump_canvas(struct canvas *cv, FILE * file)
+static void dump_canvas(Canvas *cv, FILE * file)
 {
-	struct canvas *c;
+	Canvas *c;
 	for (c = cv->c_slperp; c && c->c_slnext; c = c->c_slnext) {
 		fprintf(file, "split%s\n", c->c_slorient == SLICE_HORI ? " -v" : "");
 	}
@@ -314,7 +314,7 @@ static void dump_canvas(struct canvas *cv, FILE * file)
 	}
 }
 
-int LayoutDumpCanvas(struct canvas *cv, char *filename)
+int LayoutDumpCanvas(Canvas *cv, char *filename)
 {
 	FILE *file = secfopen(filename, "a");
 	if (!file)

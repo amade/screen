@@ -329,7 +329,7 @@ static int WinResize(int wi, int he)
 
 static void WinRestore()
 {
-	struct canvas *cv;
+	Canvas *cv;
 	fore = (struct win *)flayer->l_data;
 	for (cv = flayer->l_cvlist; cv; cv = cv->c_next) {
 		display = cv->c_display;
@@ -738,7 +738,7 @@ void FreeWindow(struct win *wp)
 {
 	struct display *d;
 	int i;
-	struct canvas *cv, *ncv;
+	Canvas *cv, *ncv;
 	struct layer *l;
 
 	if (wp->w_pwin)
@@ -1351,7 +1351,7 @@ static void paste_slowev_fn(__attribute__((unused))struct event *ev, char *data)
 
 static int muchpending(struct win *p, struct event *ev)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_status == STATUS_ON_WIN && !D_status_bell) {
@@ -1567,7 +1567,7 @@ static void pseu_writeev_fn(struct event *ev, char *data)
 static void win_silenceev_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	struct win *p = (struct win *)data;
-	struct canvas *cv;
+	Canvas *cv;
 	for (display = displays; display; display = display->d_next) {
 		for (cv = D_cvlist; cv; cv = cv->c_next)
 			if (cv->c_layer->l_bottom == &p->w_layer)

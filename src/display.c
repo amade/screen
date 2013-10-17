@@ -826,7 +826,7 @@ void ClearAll()
 void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int uselayfn)
 {
 	int y, xxe;
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp;
 
 	if (x1 == D_width)
@@ -897,7 +897,7 @@ void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int usel
 			    y - vp->v_yoff >= 0 && y - vp->v_yoff < cv->c_layer->l_height &&
 			    xxe - vp->v_xoff >= 0 && x1 - vp->v_xoff < cv->c_layer->l_width) {
 				struct layer *oldflayer = flayer;
-				struct canvas *cvlist, *cvlnext;
+				Canvas *cvlist, *cvlnext;
 				flayer = cv->c_layer;
 				cvlist = flayer->l_cvlist;
 				cvlnext = cv->c_lnext;
@@ -1697,7 +1697,7 @@ void RefreshHStatus()
 
 void RefreshAll(int isblank)
 {
-	struct canvas *cv;
+	Canvas *cv;
 
 	for (cv = D_cvlist; cv; cv = cv->c_next) {
 		CV_CALL(cv, LayRedisplayLine(-1, -1, -1, isblank));
@@ -1720,7 +1720,7 @@ void RefreshArea(int xs, int ys, int xe, int ye, int isblank)
 void RefreshLine(int y, int from, int to, int isblank)
 {
 	Viewport *vp, *lvp;
-	struct canvas *cv, *lcv, *cvlist, *cvlnext;
+	Canvas *cv, *lcv, *cvlist, *cvlnext;
 	struct layer *oldflayer;
 	int xx, yy, l;
 	char *buf;
@@ -2471,7 +2471,7 @@ static void disp_readev_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	int size;
 	char buf[IOSIZE];
-	struct canvas *cv;
+	Canvas *cv;
 
 	display = (struct display *)data;
 
@@ -2569,7 +2569,7 @@ static void disp_readev_fn(__attribute__((unused))struct event *ev, char *data)
 				}
 			} else if (D_mousetrack && bp[2] == '#') {
 				/* 'focus' to the clicked region, only on mouse up */
-				struct canvas *cv = FindCanvas(x, y);
+				Canvas *cv = FindCanvas(x, y);
 				if (cv) {
 					SetForeCanvas(display, cv);
 					/* XXX: Do we want to reset the input buffer? */

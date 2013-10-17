@@ -72,7 +72,7 @@ static struct mline *mloff(struct mline *ml, int off)
 
 void LGotoPos(struct layer *l, int x, int y)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp;
 	int x2, y2;
 
@@ -98,7 +98,7 @@ void LGotoPos(struct layer *l, int x, int y)
 
 void LScrollH(struct layer *l, int n, int y, int xs, int xe, int bce, struct mline *ol)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp;
 	int y2, xs2, xe2;
 
@@ -129,7 +129,7 @@ void LScrollH(struct layer *l, int n, int y, int xs, int xe, int bce, struct mli
 
 void LScrollV(struct layer *l, int n, int ys, int ye, int bce)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp;
 	int ys2, ye2, xs2, xe2;
 	if (n == 0)
@@ -162,7 +162,7 @@ void LScrollV(struct layer *l, int n, int ys, int ye, int bce)
 
 void LInsChar(struct layer *l, struct mchar *c, int x, int y, struct mline *ol)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp;
 	int xs2, xe2, y2, f;
 	struct mchar *c2, cc;
@@ -193,7 +193,7 @@ void LInsChar(struct layer *l, struct mchar *c, int x, int y, struct mline *ol)
 
 void LPutChar(struct layer *l, struct mchar *c, int x, int y)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp;
 	int x2, y2;
 
@@ -213,7 +213,7 @@ void LPutChar(struct layer *l, struct mchar *c, int x, int y)
 
 void LPutStr(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp;
 	char *s2;
 	int xs2, xe2, y2;
@@ -245,7 +245,7 @@ void LPutStr(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 
 void LPutWinMsg(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp;
 	int xs2, xe2, y2, len, len2;
 	struct mchar or;
@@ -275,7 +275,7 @@ void LPutWinMsg(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 
 void LClearLine(struct layer *l, int y, int xs, int xe, int bce, struct mline *ol)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp;
 	int y2, xs2, xe2;
 
@@ -301,7 +301,7 @@ void LClearLine(struct layer *l, int y, int xs, int xe, int bce, struct mline *o
 
 void LClearArea(struct layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp;
 	int xs2, ys2, xe2, ye2;
 	/* Check for zero-height window */
@@ -343,7 +343,7 @@ void LClearArea(struct layer *l, int xs, int ys, int xe, int ye, int bce, int us
 
 void LCDisplayLine(struct layer *l, struct mline *ml, int y, int xs, int xe, int isblank)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	Viewport *vp;
 	int xs2, xe2, y2;
 	if (l->l_pause.d)
@@ -380,7 +380,7 @@ void LCDisplayLineWrap(struct layer *l, struct mline *ml, int y, int from, int t
 
 void LSetRendition(struct layer *l, struct mchar *r)
 {
-	struct canvas *cv;
+	Canvas *cv;
 
 	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
@@ -392,7 +392,7 @@ void LSetRendition(struct layer *l, struct mchar *r)
 
 void LWrapChar(struct layer *l, struct mchar *c, int y, int top, int bot, int ins)
 {
-	struct canvas *cv, *cvlist, *cvlnext;
+	Canvas *cv, *cvlist, *cvlnext;
 	Viewport *vp, *evp, **vpp;
 	int yy, y2, yy2, top2, bot2;
 	int bce;
@@ -481,7 +481,7 @@ void LWrapChar(struct layer *l, struct mchar *c, int y, int top, int bot, int in
 
 void LCursorVisibility(struct layer *l, int vis)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
@@ -494,7 +494,7 @@ void LCursorVisibility(struct layer *l, int vis)
 
 void LSetFlow(struct layer *l, int flow)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (cv != D_forecv)
@@ -505,7 +505,7 @@ void LSetFlow(struct layer *l, int flow)
 
 void LKeypadMode(struct layer *l, int on)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
@@ -518,7 +518,7 @@ void LKeypadMode(struct layer *l, int on)
 
 void LCursorkeysMode(struct layer *l, int on)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
@@ -531,7 +531,7 @@ void LCursorkeysMode(struct layer *l, int on)
 
 void LMouseMode(struct layer *l, int on)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
@@ -544,7 +544,7 @@ void LMouseMode(struct layer *l, int on)
 
 void LBracketedPasteMode(struct layer *l, int on)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
@@ -557,7 +557,7 @@ void LBracketedPasteMode(struct layer *l, int on)
 
 void LCursorStyle(struct layer *l, int style)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
@@ -594,7 +594,7 @@ void LMsg(int err, const char *fmt, ...)
 	va_list ap;
 	char buf[MAXPATHLEN * 2];
 	char *p = buf;
-	struct canvas *cv;
+	Canvas *cv;
 
 	va_start(ap, fmt);
 	(void)vsnprintf(p, sizeof(buf) - 100, fmt, ap);
@@ -625,7 +625,7 @@ void LMsg(int err, const char *fmt, ...)
 
 void KillLayerChain(struct layer *lay)
 {
-	struct canvas *cv, *ncv;
+	Canvas *cv, *ncv;
 	struct layer *l, *oldflayer;
 
 	oldflayer = flayer;
@@ -650,7 +650,7 @@ int InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
 {
 	char *data;
 	struct layer *newlay;
-	struct canvas *cv, *cvp, **cvpp;
+	Canvas *cv, *cvp, **cvpp;
 	struct win *p;
 
 	cv = 0;
@@ -721,7 +721,7 @@ void ExitOverlayPage()
 	struct layer *oldlay;
 	struct win *p;
 	int doredisplay = 0;
-	struct canvas *cv, *ocv;
+	Canvas *cv, *ocv;
 	struct layout *lay;
 
 	oldlay = flayer;
@@ -798,7 +798,7 @@ void LayProcessMouseSwitch(struct layer *l, int s)
 
 void LayPause(struct layer *layer, int pause)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	int line;
 	struct win *win;
 

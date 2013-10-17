@@ -38,24 +38,24 @@ struct layout {
 	struct layout   *lay_next;
 	char            *lay_title;
 	int              lay_number;
-	struct canvas    lay_canvas;
-	struct canvas   *lay_forecv;
-	struct canvas   *lay_cvlist;
+	Canvas           lay_canvas;
+	Canvas          *lay_forecv;
+	Canvas 	        *lay_cvlist;
 	int              lay_autosave;
 };
 
-void  FreeLayoutCv(struct canvas *c);
+void  FreeLayoutCv(Canvas *c);
 struct layout *CreateLayout(char *, int);
 void  AutosaveLayout (struct layout *);
 void  LoadLayout (struct layout *);
 void  NewLayout (char *, int);
-void  SaveLayout (char *, struct canvas *);
+void  SaveLayout (char *, Canvas *);
 void  ShowLayouts (int);
 struct layout *FindLayout (char *);
-void  UpdateLayoutCanvas (struct canvas *, struct win *);
+void  UpdateLayoutCanvas (Canvas *, struct win *);
 struct layout *CreateLayout (char *, int);
 void  RemoveLayout (struct layout *);
-int   LayoutDumpCanvas (struct canvas *, char *);
+int   LayoutDumpCanvas (Canvas *, char *);
 
 void RenameLayout (struct layout *, const char *);
 int RenumberLayout (struct layout *, int);
