@@ -34,7 +34,7 @@
 int RethinkDisplayViewports()
 {
 	struct canvas *cv;
-	struct viewport *vp, *vpn;
+	Viewport *vp, *vpn;
 
 	/* free old viewports */
 	for (cv = display->d_cvlist; cv; cv = cv->c_next) {
@@ -72,7 +72,7 @@ int RethinkDisplayViewports()
 
 void RethinkViewportOffsets(struct canvas *cv)
 {
-	struct viewport *vp;
+	Viewport *vp;
 
 	for (vp = cv->c_vplist; vp; vp = vp->v_next) {
 		vp->v_xoff = cv->c_xoff;

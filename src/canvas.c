@@ -79,7 +79,7 @@ static void FreePerp(struct canvas *pcv)
 
 void FreeCanvas(struct canvas *cv)
 {
-	struct viewport *vp, *nvp;
+	Viewport *vp, *nvp;
 	struct canvas **cvp;
 	struct win *p;
 

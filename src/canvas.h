@@ -37,6 +37,11 @@
 #define SLICE_THIS (1 << 2)	/* used in equal test */
 #define SLICE_GLOBAL (1 << 3)
 
+/* forward declarations */
+struct _Vievport;
+typedef struct _Viewport Viewport;
+struct win;
+
 struct canvas {
 	struct canvas   *c_next;	/* next canvas on display */
 	struct display  *c_display;	/* back pointer to display */
@@ -48,7 +53,7 @@ struct canvas {
 	int              c_slorient;  /* our slice orientation */
 	int              c_slweight;	/* size ratio */
 
-	struct viewport *c_vplist;
+	Viewport	*c_vplist;
 	struct layer    *c_layer;	/* layer on this canvas */
 	struct canvas   *c_lnext;	/* next canvas that displays layer */
 	struct layer     c_blank;	/* bottom layer, always blank */
@@ -60,8 +65,6 @@ struct canvas {
 	int              c_ye;
 	struct event     c_captev;	/* caption changed event */
 };
-
-struct win;			/* forward declaration */
 
 void  SetCanvasWindow (struct canvas *, struct win *);
 void  SetForeCanvas (struct display *, struct canvas *);
