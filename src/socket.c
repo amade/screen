@@ -549,7 +549,7 @@ static int CheckPid(int pid)
 	return UserStatus();
 }
 
-static int CreateTempDisplay(struct msg *m, int recvfd, struct win *win)
+static int CreateTempDisplay(struct msg *m, int recvfd, Window *win)
 {
 	int pid;
 	int attach;
@@ -656,7 +656,7 @@ void ReceiveMsg()
 	static struct msg m;
 	char *p;
 	int ns = ServerSocket;
-	struct win *wi;
+	Window *wi;
 	int recvfd = -1;
 	struct acluser *user;
 
@@ -908,7 +908,7 @@ static void FinishAttach(struct msg *m)
 	char *p;
 	int pid;
 	int noshowwin;
-	struct win *wi;
+	Window *wi;
 
 	pid = D_userpid;
 
@@ -1009,7 +1009,7 @@ static void FinishAttach(struct msg *m)
 		if (!AclCheckPermCmd(D_user, ACL_EXEC, &comms[RC_WINDOWLIST])) {
 			struct display *olddisplay = display;
 			flayer = D_forecv->c_layer;
-			display_windows(1, WLIST_NUM, (struct win *)0);
+			display_windows(1, WLIST_NUM, (Window *)0);
 			noshowwin = 1;
 			display = olddisplay;	/* display_windows can change display */
 		}

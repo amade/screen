@@ -9,7 +9,7 @@ int   secopen (char *, int, int);
 void  WriteFile (struct acluser *, char *, int);
 char *ReadFile (char *, int *);
 void  KillBuffers (void);
-int   printpipe (struct win *, char *);
+int   printpipe (Window *, char *);
 int   readpipe (char **);
 void  RunBlanker (char **);
 void  do_source (char *);

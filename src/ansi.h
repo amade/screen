@@ -147,20 +147,22 @@ enum move_t {
 	((ml)->font[x] & 0xe0) == 0x80 \
 	)
 
-struct win;
+/* forward declarations */
+struct _Window;
+typedef struct _Window Window;
 
-void  ResetAnsiState (struct win *);
-void  ResetWindow (struct win *);
-void  ResetCharsets (struct win *);
-void  WriteString (struct win *, char *, int);
-void  ChangeAKA (struct win *, char *, size_t);
-void  SetCharsets (struct win *, char *);
-int   GetAnsiStatus (struct win *, char *);
-void  WNewAutoFlow (struct win *, int);
-void  WBell (struct win *, int);
-void  WMsg (struct win *, int, char *);
-void  WChangeSize (struct win *, int, int);
-void  WindowChanged (struct win *, int);
-int   MFindUsedLine (struct win *, int, int);
+void  ResetAnsiState (Window *);
+void  ResetWindow (Window *);
+void  ResetCharsets (Window *);
+void  WriteString (Window *, char *, int);
+void  ChangeAKA (Window *, char *, size_t);
+void  SetCharsets (Window *, char *);
+int   GetAnsiStatus (Window *, char *);
+void  WNewAutoFlow (Window *, int);
+void  WBell (Window *, int);
+void  WMsg (Window *, int, char *);
+void  WChangeSize (Window *, int, int);
+void  WindowChanged (Window *, int);
+int   MFindUsedLine (Window *, int, int);
 
 #endif /* SCREEN_ANSI_H */

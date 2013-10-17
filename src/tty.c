@@ -766,7 +766,7 @@ DoSendBreak(int fd, int n, int type)
  */
 
 void
-SendBreak(struct win *wp, int n, int closeopen)
+SendBreak(Window *wp, int n, int closeopen)
 {
   void (*sigalrm)(int);
 

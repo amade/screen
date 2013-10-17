@@ -143,9 +143,9 @@ int cjkwidth;
 int maxwin;
 
 struct layer *flayer;
-struct win *fore;
-struct win *windows;
-struct win *console_window;
+Window *fore;
+Window *windows;
+Window *console_window;
 
 #ifdef BUILTIN_TELNET
 int af;
@@ -1024,7 +1024,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-void WindowDied(struct win *p, int wstat, int wstat_valid)
+void WindowDied(Window *p, int wstat, int wstat_valid)
 {
 	int killit = 0;
 
@@ -1172,7 +1172,7 @@ static void CoreDump(__attribute__((unused))int sigsig)
 static void DoWait()
 {
 	register int pid;
-	struct win *p, *next;
+	Window *p, *next;
 	int wstat;
 
 	while ((pid = waitpid(-1, &wstat, WNOHANG | WUNTRACED)) > 0)
@@ -1234,7 +1234,7 @@ void Finit(int i)
 	xsignal(SIGHUP, SIG_IGN);
 
 	while (windows) {
-		struct win *p = windows;
+		Window *p = windows;
 		windows = windows->w_next;
 		FreeWindow(p);
 	}
@@ -1307,7 +1307,7 @@ void Detach(int mode)
 {
 	int sign = 0, pid;
 	Canvas *cv;
-	struct win *p;
+	Window *p;
 
 	if (display == 0)
 		return;
@@ -1811,7 +1811,7 @@ int AddWinMsgRend(const char *str, uint64_t r)
 	return 0;
 }
 
-char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event *ev, int rec)
+char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, struct event *ev, int rec)
 {
 	static int tick;
 	char *s = str;
@@ -1961,7 +1961,7 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 		case 'w':
 		case 'W':
 			{
-				struct win *oldfore = 0;
+				Window *oldfore = 0;
 
 				if (display) {
 					oldfore = D_fore;
@@ -2232,7 +2232,7 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 	return winmsg_buf;
 }
 
-char *MakeWinMsg(char *s, struct win *win, int esc)
+char *MakeWinMsg(char *s, Window *win, int esc)
 {
 	return MakeWinMsgEv(s, win, esc, 0, (struct event *)0, 0);
 }
@@ -2305,7 +2305,7 @@ static void serv_read_fn(__attribute__((unused))struct event *ev, __attribute__(
 
 static void serv_select_fn(__attribute__((unused))struct event *ev, __attribute__((unused))char *data)
 {
-	struct win *p;
+	Window *p;
 
 	/* XXX: messages?? */
 	if (GotSigChld) {
@@ -2457,7 +2457,7 @@ static void serv_select_fn(__attribute__((unused))struct event *ev, __attribute_
 
 static void logflush_fn(__attribute__((unused))struct event *ev, __attribute__((unused))char *data)
 {
-	struct win *p;
+	Window *p;
 	char *buf;
 	int n;
 

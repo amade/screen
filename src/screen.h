@@ -231,11 +231,11 @@ void  QueryMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 void  Dummy (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 void  Finit (int);
 void  MakeNewEnv (void);
-char *MakeWinMsg (char *, struct win *, int);
-char *MakeWinMsgEv (char *, struct win *, int, int, struct event *, int);
+char *MakeWinMsg (char *, Window *, int);
+char *MakeWinMsgEv (char *, Window *, int, int, struct event *, int);
 int   AddWinMsgRend (const char *, uint64_t);
 void  PutWinMsg (char *, int, int);
-void  WindowDied (struct win *, int, int);
+void  WindowDied (Window *, int, int);
 void  setbacktick (int, int, int, char **);
 
 #endif /* SCREEN_SCREEN_H */

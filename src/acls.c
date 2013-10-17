@@ -79,7 +79,7 @@ static char default_c_bit[ACL_BITS_PER_CMD] = {
 static int GrowBitfield(AclBits *, int, int, int);
 static struct aclusergroup **FindGroupPtr(struct aclusergroup **, struct acluser *, int);
 static int AclSetPermCmd(struct acluser *, char *, struct comm *);
-static int AclSetPermWin(struct acluser *, struct acluser *, char *, struct win *);
+static int AclSetPermWin(struct acluser *, struct acluser *, char *, Window *);
 static int UserAcl(struct acluser *, struct acluser **, int, char **);
 static int UserAclCopy(struct acluser **, struct acluser **);
 
@@ -171,7 +171,7 @@ int UserAdd(char *name, char *pass, struct acluser **up)
 			break;
 	if ((*up)->u_id == maxusercount) {
 		int j;
-		struct win *w;
+		Window *w;
 		struct acluser *u;
 
 		/* the bitfields are full, grow a chunk */
@@ -341,7 +341,7 @@ int UserDel(char *name, struct acluser **up)
  */
 int UserFreeCopyBuffer(struct acluser *u)
 {
-	struct win *w;
+	Window *w;
 	struct paster *pa;
 
 	if (!u->u_plop.buf)
@@ -493,7 +493,7 @@ char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
  ************************************************************************/
 
 /* This gives the users default rights to the new window w created by u */
-int NewWindowAcl(struct win *w, struct acluser *u)
+int NewWindowAcl(Window *w, struct acluser *u)
 {
 	int i, j;
 
@@ -517,7 +517,7 @@ int NewWindowAcl(struct win *w, struct acluser *u)
 	return 0;
 }
 
-void FreeWindowAcl(struct win *w)
+void FreeWindowAcl(Window *w)
 {
 	int i;
 
@@ -570,7 +570,7 @@ static int AclSetPermCmd(struct acluser *u, char *mode, struct comm *cmd)
  * Letter n allows network access on a window.
  * uu should be NULL, except if you want to change his umask.
  */
-static int AclSetPermWin(struct acluser *uu, struct acluser *u, char *mode, struct win *win)
+static int AclSetPermWin(struct acluser *uu, struct acluser *u, char *mode, Window *win)
 {
 	int neg = 0;
 	int bit, bits;
@@ -649,7 +649,7 @@ static int AclSetPermWin(struct acluser *uu, struct acluser *u, char *mode, stru
  */
 int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
 {
-	struct win *w;
+	Window *w;
 	int i;
 	char *p, ch;
 
@@ -659,7 +659,7 @@ int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
 			return AclSetPerm(uu, u, mode, "#?");
 		case '#':
 			if (uu)	/* window umask or .. */
-				AclSetPermWin(uu, u, mode, (struct win *)1);
+				AclSetPermWin(uu, u, mode, (Window *)1);
 			else	/* .. or all windows */
 				for (w = windows; w; w = w->w_next)
 					AclSetPermWin((struct acluser *)0, u, mode, w);
@@ -667,7 +667,7 @@ int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
 			break;
 		case '?':
 			if (uu)	/* command umask or .. */
-				AclSetPermWin(uu, u, mode, (struct win *)0);
+				AclSetPermWin(uu, u, mode, (Window *)0);
 			else	/* .. or all commands */
 				for (i = 0; i <= RC_LAST; i++)
 					AclSetPermCmd(u, mode, &comms[i]);
@@ -724,7 +724,7 @@ static int UserAcl(struct acluser *uu, struct acluser **u, int argc, char **argv
 
 static int UserAclCopy(struct acluser **to_up, struct acluser **from_up)
 {
-	struct win *w;
+	Window *w;
 	int i, j, to_id, from_id;
 
 	if (!*to_up || !*from_up)
@@ -855,7 +855,7 @@ void AclWinSwap(int a, int b)
 
 struct acluser *EffectiveAclUser = NULL;	/* hook for AT command permission */
 
-int AclCheckPermWin(struct acluser *u, int mode, struct win *w)
+int AclCheckPermWin(struct acluser *u, int mode, Window *w)
 {
 	int ok;
 

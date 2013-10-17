@@ -5,8 +5,8 @@
 void  InitUtmp (void);
 void  RemoveLoginSlot (void);
 void  RestoreLoginSlot (void);
-int   SetUtmp (struct win *);
-int   RemoveUtmp (struct win *);
+int   SetUtmp (Window *);
+int   RemoveUtmp (Window *);
 #endif /* UTMPOK */
 void  SlotToggle (int);
 #ifdef USRLIMIT

@@ -39,15 +39,15 @@
 #include "screen.h"
 #include "extern.h"
 
-extern struct win *fore;
+extern Window *fore;
 extern struct layer *flayer;
 extern int visual_bell;
 extern char screenterm[];
 extern int af;
 
-static void TelReply(struct win *, char *, int);
-static void TelDocmd(struct win *, int, int);
-static void TelDosub(struct win *);
+static void TelReply(Window *, char *, int);
+static void TelDocmd(Window *, int, int);
+static void TelDosub(Window *);
 
 // why TEL_DEFPORT has "
 #define TEL_DEFPORT     "23"
@@ -87,7 +87,7 @@ static unsigned char tn_init[] = {
 
 static void tel_connev_fn(struct event *ev, char *data)
 {
-	struct win *p = (struct win *)data;
+	Window *p = (Window *)data;
 	if (connect(p->w_ptyfd, (struct sockaddr *)&p->w_telsa, sizeof(p->w_telsa)) && errno != EISCONN) {
 		char buf[1024];
 		buf[0] = ' ';
@@ -102,7 +102,7 @@ static void tel_connev_fn(struct event *ev, char *data)
 	p->w_telstate = 0;
 }
 
-int TelOpenAndConnect(struct win *p)
+int TelOpenAndConnect(Window *p)
 {
 	int fd, on = 1;
 	char buf[256];
@@ -177,7 +177,7 @@ int TelOpenAndConnect(struct win *p)
 	return -1;
 }
 
-int TelIsline(struct win *p)
+int TelIsline(Window *p)
 {
 	return !fore->w_telropts[TO_SGA];
 }
@@ -268,7 +268,7 @@ int DoTelnet(char *buf, int *lenp, int f)
 }
 
 /* modifies data in-place, returns new length */
-int TelIn(struct win *p, char *buf, int len, int free)
+int TelIn(Window *p, char *buf, int len, int free)
 {
 	char *rp, *wp;
 	int c;
@@ -336,7 +336,7 @@ int TelIn(struct win *p, char *buf, int len, int free)
 	return wp - buf;
 }
 
-static void TelReply(struct win *p, char *str, int len)
+static void TelReply(Window *p, char *str, int len)
 {
 	if (len <= 0)
 		return;
@@ -348,7 +348,7 @@ static void TelReply(struct win *p, char *str, int len)
 	p->w_inlen += len;
 }
 
-static void TelDocmd(struct win *p, int cmd, int opt)
+static void TelDocmd(Window *p, int cmd, int opt)
 {
 	unsigned char b[3];
 	int repl = 0;
@@ -397,7 +397,7 @@ static void TelDocmd(struct win *p, int cmd, int opt)
 		TelWindowSize(p);
 }
 
-static void TelDosub(struct win *p)
+static void TelDosub(Window *p)
 {
 	char trepl[20 + 6 + 1];
 	int l;
@@ -421,13 +421,13 @@ static void TelDosub(struct win *p)
 	}
 }
 
-void TelBreak(struct win *p)
+void TelBreak(Window *p)
 {
 	static unsigned char tel_break[] = { TC_IAC, TC_BREAK };
 	TelReply(p, (char *)tel_break, 2);
 }
 
-void TelWindowSize(struct win *p)
+void TelWindowSize(Window *p)
 {
 	char s[20], trepl[20], *t;
 	int i;
@@ -448,7 +448,7 @@ void TelWindowSize(struct win *p)
 static char tc_s[] = TC_S;
 static char to_s[] = TO_S;
 
-void TelStatus(struct win *p, char *buf, int l)
+void TelStatus(Window *p, char *buf, int l)
 {
 	int i;
 

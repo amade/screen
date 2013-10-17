@@ -44,7 +44,7 @@
 int Z0width, Z1width;		/* widths for Z0/Z1 switching */
 
 /* globals set in WriteString */
-static struct win *curr;	/* window we are working on */
+static Window *curr;	/* window we are working on */
 static int rows, cols;		/* window size of the curr window */
 
 int visual_bell = 0;
@@ -131,26 +131,26 @@ static void FillWithEs(void);
 static void FindAKA(void);
 static void Report(char *, int, int);
 static void ScrollRegion(int);
-static void WAddLineToHist(struct win *, struct mline *);
-static void WLogString(struct win *, char *, int);
-static void WReverseVideo(struct win *, int);
+static void WAddLineToHist(Window *, struct mline *);
+static void WLogString(Window *, char *, int);
+static void WReverseVideo(Window *, int);
 static int WindowChangedCheck(char *, int, int *);
-static void MFixLine(struct win *, int, struct mchar *);
-static void MScrollH(struct win *, int, int, int, int, int);
-static void MScrollV(struct win *, int, int, int, int);
-static void MClearArea(struct win *, int, int, int, int, int);
-static void MInsChar(struct win *, struct mchar *, int, int);
-static void MPutChar(struct win *, struct mchar *, int, int);
-static void MWrapChar(struct win *, struct mchar *, int, int, int, int);
-static void MBceLine(struct win *, int, int, int, int);
+static void MFixLine(Window *, int, struct mchar *);
+static void MScrollH(Window *, int, int, int, int, int);
+static void MScrollV(Window *, int, int, int, int);
+static void MClearArea(Window *, int, int, int, int, int);
+static void MInsChar(Window *, struct mchar *, int, int);
+static void MPutChar(Window *, struct mchar *, int, int);
+static void MWrapChar(Window *, struct mchar *, int, int, int, int);
+static void MBceLine(Window *, int, int, int, int);
 
-void ResetAnsiState(struct win *p)
+void ResetAnsiState(Window *p)
 {
 	p->w_state = LIT;
 	p->w_StringType = NONE;
 }
 
-void ResetWindow(register struct win *p)
+void ResetWindow(register Window *p)
 {
 	register int i;
 
@@ -180,7 +180,7 @@ void ResetWindow(register struct win *p)
 }
 
 /* adds max 22 bytes */
-int GetAnsiStatus(struct win *w, char *buf)
+int GetAnsiStatus(Window *w, char *buf)
 {
 	char *p = buf;
 
@@ -202,7 +202,7 @@ int GetAnsiStatus(struct win *w, char *buf)
 	return p - buf;
 }
 
-void ResetCharsets(struct win *p)
+void ResetCharsets(Window *p)
 {
 	p->w_gr = nwin_default.gr;
 	p->w_c1 = nwin_default.c1;
@@ -212,7 +212,7 @@ void ResetCharsets(struct win *p)
 	ResetEncoding(p);
 }
 
-void SetCharsets(struct win *p, char *s)
+void SetCharsets(Window *p, char *s)
 {
 	int i;
 
@@ -238,7 +238,7 @@ void SetCharsets(struct win *p, char *s)
  *  - translate program output for the display and put it into the obuf.
  *
  */
-void WriteString(struct win *wp, register char *buf, register int len)
+void WriteString(Window *wp, register char *buf, register int len)
 {
 	register int c;
 	register int font;
@@ -688,7 +688,7 @@ void WriteString(struct win *wp, register char *buf, register int len)
 		PrintFlush();
 }
 
-static void WLogString(struct win *p, char *buf, int len)
+static void WLogString(Window *p, char *buf, int len)
 {
 	if (!p->w_log)
 		return;
@@ -1414,7 +1414,7 @@ static void PrintFlush()
 	curr->w_stringp = curr->w_string;
 }
 
-void WNewAutoFlow(struct win *win, int on)
+void WNewAutoFlow(Window *win, int on)
 {
 	if (win->w_flow & FLOW_AUTOFLAG)
 		win->w_flow = FLOW_AUTOFLAG | (FLOW_AUTO | FLOW_NOW) * on;
@@ -1808,7 +1808,7 @@ static void FillWithEs()
  *    FindAKA() searches for an autoaka match
  */
 
-void ChangeAKA(struct win *p, char *s, size_t l)
+void ChangeAKA(Window *p, char *s, size_t l)
 {
 	int i, c;
 
@@ -1828,14 +1828,14 @@ void ChangeAKA(struct win *p, char *s, size_t l)
 		if (p->w_akachange[0] == 0 || p->w_akachange[-1] == ':')
 			p->w_title = p->w_akabuf + strlen(p->w_akabuf) + 1;
 	WindowChanged(p, 't');
-	WindowChanged((struct win *)0, 'w');
-	WindowChanged((struct win *)0, 'W');
+	WindowChanged((Window *)0, 'w');
+	WindowChanged((Window *)0, 'W');
 }
 
 static void FindAKA()
 {
 	register uint32_t *cp, *line;
-	register struct win *wp = curr;
+	register Window *wp = curr;
 	register int len = strlen(wp->w_akabuf);
 	int y;
 
@@ -1912,7 +1912,7 @@ static void Report(char *fmt, int n1, int n2)
  *
  */
 
-static void MFixLine(struct win *p, int y, struct mchar *mc)
+static void MFixLine(Window *p, int y, struct mchar *mc)
 {
 	struct mline *ml = &p->w_mlines[y];
 	if (mc->attr && ml->attr == null) {
@@ -1970,7 +1970,7 @@ static void MFixLine(struct win *p, int y, struct mchar *mc)
       copy_mchar2mline(&mchar_blank, ml, x + 1);		\
     }
 
-static void MScrollH(struct win *p, int n, int y, int xs, int xe, int bce)
+static void MScrollH(Window *p, int n, int y, int xs, int xe, int bce)
 {
 	struct mline *ml;
 
@@ -2001,7 +2001,7 @@ static void MScrollH(struct win *p, int n, int y, int xs, int xe, int bce)
 	}
 }
 
-static void MScrollV(struct win *p, int n, int ys, int ye, int bce)
+static void MScrollV(Window *p, int n, int ys, int ye, int bce)
 {
 	int i, cnt1, cnt2;
 	struct mline tmp[256];
@@ -2105,7 +2105,7 @@ static void Scroll(char *cp, int cnt1, int cnt2, char *tmp)
 	}
 }
 
-static void MClearArea(struct win *p, int xs, int ys, int xe, int ye, int bce)
+static void MClearArea(Window *p, int xs, int ys, int xe, int ye, int bce)
 {
 	int n, y;
 	int xxe;
@@ -2136,7 +2136,7 @@ static void MClearArea(struct win *p, int xs, int ys, int xe, int ye, int bce)
 	}
 }
 
-static void MInsChar(struct win *p, struct mchar *c, int x, int y)
+static void MInsChar(Window *p, struct mchar *c, int x, int y)
 {
 	int n;
 	struct mline *ml;
@@ -2166,7 +2166,7 @@ static void MInsChar(struct win *p, struct mchar *c, int x, int y)
 	}
 }
 
-static void MPutChar(struct win *p, struct mchar *c, int x, int y)
+static void MPutChar(Window *p, struct mchar *c, int x, int y)
 {
 	struct mline *ml;
 
@@ -2188,7 +2188,7 @@ static void MPutChar(struct win *p, struct mchar *c, int x, int y)
 	}
 }
 
-static void MWrapChar(struct win *p, struct mchar *c, int y, int top, int bot, int ins)
+static void MWrapChar(Window *p, struct mchar *c, int y, int top, int bot, int ins)
 {
 	struct mline *ml;
 	int bce;
@@ -2207,7 +2207,7 @@ static void MWrapChar(struct win *p, struct mchar *c, int y, int top, int bot, i
 		MPutChar(p, c, 0, y);
 }
 
-static void MBceLine(struct win *p, int y, int xs, int xe, int bce)
+static void MBceLine(Window *p, int y, int xs, int xe, int bce)
 {
 	struct mchar mc;
 	struct mline *ml;
@@ -2228,7 +2228,7 @@ static void MBceLine(struct win *p, int y, int xs, int xe, int bce)
 			ml->colorfg[x] = mc.colorfg;
 }
 
-static void WAddLineToHist(struct win *wp, struct mline *ml)
+static void WAddLineToHist(Window *wp, struct mline *ml)
 {
 	register uint32_t *q, *o;
 	struct mline *hml;
@@ -2275,7 +2275,7 @@ static void WAddLineToHist(struct win *wp, struct mline *ml)
 		wp->w_histidx = 0;
 }
 
-int MFindUsedLine(struct win *p, int ye, int ys)
+int MFindUsedLine(Window *p, int ye, int ys)
 {
 	int y;
 	struct mline *ml = p->w_mlines + ye;
@@ -2308,7 +2308,7 @@ int MFindUsedLine(struct win *p, int ye, int ys)
  * Tricky: send only one bell even if the window is displayed
  * more than once.
  */
-void WBell(struct win *p, int visual)
+void WBell(Window *p, int visual)
 {
 	Canvas *cv;
 	if (displays == NULL)
@@ -2333,7 +2333,7 @@ void WBell(struct win *p, int visual)
  * a visual bell we do this hack here.
  * (screen uses \Eg as special vbell sequence)
  */
-static void WReverseVideo(struct win *p, int on)
+static void WReverseVideo(Window *p, int on)
 {
 	Canvas *cv;
 	for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
@@ -2350,7 +2350,7 @@ static void WReverseVideo(struct win *p, int on)
 	}
 }
 
-void WMsg(struct win *p, int err, char *str)
+void WMsg(Window *p, int err, char *str)
 {
 	struct layer *flayer;
 	struct layer *oldflayer = flayer;
@@ -2359,7 +2359,7 @@ void WMsg(struct win *p, int err, char *str)
 	flayer = oldflayer;
 }
 
-void WChangeSize(struct win *p, int w, int h)
+void WChangeSize(Window *p, int w, int h)
 {
 	int wok = 0;
 	Canvas *cv;
@@ -2428,7 +2428,7 @@ static int WindowChangedCheck(char *s, int what, int *hp)
 	return *s ? 1 : 0;
 }
 
-void WindowChanged(struct win *p, int what)
+void WindowChanged(Window *p, int what)
 {
 	int inwstr, inhstr, inlstr;
 	int inwstrh = 0, inhstrh = 0, inlstrh = 0;
@@ -2439,8 +2439,8 @@ void WindowChanged(struct win *p, int what)
 	inhstr = 0;
 
 	if (what == 'f') {
-		WindowChanged((struct win *)0, 'w' | 0x100);
-		WindowChanged((struct win *)0, 'W' | 0x100);
+		WindowChanged((Window *)0, 'w' | 0x100);
+		WindowChanged((Window *)0, 'W' | 0x100);
 	}
 
 	if (what) {
@@ -2460,7 +2460,7 @@ void WindowChanged(struct win *p, int what)
 				if (inlstr
 				    || (inlstrh && p && p->w_hstatus && *p->w_hstatus
 					&& WindowChangedCheck(p->w_hstatus, what, (int *)0)))
-					WListUpdatecv(cv, (struct win *)0);
+					WListUpdatecv(cv, (Window *)0);
 				p = Layer2Window(cv->c_layer);
 				if (inwstr
 				    || (inwstrh && p && p->w_hstatus && *p->w_hstatus

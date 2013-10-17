@@ -275,7 +275,7 @@ void RemoveLayout(struct layout *lay)
 	Activate(0);
 }
 
-void UpdateLayoutCanvas(Canvas *cv, struct win *wi)
+void UpdateLayoutCanvas(Canvas *cv, Window *wi)
 {
 	for (; cv; cv = cv->c_slnext) {
 		if (cv->c_layer && Layer2Window(cv->c_layer) == wi) {

@@ -67,7 +67,7 @@ static void searchend(char *buf, int len, __attribute__((unused))char *dummy)
 {
 	int x = 0, sx, ex, y;
 	struct markdata *markdata;
-	struct win *p;
+	Window *p;
 
 	markdata = (struct markdata *)flayer->l_data;
 	p = markdata->md_window;
