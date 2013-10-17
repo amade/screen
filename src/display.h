@@ -47,6 +47,20 @@ struct kmap_ext {
 	struct action mm;
 };
 
+typedef enum {
+	STATUS_OFF	= 0,
+	STATUS_ON_WIN	= 1,
+	STATUS_ON_HS	= 2
+} DisplayStatus;
+
+typedef enum {
+	HSTATUS_IGNORE		= 0,
+	HSTATUS_LASTLINE	= 1,
+	HSTATUS_MESSAGE		= 2,
+	HSTATUS_HS		= 3,
+	HSTATUS_FIRSTLINE	= 4,
+	HSTATUS_ALWAYS		= (1<<3)
+} HardStatus;
 
 struct win;				/* forward declaration */
 
@@ -83,7 +97,7 @@ struct display {
 	int	d_revvid;		/* reverse video */
 	int	d_curvis;		/* cursor visibility */
 	int   d_has_hstatus;		/* display has hardstatus line */
-	int	d_hstatus;		/* hardstatus used */
+	HardStatus	d_hstatus;		/* hardstatus used */
 	int	d_lp_missing;		/* last character on bot line missing */
 	int   d_mouse;			/* mouse mode */
 	int	d_mousetrack;		/* set when user wants to use mouse even when the window
@@ -93,7 +107,7 @@ struct display {
 	int   d_xtermosc[4];		/* osc used */
 	struct mchar d_lpchar;		/* missing char */
 	struct timeval d_status_time;	/* time of status display */
-	int   d_status;			/* is status displayed? */
+	DisplayStatus   d_status;			/* is status displayed? */
 	char	d_status_bell;		/* is it only a vbell? */
 	int	d_status_len;		/* length of status line */
 	char *d_status_lastmsg;		/* last displayed message */
@@ -282,17 +296,6 @@ do				\
     *D_obufp++ = (c);		\
   }				\
 while (0)
-
-#define STATUS_OFF	0
-#define STATUS_ON_WIN	1
-#define STATUS_ON_HS	2
-
-#define HSTATUS_IGNORE		0
-#define HSTATUS_LASTLINE	1
-#define HSTATUS_MESSAGE		2
-#define HSTATUS_HS		3
-#define HSTATUS_FIRSTLINE	4
-#define HSTATUS_ALWAYS		(1<<3)
 
 struct display *MakeDisplay (char *, char *, char *, int, int, struct mode *);
 void  FreeDisplay (void);
