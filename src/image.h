@@ -116,8 +116,7 @@ struct mline {
 	(mc)->mbcs    = 0;				\
 }
 
-enum
-{
+enum {
 	REND_BELL = 0,
 	REND_MONITOR,
 	REND_SILENCE,

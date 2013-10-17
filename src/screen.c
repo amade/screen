@@ -899,7 +899,7 @@ int main(int argc, char **argv)
 	serv_read.handler = serv_read_fn;
 	evenq(&serv_read);
 
-	serv_select.pri = -10;
+	serv_select.priority = -10;
 	serv_select.type = EV_ALWAYS;
 	serv_select.handler = serv_select_fn;
 	evenq(&serv_select);
