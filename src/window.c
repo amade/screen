@@ -739,7 +739,7 @@ void FreeWindow(Window *wp)
 	struct display *d;
 	int i;
 	Canvas *cv, *ncv;
-	struct layer *l;
+	Layer *l;
 
 	if (wp->w_pwin)
 		FreePseudowin(wp);
@@ -1717,7 +1717,7 @@ static void zmodem_found(Window *p, int send, char *bp, int len)
 void zmodem_abort(Window *p, struct display *d)
 {
 	struct display *olddisplay = display;
-	struct layer *oldflayer = flayer;
+	Layer *oldflayer = flayer;
 	if (p) {
 		if (p->w_savelayer && p->w_savelayer->l_next) {
 			if (oldflayer == p->w_savelayer)

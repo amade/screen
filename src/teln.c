@@ -40,7 +40,7 @@
 #include "extern.h"
 
 extern Window *fore;
-extern struct layer *flayer;
+extern Layer *flayer;
 extern int visual_bell;
 extern char screenterm[];
 extern int af;

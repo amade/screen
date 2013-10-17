@@ -896,7 +896,7 @@ void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int usel
 			if (cv && cv->c_layer && x1 >= vp->v_xs && xxe <= vp->v_xe &&
 			    y - vp->v_yoff >= 0 && y - vp->v_yoff < cv->c_layer->l_height &&
 			    xxe - vp->v_xoff >= 0 && x1 - vp->v_xoff < cv->c_layer->l_width) {
-				struct layer *oldflayer = flayer;
+				Layer *oldflayer = flayer;
 				Canvas *cvlist, *cvlnext;
 				flayer = cv->c_layer;
 				cvlist = flayer->l_cvlist;
@@ -1484,7 +1484,7 @@ void MakeStatus(char *msg)
 
 	if (D_status == STATUS_ON_WIN) {
 		struct display *olddisplay = display;
-		struct layer *oldflayer = flayer;
+		Layer *oldflayer = flayer;
 
 		/* this is copied over from RemoveStatus() */
 		D_status = 0;
@@ -1503,7 +1503,7 @@ void MakeStatus(char *msg)
 void RemoveStatus()
 {
 	struct display *olddisplay;
-	struct layer *oldflayer;
+	Layer *oldflayer;
 	int where;
 
 	if (!display)
@@ -1721,7 +1721,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 {
 	Viewport *vp, *lvp;
 	Canvas *cv, *lcv, *cvlist, *cvlnext;
-	struct layer *oldflayer;
+	Layer *oldflayer;
 	int xx, yy, l;
 	char *buf;
 	Window *p;

@@ -51,9 +51,9 @@ typedef struct Canvas {
 	int              c_slweight;	/* size ratio */
 
 	Viewport	*c_vplist;
-	struct layer    *c_layer;	/* layer on this canvas */
+	Layer    *c_layer;	/* layer on this canvas */
 	Canvas   *c_lnext;		/* next canvas that displays layer */
-	struct layer     c_blank;	/* bottom layer, always blank */
+	Layer     c_blank;	/* bottom layer, always blank */
 	int              c_xoff;	/* canvas x offset on display */
 	int              c_yoff;	/* canvas y offset on display */
 	int              c_xs;
@@ -83,8 +83,8 @@ void  PutWindowCv (Canvas *);
 #define CV_CALL(cv, cmd)			\
 {						\
   struct display *olddisplay = display;		\
-  struct layer *oldflayer = flayer;		\
-  struct layer *l = cv->c_layer;		\
+  Layer *oldflayer = flayer;		\
+  Layer *l = cv->c_layer;		\
   Canvas *cvlist = l->l_cvlist;		\
   Canvas *cvlnext = cv->c_lnext;		\
   flayer = l;					\

@@ -165,7 +165,7 @@ extern struct NewWindow nwin_undef, nwin_default, nwin_options;
 extern Window *fore, **wtab, *console_window, *windows;
 extern struct kmap_ext *kmap_exts;
 extern int kmap_extn;
-extern struct layer *flayer;
+extern Layer *flayer;
 extern struct mline mline_blank;
 extern struct mline mline_null;
 extern struct mline mline_old;
