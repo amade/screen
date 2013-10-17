@@ -35,8 +35,11 @@
  * layer over the current windows.
  */
 
-struct mchar;	/* forward declaration */
-struct mline;	/* forward declaration */
+/* forward declarations */
+struct mchar;
+struct mline;
+struct _Canvas;
+typedef struct _Canvas Canvas;
 
 struct LayFuncs {
 	void	(*lf_LayProcess) (char **, int *);
@@ -50,7 +53,7 @@ struct LayFuncs {
 };
 
 struct layer {
-	struct canvas *l_cvlist;	/* list of canvases displaying layer */
+	Canvas *l_cvlist;	/* list of canvases displaying layer */
 	int	l_width;
 	int	l_height;
 	int	l_x;		/* cursor position */
@@ -99,7 +102,7 @@ struct layer {
 #define LAY_CALL_UP(fn)					\
 	{ 						\
 	  struct layer *oldlay = flayer; 		\
-	  struct canvas *oldcvlist, *cv;		\
+	  Canvas *oldcvlist, *cv;		\
 	  flayer = flayer->l_next;			\
 	  oldcvlist = flayer->l_cvlist;			\
 	  flayer->l_cvlist = oldlay->l_cvlist;		\
@@ -115,7 +118,7 @@ struct layer {
 #define LAY_DISPLAYS(l, fn)				\
 	{ 						\
 	  struct display *olddisplay = display;		\
-	  struct canvas *cv;				\
+	  Canvas *cv;				\
 	  for (display = displays; display; display = display->d_next) \
 	    {						\
 	      for (cv = D_cvlist; cv; cv = cv->c_next)	\

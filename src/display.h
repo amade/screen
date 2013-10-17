@@ -67,9 +67,9 @@ struct win;				/* forward declaration */
 struct display {
 	struct display *d_next;		/* linked list */
 	struct acluser *d_user;		/* user who owns that display */
-	struct canvas d_canvas;		/* our canvas slice */
-	struct canvas *d_cvlist;	/* the canvases of this display */
-	struct canvas *d_forecv;	/* current input focus */
+	Canvas d_canvas;		/* our canvas slice */
+	Canvas *d_cvlist;		/* the canvases of this display */
+	Canvas *d_forecv;		/* current input focus */
 	struct layout *d_layout;	/* layout we're using */
 	void (*d_processinput) (char *, int);
 	char *d_processinputdata;	/* data for processinput */

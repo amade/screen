@@ -242,7 +242,7 @@ void WriteString(struct win *wp, register char *buf, register int len)
 {
 	register int c;
 	register int font;
-	struct canvas *cv;
+	Canvas *cv;
 
 	if (!len)
 		return;
@@ -1243,7 +1243,7 @@ static void StringChar(int c)
  */
 static int StringEnd()
 {
-	struct canvas *cv;
+	Canvas *cv;
 	char *p;
 	int typ;
 
@@ -1330,7 +1330,7 @@ static void PrintStart()
 			if (curr == D_fore && (printcmd || D_PO))
 				break;
 	if (!display) {
-		struct canvas *cv;
+		Canvas *cv;
 		for (cv = curr->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
 			display = cv->c_display;
 			if (printcmd || D_PO)
@@ -2253,7 +2253,7 @@ int MFindUsedLine(struct win *p, int ye, int ys)
  */
 void WBell(struct win *p, int visual)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	if (displays == NULL)
 		p->w_bell = BELL_DONE;
 	for (display = displays; display; display = display->d_next) {
@@ -2278,7 +2278,7 @@ void WBell(struct win *p, int visual)
  */
 static void WReverseVideo(struct win *p, int on)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (cv != D_forecv)
@@ -2304,7 +2304,7 @@ void WMsg(struct win *p, int err, char *str)
 void WChangeSize(struct win *p, int w, int h)
 {
 	int wok = 0;
-	struct canvas *cv;
+	Canvas *cv;
 
 	if (p->w_layer.l_cvlist == 0) {
 		/* window not displayed -> works always */
@@ -2376,7 +2376,7 @@ void WindowChanged(struct win *p, int what)
 	int inwstrh = 0, inhstrh = 0, inlstrh = 0;
 	int got, ox, oy;
 	struct display *olddisplay = display;
-	struct canvas *cv;
+	Canvas *cv;
 
 	inhstr = 0;
 

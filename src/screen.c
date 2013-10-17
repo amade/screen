@@ -1203,7 +1203,7 @@ void Hangup()
 void Detach(int mode)
 {
 	int sign = 0, pid;
-	struct canvas *cv;
+	Canvas *cv;
 	struct win *p;
 	struct sigaction sigact;
 
@@ -1964,7 +1964,7 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 			p--;
 			if (display && ev && ev != &D_hstatusev) {	/* Hack */
 				/* Is the layer in the current canvas in copy mode? */
-				struct canvas *cv = (struct canvas *)ev->data;
+				Canvas *cv = (Canvas *)ev->data;
 				if (ev == &cv->c_captev && cv->c_layer->l_layfn == &MarkLf)
 					qmflag = 1;
 			}
@@ -2225,7 +2225,7 @@ static void serv_select_fn(__attribute__((unused))struct event *ev, __attribute_
 
 	for (p = windows; p; p = p->w_next) {
 		if (p->w_bell == BELL_FOUND || p->w_bell == BELL_VISUAL) {
-			struct canvas *cv;
+			Canvas *cv;
 			int visual = p->w_bell == BELL_VISUAL || visual_bell;
 			p->w_bell = BELL_ON;
 			for (display = displays; display; display = display->d_next) {
@@ -2249,7 +2249,7 @@ static void serv_select_fn(__attribute__((unused))struct event *ev, __attribute_
 			WindowChanged(p, 'f');
 		}
 		if (p->w_monitor == MON_FOUND) {
-			struct canvas *cv;
+			Canvas *cv;
 			p->w_monitor = MON_ON;
 			for (display = displays; display; display = display->d_next) {
 				for (cv = D_cvlist; cv; cv = cv->c_next)
@@ -2272,7 +2272,7 @@ static void serv_select_fn(__attribute__((unused))struct event *ev, __attribute_
 	}
 
 	for (display = displays; display; display = display->d_next) {
-		struct canvas *cv;
+		Canvas *cv;
 		if (D_status == STATUS_ON_WIN)
 			continue;
 		/* XXX: should use display functions! */

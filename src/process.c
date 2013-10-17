@@ -4249,7 +4249,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_FOCUS:
 		{
-			struct canvas *cv = 0;
+			Canvas *cv = 0;
 			if (!*args || !strcmp(*args, "next"))
 				cv = D_forecv->c_next ? D_forecv->c_next : D_cvlist;
 			else if (!strcmp(*args, "prev")) {
@@ -5343,7 +5343,7 @@ static int MoreWindows()
 void KillWindow(struct win *win)
 {
 	struct win **pp, *p;
-	struct canvas *cv;
+	Canvas *cv;
 	int gotone;
 	struct layout *lay;
 
@@ -5516,7 +5516,7 @@ char *AddWindowFlags(char *buf, int len, struct win *p)
 char *AddOtherUsers(char *buf, int len, struct win *p)
 {
 	struct display *d, *olddisplay = display;
-	struct canvas *cv;
+	Canvas *cv;
 	char *s;
 	int l;
 
@@ -6342,7 +6342,7 @@ void DelAlias(const char *name)
 
 static int IsOnDisplay(struct win *win)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	for (cv = D_cvlist; cv; cv = cv->c_next)
 		if (Layer2Window(cv->c_layer) == win)
 			return 1;
@@ -6375,7 +6375,7 @@ struct win *FindNiceWindow(struct win *win, char *presel)
 	return win;
 }
 
-static int CalcSlicePercent(struct canvas *cv, int percent)
+static int CalcSlicePercent(Canvas *cv, int percent)
 {
 	int w, wsum, up;
 	if (!cv || !cv->c_slback)
@@ -6389,14 +6389,14 @@ static int CalcSlicePercent(struct canvas *cv, int percent)
 	return (up * w) / wsum;
 }
 
-static int ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, int percent)
-/* struct canvas *fcv;	 make this canvas bigger
+static int ChangeCanvasSize(Canvas *fcv, int abs, int diff, int gflag, int percent)
+/* Canvas *fcv;	 make this canvas bigger
    int abs;		 mode: 0:rel 1:abs 2:max
    int diff;		 change this much
    int gflag;		 go up if neccessary
    int percent; */
 {
-	struct canvas *cv;
+	Canvas *cv;
 	int done, have, m, dir;
 
 	if (abs == 0 && diff == 0)
@@ -6497,7 +6497,7 @@ static int ChangeCanvasSize(struct canvas *fcv, int abs, int diff, int gflag, in
 
 static void ResizeRegions(char *arg, int flags)
 {
-	struct canvas *cv;
+	Canvas *cv;
 	int diff, l;
 	int gflag = 0, abs = 0, percent = 0;
 	int orient = 0;
@@ -6516,7 +6516,7 @@ static void ResizeRegions(char *arg, int flags)
 	l = strlen(arg);
 	if (*arg == '=') {
 		/* make all regions the same height */
-		struct canvas *cv = gflag ? &D_canvas : D_forecv->c_slback;
+		Canvas *cv = gflag ? &D_canvas : D_forecv->c_slback;
 		if (cv->c_slperp->c_slorient & orient)
 			EqualizeCanvas(cv->c_slperp, gflag);
 		/* can't use cv->c_slorient directly as it can be D_canvas */
@@ -6596,7 +6596,7 @@ static void ResizeFin(char *buf, int len, char *data)
 	buf[len] = '\034';
 }
 
-void SetForeCanvas(struct display *d, struct canvas *cv)
+void SetForeCanvas(struct display *d, Canvas *cv)
 {
 	struct display *odisplay = display;
 	if (d->d_forecv == cv)

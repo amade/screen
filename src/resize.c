@@ -101,7 +101,7 @@ void CheckScreenSize(int change_flag)
 void ChangeScreenSize(int wi, int he, int change_fore)
 {
 	struct win *p;
-	struct canvas *cv;
+	Canvas *cv;
 	int wwi;
 
 	cv = &D_canvas;
@@ -148,7 +148,7 @@ void ChangeScreenSize(int wi, int he, int change_fore)
 
 void ResizeLayersToCanvases()
 {
-	struct canvas *cv;
+	Canvas *cv;
 	struct layer *l;
 	int lx, ly;
 
@@ -237,7 +237,7 @@ static void kaablamm()
 	  }	\
 	else	\
 	  {	\
-	    struct canvas *_cv;	\
+	    Canvas *_cv;	\
 	    for (_cv = flayer->l_cvlist; _cv; _cv = _cv->c_lnext)	\
 	      _cv->c_display->d_kaablamm = 1;	\
 	    ExitOverlayPage();	\
@@ -254,7 +254,7 @@ static void kaablamm()
 void ResizeLayer(struct layer *l, int wi, int he, struct display *norefdisp)
 {
 	struct win *p;
-	struct canvas *cv;
+	Canvas *cv;
 	struct layer *oldflayer = flayer;
 	struct display *d, *olddisplay = display;
 

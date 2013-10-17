@@ -579,7 +579,7 @@ static void WListUpdate(struct win *p, struct ListData *ldata)
 	glist_display_all(ldata);
 }
 
-void WListUpdatecv(struct canvas *cv, struct win *p)
+void WListUpdatecv(Canvas *cv, struct win *p)
 {
 	struct ListData *ldata;
 
@@ -594,7 +594,7 @@ void WListUpdatecv(struct canvas *cv, struct win *p)
 void WListLinkChanged()
 {
 	struct display *olddisplay = display;
-	struct canvas *cv;
+	Canvas *cv;
 	struct ListData *ldata;
 	struct gl_Window_Data *wdata;
 
