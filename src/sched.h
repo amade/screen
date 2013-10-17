@@ -30,13 +30,20 @@
 #ifndef SCREEN_SCHED_H
 #define SCREEN_SCHED_H
 
+typedef enum {
+	EV_TIMEOUT	= 0,
+	EV_READ		= 1,
+	EV_WRITE	= 2,
+	EV_ALWAYS	= 3
+} EventType;
+
 struct event {
 	struct event *next;
 	void (*handler) (struct event *, char *);
 	char *data;
 	int fd;
-	int type;
-	int pri;
+	EventType type;
+	int priority;
 	struct timeval timeout;
 	int queued;		/* in evs queue */
 	int active;		/* in fdset */
@@ -44,14 +51,9 @@ struct event {
 	int *condneg;
 };
 
-#define EV_TIMEOUT	0
-#define EV_READ		1
-#define EV_WRITE	2
-#define EV_ALWAYS	3
-
-void  evenq (struct event *);
-void  evdeq (struct event *);
-void  SetTimeout (struct event *, int);
-void  sched (void);
+void evenq (struct event *);
+void evdeq (struct event *);
+void SetTimeout (struct event *, int);
+void sched (void);
 
 #endif /* SCREEN_SCHED_H */

@@ -52,7 +52,7 @@ void evenq(struct event *ev)
 		evpp = &tevs;
 	}
 	for (; (evp = *evpp); evpp = &evp->next)
-		if (ev->pri > evp->pri)
+		if (ev->priority > evp->priority)
 			break;
 	ev->next = evp;
 	*evpp = ev;
