@@ -52,7 +52,7 @@ void  NewLayout (char *, int);
 void  SaveLayout (char *, Canvas *);
 void  ShowLayouts (int);
 struct layout *FindLayout (char *);
-void  UpdateLayoutCanvas (Canvas *, struct win *);
+void  UpdateLayoutCanvas (Canvas *, Window *);
 
 void RenameLayout (struct layout *, const char *);
 int RenumberLayout (struct layout *, int);

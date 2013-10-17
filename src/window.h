@@ -125,9 +125,9 @@ struct paster {
 	struct	event pa_slowev;	/* slowpaste event */
 };
 
-struct win {
-	struct win *w_next;		/* next window */
-	int	w_type;		/* type of window */
+typedef struct _Window {
+	Window *w_next;		/* next window */
+	int	w_type;			/* type of window */
 	struct layer w_layer;		/* our layer */
 	struct layer *w_savelayer;	/* the layer to keep */
 	int	w_blocked;		/* block input */
@@ -150,7 +150,7 @@ struct win {
 	char	*w_akachange;		/* autoaka hack */
 	char	 w_akabuf[MAXSTR];	/* aka buffer */
 	int	 w_autoaka;		/* autoaka hack */
-	struct win *w_group;		/* window group we belong to */
+	Window  *w_group;		/* window group we belong to */
 	int	 w_intermediate;	/* char used while parsing ESC-seq */
 	int	 w_args[MAXARGS];	/* emulator args */
 	int	 w_NumArgs;
@@ -241,7 +241,7 @@ struct win {
 	struct event w_destroyev;	/* window destroy event */
 	int w_exitstatus;
 	int w_miflag;
-};
+} Window;
 
 
 #define w_encoding   w_layer.l_encoding
@@ -283,19 +283,19 @@ struct win {
       &fore->w_hlines[(fore->w_histidx + y) % fore->w_histheight] \
     : &fore->w_mlines[y - fore->w_histheight])
 
-#define Layer2Window(l) ((struct win *)(l)->l_bottom->l_data)
+#define Layer2Window(l) ((Window *)(l)->l_bottom->l_data)
 
 int   SwapWindows (int, int);
 int   MakeWindow (struct NewWindow *);
-int   RemakeWindow (struct win *);
-void  FreeWindow (struct win *);
+int   RemakeWindow (Window *);
+void  FreeWindow (Window *);
 int   winexec (char **);
-void  FreePseudowin (struct win *);
+void  FreePseudowin (Window *);
 void  nwin_compose (struct NewWindow *, struct NewWindow *, struct NewWindow *);
-int   DoStartLog (struct win *, char *, int);
-int   ReleaseAutoWritelock (struct display *, struct win *);
-int   ObtainAutoWritelock (struct display *, struct win *);
-void  CloseDevice (struct win *);
+int   DoStartLog (Window *, char *, int);
+int   ReleaseAutoWritelock (struct display *, Window *);
+int   ObtainAutoWritelock (struct display *, Window *);
+void  CloseDevice (Window *);
 #ifndef HAVE_EXECVPE
 void  execvpe (char *, char **, char **);
 #endif

@@ -62,8 +62,6 @@ typedef enum {
 	HSTATUS_ALWAYS		= (1<<3)
 } HardStatus;
 
-struct win;				/* forward declaration */
-
 struct display {
 	struct display *d_next;		/* linked list */
 	struct acluser *d_user;		/* user who owns that display */
@@ -74,8 +72,8 @@ struct display {
 	void (*d_processinput) (char *, int);
 	char *d_processinputdata;	/* data for processinput */
 	int d_vpxmin, d_vpxmax;		/* min/max used position on display */
-	struct win *d_fore;		/* pointer to fore window */
-	struct win *d_other;		/* pointer to other window */
+	Window *d_fore;		/* pointer to fore window */
+	Window *d_other;		/* pointer to other window */
 	int   d_nonblock;		/* -1 don't block if obufmax reached */
 					/* >0: block after nonblock secs */
 	char  d_termname[MAXTERMLEN + 1]; /* $TERM */

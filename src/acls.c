@@ -153,7 +153,7 @@ int UserDel(char *name, struct acluser **up)
  */
 int UserFreeCopyBuffer(struct acluser *u)
 {
-	struct win *w;
+	Window *w;
 	struct paster *pa;
 
 	if (!u->u_plop.buf)

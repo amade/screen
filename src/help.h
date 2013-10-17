@@ -7,7 +7,7 @@ void  display_copyright (void);
 void  display_displays (void);
 void  display_bindkey (char *, struct action *);
 int   InWList (void);
-void  WListUpdatecv (Canvas *, struct win *);
+void  WListUpdatecv (Canvas *, Window *);
 void  WListLinkChanged (void);
 void  ZmodemPage (void);
 

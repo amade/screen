@@ -531,7 +531,7 @@ int secopen(char *name, int flags, int mode)
 	return fd;
 }
 
-int printpipe(struct win *p, char *cmd)
+int printpipe(Window *p, char *cmd)
 {
 	int pi[2];
 	if (pipe(pi)) {

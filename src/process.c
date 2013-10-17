@@ -68,7 +68,7 @@ static void CollapseWindowlist(void);
 static void LogToggle(int);
 static void ShowInfo(void);
 static void ShowDInfo(void);
-static struct win *WindowByName(char *);
+static Window *WindowByName(char *);
 static int WindowByNumber(char *);
 static int ParseOnOff(struct action *, int *);
 static int ParseWinNum(struct action *, int *);
@@ -88,7 +88,7 @@ static void pow_detach_fn(char *, int, char *);
 static void digraph_fn(char *, int, char *);
 static int digraph_find(const char *buf);
 static void confirm_fn(char *, int, char *);
-static int IsOnDisplay(struct win *);
+static int IsOnDisplay(Window *);
 static void ResizeRegions(char *, int);
 static void ResizeFin(char *, int, char *);
 static struct action *FindKtab(char *, int);
@@ -1911,7 +1911,7 @@ void ProcessInput2(char *ibuf, int ilen)
 	}
 }
 
-void DoProcess(struct win *p, char **bufp, int *lenp, struct paster *pa)
+void DoProcess(Window *p, char **bufp, int *lenp, struct paster *pa)
 {
 	int oldlen;
 	struct display *d = display;
@@ -2053,7 +2053,7 @@ void DoAction(struct action *act, int key)
 	int nr = act->nr;
 	char **args = act->args;
 	int *argl = act->argl;
-	struct win *p;
+	Window *p;
 	int argc, n, msgok;
 	int64_t i;
 	int j;
@@ -2112,7 +2112,7 @@ void DoAction(struct action *act, int key)
 		if (!*args)
 			InputSelect();
 		else if (args[0][0] == '-' && !args[0][1]) {
-			SetForeWindow((struct win *)0);
+			SetForeWindow((Window *)0);
 			Activate(0);
 		} else if (args[0][0] == '.' && !args[0][1]) {
 			if (!fore) {
@@ -2135,7 +2135,7 @@ void DoAction(struct action *act, int key)
 				fore->w_miflag = fore->w_miflag ? 0 : 1;
 		} else {
 			if (ParseWinNum(act, &n) == 0) {
-				struct win *p;
+				Window *p;
 				if ((p = wtab[n]) == 0) {
 					ShowWindows(n);
 					break;
@@ -2376,7 +2376,7 @@ void DoAction(struct action *act, int key)
 			/* FALLTHROUGH */
 		default:
 			{
-				struct win *nw;
+				Window *nw;
 				int ch;
 
 				n++;
@@ -2870,7 +2870,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_WINDOWLIST:
 		if (!*args)
-			display_windows(0, WLIST_NUM, (struct win *)0);
+			display_windows(0, WLIST_NUM, (Window *)0);
 		else if (!strcmp(*args, "string")) {
 			if (args[1]) {
 				if (wliststr)
@@ -2905,7 +2905,7 @@ void DoAction(struct action *act, int key)
 					break;
 				}
 			if (i == argc)
-				display_windows(blank, flag, (struct win *)0);
+				display_windows(blank, flag, (Window *)0);
 		}
 		break;
 	case RC_HELP:
@@ -3588,7 +3588,7 @@ void DoAction(struct action *act, int key)
 				SwapWindows(nr, i);
 			}
 		}
-		WindowChanged((struct win *)0, 0);
+		WindowChanged((Window *)0, 0);
 		break;
 	case RC_ZOMBIE_TIMEOUT:
 		if (argc != 1) {
@@ -3666,7 +3666,7 @@ void DoAction(struct action *act, int key)
 			}
 			strncpy(SocketPath, buf, MAXPATHLEN + 2 * MAXSTR);
 			MakeNewEnv();
-			WindowChanged((struct win *)0, 'S');
+			WindowChanged((Window *)0, 'S');
 		}
 		break;
 	case RC_SETENV:
@@ -4198,9 +4198,9 @@ void DoAction(struct action *act, int key)
 
 		if (i != -1) {
 			renditions[i] = ParseAttrColor(args[0], 1);
-			WindowChanged((struct win *)0, 'w');
-			WindowChanged((struct win *)0, 'W');
-			WindowChanged((struct win *)0, 0);
+			WindowChanged((Window *)0, 'w');
+			WindowChanged((Window *)0, 'W');
+			WindowChanged((Window *)0, 0);
 			break;
 		}
 
@@ -4213,7 +4213,7 @@ void DoAction(struct action *act, int key)
 			if (i == 0)
 				break;
 			ApplyAttrColor(i, &mchar_so);
-			WindowChanged((struct win *)0, 0);
+			WindowChanged((Window *)0, 0);
 		}
 		if (msgok)
 			OutputMsg(0, "Standout attributes 0x%02x  colorbg 0x%02x  colorfg 0x%02x", (unsigned char)mchar_so.attr,
@@ -4334,7 +4334,7 @@ void DoAction(struct action *act, int key)
 			OutputMsg(0, "may increase maxwin only when there's no window");
 		else {
 			if (!windows)
-				wtab = realloc(wtab, n * sizeof(struct win *));
+				wtab = realloc(wtab, n * sizeof(Window *));
 			maxwin = n;
 		}
 		break;
@@ -4452,9 +4452,9 @@ void DoAction(struct action *act, int key)
 				if (fore->w_group == fore || (fore->w_group && fore->w_group->w_type != W_TYPE_GROUP))
 					fore->w_group = 0;
 			}
-			WindowChanged((struct win *)0, 'w');
-			WindowChanged((struct win *)0, 'W');
-			WindowChanged((struct win *)0, 0);
+			WindowChanged((Window *)0, 'w');
+			WindowChanged((Window *)0, 'W');
+			WindowChanged((Window *)0, 0);
 		}
 		if (msgok) {
 			if (fore->w_group)
@@ -5107,9 +5107,9 @@ static int ParseNum1000(struct action *act, int *var)
 	return 0;
 }
 
-static struct win *WindowByName(char *s)
+static Window *WindowByName(char *s)
 {
-	struct win *p;
+	Window *p;
 
 	for (p = windows; p; p = p->w_next)
 		if (!strcmp(p->w_title, s))
@@ -5141,7 +5141,7 @@ static int WindowByNumber(char *str)
 int WindowByNoN(char *str)
 {
 	int i;
-	struct win *p;
+	Window *p;
 
 	if ((i = WindowByNumber(str)) < 0 || i >= maxwin) {
 		if ((p = WindowByName(str)))
@@ -5216,7 +5216,7 @@ int IsNumColon(char *s, int base, char *p, int psize)
 
 void SwitchWindow(int n)
 {
-	struct win *p;
+	Window *p;
 
 	if (n < 0 || n >= maxwin) {
 		ShowWindows(-1);
@@ -5242,9 +5242,9 @@ void SwitchWindow(int n)
  * SetForeWindow changes the window in the input focus of the display.
  * Puts window wi in canvas display->d_forecv.
  */
-void SetForeWindow(struct win *win)
+void SetForeWindow(Window *win)
 {
-	struct win *p;
+	Window *p;
 	if (display == 0) {
 		fore = win;
 		return;
@@ -5291,9 +5291,9 @@ void Activate(int norefresh)
 
 static int NextWindow()
 {
-	register struct win **pp;
+	register Window **pp;
 	int n = fore ? fore->w_number : maxwin;
-	struct win *group = fore ? fore->w_group : 0;
+	Window *group = fore ? fore->w_group : 0;
 
 	for (pp = fore ? wtab + n + 1 : wtab; pp != wtab + n; pp++) {
 		if (pp == wtab + maxwin)
@@ -5310,9 +5310,9 @@ static int NextWindow()
 
 static int PreviousWindow()
 {
-	register struct win **pp;
+	register Window **pp;
 	int n = fore ? fore->w_number : -1;
-	struct win *group = fore ? fore->w_group : 0;
+	Window *group = fore ? fore->w_group : 0;
 
 	for (pp = wtab + n - 1; pp != wtab + n; pp--) {
 		if (pp == wtab - 1)
@@ -5340,9 +5340,9 @@ static int MoreWindows()
 	return 0;
 }
 
-void KillWindow(struct win *win)
+void KillWindow(Window *win)
 {
-	struct win **pp, *p;
+	Window **pp, *p;
 	Canvas *cv;
 	int gotone;
 	struct layout *lay;
@@ -5384,9 +5384,9 @@ void KillWindow(struct win *win)
 		UpdateLayoutCanvas(&lay->lay_canvas, win);
 
 	FreeWindow(win);
-	WindowChanged((struct win *)0, 'w');
-	WindowChanged((struct win *)0, 'W');
-	WindowChanged((struct win *)0, 0);
+	WindowChanged((Window *)0, 'w');
+	WindowChanged((Window *)0, 'W');
+	WindowChanged((Window *)0, 0);
 }
 
 static void LogToggle(int on)
@@ -5419,7 +5419,7 @@ static void LogToggle(int on)
 char *AddWindows(char *buf, int len, int flags, int where)
 {
 	register char *s, *ss;
-	register struct win **pp, *p;
+	register Window **pp, *p;
 	register char *cmd;
 	int l;
 
@@ -5480,7 +5480,7 @@ char *AddWindows(char *buf, int len, int flags, int where)
 	return ss;
 }
 
-char *AddWindowFlags(char *buf, int len, struct win *p)
+char *AddWindowFlags(char *buf, int len, Window *p)
 {
 	char *s = buf;
 	if (p == 0 || len < 12) {
@@ -5513,7 +5513,7 @@ char *AddWindowFlags(char *buf, int len, struct win *p)
 	return s;
 }
 
-char *AddOtherUsers(char *buf, int len, struct win *p)
+char *AddOtherUsers(char *buf, int len, Window *p)
 {
 	struct display *d, *olddisplay = display;
 	Canvas *cv;
@@ -5597,7 +5597,7 @@ void ShowWindows(int where)
 static void ShowInfo()
 {
 	char buf[512], *p;
-	register struct win *wp = fore;
+	register Window *wp = fore;
 	register int i;
 
 	if (wp == 0) {
@@ -5806,7 +5806,7 @@ static void SelectFin(char *buf, int len, __attribute__((unused))char *data)
 	if (!len || !display)
 		return;
 	if (len == 1 && *buf == '-') {
-		SetForeWindow((struct win *)0);
+		SetForeWindow((Window *)0);
 		Activate(0);
 		return;
 	}
@@ -6340,7 +6340,7 @@ void DelAlias(const char *name)
 	Msg(0, "alias %s not found", name);
 }
 
-static int IsOnDisplay(struct win *win)
+static int IsOnDisplay(Window *win)
 {
 	Canvas *cv;
 	for (cv = D_cvlist; cv; cv = cv->c_next)
@@ -6349,7 +6349,7 @@ static int IsOnDisplay(struct win *win)
 	return 0;
 }
 
-struct win *FindNiceWindow(struct win *win, char *presel)
+Window *FindNiceWindow(Window *win, char *presel)
 {
 	int i;
 
@@ -6632,7 +6632,7 @@ void SetForeCanvas(struct display *d, Canvas *cv)
 void RefreshXtermOSC()
 {
 	int i;
-	struct win *p;
+	Window *p;
 
 	p = Layer2Window(D_forecv->c_layer);
 	for (i = 3; i >= 0; i--)

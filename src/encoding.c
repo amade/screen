@@ -643,7 +643,7 @@ int FromUtf8(int c, int *utf8charp)
 	return c;
 }
 
-void WinSwitchEncoding(struct win *p, int encoding)
+void WinSwitchEncoding(Window *p, int encoding)
 {
 	int i, j, c;
 	struct mline *ml;
@@ -929,7 +929,7 @@ int EncodingDefFont(int encoding)
 	return encodings[encoding].deffont;
 }
 
-void ResetEncoding(struct win *p)
+void ResetEncoding(Window *p)
 {
 	char *c;
 	int encoding = p->w_encoding;

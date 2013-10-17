@@ -81,7 +81,7 @@ void FreeCanvas(Canvas *cv)
 {
 	Viewport *vp, *nvp;
 	Canvas **cvp;
-	struct win *p;
+	Window *p;
 
 	if (cv->c_slprev)
 		cv->c_slprev->c_slnext = cv->c_slnext;
@@ -202,9 +202,9 @@ Canvas *FindCanvas(int x, int y)
 	return mcv ? mcv : D_forecv;
 }
 
-void SetCanvasWindow(Canvas *cv, struct win *win)
+void SetCanvasWindow(Canvas *cv, Window *win)
 {
-	struct win *p = 0, **pp;
+	Window *p = 0, **pp;
 	struct layer *l;
 	Canvas *cvp, **cvpp;
 
@@ -715,7 +715,7 @@ void DupLayoutCv(Canvas *cvf, Canvas *cvt, int save)
 			}
 			cvt->c_layer = cvf->c_layer;
 		} else {
-			struct win *p = cvf->c_layer ? Layer2Window(cvf->c_layer) : 0;
+			Window *p = cvf->c_layer ? Layer2Window(cvf->c_layer) : 0;
 			cvt->c_layer = p ? &p->w_layer : 0;
 		}
 		if (cvf->c_slperp) {
@@ -737,13 +737,13 @@ void DupLayoutCv(Canvas *cvf, Canvas *cvt, int save)
 
 void PutWindowCv(Canvas *cv)
 {
-	struct win *p;
+	Window *p;
 	for (; cv; cv = cv->c_slnext) {
 		if (cv->c_slperp) {
 			PutWindowCv(cv->c_slperp);
 			continue;
 		}
-		p = cv->c_layer ? (struct win *)cv->c_layer->l_data : 0;
+		p = cv->c_layer ? (Window *)cv->c_layer->l_data : 0;
 		cv->c_layer = 0;
 		SetCanvasWindow(cv, p);
 	}

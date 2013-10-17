@@ -239,7 +239,7 @@ struct display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid
 
 void FreeDisplay()
 {
-	struct win *p;
+	Window *p;
 	struct display *d, **dp;
 
 	FreeTransTable();
@@ -1702,7 +1702,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 	struct layer *oldflayer;
 	int xx, yy, l;
 	char *buf;
-	struct win *p;
+	Window *p;
 
 	if (D_status == STATUS_ON_WIN && y == STATLINE) {
 		if (to >= D_status_len)
@@ -2591,7 +2591,7 @@ static void disp_hstatus_fn(struct event *ev, char *data)
 
 static void disp_blocked_fn(__attribute__((unused))struct event *ev, char *data)
 {
-	struct win *p;
+	Window *p;
 
 	display = (struct display *)data;
 	if (D_obufp - D_obuf > D_obufmax + D_blocked_fuzz) {

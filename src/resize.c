@@ -43,7 +43,7 @@ static int AllocMline(struct mline *ml, int);
 static void MakeBlankLine(uint32_t *, int);
 static void kaablamm(void);
 static int BcopyMline(struct mline *, int, struct mline *, int, int, int);
-static void SwapAltScreen(struct win *);
+static void SwapAltScreen(Window *);
 
 #if defined(TIOCGWINSZ) || defined(TIOCSWINSZ)
 struct winsize glwz;
@@ -100,7 +100,7 @@ void CheckScreenSize(int change_flag)
 
 void ChangeScreenSize(int wi, int he, int change_fore)
 {
-	struct win *p;
+	Window *p;
 	Canvas *cv;
 	int wwi;
 
@@ -253,7 +253,7 @@ static void kaablamm()
 
 void ResizeLayer(struct layer *l, int wi, int he, struct display *norefdisp)
 {
-	struct win *p;
+	Window *p;
 	Canvas *cv;
 	struct layer *oldflayer = flayer;
 	struct display *d, *olddisplay = display;
@@ -370,7 +370,7 @@ static void CheckMaxSize(int wi)
 {
 	uint32_t *oldnull = null;
 	uint32_t *oldblank = blank;
-	struct win *p;
+	Window *p;
 	int i;
 	struct mline *ml;
 
@@ -454,7 +454,7 @@ static void MakeBlankLine(register uint32_t *p, register int n)
 
 #define NEWWIN(y) ((y < hi) ? &nhlines[y] : &nmlines[y - hi])
 
-int ChangeWindowSize(struct win *p, int wi, int he, int hi)
+int ChangeWindowSize(Window *p, int wi, int he, int hi)
 {
 	struct mline *mlf = 0, *mlt = 0, *ml, *nmlines, *nhlines;
 	int fy, ty, l, lx, lf, lt, yy, oty, addone;
@@ -741,7 +741,7 @@ int ChangeWindowSize(struct win *p, int wi, int he, int hi)
 	return 0;
 }
 
-void FreeAltScreen(struct win *p)
+void FreeAltScreen(Window *p)
 {
 	int i;
 
@@ -763,7 +763,7 @@ void FreeAltScreen(struct win *p)
 	p->w_alt.histheight = 0;
 }
 
-static void SwapAltScreen(struct win *p)
+static void SwapAltScreen(Window *p)
 {
 	struct mline *ml;
 	int t;
@@ -780,7 +780,7 @@ static void SwapAltScreen(struct win *p)
 #undef SWAP
 }
 
-void EnterAltScreen(struct win *p)
+void EnterAltScreen(Window *p)
 {
 	if (!p->w_alt.on) {
 		/* If not already using the alternate screen buffer, then create
@@ -797,7 +797,7 @@ void EnterAltScreen(struct win *p)
 	p->w_alt.on = 1;
 }
 
-void LeaveAltScreen(struct win *p)
+void LeaveAltScreen(Window *p)
 {
 	if (!p->w_alt.on)
 		return;

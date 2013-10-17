@@ -22,8 +22,8 @@
 
 /* Deals with the list of windows */
 
-/* NOTE: A 'struct win *' is used as the 'data' for each row. It might make more sense
- * to use 'struct win* ->w_number' as the 'data', instead, because that way, we can
+/* NOTE: A 'Window *' is used as the 'data' for each row. It might make more sense
+ * to use 'Window* ->w_number' as the 'data', instead, because that way, we can
  * verify that the window does exist (by looking at wtab[]).
  */
 
@@ -40,11 +40,11 @@
 static char ListID[] = "window";
 
 struct gl_Window_Data {
-	struct win *group;	/* Set only for a W_TYPE_GROUP window */
+	Window *group;	/* Set only for a W_TYPE_GROUP window */
 	int order;		/* MRU? NUM? */
 	int onblank;
 	int nested;
-	struct win *fore;	/* The foreground window we had. */
+	Window *fore;	/* The foreground window we had. */
 };
 
 /* Is this wdata for a group window? */
@@ -54,7 +54,7 @@ struct gl_Window_Data {
 #define FOR_EACH_WINDOW(_wdata, _w, fn) {	\
     if ((_wdata)->order == WLIST_MRU)	\
       {	\
-	struct win *_ww;	\
+	Window *_ww;	\
 	for (_ww = windows; _ww; _ww = _ww->w_next)	\
 	  {	\
 	    _w = _ww;	\
@@ -63,7 +63,7 @@ struct gl_Window_Data {
       }	\
     else	\
       {	\
-	struct win **_ww, *_witer;	\
+	Window **_ww, *_witer;	\
 	for (_ww = wtab, _witer = windows; _witer && _ww - wtab < maxwin; _ww++)	\
 	  {	\
 	    if (!(_w = *_ww))	continue;	\
@@ -74,7 +74,7 @@ struct gl_Window_Data {
   }
 
 /* Is 'a' an ancestor of 'd'? */
-static int window_ancestor(struct win *a, struct win *d)
+static int window_ancestor(Window *a, Window *d)
 {
 	if (!a)
 		return 1;	/* Every window is a descendant of the 'null' group */
@@ -86,7 +86,7 @@ static int window_ancestor(struct win *a, struct win *d)
 
 static void window_kill_confirm(char *buf, int len, char *data)
 {
-	struct win *w = windows;
+	Window *w = windows;
 	struct action act;
 
 	if (len || (*buf != 'y' && *buf != 'Y')) {
@@ -96,7 +96,7 @@ static void window_kill_confirm(char *buf, int len, char *data)
 
 	/* Loop over the windows to make sure that the window actually still exists. */
 	for (; w; w = w->w_next)
-		if (w == (struct win *)data)
+		if (w == (Window *)data)
 			break;
 
 	if (!w)
@@ -115,7 +115,7 @@ static struct ListRow *gl_Window_add_group(struct ListData *ldata, struct ListRo
 {
 	/* Right now, 'row' doesn't have any child. */
 	struct gl_Window_Data *wdata = ldata->data;
-	struct win *group = row->data, *w;
+	Window *group = row->data, *w;
 	struct ListRow *cur = row;
 
 	FOR_EACH_WINDOW(wdata, w, if (w->w_group != group)
@@ -130,7 +130,7 @@ static void gl_Window_rebuild(struct ListData *ldata)
 {
 	struct ListRow *row = NULL;
 	struct gl_Window_Data *wdata = ldata->data;
-	struct win *w;
+	Window *w;
 
 	FOR_EACH_WINDOW(wdata, w, if (w->w_group != wdata->group)
 			continue; row = glist_add_row(ldata, w, row); if (w == wdata->fore)
@@ -139,7 +139,7 @@ static void gl_Window_rebuild(struct ListData *ldata)
 	glist_display_all(ldata);
 }
 
-static struct ListRow *gl_Window_findrow(struct ListData *ldata, struct win *p)
+static struct ListRow *gl_Window_findrow(struct ListData *ldata, Window *p)
 {
 	struct ListRow *row = ldata->root;
 	for (; row; row = row->next) {
@@ -149,7 +149,7 @@ static struct ListRow *gl_Window_findrow(struct ListData *ldata, struct win *p)
 	return row;
 }
 
-static int gl_Window_remove(struct ListData *ldata, struct win *p)
+static int gl_Window_remove(struct ListData *ldata, Window *p)
 {
 	struct ListRow *row = gl_Window_findrow(ldata, p);
 	if (!row)
@@ -186,7 +186,7 @@ static int gl_Window_header(struct ListData *ldata)
 	}
 
 	display = 0;
-	str = MakeWinMsgEv(wlisttit, (struct win *)0, '%', flayer->l_width, (struct event *)0, 0);
+	str = MakeWinMsgEv(wlisttit, (Window *)0, '%', flayer->l_width, (struct event *)0, 0);
 
 	LPutWinMsg(flayer, str, strlen(str), &mchar_blank, 0, g);
 	return 2 + g;
@@ -201,7 +201,7 @@ static int gl_Window_footer(__attribute__((unused))struct ListData *ldata)
 static int gl_Window_row(struct ListData *ldata, struct ListRow *lrow)
 {
 	char *str;
-	struct win *w, *g;
+	Window *w, *g;
 	int xoff;
 	struct mchar *mchar;
 	struct mchar mchar_rend = mchar_blank;
@@ -241,7 +241,7 @@ static int gl_Window_row(struct ListData *ldata, struct ListRow *lrow)
 
 static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 {
-	struct win *win;
+	Window *win;
 	unsigned char ch;
 	struct display *cd = display;
 	struct gl_Window_Data *wdata = ldata->data;
@@ -314,7 +314,7 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 			break;
 		if (wdata->group->w_group) {
 			/* The parent is another group window. So switch to that window. */
-			struct win *g = wdata->group->w_group;
+			Window *g = wdata->group->w_group;
 			glist_abort();
 			display = cd;
 			SetForeWindow(g);
@@ -332,7 +332,7 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 
 	case ',':		/* Switch numbers with the previous window. */
 		if (wdata->order == WLIST_NUM && ldata->selected->prev) {
-			struct win *pw = ldata->selected->prev->data;
+			Window *pw = ldata->selected->prev->data;
 			if (win->w_group != pw->w_group)
 				break;	/* Do not allow switching with the parent group */
 
@@ -346,7 +346,7 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 
 	case '.':		/* Switch numbers with the next window. */
 		if (wdata->order == WLIST_NUM && ldata->selected->next) {
-			struct win *nw = ldata->selected->next->data;
+			Window *nw = ldata->selected->next->data;
 			if (win->w_group != nw->w_group)
 				break;	/* Do not allow switching with the parent group */
 
@@ -378,7 +378,7 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 		if (ch >= '0' && ch <= '9') {
 			struct ListRow *row = ldata->root;
 			for (; row; row = row->next) {
-				struct win *w = row->data;
+				Window *w = row->data;
 				if (w->w_number == ch - '0') {
 					struct ListRow *old = ldata->selected;
 					if (old == row)
@@ -421,7 +421,7 @@ static int gl_Window_free(struct ListData *ldata)
 
 static int gl_Window_match(__attribute__((unused))struct ListData *ldata, struct ListRow *row, const char *needle)
 {
-	struct win *w = row->data;
+	Window *w = row->data;
 	if (InStr(w->w_title, needle))
 		return 1;
 	return 0;
@@ -437,9 +437,9 @@ static struct GenericList gl_Window = {
 	gl_Window_match
 };
 
-void display_windows(int onblank, int order, struct win *group)
+void display_windows(int onblank, int order, Window *group)
 {
-	struct win *p;
+	Window *p;
 	struct ListData *ldata;
 	struct gl_Window_Data *wdata;
 
@@ -458,7 +458,7 @@ void display_windows(int onblank, int order, struct win *group)
 		}
 		p = D_fore;
 		if (p) {
-			SetForeWindow((struct win *)0);
+			SetForeWindow((Window *)0);
 			if (p->w_group) {
 				D_fore = p->w_group;
 				flayer->l_data = (char *)p->w_group;
@@ -500,11 +500,11 @@ void display_windows(int onblank, int order, struct win *group)
 	gl_Window_rebuild(ldata);
 }
 
-static void WListUpdate(struct win *p, struct ListData *ldata)
+static void WListUpdate(Window *p, struct ListData *ldata)
 {
 	struct gl_Window_Data *wdata = ldata->data;
 	struct ListRow *row, *rbefore;
-	struct win *before;
+	Window *before;
 	int d = 0, sel = 0;
 
 	if (!p) {
@@ -544,7 +544,7 @@ static void WListUpdate(struct win *p, struct ListData *ldata)
 					break;
 	} else if (wdata->order == WLIST_NUM) {
 		if (p->w_number != 0) {
-			struct win **w = wtab + p->w_number - 1;
+			Window **w = wtab + p->w_number - 1;
 			for (; w >= wtab; w--) {
 				if (*w && (*w)->w_group == wdata->group) {
 					before = *w;
@@ -579,7 +579,7 @@ static void WListUpdate(struct win *p, struct ListData *ldata)
 	glist_display_all(ldata);
 }
 
-void WListUpdatecv(Canvas *cv, struct win *p)
+void WListUpdatecv(Canvas *cv, Window *p)
 {
 	struct ListData *ldata;
 

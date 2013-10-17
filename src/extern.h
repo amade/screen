@@ -29,6 +29,10 @@
 
 #include <stdbool.h>
 
+/* forward declarations */
+struct _Window;
+typedef struct _Window Window;
+
 /*
  * GLOBAL VARIABLES
  */
@@ -159,7 +163,7 @@ extern struct layout *layout_attach, *layout_last, layout_last_marker;
 extern struct layout *layouts;
 extern struct layout *laytab[];
 extern struct NewWindow nwin_undef, nwin_default, nwin_options;
-extern struct win *fore, **wtab, *console_window, *windows;
+extern Window *fore, **wtab, *console_window, *windows;
 extern struct kmap_ext *kmap_exts;
 extern int kmap_extn;
 extern struct layer *flayer;

@@ -69,6 +69,6 @@ void glist_abort (void);
 
 void display_displays (void);
 
-void display_windows (int onblank, int order, struct win *group);
+void display_windows (int onblank, int order, Window *group);
 
 #endif /* SCREEN_LIST_GENERIC_H */

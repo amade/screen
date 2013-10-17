@@ -79,7 +79,7 @@ static int gl_Display_row(struct ListData *ldata, struct ListRow *lrow)
 	struct display *d = lrow->data;
 	char tbuf[80];
 	static char *blockstates[5] = { "nb", "NB", "Z<", "Z>", "BL" };
-	struct win *w = d->d_fore;
+	Window *w = d->d_fore;
 	struct mchar m_current = mchar_blank;
 	m_current.attr = A_BD;
 

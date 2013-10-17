@@ -60,7 +60,7 @@ static void ZombieProcess(char **, int *);
 static void win_readev_fn(struct event *, char *);
 static void win_writeev_fn(struct event *, char *);
 static void win_resurrect_zombie_fn (struct event *, char *);
-static int muchpending(struct win *, struct event *);
+static int muchpending(Window *, struct event *);
 static void paste_slowev_fn(struct event *, char *);
 static void pseu_readev_fn(struct event *, char *);
 static void pseu_writeev_fn(struct event *, char *);
@@ -68,9 +68,9 @@ static void win_silenceev_fn(struct event *, char *);
 static void win_destroyev_fn(struct event *, char *);
 
 static int OpenDevice(char **, int, int *, char **);
-static int ForkWindow(struct win *, char **, char *);
+static int ForkWindow(Window *, char **, char *);
 
-struct win **wtab;		/* window table */
+Window **wtab;		/* window table */
 
 int VerboseCreate = 0;		/* XXX move this to user.h */
 
@@ -205,7 +205,7 @@ static void WinProcess(char **bufpp, int *lenp)
 	int l2 = 0, f, *ilen, l = *lenp, trunc;
 	char *ibuf;
 
-	fore = (struct win *)flayer->l_data;
+	fore = (Window *)flayer->l_data;
 
 	if (fore->w_type == W_TYPE_GROUP) {
 		*bufpp += *lenp;
@@ -248,7 +248,7 @@ static void ZombieProcess(char **bufpp, int *lenp)
 	int l = *lenp;
 	char *buf = *bufpp, b1[10], b2[10];
 
-	fore = (struct win *)flayer->l_data;
+	fore = (Window *)flayer->l_data;
 
 	*bufpp += *lenp;
 	*lenp = 0;
@@ -272,7 +272,7 @@ static void WinRedisplayLine(int y, int from, int to, int isblank)
 {
 	if (y < 0)
 		return;
-	fore = (struct win *)flayer->l_data;
+	fore = (Window *)flayer->l_data;
 	if (from == 0 && y > 0 && fore->w_mlines[y - 1].image[fore->w_width] == 0)
 		LCDisplayLineWrap(&fore->w_layer, &fore->w_mlines[y], y, from, to, isblank);
 	else
@@ -281,13 +281,13 @@ static void WinRedisplayLine(int y, int from, int to, int isblank)
 
 static void WinClearLine(int y, int xs, int xe, int bce)
 {
-	fore = (struct win *)flayer->l_data;
+	fore = (Window *)flayer->l_data;
 	LClearLine(flayer, y, xs, xe, bce, &fore->w_mlines[y]);
 }
 
 static int WinResize(int wi, int he)
 {
-	fore = (struct win *)flayer->l_data;
+	fore = (Window *)flayer->l_data;
 	ChangeWindowSize(fore, wi, he, fore->w_histheight);
 	return 0;
 }
@@ -295,7 +295,7 @@ static int WinResize(int wi, int he)
 static void WinRestore()
 {
 	Canvas *cv;
-	fore = (struct win *)flayer->l_data;
+	fore = (Window *)flayer->l_data;
 	for (cv = flayer->l_cvlist; cv; cv = cv->c_next) {
 		display = cv->c_display;
 		if (cv != D_forecv)
@@ -321,7 +321,7 @@ static void WinRestore()
  *
  * returns 0 on success.
  */
-int DoStartLog(struct win *w, char *buf, int bufsize)
+int DoStartLog(Window *w, char *buf, int bufsize)
 {
 	int n;
 	if (!w || !buf)
@@ -350,7 +350,7 @@ int DoStartLog(struct win *w, char *buf, int bufsize)
  */
 int MakeWindow(struct NewWindow *newwin)
 {
-	register struct win **pp, *p;
+	register Window **pp, *p;
 	register int n, i;
 	int f = -1;
 	struct NewWindow nwin;
@@ -360,7 +360,7 @@ int MakeWindow(struct NewWindow *newwin)
 	if (!wtab) {
 		if (!maxwin)
 			maxwin = MAXWIN;
-		wtab = calloc(maxwin, sizeof(struct win *));
+		wtab = calloc(maxwin, sizeof(Window *));
 	}
 
 	nwin_compose(&nwin_default, newwin, &nwin);
@@ -395,7 +395,7 @@ int MakeWindow(struct NewWindow *newwin)
 	if (type == W_TYPE_GROUP)
 		f = -1;
 
-	if ((p = calloc(1, sizeof(struct win))) == 0) {
+	if ((p = calloc(1, sizeof(Window))) == 0) {
 		close(f);
 		Msg(0, "%s", strnomem);
 		return -1;
@@ -506,9 +506,9 @@ int MakeWindow(struct NewWindow *newwin)
 	if (type == W_TYPE_GROUP) {
 		SetForeWindow(p);
 		Activate(p->w_norefresh);
-		WindowChanged((struct win *)0, 'w');
-		WindowChanged((struct win *)0, 'W');
-		WindowChanged((struct win *)0, 0);
+		WindowChanged((Window *)0, 'w');
+		WindowChanged((Window *)0, 'W');
+		WindowChanged((Window *)0, 0);
 		return n;
 	}
 
@@ -566,9 +566,9 @@ int MakeWindow(struct NewWindow *newwin)
 
 	SetForeWindow(p);
 	Activate(p->w_norefresh);
-	WindowChanged((struct win *)0, 'w');
-	WindowChanged((struct win *)0, 'W');
-	WindowChanged((struct win *)0, 0);
+	WindowChanged((Window *)0, 'w');
+	WindowChanged((Window *)0, 'W');
+	WindowChanged((Window *)0, 0);
 	return n;
 }
 
@@ -578,7 +578,7 @@ int MakeWindow(struct NewWindow *newwin)
  * Note: The terminaltype defaults to screenterm again, the current
  * working directory is lost.
  */
-int RemakeWindow(struct win *p)
+int RemakeWindow(Window *p)
 {
 	char *TtyName;
 	int lflag, f;
@@ -629,7 +629,7 @@ int RemakeWindow(struct win *p)
 	return p->w_number;
 }
 
-void CloseDevice(struct win *wp)
+void CloseDevice(Window *wp)
 {
 	if (wp->w_ptyfd < 0)
 		return;
@@ -646,7 +646,7 @@ void CloseDevice(struct win *wp)
 	wp->w_readev.fd = wp->w_writeev.fd = -1;
 }
 
-void FreeWindow(struct win *wp)
+void FreeWindow(Window *wp)
 {
 	struct display *d;
 	int i;
@@ -669,7 +669,7 @@ void FreeWindow(struct win *wp)
 	ChangeWindowSize(wp, 0, 0, 0);
 
 	if (wp->w_type == W_TYPE_GROUP) {
-		struct win *win;
+		Window *win;
 		for (win = windows; win; win = win->w_next)
 			if (win->w_group == wp)
 				win->w_group = wp->w_group;
@@ -694,7 +694,7 @@ void FreeWindow(struct win *wp)
 					break;
 			if (!l)
 				continue;
-			if ((struct win *)l->l_data != wp)
+			if ((Window *)l->l_data != wp)
 				continue;
 			if (cv->c_layer == wp->w_savelayer)
 				wp->w_savelayer = 0;
@@ -820,12 +820,12 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 
 /*
  * Fields w_width, w_height, aflag, number (and w_tty)
- * are read from struct win *win. No fields written.
+ * are read from Window *win. No fields written.
  * If pwin is nonzero, filedescriptors are distributed
  * between win->w_tty and open(ttyn)
  *
  */
-static int ForkWindow(struct win *win, char **args, char *ttyn)
+static int ForkWindow(Window *win, char **args, char *ttyn)
 {
 	int pid;
 	char tebuf[25];
@@ -1056,7 +1056,7 @@ int winexec(char **av)
 	char **pp;
 	char *p, *s, *t;
 	int i, r = 0, l = 0;
-	struct win *w;
+	Window *w;
 	struct pseudowin *pwin;
 	int type;
 
@@ -1178,7 +1178,7 @@ int winexec(char **av)
 	return r;
 }
 
-void FreePseudowin(struct win *w)
+void FreePseudowin(Window *w)
 {
 	struct pseudowin *pwin = w->w_pwin;
 
@@ -1208,7 +1208,7 @@ void FreePseudowin(struct win *w)
 static void paste_slowev_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	struct paster *pa = (struct paster *)data;
-	struct win *p;
+	Window *p;
 
 	int l = 1;
 	flayer = pa->pa_pastelayer;
@@ -1225,7 +1225,7 @@ static void paste_slowev_fn(__attribute__((unused))struct event *ev, char *data)
 	}
 }
 
-static int muchpending(struct win *p, struct event *ev)
+static int muchpending(Window *p, struct event *ev)
 {
 	Canvas *cv;
 	for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
@@ -1257,7 +1257,7 @@ static int muchpending(struct win *p, struct event *ev)
 
 static void win_readev_fn(struct event *ev, char *data)
 {
-	struct win *p = (struct win *)data;
+	Window *p = (Window *)data;
 	char buf[IOSIZE], *bp;
 	int size, len;
 	int wtop;
@@ -1331,7 +1331,7 @@ static void win_readev_fn(struct event *ev, char *data)
 }
 
 static void win_resurrect_zombie_fn(__attribute__((unused))struct event *ev, char *data) {
-	struct win *p = (struct win *)data;
+	Window *p = (Window *)data;
 	/* Already reconnected? */
 	if (p->w_deadpid != p->w_pid)
 		return;
@@ -1341,8 +1341,8 @@ static void win_resurrect_zombie_fn(__attribute__((unused))struct event *ev, cha
 
 static void win_writeev_fn(struct event *ev, char *data)
 {
-	struct win *p = (struct win *)data;
-	struct win *win;
+	Window *p = (Window *)data;
+	Window *win;
 	int len;
 	if (p->w_inlen) {
 		if ((len = write(ev->fd, p->w_inbuf, p->w_inlen)) <= 0)
@@ -1369,7 +1369,7 @@ static void win_writeev_fn(struct event *ev, char *data)
 
 static void pseu_readev_fn(struct event *ev, char *data)
 {
-	struct win *p = (struct win *)data;
+	Window *p = (Window *)data;
 	char buf[IOSIZE];
 	int size, ptow, len;
 
@@ -1421,7 +1421,7 @@ static void pseu_readev_fn(struct event *ev, char *data)
 
 static void pseu_writeev_fn(struct event *ev, char *data)
 {
-	struct win *p = (struct win *)data;
+	Window *p = (Window *)data;
 	struct pseudowin *pw = p->w_pwin;
 	int len;
 
@@ -1435,7 +1435,7 @@ static void pseu_writeev_fn(struct event *ev, char *data)
 
 static void win_silenceev_fn(__attribute__((unused))struct event *ev, char *data)
 {
-	struct win *p = (struct win *)data;
+	Window *p = (Window *)data;
 	Canvas *cv;
 	for (display = displays; display; display = display->d_next) {
 		for (cv = D_cvlist; cv; cv = cv->c_next)
@@ -1451,13 +1451,13 @@ static void win_silenceev_fn(__attribute__((unused))struct event *ev, char *data
 
 static void win_destroyev_fn(struct event *ev, __attribute__((unused))char *data)
 {
-	struct win *p = (struct win *)ev->data;
+	Window *p = (Window *)ev->data;
 	WindowDied(p, p->w_exitstatus, 1);
 }
 
 int SwapWindows(int old, int dest)
 {
-	struct win *p, *win_old;
+	Window *p, *win_old;
 
 	if (dest < 0 || dest >= maxwin) {
 		Msg(0, "Given window position is invalid.");
@@ -1485,8 +1485,8 @@ int SwapWindows(int old, int dest)
 #endif
 
 	WindowChanged(win_old, 'n');
-	WindowChanged((struct win *)0, 'w');
-	WindowChanged((struct win *)0, 'W');
-	WindowChanged((struct win *)0, 0);
+	WindowChanged((Window *)0, 'w');
+	WindowChanged((Window *)0, 'W');
+	WindowChanged((Window *)0, 0);
 	return 1;
 }

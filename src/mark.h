@@ -31,7 +31,7 @@
 #define SCREEN_MARK_H
 
 struct markdata {
-	struct win *md_window;/* pointer to window we are working on */
+	Window *md_window;/* pointer to window we are working on */
 	struct acluser *md_user;	/* The user who brought us up */
 	int	cx, cy;		/* cursor Position in WIN coords*/
 	int	x1, y1;		/* first mark in WIN coords */

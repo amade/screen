@@ -42,7 +42,8 @@ struct _Vievport;
 typedef struct _Viewport Viewport;
 struct _Canvas;
 typedef struct _Canvas Canvas;
-struct win;
+struct _Window;
+typedef struct _Window Window;
 
 typedef struct _Canvas {
 	Canvas   *c_next;		/* next canvas on display */
@@ -68,7 +69,7 @@ typedef struct _Canvas {
 	struct event     c_captev;	/* caption changed event */
 } Canvas;
 
-void  SetCanvasWindow (Canvas *, struct win *);
+void  SetCanvasWindow (Canvas *, Window *);
 void  SetForeCanvas (struct display *, Canvas *);
 Canvas *FindCanvas (int, int);
 int   MakeDefaultCanvas (void);

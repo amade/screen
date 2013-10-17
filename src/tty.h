@@ -7,7 +7,7 @@ void  GetTTY (int, struct mode *);
 void  SetTTY (int, struct mode *);
 void  SetMode (struct mode *, struct mode *, int, int);
 void  SetFlow (int);
-void  SendBreak (struct win *, int, int);
+void  SendBreak (Window *, int, int);
 int   TtyGrabConsole (int, int, char *);
 char *TtyGetModemStatus (int, char *);
 int   fgtty (int);

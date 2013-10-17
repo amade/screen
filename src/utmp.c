@@ -63,7 +63,7 @@
 static slot_t TtyNameSlot(char *);
 static void makeuser(struct utmp *, char *, char *, int);
 static void makedead(struct utmp *);
-static int pututslot(slot_t, struct utmp *, char *, struct win *);
+static int pututslot(slot_t, struct utmp *, char *, Window *);
 static struct utmp *getutslot(slot_t);
 #ifndef GETUTENT
 static struct utmp *getutent(void);
@@ -175,7 +175,7 @@ void SlotToggle(int how)
  */
 void CarefulUtmp()
 {
-	struct win *p;
+	Window *p;
 
 	if (!windows)		/* hopeless */
 		return;
@@ -253,7 +253,7 @@ void RemoveLoginSlot()
 			D_utmp_logintty = *uu;
 			u = *uu;
 			makedead(&u);
-			if (pututslot(D_loginslot, &u, (char *)0, (struct win *)0) == 0)
+			if (pututslot(D_loginslot, &u, (char *)0, (Window *)0) == 0)
 				D_loginslot = 0;
 		}
 		UT_CLOSE;
@@ -279,7 +279,7 @@ void RestoreLoginSlot()
 	char *tty;
 
 	if (utmpok && D_loginslot != (slot_t) 0 && D_loginslot != (slot_t) - 1) {
-		if (pututslot(D_loginslot, &D_utmp_logintty, D_loginhost, (struct win *)0) == 0)
+		if (pututslot(D_loginslot, &D_utmp_logintty, D_loginhost, (Window *)0) == 0)
 			Msg(errno, "Could not write %s", UtmpName);
 	}
 	UT_CLOSE;
@@ -297,7 +297,7 @@ void RestoreLoginSlot()
  * A saved utmp entry in wi->w_savut serves as a template, usually.
  */
 
-int SetUtmp(struct win *win)
+int SetUtmp(Window *win)
 {
 	register slot_t slot;
 	struct utmp u;
@@ -375,7 +375,7 @@ int SetUtmp(struct win *win)
  * else not changed.
  */
 
-int RemoveUtmp(struct win *win)
+int RemoveUtmp(Window *win)
 {
 	struct utmp u, *uu;
 	slot_t slot;
@@ -423,7 +423,7 @@ static struct utmp *getutslot(slot_t slot)
 	return getutline(&u);
 }
 
-static int pututslot(__attribute__((unused))slot_t slot, struct utmp *u, __attribute__((unused))char *host, __attribute__((unused))struct win *win)
+static int pututslot(__attribute__((unused))slot_t slot, struct utmp *u, __attribute__((unused))char *host, __attribute__((unused))Window *win)
 {
 	setutent();
 	return pututline(u) != 0;
@@ -507,7 +507,7 @@ static struct utmp *getutslot(slot_t slot)
 	return &uent;
 }
 
-static int pututslot(slot_t slot, struct utmp *u, char *host, struct win *win)
+static int pututslot(slot_t slot, struct utmp *u, char *host, Window *win)
 {
 	if (utmpfd < 0 && !initutmp())
 		return 0;

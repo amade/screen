@@ -648,7 +648,7 @@ int InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
 	char *data;
 	struct layer *newlay;
 	Canvas *cv, *cvp, **cvpp;
-	struct win *p;
+	Window *p;
 
 	cv = 0;
 	if (display && D_forecv->c_layer == flayer)
@@ -716,7 +716,7 @@ int InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
 void ExitOverlayPage()
 {
 	struct layer *oldlay;
-	struct win *p;
+	Window *p;
 	int doredisplay = 0;
 	Canvas *cv, *ocv;
 	struct layout *lay;
@@ -797,7 +797,7 @@ void LayPause(struct layer *layer, int pause)
 {
 	Canvas *cv;
 	int line;
-	struct win *win;
+	Window *win;
 
 	pause = ! !pause;
 
