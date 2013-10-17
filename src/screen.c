@@ -134,7 +134,7 @@ int cjkwidth;
 
 int maxwin;
 
-struct layer *flayer;
+Layer *flayer;
 Window *fore;
 Window *windows;
 Window *console_window;

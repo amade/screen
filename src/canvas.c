@@ -205,7 +205,7 @@ Canvas *FindCanvas(int x, int y)
 void SetCanvasWindow(Canvas *cv, Window *win)
 {
 	Window *p = 0, **pp;
-	struct layer *l;
+	Layer *l;
 	Canvas *cvp, **cvpp;
 
 	l = cv->c_layer;
@@ -261,7 +261,7 @@ void SetCanvasWindow(Canvas *cv, Window *win)
 	if (win && win->w_type == W_TYPE_GROUP) {
 		/* auto-start windowlist on groups */
 		struct display *d = display;
-		struct layer *oldflayer = flayer;
+		Layer *oldflayer = flayer;
 		flayer = l;
 		display_windows(0, 0, win);
 		flayer = oldflayer;

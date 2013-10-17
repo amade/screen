@@ -149,7 +149,7 @@ void ChangeScreenSize(int wi, int he, int change_fore)
 void ResizeLayersToCanvases()
 {
 	Canvas *cv;
-	struct layer *l;
+	Layer *l;
 	int lx, ly;
 
 	D_kaablamm = 0;
@@ -199,7 +199,7 @@ void ResizeLayersToCanvases()
 	}
 }
 
-int MayResizeLayer(struct layer *l)
+int MayResizeLayer(Layer *l)
 {
 	int cvs = 0;
 	for (; l; l = l->l_next) {
@@ -226,7 +226,7 @@ static void kaablamm()
 /* Kills non-resizable layers. */
 #define RESIZE_OR_KILL_LAYERS(l, wi, he) \
   {	\
-    struct layer *_last = NULL;	\
+    Layer *_last = NULL;	\
     flayer = (l);	\
     while (flayer->l_next)	\
       {	\
@@ -251,11 +251,11 @@ static void kaablamm()
     LayResize(wi, he);	\
   }
 
-void ResizeLayer(struct layer *l, int wi, int he, struct display *norefdisp)
+void ResizeLayer(Layer *l, int wi, int he, struct display *norefdisp)
 {
 	Window *p;
 	Canvas *cv;
-	struct layer *oldflayer = flayer;
+	Layer *oldflayer = flayer;
 	struct display *d, *olddisplay = display;
 
 	if (l->l_width == wi && l->l_height == he)

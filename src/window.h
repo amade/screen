@@ -130,8 +130,8 @@ struct paster {
 typedef struct _Window {
 	Window *w_next;		/* next window */
 	int	w_type;			/* type of window */
-	struct layer w_layer;		/* our layer */
-	struct layer *w_savelayer;	/* the layer to keep */
+	Layer w_layer;		/* our layer */
+	Layer *w_savelayer;	/* the layer to keep */
 	int	w_blocked;		/* block input */
 	struct pseudowin *w_pwin;	/* ptr to pseudo */
 	struct display *w_pdisplay;	/* display for printer relay */

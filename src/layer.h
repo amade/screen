@@ -50,7 +50,7 @@ struct LayFuncs {
 						   flayer->l_data (but not flayer->l_data itself). */
 };
 
-struct layer {
+typedef struct _Layer {
 	Canvas *l_cvlist;	/* list of canvases displaying layer */
 	int	l_width;
 	int	l_height;
@@ -60,8 +60,8 @@ struct layer {
 	struct LayFuncs *l_layfn;
 	void	*l_data;
 
-	struct layer *l_next;	/* layer stack, should be in data? */
-	struct layer *l_bottom;	/* bottom element of layer stack */
+	Layer	*l_next;	/* layer stack, should be in data? */
+	Layer	*l_bottom;	/* bottom element of layer stack */
 	int	 l_blocking;
 	int	 l_mode;	/* non-zero == edit mode */
 
@@ -82,7 +82,7 @@ struct layer {
 		int top, bottom;
 		int lines;
 	} l_pause;
-};
+} Layer;
 
 #define LayProcess		(*flayer->l_layfn->lf_LayProcess)
 #define LayAbort		(*flayer->l_layfn->lf_LayAbort)
@@ -99,7 +99,7 @@ struct layer {
 
 #define LAY_CALL_UP(fn)					\
 	{ 						\
-	  struct layer *oldlay = flayer; 		\
+	  Layer *oldlay = flayer; 		\
 	  Canvas *oldcvlist, *cv;		\
 	  flayer = flayer->l_next;			\
 	  oldcvlist = flayer->l_cvlist;			\
@@ -136,7 +136,7 @@ struct layer {
  * @param layer The layer that should be (un)paused.
  * @param pause Should we pause the layer?
  */
-void LayPause (struct layer *layer, int pause);
+void LayPause (Layer *layer, int pause);
 
 /**
  * Update the region to refresh after a layer is unpaused.
@@ -147,42 +147,42 @@ void LayPause (struct layer *layer, int pause);
  * @param ys	The top-end of the region.
  * @param ye	The bottom-end of the region.
  */
-void LayPauseUpdateRegion (struct layer *layer, int xs, int xe, int ys, int ye);
+void LayPauseUpdateRegion (Layer *layer, int xs, int xe, int ys, int ye);
 
 /**
  * Free any internal memory for the layer.
  *
  * @param layer The layer.
  */
-void LayerCleanupMemory (struct layer *layer);
+void LayerCleanupMemory (Layer *layer);
 
-void  LGotoPos (struct layer *, int, int);
-void  LPutChar (struct layer *, struct mchar *, int, int);
-void  LInsChar (struct layer *, struct mchar *, int, int, struct mline *);
-void  LPutStr (struct layer *, char *, int, struct mchar *, int, int);
-void  LPutWinMsg (struct layer *, char *, int, struct mchar *, int, int);
-void  LScrollH (struct layer *, int, int, int, int, int, struct mline *);
-void  LScrollV (struct layer *, int, int, int, int);
-void  LClearAll (struct layer *, int);
-void  LClearArea (struct layer *, int, int, int, int, int, int);
-void  LClearLine (struct layer *, int, int, int, int, struct mline *);
-void  LRefreshAll (struct layer *, int);
-void  LCDisplayLine (struct layer *, struct mline *, int, int, int, int);
-void  LCDisplayLineWrap (struct layer *, struct mline *, int, int, int, int);
-void  LSetRendition (struct layer *, struct mchar *);
-void  LWrapChar  (struct layer *, struct mchar *, int, int, int, int);
-void  LCursorVisibility (struct layer *, int);
-void  LSetFlow (struct layer *, int);
-void  LKeypadMode (struct layer *, int);
-void  LCursorkeysMode (struct layer *, int);
-void  LMouseMode (struct layer *, int);
-void  LBracketedPasteMode (struct layer *, int);
-void  LCursorStyle (struct layer *, int);
+void  LGotoPos (Layer *, int, int);
+void  LPutChar (Layer *, struct mchar *, int, int);
+void  LInsChar (Layer *, struct mchar *, int, int, struct mline *);
+void  LPutStr (Layer *, char *, int, struct mchar *, int, int);
+void  LPutWinMsg (Layer *, char *, int, struct mchar *, int, int);
+void  LScrollH (Layer *, int, int, int, int, int, struct mline *);
+void  LScrollV (Layer *, int, int, int, int);
+void  LClearAll (Layer *, int);
+void  LClearArea (Layer *, int, int, int, int, int, int);
+void  LClearLine (Layer *, int, int, int, int, struct mline *);
+void  LRefreshAll (Layer *, int);
+void  LCDisplayLine (Layer *, struct mline *, int, int, int, int);
+void  LCDisplayLineWrap (Layer *, struct mline *, int, int, int, int);
+void  LSetRendition (Layer *, struct mchar *);
+void  LWrapChar  (Layer *, struct mchar *, int, int, int, int);
+void  LCursorVisibility (Layer *, int);
+void  LSetFlow (Layer *, int);
+void  LKeypadMode (Layer *, int);
+void  LCursorkeysMode (Layer *, int);
+void  LMouseMode (Layer *, int);
+void  LBracketedPasteMode (Layer *, int);
+void  LCursorStyle (Layer *, int);
 void  LMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
-void  KillLayerChain (struct layer *);
+void  KillLayerChain (Layer *);
 int   InitOverlayPage (int, struct LayFuncs *, int);
 void  ExitOverlayPage (void);
-int   LayProcessMouse (struct layer *, unsigned char);
-void  LayProcessMouseSwitch (struct layer *, int);
+int   LayProcessMouse (Layer *, unsigned char);
+void  LayProcessMouseSwitch (Layer *, int);
 
 #endif /* SCREEN_LAYER_H */

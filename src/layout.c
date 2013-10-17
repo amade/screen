@@ -281,7 +281,7 @@ void UpdateLayoutCanvas(Canvas *cv, Window *wi)
 	for (; cv; cv = cv->c_slnext) {
 		if (cv->c_layer && Layer2Window(cv->c_layer) == wi) {
 			/* A simplistic version of SetCanvasWindow(cv, 0) */
-			struct layer *l = cv->c_layer;
+			Layer *l = cv->c_layer;
 			cv->c_layer = 0;
 			if (l->l_cvlist == 0 && (wi == 0 || l != wi->w_savelayer))
 				KillLayerChain(l);

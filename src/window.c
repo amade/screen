@@ -651,7 +651,7 @@ void FreeWindow(Window *wp)
 	struct display *d;
 	int i;
 	Canvas *cv, *ncv;
-	struct layer *l;
+	Layer *l;
 
 	if (wp->w_pwin)
 		FreePseudowin(wp);
