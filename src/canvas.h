@@ -30,20 +30,14 @@
 #ifndef SCREEN_CANVAS_H
 #define SCREEN_CANVAS_H
 
+#include "fwddecl.h"
+
 #define SLICE_UNKN 0
 #define SLICE_VERT (1 << 0)
 #define SLICE_HORI (1 << 1)
 
 #define SLICE_THIS (1 << 2)	/* used in equal test */
 #define SLICE_GLOBAL (1 << 3)
-
-/* forward declarations */
-struct _Vievport;
-typedef struct _Viewport Viewport;
-struct _Canvas;
-typedef struct _Canvas Canvas;
-struct _Window;
-typedef struct _Window Window;
 
 typedef struct _Canvas {
 	Canvas   *c_next;		/* next canvas on display */
