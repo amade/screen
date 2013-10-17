@@ -29,10 +29,6 @@
 
 #include <stdbool.h>
 
-/* forward declarations */
-struct _Window;
-typedef struct _Window Window;
-
 /*
  * GLOBAL VARIABLES
  */

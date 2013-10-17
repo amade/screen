@@ -33,6 +33,8 @@
 #ifndef SCREEN_WINDOW_H
 #define SCREEN_WINDOW_H
 
+#include "fwddecl.h"
+
 /* keep this in sync with the initialisations in window.c */
 struct NewWindow {
 	int	StartAt;	/* where to start the search for the slot */
@@ -125,7 +127,7 @@ struct paster {
 	struct	event pa_slowev;	/* slowpaste event */
 };
 
-typedef struct _Window {
+typedef struct Window {
 	Window *w_next;			/* next window */
 	int	w_type;			/* type of window */
 	struct layer w_layer;		/* our layer */
@@ -259,7 +261,7 @@ typedef struct _Window {
 	struct event w_destroyev;	/* window destroy event */
 	int w_exitstatus;
 	int w_miflag;
-} Window;
+};
 
 
 #define w_encoding   w_layer.l_encoding

@@ -38,8 +38,6 @@
 /* forward declarations */
 struct mchar;
 struct mline;
-struct _Canvas;
-typedef struct _Canvas Canvas;
 
 struct LayFuncs {
 	void	(*lf_LayProcess) (char **, int *);
