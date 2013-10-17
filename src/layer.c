@@ -73,7 +73,7 @@ static struct mline *mloff(struct mline *ml, int off)
 void LGotoPos(struct layer *l, int x, int y)
 {
 	struct canvas *cv;
-	struct viewport *vp;
+	Viewport *vp;
 	int x2, y2;
 
 	if (l->l_pause.d)
@@ -99,7 +99,7 @@ void LGotoPos(struct layer *l, int x, int y)
 void LScrollH(struct layer *l, int n, int y, int xs, int xe, int bce, struct mline *ol)
 {
 	struct canvas *cv;
-	struct viewport *vp;
+	Viewport *vp;
 	int y2, xs2, xe2;
 
 	if (n == 0)
@@ -130,7 +130,7 @@ void LScrollH(struct layer *l, int n, int y, int xs, int xe, int bce, struct mli
 void LScrollV(struct layer *l, int n, int ys, int ye, int bce)
 {
 	struct canvas *cv;
-	struct viewport *vp;
+	Viewport *vp;
 	int ys2, ye2, xs2, xe2;
 	if (n == 0)
 		return;
@@ -163,7 +163,7 @@ void LScrollV(struct layer *l, int n, int ys, int ye, int bce)
 void LInsChar(struct layer *l, struct mchar *c, int x, int y, struct mline *ol)
 {
 	struct canvas *cv;
-	struct viewport *vp;
+	Viewport *vp;
 	int xs2, xe2, y2, f;
 	struct mchar *c2, cc;
 	struct mline *rol;
@@ -194,7 +194,7 @@ void LInsChar(struct layer *l, struct mchar *c, int x, int y, struct mline *ol)
 void LPutChar(struct layer *l, struct mchar *c, int x, int y)
 {
 	struct canvas *cv;
-	struct viewport *vp;
+	Viewport *vp;
 	int x2, y2;
 
 	if (l->l_pause.d)
@@ -214,7 +214,7 @@ void LPutChar(struct layer *l, struct mchar *c, int x, int y)
 void LPutStr(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 {
 	struct canvas *cv;
-	struct viewport *vp;
+	Viewport *vp;
 	char *s2;
 	int xs2, xe2, y2;
 
@@ -246,7 +246,7 @@ void LPutStr(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 void LPutWinMsg(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 {
 	struct canvas *cv;
-	struct viewport *vp;
+	Viewport *vp;
 	int xs2, xe2, y2, len, len2;
 	struct mchar or;
 
@@ -276,7 +276,7 @@ void LPutWinMsg(struct layer *l, char *s, int n, struct mchar *r, int x, int y)
 void LClearLine(struct layer *l, int y, int xs, int xe, int bce, struct mline *ol)
 {
 	struct canvas *cv;
-	struct viewport *vp;
+	Viewport *vp;
 	int y2, xs2, xe2;
 
 	/* check for magic margin condition */
@@ -302,7 +302,7 @@ void LClearLine(struct layer *l, int y, int xs, int xe, int bce, struct mline *o
 void LClearArea(struct layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
 {
 	struct canvas *cv;
-	struct viewport *vp;
+	Viewport *vp;
 	int xs2, ys2, xe2, ye2;
 	/* Check for zero-height window */
 	if (ys < 0 || ye < ys)
@@ -344,7 +344,7 @@ void LClearArea(struct layer *l, int xs, int ys, int xe, int ye, int bce, int us
 void LCDisplayLine(struct layer *l, struct mline *ml, int y, int xs, int xe, int isblank)
 {
 	struct canvas *cv;
-	struct viewport *vp;
+	Viewport *vp;
 	int xs2, xe2, y2;
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, xs, xe, y, y);
@@ -393,7 +393,7 @@ void LSetRendition(struct layer *l, struct mchar *r)
 void LWrapChar(struct layer *l, struct mchar *c, int y, int top, int bot, int ins)
 {
 	struct canvas *cv, *cvlist, *cvlnext;
-	struct viewport *vp, *evp, **vpp;
+	Viewport *vp, *evp, **vpp;
 	int yy, y2, yy2, top2, bot2;
 	int bce;
 
@@ -823,7 +823,7 @@ void LayPause(struct layer *layer, int pause)
 		win = NULL;
 
 	for (cv = layer->l_cvlist; cv; cv = cv->c_lnext) {
-		struct viewport *vp;
+		Viewport *vp;
 
 		if (!cv->c_slorient)
 			continue;	/* Wasn't split, so already updated. */

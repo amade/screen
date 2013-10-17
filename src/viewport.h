@@ -32,8 +32,8 @@
 
 #include "canvas.h"
 
-struct viewport {
-	struct viewport *v_next;	/* next vp on canvas */
+typedef struct _Viewport {
+	Viewport *v_next;	/* next vp on canvas */
 	struct canvas   *v_canvas;	/* back pointer to canvas */
 	int              v_xoff;	/* layer x offset on display */
 	int              v_yoff;	/* layer y offset on display */
@@ -41,7 +41,7 @@ struct viewport {
 	int              v_xe;	/* vp upper right */
 	int              v_ys;	/* vp lower left */
 	int              v_ye;	/* vp lower right */
-};
+} Viewport;
 
 int    RethinkDisplayViewports (void);
 void   RethinkViewportOffsets (struct canvas *);

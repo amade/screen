@@ -827,7 +827,7 @@ void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int usel
 {
 	int y, xxe;
 	struct canvas *cv;
-	struct viewport *vp;
+	Viewport *vp;
 
 	if (x1 == D_width)
 		x1--;
@@ -1719,7 +1719,7 @@ void RefreshArea(int xs, int ys, int xe, int ye, int isblank)
 
 void RefreshLine(int y, int from, int to, int isblank)
 {
-	struct viewport *vp, *lvp;
+	Viewport *vp, *lvp;
 	struct canvas *cv, *lcv, *cvlist, *cvlnext;
 	struct layer *oldflayer;
 	int xx, yy, l;
