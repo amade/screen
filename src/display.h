@@ -115,16 +115,16 @@ typedef struct Display {
 	int   d_status_obuflen;		/* saved obuflen */ 
 	int   d_status_obuffree;	/* saved obuffree */ 
 	int	d_status_obufpos;	/* end of status position in obuf */
-	struct event d_statusev;	/* timeout event */
-	struct event d_hstatusev;	/* hstatus changed event */
+	Event d_statusev;	/* timeout event */
+	Event d_hstatusev;	/* hstatus changed event */
 	int	d_kaablamm;		/* display kaablamm msg */
 	struct action *d_ESCseen;	/* Was the last char an ESC (^a) */
 	int	d_userpid;		/* pid of attacher */
 	char	d_usertty[MAXPATHLEN];	/* tty we are attached to */
 	int	d_userfd;		/* fd of the tty */
-	struct event d_readev;		/* userfd read event */
-	struct event d_writeev;		/* userfd write event */
-	struct event d_blockedev;	/* blocked timeout */
+	Event d_readev;		/* userfd read event */
+	Event d_writeev;		/* userfd write event */
+	Event d_blockedev;	/* blocked timeout */
 	struct mode d_OldMode;		/* tty mode when screen was started */
 	struct mode d_NewMode;		/* New tty mode */
 	int	d_flow;			/* tty's flow control on/off flag*/
@@ -142,7 +142,7 @@ typedef struct Display {
 	unsigned char *d_seqp;		/* pointer into keymap array */
 	int	d_seql;			/* number of parsed chars */
 	unsigned char *d_seqh;		/* last hit */
-	struct event d_mapev;		/* timeout event */
+	Event d_mapev;		/* timeout event */
 	int	d_dontmap;		/* do not map next */
 	int	d_mapdefault;		/* do map next to default */
 	union	tcu d_tcs[T_N];		/* terminal capabilities */
@@ -162,9 +162,9 @@ typedef struct Display {
 #endif
 	int   d_blocked;
 	int   d_blocked_fuzz;
-	struct event d_idleev;		/* screen blanker */
+	Event d_idleev;		/* screen blanker */
 	int   d_blankerpid;
-	struct event d_blankerev;
+	Event d_blankerev;
 };
 
 #define DISPLAY(x) display->x

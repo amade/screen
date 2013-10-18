@@ -293,7 +293,7 @@ void SetCanvasWindow(Canvas *cv, Window *win)
 }
 
 static void cv_winid_fn(ev, data)
-struct event *ev;
+Event *ev;
 char *data;
 {
 	int ox, oy;

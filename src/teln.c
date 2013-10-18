@@ -85,7 +85,7 @@ static unsigned char tn_init[] = {
 	TC_IAC, TC_WILL, TO_LFLOW,
 };
 
-static void tel_connev_fn(struct event *ev, char *data)
+static void tel_connev_fn(Event *ev, char *data)
 {
 	Window *p = (Window *)data;
 	if (connect(p->w_ptyfd, (struct sockaddr *)&p->w_telsa, sizeof(p->w_telsa)) && errno != EISCONN) {

@@ -66,8 +66,8 @@ struct pseudowin {
 	int	p_fdpat;
 	int	p_pid;
 	int	p_ptyfd;
-	struct	event p_readev;
-	struct	event p_writeev;
+	Event	p_readev;
+	Event	p_writeev;
 	char	p_cmd[MAXSTR];
 	char	p_tty[MAXSTR];
 	char	p_inbuf[IOSIZE];	/* buffered writing to p_ptyfd */
@@ -123,8 +123,8 @@ struct paster {
 	char	*pa_pastebuf;		/* this gets pasted in the window */
 	char	*pa_pasteptr;		/* pointer in pastebuf */
 	int	 pa_pastelen;		/* bytes left to paste */
-	struct	layer *pa_pastelayer;	/* layer to paste into */
-	struct	event pa_slowev;	/* slowpaste event */
+	Layer	*pa_pastelayer;	/* layer to paste into */
+	Event	pa_slowev;	/* slowpaste event */
 };
 
 typedef struct Window {
@@ -137,10 +137,10 @@ typedef struct Window {
 	Display *w_pdisplay;	/* display for printer relay */
 	Display *w_lastdisp;	/* where the last input was made */
 	int	 w_number;		/* window number */
-	struct event w_readev;
-	struct event w_writeev;
-	struct event w_silenceev;	/* silence event */
-	struct event w_zombieev;	/* event to try to resurrect window */
+	Event w_readev;
+	Event w_writeev;
+	Event w_silenceev;	/* silence event */
+	Event w_zombieev;	/* event to try to resurrect window */
 	int	 w_poll_zombie_timeout;
 	int	 w_ptyfd;		/* fd of the master pty */
 	char	 w_inbuf[IOSIZE];
@@ -245,7 +245,7 @@ typedef struct Window {
 	int    w_telstate;
 	char   w_telsubbuf[128];
 	int    w_telsubidx;
-	struct event w_telconnev;
+	Event w_telconnev;
 #endif
 	struct {
 		int    on;    /* Is the alternate buffer currently being used? */
@@ -258,7 +258,7 @@ typedef struct Window {
 		struct cursor cursor;
 	} w_alt;
 
-	struct event w_destroyev;	/* window destroy event */
+	Event w_destroyev;	/* window destroy event */
 	int w_exitstatus;
 	int w_miflag;
 };

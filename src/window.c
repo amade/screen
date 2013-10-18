@@ -57,15 +57,15 @@ static int WinResize(int, int);
 static void WinRestore(void);
 static int DoAutolf(char *, int *, int);
 static void ZombieProcess(char **, int *);
-static void win_readev_fn(struct event *, char *);
-static void win_writeev_fn(struct event *, char *);
-static void win_resurrect_zombie_fn(struct event *, char *);
-static int muchpending(Window *, struct event *);
-static void paste_slowev_fn(struct event *, char *);
-static void pseu_readev_fn(struct event *, char *);
-static void pseu_writeev_fn(struct event *, char *);
-static void win_silenceev_fn(struct event *, char *);
-static void win_destroyev_fn(struct event *, char *);
+static void win_readev_fn(Event *, char *);
+static void win_writeev_fn(Event *, char *);
+static void win_resurrect_zombie_fn(Event *, char *);
+static int muchpending(Window *, Event *);
+static void paste_slowev_fn(Event *, char *);
+static void pseu_readev_fn(Event *, char *);
+static void pseu_writeev_fn(Event *, char *);
+static void win_silenceev_fn(Event *, char *);
+static void win_destroyev_fn(Event *, char *);
 
 static int OpenDevice(char **, int, int *, char **);
 static int ForkWindow(Window *, char **, char *);
@@ -1329,7 +1329,7 @@ int ObtainAutoWritelock(Display *d, Window *w)
 
 /********************************************************************/
 
-static void paste_slowev_fn(__attribute__((unused))struct event *ev, char *data)
+static void paste_slowev_fn(__attribute__((unused))Event *ev, char *data)
 {
 	struct paster *pa = (struct paster *)data;
 	Window *p;
@@ -1349,7 +1349,7 @@ static void paste_slowev_fn(__attribute__((unused))struct event *ev, char *data)
 	}
 }
 
-static int muchpending(Window *p, struct event *ev)
+static int muchpending(Window *p, Event *ev)
 {
 	Canvas *cv;
 	for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
@@ -1379,7 +1379,7 @@ static int muchpending(Window *p, struct event *ev)
 	return 0;
 }
 
-static void win_readev_fn(struct event *ev, char *data)
+static void win_readev_fn(Event *ev, char *data)
 {
 	Window *p = (Window *)data;
 	char buf[IOSIZE], *bp;
@@ -1461,7 +1461,7 @@ static void win_readev_fn(struct event *ev, char *data)
 	return;
 }
 
-static void win_resurrect_zombie_fn(__attribute__((unused))struct event *ev, char *data) {
+static void win_resurrect_zombie_fn(__attribute__((unused))Event *ev, char *data) {
 	Window *p = (Window *)data;
 	/* Already reconnected? */
 	if (p->w_deadpid != p->w_pid)
@@ -1470,7 +1470,7 @@ static void win_resurrect_zombie_fn(__attribute__((unused))struct event *ev, cha
 	RemakeWindow(p);
 }
 
-static void win_writeev_fn(struct event *ev, char *data)
+static void win_writeev_fn(Event *ev, char *data)
 {
 	Window *p = (Window *)data;
 	Window *win;
@@ -1498,7 +1498,7 @@ static void win_writeev_fn(struct event *ev, char *data)
 	return;
 }
 
-static void pseu_readev_fn(struct event *ev, char *data)
+static void pseu_readev_fn(Event *ev, char *data)
 {
 	Window *p = (Window *)data;
 	char buf[IOSIZE];
@@ -1550,7 +1550,7 @@ static void pseu_readev_fn(struct event *ev, char *data)
 	return;
 }
 
-static void pseu_writeev_fn(struct event *ev, char *data)
+static void pseu_writeev_fn(Event *ev, char *data)
 {
 	Window *p = (Window *)data;
 	struct pseudowin *pw = p->w_pwin;
@@ -1564,7 +1564,7 @@ static void pseu_writeev_fn(struct event *ev, char *data)
 		memmove(p->w_pwin->p_inbuf, p->w_pwin->p_inbuf + len, p->w_pwin->p_inlen);
 }
 
-static void win_silenceev_fn(__attribute__((unused))struct event *ev, char *data)
+static void win_silenceev_fn(__attribute__((unused))Event *ev, char *data)
 {
 	Window *p = (Window *)data;
 	Canvas *cv;
@@ -1582,7 +1582,7 @@ static void win_silenceev_fn(__attribute__((unused))struct event *ev, char *data
 	}
 }
 
-static void win_destroyev_fn(struct event *ev, __attribute__((unused))char *data)
+static void win_destroyev_fn(Event *ev, __attribute__((unused))char *data)
 {
 	Window *p = (Window *)ev->data;
 	WindowDied(p, p->w_exitstatus, 1);

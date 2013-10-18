@@ -173,8 +173,8 @@ extern struct mchar mchar_so;
 extern struct mchar mchar_blank;
 extern struct mchar mchar_null;
 extern struct comm comms[];
-extern struct event logflushev;
-extern struct event serv_read;
+extern Event logflushev;
+extern Event serv_read;
 extern struct mode attach_Mode;
 extern struct passwd *ppp;
 

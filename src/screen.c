@@ -65,11 +65,11 @@ static void SigInt(int);
 static void CoreDump(int);
 static void FinitHandler(int);
 static void DoWait(void);
-static void serv_read_fn(struct event *, char *);
-static void serv_select_fn(struct event *, char *);
-static void logflush_fn(struct event *, char *);
+static void serv_read_fn(Event *, char *);
+static void serv_select_fn(Event *, char *);
+static void logflush_fn(Event *, char *);
 static void backtick_filter(struct backtick *);
-static void backtick_fn(struct event *, char *);
+static void backtick_fn(Event *, char *);
 static char *runbacktick(struct backtick *, int *, time_t);
 static int IsSymbol(char *, char *);
 static char *ParseChar(char *, char *);
@@ -90,9 +90,9 @@ char SocketPath[MAXPATHLEN + 2 * MAXSTR];
 char *SocketName;			/* SocketName is pointer in SocketPath */
 char *SocketMatch = NULL;		/* session id command line argument */
 int ServerSocket = -1;
-struct event serv_read;
-struct event serv_select;
-struct event logflushev;
+Event serv_read;
+Event serv_select;
+Event logflushev;
 
 char **NewEnv = NULL;
 
@@ -1619,7 +1619,7 @@ struct backtick {
 	time_t bestbefore;
 	char result[MAXSTR];
 	char **cmdv;
-	struct event ev;
+	Event ev;
 	char *buf;
 	int bufi;
 };
@@ -1640,7 +1640,7 @@ static void backtick_filter(struct backtick *bt)
 	*q = 0;
 }
 
-static void backtick_fn(struct event *ev, char *data)
+static void backtick_fn(Event *ev, char *data)
 {
 	struct backtick *bt;
 	int i, j, k, l;
@@ -1811,7 +1811,7 @@ int AddWinMsgRend(const char *str, uint64_t r)
 	return 0;
 }
 
-char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, struct event *ev, int rec)
+char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int rec)
 {
 	static int tick;
 	char *s = str;
@@ -1945,7 +1945,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, struct event *ev
 				strncpy(savebuf, winmsg_buf, sizeof(winmsg_buf));
 				winmsg_numrend = -winmsg_numrend;
 				MakeWinMsgEv(*s == 'h' ? win->w_hstatus : runbacktick(bt, &oldtick, now.tv_sec), win,
-					     '\005', 0, (struct event *)0, rec + 1);
+					     '\005', 0, (Event *)0, rec + 1);
 				if (!tick || oldtick < tick)
 					tick = oldtick;
 				if ((int)strlen(winmsg_buf) < l)
@@ -2234,7 +2234,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, struct event *ev
 
 char *MakeWinMsg(char *s, Window *win, int esc)
 {
-	return MakeWinMsgEv(s, win, esc, 0, (struct event *)0, 0);
+	return MakeWinMsgEv(s, win, esc, 0, (Event *)0, 0);
 }
 
 void PutWinMsg(char *s, int start, int max)
@@ -2298,12 +2298,12 @@ void PutWinMsg(char *s, int start, int max)
 	}
 }
 
-static void serv_read_fn(__attribute__((unused))struct event *ev, __attribute__((unused))char *data)
+static void serv_read_fn(__attribute__((unused))Event *ev, __attribute__((unused))char *data)
 {
 	ReceiveMsg();
 }
 
-static void serv_select_fn(__attribute__((unused))struct event *ev, __attribute__((unused))char *data)
+static void serv_select_fn(__attribute__((unused))Event *ev, __attribute__((unused))char *data)
 {
 	Window *p;
 
@@ -2455,7 +2455,7 @@ static void serv_select_fn(__attribute__((unused))struct event *ev, __attribute_
 	}
 }
 
-static void logflush_fn(__attribute__((unused))struct event *ev, __attribute__((unused))char *data)
+static void logflush_fn(__attribute__((unused))Event *ev, __attribute__((unused))char *data)
 {
 	Window *p;
 	char *buf;

@@ -186,7 +186,7 @@ static int gl_Window_header(struct ListData *ldata)
 	}
 
 	display = 0;
-	str = MakeWinMsgEv(wlisttit, (Window *)0, '%', flayer->l_width, (struct event *)0, 0);
+	str = MakeWinMsgEv(wlisttit, (Window *)0, '%', flayer->l_width, (Event *)0, 0);
 
 	LPutWinMsg(flayer, str, strlen(str), &mchar_blank, 0, g);
 	return 2 + g;
