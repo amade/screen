@@ -4571,7 +4571,7 @@ void DoAction(struct action *act, int key)
 					layout_attach = layout_attach->lay_next ? layout_attach->lay_next : layouts;;
 				break;
 			}
-			struct layout *lay = D_layout;
+			Layout *lay = D_layout;
 			if (lay)
 				lay = lay->lay_next ? lay->lay_next : layouts;
 			else
@@ -4585,8 +4585,8 @@ void DoAction(struct action *act, int key)
 			LoadLayout(lay);
 			Activate(-1);
 		} else if (!strcmp(args[0], "prev")) {
-			struct layout *lay = display ? D_layout : layout_attach;
-			struct layout *target = lay;
+			Layout *lay = display ? D_layout : layout_attach;
+			Layout *target = lay;
 			if (lay) {
 				for (lay = layouts; lay->lay_next && lay->lay_next != target; lay = lay->lay_next) ;
 			} else
@@ -4621,7 +4621,7 @@ void DoAction(struct action *act, int key)
 			else if (!args[1][0])
 				layout_attach = 0;
 			else {
-				struct layout *lay;
+				Layout *lay;
 				lay = FindLayout(args[1]);
 				if (!lay) {
 					OutputMsg(0, "unknown layout '%s'", args[1]);
@@ -4632,9 +4632,9 @@ void DoAction(struct action *act, int key)
 		} else if (!strcmp(args[0], "show")) {
 			ShowLayouts(-1);
 		} else if (!strcmp(args[0], "remove")) {
-			struct layout *lay = display ? D_layout : layouts;
+			Layout *lay = display ? D_layout : layouts;
 			if (args[1]) {
-				lay = layouts ? FindLayout(args[1]) : (struct layout *)0;
+				lay = layouts ? FindLayout(args[1]) : (Layout *)0;
 				if (!lay) {
 					OutputMsg(0, "unknown layout '%s'", args[1]);
 					break;
@@ -5345,7 +5345,7 @@ void KillWindow(Window *win)
 	Window **pp, *p;
 	Canvas *cv;
 	int gotone;
-	struct layout *lay;
+	Layout *lay;
 
 	/*
 	 * Remove window from linked list.
@@ -5817,12 +5817,12 @@ static void SelectFin(char *buf, int len, __attribute__((unused))char *data)
 
 static void SelectLayoutFin(char *buf, int len, __attribute__((unused))char *data)
 {
-	struct layout *lay;
+	Layout *lay;
 
 	if (!len || !display)
 		return;
 	if (len == 1 && *buf == '-') {
-		LoadLayout((struct layout *)0);
+		LoadLayout((Layout *)0);
 		Activate(0);
 		return;
 	}

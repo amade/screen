@@ -11,6 +11,8 @@ typedef struct Event Event;
 
 typedef struct Layer Layer;
 
+typedef struct Layout Layout;
+
 typedef struct Viewport Viewport;
 
 typedef struct Window Window;

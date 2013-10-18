@@ -68,7 +68,7 @@ struct Display {
 	Canvas d_canvas;		/* our canvas slice */
 	Canvas *d_cvlist;		/* the canvases of this display */
 	Canvas *d_forecv;		/* current input focus */
-	struct layout *d_layout;	/* layout we're using */
+	Layout *d_layout;	/* layout we're using */
 	void (*d_processinput) (char *, int);
 	char *d_processinputdata;	/* data for processinput */
 	int d_vpxmin, d_vpxmax;		/* min/max used position on display */

@@ -34,8 +34,8 @@
 
 #define MAXLAY 10
 
-struct layout {
-	struct layout   *lay_next;
+struct Layout {
+	Layout   *lay_next;
 	char            *lay_title;
 	int              lay_number;
 	Canvas           lay_canvas;
@@ -45,19 +45,19 @@ struct layout {
 };
 
 void  FreeLayoutCv(Canvas *c);
-struct layout *CreateLayout(char *, int);
-void  AutosaveLayout (struct layout *);
-void  LoadLayout (struct layout *);
+Layout *CreateLayout(char *, int);
+void  AutosaveLayout (Layout *);
+void  LoadLayout (Layout *);
 void  NewLayout (char *, int);
 void  SaveLayout (char *, Canvas *);
 void  ShowLayouts (int);
-struct layout *FindLayout (char *);
+Layout *FindLayout (char *);
 void  UpdateLayoutCanvas (Canvas *, Window *);
 
-void RenameLayout (struct layout *, const char *);
-int RenumberLayout (struct layout *, int);
+void RenameLayout (Layout *, const char *);
+int RenumberLayout (Layout *, int);
 
-void  RemoveLayout (struct layout *);
+void  RemoveLayout (Layout *);
 int   LayoutDumpCanvas (Canvas *, char *);
 
 #endif /* SCREEN_LAYOUT_H */

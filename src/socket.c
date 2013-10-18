@@ -909,7 +909,7 @@ static void FinishAttach(struct msg *m)
 
 	D_fore = NULL;
 	if (layout_attach) {
-		struct layout *lay = layout_attach;
+		Layout *lay = layout_attach;
 		if (lay == &layout_last_marker)
 			lay = layout_last;
 		if (lay) {

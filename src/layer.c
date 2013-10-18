@@ -720,7 +720,7 @@ void ExitOverlayPage()
 	Window *p;
 	int doredisplay = 0;
 	Canvas *cv, *ocv;
-	struct layout *lay;
+	Layout *lay;
 
 	oldlay = flayer;
 	if (oldlay->l_data) {
