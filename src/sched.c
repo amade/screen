@@ -34,16 +34,16 @@
 #include "screen.h"
 #include "extern.h"
 
-static struct event *evs;
-static struct event *tevs;
-static struct event *nextev;
+static Event *evs;
+static Event *tevs;
+static Event *nextev;
 static int calctimeout;
 
-static struct event *calctimo(void);
+static Event *calctimo(void);
 
-void evenq(struct event *ev)
+void evenq(Event *ev)
 {
-	struct event *evp, **evpp;
+	Event *evp, **evpp;
 	if (ev->queued)
 		return;
 	evpp = &evs;
@@ -59,9 +59,9 @@ void evenq(struct event *ev)
 	ev->queued = 1;
 }
 
-void evdeq(struct event *ev)
+void evdeq(Event *ev)
 {
-	struct event *evp, **evpp;
+	Event *evp, **evpp;
 	if (!ev->queued)
 		return;
 	evpp = &evs;
@@ -78,9 +78,9 @@ void evdeq(struct event *ev)
 		nextev = nextev->next;
 }
 
-static struct event *calctimo()
+static Event *calctimo()
 {
-	struct event *ev, *min;
+	Event *ev, *min;
 	long mins;
 
 	if ((min = tevs) == 0)
@@ -99,9 +99,9 @@ static struct event *calctimo()
 
 void sched()
 {
-	struct event *ev;
+	Event *ev;
 	fd_set r, w, *set;
-	struct event *timeoutev = 0;
+	Event *timeoutev = 0;
 	struct timeval timeout;
 	int nsel;
 
@@ -169,7 +169,7 @@ void sched()
 	}
 }
 
-void SetTimeout(struct event *ev, int timo)
+void SetTimeout(Event *ev, int timo)
 {
 	gettimeofday(&ev->timeout, NULL);
 	ev->timeout.tv_sec += timo / 1000;

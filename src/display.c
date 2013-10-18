@@ -52,15 +52,15 @@
 static int CountChars(int);
 static int DoAddChar(int);
 static int BlankResize(int, int);
-static void disp_readev_fn(struct event *, char *);
-static void disp_writeev_fn(struct event *, char *);
-static void disp_writeev_eagain(struct event *, char *);
-static void disp_status_fn(struct event *, char *);
-static void disp_hstatus_fn(struct event *, char *);
-static void disp_blocked_fn(struct event *, char *);
-static void disp_map_fn(struct event *, char *);
-static void disp_idle_fn(struct event *, char *);
-static void disp_blanker_fn(struct event *, char *);
+static void disp_readev_fn(Event *, char *);
+static void disp_writeev_fn(Event *, char *);
+static void disp_writeev_eagain(Event *, char *);
+static void disp_status_fn(Event *, char *);
+static void disp_hstatus_fn(Event *, char *);
+static void disp_blocked_fn(Event *, char *);
+static void disp_map_fn(Event *, char *);
+static void disp_idle_fn(Event *, char *);
+static void disp_blanker_fn(Event *, char *);
 static void WriteLP(int, int);
 static void INSERTCHAR(int);
 static void RAW_PUTCHAR(int);
@@ -2365,7 +2365,7 @@ void NukePending()
 /* linux' select can't handle flow control, so wait 100ms if
  * we get EAGAIN
  */
-static void disp_writeev_eagain(__attribute__((unused))struct event *ev, char *data)
+static void disp_writeev_eagain(__attribute__((unused))Event *ev, char *data)
 {
 	display = (Display *)data;
 	evdeq(&D_writeev);
@@ -2374,7 +2374,7 @@ static void disp_writeev_eagain(__attribute__((unused))struct event *ev, char *d
 	evenq(&D_writeev);
 }
 
-static void disp_writeev_fn(__attribute__((unused))struct event *ev, char *data)
+static void disp_writeev_fn(__attribute__((unused))Event *ev, char *data)
 {
 	int len, size = OUTPUT_BLOCK_SIZE;
 
@@ -2444,7 +2444,7 @@ static void disp_writeev_fn(__attribute__((unused))struct event *ev, char *data)
 	}
 }
 
-static void disp_readev_fn(__attribute__((unused))struct event *ev, char *data)
+static void disp_readev_fn(__attribute__((unused))Event *ev, char *data)
 {
 	int size;
 	char buf[IOSIZE];
@@ -2575,14 +2575,14 @@ static void disp_readev_fn(__attribute__((unused))struct event *ev, char *data)
 	(*D_processinput) (buf, size);
 }
 
-static void disp_status_fn(__attribute__((unused))struct event *ev, char *data)
+static void disp_status_fn(__attribute__((unused))Event *ev, char *data)
 {
 	display = (Display *)data;
 	if (D_status)
 		RemoveStatus();
 }
 
-static void disp_hstatus_fn(struct event *ev, char *data)
+static void disp_hstatus_fn(Event *ev, char *data)
 {
 	display = (Display *)data;
 	if (D_status == STATUS_ON_HS) {
@@ -2593,7 +2593,7 @@ static void disp_hstatus_fn(struct event *ev, char *data)
 	RefreshHStatus();
 }
 
-static void disp_blocked_fn(__attribute__((unused))struct event *ev, char *data)
+static void disp_blocked_fn(__attribute__((unused))Event *ev, char *data)
 {
 	Window *p;
 
@@ -2608,7 +2608,7 @@ static void disp_blocked_fn(__attribute__((unused))struct event *ev, char *data)
 	}
 }
 
-static void disp_map_fn(__attribute__((unused))struct event *ev, char *data)
+static void disp_map_fn(__attribute__((unused))Event *ev, char *data)
 {
 	char *p;
 	int l, i;
@@ -2634,7 +2634,7 @@ static void disp_map_fn(__attribute__((unused))struct event *ev, char *data)
 	ProcessInput(p, l);
 }
 
-static void disp_idle_fn(__attribute__((unused))struct event *ev, char *data)
+static void disp_idle_fn(__attribute__((unused))Event *ev, char *data)
 {
 	Display *olddisplay;
 	display = (Display *)data;
@@ -2663,7 +2663,7 @@ void ResetIdle()
 		evdeq(&D_idleev);
 }
 
-static void disp_blanker_fn(__attribute__((unused))struct event *ev, char *data)
+static void disp_blanker_fn(__attribute__((unused))Event *ev, char *data)
 {
 	char buf[IOSIZE], *b;
 	int size;

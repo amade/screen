@@ -60,7 +60,7 @@ struct Canvas {
 	int              c_xe;
 	int              c_ys;
 	int              c_ye;
-	struct event     c_captev;	/* caption changed event */
+	Event     c_captev;	/* caption changed event */
 };
 
 void  SetCanvasWindow (Canvas *, Window *);

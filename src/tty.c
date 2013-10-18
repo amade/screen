@@ -42,7 +42,7 @@
 #include "pty.h"
 #include "tty.h"
 
-static void consredir_readev_fn (struct event *, char *);
+static void consredir_readev_fn (Event *, char *);
 
 int separate_sids = 1;
 
@@ -801,11 +801,11 @@ sigaction(SIGALRM, &sigalrm, NULL);
  *  Console grabbing
  */
 
-static struct event consredir_ev;
+static Event consredir_ev;
 static int consredirfd[2] = {-1, -1};
 
 static void
-consredir_readev_fn(struct event *ev, __attribute__((unused))char *data)
+consredir_readev_fn(Event *ev, __attribute__((unused))char *data)
 {
   char *p, *n, buf[256];
   int l;
