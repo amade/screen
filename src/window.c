@@ -321,18 +321,18 @@ static void WinRestore()
  *
  * returns 0 on success.
  */
-int DoStartLog(Window *w, char *buf, int bufsize)
+int DoStartLog(Window *window, char *buf, int bufsize)
 {
 	int n;
-	if (!w || !buf)
+	if (!window || !buf)
 		return -1;
 
-	strncpy(buf, MakeWinMsg(screenlogfile, w, '%'), bufsize - 1);
+	strncpy(buf, MakeWinMsg(screenlogfile, window, '%'), bufsize - 1);
 
-	if (w->w_log != NULL)
-		logfclose(w->w_log);
+	if (window->w_log != NULL)
+		logfclose(window->w_log);
 
-	if ((w->w_log = logfopen(buf, islogfile(buf) ? NULL : secfopen(buf, "a"))) == NULL)
+	if ((window->w_log = logfopen(buf, islogfile(buf) ? NULL : secfopen(buf, "a"))) == NULL)
 		return -2;
 	if (!logflushev.queued) {
 		n = log_flush ? log_flush : (logtstamp_after + 4) / 5;
@@ -578,159 +578,159 @@ int MakeWindow(struct NewWindow *newwin)
  * Note: The terminaltype defaults to screenterm again, the current
  * working directory is lost.
  */
-int RemakeWindow(Window *p)
+int RemakeWindow(Window *window)
 {
 	char *TtyName;
-	int lflag, f;
+	int lflag, fd, i;
 
 	lflag = nwin_default.lflag;
-	if ((f = OpenDevice(p->w_cmdargs, lflag, &p->w_type, &TtyName)) < 0)
+	if ((fd = OpenDevice(window->w_cmdargs, lflag, &window->w_type, &TtyName)) < 0)
 		return -1;
 
-	evdeq(&p->w_destroyev);	/* no re-destroy of resurrected zombie */
+	evdeq(&window->w_destroyev);	/* no re-destroy of resurrected zombie */
 
-	strncpy(p->w_tty, *TtyName ? TtyName : p->w_title, MAXSTR - 1);
+	strncpy(window->w_tty, *TtyName ? TtyName : window->w_title, MAXSTR - 1);
 
-	p->w_ptyfd = f;
-	p->w_readev.fd = f;
-	p->w_writeev.fd = f;
-	evenq(&p->w_readev);
-	evenq(&p->w_writeev);
+	window->w_ptyfd = fd;
+	window->w_readev.fd = fd;
+	window->w_writeev.fd = fd;
+	evenq(&window->w_readev);
+	evenq(&window->w_writeev);
 
 	if (VerboseCreate) {
 		Display *d = display;	/* WriteString zaps display */
 
-		WriteString(p, ":screen (", 9);
-		WriteString(p, p->w_title, strlen(p->w_title));
-		WriteString(p, "):", 2);
-		for (f = 0; p->w_cmdargs[f]; f++) {
-			WriteString(p, " ", 1);
-			WriteString(p, p->w_cmdargs[f], strlen(p->w_cmdargs[f]));
+		WriteString(window, ":screen (", 9);
+		WriteString(window, window->w_title, strlen(window->w_title));
+		WriteString(window, "):", 2);
+		for (i = 0; window->w_cmdargs[i]; i++) {
+			WriteString(window, " ", 1);
+			WriteString(window, window->w_cmdargs[i], strlen(window->w_cmdargs[i]));
 		}
-		WriteString(p, "\r\n", 2);
+		WriteString(window, "\r\n", 2);
 		display = d;
 	}
 
-	p->w_deadpid = 0;
-	p->w_pid = 0;
-	if (p->w_type == W_TYPE_PTY) {
-		p->w_pid = ForkWindow(p, p->w_cmdargs, TtyName);
-		if (p->w_pid < 0)
+	window->w_deadpid = 0;
+	window->w_pid = 0;
+	if (window->w_type == W_TYPE_PTY) {
+		window->w_pid = ForkWindow(window, window->w_cmdargs, TtyName);
+		if (window->w_pid < 0)
 			return -1;
 	}
 #ifdef UTMPOK
-	if (p->w_slot == (slot_t) 0 && (display || (p->w_lflag & 2)))
-		SetUtmp(p);
+	if (window->w_slot == (slot_t) 0 && (display || (window->w_lflag & 2)))
+		SetUtmp(window);
 #ifdef CAREFULUTMP
 	CarefulUtmp();		/* If all 've been zombies, we've had no slot */
 #endif
 #endif
-	WindowChanged(p, 'f');
-	return p->w_number;
+	WindowChanged(window, 'f');
+	return window->w_number;
 }
 
-void CloseDevice(Window *wp)
+void CloseDevice(Window *window)
 {
-	if (wp->w_ptyfd < 0)
+	if (window->w_ptyfd < 0)
 		return;
-	if (wp->w_type == W_TYPE_PTY) {
+	if (window->w_type == W_TYPE_PTY) {
 		/* pty 4 SALE */
-		(void)chmod(wp->w_tty, 0666);
-		(void)chown(wp->w_tty, 0, 0);
+		(void)chmod(window->w_tty, 0666);
+		(void)chown(window->w_tty, 0, 0);
 	}
-	close(wp->w_ptyfd);
-	wp->w_ptyfd = -1;
-	wp->w_tty[0] = 0;
-	evdeq(&wp->w_readev);
-	evdeq(&wp->w_writeev);
-	wp->w_readev.fd = wp->w_writeev.fd = -1;
+	close(window->w_ptyfd);
+	window->w_ptyfd = -1;
+	window->w_tty[0] = 0;
+	evdeq(&window->w_readev);
+	evdeq(&window->w_writeev);
+	window->w_readev.fd = window->w_writeev.fd = -1;
 }
 
-void FreeWindow(Window *wp)
+void FreeWindow(Window *window)
 {
-	Display *d;
+	Display *display;
+	Canvas *canvas, *canvas_next;
+	Layer *layer;
 	int i;
-	Canvas *cv, *ncv;
-	Layer *l;
 
-	if (wp->w_pwin)
-		FreePseudowin(wp);
+	if (window->w_pwin)
+		FreePseudowin(window);
 #ifdef UTMPOK
-	RemoveUtmp(wp);
+	RemoveUtmp(window);
 #endif
-	CloseDevice(wp);
+	CloseDevice(window);
 
-	if (wp == console_window) {
+	if (window == console_window) {
 		TtyGrabConsole(-1, -1, "free");
 		console_window = 0;
 	}
-	if (wp->w_log != NULL)
-		logfclose(wp->w_log);
-	ChangeWindowSize(wp, 0, 0, 0);
+	if (window->w_log != NULL)
+		logfclose(window->w_log);
+	ChangeWindowSize(window, 0, 0, 0);
 
-	if (wp->w_type == W_TYPE_GROUP) {
+	if (window->w_type == W_TYPE_GROUP) {
 		Window *win;
 		for (win = windows; win; win = win->w_next)
-			if (win->w_group == wp)
-				win->w_group = wp->w_group;
+			if (win->w_group == window)
+				win->w_group = window->w_group;
 	}
 
-	if (wp->w_hstatus)
-		free(wp->w_hstatus);
-	for (i = 0; wp->w_cmdargs[i]; i++)
-		free(wp->w_cmdargs[i]);
-	if (wp->w_dir)
-		free(wp->w_dir);
-	if (wp->w_term)
-		free(wp->w_term);
-	for (d = displays; d; d = d->d_next) {
-		if (d->d_other == wp)
-			d->d_other = d->d_fore && d->d_fore->w_next != wp ? d->d_fore->w_next : wp->w_next;
-		if (d->d_fore == wp)
-			d->d_fore = NULL;
-		for (cv = d->d_cvlist; cv; cv = cv->c_next) {
-			for (l = cv->c_layer; l; l = l->l_next)
-				if (l->l_layfn == &WinLf)
+	if (window->w_hstatus)
+		free(window->w_hstatus);
+	for (i = 0; window->w_cmdargs[i]; i++)
+		free(window->w_cmdargs[i]);
+	if (window->w_dir)
+		free(window->w_dir);
+	if (window->w_term)
+		free(window->w_term);
+	for (display = displays; display; display = display->d_next) {
+		if (display->d_other == window)
+			display->d_other = display->d_fore && display->d_fore->w_next != window ? display->d_fore->w_next : window->w_next;
+		if (display->d_fore == window)
+			display->d_fore = NULL;
+		for (canvas = display->d_cvlist; canvas; canvas = canvas->c_next) {
+			for (layer = canvas->c_layer; layer; layer = layer->l_next)
+				if (layer->l_layfn == &WinLf)
 					break;
-			if (!l)
+			if (!layer)
 				continue;
-			if ((Window *)l->l_data != wp)
+			if ((Window *)layer->l_data != window)
 				continue;
-			if (cv->c_layer == wp->w_savelayer)
-				wp->w_savelayer = 0;
-			KillLayerChain(cv->c_layer);
+			if (canvas->c_layer == window->w_savelayer)
+				window->w_savelayer = 0;
+			KillLayerChain(canvas->c_layer);
 		}
 	}
-	if (wp->w_savelayer)
-		KillLayerChain(wp->w_savelayer);
-	for (cv = wp->w_layer.l_cvlist; cv; cv = ncv) {
-		ncv = cv->c_lnext;
-		cv->c_layer = &cv->c_blank;
-		cv->c_blank.l_cvlist = cv;
-		cv->c_lnext = 0;
-		cv->c_xoff = cv->c_xs;
-		cv->c_yoff = cv->c_ys;
-		RethinkViewportOffsets(cv);
+	if (window->w_savelayer)
+		KillLayerChain(window->w_savelayer);
+	for (canvas = window->w_layer.l_cvlist; canvas; canvas = canvas_next) {
+		canvas_next = canvas->c_lnext;
+		canvas->c_layer = &canvas->c_blank;
+		canvas->c_blank.l_cvlist = canvas;
+		canvas->c_lnext = 0;
+		canvas->c_xoff = canvas->c_xs;
+		canvas->c_yoff = canvas->c_ys;
+		RethinkViewportOffsets(canvas);
 	}
-	wp->w_layer.l_cvlist = 0;
-	if (flayer == &wp->w_layer)
+	window->w_layer.l_cvlist = 0;
+	if (flayer == &window->w_layer)
 		flayer = 0;
-	LayerCleanupMemory(&wp->w_layer);
+	LayerCleanupMemory(&window->w_layer);
 
-	evdeq(&wp->w_readev);	/* just in case */
-	evdeq(&wp->w_writeev);	/* just in case */
-	evdeq(&wp->w_silenceev);
-	evdeq(&wp->w_zombieev);
-	evdeq(&wp->w_destroyev);
-	FreePaster(&wp->w_paster);
-	free((char *)wp);
+	evdeq(&window->w_readev);	/* just in case */
+	evdeq(&window->w_writeev);	/* just in case */
+	evdeq(&window->w_silenceev);
+	evdeq(&window->w_zombieev);
+	evdeq(&window->w_destroyev);
+	FreePaster(&window->w_paster);
+	free((char *)window);
 }
 
 static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 {
 	char *arg = args[0];
 	struct stat st;
-	int f;
+	int fd;
 
 	if (!arg)
 		return -1;
@@ -747,30 +747,30 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 			Msg(errno, "Cannot access line '%s' for R/W", arg);
 			return -1;
 		}
-		if ((f = OpenTTY(arg, args[1])) < 0)
+		if ((fd = OpenTTY(arg, args[1])) < 0)
 			return -1;
 		lflag = 0;
 		*typep = W_TYPE_PLAIN;
 		*namep = arg;
 	} else {
 		*typep = W_TYPE_PTY;
-		f = OpenPTY(namep);
-		if (f == -1) {
+		fd = OpenPTY(namep);
+		if (fd == -1) {
 			Msg(0, "No more PTYs.");
 			return -1;
 		}
 #ifdef TIOCPKT
 		{
 			int flag = 1;
-			if (ioctl(f, TIOCPKT, (char *)&flag)) {
+			if (ioctl(fd, TIOCPKT, (char *)&flag)) {
 				Msg(errno, "TIOCPKT ioctl");
-				close(f);
+				close(fd);
 				return -1;
 			}
 		}
 #endif				/* TIOCPKT */
 	}
-	(void)fcntl(f, F_SETFL, FNBLOCK);
+	(void)fcntl(fd, F_SETFL, FNBLOCK);
 	/*
 	 * Tenebreux (zeus@ns.acadiacom.net) has Linux 1.3.70 where select
 	 * gets confused in the following condition:
@@ -788,10 +788,10 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 	 * 10.5.96 jw.
 	 */
 	if (*typep == W_TYPE_PTY || *typep == W_TYPE_PLAIN)
-		tcflush(f, TCIOFLUSH);
+		tcflush(fd, TCIOFLUSH);
 
 	if (*typep != W_TYPE_PTY)
-		return f;
+		return fd;
 
 #ifndef PTYROFS
 #ifdef PTYGROUP
@@ -801,7 +801,7 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 #endif
 	{
 		Msg(errno, "chown tty");
-		close(f);
+		close(fd);
 		return -1;
 	}
 #ifdef UTMPOK
@@ -811,11 +811,11 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 #endif
 	{
 		Msg(errno, "chmod tty");
-		close(f);
+		close(fd);
 		return -1;
 	}
 #endif
-	return f;
+	return fd;
 }
 
 /*
