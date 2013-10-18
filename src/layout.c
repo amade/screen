@@ -36,10 +36,10 @@
 #include "process.h"
 #include "resize.h"
 
-struct layout *layouts;
-struct layout *laytab[MAXLAY];
-struct layout *layout_last, layout_last_marker;
-struct layout *layout_attach = &layout_last_marker;
+Layout *layouts;
+Layout *laytab[MAXLAY];
+Layout *layout_last, layout_last_marker;
+Layout *layout_attach = &layout_last_marker;
 
 void FreeLayoutCv(Canvas *cv)
 {
@@ -57,9 +57,9 @@ void FreeLayoutCv(Canvas *cv)
 	}
 }
 
-struct layout *CreateLayout(char *title, int startat)
+Layout *CreateLayout(char *title, int startat)
 {
-	struct layout *lay, **pl;
+	Layout *lay, **pl;
 	int i;
 
 	if (startat >= MAXLAY || startat < 0)
@@ -90,7 +90,7 @@ struct layout *CreateLayout(char *title, int startat)
 
 void SaveLayout(char *name, Canvas *cv)
 {
-	struct layout *lay;
+	Layout *lay;
 	Canvas *fcv;
 	for (lay = layouts; lay; lay = lay->lay_next)
 		if (!strcmp(lay->lay_title, name))
@@ -108,7 +108,7 @@ void SaveLayout(char *name, Canvas *cv)
 	D_layout = lay;
 }
 
-void AutosaveLayout(struct layout *lay)
+void AutosaveLayout(Layout *lay)
 {
 	Canvas *fcv;
 	if (!lay || !lay->lay_autosave)
@@ -120,9 +120,9 @@ void AutosaveLayout(struct layout *lay)
 	D_forecv = fcv;
 }
 
-struct layout *FindLayout(char *name)
+Layout *FindLayout(char *name)
 {
-	struct layout *lay;
+	Layout *lay;
 	char *s;
 	int i;
 	for (i = 0, s = name; *s >= '0' && *s <= '9'; s++)
@@ -135,7 +135,7 @@ struct layout *FindLayout(char *name)
 	return lay;
 }
 
-void LoadLayout(struct layout *lay)
+void LoadLayout(Layout *lay)
 {
 	AutosaveLayout(D_layout);
 	if (!lay) {
@@ -166,7 +166,7 @@ void LoadLayout(struct layout *lay)
 
 void NewLayout(char *title, int startat)
 {
-	struct layout *lay;
+	Layout *lay;
 	Canvas *fcv;
 
 	lay = CreateLayout(title, startat);
@@ -189,7 +189,7 @@ void NewLayout(char *title, int startat)
 static char *AddLayoutsInfo(char *buf, int len, int where)
 {
 	char *s, *ss, *t;
-	struct layout *p, **pp;
+	Layout *p, **pp;
 	int l;
 
 	s = ss = buf;
@@ -249,9 +249,9 @@ void ShowLayouts(int where)
 	Msg(0, "%s", ss);
 }
 
-void RemoveLayout(struct layout *lay)
+void RemoveLayout(Layout *lay)
 {
-	struct layout **layp = &layouts;
+	Layout **layp = &layouts;
 
 	for (; *layp; layp = &(*layp)->lay_next) {
 		if (*layp == lay) {
@@ -259,10 +259,10 @@ void RemoveLayout(struct layout *lay)
 			break;
 		}
 	}
-	laytab[lay->lay_number] = (struct layout *)0;
+	laytab[lay->lay_number] = (Layout *)0;
 
 	if (display && D_layout == lay)
-		D_layout = (struct layout *)0;
+		D_layout = (Layout *)0;
 
 	FreeLayoutCv(&lay->lay_canvas);
 
@@ -324,20 +324,16 @@ int LayoutDumpCanvas(Canvas *cv, char *filename)
 	return 1;
 }
 
-void RenameLayout(layout, name)
-struct layout *layout;
-const char *name;
+void RenameLayout(Layout *layout, const char *name)
 {
 	free(layout->lay_title);
 	layout->lay_title = SaveStr(name);
 }
 
-int RenumberLayout(layout, number)
-struct layout *layout;
-int number;
+int RenumberLayout(Layout *layout, int number)
 {
 	int old;
-	struct layout *lay;
+	Layout *lay;
 	old = layout->lay_number;
 	if (number < 0 || number >= MAXLAY)
 		return 0;
