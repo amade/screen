@@ -39,7 +39,7 @@
 #define SLICE_THIS (1 << 2)	/* used in equal test */
 #define SLICE_GLOBAL (1 << 3)
 
-typedef struct _Canvas {
+struct Canvas {
 	Canvas   *c_next;		/* next canvas on display */
 	Display  *c_display;	/* back pointer to display */
 
@@ -61,7 +61,7 @@ typedef struct _Canvas {
 	int              c_ys;
 	int              c_ye;
 	struct event     c_captev;	/* caption changed event */
-} Canvas;
+};
 
 void  SetCanvasWindow (Canvas *, Window *);
 void  SetForeCanvas (Display *, Canvas *);

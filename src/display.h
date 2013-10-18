@@ -62,7 +62,7 @@ typedef enum {
 	HSTATUS_ALWAYS		= (1<<3)
 } HardStatus;
 
-typedef struct _Display {
+struct Display {
 	Display *d_next;		/* linked list */
 	struct acluser *d_user;		/* user who owns that display */
 	Canvas d_canvas;		/* our canvas slice */
@@ -165,7 +165,7 @@ typedef struct _Display {
 	struct event d_idleev;		/* screen blanker */
 	int   d_blankerpid;
 	struct event d_blankerev;
-} Display;
+};
 
 #define DISPLAY(x) display->x
 

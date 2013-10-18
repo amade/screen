@@ -127,7 +127,7 @@ struct paster {
 	struct	event pa_slowev;	/* slowpaste event */
 };
 
-typedef struct _Window {
+struct Window {
 	Window *w_next;		/* next window */
 	int	w_type;			/* type of window */
 	Layer w_layer;		/* our layer */
@@ -243,7 +243,7 @@ typedef struct _Window {
 	struct event w_destroyev;	/* window destroy event */
 	int w_exitstatus;
 	int w_miflag;
-} Window;
+};
 
 
 #define w_encoding   w_layer.l_encoding

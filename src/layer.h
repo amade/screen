@@ -50,7 +50,7 @@ struct LayFuncs {
 						   flayer->l_data (but not flayer->l_data itself). */
 };
 
-typedef struct _Layer {
+struct Layer {
 	Canvas *l_cvlist;	/* list of canvases displaying layer */
 	int	l_width;
 	int	l_height;
@@ -82,7 +82,7 @@ typedef struct _Layer {
 		int top, bottom;
 		int lines;
 	} l_pause;
-} Layer;
+};
 
 #define LayProcess		(*flayer->l_layfn->lf_LayProcess)
 #define LayAbort		(*flayer->l_layfn->lf_LayAbort)
