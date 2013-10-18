@@ -243,7 +243,7 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 {
 	Window *win;
 	unsigned char ch;
-	struct display *cd = display;
+	Display *cd = display;
 	struct gl_Window_Data *wdata = ldata->data;
 
 	if (!ldata->selected)
@@ -593,7 +593,7 @@ void WListUpdatecv(Canvas *cv, Window *p)
 
 void WListLinkChanged()
 {
-	struct display *olddisplay = display;
+	Display *olddisplay = display;
 	Canvas *cv;
 	struct ListData *ldata;
 	struct gl_Window_Data *wdata;

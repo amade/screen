@@ -677,7 +677,7 @@ int InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
 	}
 
 	if (cv && flayer->l_next == 0 && !block) {
-		struct display *olddisplay = display;
+		Display *olddisplay = display;
 		display = cv->c_display;
 		RemoveStatus();
 		display = olddisplay;

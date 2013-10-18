@@ -1914,7 +1914,7 @@ void ProcessInput2(char *ibuf, int ilen)
 void DoProcess(Window *p, char **bufp, int *lenp, struct paster *pa)
 {
 	int oldlen;
-	struct display *d = display;
+	Display *d = display;
 
 	/* XXX -> PasteStart */
 	if (pa && *lenp > 1 && p && p->w_slowpaste) {
@@ -2059,7 +2059,7 @@ void DoAction(struct action *act, int key)
 	int j;
 	char *s;
 	char ch;
-	struct display *odisplay = display;
+	Display *odisplay = display;
 	struct acluser *user;
 
 	user = display ? D_user : users;
@@ -2312,7 +2312,7 @@ void DoAction(struct action *act, int key)
 		switch (args[0][n]) {
 		case '*':	/* user */
 			{
-				struct display *nd;
+				Display *nd;
 				struct acluser *u;
 
 				if (!n)
@@ -2348,7 +2348,7 @@ void DoAction(struct action *act, int key)
 			}
 		case '%':	/* display */
 			{
-				struct display *nd;
+				Display *nd;
 
 				for (display = displays; display; display = nd) {
 					nd = display->d_next;
@@ -2757,7 +2757,7 @@ void DoAction(struct action *act, int key)
 			if (what == 1) {
 				if (flayer->l_width == w && flayer->l_height == h)
 					break;
-				ResizeLayer(flayer, w, h, (struct display *)0);
+				ResizeLayer(flayer, w, h, (Display *)0);
 				break;
 			}
 			if (D_width == w && D_height == h)
@@ -3390,7 +3390,7 @@ void DoAction(struct action *act, int key)
 			RemoveStatus();
 		}
 		if (args[0] && strcmp(args[0], "on") && strcmp(args[0], "off")) {
-			struct display *olddisplay = display;
+			Display *olddisplay = display;
 			int old_use, new_use = -1;
 
 			s = args[0];
@@ -3451,7 +3451,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_CAPTION:
 		if (strcmp(args[0], "always") == 0 || strcmp(args[0], "splitonly") == 0) {
-			struct display *olddisplay = display;
+			Display *olddisplay = display;
 
 			captionalways = args[0][0] == 'a';
 			for (display = displays; display; display = display->d_next)
@@ -3797,7 +3797,7 @@ void DoAction(struct action *act, int key)
 		{
 			struct action *newact;
 			int newnr, fl = 0, kf = 0, af = 0, df = 0, mf = 0;
-			struct display *odisp = display;
+			Display *odisp = display;
 			int used = 0;
 			struct kmap_ext *kme = NULL;
 
@@ -4391,7 +4391,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_IDLE:
 		if (*args) {
-			struct display *olddisplay = display;
+			Display *olddisplay = display;
 			if (!strcmp(*args, "off"))
 				idletimo = 0;
 			else if (args[0][0])
@@ -5515,7 +5515,7 @@ char *AddWindowFlags(char *buf, int len, Window *p)
 
 char *AddOtherUsers(char *buf, int len, Window *p)
 {
-	struct display *d, *olddisplay = display;
+	Display *d, *olddisplay = display;
 	Canvas *cv;
 	char *s;
 	int l;
@@ -6596,9 +6596,9 @@ static void ResizeFin(char *buf, int len, char *data)
 	buf[len] = '\034';
 }
 
-void SetForeCanvas(struct display *d, Canvas *cv)
+void SetForeCanvas(Display *d, Canvas *cv)
 {
-	struct display *odisplay = display;
+	Display *odisplay = display;
 	if (d->d_forecv == cv)
 		return;
 

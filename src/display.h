@@ -62,8 +62,8 @@ typedef enum {
 	HSTATUS_ALWAYS		= (1<<3)
 } HardStatus;
 
-struct display {
-	struct display *d_next;		/* linked list */
+typedef struct _Display {
+	Display *d_next;		/* linked list */
 	struct acluser *d_user;		/* user who owns that display */
 	Canvas d_canvas;		/* our canvas slice */
 	Canvas *d_cvlist;		/* the canvases of this display */
@@ -165,7 +165,7 @@ struct display {
 	struct event d_idleev;		/* screen blanker */
 	int   d_blankerpid;
 	struct event d_blankerev;
-};
+} Display;
 
 #define DISPLAY(x) display->x
 
@@ -293,7 +293,7 @@ struct display {
     *D_obufp++ = (c);		\
   }
 
-struct display *MakeDisplay (char *, char *, char *, int, int, struct mode *);
+Display *MakeDisplay (char *, char *, char *, int, int, struct mode *);
 void  FreeDisplay (void);
 void  DefProcess (char **, int *);
 void  DefRedisplayLine (int, int, int, int);

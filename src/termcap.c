@@ -458,7 +458,7 @@ int remap(int n, int map)
 
 void CheckEscape()
 {
-	struct display *odisplay;
+	Display *odisplay;
 	int i, nr;
 
 	if (DefaultEsc >= 0)

@@ -2407,7 +2407,7 @@ void WindowChanged(Window *p, int what)
 	int inwstr, inhstr, inlstr;
 	int inwstrh = 0, inhstrh = 0, inlstrh = 0;
 	int got, ox, oy;
-	struct display *olddisplay = display;
+	Display *olddisplay = display;
 	Canvas *cv;
 
 	inhstr = 0;

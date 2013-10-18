@@ -115,7 +115,7 @@ int UserAdd(char *name, struct acluser **up)
 int UserDel(char *name, struct acluser **up)
 {
 	struct acluser *u;
-	struct display *old, *next;
+	Display *old, *next;
 
 	if (!up)
 		up = FindUserPtr(name);

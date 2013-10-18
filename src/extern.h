@@ -150,7 +150,7 @@ extern struct action mmtab[];
 extern struct action umtab[];
 extern struct term term[];
 extern struct acluser *users, *EffectiveAclUser;
-extern struct display *display, *displays;
+extern Display *display, *displays;
 extern struct LayFuncs ListLf;
 extern struct LayFuncs MarkLf;
 extern struct LayFuncs WinLf;

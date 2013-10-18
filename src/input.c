@@ -180,7 +180,7 @@ static void InpProcess(char **ppbuf, int *plen)
 	char *pbuf;
 	char ch;
 	struct inpdata *inpdata;
-	struct display *inpdisplay;
+	Display *inpdisplay;
 	int prev, next, search = 0;
 
 	inpdata = (struct inpdata *)flayer->l_data;

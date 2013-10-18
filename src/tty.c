@@ -833,7 +833,7 @@ consredir_readev_fn(struct event *ev, __attribute__((unused))char *data)
 int
 TtyGrabConsole(__attribute__((unused))int fd, int on, char *rc_name)
 {
-  struct display *d;
+  Display *d;
 #  ifdef SRIOCSREDIR
   int cfd;
 #  else

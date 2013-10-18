@@ -41,7 +41,7 @@
 
 typedef struct _Canvas {
 	Canvas   *c_next;		/* next canvas on display */
-	struct display  *c_display;	/* back pointer to display */
+	Display  *c_display;	/* back pointer to display */
 
 	Canvas   *c_slnext;		/* next canvas in display slice */
 	Canvas   *c_slprev;		/* prev canvas in display slice */
@@ -64,7 +64,7 @@ typedef struct _Canvas {
 } Canvas;
 
 void  SetCanvasWindow (Canvas *, Window *);
-void  SetForeCanvas (struct display *, Canvas *);
+void  SetForeCanvas (Display *, Canvas *);
 Canvas *FindCanvas (int, int);
 int   MakeDefaultCanvas (void);
 int   AddCanvas (int);
@@ -82,7 +82,7 @@ void  PutWindowCv (Canvas *);
 
 #define CV_CALL(cv, cmd)			\
 {						\
-  struct display *olddisplay = display;		\
+  Display *olddisplay = display;		\
   Layer *oldflayer = flayer;		\
   Layer *l = cv->c_layer;		\
   Canvas *cvlist = l->l_cvlist;		\

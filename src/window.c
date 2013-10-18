@@ -469,7 +469,7 @@ int MakeWindow(struct NewWindow *newwin)
 		SetCharsets(p, nwin.charset);
 
 	if (VerboseCreate && type != W_TYPE_GROUP) {
-		struct display *d = display;	/* WriteString zaps display */
+		Display *d = display;	/* WriteString zaps display */
 
 		WriteString(p, ":screen (", 9);
 		WriteString(p, p->w_title, strlen(p->w_title));
@@ -598,7 +598,7 @@ int RemakeWindow(Window *p)
 	evenq(&p->w_writeev);
 
 	if (VerboseCreate) {
-		struct display *d = display;	/* WriteString zaps display */
+		Display *d = display;	/* WriteString zaps display */
 
 		WriteString(p, ":screen (", 9);
 		WriteString(p, p->w_title, strlen(p->w_title));
@@ -648,7 +648,7 @@ void CloseDevice(Window *wp)
 
 void FreeWindow(Window *wp)
 {
-	struct display *d;
+	Display *d;
 	int i;
 	Canvas *cv, *ncv;
 	Layer *l;
