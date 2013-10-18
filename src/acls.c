@@ -281,7 +281,7 @@ int UserDel(char *name, struct acluser **up)
 {
 	struct acluser *u;
 	int i;
-	struct display *old, *next;
+	Display *old, *next;
 
 	if (!up)
 		up = FindUserPtr(name);

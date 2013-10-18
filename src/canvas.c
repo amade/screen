@@ -261,7 +261,7 @@ void SetCanvasWindow(Canvas *cv, Window *win)
 
 	if (win && win->w_type == W_TYPE_GROUP) {
 		/* auto-start windowlist on groups */
-		struct display *d = display;
+		Display *d = display;
 		Layer *oldflayer = flayer;
 		flayer = l;
 		display_windows(0, 0, win);

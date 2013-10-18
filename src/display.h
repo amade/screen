@@ -62,8 +62,8 @@ typedef enum {
 	HSTATUS_ALWAYS		= (1<<3)
 } HardStatus;
 
-struct display {
-	struct display *d_next;		/* linked list */
+typedef struct Display {
+	Display *d_next;		/* linked list */
 	struct acluser *d_user;		/* user who owns that display */
 	Canvas d_canvas;		/* our canvas slice */
 	Canvas *d_cvlist;		/* the canvases of this display */
@@ -295,7 +295,7 @@ do				\
   }				\
 while (0)
 
-struct display *MakeDisplay (char *, char *, char *, int, int, struct mode *);
+Display *MakeDisplay (char *, char *, char *, int, int, struct mode *);
 void  FreeDisplay (void);
 void  DefProcess (char **, int *);
 void  DefRedisplayLine (int, int, int, int);

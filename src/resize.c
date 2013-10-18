@@ -254,12 +254,12 @@ static void kaablamm()
     LayResize(wi, he);	\
   } while (0)
 
-void ResizeLayer(Layer *l, int wi, int he, struct display *norefdisp)
+void ResizeLayer(Layer *l, int wi, int he, Display *norefdisp)
 {
 	Window *p;
 	Canvas *cv;
 	Layer *oldflayer = flayer;
-	struct display *d, *olddisplay = display;
+	Display *d, *olddisplay = display;
 
 	if (l->l_width == wi && l->l_height == he)
 		return;

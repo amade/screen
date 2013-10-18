@@ -556,7 +556,7 @@ static int CreateTempDisplay(struct msg *m, int recvfd, Window *win)
 	char *user;
 	int i;
 	struct mode Mode;
-	struct display *olddisplays = displays;
+	Display *olddisplays = displays;
 
 	switch (m->type) {
 	case MSG_CONT:
@@ -1007,7 +1007,7 @@ static void FinishAttach(struct msg *m)
 		SetForeWindow(fore);
 	else if (!noshowwin) {
 		if (!AclCheckPermCmd(D_user, ACL_EXEC, &comms[RC_WINDOWLIST])) {
-			struct display *olddisplay = display;
+			Display *olddisplay = display;
 			flayer = D_forecv->c_layer;
 			display_windows(1, WLIST_NUM, (Window *)0);
 			noshowwin = 1;
@@ -1026,7 +1026,7 @@ static void FinishAttach(struct msg *m)
 
 static void FinishDetach(struct msg *m)
 {
-	struct display *next, **d, *det;
+	Display *next, **d, *det;
 	int pid;
 
 	if (m->type == MSG_ATTACH)

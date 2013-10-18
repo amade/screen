@@ -1142,7 +1142,7 @@ static void CoreDump(__attribute__((unused))int sigsig)
 	 * core file anyway.
 	 */
 
-	struct display *disp;
+	Display *disp;
 	char buf[80];
 
 	int running_w_s_bit = (getuid() != geteuid());
@@ -1489,7 +1489,7 @@ void Msg(int err, const char *fmt, ...)
 		 * send message to backend!
 		 */
 		char *tty = D_usertty;
-		struct display *olddisplay = display;
+		Display *olddisplay = display;
 		display = 0;	/* only send once */
 		SendErrorMsg(tty, buf);
 		display = olddisplay;

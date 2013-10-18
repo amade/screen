@@ -5,6 +5,8 @@
 
 typedef struct Canvas Canvas;
 
+typedef struct Display Display;
+
 typedef struct Layer Layer;
 
 typedef struct Viewport Viewport;

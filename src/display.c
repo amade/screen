@@ -70,7 +70,7 @@ extern
 #endif				/* NEED_OSPEED */
 short ospeed;
 
-struct display *display, *displays;
+Display *display, *displays;
 
 /*
  *  The default values
@@ -153,7 +153,7 @@ static int BlankResize(int wi, int he)
  *  The new display is placed in the displays list.
  */
 
-struct display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struct mode *Mode)
+Display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struct mode *Mode)
 {
 	struct acluser **u;
 	struct baud_values *b;
@@ -237,7 +237,7 @@ struct display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid
 void FreeDisplay()
 {
 	Window *p;
-	struct display *d, **dp;
+	Display *d, **dp;
 
 	FreeTransTable();
 	KillBlanker();
@@ -945,7 +945,7 @@ void Redisplay(int cur_only)
 
 void RedisplayDisplays(int cur_only)
 {
-	struct display *olddisplay = display;
+	Display *olddisplay = display;
 	for (display = displays; display; display = display->d_next)
 		Redisplay(cur_only);
 	display = olddisplay;
@@ -1483,7 +1483,7 @@ void MakeStatus(char *msg)
 	D_status_obufpos = D_obufp - D_obuf;
 
 	if (D_status == STATUS_ON_WIN) {
-		struct display *olddisplay = display;
+		Display *olddisplay = display;
 		Layer *oldflayer = flayer;
 
 		/* this is copied over from RemoveStatus() */
@@ -1502,7 +1502,7 @@ void MakeStatus(char *msg)
 
 void RemoveStatus()
 {
-	struct display *olddisplay;
+	Display *olddisplay;
 	Layer *oldflayer;
 	int where;
 
@@ -2390,7 +2390,7 @@ void NukePending()
  */
 static void disp_writeev_eagain(__attribute__((unused))struct event *ev, char *data)
 {
-	display = (struct display *)data;
+	display = (Display *)data;
 	evdeq(&D_writeev);
 	D_writeev.type = EV_WRITE;
 	D_writeev.handler = disp_writeev_fn;
@@ -2401,7 +2401,7 @@ static void disp_writeev_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	int len, size = OUTPUT_BLOCK_SIZE;
 
-	display = (struct display *)data;
+	display = (Display *)data;
 	len = D_obufp - D_obuf;
 	if (len < size)
 		size = len;
@@ -2473,7 +2473,7 @@ static void disp_readev_fn(__attribute__((unused))struct event *ev, char *data)
 	char buf[IOSIZE];
 	Canvas *cv;
 
-	display = (struct display *)data;
+	display = (Display *)data;
 
 	/* Hmmmm... a bit ugly... */
 	if (D_forecv)
@@ -2483,7 +2483,7 @@ static void disp_readev_fn(__attribute__((unused))struct event *ev, char *data)
 				RemoveStatus();
 		}
 
-	display = (struct display *)data;
+	display = (Display *)data;
 	if (D_fore == 0)
 		size = IOSIZE;
 	else {
@@ -2615,14 +2615,14 @@ static void disp_readev_fn(__attribute__((unused))struct event *ev, char *data)
 
 static void disp_status_fn(__attribute__((unused))struct event *ev, char *data)
 {
-	display = (struct display *)data;
+	display = (Display *)data;
 	if (D_status)
 		RemoveStatus();
 }
 
 static void disp_hstatus_fn(struct event *ev, char *data)
 {
-	display = (struct display *)data;
+	display = (Display *)data;
 	if (D_status == STATUS_ON_HS) {
 		SetTimeout(ev, 1);
 		evenq(ev);
@@ -2635,7 +2635,7 @@ static void disp_blocked_fn(__attribute__((unused))struct event *ev, char *data)
 {
 	Window *p;
 
-	display = (struct display *)data;
+	display = (Display *)data;
 	if (D_obufp - D_obuf > D_obufmax + D_blocked_fuzz) {
 		D_blocked = 1;
 		/* re-enable all windows */
@@ -2651,7 +2651,7 @@ static void disp_map_fn(__attribute__((unused))struct event *ev, char *data)
 	char *p;
 	int l, i;
 	unsigned char *q;
-	display = (struct display *)data;
+	display = (Display *)data;
 	if (!(l = D_seql))
 		return;
 	p = (char *)D_seqp - l;
@@ -2674,8 +2674,8 @@ static void disp_map_fn(__attribute__((unused))struct event *ev, char *data)
 
 static void disp_idle_fn(__attribute__((unused))struct event *ev, char *data)
 {
-	struct display *olddisplay;
-	display = (struct display *)data;
+	Display *olddisplay;
+	display = (Display *)data;
 	if (idletimo <= 0 || idleaction.nr == RC_ILLEGAL)
 		return;
 	olddisplay = display;
@@ -2706,7 +2706,7 @@ static void disp_blanker_fn(__attribute__((unused))struct event *ev, char *data)
 	char buf[IOSIZE], *b;
 	int size;
 
-	display = (struct display *)data;
+	display = (Display *)data;
 	size = read(D_blankerev.fd, buf, IOSIZE);
 	if (size <= 0) {
 		evdeq(&D_blankerev);

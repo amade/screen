@@ -681,7 +681,7 @@ void WinSwitchEncoding(Window *p, int encoding)
 {
 	int i, j, c;
 	struct mline *ml;
-	struct display *d;
+	Display *d;
 	Canvas *cv;
 	Layer *oldflayer;
 

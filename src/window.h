@@ -134,8 +134,8 @@ typedef struct Window {
 	Layer *w_savelayer;		/* the layer to keep */
 	int    w_blocked;		/* block input */
 	struct pseudowin *w_pwin;	/* ptr to pseudo */
-	struct display *w_pdisplay;	/* display for printer relay */
-	struct display *w_lastdisp;	/* where the last input was made */
+	Display *w_pdisplay;	/* display for printer relay */
+	Display *w_lastdisp;	/* where the last input was made */
 	int	 w_number;		/* window number */
 	struct event w_readev;
 	struct event w_writeev;
@@ -235,7 +235,7 @@ typedef struct Window {
 	char	 w_tty[MAXSTR];
 
 	int    w_zauto;
-	struct display *w_zdisplay;
+	Display *w_zdisplay;
 #ifdef BUILTIN_TELNET
 	struct sockaddr_in w_telsa;
 	char   w_telbuf[IOSIZE];
@@ -313,8 +313,8 @@ int   winexec (char **);
 void  FreePseudowin (Window *);
 void  nwin_compose (struct NewWindow *, struct NewWindow *, struct NewWindow *);
 int   DoStartLog (Window *, char *, int);
-int   ReleaseAutoWritelock (struct display *, Window *);
-int   ObtainAutoWritelock (struct display *, Window *);
+int   ReleaseAutoWritelock (Display *, Window *);
+int   ObtainAutoWritelock (Display *, Window *);
 void  CloseDevice (Window *);
 #ifndef HAVE_EXECVPE
 void  execvpe (char *, char **, char **);

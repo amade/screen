@@ -115,7 +115,7 @@ typedef struct Layer {
 
 #define LAY_DISPLAYS(l, fn) do				\
 	{ 						\
-	  struct display *olddisplay = display;		\
+	  Display *olddisplay = display;		\
 	  Canvas *cv;				\
 	  for (display = displays; display; display = display->d_next) \
 	    {						\

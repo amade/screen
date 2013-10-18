@@ -535,7 +535,7 @@ int MakeWindow(struct NewWindow *newwin)
 		SetCharsets(p, nwin.charset);
 
 	if (VerboseCreate && type != W_TYPE_GROUP) {
-		struct display *d = display;	/* WriteString zaps display */
+		Display *d = display;	/* WriteString zaps display */
 
 		WriteString(p, ":screen (", 9);
 		WriteString(p, p->w_title, strlen(p->w_title));
@@ -677,7 +677,7 @@ int RemakeWindow(Window *p)
 	evenq(&p->w_writeev);
 
 	if (VerboseCreate) {
-		struct display *d = display;	/* WriteString zaps display */
+		Display *d = display;	/* WriteString zaps display */
 
 		WriteString(p, ":screen (", 9);
 		WriteString(p, p->w_title, strlen(p->w_title));
@@ -736,7 +736,7 @@ void CloseDevice(Window *wp)
 
 void FreeWindow(Window *wp)
 {
-	struct display *d;
+	Display *d;
 	int i;
 	Canvas *cv, *ncv;
 	Layer *l;
@@ -1297,12 +1297,12 @@ void FreePseudowin(Window *w)
 /*
  * returns 0, if the lock really has been released
  */
-int ReleaseAutoWritelock(struct display *dis, Window *w)
+int ReleaseAutoWritelock(Display *dis, Window *w)
 {
 
 	/* release auto writelock when user has no other display here */
 	if (w->w_wlock == WLOCK_AUTO && w->w_wlockuser == dis->d_user) {
-		struct display *d;
+		Display *d;
 
 		for (d = displays; d; d = d->d_next)
 			if ((d != dis) && (d->d_fore == w) && (d->d_user == dis->d_user))
@@ -1318,7 +1318,7 @@ int ReleaseAutoWritelock(struct display *dis, Window *w)
 /*
  * returns 0, if the lock really could be obtained
  */
-int ObtainAutoWritelock(struct display *d, Window *w)
+int ObtainAutoWritelock(Display *d, Window *w)
 {
 	if ((w->w_wlock == WLOCK_AUTO) && !AclCheckPermWin(d->d_user, ACL_WRITE, w) && !w->w_wlockuser) {
 		w->w_wlockuser = d->d_user;
@@ -1673,7 +1673,7 @@ static void zmodem_found(Window *p, int send, char *bp, int len)
 		else if (++n > 4)
 			return;
 	if (zmodem_mode == 3 || (zmodem_mode == 1 && p->w_type != W_TYPE_PLAIN)) {
-		struct display *d, *olddisplay;
+		Display *d, *olddisplay;
 
 		olddisplay = display;
 		d = p->w_lastdisp;
@@ -1714,9 +1714,9 @@ static void zmodem_found(Window *p, int send, char *bp, int len)
 	LayProcess(&s, &n);
 }
 
-void zmodem_abort(Window *p, struct display *d)
+void zmodem_abort(Window *p, Display *d)
 {
-	struct display *olddisplay = display;
+	Display *olddisplay = display;
 	Layer *oldflayer = flayer;
 	if (p) {
 		if (p->w_savelayer && p->w_savelayer->l_next) {

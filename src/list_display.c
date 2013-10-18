@@ -76,7 +76,7 @@ static int gl_Display_footer(__attribute__((unused))struct ListData *ldata)
 
 static int gl_Display_row(struct ListData *ldata, struct ListRow *lrow)
 {
-	struct display *d = lrow->data;
+	Display *d = lrow->data;
 	char tbuf[80];
 	static char *blockstates[5] = { "nb", "NB", "Z<", "Z>", "BL" };
 	Window *w = d->d_fore;
@@ -118,7 +118,7 @@ static int gl_Display_row(struct ListData *ldata, struct ListRow *lrow)
 static void gl_Display_rebuild(struct ListData *ldata)
 {
 	/* recreate the rows */
-	struct display *d;
+	Display *d;
 	struct ListRow *row = NULL;
 	for (d = displays; d; d = d->d_next) {
 		row = glist_add_row(ldata, d, row);
@@ -131,7 +131,7 @@ static void gl_Display_rebuild(struct ListData *ldata)
 
 static int gl_Display_input(struct ListData *ldata, char **inp, int *len)
 {
-	struct display *cd = display;
+	Display *cd = display;
 	unsigned char ch;
 
 	if (!ldata->selected)
