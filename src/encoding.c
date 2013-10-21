@@ -736,7 +736,7 @@ void WinSwitchEncoding(Window *p, int encoding)
 					c = recode_char_dw_to_encoding(c, &c2, encoding);
 					if (encoding == UTF8) {
 						if (c > 0x10000 && ml->fontx == null) {
-							if ((ml->fontx = (unsigned char *)calloc(p->w_width + 1, 1)) == 0) {
+							if ((ml->fontx = calloc(p->w_width + 1, 4)) == 0) {
 								ml->fontx = null;
 								break;
 							}
@@ -754,7 +754,7 @@ void WinSwitchEncoding(Window *p, int encoding)
 			ml->font[i] = c >> 8 & 255;
 			if (encoding == UTF8) {
 				if (c > 0x10000 && ml->fontx == null) {
-					if ((ml->fontx = (unsigned char *)calloc(p->w_width + 1, 1)) == 0) {
+					if ((ml->fontx = calloc(p->w_width + 1, 4)) == 0) {
 						ml->fontx = null;
 						break;
 					}

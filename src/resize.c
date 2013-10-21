@@ -354,7 +354,7 @@ static int BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int 
 	if (mlt->font != null)
 		memmove(mlt->font + xt, mlf->font + xf, l * 4);
 	if (mlf->fontx != null && mlt->fontx == null) {
-		if ((mlt->fontx = (unsigned char *)calloc(w, 1)) == 0)
+		if ((mlt->fontx = calloc(w, 1)) == 0)
 			mlt->fontx = null, r = -1;
 	}
 	if (mlt->fontx != null)
@@ -393,7 +393,7 @@ static void CheckMaxSize(int wi)
 	mline_old.image = xrealloc(mline_old.image, maxwidth * 4);
 	mline_old.attr = xrealloc(mline_old.attr, maxwidth * 4);
 	mline_old.font = xrealloc(mline_old.font, maxwidth * 4);
-	mline_old.fontx = (unsigned char *)xrealloc((char *)mline_old.fontx, maxwidth * 4);
+	mline_old.fontx = xrealloc(mline_old.fontx, maxwidth * 4);
 	mline_old.colorbg = xrealloc(mline_old.colorbg, maxwidth * 4);
 	mline_old.colorfg = xrealloc(mline_old.colorfg, maxwidth * 4);
 	if (!(blank && null && mline_old.image && mline_old.attr && mline_old.font && mline_old.fontx && mline_old.colorbg && mline_old.colorfg))

@@ -1904,7 +1904,7 @@ static void MFixLine(Window *p, int y, struct mchar *mc)
 		}
 	}
 	if (mc->fontx && ml->fontx == null) {
-		if ((ml->fontx = (unsigned char *)calloc(p->w_width + 1, 1)) == 0) {
+		if ((ml->fontx = calloc(p->w_width + 1, 4)) == 0) {
 			ml->fontx = null;
 			mc->fontx = 0;
 		}
