@@ -287,6 +287,7 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
 		for (; j <= to; j++) {
 			c = (unsigned char)*im++;
 			cf = (unsigned char)*fo++;
+			cfx = (unsigned char)*fox++;
 			if (fore->w_encoding == UTF8) {
 				c |= cf << 8 | cfx << 16;
 				if (c == UCS_HIDDEN)
