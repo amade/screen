@@ -57,6 +57,7 @@ static struct mline mline_zero = {
 	(uint32_t *)0,
 	(uint32_t *)0,
 	(uint32_t *)0,
+	(uint32_t *)0,
 	(uint32_t *)0
 };
 
