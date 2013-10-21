@@ -50,11 +50,11 @@ struct LayFuncs ListLf = {
 };
 
 /** Returns non-zero on success. */
-struct ListData *glist_display(struct GenericList *list, const char *name)
+ListData *glist_display(GenericList *list, const char *name)
 {
-	struct ListData *ldata;
+	ListData *ldata;
 
-	if (InitOverlayPage(sizeof(struct ListData), &ListLf, 0))
+	if (InitOverlayPage(sizeof(ListData), &ListLf, 0))
 		return NULL;
 	ldata = flayer->l_data;
 
@@ -68,17 +68,17 @@ struct ListData *glist_display(struct GenericList *list, const char *name)
 	return ldata;
 }
 
-static void glist_decide_top(struct ListData *ldata)
+static void glist_decide_top(ListData *ldata)
 {
 	int count = flayer->l_height - 5;	/* 2 for header, 1 for footer */
-	struct ListRow *top = ldata->selected;
+	ListRow *top = ldata->selected;
 	for (; count && top != ldata->root; top = top->prev, count--) ;
 	ldata->top = top;
 }
 
-static struct ListRow *glist_search_dir(struct ListData *ldata, struct ListRow *start, int dir)
+static ListRow *glist_search_dir(ListData *ldata, ListRow *start, int dir)
 {
-	struct ListRow *row = (dir == 1) ? start->next : start->prev;
+	ListRow *row = (dir == 1) ? start->next : start->prev;
 	for (; row; row = (dir == 1) ? row->next : row->prev)
 		if (ldata->list_fn->gl_matchrow(ldata, row, ldata->search))
 			return row;
@@ -102,8 +102,8 @@ static struct ListRow *glist_search_dir(struct ListData *ldata, struct ListRow *
 
 static void glist_search(char *buf, int len, char *data)
 {
-	struct ListData *ldata = (struct ListData *)data;
-	struct ListRow *row;
+	ListData *ldata = (ListData *)data;
+	ListRow *row;
 
 	if (ldata->search)
 		Free(ldata->search);
@@ -132,11 +132,11 @@ static void glist_search(char *buf, int len, char *data)
 
 static void ListProcess(char **ppbuf, int *plen)
 {
-	struct ListData *ldata = flayer->l_data;
+	ListData *ldata = flayer->l_data;
 	int count = 0;
 
 	while (*plen > 0) {
-		struct ListRow *old;
+		ListRow *old;
 		unsigned char ch;
 
 		if (!flayer->l_mouseevent.start && ldata->list_fn->gl_pinput &&
@@ -261,7 +261,7 @@ static void ListProcess(char **ppbuf, int *plen)
 					ch = 'k';
 				else if (button == ' ') {	/* Left click */
 					int y = flayer->l_mouseevent.buffer[2];
-					struct ListRow *r;
+					ListRow *r;
 					for (r = ldata->top; r && r->y != -1 && r->y != y; r = r->next) ;
 					if (r && r->y == y)
 						ldata->selected = r;
@@ -302,7 +302,7 @@ static void ListAbort(void)
 
 static void ListFree(void *d)
 {
-	struct ListData *ldata = d;
+	ListData *ldata = d;
 	glist_remove_rows(ldata);
 	if (ldata->list_fn->gl_free)
 		ldata->list_fn->gl_free(ldata);
@@ -312,7 +312,7 @@ static void ListFree(void *d)
 
 static void ListRedisplayLine(int y, int xs, int xe, int isblank)
 {
-	struct ListData *ldata;
+	ListData *ldata;
 
 	ldata = flayer->l_data;
 	if (y < 0) {
@@ -328,7 +328,7 @@ static void ListRedisplayLine(int y, int xs, int xe, int isblank)
 	else if (y + 1 == flayer->l_height)
 		ldata->list_fn->gl_printfooter(ldata);
 	else {
-		struct ListRow *row;
+		ListRow *row;
 		for (row = ldata->top; row && row->y != -1; row = row->next)
 			if (row->y == y) {
 				ldata->list_fn->gl_printrow(ldata, row);
@@ -359,9 +359,9 @@ static void ListRestore(void)
 	DefRestore();
 }
 
-struct ListRow *glist_add_row(struct ListData *ldata, void *data, struct ListRow *after)
+ListRow *glist_add_row(ListData *ldata, void *data, ListRow *after)
 {
-	struct ListRow *r = calloc(1, sizeof(struct ListRow));
+	ListRow *r = calloc(1, sizeof(ListRow));
 	r->data = data;
 
 	if (after) {
@@ -380,11 +380,11 @@ struct ListRow *glist_add_row(struct ListData *ldata, void *data, struct ListRow
 	return r;
 }
 
-void glist_remove_rows(struct ListData *ldata)
+void glist_remove_rows(ListData *ldata)
 {
-	struct ListRow *row;
+	ListRow *row;
 	for (row = ldata->root; row;) {
-		struct ListRow *r = row;
+		ListRow *r = row;
 		row = row->next;
 		ldata->list_fn->gl_freerow(ldata, r);
 		free(r);
@@ -392,10 +392,10 @@ void glist_remove_rows(struct ListData *ldata)
 	ldata->root = ldata->selected = ldata->top = NULL;
 }
 
-void glist_display_all(struct ListData *list)
+void glist_display_all(ListData *list)
 {
 	int y;
-	struct ListRow *row;
+	ListRow *row;
 
 	LClearAll(flayer, 0);
 

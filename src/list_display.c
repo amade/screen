@@ -61,20 +61,20 @@ xterm 80x42      jnhollma@/dev/ttyp5    0(m11)    &R.x
 
  */
 
-static int gl_Display_header(__attribute__((unused))struct ListData *ldata)
+static int gl_Display_header(__attribute__((unused))ListData *ldata)
 {
 	leftline("term-type   size         user interface           window       Perms", 0, 0);
 	leftline("---------- ------- ---------- ----------------- ----------     -----", 1, 0);
 	return 2;
 }
 
-static int gl_Display_footer(__attribute__((unused))struct ListData *ldata)
+static int gl_Display_footer(__attribute__((unused))ListData *ldata)
 {
 	centerline("[Press ctrl-l to refresh; Return to end.]", flayer->l_height - 1);
 	return 0;
 }
 
-static int gl_Display_row(struct ListData *ldata, struct ListRow *lrow)
+static int gl_Display_row(ListData *ldata, ListRow *lrow)
 {
 	Display *d = lrow->data;
 	char tbuf[80];
@@ -108,11 +108,11 @@ static int gl_Display_row(struct ListData *ldata, struct ListRow *lrow)
 	return 1;
 }
 
-static void gl_Display_rebuild(struct ListData *ldata)
+static void gl_Display_rebuild(ListData *ldata)
 {
 	/* recreate the rows */
 	Display *d;
-	struct ListRow *row = NULL;
+	ListRow *row = NULL;
 	for (d = displays; d; d = d->d_next) {
 		row = glist_add_row(ldata, d, row);
 		if (d == display)
@@ -122,7 +122,7 @@ static void gl_Display_rebuild(struct ListData *ldata)
 	glist_display_all(ldata);
 }
 
-static int gl_Display_input(struct ListData *ldata, char **inp, int *len)
+static int gl_Display_input(ListData *ldata, char **inp, int *len)
 {
 	Display *cd = display;
 	unsigned char ch;
@@ -166,19 +166,19 @@ static int gl_Display_input(struct ListData *ldata, char **inp, int *len)
 	return 1;
 }
 
-static int gl_Display_freerow(__attribute__((unused))struct ListData *ldata, __attribute__((unused))struct ListRow *row)
+static int gl_Display_freerow(__attribute__((unused))ListData *ldata, __attribute__((unused))ListRow *row)
 {
 	/* There was no allocation when row->data was set. So nothing to do here. */
 	return 0;
 }
 
-static int gl_Display_free(__attribute__((unused))struct ListData *ldata)
+static int gl_Display_free(__attribute__((unused))ListData *ldata)
 {
 	/* There was no allocation in ldata->data. So nothing to do here. */
 	return 0;
 }
 
-static struct GenericList gl_Display = {
+static GenericList gl_Display = {
 	gl_Display_header,
 	gl_Display_footer,
 	gl_Display_row,
@@ -190,7 +190,7 @@ static struct GenericList gl_Display = {
 
 void display_displays()
 {
-	struct ListData *ldata;
+	ListData *ldata;
 	if (flayer->l_width < 10 || flayer->l_height < 5) {
 		LMsg(0, "Window size too small for displays page");
 		return;

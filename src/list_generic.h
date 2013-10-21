@@ -23,31 +23,33 @@
 #ifndef SCREEN_LIST_GENERIC_H
 #define SCREEN_LIST_GENERIC_H
 
-struct ListData;
+typedef struct ListData ListData;
+typedef struct ListRow ListRow;
+typedef struct GenericList GenericList;
 
 struct ListRow {
 	void *data;			/* Some data relevant to this row */
-	struct ListRow *next, *prev;	/* doubly linked list */
+	ListRow *next, *prev;		/* doubly linked list */
 	int y;				/* -1 if not on display */
 };
 
 struct GenericList {
-	int (*gl_printheader) (struct ListData *);			/* Print the header */
-	int (*gl_printfooter) (struct ListData *);			/* Print the footer */
-	int (*gl_printrow) (struct ListData *, struct ListRow *);	/* Print one row */
-	int (*gl_pinput) (struct ListData *, char **inp, int *len);	/* Process input */
-	int (*gl_freerow) (struct ListData *, struct ListRow *);	/* Free data for a row */
-	int (*gl_free) (struct ListData *);				/* Free data for the list */
-	int (*gl_matchrow) (struct ListData *, struct ListRow *, const char *);
+	int (*gl_printheader) (ListData *);			/* Print the header */
+	int (*gl_printfooter) (ListData *);			/* Print the footer */
+	int (*gl_printrow) (ListData *, ListRow *);		/* Print one row */
+	int (*gl_pinput) (ListData *, char **inp, int *len);	/* Process input */
+	int (*gl_freerow) (ListData *, ListRow *);		/* Free data for a row */
+	int (*gl_free) (ListData *);				/* Free data for the list */
+	int (*gl_matchrow) (ListData *, ListRow *, const char *);
 };
 
 struct ListData {
 	const char *name;		/* An identifier for the list */
-	struct ListRow *root;		/* The first item in the list */
-	struct ListRow *selected;	/* The selected row */
-	struct ListRow *top;		/* The topmost visible row */
+	ListRow *root;			/* The first item in the list */
+	ListRow *selected;		/* The selected row */
+	ListRow *top;			/* The topmost visible row */
 
-	struct GenericList *list_fn;	/* The functions that deal with the list */
+	GenericList *list_fn;		/* The functions that deal with the list */
 
 	char *search;			/* The search term, if any */
 
@@ -57,13 +59,13 @@ struct ListData {
 extern struct LayFuncs ListLf;
 
 
-struct ListRow * glist_add_row (struct ListData *ldata, void *data, struct ListRow *after);
+ListRow * glist_add_row (ListData *ldata, void *data, ListRow *after);
 
-void glist_remove_rows (struct ListData *ldata);
+void glist_remove_rows (ListData *ldata);
 
-void glist_display_all (struct ListData *list);
+void glist_display_all (ListData *list);
 
-struct ListData * glist_display (struct GenericList *list, const char *name);
+ListData * glist_display (GenericList *list, const char *name);
 
 void glist_abort (void);
 

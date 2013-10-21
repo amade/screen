@@ -111,12 +111,12 @@ static void window_kill_confirm(char *buf, int len, char *data)
 	DoAction(&act, -1);
 }
 
-static struct ListRow *gl_Window_add_group(struct ListData *ldata, struct ListRow *row)
+static ListRow *gl_Window_add_group(ListData *ldata, ListRow *row)
 {
 	/* Right now, 'row' doesn't have any child. */
 	struct gl_Window_Data *wdata = ldata->data;
 	Window *group = row->data, *w;
-	struct ListRow *cur = row;
+	ListRow *cur = row;
 
 	FOR_EACH_WINDOW(wdata, w, if (w->w_group != group)
 			continue; cur = glist_add_row(ldata, w, cur); if (w == wdata->fore)
@@ -126,9 +126,9 @@ static struct ListRow *gl_Window_add_group(struct ListData *ldata, struct ListRo
 	return cur;
 }
 
-static void gl_Window_rebuild(struct ListData *ldata)
+static void gl_Window_rebuild(ListData *ldata)
 {
-	struct ListRow *row = NULL;
+	ListRow *row = NULL;
 	struct gl_Window_Data *wdata = ldata->data;
 	Window *w;
 
@@ -139,9 +139,9 @@ static void gl_Window_rebuild(struct ListData *ldata)
 	glist_display_all(ldata);
 }
 
-static struct ListRow *gl_Window_findrow(struct ListData *ldata, Window *p)
+static ListRow *gl_Window_findrow(ListData *ldata, Window *p)
 {
-	struct ListRow *row = ldata->root;
+	ListRow *row = ldata->root;
 	for (; row; row = row->next) {
 		if (row->data == p)
 			break;
@@ -149,9 +149,9 @@ static struct ListRow *gl_Window_findrow(struct ListData *ldata, Window *p)
 	return row;
 }
 
-static int gl_Window_remove(struct ListData *ldata, Window *p)
+static int gl_Window_remove(ListData *ldata, Window *p)
 {
-	struct ListRow *row = gl_Window_findrow(ldata, p);
+	ListRow *row = gl_Window_findrow(ldata, p);
 	if (!row)
 		return 0;
 
@@ -174,7 +174,7 @@ static int gl_Window_remove(struct ListData *ldata, Window *p)
 	return 1;
 }
 
-static int gl_Window_header(struct ListData *ldata)
+static int gl_Window_header(ListData *ldata)
 {
 	char *str;
 	struct gl_Window_Data *wdata = ldata->data;
@@ -192,13 +192,13 @@ static int gl_Window_header(struct ListData *ldata)
 	return 2 + g;
 }
 
-static int gl_Window_footer(__attribute__((unused))struct ListData *ldata)
+static int gl_Window_footer(__attribute__((unused))ListData *ldata)
 {
 	centerline("[Press ctrl-l to refresh; Return to end.]", flayer->l_height - 1);
 	return 0;
 }
 
-static int gl_Window_row(struct ListData *ldata, struct ListRow *lrow)
+static int gl_Window_row(ListData *ldata, ListRow *lrow)
 {
 	char *str;
 	Window *w, *g;
@@ -239,7 +239,7 @@ static int gl_Window_row(struct ListData *ldata, struct ListRow *lrow)
 	return 1;
 }
 
-static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
+static int gl_Window_input(ListData *ldata, char **inp, int *len)
 {
 	Window *win;
 	unsigned char ch;
@@ -376,11 +376,11 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 		break;
 	default:
 		if (ch >= '0' && ch <= '9') {
-			struct ListRow *row = ldata->root;
+			ListRow *row = ldata->root;
 			for (; row; row = row->next) {
 				Window *w = row->data;
 				if (w->w_number == ch - '0') {
-					struct ListRow *old = ldata->selected;
+					ListRow *old = ldata->selected;
 					if (old == row)
 						break;
 					ldata->selected = row;
@@ -408,18 +408,18 @@ static int gl_Window_input(struct ListData *ldata, char **inp, int *len)
 	return 1;
 }
 
-static int gl_Window_freerow(__attribute__((unused))struct ListData *ldata, __attribute__((unused))struct ListRow *row)
+static int gl_Window_freerow(__attribute__((unused))ListData *ldata, __attribute__((unused))ListRow *row)
 {
 	return 0;
 }
 
-static int gl_Window_free(struct ListData *ldata)
+static int gl_Window_free(ListData *ldata)
 {
 	Free(ldata->data);
 	return 0;
 }
 
-static int gl_Window_match(__attribute__((unused))struct ListData *ldata, struct ListRow *row, const char *needle)
+static int gl_Window_match(__attribute__((unused))ListData *ldata, ListRow *row, const char *needle)
 {
 	Window *w = row->data;
 	if (InStr(w->w_title, needle))
@@ -427,7 +427,7 @@ static int gl_Window_match(__attribute__((unused))struct ListData *ldata, struct
 	return 0;
 }
 
-static struct GenericList gl_Window = {
+static GenericList gl_Window = {
 	gl_Window_header,
 	gl_Window_footer,
 	gl_Window_row,
@@ -440,7 +440,7 @@ static struct GenericList gl_Window = {
 void display_windows(int onblank, int order, Window *group)
 {
 	Window *p;
-	struct ListData *ldata;
+	ListData *ldata;
 	struct gl_Window_Data *wdata;
 
 	if (flayer->l_width < 10 || flayer->l_height < 6) {
@@ -500,10 +500,10 @@ void display_windows(int onblank, int order, Window *group)
 	gl_Window_rebuild(ldata);
 }
 
-static void WListUpdate(Window *p, struct ListData *ldata)
+static void WListUpdate(Window *p, ListData *ldata)
 {
 	struct gl_Window_Data *wdata = ldata->data;
-	struct ListRow *row, *rbefore;
+	ListRow *row, *rbefore;
 	Window *before;
 	int d = 0, sel = 0;
 
@@ -581,7 +581,7 @@ static void WListUpdate(Window *p, struct ListData *ldata)
 
 void WListUpdatecv(Canvas *cv, Window *p)
 {
-	struct ListData *ldata;
+	ListData *ldata;
 
 	if (cv->c_layer->l_layfn != &ListLf)
 		return;
@@ -595,7 +595,7 @@ void WListLinkChanged()
 {
 	Display *olddisplay = display;
 	Canvas *cv;
-	struct ListData *ldata;
+	ListData *ldata;
 	struct gl_Window_Data *wdata;
 
 	for (display = displays; display; display = display->d_next)
