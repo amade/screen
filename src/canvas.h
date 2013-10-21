@@ -30,8 +30,6 @@
 #ifndef SCREEN_CANVAS_H
 #define SCREEN_CANVAS_H
 
-#include "fwddecl.h"
-
 #define SLICE_UNKN 0
 #define SLICE_VERT (1 << 0)
 #define SLICE_HORI (1 << 1)
@@ -39,9 +37,15 @@
 #define SLICE_THIS (1 << 2)	/* used in equal test */
 #define SLICE_GLOBAL (1 << 3)
 
-typedef struct Canvas {
+typedef struct Display Display;
+typedef struct Viewport Viewport;
+typedef struct Window Window;
+
+
+typedef struct Canvas Canvas;
+struct Canvas {
 	Canvas   *c_next;		/* next canvas on display */
-	Display  *c_display;	/* back pointer to display */
+	Display  *c_display;		/* back pointer to display */
 
 	Canvas   *c_slnext;		/* next canvas in display slice */
 	Canvas   *c_slprev;		/* prev canvas in display slice */
@@ -51,16 +55,16 @@ typedef struct Canvas {
 	int              c_slweight;	/* size ratio */
 
 	Viewport	*c_vplist;
-	Layer    *c_layer;	/* layer on this canvas */
+	Layer    *c_layer;		/* layer on this canvas */
 	Canvas   *c_lnext;		/* next canvas that displays layer */
-	Layer     c_blank;	/* bottom layer, always blank */
+	Layer     c_blank;		/* bottom layer, always blank */
 	int              c_xoff;	/* canvas x offset on display */
 	int              c_yoff;	/* canvas y offset on display */
 	int              c_xs;
 	int              c_xe;
 	int              c_ys;
 	int              c_ye;
-	Event     c_captev;	/* caption changed event */
+	Event     c_captev;		/* caption changed event */
 };
 
 void  SetCanvasWindow (Canvas *, Window *);
@@ -80,21 +84,21 @@ void  EqualizeCanvas (Canvas *, int);
 void  DupLayoutCv (Canvas *, Canvas *, int);
 void  PutWindowCv (Canvas *);
 
-#define CV_CALL(cv, cmd)			\
-{						\
-  Display *olddisplay = display;		\
+#define CV_CALL(cv, cmd)		\
+{					\
+  Display *olddisplay = display;	\
   Layer *oldflayer = flayer;		\
   Layer *l = cv->c_layer;		\
   Canvas *cvlist = l->l_cvlist;		\
-  Canvas *cvlnext = cv->c_lnext;		\
-  flayer = l;					\
-  l->l_cvlist = cv;				\
-  cv->c_lnext = 0;				\
-  cmd;						\
-  flayer = oldflayer;				\
-  l->l_cvlist = cvlist;				\
-  cv->c_lnext = cvlnext;			\
-  display = olddisplay;				\
+  Canvas *cvlnext = cv->c_lnext;	\
+  flayer = l;				\
+  l->l_cvlist = cv;			\
+  cv->c_lnext = 0;			\
+  cmd;					\
+  flayer = oldflayer;			\
+  l->l_cvlist = cvlist;			\
+  cv->c_lnext = cvlnext;		\
+  display = olddisplay;			\
 }
 
 #endif /* SCREEN_CANVAS_H */

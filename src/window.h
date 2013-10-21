@@ -33,8 +33,6 @@
 #ifndef SCREEN_WINDOW_H
 #define SCREEN_WINDOW_H
 
-#include "fwddecl.h"
-
 /* keep this in sync with the initialisations in window.c */
 struct NewWindow {
 	int	StartAt;	/* where to start the search for the slot */
@@ -127,20 +125,21 @@ struct paster {
 	Event	pa_slowev;	/* slowpaste event */
 };
 
-typedef struct Window {
+typedef struct Window Window;
+struct Window {
 	Window *w_next;			/* next window */
 	int	w_type;			/* type of window */
 	Layer w_layer;			/* our layer */
 	Layer *w_savelayer;		/* the layer to keep */
 	int    w_blocked;		/* block input */
 	struct pseudowin *w_pwin;	/* ptr to pseudo */
-	Display *w_pdisplay;	/* display for printer relay */
-	Display *w_lastdisp;	/* where the last input was made */
+	Display *w_pdisplay;		/* display for printer relay */
+	Display *w_lastdisp;		/* where the last input was made */
 	int	 w_number;		/* window number */
 	Event w_readev;
 	Event w_writeev;
-	Event w_silenceev;	/* silence event */
-	Event w_zombieev;	/* event to try to resurrect window */
+	Event w_silenceev;		/* silence event */
+	Event w_zombieev;		/* event to try to resurrect window */
 	int	 w_poll_zombie_timeout;
 	int	 w_ptyfd;		/* fd of the master pty */
 	char	 w_inbuf[IOSIZE];
@@ -248,7 +247,7 @@ typedef struct Window {
 	Event w_telconnev;
 #endif
 	struct {
-		int    on;    /* Is the alternate buffer currently being used? */
+		int    on;    		/* Is the alternate buffer currently being used? */
 		struct mline *mlines;
 		int    width;
 		int    height;
@@ -258,7 +257,7 @@ typedef struct Window {
 		struct cursor cursor;
 	} w_alt;
 
-	Event w_destroyev;	/* window destroy event */
+	Event w_destroyev;		/* window destroy event */
 	int w_exitstatus;
 	int w_miflag;
 };
