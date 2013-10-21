@@ -30,8 +30,6 @@
 #ifndef SCREEN_SCHED_H
 #define SCREEN_SCHED_H
 
-#include "fwddecl.h"
-
 typedef enum {
 	EV_TIMEOUT	= 0,
 	EV_READ		= 1,
@@ -39,6 +37,7 @@ typedef enum {
 	EV_ALWAYS	= 3
 } EventType;
 
+typedef struct Event Event;
 struct Event {
 	Event *next;
 	void (*handler) (Event *, char *);

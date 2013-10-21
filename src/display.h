@@ -62,6 +62,7 @@ typedef enum {
 	HSTATUS_ALWAYS		= (1<<3)
 } HardStatus;
 
+typedef struct Display Display;
 struct Display {
 	Display *d_next;		/* linked list */
 	struct acluser *d_user;		/* user who owns that display */

@@ -30,8 +30,6 @@
 #ifndef SCREEN_ANSI_H
 #define SCREEN_ANSI_H
 
-#include "fwddecl.h"
-
 #define NATTR		6
 
 #define ATTR_DI		0	/* Dim mode */
@@ -148,6 +146,8 @@ enum move_t {
 	(ml)->font[x] == 0xff && (ml)->image[x] == 0xff : \
 	((ml)->font[x] & 0xe0) == 0x80 \
 	)
+
+typedef struct Window Window;
 
 void  ResetAnsiState (Window *);
 void  ResetWindow (Window *);

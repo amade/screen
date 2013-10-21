@@ -38,6 +38,7 @@
 /* forward declarations */
 struct mchar;
 struct mline;
+typedef struct Canvas Canvas;
 
 struct LayFuncs {
 	void	(*lf_LayProcess) (char **, int *);
@@ -50,6 +51,7 @@ struct LayFuncs {
 						   flayer->l_data (but not flayer->l_data itself). */
 };
 
+typedef struct Layer Layer;
 struct Layer {
 	Canvas *l_cvlist;	/* list of canvases displaying layer */
 	int	l_width;

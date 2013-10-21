@@ -34,6 +34,7 @@
 
 #define MAXLAY 10
 
+typedef struct Layout Layout;
 struct Layout {
 	Layout   *lay_next;
 	char            *lay_title;

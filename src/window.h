@@ -33,8 +33,6 @@
 #ifndef SCREEN_WINDOW_H
 #define SCREEN_WINDOW_H
 
-#include "fwddecl.h"
-
 /* keep this in sync with the initialisations in window.c */
 struct NewWindow {
 	int	StartAt;	/* where to start the search for the slot */
@@ -127,20 +125,21 @@ struct paster {
 	Event	pa_slowev;	/* slowpaste event */
 };
 
+typedef struct Window Window;
 struct Window {
-	Window *w_next;		/* next window */
+	Window *w_next;			/* next window */
 	int	w_type;			/* type of window */
-	Layer w_layer;		/* our layer */
-	Layer *w_savelayer;	/* the layer to keep */
+	Layer w_layer;			/* our layer */
+	Layer *w_savelayer;		/* the layer to keep */
 	int	w_blocked;		/* block input */
 	struct pseudowin *w_pwin;	/* ptr to pseudo */
-	Display *w_pdisplay;	/* display for printer relay */
-	Display *w_lastdisp;	/* where the last input was made */
+	Display *w_pdisplay;		/* display for printer relay */
+	Display *w_lastdisp;		/* where the last input was made */
 	int	 w_number;		/* window number */
 	Event w_readev;
 	Event w_writeev;
-	Event w_silenceev;	/* silence event */
-	Event w_zombieev;	/* event to try to resurrect window */
+	Event w_silenceev;		/* silence event */
+	Event w_zombieev;		/* event to try to resurrect window */
 	int	 w_poll_zombie_timeout;
 	int	 w_ptyfd;		/* fd of the master pty */
 	char	 w_inbuf[IOSIZE];
@@ -196,7 +195,7 @@ struct Window {
 	char	*w_tabs;		/* line with tabs */
 	int	 w_bell;		/* bell status of this window */
 	int	 w_flow;		/* flow flags */
-	struct logfile *w_log;	/* log to file */
+	struct logfile *w_log;		/* log to file */
 	int	 w_logsilence;		/* silence in secs */
 	int	 w_monitor;		/* monitor status */
 	int	 w_silencewait;		/* wait for silencewait secs */
@@ -211,8 +210,8 @@ struct Window {
 	int	 w_slowpaste;		/* do careful writes to the window */
 	int	 w_histheight;		/* all histbases are malloced with width * histheight */
 	int	 w_histidx;		/* 0 <= histidx < histheight; where we insert lines */
-	struct mline *w_hlines;	/* history buffer */
-	struct paster w_paster;	/* paste info */
+	struct mline *w_hlines;		/* history buffer */
+	struct paster w_paster;		/* paste info */
 	int	 w_pid;			/* process at the other end of ptyfd */
 	int	 w_deadpid;		/* saved w_pid of a process that closed the ptyfd to us */
 	
@@ -230,7 +229,7 @@ struct Window {
 
 	int    w_zauto;
 	struct {
-		int    on;    /* Is the alternate buffer currently being used? */
+		int    on;    		/* Is the alternate buffer currently being used? */
 		struct mline *mlines;
 		int    width;
 		int    height;
@@ -240,7 +239,7 @@ struct Window {
 		struct cursor cursor;
 	} w_alt;
 
-	Event w_destroyev;	/* window destroy event */
+	Event w_destroyev;		/* window destroy event */
 	int w_exitstatus;
 	int w_miflag;
 };
