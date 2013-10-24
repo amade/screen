@@ -50,11 +50,16 @@ typedef struct acluser
   struct plop u_plop;
 } User;
 
-extern int DefaultEsc, DefaultMetaEsc;
 
 int UserFreeCopyBuffer (struct acluser *);
 struct acluser **FindUserPtr (char *);
 int UserAdd (char *, struct acluser **);
 int UserDel (char *, struct acluser **);
+
+/* global variables */
+
+extern int DefaultEsc, DefaultMetaEsc;
+
+extern struct acluser *users;
 
 #endif /* SCREEN_ACLS_H */

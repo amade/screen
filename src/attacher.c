@@ -32,6 +32,8 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "config.h"
 #include "screen.h"

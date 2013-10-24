@@ -32,6 +32,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <signal.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 

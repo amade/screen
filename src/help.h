@@ -11,4 +11,8 @@ void  WListUpdatecv (Canvas *, Window *);
 void  WListLinkChanged (void);
 void  ZmodemPage (void);
 
+/* global variables */
+
+extern char version[];
+
 #endif /* SCREEN_HELP_H */

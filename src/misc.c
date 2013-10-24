@@ -29,6 +29,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>		/* mkdir() declaration */
 #include <signal.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "config.h"
 #include "screen.h"

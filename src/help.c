@@ -29,6 +29,8 @@
  ****************************************************************
  */
 
+#include <stdint.h>
+#include <stdbool.h>
 #include <sys/types.h>
 
 #include "config.h"
@@ -37,6 +39,7 @@
 
 #include "misc.h"
 #include "list_generic.h"
+#include "process.h"
 
 char version[60];		/* initialised by main() */
 

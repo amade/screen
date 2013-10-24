@@ -28,6 +28,8 @@
 
 #include "config.h"
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 #ifndef NOSYSLOG

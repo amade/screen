@@ -30,6 +30,8 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #if defined(__UCLIBC__)
 #define __USE_XOPEN
@@ -42,6 +44,7 @@
 
 #include "canvas.h"
 #include "encoding.h"
+#include "mark.h"
 #include "misc.h"
 #include "process.h"
 #include "pty.h"

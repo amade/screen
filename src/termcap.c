@@ -27,6 +27,8 @@
  */
 
 #include <sys/types.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "config.h"
 #include "screen.h"

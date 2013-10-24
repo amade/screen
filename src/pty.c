@@ -28,6 +28,8 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <fcntl.h>
 #include <signal.h>
 

@@ -20,6 +20,9 @@
  ****************************************************************
  */
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "config.h"
 #include "screen.h"
 #include "extern.h"

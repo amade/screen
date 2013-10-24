@@ -65,4 +65,14 @@ int   InMark (void);
 void  MakePaster (struct paster *, char *, int, int);
 void  FreePaster (struct paster *);
 
+/* global variables */
+
+extern unsigned char mark_key_tab[];
+
+extern int compacthist;
+extern int join_with_cr;
+extern int pastefont;
+
+extern struct LayFuncs MarkLf;
+
 #endif /* SCREEN_MARK_H */

@@ -12,4 +12,10 @@ void  FreeAltScreen (Window *);
 void  EnterAltScreen (Window *);
 void  LeaveAltScreen (Window *);
 
+/* global variables */
+
+#if defined(TIOCSWINSZ) || defined(TIOCGWINSZ)
+extern struct winsize glwz;
+#endif
+
 #endif /* SCREEN_RESIZE_H */

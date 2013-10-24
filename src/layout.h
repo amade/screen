@@ -61,4 +61,9 @@ int RenumberLayout (Layout *, int);
 void  RemoveLayout (Layout *);
 int   LayoutDumpCanvas (Canvas *, char *);
 
+/* global variables */
+
+extern Layout *layout_attach, *layout_last, layout_last_marker;
+extern Layout *layouts;
+
 #endif /* SCREEN_LAYOUT_H */

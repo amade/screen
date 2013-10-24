@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include <stdint.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <time.h>
 #include <sys/time.h>

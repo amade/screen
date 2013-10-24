@@ -22,6 +22,8 @@
  */
 
 #include <sys/types.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #if defined(__UCLIBC__)
 #define __USE_XOPEN
