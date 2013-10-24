@@ -28,6 +28,8 @@
 
 #include <sys/types.h>
 #include <fcntl.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <sys/stat.h>
 #include <pwd.h>
 
@@ -85,7 +87,6 @@ static char *findrcfile(char *rcfile)
 		static char rcfilename_tilde_exp[MAXPATHLEN + 1];
 		char *slash_position = strchr(rcfile, '/');
 		if (slash_position == rcfile + 1) {
-			char *home = getenv("HOME");
 			if (!home) {
 				Msg(0, "%s: source: tilde expansion failed", rc_name);
 				return NULL;

@@ -354,4 +354,19 @@ void  KillBlanker (void);
 void  DisplaySleep1000 (int, int);
 void  ClearScrollbackBuffer (void);
 
+/* global variables */
+
+extern int captionalways;
+extern int defautonuke;
+extern int defmousetrack;
+extern int defnonblock;
+extern int defobuflimit;
+extern int focusminheight;
+extern int focusminwidth;
+extern int hardstatusemu;
+
+extern Display *display, *displays;
+
+extern struct LayFuncs BlankLf;
+
 #endif /* SCREEN_DISPLAY_H */

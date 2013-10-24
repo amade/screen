@@ -28,6 +28,8 @@
 
 #include "config.h"
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 /* XXX: WHY IS THIS HERE?? :XXX */
@@ -43,6 +45,7 @@
 #include "screen.h"		/* includes acls.h */
 #include "extern.h"
 #include "mark.h"
+#include "process.h"
 
 /************************************************************************
  * user managing code, this does not really belong into the acl stuff   *

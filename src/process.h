@@ -31,4 +31,22 @@ void  ApplyAttrColor (uint64_t, struct mchar *);
 void  SwitchWindow (int);
 int   StuffKey (int);
 
+/* global variables */
+
+extern char *noargs[];
+extern char NullStr[];
+
+extern int hardcopy_append;
+extern int idletimo;
+extern int kmap_extn;
+extern int TtyMode;
+
+extern struct action idleaction;
+extern struct action dmtab[];
+extern struct action ktab[];
+extern struct action mmtab[];
+extern struct action umtab[];
+
+extern struct kmap_ext *kmap_exts;
+
 #endif /* SCREEN_PROCESS_H */

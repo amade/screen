@@ -41,7 +41,6 @@ typedef struct Display Display;
 typedef struct Viewport Viewport;
 typedef struct Window Window;
 
-
 typedef struct Canvas Canvas;
 struct Canvas {
 	Canvas   *c_next;		/* next canvas on display */

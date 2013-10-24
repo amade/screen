@@ -28,6 +28,8 @@
 
 #include <sys/types.h>
 #include <fcntl.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <sys/ioctl.h>
 
 #include "config.h"
@@ -37,6 +39,7 @@
 #include "encoding.h"
 #include "fileio.h"
 #include "help.h"
+#include "mark.h"
 #include "misc.h"
 #include "logfile.h"
 #include "resize.h"

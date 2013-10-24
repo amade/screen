@@ -17,4 +17,9 @@ int   SetBaud (struct mode *, int, int);
 int   SttyMode (struct mode *, char *);
 int   CheckTtyname (char *);
 
+/* global variables */
+
+extern int breaktype;
+extern int separate_sids;
+
 #endif /* SCREEN_TTY_H */

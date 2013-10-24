@@ -163,4 +163,27 @@ void  WChangeSize (Window *, int, int);
 void  WindowChanged (Window *, int);
 int   MFindUsedLine (Window *, int, int);
 
+/* global variables */
+
+extern char *printcmd;
+
+extern uint32_t *blank;
+extern uint32_t *null;
+
+extern uint64_t renditions[];
+
+extern int use_altscreen;
+extern int use_hardstatus;
+extern int visual_bell;
+extern int Z0width;
+extern int Z1width;
+
+extern struct mline mline_blank;
+extern struct mline mline_null;
+extern struct mline mline_old;
+
+extern struct mchar mchar_so;
+extern struct mchar mchar_blank;
+extern struct mchar mchar_null;
+
 #endif /* SCREEN_ANSI_H */

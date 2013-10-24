@@ -34,6 +34,8 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <time.h>
 
@@ -45,6 +47,7 @@
 #include "fileio.h"
 #include "help.h"
 #include "input.h"
+#include "kmapdef.h"
 #include "layout.h"
 #include "list_generic.h"
 #include "logfile.h"
@@ -52,6 +55,7 @@
 #include "misc.h"
 #include "process.h"
 #include "resize.h"
+#include "search.h"
 #include "termcap.h"
 #include "tty.h"
 #include "utmp.h"

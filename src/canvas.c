@@ -26,6 +26,9 @@
  ****************************************************************
  */
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "config.h"
 #include "screen.h"
 #include "extern.h"

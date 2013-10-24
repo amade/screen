@@ -56,8 +56,6 @@ struct ListData {
 	void *data;			/* List specific data */
 };
 
-extern struct LayFuncs ListLf;
-
 
 ListRow * glist_add_row (ListData *ldata, void *data, ListRow *after);
 
@@ -72,5 +70,9 @@ void glist_abort (void);
 void display_displays (void);
 
 void display_windows (int onblank, int order, Window *group);
+
+/* global variables */
+
+extern struct LayFuncs ListLf;
 
 #endif /* SCREEN_LIST_GENERIC_H */

@@ -187,8 +187,6 @@ struct msg {
 #define SILENCE_FOUND   2 /* Window is silent */
 #define SILENCE_DONE    3 /* Window is silent and user is notified */
 
-extern char strnomem[];
-
 /*
  * line modes used by Input()
  */
@@ -237,5 +235,91 @@ int   AddWinMsgRend (const char *, uint64_t);
 void  PutWinMsg (char *, int, int);
 void  WindowDied (Window *, int, int);
 void  setbacktick (int, int, int, char **);
+
+/* global variables */
+
+extern char strnomem[];
+extern char HostName[];
+extern char SocketPath[];
+extern char *attach_tty;
+extern char *attach_term;
+extern char *captionstring;
+extern char *hardcopydir;
+extern char *home;
+extern char *hstatusstring;
+extern char *logtstamp_string;
+extern char *multi;
+extern char *preselect;
+extern char *screenencodings;
+extern char *screenlogfile;
+extern char *timestring;
+extern char *wliststr;
+extern char *wlisttit;
+extern char *ActivityString;
+extern char *BellString;
+extern char *BufferFile;
+extern char *LoginName;
+extern char *PowDetachString;
+extern char *RcFileName;
+extern char *ShellArgs[];
+extern char *ShellProg;
+extern char *SocketMatch;
+extern char *SocketName;
+extern char *VisualBellString;
+extern char **NewEnv;
+
+extern bool adaptflag;
+extern bool iflag;
+extern bool lsflag;
+extern bool quietflag;
+extern bool wipeflag;
+extern bool xflag;
+
+extern int attach_fd;
+extern int auto_detach;
+extern int cjkwidth;
+extern int default_startup;
+extern int dflag;
+extern int force_vt;
+extern int log_flush;
+extern int logtstamp_on;
+extern int logtstamp_after;
+extern int maxwin;
+extern int multi_uid;
+extern int multiattach;
+extern int nversion;
+extern int own_uid;
+extern int queryflag;
+extern int rflag;
+extern int tty_mode;
+extern int tty_oldmode;
+extern int MasterPid;
+extern int MsgMinWait;
+extern int MsgWait;
+extern int ServerSocket;
+extern int SilenceWait;
+extern int VBellWait;
+extern int ZombieKey_destroy;
+extern int ZombieKey_onerror;
+extern int ZombieKey_resurrect;
+
+extern Window *console_window;
+extern Window *fore;
+extern Window *windows;
+
+extern Layer *flayer;
+
+extern Event logflushev;
+extern Event serv_read;
+
+extern struct mode attach_Mode;
+
+extern gid_t eff_gid;
+extern gid_t real_gid;
+
+extern uid_t eff_uid;
+extern uid_t real_uid;
+
+extern struct passwd *ppp;
 
 #endif /* SCREEN_SCREEN_H */

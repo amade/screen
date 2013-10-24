@@ -29,6 +29,8 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>

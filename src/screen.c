@@ -33,6 +33,7 @@
 #include <pwd.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -49,6 +50,9 @@
 #include "version.h"
 #include "logfile.h"		/* islogfile, logfflush */
 #include "fileio.h"
+#include "mark.h"
+
+extern char **environ;
 
 int force_vt = 1;
 int VBellWait, MsgWait, MsgMinWait, SilenceWait;

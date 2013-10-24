@@ -319,4 +319,15 @@ void  CloseDevice (Window *);
 void  execvpe (char *, char **, char **);
 #endif
 
+/* global variables */
+
+extern char DefaultShell[];
+
+extern int VerboseCreate;
+
+extern struct LayFuncs WinLf;
+extern struct NewWindow nwin_undef, nwin_default, nwin_options;
+
+extern Window **wtab;
+
 #endif /* SCREEN_WINDOW_H */

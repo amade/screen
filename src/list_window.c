@@ -27,6 +27,9 @@
  * verify that the window does exist (by looking at wtab[]).
  */
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "config.h"
 #include "screen.h"
 #include "extern.h"

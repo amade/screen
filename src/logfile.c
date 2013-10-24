@@ -29,6 +29,8 @@
 #include <sys/types.h>		/* dev_t, ino_t, off_t, ... */
 #include <sys/stat.h>		/* struct stat */
 #include <fcntl.h>		/* O_WRONLY for logfile_reopen */
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "config.h"
 #include "screen.h"

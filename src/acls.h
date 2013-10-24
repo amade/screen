@@ -84,7 +84,6 @@ typedef struct acluser
   struct aclusergroup *u_group;	/* linked list of pointers to other users */
 } User;
 
-extern int DefaultEsc, DefaultMetaEsc;
 
 int AclSetPerm (struct acluser *, struct acluser *, char *, char *);
 int AclUmask (struct acluser *, char *, char **);
@@ -96,5 +95,12 @@ int UserFreeCopyBuffer (struct acluser *);
 struct acluser **FindUserPtr (char *);
 int UserAdd (char *, char *, struct acluser **);
 int UserDel (char *, struct acluser **);
+
+/* global variables */
+
+extern int DefaultEsc, DefaultMetaEsc;
+extern int maxusercount;
+
+extern struct acluser *users, *EffectiveAclUser;
 
 #endif /* SCREEN_ACLS_H */

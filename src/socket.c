@@ -36,6 +36,8 @@
 #endif
 #include <sys/un.h>
 #include <utime.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <signal.h>
 
 #include "screen.h"

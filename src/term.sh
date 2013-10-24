@@ -16,6 +16,7 @@ cat << EOF > term.h
  * This file is automagically created from term.c -- DO NOT EDIT
  */
 
+
 #define T_FLG 0
 #define T_NUM 1
 #define T_STR 2

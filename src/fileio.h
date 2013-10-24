@@ -14,4 +14,8 @@ int   readpipe (char **);
 void  RunBlanker (char **);
 void  do_source (char *);
 
+/* global variables */
+
+extern char *rc_name;
+
 #endif

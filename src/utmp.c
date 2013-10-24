@@ -29,6 +29,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #ifdef HAVE_UTEMPTER
 #include <utempter.h>
@@ -41,6 +43,8 @@
 #include "misc.h"
 #include "tty.h"
 #include "utmp.h"
+
+extern struct utmp *getutline(), *pututline();
 
 /*
  *  UTNOKEEP: A (ugly) hack for apollo that does two things:
