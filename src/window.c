@@ -797,9 +797,9 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 
 #ifndef PTYROFS
 #ifdef PTYGROUP
-	if (chown(*namep, real_uid, PTYGROUP) && !eff_uid)
+	if (chown(*namep, real_uid, PTYGROUP))
 #else
-	if (chown(*namep, real_uid, real_gid) && !eff_uid)
+	if (chown(*namep, real_uid, real_gid))
 #endif
 	{
 		Msg(errno, "chown tty");
@@ -807,9 +807,9 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 		return -1;
 	}
 #ifdef UTMPOK
-	if (chmod(*namep, lflag ? TtyMode : (TtyMode & ~022)) && !eff_uid)
+	if (chmod(*namep, lflag ? TtyMode : (TtyMode & ~022)))
 #else
-	if (chmod(*namep, TtyMode) && !eff_uid)
+	if (chmod(*namep, TtyMode))
 #endif
 	{
 		Msg(errno, "chmod tty");

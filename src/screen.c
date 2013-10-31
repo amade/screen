@@ -126,8 +126,8 @@ int queryflag = -1;
 
 char HostName[MAXSTR];
 int MasterPid, PanicPid;
-uid_t real_uid, eff_uid;
-gid_t real_gid, eff_gid;
+uid_t real_uid;
+gid_t real_gid;
 int default_startup;
 int ZombieKey_destroy, ZombieKey_resurrect, ZombieKey_onerror;
 char *preselect = NULL;		/* only used in Attach() */
@@ -480,8 +480,6 @@ int main(int argc, char **argv)
 
 	real_uid = getuid();
 	real_gid = getgid();
-	eff_uid = geteuid();
-	eff_gid = getegid();
 
 	sigemptyset (&sigact.sa_mask);
 	sigact.sa_flags = 0;
@@ -566,14 +564,6 @@ int main(int argc, char **argv)
 	LoginName = SaveStr(LoginName);
 
 	ppp = getpwbyname(LoginName, ppp);
-
-#define SET_GUID() \
-  { \
-    setgid(real_gid); \
-    setuid(real_uid); \
-    eff_uid = real_uid; \
-    eff_gid = real_gid; \
-  }
 
 #define SET_TTYNAME(fatal) \
   { \
@@ -677,7 +667,6 @@ int main(int argc, char **argv)
 	if (lsflag) {
 		int i, fo, oth;
 
-		SET_GUID();
 		i = FindSocket((int *)NULL, &fo, &oth, SocketMatch);
 		if (quietflag)
 			exit(8 + (fo ? ((oth || i) ? 2 : 1) : 0) + i);
@@ -693,7 +682,6 @@ int main(int argc, char **argv)
 		SET_TTYNAME(0);
 		if (!*argv)
 			Panic(0, "Please specify a command.");
-		SET_GUID();
 		SendCmdMessage(sty, SocketMatch, argv, queryflag >= 0);
 		exit(0);
 	} else if (rflag || xflag) {
@@ -711,7 +699,6 @@ int main(int argc, char **argv)
 	if (!SocketMatch && !mflag && sty) {
 		/* attach_tty is not mandatory */
 		SET_TTYNAME(0);
-		SET_GUID();
 		nwin_options.args = argv;
 		SendCreateMsg(sty, &nwin);
 		exit(0);
@@ -743,7 +730,6 @@ int main(int argc, char **argv)
 		if (strlen(socknamebuf) > FILENAME_MAX)
 			socknamebuf[FILENAME_MAX] = 0;
 		sprintf(SocketPath + strlen(SocketPath), "/%s", socknamebuf);
-		SET_GUID();
 		Attacher();
 		/* NOTREACHED */
 	}
@@ -1043,8 +1029,6 @@ static void CoreDump(__attribute__((unused))int sigsig)
 
 	int running_w_s_bit = (getuid() != geteuid());
 
-	setgid(getgid());
-	setuid(getuid());
 	unlink("core");
 
 	sprintf(buf, "\r\n[screen caught a fatal signal. (core dumped)]\r\n");
@@ -1166,8 +1150,6 @@ void Finit(int i)
 void eexit(int e)
 {
 	if (ServerSocket != -1) {
-		setgid(real_gid);
-		setuid(real_uid);
 		(void)unlink(SocketPath);
 	}
 	exit(e);

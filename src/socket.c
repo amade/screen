@@ -488,11 +488,7 @@ static int CheckPid(int pid)
 {
 	if (pid < 2)
 		return -1;
-	if (eff_uid == real_uid)
-		return kill(pid, 0);
-	if (UserContext() > 0)
-		UserReturn(kill(pid, 0));
-	return UserStatus();
+	return kill(pid, 0);
 }
 
 static int CreateTempDisplay(struct msg *m, int recvfd, Window *win)

@@ -243,11 +243,7 @@ void RemoveLoginSlot()
 	D_loginslot = TtyNameSlot(D_usertty);
 	if (D_loginslot == (slot_t) 0 || D_loginslot == (slot_t) - 1)
 		return;
-#ifdef UTMP_HELPER
-	if (eff_uid)		/* helpers can't do login slots. sigh. */
-#else
 	if (!utmpok)
-#endif
 	{
 		D_loginslot = 0;
 	} else {

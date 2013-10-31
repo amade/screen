@@ -299,10 +299,8 @@ extern Event serv_read;
 
 extern struct mode attach_Mode;
 
-extern gid_t eff_gid;
 extern gid_t real_gid;
 
-extern uid_t eff_uid;
 extern uid_t real_uid;
 
 extern struct passwd *ppp;
