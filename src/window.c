@@ -876,10 +876,6 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 		sigaction(SIGTTOU, &sigact, NULL);
 
 		displays = 0;	/* beware of Panic() */
-		if (setgid(real_gid) || setuid(real_uid))
-			Panic(errno, "Setuid/gid");
-		eff_uid = real_uid;
-		eff_gid = real_gid;
 		if (!pwin)	/* ignore directory if pseudo */
 			if (win->w_dir && *win->w_dir && chdir(win->w_dir))
 				Panic(errno, "Cannot chdir to %s", win->w_dir);

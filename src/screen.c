@@ -1140,11 +1140,7 @@ void Finit(int i)
 		FreeWindow(p);
 	}
 	if (ServerSocket != -1) {
-		xseteuid(real_uid);
-		xsetegid(real_gid);
 		(void)unlink(SocketPath);
-		xseteuid(eff_uid);
-		xsetegid(eff_gid);
 	}
 	for (display = displays; display; display = display->d_next) {
 		if (D_status)

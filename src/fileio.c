@@ -512,11 +512,7 @@ FILE *secfopen(char *name, char *mode)
 {
 	FILE *fi;
 
-	xseteuid(real_uid);
-	xsetegid(real_gid);
 	fi = fopen(name, mode);
-	xseteuid(eff_uid);
-	xsetegid(eff_gid);
 	return fi;
 }
 
@@ -524,11 +520,7 @@ int secopen(char *name, int flags, int mode)
 {
 	int fd;
 
-	xseteuid(real_uid);
-	xsetegid(real_gid);
 	fd = open(name, flags, mode);
-	xseteuid(eff_uid);
-	xsetegid(eff_gid);
 	return fd;
 }
 
@@ -549,8 +541,6 @@ int printpipe(Window *p, char *cmd)
 		close(0);
 		dup(pi[0]);
 		closeallfiles(0);
-		if (setgid(real_gid) || setuid(real_uid))
-			Panic(errno, "printpipe setuid");
 		execl("/bin/sh", "sh", "-c", cmd, (char *)0);
 		Panic(errno, "/bin/sh");
 	default:
@@ -580,10 +570,6 @@ int readpipe(char **cmdv)
 			Panic(0, "dup");
 		}
 		closeallfiles(1);
-		if (setgid(real_gid) || setuid(real_uid)) {
-			close(1);
-			Panic(errno, "setuid/setgid");
-		}
 		execvp(*cmdv, cmdv);
 		close(1);
 		Panic(errno, "%s", *cmdv);

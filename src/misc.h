@@ -16,10 +16,6 @@ int   UserContext (void);
 void  UserReturn (int);
 int   UserStatus (void);
 void (*xsignal (int, void (*)(int))) (int);
-#if defined(HAVE_SETEUID) || defined(HAVE_SETREUID)
-void  xseteuid  (int);
-void  xsetegid  (int);
-#endif
 int   AddXChar (char *, int);
 int   AddXChars (char *, int, char *);
 void  sleep1000 (int);

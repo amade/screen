@@ -47,11 +47,6 @@
 #include <time.h>
 #include <sys/time.h>
 
-#if defined(HAVE_SETRESUID) && !defined(HAVE_SETREUID)
-# define setreuid(ruid, euid) setresuid(ruid, euid, -1)
-# define setregid(rgid, egid) setresgid(rgid, egid, -1)
-#endif
-
 #ifndef HAVE_UTIMES
 # define utimes utime
 #endif

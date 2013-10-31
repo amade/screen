@@ -100,26 +100,6 @@ dnl AC_EGREP_CPP(uid_t,[#include <sys/types.h>
 dnl ],AC_DEFINE(UID_T_DEFINED))
 dnl
 
-dnl
-dnl    ****  setresuid(), setreuid(), seteuid()  ****
-dnl
-AC_CHECKING(setresuid)
-AC_TRY_LINK(,[
-setresuid(0, 0, 0);
-], AC_DEFINE(HAVE_SETRESUID))
-AC_CHECKING(setreuid)
-AC_TRY_LINK(,[
-setreuid(0, 0);
-], AC_DEFINE(HAVE_SETREUID))
-dnl
-dnl seteuid() check:
-dnl   linux seteuid was broken before V1.1.11
-dnl   NeXT, AUX, ISC, and ultrix are still broken (no saved uid support)
-dnl   Solaris seteuid doesn't change the saved uid, bad for
-dnl     multiuser screen sessions
-AC_CHECKING(seteuid)
-AC_TRY_LINK(,[seteuid_is_broken(0);], AC_DEFINE(HAVE_SETEUID))
-
 dnl execvpe
 AC_CHECKING(execvpe)
 AC_TRY_LINK(,[

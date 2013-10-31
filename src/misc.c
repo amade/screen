@@ -125,21 +125,6 @@ char *stripdev(char *nam)
  *    uid/gid handling
  */
 
-void xseteuid(int euid)
-{
-	if (seteuid(euid) == 0)
-		return;
-	seteuid(0);
-	if (seteuid(euid))
-		Panic(errno, "seteuid");
-}
-
-void xsetegid(int egid)
-{
-	if (setegid(egid))
-		Panic(errno, "setegid");
-}
-
 void Kill(int pid, int sig)
 {
 	if (pid < 2)
@@ -187,15 +172,11 @@ static int UserSTAT;
 
 int UserContext()
 {
-	xseteuid(real_uid);
-	xsetegid(real_gid);
 	return 1;
 }
 
 void UserReturn(int val)
 {
-	xseteuid(eff_uid);
-	xsetegid(eff_gid);
 	UserSTAT = val;
 }
 

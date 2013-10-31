@@ -119,9 +119,6 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	 */
 	sdirlen = strlen(SocketPath);
 
-	xseteuid(real_uid);
-	xsetegid(real_gid);
-
 	if ((dirp = opendir(SocketPath)) == 0)
 		Panic(errno, "Cannot opendir %s", SocketPath);
 
@@ -183,9 +180,6 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 		slisttail = &sent->next;
 		nfound++;
 		sockfd = MakeClientSocket(0);
-		/* MakeClientSocket sets ids back to eff */
-		xseteuid(real_uid);
-		xsetegid(real_gid);
 		if (sockfd == -1) {
 			sent->mode = -3;
 			ndead++;
@@ -287,8 +281,6 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 		free(sent->name);
 		free((char *)sent);
 	}
-	xseteuid(eff_uid);
-	xsetegid(eff_gid);
 	if (notherp)
 		*notherp = npriv;
 	if (nfoundp)
@@ -312,8 +304,6 @@ int MakeServerSocket()
 		Panic(errno, "socket");
 	a.sun_family = AF_UNIX;
 	strncpy(a.sun_path, SocketPath, sizeof(a.sun_path));
-	xseteuid(real_uid);
-	xsetegid(real_gid);
 	if (connect(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) != -1) {
 		if (quietflag) {
 			Kill(D_userpid, SIG_BYE);
@@ -353,8 +343,6 @@ int MakeServerSocket()
 #ifdef F_SETOWN
 	fcntl(s, F_SETOWN, getpid());
 #endif				/* F_SETOWN */
-	xseteuid(eff_uid);
-	xsetegid(eff_gid);
 	return s;
 }
 
@@ -367,16 +355,12 @@ int MakeClientSocket(int err)
 		Panic(errno, "socket");
 	a.sun_family = AF_UNIX;
 	strncpy(a.sun_path, SocketPath, sizeof(a.sun_path));
-	xseteuid(real_uid);
-	xsetegid(real_gid);
 	if (connect(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) == -1) {
 		if (err)
 			Msg(errno, "%s: connect", SocketPath);
 		close(s);
 		s = -1;
 	}
-	xseteuid(eff_uid);
-	xsetegid(eff_gid);
 	return s;
 }
 

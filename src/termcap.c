@@ -1016,12 +1016,7 @@ static int copyarg(char **pp, char *s)
 static int e_tgetent(char *bp, char *name)
 {
 	int r;
-
-	xseteuid(real_uid);
-	xsetegid(real_gid);
 	r = tgetent(bp, name);
-	xseteuid(eff_uid);
-	xsetegid(eff_gid);
 	return r;
 }
 

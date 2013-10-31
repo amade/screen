@@ -162,13 +162,6 @@ int Attach(int how)
 
 	LockTerminal();
 
-	if (setuid(real_uid))
-		Panic(errno, "setuid");
-	if (setgid(real_gid))
-		Panic(errno, "setgid");
-	eff_uid = real_uid;
-	eff_gid = real_gid;
-
 	MasterPid = 0;
 	for (s = SocketName; *s; s++) {
 		if (*s > '9' || *s < '0')
@@ -310,10 +303,6 @@ void AttacherFinit(__attribute__((unused))int sigsig)
 static void AttacherFinitBye(__attribute__((unused))int sigsig)
 {
 	int ppid;
-	if (setgid(real_gid))
-		Panic(errno, "setgid");
-	if (setuid(real_uid))
-		Panic(errno, "setuid");
 	/* we don't want to disturb init (even if we were root), eh? jw */
 	if ((ppid = getppid()) > 1)
 		Kill(ppid, SIGHUP);	/* carefully say good bye. jw. */
@@ -424,10 +413,6 @@ void Attacher()
 static void LockHup(__attribute__((unused))int sigsig)
 {
 	int ppid = getppid();
-	if (setgid(real_gid))
-		Panic(errno, "setgid");
-	if (setuid(real_uid))
-		Panic(errno, "setuid");
 	if (ppid > 1)
 		Kill(ppid, SIGHUP);
 	exit(0);

@@ -2756,8 +2756,6 @@ void RunBlanker(char **cmdv)
 		return;
 	case 0:
 		displays = 0;
-		if (setgid(real_gid) || setuid(real_uid))
-			Panic(errno, "setuid/setgid");
 		brktty(D_userfd);
 		freetty();
 		close(0);
