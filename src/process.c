@@ -1874,7 +1874,7 @@ void ProcessInput2(char *ibuf, int ilen)
 		s = ibuf;
 		if (!D_ESCseen) {
 			while (ilen > 0) {
-				if ((unsigned char)*s++ == D_user->u_Esc)
+				if ((unsigned char)*s++ == DefaultEsc)
 					break;
 				ilen--;
 			}
@@ -1894,17 +1894,6 @@ void ProcessInput2(char *ibuf, int ilen)
 			WindowChanged(fore, 'E');
 		}
 		ch = (unsigned char)*s;
-
-		/*
-		 * As users have different esc characters, but a common ktab[],
-		 * we fold back the users esc and meta-esc key to the Default keys
-		 * that can be looked up in the ktab[]. grmbl. jw.
-		 * XXX: make ktab[] a per user thing.
-		 */
-		if (ch == D_user->u_Esc)
-			ch = DefaultEsc;
-		else if (ch == D_user->u_MetaEsc)
-			ch = DefaultMetaEsc;
 
 		if (ch >= 0)
 			DoAction(&ktabp[ch], ch);
@@ -2062,9 +2051,6 @@ void DoAction(struct action *act, int key)
 	char *s;
 	char ch;
 	Display *odisplay = display;
-	struct acluser *user;
-
-	user = display ? D_user : users;
 
 	if (nr > RC_LAST) {
 		struct alias *alias = FindAliasnr(nr);
@@ -2173,7 +2159,7 @@ void DoAction(struct action *act, int key)
 		D_obuflenmax = D_obuflen - D_obufmax;
 		break;
 	case RC_DUMPTERMCAP:
-		WriteFile(user, (char *)0, DUMP_TERMCAP);
+		WriteFile((char *)0, DUMP_TERMCAP);
 		break;
 	case RC_HARDCOPY:
 		{
@@ -2194,7 +2180,7 @@ void DoAction(struct action *act, int key)
 				OutputMsg(0, "%s: hardcopy: too many arguments", rc_name);
 				break;
 			}
-			WriteFile(user, file, mode);
+			WriteFile(file, mode);
 		}
 		break;
 	case RC_DEFLOG:
@@ -2300,9 +2286,6 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_AT:
 		/* where this AT command comes from: */
-		if (!user)
-			break;
-		s = SaveStr(display ? D_usertty : user->u_name);
 		n = strlen(args[0]);
 		if (n)
 			n--;
@@ -2315,33 +2298,17 @@ void DoAction(struct action *act, int key)
 		case '*':	/* user */
 			{
 				Display *nd;
-				struct acluser *u;
 
-				if (!n)
-					u = user;
-				else {
-					for (u = users; u; u = u->u_next) {
-						if (!strncmp(*args, u->u_name, n))
-							break;
-					}
-					if (!u) {
-						args[0][n] = '\0';
-						OutputMsg(0, "Did not find any user matching '%s'", args[0]);
-						break;
-					}
-				}
 				for (display = displays; display; display = nd) {
 					nd = display->d_next;
 					if (D_forecv == 0)
 						continue;
 					flayer = D_forecv->c_layer;
 					fore = D_fore;
-					if (D_user != u)
-						continue;
 					DoCommand(args + 1, argl + 1);
 					if (display)
 						OutputMsg(0, "command from %s: %s %s",
-							  s, args[1], args[2] ? args[2] : "");
+							  LoginName, args[1], args[2] ? args[2] : "");
 					display = NULL;
 					flayer = 0;
 					fore = NULL;
@@ -2507,12 +2474,14 @@ void DoAction(struct action *act, int key)
 		}
 		ch = args[0][0];
 		if (ch == '.') {
-			if (user->u_plop.buf != NULL)
-				UserFreeCopyBuffer(user);
+			if (GlobalPlop->buf != NULL) {
+				free(GlobalPlop->buf);
+				GlobalPlop->len = 0;
+			}
 			if (args[1] && args[1][0]) {
-				user->u_plop.buf = SaveStrn(args[1], argl[1]);
-				user->u_plop.len = argl[1];
-				user->u_plop.enc = i;
+				GlobalPlop->buf = SaveStrn(args[1], argl[1]);
+				GlobalPlop->len = argl[1];
+				GlobalPlop->enc = i;
 			}
 		} else {
 			struct plop *plp = plop_tab + (int)(unsigned char)ch;
@@ -2620,9 +2589,7 @@ void DoAction(struct action *act, int key)
 			SwitchWindow(display && D_other ? D_other->w_number : NextWindow());
 		break;
 	case RC_META:
-		if (user->u_Esc == -1)
-			break;
-		ch = user->u_Esc;
+		ch = DefaultEsc;
 		s = &ch;
 		n = 1;
 		LayProcess(&s, &n);
@@ -2943,7 +2910,7 @@ void DoAction(struct action *act, int key)
 			}
 			if (GetHistory() == 0)
 				break;
-			if (user->u_plop.buf == NULL)
+			if (GlobalPlop->buf == NULL)
 				break;
 			args = pasteargs;
 			argl = pasteargl;
@@ -2980,12 +2947,12 @@ void DoAction(struct action *act, int key)
 			for (ss = s = *args; (ch = *ss); ss++) {
 				if (ch == '.') {
 					if (enc == -1)
-						enc = user->u_plop.enc;
-					if (enc != user->u_plop.enc)
-						l += RecodeBuf((unsigned char *)user->u_plop.buf, user->u_plop.len,
-							       user->u_plop.enc, enc, (unsigned char *)0);
+						enc = GlobalPlop->enc;
+					if (enc != GlobalPlop->enc)
+						l += RecodeBuf((unsigned char *)GlobalPlop->buf, GlobalPlop->len,
+							       GlobalPlop->enc, enc, (unsigned char *)0);
 					else
-						l += user->u_plop.len;
+						l += GlobalPlop->len;
 				} else {
 					if (enc == -1)
 						enc = plop_tab[(int)(unsigned char)ch].enc;
@@ -3008,9 +2975,9 @@ void DoAction(struct action *act, int key)
 			 * pass a pointer rather than duplicating the buffer.
 			 */
 			if (s[1] == 0 && args[1] == 0)
-				if (enc == (*s == '.' ? user->u_plop.enc : plop_tab[(int)(unsigned char)*s].enc)) {
+				if (enc == (*s == '.' ? GlobalPlop->enc : plop_tab[(int)(unsigned char)*s].enc)) {
 					MakePaster(&fore->w_paster,
-						   *s == '.' ? user->u_plop.buf : plop_tab[(int)(unsigned char)*s].buf,
+						   *s == '.' ? GlobalPlop->buf : plop_tab[(int)(unsigned char)*s].buf,
 						   l, 0);
 					break;
 				}
@@ -3027,7 +2994,7 @@ void DoAction(struct action *act, int key)
 			 * special and is skipped if no display exists.
 			 */
 			for (ss = s; (ch = *ss); ss++) {
-				struct plop *pp = (ch == '.' ? &user->u_plop : &plop_tab[(int)(unsigned char)ch]);
+				struct plop *pp = (ch == '.' ? &GlobalPlop : &plop_tab[(int)(unsigned char)ch]);
 				if (pp->enc != enc) {
 					l += RecodeBuf((unsigned char *)pp->buf, pp->len, pp->enc, enc,
 						       (unsigned char *)dbuf + l);
@@ -3048,11 +3015,11 @@ void DoAction(struct action *act, int key)
 				 */
 				dch = args[1][0];
 				if (dch == '.') {
-					if (user->u_plop.buf != NULL)
-						UserFreeCopyBuffer(user);
-					user->u_plop.buf = dbuf;
-					user->u_plop.len = l;
-					user->u_plop.enc = enc;
+					if (GlobalPlop->buf != NULL)
+						free(GlobalPlop->buf);
+					GlobalPlop->buf = dbuf;
+					GlobalPlop->len = l;
+					GlobalPlop->enc = enc;
 				} else {
 					struct plop *pp = plop_tab + (int)(unsigned char)dch;
 					if (pp->buf)
@@ -3065,14 +3032,14 @@ void DoAction(struct action *act, int key)
 			break;
 		}
 	case RC_WRITEBUF:
-		if (!user->u_plop.buf) {
+		if (!GlobalPlop->buf) {
 			OutputMsg(0, "empty buffer");
 			break;
 		}
 		{
-			struct plop oldplop;
+			struct plop *oldplop;
 
-			oldplop = user->u_plop;
+			oldplop = GlobalPlop;
 			if (args[0] && args[1] && !strcmp(args[0], "-e")) {
 				int enc, l;
 				char *newbuf;
@@ -3082,29 +3049,29 @@ void DoAction(struct action *act, int key)
 					OutputMsg(0, "%s: writebuf: unknown encoding", rc_name);
 					break;
 				}
-				if (enc != oldplop.enc) {
-					l = RecodeBuf((unsigned char *)oldplop.buf, oldplop.len, oldplop.enc, enc,
+				if (enc != oldplop->enc) {
+					l = RecodeBuf((unsigned char *)oldplop->buf, oldplop->len, oldplop->enc, enc,
 						      (unsigned char *)0);
 					newbuf = malloc(l + 1);
 					if (!newbuf) {
 						OutputMsg(0, "%s", strnomem);
 						break;
 					}
-					user->u_plop.len =
-					    RecodeBuf((unsigned char *)oldplop.buf, oldplop.len, oldplop.enc, enc,
+					GlobalPlop->len =
+					    RecodeBuf((unsigned char *)oldplop->buf, oldplop->len, oldplop->enc, enc,
 						      (unsigned char *)newbuf);
-					user->u_plop.buf = newbuf;
-					user->u_plop.enc = enc;
+					GlobalPlop->buf = newbuf;
+					GlobalPlop->enc = enc;
 				}
 				args += 2;
 			}
 			if (args[0] && args[1])
 				OutputMsg(0, "%s: writebuf: too many arguments", rc_name);
 			else
-				WriteFile(user, args[0], DUMP_EXCHANGE);
-			if (user->u_plop.buf != oldplop.buf)
-				free(user->u_plop.buf);
-			user->u_plop = oldplop;
+				WriteFile(args[0], DUMP_EXCHANGE);
+			if (GlobalPlop->buf != oldplop->buf)
+				free(GlobalPlop->buf);
+			GlobalPlop = oldplop;
 		}
 		break;
 	case RC_READBUF:
@@ -3122,11 +3089,11 @@ void DoAction(struct action *act, int key)
 			break;
 		}
 		if ((s = ReadFile(args[0] ? args[0] : BufferFile, &n))) {
-			if (user->u_plop.buf)
-				UserFreeCopyBuffer(user);
-			user->u_plop.len = n;
-			user->u_plop.buf = s;
-			user->u_plop.enc = i;
+			if (GlobalPlop->buf)
+				free(GlobalPlop->buf);
+			GlobalPlop->len = n;
+			GlobalPlop->buf = s;
+			GlobalPlop->enc = i;
 		}
 		break;
 	case RC_REMOVEBUF:
@@ -3139,9 +3106,9 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_ESCAPE:
 		if (*argl == 0)
-			SetEscape(user, -1, -1);
+			SetEscape(-1, -1);
 		else if (*argl == 2)
-			SetEscape(user, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
+			SetEscape((int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
 		else {
 			OutputMsg(0, "%s: two characters required after escape.", rc_name);
 			break;
@@ -3149,14 +3116,14 @@ void DoAction(struct action *act, int key)
 		/* Change defescape if master user. This is because we only
 		 * have one ktab.
 		 */
-		if (display && user != users)
+		if (display)
 			break;
 		/* FALLTHROUGH */
 	case RC_DEFESCAPE:
 		if (*argl == 0)
-			SetEscape(NULL, -1, -1);
+			SetEscape(-1, -1);
 		else if (*argl == 2)
-			SetEscape(NULL, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
+			SetEscape((int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
 		else {
 			OutputMsg(0, "%s: two characters required after defescape.", rc_name);
 			break;
@@ -4978,31 +4945,10 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 	}
 }
 
-void SetEscape(struct acluser *u, int e, int me)
+void SetEscape(int escape, int metaEscape)
 {
-	if (u) {
-		u->u_Esc = e;
-		u->u_MetaEsc = me;
-	} else {
-		if (users) {
-			if (DefaultEsc >= 0)
-				ClearAction(&ktab[DefaultEsc]);
-			if (DefaultMetaEsc >= 0)
-				ClearAction(&ktab[DefaultMetaEsc]);
-		}
-		DefaultEsc = e;
-		DefaultMetaEsc = me;
-		if (users) {
-			if (DefaultEsc >= 0) {
-				ClearAction(&ktab[DefaultEsc]);
-				ktab[DefaultEsc].nr = RC_OTHER;
-			}
-			if (DefaultMetaEsc >= 0) {
-				ClearAction(&ktab[DefaultMetaEsc]);
-				ktab[DefaultMetaEsc].nr = RC_META;
-			}
-		}
-	}
+	DefaultEsc = escape;
+	DefaultMetaEsc = metaEscape;
 }
 
 int ParseSwitch(struct action *act, int *var)
@@ -5515,43 +5461,6 @@ char *AddWindowFlags(char *buf, int len, Window *p)
 	return s;
 }
 
-char *AddOtherUsers(char *buf, int len, Window *p)
-{
-	Display *d, *olddisplay = display;
-	Canvas *cv;
-	char *s;
-	int l;
-
-	s = buf;
-	for (display = displays; display; display = display->d_next) {
-		if (olddisplay && D_user == olddisplay->d_user)
-			continue;
-		for (cv = D_cvlist; cv; cv = cv->c_next)
-			if (Layer2Window(cv->c_layer) == p)
-				break;
-		if (!cv)
-			continue;
-		for (d = displays; d && d != display; d = d->d_next)
-			if (D_user == d->d_user)
-				break;
-		if (d && d != display)
-			continue;
-		if (len > 1 && s != buf) {
-			*s++ = ',';
-			len--;
-		}
-		l = strlen(D_user->u_name);
-		if (l + 1 > len)
-			break;
-		strcpy(s, D_user->u_name);
-		s += l;
-		len -= l;
-	}
-	*s = 0;
-	display = olddisplay;
-	return s;
-}
-
 /*
  * String Escape based windows listing
  * Unfortunately it is not possible to rebuild the exact
@@ -6059,16 +5968,16 @@ static void copy_reg_fn(char *buf, int len, __attribute__((unused))char *data)
 		free(pp->buf);
 	pp->buf = 0;
 	pp->len = 0;
-	if (D_user->u_plop.len) {
-		if ((pp->buf = malloc(D_user->u_plop.len)) == NULL) {
+	if (GlobalPlop->len) {
+		if ((pp->buf = malloc(GlobalPlop->len)) == NULL) {
 			Msg(0, "%s", strnomem);
 			return;
 		}
-		memmove(pp->buf, D_user->u_plop.buf, D_user->u_plop.len);
+		memmove(pp->buf, GlobalPlop->buf, GlobalPlop->len);
 	}
-	pp->len = D_user->u_plop.len;
-	pp->enc = D_user->u_plop.enc;
-	Msg(0, "Copied %d characters into register %c", D_user->u_plop.len, *buf);
+	pp->len = GlobalPlop->len;
+	pp->enc = GlobalPlop->enc;
+	Msg(0, "Copied %d characters into register %c", GlobalPlop->len, *buf);
 }
 
 static void ins_reg_fn(char *buf, int len, __attribute__((unused))char *data)

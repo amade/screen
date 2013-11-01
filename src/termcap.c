@@ -488,11 +488,7 @@ void CheckEscape()
 		display = odisplay;
 		return;
 	}
-	SetEscape((struct acluser *)0, Ctrl('a'), 'a');
-	if (odisplay->d_user->u_Esc == -1)
-		odisplay->d_user->u_Esc = DefaultEsc;
-	if (odisplay->d_user->u_MetaEsc == -1)
-		odisplay->d_user->u_MetaEsc = DefaultMetaEsc;
+	SetEscape(Ctrl('a'), 'a');
 	display = 0;
 	Msg(0, "Warning: escape char set back to ^A");
 	display = odisplay;

@@ -34,7 +34,6 @@
 
 #include "ansi.h"
 #include "sched.h"
-#include "acls.h"
 #include "comm.h"
 #include "layer.h"
 #include "term.h"
@@ -196,6 +195,12 @@ struct msg {
 /* register list */
 #define MAX_PLOP_DEFS 256
 
+struct plop {
+	char *buf;
+	int len;
+	int enc;
+};
+
 struct baud_values {
 	int idx;	/* the index in the bsd-is padding lookup table */
 	int bps;	/* bits per seconds */
@@ -278,6 +283,10 @@ extern int maxwin;
 extern int nversion;
 extern int queryflag;
 extern int rflag;
+extern int DefaultEsc;
+extern int DefaultMetaEsc;
+extern int DetachWin;
+extern int DetachWinOther;
 extern int MasterPid;
 extern int MsgMinWait;
 extern int MsgWait;
@@ -304,5 +313,6 @@ extern gid_t real_gid;
 extern uid_t real_uid;
 
 extern struct passwd *ppp;
+extern struct plop *GlobalPlop;
 
 #endif /* SCREEN_SCREEN_H */

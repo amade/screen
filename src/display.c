@@ -161,13 +161,9 @@ static int BlankResize(int wi, int he)
  *  The new display is placed in the displays list.
  */
 
-Display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struct mode *Mode)
+Display *MakeDisplay(char *utty, char *term, int fd, int pid, struct mode *Mode)
 {
-	struct acluser **u;
 	struct baud_values *b;
-
-	if (!*(u = FindUserPtr(uname)) && UserAdd(uname, u))
-		return 0;	/* could not find or add user */
 
 	if ((display = calloc(1, sizeof(*display))) == 0)
 		return 0;
@@ -232,7 +228,6 @@ Display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struc
 
 	strncpy(D_usertty, utty, sizeof(D_usertty) - 1);
 	strncpy(D_termname, term, sizeof(D_termname) - 1);
-	D_user = *u;
 	D_processinput = ProcessInput;
 	D_mousetrack = defmousetrack;
 	D_bracketed = defbracketed;

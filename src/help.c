@@ -250,8 +250,8 @@ static int helppage()
 	*buf = '\0';
 	/* XXX fix escape character */
 	if (flayer->l_cvlist && flayer->l_cvlist->c_display) {
-		add_key_to_buf(buf, flayer->l_cvlist->c_display->d_user->u_MetaEsc);
-		add_key_to_buf(Esc_buf, flayer->l_cvlist->c_display->d_user->u_Esc);
+		add_key_to_buf(buf, DefaultMetaEsc);
+		add_key_to_buf(Esc_buf, DefaultEsc);
 	} else {
 		strncpy(Esc_buf, "??", 5);
 		strncpy(buf, "??", 256);

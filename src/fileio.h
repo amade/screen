@@ -6,7 +6,7 @@ void  FinishRc (char *);
 void  RcLine (char *, int);
 FILE *secfopen (char *, char *);
 int   secopen (char *, int, int);
-void  WriteFile (struct acluser *, char *, int);
+void  WriteFile (char *, int);
 char *ReadFile (char *, int *);
 void  KillBuffers (void);
 int   printpipe (Window *, char *);

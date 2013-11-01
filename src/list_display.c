@@ -87,7 +87,7 @@ static int gl_Display_row(ListData *ldata, ListRow *lrow)
 	m_current.attr = A_BD;
 
 	sprintf(tbuf, " %-10.10s%4dx%-4d%10.10s@%-16.16s%s",
-		d->d_termname, d->d_width, d->d_height, d->d_user->u_name,
+		d->d_termname, d->d_width, d->d_height, LoginName,
 		d->d_usertty,
 		(d->d_blocked || d->d_nonblock >= 0) && d->d_blocked <= 4 ? blockstates[d->d_blocked] : "  ");
 

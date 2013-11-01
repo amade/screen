@@ -301,7 +301,7 @@ void RcLine(char *ubuf, int ubufl)
 /*
  * needs display for copybuffer access and termcap dumping
  */
-void WriteFile(struct acluser *user, char *fn, int dump)
+void WriteFile(char *fn, int dump)
 {
 	/* dump==0:   create .termcap,
 	 * dump==1:   hardcopy,
@@ -422,8 +422,8 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 				}
 				break;
 			case DUMP_EXCHANGE:
-				p = user->u_plop.buf;
-				for (i = user->u_plop.len; i-- > 0; p++)
+				p = GlobalPlop->buf;
+				for (i = GlobalPlop->len; i-- > 0; p++)
 					if (*p == '\r' && (i == 0 || p[1] != '\n'))
 						putc('\n', f);
 					else

@@ -143,6 +143,10 @@ Window *fore;
 Window *windows;
 Window *console_window;
 
+int DefaultEsc = Ctrl('a');
+int DefaultMetaEsc = 'a';
+int DetachWin, DetachWinOther;
+
 /*
  * Do this last
  */
@@ -162,6 +166,8 @@ char strnomem[] = "Out of memory.";
 
 static int InterruptPlease;
 static int GotSigChld;
+
+struct plop *GlobalPlop;
 
 /********************************************************************/
 /********************************************************************/
@@ -737,11 +743,6 @@ int main(int argc, char **argv)
 	if (!detached)
 		PanicPid = getppid();
 
-	if (DefaultEsc == -1)
-		DefaultEsc = Ctrl('a');
-	if (DefaultMetaEsc == -1)
-		DefaultMetaEsc = 'a';
-
 	ap = av0 + strlen(av0) - 1;
 	while (ap >= av0) {
 		if (!strncmp("screen", ap, 6)) {
@@ -766,15 +767,8 @@ int main(int argc, char **argv)
 
 	freopen("/dev/null", "w", stderr);
 
-	/*
-	 * This guarantees that the session owner is listed, even when we
-	 * start detached. From now on we should not refer to 'LoginName'
-	 * any more, use users->u_name instead.
-	 */
-	if (UserAdd(LoginName, (struct acluser **)0) < 0)
-		Panic(0, "Could not create user info");
 	if (!detached) {
-		if (MakeDisplay(LoginName, attach_tty, attach_term, n, getppid(), &attach_Mode) == 0)
+		if (MakeDisplay(attach_tty, attach_term, n, getppid(), &attach_Mode) == 0)
 			Panic(0, "Could not alloc display");
 		PanicPid = 0;
 		D_encoding = nwin_options.encoding > 0 ? nwin_options.encoding : 0;
@@ -1273,8 +1267,8 @@ void Detach(int mode)
 		}
 	}
 	if (D_fore) {
-		D_user->u_detachwin = D_fore->w_number;
-		D_user->u_detachotherwin = D_other ? D_other->w_number : -1;
+		DetachWin = D_fore->w_number;
+		DetachWinOther = D_other ? D_other->w_number : -1;
 	}
 	AutosaveLayout(D_layout);
 	layout_last = D_layout;
@@ -1857,14 +1851,6 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 				qmflag = 1;
 			p += strlen(p) - 1;
 			break;
-		case 'u':
-			*p = 0;
-			if (win)
-				AddOtherUsers(p, l - 1, win);
-			if (*p)
-				qmflag = 1;
-			p += strlen(p) - 1;
-			break;
 		case 'f':
 			*p = 0;
 			if (win)
@@ -2397,11 +2383,11 @@ static int ParseEscape(char *p)
 	unsigned char buf[2];
 
 	if (*p == 0)
-		SetEscape((struct acluser *)0, -1, -1);
+		SetEscape(-1, -1);
 	else {
 		if ((p = ParseChar(p, (char *)buf)) == NULL || (p = ParseChar(p, (char *)buf + 1)) == NULL || *p)
 			return -1;
-		SetEscape((struct acluser *)0, buf[0], buf[1]);
+		SetEscape(buf[0], buf[1]);
 	}
 	return 0;
 }

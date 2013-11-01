@@ -551,7 +551,7 @@ static int CreateTempDisplay(struct msg *m, int recvfd, Window *win)
 
 	/* create new display */
 	GetTTY(i, &Mode);
-	if (MakeDisplay(user, m->m_tty, attach ? m->m.attach.envterm : "", i, pid, &Mode) == 0) {
+	if (MakeDisplay(m->m_tty, attach ? m->m.attach.envterm : "", i, pid, &Mode) == 0) {
 		write(i, "Could not make display.\n", 24);
 		close(i);
 		Msg(0, "Attach: could not make display for user %s", user);
@@ -873,8 +873,8 @@ static void FinishAttach(struct msg *m)
 	sigact.sa_handler = SigHup;
 	sigaction(SIGHUP, &sigact, NULL);
 	if (m->m.attach.esc != -1 && m->m.attach.meta_esc != -1) {
-		D_user->u_Esc = m->m.attach.esc;
-		D_user->u_MetaEsc = m->m.attach.meta_esc;
+		DefaultEsc = m->m.attach.esc;
+		DefaultMetaEsc = m->m.attach.meta_esc;
 	}
 #ifdef UTMPOK
 	/*
@@ -902,14 +902,14 @@ static void FinishAttach(struct msg *m)
 	/*
 	 * there may be a window that we remember from last detach:
 	 */
-	if (D_user->u_detachwin >= 0)
-		fore = wtab[D_user->u_detachwin];
+	if (DetachWin >= 0)
+		fore = wtab[DetachWin];
 	else
 		fore = 0;
 
 	/* Wayne wants us to restore the other window too. */
-	if (D_user->u_detachotherwin >= 0)
-		D_other = wtab[D_user->u_detachotherwin];
+	if (DetachWinOther >= 0)
+		D_other = wtab[DetachWinOther];
 
 	noshowwin = 0;
 	if (*m->m.attach.preselect) {
@@ -1016,7 +1016,6 @@ static void DoCommandMsg(struct msg *mp)
 	register char *fc;
 	int n;
 	register char *p = mp->m.command.cmd;
-	struct acluser *user;
 
 	n = mp->m.command.nargs;
 	if (n > MAXARGS - 1)
@@ -1039,11 +1038,6 @@ static void DoCommandMsg(struct msg *mp)
 		queryflag = -1;
 		return;
 	}
-	user = users;
-	if (!display)
-		for (display = displays; display; display = display->d_next)
-			if (D_user == user)
-				break;
 	for (fore = windows; fore; fore = fore->w_next)
 		if (!strcmp(mp->m_tty, fore->w_tty)) {
 			if (!display)
@@ -1071,10 +1065,10 @@ static void DoCommandMsg(struct msg *mp)
 		}
 		fore = i >= 0 ? wtab[i] : 0;
 	} else if (!fore) {
-		if (display && D_user == user)
+		if (display)
 			fore = Layer2Window(display->d_forecv->c_layer);
 		if (!fore) {
-			fore = user->u_detachwin >= 0 ? wtab[user->u_detachwin] : 0;
+			fore = DetachWin >= 0 ? wtab[DetachWin] : 0;
 			fore = FindNiceWindow(fore, 0);
 		}
 	}

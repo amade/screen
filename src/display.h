@@ -65,7 +65,6 @@ typedef enum {
 typedef struct Display Display;
 struct Display {
 	Display *d_next;		/* linked list */
-	struct acluser *d_user;		/* user who owns that display */
 	Canvas d_canvas;		/* our canvas slice */
 	Canvas *d_cvlist;		/* the canvases of this display */
 	Canvas *d_forecv;		/* current input focus */
@@ -170,8 +169,6 @@ struct Display {
 
 #define DISPLAY(x) display->x
 
-#define D_user		DISPLAY(d_user)
-#define D_username	(DISPLAY(d_user) ? DISPLAY(d_user)->u_name : 0)
 #define D_bracketed	DISPLAY(d_bracketed)
 #define D_cursorstyle	DISPLAY(d_cursorstyle)
 #define D_canvas	DISPLAY(d_canvas)
@@ -294,7 +291,7 @@ struct Display {
     *D_obufp++ = (c);		\
   }
 
-Display *MakeDisplay (char *, char *, char *, int, int, struct mode *);
+Display *MakeDisplay (char *, char *, int, int, struct mode *);
 void  FreeDisplay (void);
 void  DefProcess (char **, int *);
 void  DefRedisplayLine (int, int, int, int);

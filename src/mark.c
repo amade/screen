@@ -400,15 +400,15 @@ int GetHistory()
 	}
 	if (yy < 0)
 		return 0;
-	if (D_user->u_plop.buf)
-		UserFreeCopyBuffer(D_user);
-	if ((D_user->u_plop.buf = malloc((unsigned)(i - x + 2))) == NULL) {
+	if (GlobalPlop->buf)
+		free(GlobalPlop);
+	if ((GlobalPlop->buf = malloc((unsigned)(i - x + 2))) == NULL) {
 		LMsg(0, "Not enough memory... Sorry.");
 		return 0;
 	}
-	memmove(D_user->u_plop.buf, (char *)linep - i + x + 1, i - x + 1);
-	D_user->u_plop.len = i - x + 1;
-	D_user->u_plop.enc = fore->w_encoding;
+	memmove(GlobalPlop->buf, (char *)linep - i + x + 1, i - x + 1);
+	GlobalPlop->len = i - x + 1;
+	GlobalPlop->enc = fore->w_encoding;
 	return 1;
 }
 
@@ -423,7 +423,6 @@ void MarkRoutine()
 	flayer->l_encoding = fore->w_encoding;
 	flayer->l_mode = 1;
 	markdata = (struct markdata *)flayer->l_data;
-	markdata->md_user = D_user;	/* XXX: Correct? */
 	markdata->md_window = fore;
 	markdata->second = 0;
 	markdata->rep_cnt = 0;
@@ -455,7 +454,6 @@ static void MarkProcess(char **inbufp, int *inlenp)
 	int newcopylen = 0, od;
 	int in_mark;
 	int rep_cnt;
-	struct acluser *md_user;
 
 /*
   char *extrap = 0, extrabuf[100];
@@ -463,7 +461,6 @@ static void MarkProcess(char **inbufp, int *inlenp)
 
 	markdata = (struct markdata *)flayer->l_data;
 	fore = markdata->md_window;
-	md_user = markdata->md_user;
 	if (inbufp == 0) {
 		MarkAbort();
 		return;
@@ -863,8 +860,8 @@ static void MarkProcess(char **inbufp, int *inlenp)
 				x2 = cx;
 				y2 = cy;
 				newcopylen = rem(markdata->x1, markdata->y1, x2, y2, 2, (char *)0, 0);	/* count */
-				if (md_user->u_plop.buf && !append_mode)
-					UserFreeCopyBuffer(md_user);
+				if (GlobalPlop->buf && !append_mode)
+					free(GlobalPlop->buf);
 				yend = fore->w_height - 1;
 				if (fore->w_histheight - markdata->hist_offset < fore->w_height) {
 					markdata->second = 0;
@@ -872,20 +869,18 @@ static void MarkProcess(char **inbufp, int *inlenp)
 				}
 				if (newcopylen > 0) {
 					/* the +3 below is for : cr + lf + \0 */
-					if (md_user->u_plop.buf)
-						md_user->u_plop.buf = realloc(md_user->u_plop.buf,
-									      (unsigned)(md_user->u_plop.len +
-											 newcopylen + 3));
+					if (GlobalPlop->buf)
+						GlobalPlop->buf = realloc(GlobalPlop->buf, (unsigned)(GlobalPlop->len + newcopylen + 3));
 					else {
-						md_user->u_plop.len = 0;
-						md_user->u_plop.buf = malloc((unsigned)(newcopylen + 3));
+						GlobalPlop->len = 0;
+						GlobalPlop->buf = malloc((unsigned)(newcopylen + 3));
 					}
-					if (!md_user->u_plop.buf) {
+					if (!GlobalPlop->buf) {
 						MarkAbort();
 						in_mark = 0;
 						LMsg(0, "Not enough memory... Sorry.");
-						md_user->u_plop.len = 0;
-						md_user->u_plop.buf = 0;
+						GlobalPlop->len = 0;
+						GlobalPlop->buf = 0;
 						break;
 					}
 					if (append_mode) {
@@ -895,28 +890,28 @@ static void MarkProcess(char **inbufp, int *inlenp)
 							 */
 						case 0:
 							if (join_with_cr) {
-								md_user->u_plop.buf[md_user->u_plop.len] = '\r';
-								md_user->u_plop.len++;
+								GlobalPlop->buf[GlobalPlop->len] = '\r';
+								GlobalPlop->len++;
 							}
-							md_user->u_plop.buf[md_user->u_plop.len] = '\n';
-							md_user->u_plop.len++;
+							GlobalPlop->buf[GlobalPlop->len] = '\n';
+							GlobalPlop->len++;
 							break;
 						case 1:
 							break;
 						case 2:
-							md_user->u_plop.buf[md_user->u_plop.len] = ' ';
-							md_user->u_plop.len++;
+							GlobalPlop->buf[GlobalPlop->len] = ' ';
+							GlobalPlop->len++;
 							break;
 						case 3:
-							md_user->u_plop.buf[md_user->u_plop.len] = ',';
-							md_user->u_plop.len++;
+							GlobalPlop->buf[GlobalPlop->len] = ',';
+							GlobalPlop->len++;
 							break;
 						}
 					}
-					md_user->u_plop.len += rem(markdata->x1, markdata->y1, x2, y2,
+					GlobalPlop->len += rem(markdata->x1, markdata->y1, x2, y2,
 								   markdata->hist_offset == fore->w_histheight,
-								   md_user->u_plop.buf + md_user->u_plop.len, yend);
-					md_user->u_plop.enc = fore->w_encoding;
+								   GlobalPlop->buf + GlobalPlop->len, yend);
+					GlobalPlop->enc = fore->w_encoding;
 				}
 				if (markdata->hist_offset != fore->w_histheight) {
 					LAY_CALL_UP(LRefreshAll(flayer, 0));
@@ -926,9 +921,9 @@ static void MarkProcess(char **inbufp, int *inlenp)
 				if (append_mode)
 					LMsg(0, "Appended %d characters to buffer", newcopylen);
 				else
-					LMsg(0, "Copied %d characters into buffer", md_user->u_plop.len);
+					LMsg(0, "Copied %d characters into buffer", GlobalPlop->len);
 				if (write_buffer)
-					WriteFile(md_user, (char *)0, DUMP_EXCHANGE);
+					WriteFile((char *)0, DUMP_EXCHANGE);
 				in_mark = 0;
 				break;
 			}
