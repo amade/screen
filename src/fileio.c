@@ -452,47 +452,44 @@ void WriteFile(char *fn, int dump)
 }
 
 /*
- * returns an allocated buffer which holds a copy of the file named fn.
+ * returns an allocated buffer which holds a copy of the file named filename.
  * lenp (if nonzero) points to a location, where the buffer size should be
  * stored.
  */
-char *ReadFile(char *fn, int *lenp)
+char *ReadFile(char *filename, int *lenp)
 {
-	int i, l, size;
-	char c, *bp, *buf;
+	FILE *file;
 	struct stat stb;
+	int l, size;
+	char *buf;
 
-	if ((i = open(fn, O_RDONLY, 0)) < 0) {
-		Msg(errno, "no %s -- no slurp", fn);
+	if ((file = fopen(filename, "r")) != NULL) {
+		Msg(errno, "no %s -- no slurp", filename);
 		return NULL;
 	}
-	if (fstat(i, &stb)) {
-		Msg(errno, "no good %s -- no slurp", fn);
-		close(i);
-		return NULL;
+
+	if (fstat(fileno(file), &stb)) {
+		Msg(errno, "no good %s -- no slurp", filename);
+		fclose(file);
+		return(NULL);
 	}
 	size = stb.st_size;
+
 	if ((buf = malloc(size)) == NULL) {
-		close(i);
+		fclose(file);
 		Msg(0, "%s", strnomem);
 		return NULL;
 	}
 	errno = 0;
-	if ((l = read(i, buf, size)) != size) {
-		if (l < 0)
-			l = 0;
-		Msg(errno, "Got only %d bytes from %s", l, fn);
-	} else {
-		if (read(i, &c, 1) > 0)
-			Msg(0, "Slurped only %d characters (of %d) into buffer - try again", l, size);
-		else
-			Msg(0, "Slurped %d characters into buffer", l);
+
+	if ((l = fread(buf, sizeof(char), size, file)) != size) {
+		Msg(errno, "Got only %d bytes from %s", l, filename);
 	}
-	close(i);
+
+	fclose(file);
+
 	*lenp = l;
-	for (bp = buf; l-- > 0; bp++)
-		if (*bp == '\n' && (bp == buf || bp[-1] != '\r'))
-			*bp = '\r';
+
 	return buf;
 }
 
