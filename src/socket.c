@@ -330,7 +330,7 @@ int MakeServerSocket()
 #ifdef SOCK_NOT_IN_FS
 	{
 		int f;
-		if ((f = secopen(SocketPath, O_RDWR | O_CREAT, SOCKMODE)) < 0)
+		if ((f = open(SocketPath, O_RDWR | O_CREAT, SOCKMODE)) < 0)
 			Panic(errno, "shadow socket open");
 		close(f);
 	}
@@ -532,7 +532,7 @@ static int CreateTempDisplay(struct msg *m, int recvfd, Window *win)
 			Kill(pid, SIG_BYE);
 			return -1;
 		}
-	} else if ((i = secopen(m->m_tty, O_RDWR | O_NONBLOCK, 0)) < 0) {
+	} else if ((i = open(m->m_tty, O_RDWR | O_NONBLOCK, 0)) < 0) {
 		Msg(errno, "Attach: Could not open %s!", m->m_tty);
 		Kill(pid, SIG_BYE);
 		return -1;

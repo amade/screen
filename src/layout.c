@@ -320,7 +320,7 @@ static void dump_canvas(Canvas *cv, FILE * file)
 
 int LayoutDumpCanvas(Canvas *cv, char *filename)
 {
-	FILE *file = secfopen(filename, "a");
+	FILE *file = fopen(filename, "a");
 	if (!file)
 		return 0;
 	dump_canvas(cv, file);

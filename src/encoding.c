@@ -1366,7 +1366,7 @@ int LoadFontTranslation(int font, char *file)
 		sprintf(buf, "%s/%02x", screenencodings, font & 0xff);
 		myfile = buf;
 	}
-	if ((f = secfopen(myfile, "r")) == 0)
+	if ((f = fopen(myfile, "r")) == 0)
 		return -1;
 	i = ok = 0;
 	for (;;) {

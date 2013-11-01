@@ -87,7 +87,7 @@ int OpenTTY(char *line, char *opt) {
 	alarm(2);
 
 	/* this open only succeeds, if real uid is allowed */
-	if ((f = secopen(line, O_RDWR | O_NONBLOCK | O_NOCTTY, 0)) == -1) {
+	if ((f = open(line, O_RDWR | O_NONBLOCK | O_NOCTTY, 0)) == -1) {
 		if (errno == EINTR)
 			Msg(0, "Cannot open line '%s' for R/W: open() blocked, aborted.", line);
 		else
@@ -810,7 +810,7 @@ TtyGrabConsole(__attribute__((unused))int fd, int on, char *rc_name)
   if (on <= 0)
     return 0;
 #  ifdef SRIOCSREDIR
-  if ((cfd = secopen("/dev/console", O_RDWR|O_NOCTTY, 0)) == -1)
+  if ((cfd = open("/dev/console", O_RDWR|O_NOCTTY, 0)) == -1)
     {
       Msg(errno, "/dev/console");
       return -1;

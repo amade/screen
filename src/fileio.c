@@ -153,7 +153,7 @@ int StartRc(char *rcfilename, int nopanic)
 
 	rc_name = findrcfile(rcfilename);
 
-	if (rc_name == NULL || (fp = secfopen(rc_name, "r")) == NULL) {
+	if (rc_name == NULL || (fp = fopen(rc_name, "r")) == NULL) {
 		const char *rc_nonnull = rc_name ? rc_name : rcfilename;
 		if (!rc_recursion && RcFileName && !strcmp(RcFileName, rc_nonnull)) {
 			/*
@@ -241,7 +241,7 @@ void FinishRc(char *rcfilename)
 
 	rc_name = findrcfile(rcfilename);
 
-	if (rc_name == NULL || (fp = secfopen(rc_name, "r")) == NULL) {
+	if (rc_name == NULL || (fp = fopen(rc_name, "r")) == NULL) {
 		const char *rc_nonnull = rc_name ? rc_name : rcfilename;
 		if (rc_recursion)
 			Msg(errno, "%s: source %s", oldrc_name, rc_nonnull);
@@ -462,7 +462,7 @@ char *ReadFile(char *fn, int *lenp)
 	char c, *bp, *buf;
 	struct stat stb;
 
-	if ((i = secopen(fn, O_RDONLY, 0)) < 0) {
+	if ((i = open(fn, O_RDONLY, 0)) < 0) {
 		Msg(errno, "no %s -- no slurp", fn);
 		return NULL;
 	}
@@ -502,26 +502,6 @@ void KillBuffers()
 		UserReturn(unlink(BufferFile) ? errno : 0);
 	errno = UserStatus();
 	Msg(errno, "%s %sremoved", BufferFile, errno ? "not " : "");
-}
-
-/*
- * (Almost) secure open and fopen...
- */
-
-FILE *secfopen(char *name, char *mode)
-{
-	FILE *fi;
-
-	fi = fopen(name, mode);
-	return fi;
-}
-
-int secopen(char *name, int flags, int mode)
-{
-	int fd;
-
-	fd = open(name, flags, mode);
-	return fd;
 }
 
 int printpipe(Window *p, char *cmd)

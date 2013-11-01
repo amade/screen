@@ -334,7 +334,7 @@ int DoStartLog(Window *window, char *buf, int bufsize)
 	if (window->w_log != NULL)
 		logfclose(window->w_log);
 
-	if ((window->w_log = logfopen(buf, islogfile(buf) ? NULL : secfopen(buf, "a"))) == NULL)
+	if ((window->w_log = logfopen(buf, islogfile(buf) ? NULL : fopen(buf, "a"))) == NULL)
 		return -2;
 	if (!logflushev.queued) {
 		n = log_flush ? log_flush : (logtstamp_after + 4) / 5;
