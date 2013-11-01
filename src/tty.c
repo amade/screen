@@ -82,77 +82,65 @@ SigAlrmDummy (__attribute__((unused))int sigsig)
 }
 
 /*
- *  Carefully open a charcter device. Not used to open display ttys.
+ *  Carefully open a character device. Not used to open display ttys.
  *  The second parameter is parsed for a few stty style options.
  */
 
-int
-OpenTTY(char *line, char *opt)
-{
-  int f;
-  struct mode Mode;
-  void (*sigalrm)(int);
+int OpenTTY(char *line, char *opt) {
+	int f;
+	struct mode Mode;
+	void (*sigalrm)(int);
 
-  sigalrm = xsignal(SIGALRM, SigAlrmDummy);
-  alarm(2);
+	alarm(2);
 
-  /* this open only succeeds, if real uid is allowed */
-  if ((f = secopen(line, O_RDWR | O_NONBLOCK | O_NOCTTY, 0)) == -1)
-    {
-      if (errno == EINTR)
-        Msg(0, "Cannot open line '%s' for R/W: open() blocked, aborted.", line);
-      else
-        Msg(errno, "Cannot open line '%s' for R/W", line);
-      alarm(0);
-      xsignal(SIGALRM, sigalrm);
-      return -1;
-    }
-  if (!isatty(f))
-    {
-      Msg(0, "'%s' is not a tty", line);
-      alarm(0);
-      xsignal(SIGALRM, sigalrm);
-      close(f);
-      return -1;
-    }
-  /*
-   * We come here exclusively. This is to stop all kermit and cu type things
-   * accessing the same tty line.
-   * Perhaps we should better create a lock in some /usr/spool/locks directory?
-   */
+	/* this open only succeeds, if real uid is allowed */
+	if ((f = secopen(line, O_RDWR | O_NONBLOCK | O_NOCTTY, 0)) == -1) {
+		if (errno == EINTR)
+			Msg(0, "Cannot open line '%s' for R/W: open() blocked, aborted.", line);
+		else
+			Msg(errno, "Cannot open line '%s' for R/W", line);
+		alarm(0);
+		xsignal(SIGALRM, sigalrm);
+		return -1;
+	}
+	if (!isatty(f)) {
+		Msg(0, "'%s' is not a tty", line);
+		alarm(0);
+		xsignal(SIGALRM, sigalrm);
+		close(f);
+		return -1;
+	}
+	/*
+	 * We come here exclusively. This is to stop all kermit and cu type things
+	 * accessing the same tty line.
+	 * Perhaps we should better create a lock in some /usr/spool/locks directory?
+	 */
 #ifdef TIOCEXCL
- errno = 0;
- if (ioctl(f, TIOCEXCL, (char *) 0) < 0)
-   Msg(errno, "%s: ioctl TIOCEXCL failed", line);
+	errno = 0;
+	if (ioctl(f, TIOCEXCL, (char *) 0) < 0)
+		Msg(errno, "%s: ioctl TIOCEXCL failed", line);
 #endif  /* TIOCEXCL */
-  /*
-   * We create a sane tty mode. We do not copy things from the display tty
-   */
-#if WE_REALLY_WANT_TO_COPY_THE_TTY_MODE
-  if (display)
-    {
-      Mode = D_NewMode;
-    }
-  else
-#endif
-    InitTTY(&Mode, W_TYPE_PLAIN);
+	/*
+	 * We create a sane tty mode. We do not copy things from the display tty
+	 */
+	InitTTY(&Mode, W_TYPE_PLAIN);
 
-  SttyMode(&Mode, opt);
-  SetTTY(f, &Mode);
+	SttyMode(&Mode, opt);
+	SetTTY(f, &Mode);
 
 #if defined(TIOCMSET)
-  {
-    int mcs = 0;
-    ioctl(f, TIOCMGET, &mcs);
-    mcs |= TIOCM_RTS;
-    ioctl(f, TIOCMSET, &mcs);
-  }
+	{
+		int mcs = 0;
+		ioctl(f, TIOCMGET, &mcs);
+		mcs |= TIOCM_RTS;
+		ioctl(f, TIOCMSET, &mcs);
+	}
 #endif
 
-  brktty(f);
-  alarm(0);
-  xsignal(SIGALRM, sigalrm);
-  return f;
+	brktty(f);
+	alarm(0);
+	xsignal(SIGALRM, sigalrm);
+	return f;
 }
 
 
@@ -160,13 +148,11 @@ OpenTTY(char *line, char *opt)
  *  Tty mode handling
  */
 
-void
-InitTTY(struct mode *m, int ttyflag)
-{
-  memset((char *)m, 0, sizeof(*m));
-  /* struct termios tio
-   * defaults, as seen on SunOS 4.1.3
-   */
+void InitTTY(struct mode *m, int ttyflag) {
+	memset((char *)m, 0, sizeof(*m));
+	/* struct termios tio
+ 	* defaults, as seen on SunOS 4.1.3
+ 	*/
 #if defined(BRKINT)
 	m->tio.c_iflag |= BRKINT;
 #endif /* BRKINT */
@@ -185,29 +171,27 @@ InitTTY(struct mode *m, int ttyflag)
  * #endif
  * sorry, this one is ridiculus. jw */
 
-  if (!ttyflag)	/* may not even be good for ptys.. */
-    {
+	if (!ttyflag) { /* may not even be good for ptys.. */
 #if defined(ICRNL)
-	m->tio.c_iflag |= ICRNL;
+		m->tio.c_iflag |= ICRNL;
 #endif /* ICRNL */
 #if defined(ONLCR)
-	m->tio.c_oflag |= ONLCR;
+		m->tio.c_oflag |= ONLCR;
 #endif /* ONLCR */
 #if defined(TAB3)
-	m->tio.c_oflag |= TAB3;
+		m->tio.c_oflag |= TAB3;
 #endif /* TAB3 */
 #if defined(OXTABS)
-      m->tio.c_oflag |= OXTABS;
+		m->tio.c_oflag |= OXTABS;
 #endif /* OXTABS */
 /* #if defined(PARENB)
- * 	m->tio.c_cflag |= PARENB;
+ * 		m->tio.c_cflag |= PARENB;
  * #endif
  * nah! jw. */
 #if defined(OPOST)
-	m->tio.c_oflag |= OPOST;
+		m->tio.c_oflag |= OPOST;
 #endif /* OPOST */
-    }
-
+	}
 
 /*
  * Or-ing the speed into c_cflags is dangerous.
@@ -224,14 +208,14 @@ InitTTY(struct mode *m, int ttyflag)
  * If these are not available you might try the above.
  */
 #if defined(B9600)
-       cfsetospeed(&m->tio, B9600);
+	cfsetospeed(&m->tio, B9600);
 #endif /* B9600 */
 #if defined(B9600)
-       cfsetispeed(&m->tio, B9600);
+	cfsetispeed(&m->tio, B9600);
 #endif /* B9600 */
 
 #if defined(CS8)
- 	m->tio.c_cflag |= CS8;
+	m->tio.c_cflag |= CS8;
 #endif /* CS8 */
 #if defined(CREAD)
 	m->tio.c_cflag |= CREAD;
@@ -247,18 +231,17 @@ InitTTY(struct mode *m, int ttyflag)
 	m->tio.c_lflag |= ECHOKE;
 #endif /* ECHOKE */
 
-  if (!ttyflag)
-    {
+	if (!ttyflag) {
 #if defined(ISIG)
-	m->tio.c_lflag |= ISIG;
+		m->tio.c_lflag |= ISIG;
 #endif /* ISIG */
 #if defined(ICANON)
-	m->tio.c_lflag |= ICANON;
+		m->tio.c_lflag |= ICANON;
 #endif /* ICANON */
 #if defined(ECHO)
-	m->tio.c_lflag |= ECHO;
+		m->tio.c_lflag |= ECHO;
 #endif /* ECHO */
-    }
+	}
 #if defined(ECHOE)
 	m->tio.c_lflag |= ECHOE;
 #endif /* ECHOE */
@@ -355,116 +338,108 @@ InitTTY(struct mode *m, int ttyflag)
 #endif 
 #endif /* VSTATUS */
 
-  if (ttyflag)
-    {
-      m->tio.c_cc[VMIN] = TTYVMIN;
-      m->tio.c_cc[VTIME] = TTYVTIME;
-    }
+	if (ttyflag) {
+		m->tio.c_cc[VMIN] = TTYVMIN;
+		m->tio.c_cc[VTIME] = TTYVTIME;
+	}
 
 #if defined(TIOCKSET)
-  m->m_jtchars.t_ascii = 'J';
-  m->m_jtchars.t_kanji = 'B';
-  m->m_knjmode = KM_ASCII | KM_SYSSJIS;
+	m->m_jtchars.t_ascii = 'J';
+	m->m_jtchars.t_kanji = 'B';
+	m->m_knjmode = KM_ASCII | KM_SYSSJIS;
 #endif
 }
 
-void
-SetTTY(int fd, struct mode *mp)
-{
-  errno = 0;
-  tcsetattr(fd, TCSADRAIN, &mp->tio);
+void SetTTY(int fd, struct mode *mp) {
+	errno = 0;
+	tcsetattr(fd, TCSADRAIN, &mp->tio);
 #if defined(TIOCKSET)
-  ioctl(fd, TIOCKSETC, &mp->m_jtchars);
-  ioctl(fd, TIOCKSET, &mp->m_knjmode);
+	ioctl(fd, TIOCKSETC, &mp->m_jtchars);
+	ioctl(fd, TIOCKSET, &mp->m_knjmode);
 #endif
-  if (errno)
-    Msg(errno, "SetTTY (fd %d): ioctl failed", fd);
+	if (errno)
+		Msg(errno, "SetTTY (fd %d): ioctl failed", fd);
 }
 
-void
-GetTTY(int fd, struct mode *mp)
-{
-  errno = 0;
-  tcgetattr(fd, &mp->tio);
+void GetTTY(int fd, struct mode *mp) {
+	errno = 0;
+	tcgetattr(fd, &mp->tio);
 #if defined(TIOCKSET)
-  ioctl(fd, TIOCKGETC, &mp->m_jtchars);
-  ioctl(fd, TIOCKGET, &mp->m_knjmode);
+	ioctl(fd, TIOCKGETC, &mp->m_jtchars);
+	ioctl(fd, TIOCKGET, &mp->m_knjmode);
 #endif
-  if (errno)
-    Msg(errno, "GetTTY (fd %d): ioctl failed", fd);
+	if (errno)
+		Msg(errno, "GetTTY (fd %d): ioctl failed", fd);
 }
 
 /*
  * needs interrupt = iflag and flow = d->d_flow
  */
-void
-SetMode(struct mode *op, struct mode *np, int flow, int interrupt)
-{
-  *np = *op;
+void SetMode(struct mode *op, struct mode *np, int flow, int interrupt) {
+	*np = *op;
 
 # ifdef CYTERMIO
-  np->m_mapkey = NOMAPKEY;
-  np->m_mapscreen = NOMAPSCREEN;
-  np->tio.c_line = 0;
+	np->m_mapkey = NOMAPKEY;
+	np->m_mapscreen = NOMAPSCREEN;
+	np->tio.c_line = 0;
 # endif
 #if defined(ICRNL)
-  np->tio.c_iflag &= ~ICRNL;
+	np->tio.c_iflag &= ~ICRNL;
 #endif /* ICRNL */
 #if defined(ISTRIP)
-  np->tio.c_iflag &= ~ISTRIP;
+	np->tio.c_iflag &= ~ISTRIP;
 #endif /* ISTRIP */
 #if defined(ONLCR)
-  np->tio.c_oflag &= ~ONLCR;
+	np->tio.c_oflag &= ~ONLCR;
 #endif /* ONLCR */
-  np->tio.c_lflag &= ~(ICANON | ECHO);
-  /*
-   * From Andrew Myers (andru@tonic.lcs.mit.edu)
-   * to avoid ^V^V-Problem on OSF1
-   */
+	np->tio.c_lflag &= ~(ICANON | ECHO);
+	/*
+	 * From Andrew Myers (andru@tonic.lcs.mit.edu)
+	 * to avoid ^V^V-Problem on OSF1
+	 */
 #if defined(IEXTEN)
-  np->tio.c_lflag &= ~IEXTEN;
+	np->tio.c_lflag &= ~IEXTEN;
 #endif /* IEXTEN */
 
-  /*
-   * Unfortunately, the master process never will get SIGINT if the real
-   * terminal is different from the one on which it was originaly started
-   * (process group membership has not been restored or the new tty could not
-   * be made controlling again). In my solution, it is the attacher who
-   * receives SIGINT (because it is always correctly associated with the real
-   * tty) and forwards it to the master [kill(MasterPid, SIGINT)].
-   * Marc Boucher (marc@CAM.ORG)
-   */
-  if (interrupt)
-    np->tio.c_lflag |= ISIG;
-  else
-    np->tio.c_lflag &= ~ISIG;
-  /*
-   * careful, careful catche monkey..
-   * never set VMIN and VTIME to zero, if you want blocking io.
-   *
-   * We may want to do a VMIN > 0, VTIME > 0 read on the ptys too, to
-   * reduce interrupt frequency.  But then we would not know how to
-   * handle read returning 0. jw.
-   */
-  np->tio.c_cc[VMIN] = 1;
-  np->tio.c_cc[VTIME] = 0;
-  if (!interrupt || !flow)
-    np->tio.c_cc[VINTR] = VDISABLE;
-  np->tio.c_cc[VQUIT] = VDISABLE;
-  if (flow == 0)
-    {
+	/*
+	 * Unfortunately, the master process never will get SIGINT if the real
+	 * terminal is different from the one on which it was originaly started
+	 * (process group membership has not been restored or the new tty could not
+	 * be made controlling again). In my solution, it is the attacher who
+	 * receives SIGINT (because it is always correctly associated with the real
+	 * tty) and forwards it to the master [kill(MasterPid, SIGINT)].
+	 * Marc Boucher (marc@CAM.ORG)
+	 */
+	if (interrupt)
+		np->tio.c_lflag |= ISIG;
+	else
+		np->tio.c_lflag &= ~ISIG;
+	/*
+	 * careful, careful catche monkey..
+	 * never set VMIN and VTIME to zero, if you want blocking io.
+	 *
+	 * We may want to do a VMIN > 0, VTIME > 0 read on the ptys too, to
+	 * reduce interrupt frequency.  But then we would not know how to
+	 * handle read returning 0. jw.
+	 */
+	np->tio.c_cc[VMIN] = 1;
+	np->tio.c_cc[VTIME] = 0;
+	if (!interrupt || !flow)
+		np->tio.c_cc[VINTR] = VDISABLE;
+	np->tio.c_cc[VQUIT] = VDISABLE;
+	if (flow == 0) {
 #if defined(VSTART)
 #if (VSTART < MAXCC)
-	np->tio.c_cc[VSTART] = VDISABLE;
+		np->tio.c_cc[VSTART] = VDISABLE;
 #endif 
 #endif /* VSTART */
 #if defined(VSTOP)
 #if (VSTOP < MAXCC)
-	np->tio.c_cc[VSTOP] = VDISABLE;
+		np->tio.c_cc[VSTOP] = VDISABLE;
 #endif 
 #endif /* VSTOP */
-      np->tio.c_iflag &= ~IXON;
-    }
+		np->tio.c_iflag &= ~IXON;
+	}
 #if defined(VDISCARD)
 #if (VDISCARD < MAXCC)
 	np->tio.c_cc[VDISCARD] = VDISABLE;
@@ -515,117 +490,88 @@ SetMode(struct mode *op, struct mode *np, int flow, int interrupt)
 }
 
 /* operates on display */
-void
-SetFlow(int on)
-{
-  if (D_flow == on)
-    return;
-  if (on)
-    {
-      D_NewMode.tio.c_cc[VINTR] = iflag ? D_OldMode.tio.c_cc[VINTR] : VDISABLE;
+void SetFlow(int on) {
+	if (D_flow == on)
+		return;
+	if (on) {
+		D_NewMode.tio.c_cc[VINTR] = iflag ? D_OldMode.tio.c_cc[VINTR] : VDISABLE;
 #if defined(VSTART)
 #if (VSTART < MAXCC)
-	D_NewMode.tio.c_cc[VSTART] = D_OldMode.tio.c_cc[VSTART];
+		D_NewMode.tio.c_cc[VSTART] = D_OldMode.tio.c_cc[VSTART];
 #endif 
 #endif /* VSTART */
 #if defined(VSTOP)
 #if (VSTOP < MAXCC)
-	D_NewMode.tio.c_cc[VSTOP] = D_OldMode.tio.c_cc[VSTOP];
+		D_NewMode.tio.c_cc[VSTOP] = D_OldMode.tio.c_cc[VSTOP];
 #endif 
 #endif /* VSTOP */
-      D_NewMode.tio.c_iflag |= D_OldMode.tio.c_iflag & IXON;
-    }
-  else
-    {
-      D_NewMode.tio.c_cc[VINTR] = VDISABLE;
+		D_NewMode.tio.c_iflag |= D_OldMode.tio.c_iflag & IXON;
+	} else {
+		D_NewMode.tio.c_cc[VINTR] = VDISABLE;
 #if defined(VSTART)
 #if (VSTART < MAXCC)
-	D_NewMode.tio.c_cc[VSTART] = VDISABLE;
+		D_NewMode.tio.c_cc[VSTART] = VDISABLE;
 #endif 
 #endif /* VSTART */
 #if defined(VSTOP)
 #if (VSTOP < MAXCC)
-	D_NewMode.tio.c_cc[VSTOP] = VDISABLE;
+		D_NewMode.tio.c_cc[VSTOP] = VDISABLE;
 #endif 
 #endif /* VSTOP */
-      D_NewMode.tio.c_iflag &= ~IXON;
-    }
+		D_NewMode.tio.c_iflag &= ~IXON;
+	}
 #  ifdef TCOON
-  if (!on)
-    tcflow(D_userfd, TCOON);
+	if (!on)
+		tcflow(D_userfd, TCOON);
 #  endif
-  tcsetattr(D_userfd, TCSANOW, &D_NewMode.tio);
-  D_flow = on;
+	tcsetattr(D_userfd, TCSANOW, &D_NewMode.tio);
+	D_flow = on;
 }
 
 /* parse commands from opt and modify m */
-int
-SttyMode(struct mode *m, char *opt)
-{
-  static const char sep[] = " \t:;,";
+int SttyMode(struct mode *m, char *opt) {
+	static const char sep[] = " \t:;,";
 
-  if (!opt)
-    return 0;
+	if (!opt)
+		return 0;
 
-  while (*opt)
-    {
-      while (strchr(sep, *opt)) opt++;
-      if (*opt >= '0' && *opt <= '9')
-        {
-	  if (SetBaud(m, atoi(opt), atoi(opt)))
-	    return -1;
-	}
-      else if (!strncmp("cs7", opt, 3))
-        {
-	  m->tio.c_cflag &= ~CSIZE;
-	  m->tio.c_cflag |= CS7;
-	}
-      else if (!strncmp("cs8", opt, 3))
-	{
-	  m->tio.c_cflag &= ~CSIZE;
-	  m->tio.c_cflag |= CS8;
-	}
-      else if (!strncmp("istrip", opt, 6))
-	{
-	  m->tio.c_iflag |= ISTRIP;
-        }
-      else if (!strncmp("-istrip", opt, 7))
-	{
-	  m->tio.c_iflag &= ~ISTRIP;
-        }
-      else if (!strncmp("ixon", opt, 4))
-	{
-	  m->tio.c_iflag |= IXON;
-        }
-      else if (!strncmp("-ixon", opt, 5))
-	{
-	  m->tio.c_iflag &= ~IXON;
-        }
-      else if (!strncmp("ixoff", opt, 5))
-	{
-	  m->tio.c_iflag |= IXOFF;
-        }
-      else if (!strncmp("-ixoff", opt, 6))
-	{
-	  m->tio.c_iflag &= ~IXOFF;
-        }
-      else if (!strncmp("crtscts", opt, 7))
-	{
+	while (*opt) {
+		while (strchr(sep, *opt)) opt++;
+		if (*opt >= '0' && *opt <= '9') {
+			if (SetBaud(m, atoi(opt), atoi(opt)))
+				return -1;
+		} else if (!strncmp("cs7", opt, 3)) {
+			m->tio.c_cflag &= ~CSIZE;
+			m->tio.c_cflag |= CS7;
+		} else if (!strncmp("cs8", opt, 3)) {
+			m->tio.c_cflag &= ~CSIZE;
+			m->tio.c_cflag |= CS8;
+		} else if (!strncmp("istrip", opt, 6)) {
+			m->tio.c_iflag |= ISTRIP;
+		} else if (!strncmp("-istrip", opt, 7)) {
+			m->tio.c_iflag &= ~ISTRIP;
+		} else if (!strncmp("ixon", opt, 4)) {
+			m->tio.c_iflag |= IXON;
+		} else if (!strncmp("-ixon", opt, 5)) {
+			m->tio.c_iflag &= ~IXON;
+		} else if (!strncmp("ixoff", opt, 5)) {
+			m->tio.c_iflag |= IXOFF;
+		} else if (!strncmp("-ixoff", opt, 6)) {
+			m->tio.c_iflag &= ~IXOFF;
+		} else if (!strncmp("crtscts", opt, 7)) {
 #if (defined(POSIX) || defined(TERMIO)) && defined(CRTSCTS)
-	  m->tio.c_cflag |= CRTSCTS;
+			m->tio.c_cflag |= CRTSCTS;
 #endif
-	}
-      else if (!strncmp("-crtscts", opt, 8))
-        {
+		} else if (!strncmp("-crtscts", opt, 8)) {
 #if (defined(POSIX) || defined(TERMIO)) && defined(CRTSCTS)
-	  m->tio.c_cflag &= ~CRTSCTS;
+			m->tio.c_cflag &= ~CRTSCTS;
 #endif
+		} else {
+			return -1;
+		}
+		while (*opt && !strchr(sep, *opt)) opt++;
 	}
-      else
-        return -1;
-      while (*opt && !strchr(sep, *opt)) opt++;
-    }
-  return 0;
+	return 0;
 }
 
 /*
@@ -635,26 +581,27 @@ SttyMode(struct mode *m, char *opt)
  *  the bsdish variant.
  */
 
-void
-brktty(__attribute__((unused))int fd)
-{
-  if (separate_sids)
-    setsid();		/* will break terminal affiliation */
+void brktty(__attribute__((unused))int fd) {
+	if (separate_sids)
+		setsid();		/* will break terminal affiliation */
 }
 
-int
-fgtty(int fd)
-{
-  int mypid;
+int fgtty(int fd) {
+	int mypid;
 
-  mypid = getpid();
+	mypid = getpid();
 
-  if (separate_sids)
-    if (tcsetpgrp(fd, mypid))
-      {
-        return -1;
-      }
-  return 0;
+	/* The next lines should be obsolete. Can anybody check if they
+	 * are really needed on the BSD platforms?
+	 *
+	 * this is to avoid the message:
+	 *	fgtty: Not a typewriter (25)
+	 */
+
+	if (separate_sids && tcsetpgrp(fd, mypid)) {
+		return -1;
+	}
+	return 0;
 }
 
 /*
