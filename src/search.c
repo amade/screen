@@ -46,8 +46,8 @@ int search_ic;
  */
 
 static int matchword(char *, int, int, int);
-static void searchend(char *, int, char *);
-static void backsearchend(char *, int, char *);
+static void searchend(char *, int, void *);
+static void backsearchend(char *, int, void *);
 
 void Search(int dir)
 {
@@ -65,7 +65,7 @@ void Search(int dir)
 		      (dir > 0 ? searchend : backsearchend), NULL, 0);
 }
 
-static void searchend(char *buf, int len, __attribute__((unused))char *dummy)
+static void searchend(char *buf, int len, __attribute__((unused))void *data)
 {
 	int x = 0, sx, ex, y;
 	struct markdata *markdata;
@@ -89,7 +89,7 @@ static void searchend(char *buf, int len, __attribute__((unused))char *dummy)
 		revto(x, y);
 }
 
-static void backsearchend(char *buf, int len, __attribute__((unused))char *dummy)
+static void backsearchend(char *buf, int len, __attribute__((unused))void *data)
 {
 	int sx, ex, x = -1, y;
 	struct markdata *markdata;
@@ -153,7 +153,7 @@ static char *isprompts[] = {
 };
 
 static int is_redo(struct markdata *);
-static void is_process(char *, int, char *);
+static void is_process(char *, int, void *);
 static int is_bm(char *, int, int, int, int);
 
 static int is_bm(char *str, int l, int p, int end, int dir)
@@ -200,7 +200,7 @@ static int is_bm(char *str, int l, int p, int end, int dir)
 	return -1;
 }
 
-static void is_process(char *p, int n, __attribute__((unused))char *data)
+static void is_process(char *p, int n, __attribute__((unused))void *data)
 {				/* i-search */
 	int pos, x, y, dir;
 	struct markdata *markdata;
