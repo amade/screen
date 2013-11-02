@@ -80,28 +80,28 @@ static int ParseBase(struct action *, char *, int *, int, char *);
 static int ParseNum1000(struct action *, int *);
 static char **SaveArgs(char **);
 static int IsNum(char *, int);
-static void Colonfin(char *, int, char *);
+static void Colonfin(char *, int, void *);
 static void InputSelect(void);
 static void InputSetenv(char *);
 static void InputAKA(void);
 static int InputSu(Window *, struct acluser **, char *);
-static void su_fin(char *, int, char *);
-static void AKAfin(char *, int, char *);
-static void copy_reg_fn(char *, int, char *);
-static void ins_reg_fn(char *, int, char *);
-static void process_fn(char *, int, char *);
-static void pass1(char *, int, char *);
-static void pass2(char *, int, char *);
-static void pow_detach_fn(char *, int, char *);
-static void digraph_fn(char *, int, char *);
+static void su_fin(char *, int, void *);
+static void AKAfin(char *, int, void *);
+static void copy_reg_fn(char *, int, void *);
+static void ins_reg_fn(char *, int, void *);
+static void process_fn(char *, int, void *);
+static void pass1(char *, int, void *);
+static void pass2(char *, int, void *);
+static void pow_detach_fn(char *, int, void *);
+static void digraph_fn(char *, int, void *);
 static int digraph_find(const char *buf);
-static void confirm_fn(char *, int, char *);
+static void confirm_fn(char *, int, void *);
 static int IsOnDisplay(Window *);
 static void ResizeRegions(char *, int);
-static void ResizeFin(char *, int, char *);
+static void ResizeFin(char *, int, void *);
 static struct action *FindKtab(char *, int);
-static void SelectFin(char *, int, char *);
-static void SelectLayoutFin(char *, int, char *);
+static void SelectFin(char *, int, void *);
+static void SelectLayoutFin(char *, int, void *);
 static void ShowWindowsX(char *);
 
 char NullStr[] = "";
@@ -868,7 +868,7 @@ static int CheckArgNum(int nr, char **args)
 	return i;
 }
 
-static void StuffFin(char *buf, int len, __attribute__((unused))char *data)
+static void StuffFin(char *buf, int len, __attribute__((unused))void *data)
 {
 	if (!flayer)
 		return;
@@ -4715,7 +4715,7 @@ static void ShowDInfo()
 	Msg(0, "%s", buf);
 }
 
-static void AKAfin(char *buf, int len, __attribute__((unused))char *data)
+static void AKAfin(char *buf, int len, __attribute__((unused))void *data)
 {
 	if (len && fore)
 		ChangeAKA(fore, buf, strlen(buf));
@@ -4746,7 +4746,7 @@ static void InputAKA()
 	}
 }
 
-static void Colonfin(char *buf, int len, __attribute__((unused))char *data)
+static void Colonfin(char *buf, int len, __attribute__((unused))void *data)
 {
 	char mbuf[256];
 
@@ -4809,7 +4809,7 @@ static void Colonfin(char *buf, int len, __attribute__((unused))char *data)
 	}
 }
 
-static void SelectFin(char *buf, int len, __attribute__((unused))char *data)
+static void SelectFin(char *buf, int len, __attribute__((unused))void *data)
 {
 	int n;
 
@@ -4825,7 +4825,7 @@ static void SelectFin(char *buf, int len, __attribute__((unused))char *data)
 	SwitchWindow(n);
 }
 
-static void SelectLayoutFin(char *buf, int len, __attribute__((unused))char *data)
+static void SelectLayoutFin(char *buf, int len, __attribute__((unused))void *data)
 {
 	Layout *lay;
 
@@ -4854,14 +4854,14 @@ static void InputSelect()
 
 static char setenv_var[31];
 
-static void SetenvFin1(char *buf, int len, __attribute__((unused))char *data)
+static void SetenvFin1(char *buf, int len, __attribute__((unused))void *data)
 {
 	if (!len || !display)
 		return;
 	InputSetenv(buf);
 }
 
-static void SetenvFin2(char *buf, int len, __attribute__((unused))char *data)
+static void SetenvFin2(char *buf, int len, __attribute__((unused))void *data)
 {
 	if (!len || !display)
 		return;
@@ -5041,7 +5041,7 @@ int CompileKeys(char *s, int sl, unsigned char *array)
  *  Asynchronous input functions
  */
 
-static void pow_detach_fn(char *buf, int len, __attribute__((unused))char *data)
+static void pow_detach_fn(char *buf, int len, __attribute__((unused))void *data)
 {
 	if (len) {
 		*buf = 0;
@@ -5055,7 +5055,7 @@ static void pow_detach_fn(char *buf, int len, __attribute__((unused))char *data)
 		Detach(D_POWER);
 }
 
-static void copy_reg_fn(char *buf, int len, __attribute__((unused))char *data)
+static void copy_reg_fn(char *buf, int len, __attribute__((unused))void *data)
 {
 	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
@@ -5079,7 +5079,7 @@ static void copy_reg_fn(char *buf, int len, __attribute__((unused))char *data)
 	Msg(0, "Copied %d characters into register %c", D_user->u_plop.len, *buf);
 }
 
-static void ins_reg_fn(char *buf, int len, __attribute__((unused))char *data)
+static void ins_reg_fn(char *buf, int len, __attribute__((unused))void *data)
 {
 	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
@@ -5098,7 +5098,7 @@ static void ins_reg_fn(char *buf, int len, __attribute__((unused))char *data)
 	Msg(0, "Empty register.");
 }
 
-static void process_fn(char *buf, int len, __attribute__((unused))char *data)
+static void process_fn(char *buf, int len, __attribute__((unused))void *data)
 {
 	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
@@ -5113,7 +5113,7 @@ static void process_fn(char *buf, int len, __attribute__((unused))char *data)
 	Msg(0, "Empty register.");
 }
 
-static void confirm_fn(char *buf, int len, char *data)
+static void confirm_fn(char *buf, int len, void *data)
 {
 	struct action act;
 
@@ -5135,7 +5135,7 @@ struct inputsu {
 	char pw2[130];
 };
 
-static void su_fin(char *buf, int len, char *data)
+static void su_fin(char *buf, int len, void *data)
 {
 	struct inputsu *i = (struct inputsu *)data;
 	char *p;
@@ -5181,7 +5181,7 @@ static int InputSu(Window *win, struct acluser **up, char *name)
 	return 0;
 }
 
-static void pass1(char *buf, int len, char *data)
+static void pass1(char *buf, int len, void *data)
 {
 	struct acluser *u = (struct acluser *)data;
 
@@ -5194,7 +5194,7 @@ static void pass1(char *buf, int len, char *data)
 	Input("Retype new password:", 100, INP_NOECHO, pass2, data, 0);
 }
 
-static void pass2(char *buf, int len, char *data)
+static void pass2(char *buf, int len, void *data)
 {
 	int st;
 	char salt[3];
@@ -5248,7 +5248,7 @@ static int digraph_find(const char *buf)
 	return i;
 }
 
-static void digraph_fn(char *buf, int len, __attribute__((unused))char *data)
+static void digraph_fn(char *buf, int len, __attribute__((unused))void *data)
 {
 	int ch, i, x;
 
@@ -5604,7 +5604,7 @@ static void ResizeRegions(char *arg, int flags)
 	return;
 }
 
-static void ResizeFin(char *buf, int len, char *data)
+static void ResizeFin(char *buf, int len, void *data)
 {
 	int ch;
 	int flags = *(int *)data;

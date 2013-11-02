@@ -40,7 +40,7 @@ typedef enum {
 typedef struct Event Event;
 struct Event {
 	Event *next;
-	void (*handler) (Event *, char *);
+	void (*handler) (Event *, void *);
 	char *data;
 	int fd;
 	EventType type;

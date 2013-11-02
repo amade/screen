@@ -44,7 +44,7 @@
 #include "pty.h"
 #include "tty.h"
 
-static void consredir_readev_fn (Event *, char *);
+static void consredir_readev_fn (Event *, void *);
 
 int separate_sids = 1;
 
@@ -762,7 +762,7 @@ static Event consredir_ev;
 static int consredirfd[2] = {-1, -1};
 
 static void
-consredir_readev_fn(Event *ev, __attribute__((unused))char *data)
+consredir_readev_fn(Event *ev, __attribute__((unused))void *data)
 {
   char *p, *n, buf[256];
   int l;

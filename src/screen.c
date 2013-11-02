@@ -69,11 +69,11 @@ static void SigInt(int);
 static void CoreDump(int);
 static void FinitHandler(int);
 static void DoWait(void);
-static void serv_read_fn(Event *, char *);
-static void serv_select_fn(Event *, char *);
-static void logflush_fn(Event *, char *);
+static void serv_read_fn(Event *, void *);
+static void serv_select_fn(Event *, void *);
+static void logflush_fn(Event *, void *);
 static void backtick_filter(struct backtick *);
-static void backtick_fn(Event *, char *);
+static void backtick_fn(Event *, void *);
 static char *runbacktick(struct backtick *, int *, time_t);
 static int IsSymbol(char *, char *);
 static char *ParseChar(char *, char *);
@@ -1644,7 +1644,7 @@ static void backtick_filter(struct backtick *bt)
 	*q = 0;
 }
 
-static void backtick_fn(Event *ev, char *data)
+static void backtick_fn(Event *ev, void *data)
 {
 	struct backtick *bt;
 	int i, j, k, l;
@@ -2302,12 +2302,12 @@ void PutWinMsg(char *s, int start, int max)
 	}
 }
 
-static void serv_read_fn(__attribute__((unused))Event *ev, __attribute__((unused))char *data)
+static void serv_read_fn(__attribute__((unused))Event *ev, __attribute__((unused))void *data)
 {
 	ReceiveMsg();
 }
 
-static void serv_select_fn(__attribute__((unused))Event *ev, __attribute__((unused))char *data)
+static void serv_select_fn(__attribute__((unused))Event *ev, __attribute__((unused))void *data)
 {
 	Window *p;
 
@@ -2459,7 +2459,7 @@ static void serv_select_fn(__attribute__((unused))Event *ev, __attribute__((unus
 	}
 }
 
-static void logflush_fn(__attribute__((unused))Event *ev, __attribute__((unused))char *data)
+static void logflush_fn(__attribute__((unused))Event *ev, __attribute__((unused))void *data)
 {
 	Window *p;
 	char *buf;

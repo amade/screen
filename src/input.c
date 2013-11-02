@@ -61,7 +61,7 @@ struct inpdata {
 	char *inpstring;	/* the prompt */
 	int inpstringlen;	/* length of the prompt */
 	int inpmode;		/* INP_NOECHO, INP_RAW, INP_EVERY */
-	void (*inpfinfunc) (char *buf, int len, char *priv);
+	void (*inpfinfunc) (char *buf, int len, void *priv);
 	char *priv;		/* private data for finfunc */
 	int privdata;		/* private data space */
 	char *search;		/* the search string */
@@ -112,7 +112,7 @@ void inp_setprompt(char *p, char *s)
  * INP_RAW    == raw mode. call finfunc after each character typed.
  * INP_EVERY  == digraph mode.
  */
-void Input(char *istr, int len, int mode, void (*finfunc) (char *buf, int len, char *priv), char *priv, int data)
+void Input(char *istr, int len, int mode, void (*finfunc) (char *buf, int len, void *priv), char *priv, int data)
 {
 	int maxlen;
 	struct inpdata *inpdata;
