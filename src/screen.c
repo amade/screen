@@ -144,7 +144,7 @@ char *screenencodings;
 
 int cjkwidth;
 
-int maxwin;
+uint16_t maxwin;
 
 Layer *flayer;
 Window *fore;

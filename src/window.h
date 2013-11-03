@@ -135,7 +135,7 @@ struct Window {
 	struct pseudowin *w_pwin;	/* ptr to pseudo */
 	Display *w_pdisplay;		/* display for printer relay */
 	Display *w_lastdisp;		/* where the last input was made */
-	int	 w_number;		/* window number */
+	uint16_t w_number;		/* window number */
 	Event w_readev;
 	Event w_writeev;
 	Event w_silenceev;		/* silence event */
