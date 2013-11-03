@@ -439,8 +439,9 @@ static struct utmp *getutslot(slot_t slot)
 	return getutline(&u);
 }
 
-static int pututslot(__attribute__((unused))slot_t slot, struct utmp *u, __attribute__((unused))char *host, __attribute__((unused))Window *win)
+static int pututslot(slot_t slot, struct utmp *u, char *host, Window *win)
 {
+	(void)slot; /* unused */
 #ifdef HAVE_UTEMPTER
 	if (eff_uid && win && win->w_ptyfd != -1) {
 		/* sigh, linux hackers made the helper functions void */
@@ -451,6 +452,7 @@ static int pututslot(__attribute__((unused))slot_t slot, struct utmp *u, __attri
 		return 1;	/* pray for success */
 	}
 #endif
+
 	setutent();
 	return pututline(u) != 0;
 }

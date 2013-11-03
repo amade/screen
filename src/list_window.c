@@ -195,8 +195,9 @@ static int gl_Window_header(ListData *ldata)
 	return 2 + g;
 }
 
-static int gl_Window_footer(__attribute__((unused))ListData *ldata)
+static int gl_Window_footer(ListData *ldata)
 {
+	(void)ldata; /* unused */
 	centerline("[Press ctrl-l to refresh; Return to end.]", flayer->l_height - 1);
 	return 0;
 }
@@ -413,8 +414,10 @@ static int gl_Window_input(ListData *ldata, char **inp, int *len)
 	return 1;
 }
 
-static int gl_Window_freerow(__attribute__((unused))ListData *ldata, __attribute__((unused))ListRow *row)
+static int gl_Window_freerow(ListData *ldata, ListRow *row)
 {
+	(void)ldata; /* unused */
+	(void)row; /* unused */
 	return 0;
 }
 
@@ -424,9 +427,12 @@ static int gl_Window_free(ListData *ldata)
 	return 0;
 }
 
-static int gl_Window_match(__attribute__((unused))ListData *ldata, ListRow *row, const char *needle)
+static int gl_Window_match(ListData *ldata, ListRow *row, const char *needle)
 {
 	Window *w = row->data;
+	
+	(void)ldata; /* unused */
+
 	if (InStr(w->w_title, needle))
 		return 1;
 	return 0;

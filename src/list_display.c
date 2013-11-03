@@ -64,15 +64,19 @@ xterm 80x42      jnhollma@/dev/ttyp5    0(m11)    &R.x
 
  */
 
-static int gl_Display_header(__attribute__((unused))ListData *ldata)
+static int gl_Display_header(ListData *ldata)
 {
+	(void)ldata; /* unused */
+
 	leftline("term-type   size         user interface           window       Perms", 0, 0);
 	leftline("---------- ------- ---------- ----------------- ----------     -----", 1, 0);
 	return 2;
 }
 
-static int gl_Display_footer(__attribute__((unused))ListData *ldata)
+static int gl_Display_footer(ListData *ldata)
 {
+	(void)ldata; /* unused */
+
 	centerline("[Press ctrl-l to refresh; Return to end.]", flayer->l_height - 1);
 	return 1;
 }
@@ -176,14 +180,17 @@ static int gl_Display_input(ListData *ldata, char **inp, int *len)
 	return 1;
 }
 
-static int gl_Display_freerow(__attribute__((unused))ListData *ldata, __attribute__((unused))ListRow *row)
+static int gl_Display_freerow(ListData *ldata, ListRow *row)
 {
+	(void)ldata; /* unused */
+	(void)row; /* unused */
 	/* There was no allocation when row->data was set. So nothing to do here. */
 	return 0;
 }
 
-static int gl_Display_free(__attribute__((unused))ListData *ldata)
+static int gl_Display_free(ListData *ldata)
 {
+	(void)ldata; /* unused */
 	/* There was no allocation in ldata->data. So nothing to do here. */
 	return 0;
 }

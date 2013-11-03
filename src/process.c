@@ -868,8 +868,10 @@ static int CheckArgNum(int nr, char **args)
 	return i;
 }
 
-static void StuffFin(char *buf, int len, __attribute__((unused))void *data)
+static void StuffFin(char *buf, int len, void *data)
 {
+	(void)data; /* unused */
+
 	if (!flayer)
 		return;
 	while (len)
@@ -4715,8 +4717,10 @@ static void ShowDInfo()
 	Msg(0, "%s", buf);
 }
 
-static void AKAfin(char *buf, int len, __attribute__((unused))void *data)
+static void AKAfin(char *buf, int len, void *data)
 {
+	(void)data; /* unused */
+
 	if (len && fore)
 		ChangeAKA(fore, buf, strlen(buf));
 
@@ -4746,9 +4750,11 @@ static void InputAKA()
 	}
 }
 
-static void Colonfin(char *buf, int len, __attribute__((unused))void *data)
+static void Colonfin(char *buf, int len, void *data)
 {
 	char mbuf[256];
+
+	(void)data; /* unused */
 
 	RemoveStatus();
 	if (buf[len] == '\t') {
@@ -4809,9 +4815,11 @@ static void Colonfin(char *buf, int len, __attribute__((unused))void *data)
 	}
 }
 
-static void SelectFin(char *buf, int len, __attribute__((unused))void *data)
+static void SelectFin(char *buf, int len, void *data)
 {
 	int n;
+
+	(void)data; /* unused */
 
 	if (!len || !display)
 		return;
@@ -4825,9 +4833,11 @@ static void SelectFin(char *buf, int len, __attribute__((unused))void *data)
 	SwitchWindow(n);
 }
 
-static void SelectLayoutFin(char *buf, int len, __attribute__((unused))void *data)
+static void SelectLayoutFin(char *buf, int len, void *data)
 {
 	Layout *lay;
+
+	(void)data; /* unused */
 
 	if (!len || !display)
 		return;
@@ -4854,15 +4864,19 @@ static void InputSelect()
 
 static char setenv_var[31];
 
-static void SetenvFin1(char *buf, int len, __attribute__((unused))void *data)
+static void SetenvFin1(char *buf, int len, void *data)
 {
+	(void)data; /* unused */
+
 	if (!len || !display)
 		return;
 	InputSetenv(buf);
 }
 
-static void SetenvFin2(char *buf, int len, __attribute__((unused))void *data)
+static void SetenvFin2(char *buf, int len, void *data)
 {
+	(void)data; /* unused */
+
 	if (!len || !display)
 		return;
 	setenv(setenv_var, buf, 1);
@@ -5041,8 +5055,10 @@ int CompileKeys(char *s, int sl, unsigned char *array)
  *  Asynchronous input functions
  */
 
-static void pow_detach_fn(char *buf, int len, __attribute__((unused))void *data)
+static void pow_detach_fn(char *buf, int len, void *data)
 {
+	(void)data; /* unused */
+
 	if (len) {
 		*buf = 0;
 		return;
@@ -5055,8 +5071,10 @@ static void pow_detach_fn(char *buf, int len, __attribute__((unused))void *data)
 		Detach(D_POWER);
 }
 
-static void copy_reg_fn(char *buf, int len, __attribute__((unused))void *data)
+static void copy_reg_fn(char *buf, int len, void *data)
 {
+	(void)data; /* unused */
+
 	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
 	if (len) {
@@ -5079,8 +5097,10 @@ static void copy_reg_fn(char *buf, int len, __attribute__((unused))void *data)
 	Msg(0, "Copied %d characters into register %c", D_user->u_plop.len, *buf);
 }
 
-static void ins_reg_fn(char *buf, int len, __attribute__((unused))void *data)
+static void ins_reg_fn(char *buf, int len, void *data)
 {
+	(void)data; /* unused */
+
 	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
 	if (len) {
@@ -5098,9 +5118,11 @@ static void ins_reg_fn(char *buf, int len, __attribute__((unused))void *data)
 	Msg(0, "Empty register.");
 }
 
-static void process_fn(char *buf, int len, __attribute__((unused))void *data)
+static void process_fn(char *buf, int len, void *data)
 {
 	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
+
+	(void)data; /* unused */
 
 	if (len) {
 		*buf = 0;
@@ -5248,9 +5270,11 @@ static int digraph_find(const char *buf)
 	return i;
 }
 
-static void digraph_fn(char *buf, int len, __attribute__((unused))void *data)
+static void digraph_fn(char *buf, int len, void *data)
 {
 	int ch, i, x;
+
+	(void)data; /* unused */
 
 	ch = buf[len];
 	if (ch) {

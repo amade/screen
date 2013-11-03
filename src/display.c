@@ -110,8 +110,10 @@ void DefClearLine(int y, int xs, int xe, int bce)
 	LClearLine(flayer, y, xs, xe, bce, (struct mline *)0);
 }
 
-int DefResize(__attribute__((unused))int wi, __attribute__((unused))int he)
+int DefResize(int width, int height)
 {
+	(void)width; /* unused */
+	(void)height; /* unused */
 	return -1;
 }
 
@@ -955,9 +957,11 @@ void RedisplayDisplays(int cur_only)
 }
 
 /* XXX: use oml! */
-void ScrollH(int y, int xs, int xe, int n, int bce, __attribute__((unused))struct mline *oml)
+void ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
 {
 	int i;
+
+	(void)oml; /* unused */
 
 	if (n == 0)
 		return;
@@ -1987,8 +1991,9 @@ void PutChar(struct mchar *c, int x, int y)
 	}
 }
 
-void InsChar(struct mchar *c, int x, int xe, int y, __attribute__((unused))struct mline *oml)
+void InsChar(struct mchar *c, int x, int xe, int y, struct mline *oml)
 {
+	(void)oml; /* unused */
 	GotoPos(x, y);
 	if (y == D_bot && !D_CLP) {
 		if (x == D_width - 1) {
@@ -2391,8 +2396,10 @@ void NukePending()
 /* linux' select can't handle flow control, so wait 100ms if
  * we get EAGAIN
  */
-static void disp_writeev_eagain(__attribute__((unused))Event *ev, void *data)
+static void disp_writeev_eagain(Event *ev, void *data)
 {
+	(void)ev; /* unused */
+
 	display = (Display *)data;
 	evdeq(&D_writeev);
 	D_writeev.type = EV_WRITE;
@@ -2400,9 +2407,11 @@ static void disp_writeev_eagain(__attribute__((unused))Event *ev, void *data)
 	evenq(&D_writeev);
 }
 
-static void disp_writeev_fn(__attribute__((unused))Event *ev, void *data)
+static void disp_writeev_fn(Event *ev, void *data)
 {
 	int len, size = OUTPUT_BLOCK_SIZE;
+
+	(void)ev; /* unused */
 
 	display = (Display *)data;
 	len = D_obufp - D_obuf;
@@ -2470,11 +2479,13 @@ static void disp_writeev_fn(__attribute__((unused))Event *ev, void *data)
 	}
 }
 
-static void disp_readev_fn(__attribute__((unused))Event *ev, void *data)
+static void disp_readev_fn(Event *ev, void *data)
 {
 	int size;
 	char buf[IOSIZE];
 	Canvas *cv;
+
+	(void)ev; /* unused */
 
 	display = (Display *)data;
 
@@ -2616,8 +2627,10 @@ static void disp_readev_fn(__attribute__((unused))Event *ev, void *data)
 	(*D_processinput) (buf, size);
 }
 
-static void disp_status_fn(__attribute__((unused))Event *ev, void *data)
+static void disp_status_fn(Event *ev, void *data)
 {
+	(void)ev; /* unused */
+
 	display = (Display *)data;
 	if (D_status)
 		RemoveStatus();
@@ -2634,9 +2647,11 @@ static void disp_hstatus_fn(Event *ev, void *data)
 	RefreshHStatus();
 }
 
-static void disp_blocked_fn(__attribute__((unused))Event *ev, void *data)
+static void disp_blocked_fn(Event *ev, void *data)
 {
 	Window *p;
+
+	(void)ev; /* unused */
 
 	display = (Display *)data;
 	if (D_obufp - D_obuf > D_obufmax + D_blocked_fuzz) {
@@ -2649,11 +2664,14 @@ static void disp_blocked_fn(__attribute__((unused))Event *ev, void *data)
 	}
 }
 
-static void disp_map_fn(__attribute__((unused))Event *ev, void *data)
+static void disp_map_fn(Event *ev, void *data)
 {
 	char *p;
 	int l, i;
 	unsigned char *q;
+
+	(void)ev; /* unused */
+
 	display = (Display *)data;
 	if (!(l = D_seql))
 		return;
@@ -2675,9 +2693,12 @@ static void disp_map_fn(__attribute__((unused))Event *ev, void *data)
 	ProcessInput(p, l);
 }
 
-static void disp_idle_fn(__attribute__((unused))Event *ev, void *data)
+static void disp_idle_fn(Event *ev, void *data)
 {
 	Display *olddisplay;
+
+	(void)ev; /* unused */
+
 	display = (Display *)data;
 	if (idletimo <= 0 || idleaction.nr == RC_ILLEGAL)
 		return;
@@ -2704,10 +2725,12 @@ void ResetIdle()
 		evdeq(&D_idleev);
 }
 
-static void disp_blanker_fn(__attribute__((unused))Event *ev, void *data)
+static void disp_blanker_fn(Event *ev, void *data)
 {
 	char buf[IOSIZE], *b;
 	int size;
+
+	(void)ev; /* unused */
 
 	display = (Display *)data;
 	size = read(D_blankerev.fd, buf, IOSIZE);
