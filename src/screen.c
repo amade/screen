@@ -1400,7 +1400,7 @@ void Detach(int mode)
 	if (D_fore) {
 		ReleaseAutoWritelock(display, D_fore);
 		D_user->u_detachwin = D_fore->w_number;
-		D_user->u_detachotherwin = D_other ? D_other->w_number : -1;
+		D_user->u_detachotherwin = D_other ? D_other->w_number : D_fore->w_number;
 	}
 	AutosaveLayout(D_layout);
 	layout_last = D_layout;
