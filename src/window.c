@@ -1203,12 +1203,12 @@ void FreePseudowin(Window *w)
 	w->w_pwin = NULL;
 }
 
-static void paste_slowev_fn(Event *ev, void *data)
+static void paste_slowev_fn(Event *event, void *data)
 {
 	struct paster *pa = (struct paster *)data;
 	Window *p;
 
-	(void)ev; /* unused */
+	(void)event; /* unused */
 
 	int l = 1;
 	flayer = pa->pa_pastelayer;
@@ -1225,15 +1225,15 @@ static void paste_slowev_fn(Event *ev, void *data)
 	}
 }
 
-static int muchpending(Window *p, Event *ev)
+static int muchpending(Window *p, Event *event)
 {
 	Canvas *cv;
 	for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_status == STATUS_ON_WIN && !D_status_bell) {
 			/* wait 'til status is gone */
-			ev->condpos = &const_one;
-			ev->condneg = &D_status;
+			event->condpos = &const_one;
+			event->condneg = &D_status;
 			return 1;
 		}
 		if (D_blocked)
@@ -1243,8 +1243,8 @@ static int muchpending(Window *p, Event *ev)
 				D_blocked = 1;
 				continue;
 			}
-			ev->condpos = &D_obuffree;
-			ev->condneg = &D_obuflenmax;
+			event->condpos = &D_obuffree;
+			event->condneg = &D_obuflenmax;
 			if (D_nonblock > 0 && !D_blockedev.queued) {
 				SetTimeout(&D_blockedev, D_nonblock);
 				evenq(&D_blockedev);
@@ -1255,7 +1255,7 @@ static int muchpending(Window *p, Event *ev)
 	return 0;
 }
 
-static void win_readev_fn(Event *ev, void *data)
+static void win_readev_fn(Event *event, void *data)
 {
 	Window *p = (Window *)data;
 	char buf[IOSIZE], *bp;
@@ -1269,20 +1269,20 @@ static void win_readev_fn(Event *ev, void *data)
 	if (wtop) {
 		size = IOSIZE - p->w_pwin->p_inlen;
 		if (size <= 0) {
-			ev->condpos = &const_IOSIZE;
-			ev->condneg = &p->w_pwin->p_inlen;
+			event->condpos = &const_IOSIZE;
+			event->condneg = &p->w_pwin->p_inlen;
 			return;
 		}
 	}
-	if (p->w_layer.l_cvlist && muchpending(p, ev))
+	if (p->w_layer.l_cvlist && muchpending(p, event))
 		return;
 	if (p->w_blocked) {
-		ev->condpos = &const_one;
-		ev->condneg = &p->w_blocked;
+		event->condpos = &const_one;
+		event->condneg = &p->w_blocked;
 		return;
 	}
-	if (ev->condpos)
-		ev->condpos = ev->condneg = 0;
+	if (event->condpos)
+		event->condpos = event->condneg = 0;
 
 	if ((len = p->w_outlen)) {
 		p->w_outlen = 0;
@@ -1290,7 +1290,7 @@ static void win_readev_fn(Event *ev, void *data)
 		return;
 	}
 
-	if ((len = read(ev->fd, buf, size)) < 0) {
+	if ((len = read(event->fd, buf, size)) < 0) {
 		if (errno == EINTR || errno == EAGAIN)
 			return;
 #if defined(EWOULDBLOCK) && (EWOULDBLOCK != EAGAIN)
@@ -1330,11 +1330,11 @@ static void win_readev_fn(Event *ev, void *data)
 	return;
 }
 
-static void win_resurrect_zombie_fn(Event *ev, void *data)
+static void win_resurrect_zombie_fn(Event *event, void *data)
 {
 	Window *p = (Window *)data;
 
-	(void)ev; /* unused */
+	(void)event; /* unused */
 
 	/* Already reconnected? */
 	if (p->w_deadpid != p->w_pid)
@@ -1343,13 +1343,13 @@ static void win_resurrect_zombie_fn(Event *ev, void *data)
 	RemakeWindow(p);
 }
 
-static void win_writeev_fn(Event *ev, void *data)
+static void win_writeev_fn(Event *event, void *data)
 {
 	Window *p = (Window *)data;
 	Window *win;
 	int len;
 	if (p->w_inlen) {
-		if ((len = write(ev->fd, p->w_inbuf, p->w_inlen)) <= 0)
+		if ((len = write(event->fd, p->w_inbuf, p->w_inlen)) <= 0)
 			len = p->w_inlen;	/* dead window */
 
 		if (p->w_miflag) { /* don't loop if not needed */
@@ -1371,7 +1371,7 @@ static void win_writeev_fn(Event *ev, void *data)
 	return;
 }
 
-static void pseu_readev_fn(Event *ev, void *data)
+static void pseu_readev_fn(Event *event, void *data)
 {
 	Window *p = (Window *)data;
 	char buf[IOSIZE];
@@ -1383,20 +1383,20 @@ static void pseu_readev_fn(Event *ev, void *data)
 	if (ptow) {
 		size = IOSIZE - p->w_inlen;
 		if (size <= 0) {
-			ev->condpos = &const_IOSIZE;
-			ev->condneg = &p->w_inlen;
+			event->condpos = &const_IOSIZE;
+			event->condneg = &p->w_inlen;
 			return;
 		}
 	}
-	if (p->w_layer.l_cvlist && muchpending(p, ev))
+	if (p->w_layer.l_cvlist && muchpending(p, event))
 		return;
 	if (p->w_blocked) {
-		ev->condpos = &const_one;
-		ev->condneg = &p->w_blocked;
+		event->condpos = &const_one;
+		event->condneg = &p->w_blocked;
 		return;
 	}
-	if (ev->condpos)
-		ev->condpos = ev->condneg = 0;
+	if (event->condpos)
+		event->condpos = event->condneg = 0;
 
 	if ((len = p->w_outlen)) {
 		p->w_outlen = 0;
@@ -1404,7 +1404,7 @@ static void pseu_readev_fn(Event *ev, void *data)
 		return;
 	}
 
-	if ((len = read(ev->fd, buf, size)) <= 0) {
+	if ((len = read(event->fd, buf, size)) <= 0) {
 		if (errno == EINTR || errno == EAGAIN)
 			return;
 #if defined(EWOULDBLOCK) && (EWOULDBLOCK != EAGAIN)
@@ -1423,7 +1423,7 @@ static void pseu_readev_fn(Event *ev, void *data)
 	return;
 }
 
-static void pseu_writeev_fn(Event *ev, void *data)
+static void pseu_writeev_fn(Event *event, void *data)
 {
 	Window *p = (Window *)data;
 	struct pseudowin *pw = p->w_pwin;
@@ -1431,18 +1431,18 @@ static void pseu_writeev_fn(Event *ev, void *data)
 
 	if (pw->p_inlen == 0)
 		return;
-	if ((len = write(ev->fd, pw->p_inbuf, pw->p_inlen)) <= 0)
+	if ((len = write(event->fd, pw->p_inbuf, pw->p_inlen)) <= 0)
 		len = pw->p_inlen;	/* dead pseudo */
 	if ((p->w_pwin->p_inlen -= len))
 		memmove(p->w_pwin->p_inbuf, p->w_pwin->p_inbuf + len, p->w_pwin->p_inlen);
 }
 
-static void win_silenceev_fn(Event *ev, void *data)
+static void win_silenceev_fn(Event *event, void *data)
 {
 	Window *p = (Window *)data;
 	Canvas *cv;
 	
-	(void)ev; /* unused */
+	(void)event; /* unused */
 
 	for (display = displays; display; display = display->d_next) {
 		for (cv = D_cvlist; cv; cv = cv->c_next)
@@ -1456,9 +1456,9 @@ static void win_silenceev_fn(Event *ev, void *data)
 	}
 }
 
-static void win_destroyev_fn(Event *ev, void *data)
+static void win_destroyev_fn(Event *event, void *data)
 {
-	Window *p = (Window *)ev->data;
+	Window *p = (Window *)event->data;
 
 	(void)data; /* unused */
 

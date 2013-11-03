@@ -749,7 +749,7 @@ static Event consredir_ev;
 static int consredirfd[2] = {-1, -1};
 
 static void
-consredir_readev_fn(Event *ev, void *data)
+consredir_readev_fn(Event *event, void *data)
 {
   char *p, *n, buf[256];
   int l;
@@ -761,7 +761,7 @@ consredir_readev_fn(Event *ev, void *data)
       close(consredirfd[0]);
       close(consredirfd[1]);
       consredirfd[0] = consredirfd[1] = -1;
-      evdeq(ev);
+      evdeq(event);
       return;
     }
   for (p = n = buf; l > 0; n++, l--)

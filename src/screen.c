@@ -1514,18 +1514,18 @@ static void backtick_filter(struct backtick *bt)
 	*q = 0;
 }
 
-static void backtick_fn(Event *ev, void *data)
+static void backtick_fn(Event *event, void *data)
 {
 	struct backtick *bt;
 	int i, j, k, l;
 
 	bt = (struct backtick *)data;
 	i = bt->bufi;
-	l = read(ev->fd, bt->buf + i, MAXSTR - i);
+	l = read(event->fd, bt->buf + i, MAXSTR - i);
 	if (l <= 0) {
-		evdeq(ev);
-		close(ev->fd);
-		ev->fd = -1;
+		evdeq(event);
+		close(event->fd);
+		event->fd = -1;
 		return;
 	}
 	i += l;
@@ -1685,7 +1685,7 @@ int AddWinMsgRend(const char *str, uint64_t r)
 	return 0;
 }
 
-char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int rec)
+char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *event, int rec)
 {
 	static int tick;
 	char *s = str;
@@ -1929,17 +1929,17 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 		case 'F':
 			p--;
 			/* small hack */
-			if (display && ((ev && ev == &D_forecv->c_captev) || (!ev && win && win == D_fore)))
+			if (display && ((event && event == &D_forecv->c_captev) || (!event && win && win == D_fore)))
 				minusflg = !minusflg;
 			if (minusflg)
 				qmflag = 1;
 			break;
 		case 'P':
 			p--;
-			if (display && ev && ev != &D_hstatusev) {	/* Hack */
+			if (display && event && event != &D_hstatusev) {	/* Hack */
 				/* Is the layer in the current canvas in copy mode? */
-				Canvas *cv = (Canvas *)ev->data;
-				if (ev == &cv->c_captev && cv->c_layer->l_layfn == &MarkLf)
+				Canvas *cv = (Canvas *)event->data;
+				if (event == &cv->c_captev && cv->c_layer->l_layfn == &MarkLf)
 					qmflag = 1;
 			}
 			break;
@@ -2088,18 +2088,18 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 			padlen = MAXSTR - 1;
 		pad_expand(winmsg_buf, p, numpad, padlen);
 	}
-	if (ev) {
-		evdeq(ev);	/* just in case */
-		ev->timeout.tv_sec = 0;
-		ev->timeout.tv_usec = 0;
+	if (event) {
+		evdeq(event);	/* just in case */
+		event->timeout.tv_sec = 0;
+		event->timeout.tv_usec = 0;
 	}
-	if (ev && tick) {
+	if (event && tick) {
 		now.tv_usec = 100000;
 		if (tick == 1)
 			now.tv_sec++;
 		else
 			now.tv_sec += tick - (now.tv_sec % tick);
-		ev->timeout = now;
+		event->timeout = now;
 	}
 	return winmsg_buf;
 }
@@ -2170,19 +2170,19 @@ void PutWinMsg(char *s, int start, int max)
 	}
 }
 
-static void serv_read_fn(Event *ev, void *data)
+static void serv_read_fn(Event *event, void *data)
 {
-	(void)ev; /* unused */
+	(void)event; /* unused */
 	(void)data; /* unused */
 
 	ReceiveMsg();
 }
 
-static void serv_select_fn(Event *ev, void *data)
+static void serv_select_fn(Event *event, void *data)
 {
 	Window *p;
 
-	(void)ev; /* unused */
+	(void)event; /* unused */
 	(void)data; /* unused */
 
 	/* XXX: messages?? */
@@ -2331,13 +2331,12 @@ static void serv_select_fn(Event *ev, void *data)
 	}
 }
 
-static void logflush_fn(Event *ev, void *data)
+static void logflush_fn(Event *event, void *data)
 {
 	Window *p;
 	char *buf;
 	int n;
 
-	(void)ev; /* unused */
 	(void)data; /* unused */
 
 	if (!islogfile(NULL))
@@ -2345,8 +2344,8 @@ static void logflush_fn(Event *ev, void *data)
 	logfflush(NULL);
 	n = log_flush ? log_flush : (logtstamp_after + 4) / 5;
 	if (n) {
-		SetTimeout(ev, n * 1000);
-		evenq(ev);	/* re-enqueue ourself */
+		SetTimeout(event, n * 1000);
+		evenq(event);	/* re-enqueue ourself */
 	}
 	if (!logtstamp_on)
 		return;

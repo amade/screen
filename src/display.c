@@ -2368,9 +2368,9 @@ void NukePending()
 /* linux' select can't handle flow control, so wait 100ms if
  * we get EAGAIN
  */
-static void disp_writeev_eagain(Event *ev, void *data)
+static void disp_writeev_eagain(Event *event, void *data)
 {
-	(void)ev; /* unused */
+	(void)event; /* unused */
 
 	display = (Display *)data;
 	evdeq(&D_writeev);
@@ -2379,11 +2379,11 @@ static void disp_writeev_eagain(Event *ev, void *data)
 	evenq(&D_writeev);
 }
 
-static void disp_writeev_fn(Event *ev, void *data)
+static void disp_writeev_fn(Event *event, void *data)
 {
 	int len, size = OUTPUT_BLOCK_SIZE;
 
-	(void)ev; /* unused */
+	(void)event; /* unused */
 
 	display = (Display *)data;
 	len = D_obufp - D_obuf;
@@ -2451,13 +2451,13 @@ static void disp_writeev_fn(Event *ev, void *data)
 	}
 }
 
-static void disp_readev_fn(Event *ev, void *data)
+static void disp_readev_fn(Event *event, void *data)
 {
 	int size;
 	char buf[IOSIZE];
 	Canvas *cv;
 
-	(void)ev; /* unused */
+	(void)event; /* unused */
 
 	display = (Display *)data;
 
@@ -2584,31 +2584,31 @@ static void disp_readev_fn(Event *ev, void *data)
 	(*D_processinput) (buf, size);
 }
 
-static void disp_status_fn(Event *ev, void *data)
+static void disp_status_fn(Event *event, void *data)
 {
-	(void)ev; /* unused */
+	(void)event; /* unused */
 
 	display = (Display *)data;
 	if (D_status)
 		RemoveStatus();
 }
 
-static void disp_hstatus_fn(Event *ev, void *data)
+static void disp_hstatus_fn(Event *event, void *data)
 {
 	display = (Display *)data;
 	if (D_status == STATUS_ON_HS) {
-		SetTimeout(ev, 1);
-		evenq(ev);
+		SetTimeout(event, 1);
+		evenq(event);
 		return;
 	}
 	RefreshHStatus();
 }
 
-static void disp_blocked_fn(Event *ev, void *data)
+static void disp_blocked_fn(Event *event, void *data)
 {
 	Window *p;
 
-	(void)ev; /* unused */
+	(void)event; /* unused */
 
 	display = (Display *)data;
 	if (D_obufp - D_obuf > D_obufmax + D_blocked_fuzz) {
@@ -2621,13 +2621,13 @@ static void disp_blocked_fn(Event *ev, void *data)
 	}
 }
 
-static void disp_map_fn(Event *ev, void *data)
+static void disp_map_fn(Event *event, void *data)
 {
 	char *p;
 	int l, i;
 	unsigned char *q;
 
-	(void)ev; /* unused */
+	(void)event; /* unused */
 
 	display = (Display *)data;
 	if (!(l = D_seql))
@@ -2650,11 +2650,11 @@ static void disp_map_fn(Event *ev, void *data)
 	ProcessInput(p, l);
 }
 
-static void disp_idle_fn(Event *ev, void *data)
+static void disp_idle_fn(Event *event, void *data)
 {
 	Display *olddisplay;
 
-	(void)ev; /* unused */
+	(void)event; /* unused */
 
 	display = (Display *)data;
 	if (idletimo <= 0 || idleaction.nr == RC_ILLEGAL)
@@ -2682,12 +2682,12 @@ void ResetIdle()
 		evdeq(&D_idleev);
 }
 
-static void disp_blanker_fn(Event *ev, void *data)
+static void disp_blanker_fn(Event *event, void *data)
 {
 	char buf[IOSIZE], *b;
 	int size;
 
-	(void)ev; /* unused */
+	(void)event; /* unused */
 
 	display = (Display *)data;
 	size = read(D_blankerev.fd, buf, IOSIZE);
