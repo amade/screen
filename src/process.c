@@ -5262,7 +5262,7 @@ static int NextWindow()
 static int PreviousWindow()
 {
 	register Window **pp;
-	int n = fore ? fore->w_number : -1;
+	int n = fore ? fore->w_number : 0;
 	Window *group = fore ? fore->w_group : 0;
 
 	for (pp = wtab + n - 1; pp != wtab + n; pp--) {
@@ -5274,7 +5274,7 @@ static int PreviousWindow()
 		}
 	}
 	if (pp == wtab + n)
-		return -1;
+		return 0;
 	return pp - wtab;
 }
 
