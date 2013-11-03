@@ -1902,21 +1902,21 @@ void ProcessInput2(char *ibuf, int ilen)
 	}
 }
 
-void DoProcess(Window *p, char **bufp, int *lenp, struct paster *pa)
+void DoProcess(Window *window, char **bufp, int *lenp, struct paster *pa)
 {
 	int oldlen;
 	Display *d = display;
 
 	/* XXX -> PasteStart */
-	if (pa && *lenp > 1 && p && p->w_slowpaste) {
+	if (pa && *lenp > 1 && window && window->w_slowpaste) {
 		/* schedule slowpaste event */
-		SetTimeout(&p->w_paster.pa_slowev, p->w_slowpaste);
-		evenq(&p->w_paster.pa_slowev);
+		SetTimeout(&window->w_paster.pa_slowev, window->w_slowpaste);
+		evenq(&window->w_paster.pa_slowev);
 		return;
 	}
 	while (flayer && *lenp) {
-		if (!pa && p && p->w_paster.pa_pastelen && flayer == p->w_paster.pa_pastelayer) {
-			WBell(p, visual_bell);
+		if (!pa && window && window->w_paster.pa_pastelen && flayer == window->w_paster.pa_pastelayer) {
+			WBell(window, visual_bell);
 			*bufp += *lenp;
 			*lenp = 0;
 			display = d;
@@ -1932,7 +1932,7 @@ void DoProcess(Window *p, char **bufp, int *lenp, struct paster *pa)
 				return;
 			}
 			/* We're full, let's beep */
-			WBell(p, visual_bell);
+			WBell(window, visual_bell);
 			break;
 		}
 	}
@@ -5059,23 +5059,23 @@ static int ParseNum1000(struct action *act, int *var)
 
 static Window *WindowByName(char *s)
 {
-	Window *p;
+	Window *window;
 
-	for (p = windows; p; p = p->w_next)
-		if (!strcmp(p->w_title, s))
-			return p;
-	for (p = windows; p; p = p->w_next)
-		if (!strncmp(p->w_title, s, strlen(s)))
-			return p;
+	for (window = windows; window; window = window->w_next)
+		if (!strcmp(window->w_title, s))
+			return window;
+	for (window = windows; window; window = window->w_next)
+		if (!strncmp(window->w_title, s, strlen(s)))
+			return window;
 	return 0;
 }
 
-static int WindowByNumber(char *str)
+static int WindowByNumber(char *string)
 {
 	int i;
 	char *s;
 
-	for (i = 0, s = str; *s; s++) {
+	for (i = 0, s = string; *s; s++) {
 		if (*s < '0' || *s > '9')
 			break;
 		i = i * 10 + (*s - '0');
@@ -5088,14 +5088,14 @@ static int WindowByNumber(char *str)
  * Numbers are tried first, then names, a prefix match suffices.
  * Be careful when assigning numeric strings as WindowTitles.
  */
-int WindowByNoN(char *str)
+int WindowByNoN(char *string)
 {
 	int i;
-	Window *p;
+	Window *window;
 
-	if ((i = WindowByNumber(str)) < 0 || i >= maxwin) {
-		if ((p = WindowByName(str)))
-			return p->w_number;
+	if ((i = WindowByNumber(string)) < 0 || i >= maxwin) {
+		if ((window = WindowByName(string)))
+			return window->w_number;
 		return -1;
 	}
 	return i;
@@ -5166,25 +5166,25 @@ int IsNumColon(char *s, int base, char *p, int psize)
 
 void SwitchWindow(int n)
 {
-	Window *p;
+	Window *window;
 
 	if (n < 0 || n >= maxwin) {
 		ShowWindows(-1);
 		return;
 	}
-	if ((p = wtab[n]) == 0) {
+	if ((window = wtab[n]) == 0) {
 		ShowWindows(n);
 		return;
 	}
 	if (display == 0) {
-		fore = p;
+		fore = window;
 		return;
 	}
-	if (p == D_fore) {
-		Msg(0, "This IS window %d (%s).", n, p->w_title);
+	if (window == D_fore) {
+		Msg(0, "This IS window %d (%s).", n, window->w_title);
 		return;
 	}
-	SetForeWindow(p);
+	SetForeWindow(window);
 	Activate(fore->w_norefresh);
 }
 
@@ -5192,19 +5192,20 @@ void SwitchWindow(int n)
  * SetForeWindow changes the window in the input focus of the display.
  * Puts window wi in canvas display->d_forecv.
  */
-void SetForeWindow(Window *win)
+void SetForeWindow(Window *window)
 {
-	Window *p;
+	Window *oldfore;
+
 	if (display == 0) {
-		fore = win;
+		fore = window;
 		return;
 	}
-	p = Layer2Window(D_forecv->c_layer);
-	SetCanvasWindow(D_forecv, win);
-	if (p)
-		WindowChanged(p, 'u');
-	if (win)
-		WindowChanged(win, 'u');
+	oldfore = Layer2Window(D_forecv->c_layer);
+	SetCanvasWindow(D_forecv, window);
+	if (oldfore)
+		WindowChanged(oldfore, 'u');
+	if (window)
+		WindowChanged(window, 'u');
 	flayer = D_forecv->c_layer;
 	/* Activate called afterwards, so no RefreshHStatus needed */
 }
@@ -5290,7 +5291,7 @@ static int MoreWindows()
 	return 0;
 }
 
-void KillWindow(Window *win)
+void KillWindow(Window *window)
 {
 	Window **pp, *p;
 	Canvas *cv;
@@ -5301,14 +5302,14 @@ void KillWindow(Window *win)
 	 * Remove window from linked list.
 	 */
 	for (pp = &windows; (p = *pp); pp = &p->w_next)
-		if (p == win)
+		if (p == window)
 			break;
 	*pp = p->w_next;
-	win->w_inlen = 0;
-	wtab[win->w_number] = 0;
+	window->w_inlen = 0;
+	wtab[window->w_number] = 0;
 
 	if (windows == 0) {
-		FreeWindow(win);
+		FreeWindow(window);
 		Finit(0);
 	}
 
@@ -5318,7 +5319,7 @@ void KillWindow(Window *win)
 	for (display = displays; display; display = display->d_next) {
 		gotone = 0;
 		for (cv = D_cvlist; cv; cv = cv->c_next) {
-			if (Layer2Window(cv->c_layer) != win)
+			if (Layer2Window(cv->c_layer) != window)
 				continue;
 			/* switch to other window */
 			SetCanvasWindow(cv, FindNiceWindow(D_other, 0));
@@ -5331,9 +5332,9 @@ void KillWindow(Window *win)
 
 	/* do the same for the layouts */
 	for (lay = layouts; lay; lay = lay->lay_next)
-		UpdateLayoutCanvas(&lay->lay_canvas, win);
+		UpdateLayoutCanvas(&lay->lay_canvas, window);
 
-	FreeWindow(win);
+	FreeWindow(window);
 	WindowChanged((Window *)0, 'w');
 	WindowChanged((Window *)0, 'W');
 	WindowChanged((Window *)0, 0);

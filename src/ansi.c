@@ -1389,13 +1389,13 @@ static void PrintFlush()
 	curr->w_stringp = curr->w_string;
 }
 
-void WNewAutoFlow(Window *win, int on)
+void WNewAutoFlow(Window *window, int on)
 {
-	if (win->w_flow & FLOW_AUTOFLAG)
-		win->w_flow = FLOW_AUTOFLAG | (FLOW_AUTO | FLOW_NOW) * on;
+	if (window->w_flow & FLOW_AUTOFLAG)
+		window->w_flow = FLOW_AUTOFLAG | (FLOW_AUTO | FLOW_NOW) * on;
 	else
-		win->w_flow = (win->w_flow & ~FLOW_AUTO) | FLOW_AUTO * on;
-	LSetFlow(&win->w_layer, win->w_flow & FLOW_NOW);
+		window->w_flow = (window->w_flow & ~FLOW_AUTO) | FLOW_AUTO * on;
+	LSetFlow(&window->w_layer, window->w_flow & FLOW_NOW);
 }
 
 static void DesignateCharset(int c, int n)
