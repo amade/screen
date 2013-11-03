@@ -55,24 +55,24 @@ static void LockHup(int);
 static void AttachSigCont(int);
 static int ContinuePlease;
 
-static void AttachSigCont(__attribute__((unused))int sigsig)
+static void AttachSigCont(int sigsig)
 {
+	(void)sigsig; /* unused */
 	ContinuePlease = 1;
-	return;
 }
 
 static int QueryResult;
 
-static void QueryResultSuccess(__attribute__((unused))int sigsig)
+static void QueryResultSuccess(int sigsig)
 {
+	(void)sigsig; /* unused */
 	QueryResult = 1;
-	return;
 }
 
-static void QueryResultFail(__attribute__((unused))int sigsig)
+static void QueryResultFail(int sigsig)
 {
+	(void)sigsig; /* unused */
 	QueryResult = 2;
-	return;
 }
 
 /*
@@ -248,24 +248,26 @@ int Attach(int how)
 
 static int AttacherPanic = 0;
 
-static void AttacherSigAlarm(__attribute__((unused))int sigsig)
+static void AttacherSigAlarm(int sigsig)
 {
-	return;
+	(void)sigsig; /* unused */
 }
 
 /*
  * the frontend's Interrupt handler
  * we forward SIGINT to the poor backend
  */
-static void AttacherSigInt(__attribute__((unused))int sigsig)
+static void AttacherSigInt(int sigsig)
 {
 	struct sigaction sigact;
+
+	(void)sigsig; /* unused */
+
 	sigemptyset (&sigact.sa_mask);
 	sigact.sa_flags = 0;
 	sigact.sa_handler = AttacherSigInt;
 	sigaction(SIGINT, &sigact, NULL);
 	Kill(MasterPid, SIGINT);
-	return;
 }
 
 /*
@@ -273,12 +275,14 @@ static void AttacherSigInt(__attribute__((unused))int sigsig)
  * check if the backend is already detached.
  */
 
-void AttacherFinit(__attribute__((unused))int sigsig)
+void AttacherFinit(int sigsig)
 {
 	struct stat statb;
 	struct msg m;
 	int s;
 	struct sigaction sigact;
+
+	(void)sigsig; /* unused */
 
 	sigemptyset (&sigact.sa_mask);
 	sigact.sa_flags = 0;
@@ -297,42 +301,46 @@ void AttacherFinit(__attribute__((unused))int sigsig)
 		}
 	}
 	exit(0);
-	return;
 }
 
-static void AttacherFinitBye(__attribute__((unused))int sigsig)
+static void AttacherFinitBye(int sigsig)
 {
 	int ppid;
+
+	(void)sigsig; /* unused */
+
 	/* we don't want to disturb init (even if we were root), eh? jw */
 	if ((ppid = getppid()) > 1)
 		Kill(ppid, SIGHUP);	/* carefully say good bye. jw. */
 	exit(0);
-	return;
 }
 
 static int SuspendPlease;
 
-static void SigStop(__attribute__((unused))int sigsig)
+static void SigStop(int sigsig)
 {
+	(void)sigsig; /* unused */
+
 	SuspendPlease = 1;
-	return;
 }
 
 static int LockPlease;
 
-static void DoLock(__attribute__((unused))int sigsig)
+static void DoLock(int sigsig)
 {
+	(void)sigsig; /* unused */
+
 	LockPlease = 1;
-	return;
 }
 
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 static int SigWinchPlease;
 
-static void AttacherWinch(__attribute__((unused))int sigsig)
+static void AttacherWinch(int sigsig)
 {
+	(void)sigsig; /* unused */
+
 	SigWinchPlease = 1;
-	return;
 }
 #endif
 
@@ -410,9 +418,12 @@ void Attacher()
 /* ADDED by Rainer Pruy 10/15/87 */
 /* POLISHED by mls. 03/10/91 */
 
-static void LockHup(__attribute__((unused))int sigsig)
+static void LockHup(int sigsig)
 {
 	int ppid = getppid();
+
+	(void)sigsig; /* unused */
+
 	if (ppid > 1)
 		Kill(ppid, SIGHUP);
 	exit(0);
