@@ -65,8 +65,8 @@
 static int CheckArgNum(int, char **);
 static void ClearAction(struct action *);
 static void SaveAction(struct action *, int, char **, int *);
-static int NextWindow(void);
-static int PreviousWindow(void);
+static uint16_t NextWindow(void);
+static uint16_t PreviousWindow(void);
 static int MoreWindows(void);
 static void CollapseWindowlist(void);
 static void LogToggle(int);
@@ -5240,7 +5240,7 @@ void Activate(int norefresh)
 	Redisplay(norefresh + all_norefresh);
 }
 
-static int NextWindow()
+static uint16_t NextWindow()
 {
 	register Window **pp;
 	int n = fore ? fore->w_number : maxwin;
@@ -5259,7 +5259,7 @@ static int NextWindow()
 	return pp - wtab;
 }
 
-static int PreviousWindow()
+static uint16_t PreviousWindow()
 {
 	register Window **pp;
 	int n = fore ? fore->w_number : 0;

@@ -899,17 +899,9 @@ static void FinishAttach(struct msg *m)
 			SetCanvasWindow(D_forecv, 0);
 		}
 	}
-	/*
-	 * there may be a window that we remember from last detach:
-	 */
-	if (DetachWin >= 0)
-		fore = wtab[DetachWin];
-	else
-		fore = 0;
 
-	/* Wayne wants us to restore the other window too. */
-	if (DetachWinOther >= 0)
-		D_other = wtab[DetachWinOther];
+	fore = wtab[DetachWin];
+	D_other = wtab[DetachWinOther];
 
 	noshowwin = 0;
 	if (*m->m.attach.preselect) {
@@ -1068,7 +1060,7 @@ static void DoCommandMsg(struct msg *mp)
 		if (display)
 			fore = Layer2Window(display->d_forecv->c_layer);
 		if (!fore) {
-			fore = DetachWin >= 0 ? wtab[DetachWin] : 0;
+			fore = wtab[DetachWin];
 			fore = FindNiceWindow(fore, 0);
 		}
 	}

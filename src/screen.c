@@ -136,7 +136,7 @@ char *screenencodings;
 
 int cjkwidth;
 
-int maxwin;
+uint16_t maxwin;
 
 Layer *flayer;
 Window *fore;
@@ -145,7 +145,7 @@ Window *console_window;
 
 int DefaultEsc = Ctrl('a');
 int DefaultMetaEsc = 'a';
-int DetachWin, DetachWinOther;
+uint16_t DetachWin, DetachWinOther;
 
 /*
  * Do this last
