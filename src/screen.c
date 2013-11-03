@@ -1272,7 +1272,7 @@ void Detach(int mode)
 	}
 	if (D_fore) {
 		DetachWin = D_fore->w_number;
-		DetachWinOther = D_other ? D_other->w_number : -1;
+		DetachWinOther = D_other ? D_other->w_number : D_fore->w_number;
 	}
 	AutosaveLayout(D_layout);
 	layout_last = D_layout;
