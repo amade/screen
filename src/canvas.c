@@ -205,7 +205,7 @@ Canvas *FindCanvas(int x, int y)
 	return mcv ? mcv : D_forecv;
 }
 
-void SetCanvasWindow(Canvas *cv, Window *win)
+void SetCanvasWindow(Canvas *cv, Window *window)
 {
 	Window *p = 0, **pp;
 	Layer *l;
@@ -239,14 +239,14 @@ void SetCanvasWindow(Canvas *cv, Window *win)
 	}
 
 	/* find right layer to display on canvas */
-	if (win && win->w_type != W_TYPE_GROUP) {
-		l = &win->w_layer;
-		if (win->w_savelayer && (win->w_blocked || win->w_savelayer->l_cvlist == 0))
-			l = win->w_savelayer;
+	if (window && window->w_type != W_TYPE_GROUP) {
+		l = &window->w_layer;
+		if (window->w_savelayer && (window->w_blocked || window->w_savelayer->l_cvlist == 0))
+			l = window->w_savelayer;
 	} else {
 		l = &cv->c_blank;
-		if (win)
-			l->l_data = (char *)win;
+		if (window)
+			l->l_data = (char *)window;
 		else
 			l->l_data = 0;
 	}
@@ -262,29 +262,29 @@ void SetCanvasWindow(Canvas *cv, Window *win)
 	if (flayer == 0)
 		flayer = l;
 
-	if (win && win->w_type == W_TYPE_GROUP) {
+	if (window && window->w_type == W_TYPE_GROUP) {
 		/* auto-start windowlist on groups */
 		Display *d = display;
 		Layer *oldflayer = flayer;
 		flayer = l;
-		display_windows(0, 0, win);
+		display_windows(0, 0, window);
 		flayer = oldflayer;
 		display = d;
 	}
 
-	if (win && D_other == win)
-		D_other = win->w_next;	/* Might be 0, but that's OK. */
+	if (window && D_other == window)
+		D_other = window->w_next;	/* Might be 0, but that's OK. */
 	if (cv == D_forecv) {
-		D_fore = win;
+		D_fore = window;
 		fore = D_fore;	/* XXX ? */
-		if (win) {
-			ObtainAutoWritelock(display, win);
+		if (window) {
+			ObtainAutoWritelock(display, window);
 			/*
 			 * Place the window at the head of the most-recently-used list
 			 */
-			if (windows != win) {
+			if (windows != window) {
 				for (pp = &windows; (p = *pp); pp = &p->w_next)
-					if (p == win)
+					if (p == window)
 						break;
 				*pp = p->w_next;
 				p->w_next = windows;
