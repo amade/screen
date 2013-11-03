@@ -574,7 +574,8 @@ int SttyMode(struct mode *m, char *opt) {
  *  the bsdish variant.
  */
 
-void brktty(__attribute__((unused))int fd) {
+void brktty(int fd) {
+	(void)fd; /* unused */
 	if (separate_sids)
 		setsid();		/* will break terminal affiliation */
 }
@@ -748,10 +749,12 @@ static Event consredir_ev;
 static int consredirfd[2] = {-1, -1};
 
 static void
-consredir_readev_fn(Event *ev, __attribute__((unused))void *data)
+consredir_readev_fn(Event *ev, void *data)
 {
   char *p, *n, buf[256];
   int l;
+
+  (void)data; /* unused */
 
   if (!console_window || (l = read(consredirfd[0], buf, sizeof(buf))) <= 0)
     {
@@ -774,7 +777,7 @@ consredir_readev_fn(Event *ev, __attribute__((unused))void *data)
 }
 
 int
-TtyGrabConsole(__attribute__((unused))int fd, int on, char *rc_name)
+TtyGrabConsole(int fd, int on, char *rc_name)
 {
   Display *d;
 #  ifdef SRIOCSREDIR
@@ -783,6 +786,8 @@ TtyGrabConsole(__attribute__((unused))int fd, int on, char *rc_name)
   struct mode new1, new2;
   char *slave;
 #  endif
+
+  (void)fd; /* unused */
 
   if (on > 0)
     {

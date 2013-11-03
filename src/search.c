@@ -65,11 +65,13 @@ void Search(int dir)
 		      (dir > 0 ? searchend : backsearchend), NULL, 0);
 }
 
-static void searchend(char *buf, int len, __attribute__((unused))void *data)
+static void searchend(char *buf, int len, void *data)
 {
 	int x = 0, sx, ex, y;
 	struct markdata *markdata;
 	Window *p;
+
+	(void)data; /* unused */
 
 	markdata = (struct markdata *)flayer->l_data;
 	p = markdata->md_window;
@@ -89,10 +91,12 @@ static void searchend(char *buf, int len, __attribute__((unused))void *data)
 		revto(x, y);
 }
 
-static void backsearchend(char *buf, int len, __attribute__((unused))void *data)
+static void backsearchend(char *buf, int len, void *data)
 {
 	int sx, ex, x = -1, y;
 	struct markdata *markdata;
+
+	(void)data; /* unused */
 
 	markdata = (struct markdata *)flayer->l_data;
 	markdata->isdir = -1;
@@ -200,10 +204,12 @@ static int is_bm(char *str, int l, int p, int end, int dir)
 	return -1;
 }
 
-static void is_process(char *p, int n, __attribute__((unused))void *data)
+static void is_process(char *p, int n, void *data)
 {				/* i-search */
 	int pos, x, y, dir;
 	struct markdata *markdata;
+
+	(void)data; /* unused */
 
 	if (n == 0)
 		return;

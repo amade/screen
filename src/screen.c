@@ -982,18 +982,18 @@ static void SigChldHandler()
 	}
 }
 
-static void SigChld(__attribute__((unused))int sigsig)
+static void SigChld(int sigsig)
 {
+	(void)sigsig; /* unused */
 	GotSigChld = 1;
-	return;
 }
 
-void SigHup(__attribute__((unused))int sigsig)
+void SigHup(int sigsig)
 {
+	(void)sigsig; /* unused */
 	/* Hangup all displays */
 	while ((display = displays) != 0)
 		Hangup();
-	return;
 }
 
 /*
@@ -1001,18 +1001,20 @@ void SigHup(__attribute__((unused))int sigsig)
  * we cannot insert the intrc directly, as we never know
  * if fore is valid.
  */
-static void SigInt(__attribute__((unused))int sigsig)
+static void SigInt(int sigsig)
 {
 	struct sigaction sigact;
+
+	(void)sigsig; /* unused */
+
 	sigemptyset (&sigact.sa_mask);
 	sigact.sa_flags = 0;
 	sigact.sa_handler = SigInt;
 	sigaction(SIGINT, &sigact, NULL);
 	InterruptPlease = 1;
-	return;
 }
 
-static void CoreDump(__attribute__((unused))int sigsig)
+static void CoreDump(int sigsig)
 {
 	/* if running with s-bit, we must reset the s-bit, so that we get a
 	 * core file anyway.
@@ -1022,6 +1024,8 @@ static void CoreDump(__attribute__((unused))int sigsig)
 	char buf[80];
 
 	int running_w_s_bit = (getuid() != geteuid());
+
+	(void)sigsig; /* unused */
 
 	unlink("core");
 
@@ -1040,7 +1044,6 @@ static void CoreDump(__attribute__((unused))int sigsig)
 		abort();
 	} else
 		abort();
-	return;
 }
 
 static void DoWait()
@@ -1096,10 +1099,11 @@ static void DoWait()
 	}
 }
 
-static void FinitHandler(__attribute__((unused))int sigsig)
+static void FinitHandler(int sigsig)
 {
+	(void)sigsig; /* unused */
+
 	Finit(1);
-	return;
 }
 
 void Finit(int i)
@@ -1429,8 +1433,10 @@ void QueryMsg(int err, const char *fmt, ...)
 	write(queryflag, buf, strlen(buf));
 }
 
-void Dummy(__attribute__((unused))int err, __attribute__((unused))const char *fmt, ...)
+void Dummy(int err, const char *fmt, ...)
 {
+	(void)err; /* unused */
+	(void)fmt; /* unused */
 }
 
 #undef PROCESS_MESSAGE
@@ -2164,14 +2170,20 @@ void PutWinMsg(char *s, int start, int max)
 	}
 }
 
-static void serv_read_fn(__attribute__((unused))Event *ev, __attribute__((unused))void *data)
+static void serv_read_fn(Event *ev, void *data)
 {
+	(void)ev; /* unused */
+	(void)data; /* unused */
+
 	ReceiveMsg();
 }
 
-static void serv_select_fn(__attribute__((unused))Event *ev, __attribute__((unused))void *data)
+static void serv_select_fn(Event *ev, void *data)
 {
 	Window *p;
+
+	(void)ev; /* unused */
+	(void)data; /* unused */
 
 	/* XXX: messages?? */
 	if (GotSigChld) {
@@ -2319,11 +2331,14 @@ static void serv_select_fn(__attribute__((unused))Event *ev, __attribute__((unus
 	}
 }
 
-static void logflush_fn(__attribute__((unused))Event *ev, __attribute__((unused))void *data)
+static void logflush_fn(Event *ev, void *data)
 {
 	Window *p;
 	char *buf;
 	int n;
+
+	(void)ev; /* unused */
+	(void)data; /* unused */
 
 	if (!islogfile(NULL))
 		return;		/* no more logfiles */

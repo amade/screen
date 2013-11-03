@@ -1203,10 +1203,12 @@ void FreePseudowin(Window *w)
 	w->w_pwin = NULL;
 }
 
-static void paste_slowev_fn(__attribute__((unused))Event *ev, void *data)
+static void paste_slowev_fn(Event *ev, void *data)
 {
 	struct paster *pa = (struct paster *)data;
 	Window *p;
+
+	(void)ev; /* unused */
 
 	int l = 1;
 	flayer = pa->pa_pastelayer;
@@ -1328,8 +1330,12 @@ static void win_readev_fn(Event *ev, void *data)
 	return;
 }
 
-static void win_resurrect_zombie_fn(__attribute__((unused))Event *ev, void *data) {
+static void win_resurrect_zombie_fn(Event *ev, void *data)
+{
 	Window *p = (Window *)data;
+
+	(void)ev; /* unused */
+
 	/* Already reconnected? */
 	if (p->w_deadpid != p->w_pid)
 		return;
@@ -1431,10 +1437,13 @@ static void pseu_writeev_fn(Event *ev, void *data)
 		memmove(p->w_pwin->p_inbuf, p->w_pwin->p_inbuf + len, p->w_pwin->p_inlen);
 }
 
-static void win_silenceev_fn(__attribute__((unused))Event *ev, void *data)
+static void win_silenceev_fn(Event *ev, void *data)
 {
 	Window *p = (Window *)data;
 	Canvas *cv;
+	
+	(void)ev; /* unused */
+
 	for (display = displays; display; display = display->d_next) {
 		for (cv = D_cvlist; cv; cv = cv->c_next)
 			if (cv->c_layer->l_bottom == &p->w_layer)
@@ -1447,9 +1456,12 @@ static void win_silenceev_fn(__attribute__((unused))Event *ev, void *data)
 	}
 }
 
-static void win_destroyev_fn(Event *ev, __attribute__((unused))void *data)
+static void win_destroyev_fn(Event *ev, void *data)
 {
 	Window *p = (Window *)ev->data;
+
+	(void)data; /* unused */
+
 	WindowDied(p, p->w_exitstatus, 1);
 }
 
