@@ -1617,7 +1617,7 @@ void ShowHStatus(char *str)
 		InsertMode(0);
 		if (D_hstatus)
 			AddCStr(D_DS);
-		D_hstatus = 0;
+		D_hstatus = false;
 		if (str == 0 || *str == 0)
 			return;
 		AddCStr2(D_TS, 0);
@@ -1627,7 +1627,7 @@ void ShowHStatus(char *str)
 		else
 			AddStr(str);
 		AddCStr(D_FS);
-		D_hstatus = 1;
+		D_hstatus = true;
 	} else if (D_has_hstatus == HSTATUS_LASTLINE) {
 		ox = D_x;
 		oy = D_y;
@@ -1645,7 +1645,7 @@ void ShowHStatus(char *str)
 			ClearArea(l, D_height - 1, l, D_width - 1, D_width - 1, D_height - 1, 0, 0);
 		if (ox != -1 && oy != -1)
 			GotoPos(ox, oy);
-		D_hstatus = *str ? 1 : 0;
+		D_hstatus = (str != NULL);
 		SetRendition(&mchar_null);
 	} else if (D_has_hstatus == HSTATUS_FIRSTLINE) {
 		ox = D_x;
@@ -1664,7 +1664,7 @@ void ShowHStatus(char *str)
 			ClearArea(l, 0, l, D_width - 1, D_width - 1, 0, 0, 0);
 		if (ox != -1 && oy != -1)
 			GotoPos(ox, oy);
-		D_hstatus = *str ? 1 : 0;
+		D_hstatus = (str != NULL);
 		SetRendition(&mchar_null);
 	} else if (str && *str && D_has_hstatus == HSTATUS_MESSAGE) {
 		Msg(0, "%s", str);
@@ -2375,7 +2375,7 @@ void NukePending()
 	D_rend = mchar_null;
 	D_atyp = 0;
 	AddCStr(D_DS);
-	D_hstatus = 0;
+	D_hstatus = false;
 	AddCStr(D_VE);
 	D_curvis = 0;
 	ChangeScrollRegion(oldtop, oldbot);
