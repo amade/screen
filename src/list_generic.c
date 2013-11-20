@@ -25,7 +25,6 @@
 
 #include "config.h"
 #include "screen.h"
-#include "extern.h"
 
 #include "input.h"
 #include "layer.h"

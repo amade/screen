@@ -34,7 +34,6 @@
 
 #include "config.h"
 #include "screen.h"
-#include "extern.h"
 
 #ifdef HAVE_FDWALK
 static int close_func(void *, int);

@@ -37,7 +37,6 @@
 
 #include "config.h"
 #include "screen.h"
-#include "extern.h"
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>

@@ -37,7 +37,6 @@
 #ifdef BUILTIN_TELNET
 
 #include "screen.h"
-#include "extern.h"
 
 extern Window *fore;
 extern Layer *flayer;

@@ -26,6 +26,8 @@ struct comm
   AclBits userbits[ACL_BITS_PER_CMD];
 };
 
+extern struct comm comms[];
+
 #define ARGS_MASK	(3)
 
 #define ARGS_0	(0)

@@ -41,6 +41,8 @@ union tcu
   char *str;
 };
 
+extern struct term term[];
+
 EOF
 
 #
