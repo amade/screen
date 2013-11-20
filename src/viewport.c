@@ -31,7 +31,6 @@
 
 #include "config.h"
 #include "screen.h"
-#include "extern.h"
 #include "viewport.h"
 
 int RethinkDisplayViewports() {

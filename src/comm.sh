@@ -25,6 +25,8 @@ struct comm
   int flags;
 };
 
+extern struct comm comms[];
+
 #define ARGS_MASK	(3)
 
 #define ARGS_0	(0)

@@ -39,8 +39,6 @@
 #include <sys/ioctl.h>
 #include <pty.h>
 
-#include "extern.h"
-
 /*
  * if no PTYRANGE[01] is in the config file, we pick a default
  */

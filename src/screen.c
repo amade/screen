@@ -150,8 +150,6 @@ uint16_t DetachWin, DetachWinOther;
 /*
  * Do this last
  */
-#include "extern.h"
-
 #include "attacher.h"
 #include "encoding.h"
 #include "help.h"

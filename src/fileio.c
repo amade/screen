@@ -35,7 +35,6 @@
 
 #include "config.h"
 #include "screen.h"
-#include "extern.h"
 
 #include "fileio.h"
 #include "misc.h"

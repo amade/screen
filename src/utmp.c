@@ -34,7 +34,6 @@
 
 #include "config.h"
 #include "screen.h"
-#include "extern.h"
 
 #include "misc.h"
 #include "tty.h"

@@ -33,7 +33,6 @@
 #include "config.h"
 #include "screen.h"
 #include "mark.h"
-#include "extern.h"
 #include "mark.h"
 #include "input.h"
 
