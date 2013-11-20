@@ -94,8 +94,8 @@ struct Display {
 	int	d_cursorkeys;		/* application cursorkeys flag */
 	int	d_revvid;		/* reverse video */
 	int	d_curvis;		/* cursor visibility */
-	int   d_has_hstatus;		/* display has hardstatus line */
-	HardStatus	d_hstatus;		/* hardstatus used */
+	HardStatus	d_has_hstatus;		/* display has hardstatus line */
+	bool d_hstatus;		/* hardstatus used */
 	int	d_lp_missing;		/* last character on bot line missing */
 	int   d_mouse;			/* mouse mode */
 	int	d_mousetrack;		/* set when user wants to use mouse even when the window
