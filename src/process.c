@@ -2049,7 +2049,7 @@ void DoAction(struct action *act, int key)
 	int argc, n, msgok;
 	int64_t i;
 	int j;
-	char *s;
+	char *s = NULL;
 	char ch;
 	Display *odisplay = display;
 
