@@ -1783,26 +1783,6 @@ static char *runbacktick(struct backtick *bt, int *tickp, time_t now)
 	return bt->result;
 }
 
-void AppendWinMsgRend(char *str, char *color)
-{
-	char *p;
-	uint64_t r = 0;
-	if (winmsg_numrend >= MAX_WINMSG_REND)
-		return;
-	p = winmsg_buf + strlen(winmsg_buf);
-	if (color) {
-		if (*color != '-') {
-			r = ParseAttrColor(color, 0);
-			if (r == 0)
-				return;
-		}
-		winmsg_rend[winmsg_numrend] = r;
-		winmsg_rendpos[winmsg_numrend] = p - winmsg_buf;
-		winmsg_numrend++;
-	}
-	strncpy(p, str, winmsg_buf + sizeof(winmsg_buf) - p);
-}
-
 int AddWinMsgRend(const char *str, uint64_t r)
 {
 	if (winmsg_numrend >= MAX_WINMSG_REND || str < winmsg_buf || str >= winmsg_buf + MAXSTR)
