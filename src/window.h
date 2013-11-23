@@ -259,7 +259,7 @@ struct Window {
 
 	Event w_destroyev;		/* window destroy event */
 	int w_exitstatus;
-	int w_miflag;
+	bool w_miflag;
 };
 
 
