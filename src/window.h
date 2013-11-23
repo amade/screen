@@ -227,7 +227,6 @@ struct Window {
 
 	char	 w_tty[MAXSTR];
 
-	int    w_zauto;
 	struct {
 		int    on;    		/* Is the alternate buffer currently being used? */
 		struct mline *mlines;
@@ -241,7 +240,7 @@ struct Window {
 
 	Event w_destroyev;		/* window destroy event */
 	int w_exitstatus;
-	int w_miflag;
+	bool w_miflag;
 };
 
 
