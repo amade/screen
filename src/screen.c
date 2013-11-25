@@ -2002,9 +2002,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *event, in
 					if (i != 1 || rbuf[0] != '-')
 						r = ParseAttrColor(rbuf, 0);
 					if (r != 0 || (i == 1 && rbuf[0] == '-')) {
-						winmsg_rend[winmsg_numrend] = r;
-						winmsg_rendpos[winmsg_numrend] = p - winmsg_buf;
-						winmsg_numrend++;
+						AddWinMsgRend(p, r);
 					}
 				}
 				s += i;
