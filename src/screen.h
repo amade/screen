@@ -30,6 +30,8 @@
 #ifndef SCREEN_SCREEN_H
 #define SCREEN_SCREEN_H
 
+#include <stdbool.h>
+
 #include "os.h"
 
 #include "ansi.h"
@@ -229,9 +231,6 @@ void  QueryMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 void  Dummy (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 void  Finit (int);
 void  MakeNewEnv (void);
-char *MakeWinMsg (char *, Window *, int);
-char *MakeWinMsgEv (char *, Window *, int, int, Event *, int);
-int   AddWinMsgRend (const char *, uint64_t);
 void  PutWinMsg (char *, int, int);
 void  WindowDied (Window *, int, int);
 void  setbacktick (int, int, int, char **);

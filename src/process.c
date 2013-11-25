@@ -41,6 +41,7 @@
 
 #include "config.h"
 #include "screen.h"
+#include "winmsg.h"
 
 #include "encoding.h"
 #include "fileio.h"

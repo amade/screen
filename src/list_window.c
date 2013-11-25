@@ -32,6 +32,7 @@
 
 #include "config.h"
 #include "screen.h"
+#include "winmsg.h"
 
 #include "input.h"
 #include "layer.h"

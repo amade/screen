@@ -33,6 +33,9 @@
 #ifndef SCREEN_WINDOW_H
 #define SCREEN_WINDOW_H
 
+#include "sched.h"
+#include "screen.h"
+
 /* keep this in sync with the initialisations in window.c */
 struct NewWindow {
 	int	StartAt;	/* where to start the search for the slot */

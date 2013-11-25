@@ -55,7 +55,7 @@ CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
 OFILES=	screen.o ansi.o fileio.o mark.o misc.o resize.o socket.o \
 	search.o tty.o term.o window.o utmp.o help.o \
 	termcap.o input.o attacher.o pty.o process.o display.o comm.o \
-	kmapdef.o acls.o logfile.o layer.o \
+	kmapdef.o acls.o logfile.o layer.o winmsg.o \
 	list_generic.o list_display.o list_window.o \
 	sched.o teln.o encoding.o canvas.o layout.o viewport.o
 
@@ -169,11 +169,11 @@ depend.in: $(CFILES) term.h
 
 ### Dependencies:
 screen.o: layout.h viewport.h canvas.h screen.c config.h screen.h os.h ansi.h acls.h \
- comm.h layer.h term.h image.h display.h window.h \
+ comm.h layer.h term.h image.h display.h window.h winmsg.h \
  version.h logfile.h
 ansi.o: layout.h viewport.h canvas.h ansi.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h \
- logfile.h
+ logfile.h winmsg.h
 fileio.o: layout.h viewport.h canvas.h fileio.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h
 mark.o: layout.h viewport.h canvas.h mark.c config.h screen.h os.h ansi.h acls.h \
@@ -191,22 +191,23 @@ tty.o: layout.h viewport.h canvas.h tty.c config.h screen.h os.h ansi.h acls.h c
 term.o: layout.h viewport.h canvas.h term.c term.h
 window.o: layout.h viewport.h canvas.h window.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h logfile.h
+winmsg.o:
 utmp.o: layout.h viewport.h canvas.h utmp.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h
-help.o: layout.h viewport.h canvas.h help.c config.h screen.h os.h ansi.h acls.h \
+help.o: layout.h viewport.h canvas.h help.c config.h screen.h os.h ansi.h \
  comm.h layer.h term.h image.h display.h window.h list_generic.h
-termcap.o: layout.h viewport.h canvas.h termcap.c config.h screen.h os.h ansi.h acls.h \
- comm.h layer.h term.h image.h display.h window.h 
-input.o: layout.h viewport.h canvas.h input.c config.h screen.h os.h ansi.h acls.h \
- comm.h layer.h term.h image.h display.h window.h 
+termcap.o: layout.h viewport.h canvas.h termcap.c config.h screen.h os.h ansi.h \
+ comm.h layer.h term.h image.h display.h window.h
+input.o: layout.h viewport.h canvas.h input.c config.h screen.h os.h ansi.h \
+ comm.h layer.h term.h image.h display.h window.h
 attacher.o: layout.h viewport.h canvas.h attacher.c config.h screen.h os.h ansi.h \
  acls.h comm.h layer.h term.h image.h display.h window.h
 pty.o: layout.h viewport.h canvas.h pty.c config.h screen.h os.h ansi.h acls.h comm.h \
  layer.h term.h image.h display.h window.h 
 process.o: layout.h viewport.h canvas.h process.c config.h screen.h os.h ansi.h acls.h \
- comm.h layer.h term.h image.h display.h window.h logfile.h
+ comm.h layer.h term.h image.h display.h window.h logfile.h winmsg.h
 display.o: layout.h viewport.h canvas.h display.c config.h screen.h os.h ansi.h acls.h \
- comm.h layer.h term.h image.h display.h window.h 
+ comm.h layer.h term.h image.h display.h window.h  winmsg.h
 canvas.o: layout.h viewport.h canvas.h canvas.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h 
 comm.o: layout.h viewport.h canvas.h comm.c config.h acls.h comm.h
@@ -229,5 +230,4 @@ viewport.o: layout.h viewport.h canvas.h viewport.c config.h screen.h os.h ansi.
  comm.h layer.h term.h image.h display.h window.h 
 list_generic.o: list_generic.h list_generic.c layer.h screen.h
 list_display.o: list_generic.h list_display.c layer.h screen.h
-list_window.o: list_generic.h list_window.c window.h layer.h screen.h
-
+list_window.o: list_generic.h list_window.c window.h layer.h screen.h winmsg.h

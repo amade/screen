@@ -1,4 +1,7 @@
-/* Copyright (c) 2008, 2009
+/* Copyright (c) 2010
+ *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
+ *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
+ * Copyright (c) 2008, 2009
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Michael Schroeder (mlschroe@immd4.informatik.uni-erlangen.de)
  *      Micah Cowan (micah@cowan.name)
@@ -24,39 +27,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
- * $Id$ GNU
  */
 
-#ifndef SCREEN_SCHED_H
-#define SCREEN_SCHED_H
+#ifndef SCREEN_WINMSG_H
+#define SCREEN_WINMSG_H
 
-#include <sys/time.h>
+#include <stdint.h>
 
-typedef enum {
-	EV_TIMEOUT	= 0,
-	EV_READ		= 1,
-	EV_WRITE	= 2,
-	EV_ALWAYS	= 3
-} EventType;
+#include "window.h"
 
-typedef struct Event Event;
-struct Event {
-	Event *next;
-	void (*handler) (Event *, void *);
-	char *data;
-	int fd;
-	EventType type;
-	int priority;
-	struct timeval timeout;
-	int queued;		/* in evs queue */
-	int active;		/* in fdset */
-	int *condpos;		/* only active if condpos - condneg > 0 */
-	int *condneg;
-};
+#define MAX_WINMSG_REND 256	/* rendition changes */
 
-void evenq (Event *);
-void evdeq (Event *);
-void SetTimeout (Event *, int);
-void sched (void);
+char *MakeWinMsg(char *, Window *, int);
+char *MakeWinMsgEv(char *, Window *, int, int, Event *, int);
+int   AddWinMsgRend(const char *, uint64_t);
 
-#endif /* SCREEN_SCHED_H */
+#endif
