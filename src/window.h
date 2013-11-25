@@ -316,7 +316,7 @@ int   ReleaseAutoWritelock (Display *, Window *);
 int   ObtainAutoWritelock (Display *, Window *);
 void  CloseDevice (Window *);
 #ifndef HAVE_EXECVPE
-void  execvpe (char *, char **, char **);
+#include <unistd.h>
 #endif
 
 /* global variables */
