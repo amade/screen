@@ -1399,6 +1399,8 @@ static uint64_t winmsg_rend[MAX_WINMSG_REND];
 static int winmsg_rendpos[MAX_WINMSG_REND];
 static int winmsg_numrend;
 
+#define CHRPAD 127
+
 static char *pad_expand(char *buf, char *p, int numpad, int padlen)
 {
 	char *pn, *pn2;
@@ -1410,12 +1412,12 @@ static char *pad_expand(char *buf, char *p, int numpad, int padlen)
 	pn2 = pn = p + padlen;
 	r = winmsg_numrend;
 	while (p >= buf) {
-		if (r && *p != 127 && p - buf == winmsg_rendpos[r - 1]) {
+		if (r && *p != CHRPAD && p - buf == winmsg_rendpos[r - 1]) {
 			winmsg_rendpos[--r] = pn - buf;
 			continue;
 		}
 		*pn-- = *p;
-		if (*p-- == 127) {
+		if (*p-- == CHRPAD) {
 			pn[1] = ' ';
 			i = numpad > 0 ? (padlen + numpad - 1) / numpad : 0;
 			padlen -= i;
@@ -1972,7 +1974,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *event, in
 				}
 				p--;
 			} else if (padlen) {
-				*p = 127;	/* internal pad representation */
+				*p = CHRPAD;	/* internal pad representation */
 				numpad++;
 			}
 			break;
