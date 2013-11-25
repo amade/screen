@@ -40,6 +40,7 @@
 
 #include "config.h"
 #include "screen.h"
+#include "winmsg.h"
 
 #include "canvas.h"
 #include "encoding.h"
