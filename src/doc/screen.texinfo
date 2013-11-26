@@ -5520,6 +5520,8 @@ month number
 month name
 @item n
 window number
+@item p
+process id
 @item P
 sets %? to true if the current region is in copy/paste mode
 @item s
