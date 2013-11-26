@@ -253,11 +253,46 @@ int AddWinMsgRend(const char *str, uint64_t r)
 	return 0;
 }
 
+
+/**
+ * Processes rendition
+ *
+ * The first character of s is assumed to be (unverified) the opening brace
+ * of the sequence.
+ */
+static char *WinMsgRend(char *s, char **p)
+{
+	char rbuf[RENDBUF_SIZE];
+	uint8_t i;
+	uint64_t r;
+
+	s++;
+	for (i = 0; i < (RENDBUF_SIZE-1); i++)
+		if (s[i] && s[i] != WINMSG_REND_END)
+			rbuf[i] = s[i];
+		else
+			break;
+
+	if ((s[i] == WINMSG_REND_END) && (winmsg_numrend < MAX_WINMSG_REND)) {
+		r = 0;
+		rbuf[i] = '\0';
+		if (i != 1 || rbuf[0] != WINMSG_REND_POP)
+			r = ParseAttrColor(rbuf, 0);
+		if (r != 0 || (i == 1 && (rbuf[0] == WINMSG_REND_POP))) {
+			AddWinMsgRend(*p, r);
+		}
+	}
+	s += i;
+	(*p)--;
+
+	return s;
+}
+
 char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int rec)
 {
 	static int tick;
 	char *s = str;
-	register char *p = winmsg_buf;
+	char *p = winmsg_buf;
 	register int ctrl;
 	struct timeval now;
 	int l, i;
@@ -442,27 +477,8 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 			}
 			p += strlen(p) - 1;
 			break;
-		case '{':
-			{
-				char rbuf[128];
-				s++;
-				for (i = 0; i < 127; i++)
-					if (s[i] && s[i] != '}')
-						rbuf[i] = s[i];
-					else
-						break;
-				if (s[i] == '}' && winmsg_numrend < MAX_WINMSG_REND) {
-					r = 0;
-					rbuf[i] = 0;
-					if (i != 1 || rbuf[0] != '-')
-						r = ParseAttrColor(rbuf, 0);
-					if (r != 0 || (i == 1 && rbuf[0] == '-')) {
-						AddWinMsgRend(p, r);
-					}
-				}
-				s += i;
-				p--;
-			}
+		case WINMSG_REND_START:
+			s = WinMsgRend(s, &p);
 			break;
 		case 'H':
 			*p = 0;

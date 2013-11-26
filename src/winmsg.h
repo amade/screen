@@ -37,6 +37,14 @@
 #include "window.h"
 
 #define MAX_WINMSG_REND 256	/* rendition changes */
+#define RENDBUF_SIZE 128 /* max rendition byte count */
+
+/* escape characters */
+typedef enum {
+	WINMSG_REND_START = '{',
+	WINMSG_REND_END   = '}',
+	WINMSG_REND_POP   = '-',
+} WinMsgEscapeChar;
 
 char *MakeWinMsg(char *, Window *, int);
 char *MakeWinMsgEv(char *, Window *, int, int, Event *, int);
