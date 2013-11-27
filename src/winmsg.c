@@ -43,6 +43,17 @@ int winmsg_numrend;
 
 #define CHRPAD 127
 
+/* redundant definition abstraction for escape character handlers; note that
+ * a variable varadic macro name is a gcc extension and is not portable, so
+ * we instead use two separate macros */
+#define WINMSG_ESC_ARGS char *s, char **p
+#define winmsg_esc__name(name) __WinMsgEsc##name
+#define winmsg_esc__def(name) static char *winmsg_esc__name(name)
+#define winmsg_esc(name) winmsg_esc__def(name)(WINMSG_ESC_ARGS)
+#define winmsg_esc_ex(name, ...) winmsg_esc__def(name)(WINMSG_ESC_ARGS, __VA_ARGS__)
+#define WinMsgEsc(name) winmsg_esc__name(name)(s, &p)
+#define WinMsgEscEx(name, ...) winmsg_esc__name(name)(s, &p, __VA_ARGS__)
+
 struct backtick {
 	struct backtick *next;
 	int num;
@@ -254,7 +265,7 @@ int AddWinMsgRend(const char *str, uint64_t r)
 }
 
 
-static char *WinMsgPid(char *s, char **p, int plusflg)
+winmsg_esc_ex(Pid, int plusflg)
 {
 	sprintf(*p, "%d", (plusflg && display) ? D_userpid : getpid());
 	(*p) += strlen(*p) - 1;
@@ -262,7 +273,7 @@ static char *WinMsgPid(char *s, char **p, int plusflg)
 	return s;
 }
 
-static char *WinMsgCopyMode(char *s, char **p, Event *ev, int *qmflag)
+winmsg_esc_ex(CopyMode, Event *ev, int *qmflag)
 {
 	(*p)--;
 	if (display && ev && ev != &D_hstatusev) {	/* Hack */
@@ -281,7 +292,7 @@ static char *WinMsgCopyMode(char *s, char **p, Event *ev, int *qmflag)
  * The first character of s is assumed to be (unverified) the opening brace
  * of the sequence.
  */
-static char *WinMsgRend(char *s, char **p)
+winmsg_esc(Rend)
 {
 	char rbuf[RENDBUF_SIZE];
 	uint8_t i;
@@ -499,7 +510,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 			p += strlen(p) - 1;
 			break;
 		case WINMSG_REND_START:
-			s = WinMsgRend(s, &p);
+			s = WinMsgEsc(Rend);
 			break;
 		case 'H':
 			*p = 0;
@@ -524,7 +535,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 			}
 			break;
 		case WINMSG_PID:
-			s = WinMsgPid(s, &p, plusflg);
+			s = WinMsgEscEx(Pid, plusflg);
 			break;
 		case 'F':
 			p--;
@@ -535,7 +546,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 				qmflag = 1;
 			break;
 		case WINMSG_COPY_MODE:
-			s = WinMsgCopyMode(s, &p, ev, &qmflag);
+			s = WinMsgEscEx(CopyMode, ev, &qmflag);
 			break;
 		case 'E':
 			p--;
