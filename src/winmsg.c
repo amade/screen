@@ -254,6 +254,14 @@ int AddWinMsgRend(const char *str, uint64_t r)
 }
 
 
+static char *WinMsgPid(char *s, char **p, int plusflg)
+{
+	sprintf(*p, "%d", (plusflg && display) ? D_userpid : getpid());
+	(*p) += strlen(*p) - 1;
+
+	return s;
+}
+
 /**
  * Processes rendition
  *
@@ -502,11 +510,8 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 				p += strlen(p) - 1;
 			}
 			break;
-		case 'p':
-			{
-				sprintf(p, "%d", (plusflg && display) ? D_userpid : getpid());
-				p += strlen(p) - 1;
-			}
+		case WINMSG_PID:
+			s = WinMsgPid(s, &p, plusflg);
 			break;
 		case 'F':
 			p--;

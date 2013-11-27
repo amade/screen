@@ -41,6 +41,7 @@
 
 /* escape characters */
 typedef enum {
+	WINMSG_PID        = 'p',
 	WINMSG_REND_START = '{',
 	WINMSG_REND_END   = '}',
 	WINMSG_REND_POP   = '-',
