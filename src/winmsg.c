@@ -262,6 +262,19 @@ static char *WinMsgPid(char *s, char **p, int plusflg)
 	return s;
 }
 
+static char *WinMsgCopyMode(char *s, char **p, Event *ev, int *qmflag)
+{
+	(*p)--;
+	if (display && ev && ev != &D_hstatusev) {	/* Hack */
+		/* Is the layer in the current canvas in copy mode? */
+		Canvas *cv = (Canvas *)ev->data;
+		if (ev == &cv->c_captev && cv->c_layer->l_layfn == &MarkLf)
+			*qmflag = 1;
+	}
+
+	return s;
+}
+
 /**
  * Processes rendition
  *
@@ -521,14 +534,8 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 			if (minusflg)
 				qmflag = 1;
 			break;
-		case 'P':
-			p--;
-			if (display && ev && ev != &D_hstatusev) {	/* Hack */
-				/* Is the layer in the current canvas in copy mode? */
-				Canvas *cv = (Canvas *)ev->data;
-				if (ev == &cv->c_captev && cv->c_layer->l_layfn == &MarkLf)
-					qmflag = 1;
-			}
+		case WINMSG_COPY_MODE:
+			s = WinMsgCopyMode(s, &p, ev, &qmflag);
 			break;
 		case 'E':
 			p--;
