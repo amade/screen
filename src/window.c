@@ -351,8 +351,8 @@ int DoStartLog(Window *window, char *buf, int bufsize)
  */
 int MakeWindow(struct NewWindow *newwin)
 {
-	register Window **pp, *p;
-	register int n, i;
+	Window **pp, *p;
+	int n, i;
 	int f = -1;
 	struct NewWindow nwin;
 	int type, startat;
@@ -1008,10 +1008,10 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 #ifndef HAVE_EXECVPE
 void execvpe(char *prog, char **args, char **env)
 {
-	register char *path = NULL, *p;
+	char *path = NULL, *p;
 	char buf[1024];
 	char *shargs[MAXARGS + 1];
-	register int i, eaccess = 0;
+	int i, eaccess = 0;
 
 	if (strrchr(prog, '/'))
 		path = "";

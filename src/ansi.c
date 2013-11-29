@@ -152,9 +152,9 @@ void ResetAnsiState(Window *p)
 	p->w_StringType = NONE;
 }
 
-void ResetWindow(register Window *p)
+void ResetWindow(Window *p)
 {
-	register int i;
+	int i;
 
 	p->w_wrap = nwin_default.wrap;
 	p->w_origin = 0;
@@ -240,10 +240,10 @@ void SetCharsets(Window *p, char *s)
  *  - translate program output for the display and put it into the obuf.
  *
  */
-void WriteString(Window *wp, register char *buf, register int len)
+void WriteString(Window *wp, char *buf, int len)
 {
-	register int c;
-	register int font;
+	int c;
+	int font;
 	Canvas *cv;
 
 	if (!len)
@@ -708,7 +708,7 @@ static void WLogString(Window *p, char *buf, int len)
 		logfflush(p->w_log);
 }
 
-static int Special(register int c)
+static int Special(int c)
 {
 	switch (c) {
 	case '\b':
@@ -871,7 +871,7 @@ static void DoESC(int c, int intermediate)
 
 static void DoCSI(int c, int intermediate)
 {
-	register int i, a1 = curr->w_args[0], a2 = curr->w_args[1];
+	int i, a1 = curr->w_args[0], a2 = curr->w_args[1];
 
 	if (curr->w_NumArgs > MAXARGS)
 		curr->w_NumArgs = MAXARGS;
@@ -1514,7 +1514,7 @@ static void ReverseLineFeed()
 
 static void InsertChar(int n)
 {
-	register int y = curr->w_y, x = curr->w_x;
+	int y = curr->w_y, x = curr->w_x;
 
 	if (n <= 0)
 		return;
@@ -1528,7 +1528,7 @@ static void InsertChar(int n)
 
 static void DeleteChar(int n)
 {
-	register int y = curr->w_y, x = curr->w_x;
+	int y = curr->w_y, x = curr->w_x;
 
 	if (x == cols)
 		x--;
@@ -1569,7 +1569,7 @@ static void ScrollRegion(int n)
 
 static void ForwardTab()
 {
-	register int x = curr->w_x;
+	int x = curr->w_x;
 
 	if (x == cols) {
 		LineFeed(1);
@@ -1585,7 +1585,7 @@ static void ForwardTab()
 
 static void BackwardTab()
 {
-	register int x = curr->w_x;
+	int x = curr->w_x;
 
 	if (curr->w_tabs[x] && x > 0)
 		x--;
@@ -1603,7 +1603,7 @@ static void ClearScreen()
 
 static void ClearFromBOS()
 {
-	register int y = curr->w_y, x = curr->w_x;
+	int y = curr->w_y, x = curr->w_x;
 
 	LClearArea(&curr->w_layer, 0, 0, x, y, curr->w_rend.colorbg, 1);
 	MClearArea(curr, 0, 0, x, y, curr->w_rend.colorbg);
@@ -1612,7 +1612,7 @@ static void ClearFromBOS()
 
 static void ClearToEOS()
 {
-	register int y = curr->w_y, x = curr->w_x;
+	int y = curr->w_y, x = curr->w_x;
 
 	if (x == 0 && y == 0) {
 		ClearScreen();
@@ -1626,15 +1626,15 @@ static void ClearToEOS()
 
 static void ClearLineRegion(int from, int to)
 {
-	register int y = curr->w_y;
+	int y = curr->w_y;
 	LClearArea(&curr->w_layer, from, y, to, y, curr->w_rend.colorbg, 1);
 	MClearArea(curr, from, y, to, y, curr->w_rend.colorbg);
 	RestorePosRendition();
 }
 
-static void CursorRight(register int n)
+static void CursorRight(int n)
 {
-	register int x = curr->w_x;
+	int x = curr->w_x;
 
 	if (x == cols)
 		LineFeed(1);
@@ -1643,7 +1643,7 @@ static void CursorRight(register int n)
 	LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
 }
 
-static void CursorUp(register int n)
+static void CursorUp(int n)
 {
 	if (curr->w_y < curr->w_top) {	/* if above scrolling rgn, */
 		if ((curr->w_y -= n) < 0)	/* ignore its limits      */
@@ -1653,7 +1653,7 @@ static void CursorUp(register int n)
 	LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
 }
 
-static void CursorDown(register int n)
+static void CursorDown(int n)
 {
 	if (curr->w_y > curr->w_bot) {	/* if below scrolling rgn, */
 		if ((curr->w_y += n) > rows - 1)	/* ignore its limits      */
@@ -1663,7 +1663,7 @@ static void CursorDown(register int n)
 	LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
 }
 
-static void CursorLeft(register int n)
+static void CursorLeft(int n)
 {
 	if ((curr->w_x -= n) < 0)
 		curr->w_x = 0;
@@ -1672,7 +1672,7 @@ static void CursorLeft(register int n)
 
 static void ASetMode(int on)
 {
-	register int i;
+	int i;
 
 	for (i = 0; i < curr->w_NumArgs; ++i) {
 		switch (curr->w_args[i]) {
@@ -1703,7 +1703,7 @@ static char rendlist[] = {
 
 static void SelectRendition()
 {
-	register int j, i = 0;
+	int j, i = 0;
 	int attr = curr->w_rend.attr;
 	int colorbg = curr->w_rend.colorbg;
 	int colorfg = curr->w_rend.colorfg;
@@ -1761,8 +1761,8 @@ static void SelectRendition()
 
 static void FillWithEs()
 {
-	register int i;
-	register uint32_t *p, *ep;
+	int i;
+	uint32_t *p, *ep;
 
 	LClearAll(&curr->w_layer, 1);
 	curr->w_y = curr->w_x = 0;
@@ -1808,9 +1808,9 @@ void ChangeAKA(Window *p, char *s, size_t l)
 
 static void FindAKA()
 {
-	register uint32_t *cp, *line;
-	register Window *wp = curr;
-	register int len = strlen(wp->w_akabuf);
+	uint32_t *cp, *line;
+	Window *wp = curr;
+	int len = strlen(wp->w_akabuf);
 	int y;
 
 	y = (wp->w_autoaka > 0 && wp->w_autoaka <= wp->w_height) ? wp->w_autoaka - 1 : wp->w_y;
@@ -1856,7 +1856,7 @@ static void RestorePosRendition()
 /* Send a terminal report as if it were typed. */
 static void Report(char *fmt, int n1, int n2)
 {
-	register int len;
+	int len;
 	char rbuf[40];		/* enough room for all replys */
 
 	sprintf(rbuf, fmt, n1, n2);
@@ -2204,7 +2204,7 @@ static void MBceLine(Window *p, int y, int xs, int xe, int bce)
 
 static void WAddLineToHist(Window *wp, struct mline *ml)
 {
-	register uint32_t *q, *o;
+	uint32_t *q, *o;
 	struct mline *hml;
 
 	if (wp->w_histheight == 0)

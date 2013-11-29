@@ -47,10 +47,10 @@ static char *findrcfile(char *);
 char *rc_name = "";
 int rc_recursion = 0;
 
-static char *CatExtra(register char *str1, register char *str2)
+static char *CatExtra(char *str1, char *str2)
 {
-	register char *cp;
-	register int len1, len2, add_colon;
+	char *cp;
+	int len1, len2, add_colon;
 
 	len1 = strlen(str1);
 	if (len1 == 0)
@@ -132,8 +132,8 @@ static char *findrcfile(char *rcfile)
  */
 int StartRc(char *rcfilename, int nopanic)
 {
-	register int argc, len;
-	register char *p, *cp;
+	int argc, len;
+	char *p, *cp;
 	char buf[2048];
 	char *args[MAXARGS];
 	int argl[MAXARGS];
@@ -307,9 +307,9 @@ void WriteFile(char *fn, int dump)
 	 * dump==2:   BUFFERFILE
 	 * dump==1:   scrollback,
 	 */
-	register int i, j, k;
-	register char *p;
-	register FILE *f;
+	int i, j, k;
+	char *p;
+	FILE *f;
 	char fnbuf[1024];
 	char *mode = "w";
 	int public = 0;
