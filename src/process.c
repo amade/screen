@@ -371,7 +371,7 @@ int enter_window_name_mode = 0;
 
 void InitKeytab()
 {
-	register unsigned int i;
+	unsigned int i;
 	char *argarr[2];
 
 	for (i = 0; i < sizeof(ktab) / sizeof(*ktab); i++) {
@@ -1132,7 +1132,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_UNBINDALL:
 		{
-			register unsigned int i;
+			unsigned int i;
 
 			for (i = 0; i < sizeof(ktab) / sizeof(*ktab); i++)
 				ClearAction(&ktab[i]);
@@ -3754,7 +3754,7 @@ void DoCommand(char **argv, int *argl)
 
 static void SaveAction(struct action *act, int nr, char **args, int *argl)
 {
-	register int argc = 0;
+	int argc = 0;
 	char **pp;
 	int *lp;
 
@@ -3783,8 +3783,8 @@ static void SaveAction(struct action *act, int nr, char **args, int *argl)
 
 static char **SaveArgs(char **args)
 {
-	register char **ap, **pp;
-	register int argc = 0;
+	char **ap, **pp;
+	int argc = 0;
 
 	while (args[argc])
 		argc++;
@@ -3807,8 +3807,8 @@ static char **SaveArgs(char **args)
  */
 int Parse(char *buf, int bufl, char **args, int *argl)
 {
-	register char *p = buf, **ap = args, *pp;
-	register int delim, argc;
+	char *p = buf, **ap = args, *pp;
+	int delim, argc;
 	int *lp = argl;
 
 	argc = 0;
@@ -4008,7 +4008,7 @@ int ParseSwitch(struct action *act, int *var)
 
 static int ParseOnOff(struct action *act, int *var)
 {
-	register int num = -1;
+	int num = -1;
 	char **args = act->args;
 
 	if (args[1] == 0) {
@@ -4189,7 +4189,7 @@ static int ParseBase(struct action *act, char *p, int *var, int base, char *bnam
 	return 0;
 }
 
-static int IsNum(register char *s, register int base)
+static int IsNum(char *s, int base)
 {
 	for (base += '0'; *s; ++s)
 		if (*s < '0' || *s > base)
@@ -4291,7 +4291,7 @@ void Activate(int norefresh)
 
 static uint16_t NextWindow()
 {
-	register Window **pp;
+	Window **pp;
 	int n = fore ? fore->w_number : maxwin;
 	Window *group = fore ? fore->w_group : 0;
 
@@ -4310,7 +4310,7 @@ static uint16_t NextWindow()
 
 static uint16_t PreviousWindow()
 {
-	register Window **pp;
+	Window **pp;
 	int n = fore ? fore->w_number : 0;
 	Window *group = fore ? fore->w_group : 0;
 
@@ -4422,9 +4422,9 @@ static void LogToggle(int on)
 
 char *AddWindows(char *buf, int len, int flags, int where)
 {
-	register char *s, *ss;
-	register Window **pp, *p;
-	register char *cmd;
+	char *s, *ss;
+	Window **pp, *p;
+	char *cmd;
 	int l;
 
 	s = ss = buf;
@@ -4594,8 +4594,8 @@ char *str;
 static void ShowInfo()
 {
 	char buf[512], *p;
-	register Window *wp = fore;
-	register int i;
+	Window *wp = fore;
+	int i;
 
 	if (wp == 0) {
 		Msg(0, "(%d,%d)/(%d,%d) no window", D_x + 1, D_y + 1, D_width, D_height);
@@ -4905,7 +4905,7 @@ static void InputSetenv(char *arg)
 void DoScreen(char *fn, char **av)
 {
 	struct NewWindow nwin;
-	register int num;
+	int num;
 	char buf[20];
 
 	nwin = nwin_undef;

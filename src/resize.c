@@ -451,7 +451,7 @@ static void CheckMaxSize(int wi)
 
 void *xrealloc(void *mem, size_t len)
 {
-	register char *nmem;
+	char *nmem;
 
 	if (mem == 0)
 		return malloc(len);
@@ -461,7 +461,7 @@ void *xrealloc(void *mem, size_t len)
 	return (void *)0;
 }
 
-static void MakeBlankLine(register uint32_t *p, register int n)
+static void MakeBlankLine(uint32_t *p, int n)
 {
 	while (n--)
 		*p++ = ' ';

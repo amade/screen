@@ -647,7 +647,7 @@ static int CountChars(int c)
 	return c;
 }
 
-int CalcCost(register char *s)
+int CalcCost(char *s)
 {
 	if (s) {
 		StrCost = 0;
@@ -660,10 +660,10 @@ int CalcCost(register char *s)
 
 void GotoPos(int x2, int y2)
 {
-	register int dy, dx, x1, y1;
-	register int costx, costy;
-	register int m;
-	register char *s;
+	int dy, dx, x1, y1;
+	int costx, costy;
+	int m;
+	char *s;
 	int CMcost;
 	enum move_t xm = M_NONE, ym = M_NONE;
 
@@ -1142,9 +1142,9 @@ void ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 */
 }
 
-void SetAttr(register int new)
+void SetAttr(int new)
 {
-	register int i, j, old, typ;
+	int i, j, old, typ;
 	old = D_rend.attr;
 
 	if (!display)
@@ -1407,8 +1407,8 @@ void SetRenditionMline(struct mline *ml, int x)
 
 void MakeStatus(char *msg)
 {
-	register char *s, *t;
-	register int max;
+	char *s, *t;
+	int max;
 
 	if (!display)
 		return;
@@ -1914,7 +1914,7 @@ void ClearLine(struct mline *oml, int y, int from, int to, int bce)
 
 void DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 {
-	register int x;
+	int x;
 	int last2flag = 0, delete_lp = 0;
 
 	if (!D_CLP && y == D_bot && to == D_width - 1) {
@@ -2173,7 +2173,7 @@ void ClearAllXtermOSC()
 
 void AddStr(char *str)
 {
-	register char c;
+	char c;
 
 	if (D_encoding == UTF8) {
 		while ((c = *str++))
@@ -2186,7 +2186,7 @@ void AddStr(char *str)
 
 void AddStrn(char *str, int n)
 {
-	register char c;
+	char c;
 
 	if (D_encoding == UTF8) {
 		while ((c = *str++) && n-- > 0)
@@ -2200,9 +2200,9 @@ void AddStrn(char *str, int n)
 
 void Flush(int progress)
 {
-	register int l;
+	int l;
 	int wr;
-	register char *p;
+	char *p;
 
 	l = D_obufp - D_obuf;
 	if (l == 0)
@@ -2278,7 +2278,7 @@ void freetty()
 
 void Resize_obuf()
 {
-	register int ind;
+	int ind;
 
 	if (D_status_obuffree >= 0) {
 		RemoveStatusMinWait();
@@ -2326,7 +2326,7 @@ void DisplaySleep1000(int n, int eat)
 
 void NukePending()
 {				/* Nuke pending output in current display, clear screen */
-	register int len;
+	int len;
 	int oldtop = D_top, oldbot = D_bot;
 	struct mchar oldrend;
 	int oldkeypad = D_keypad, oldcursorkeys = D_cursorkeys;

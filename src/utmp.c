@@ -314,7 +314,7 @@ void RestoreLoginSlot()
 
 int SetUtmp(Window *win)
 {
-	register slot_t slot;
+	slot_t slot;
 	struct utmp u;
 	int saved_ut;
 #ifdef UTHOST
@@ -607,8 +607,8 @@ static void setttyent()
 {
 	if (ttnext == 0) {
 		struct stat s;
-		register int f;
-		register char *p, *ep;
+		int f;
+		char *p, *ep;
 
 		if ((f = open(ttys, O_RDONLY)) == -1 || fstat(f, &s) == -1)
 			Panic(errno, ttys);

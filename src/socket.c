@@ -333,7 +333,7 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 
 int MakeServerSocket()
 {
-	register int s;
+	int s;
 	struct sockaddr_un a;
 	struct stat st;
 
@@ -393,7 +393,7 @@ int MakeServerSocket()
 
 int MakeClientSocket(int err)
 {
-	register int s;
+	int s;
 	struct sockaddr_un a;
 
 	if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
@@ -424,8 +424,8 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 {
 	int s;
 	struct msg m;
-	register char *p;
-	register int len, n;
+	char *p;
+	int len, n;
 	char **av;
 
 	if (strlen(sty) > FILENAME_MAX)
@@ -494,8 +494,8 @@ static void ExecCreate(struct msg *mp)
 {
 	struct NewWindow nwin;
 	char *args[MAXARGS];
-	register int n;
-	register char **pp = args, *p = mp->m.create.line;
+	int n;
+	char **pp = args, *p = mp->m.create.line;
 	char buf[20];
 
 	nwin = nwin_undef;
@@ -1173,9 +1173,9 @@ static void DoCommandMsg(struct msg *mp)
 	char *args[MAXARGS];
 	int argl[MAXARGS];
 	char fullcmd[MAXSTR];
-	register char *fc;
+	char *fc;
 	int n;
-	register char *p = mp->m.command.cmd;
+	char *p = mp->m.command.cmd;
 	struct acluser *user;
 
 	n = mp->m.command.nargs;

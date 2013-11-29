@@ -515,7 +515,7 @@ void display_copyright()
 
 static void copypage()
 {
-	register char *cps;
+	char *cps;
 	char *ws;
 	int x, y, l;
 	char cbuf[80];

@@ -88,7 +88,7 @@ char *gettermcapstring(char *s)
  */
 int InitTermcap(int width, int height)
 {
-	register char *s;
+	char *s;
 	int i;
 	char tbuf[TERMCAP_BUFSIZE], *tp;
 	int t, xue, xse, xme;
@@ -634,7 +634,7 @@ static int remmapseq(char *seq, int k)
  */
 static void AddCap(char *s)
 {
-	register int n;
+	int n;
 
 	if (tcLineLen + (n = strlen(s)) > 55 && Termcaplen < TERMCAP_BUFSIZE - 4 - 1) {
 		strcpy(Termcap + Termcaplen, "\\\n\t:");
@@ -656,7 +656,7 @@ static void AddCap(char *s)
 char *MakeTermcap(int aflag)
 {
 	char buf[TERMCAP_BUFSIZE];
-	register char *p, *cp, *s, ch, *tname;
+	char *p, *cp, *s, ch, *tname;
 	int i, width, height;
 
 	if (display) {
@@ -853,8 +853,8 @@ char *MakeTermcap(int aflag)
 
 static void MakeString(char *cap, char *buf, int buflen, char *s)
 {
-	register char *p, *pmax;
-	register unsigned int c;
+	char *p, *pmax;
+	unsigned int c;
 
 	p = buf;
 	pmax = p + buflen - (3 + 4 + 2);
