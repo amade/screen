@@ -33,6 +33,7 @@
 #define SCREEN_WINMSG_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "window.h"
 
@@ -47,6 +48,17 @@ typedef enum {
 	WINMSG_REND_END   = '}',
 	WINMSG_REND_POP   = '-',
 } WinMsgEscapeChar;
+
+/* escape sequence */
+typedef struct {
+	int num;
+	struct {
+		bool zero  : 1;
+		bool lng   : 1;
+		bool minus : 1;
+		bool plus  : 1;
+	} flags;
+} WinMsgEsc;
 
 char *MakeWinMsg(char *, Window *, int);
 char *MakeWinMsgEv(char *, Window *, int, int, Event *, int);

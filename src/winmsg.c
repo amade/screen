@@ -46,13 +46,14 @@ int winmsg_numrend;
 /* redundant definition abstraction for escape character handlers; note that
  * a variable varadic macro name is a gcc extension and is not portable, so
  * we instead use two separate macros */
-#define WINMSG_ESC_ARGS char *s, char **p
+#define WINMSG_ESC_PARAMS __attribute__((unused)) WinMsgEsc *esc, char *s, char **p
 #define winmsg_esc__name(name) __WinMsgEsc##name
 #define winmsg_esc__def(name) static char *winmsg_esc__name(name)
-#define winmsg_esc(name) winmsg_esc__def(name)(WINMSG_ESC_ARGS)
-#define winmsg_esc_ex(name, ...) winmsg_esc__def(name)(WINMSG_ESC_ARGS, __VA_ARGS__)
-#define WinMsgEsc(name) winmsg_esc__name(name)(s, &p)
-#define WinMsgEscEx(name, ...) winmsg_esc__name(name)(s, &p, __VA_ARGS__)
+#define winmsg_esc(name) winmsg_esc__def(name)(WINMSG_ESC_PARAMS)
+#define winmsg_esc_ex(name, ...) winmsg_esc__def(name)(WINMSG_ESC_PARAMS, __VA_ARGS__)
+#define WINMSG_ESC_ARGS &esc, s, &p
+#define WinMsgDoEsc(name) winmsg_esc__name(name)(WINMSG_ESC_ARGS)
+#define WinMsgDoEscEx(name, ...) winmsg_esc__name(name)(WINMSG_ESC_ARGS, __VA_ARGS__)
 
 struct backtick {
 	struct backtick *next;
@@ -265,9 +266,9 @@ int AddWinMsgRend(const char *str, uint64_t r)
 }
 
 
-winmsg_esc_ex(Pid, int plusflg)
+winmsg_esc(Pid)
 {
-	sprintf(*p, "%d", (plusflg && display) ? D_userpid : getpid());
+	sprintf(*p, "%d", (esc->flags.plus && display) ? D_userpid : getpid());
 	(*p) += strlen(*p) - 1;
 
 	return s;
@@ -320,7 +321,7 @@ winmsg_esc(Rend)
 	return s;
 }
 
-char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int rec)
+char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int rec)
 {
 	static int tick;
 	char *s = str;
@@ -328,11 +329,6 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 	register int ctrl;
 	struct timeval now;
 	int l, i;
-	int num;
-	int zeroflg;
-	int longflg;
-	int minusflg;
-	int plusflg;
 	int qmflag = 0, omflag = 0, qmnumrend = 0;
 	char *qmpos = 0;
 	int numpad = 0;
@@ -342,6 +338,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 	int trunclong = 0;
 	uint64_t r;
 	struct backtick *bt = NULL;
+	WinMsgEsc esc;
 
 	if (winmsg_numrend >= 0)
 		winmsg_numrend = 0;
@@ -361,8 +358,8 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 				*p &= 0x1f;
 			continue;
 		}
-		if (*s != esc) {
-			if (esc == '%') {
+		if (*s != chesc) {
+			if (chesc == '%') {
 				switch (*s) {
 				case '^':
 					ctrl = 1;
@@ -374,19 +371,23 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 			}
 			continue;
 		}
-		if (*++s == esc)	/* double escape ? */
+
+		if (*++s == chesc)	/* double escape ? */
 			continue;
-		if ((plusflg = *s == '+') != 0)
+
+		/* initialize escape */
+		if ((esc.flags.plus = (*s == '+')) != 0)
 			s++;
-		if ((minusflg = *s == '-') != 0)
+		if ((esc.flags.minus = (*s == '-')) != 0)
 			s++;
-		if ((zeroflg = *s == '0') != 0)
+		if ((esc.flags.zero = (*s == '0')) != 0)
 			s++;
-		num = 0;
+		esc.num = 0;
 		while (*s >= '0' && *s <= '9')
-			num = num * 10 + (*s++ - '0');
-		if ((longflg = *s == 'L') != 0)
+			esc.num = esc.num * 10 + (*s++ - '0');
+		if ((esc.flags.lng = (*s == 'L')) != 0)
 			s++;
+
 		switch (*s) {
 		case '?':
 			p--;
@@ -426,7 +427,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 			}
 			if (*s == '`') {
 				for (bt = backticks; bt; bt = bt->next)
-					if (bt->num == num)
+					if (bt->num == esc.num)
 						break;
 				if (bt == 0) {
 					p--;
@@ -479,9 +480,11 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 					D_fore = win;
 				}
 				AddWindows(p, l - 1,
-					   (*s ==
-					    'w' ? 0 : 1) | (longflg ? 0 : 2) | (plusflg ? 4 : 0) | (minusflg ? 8 : 0),
-					   win ? win->w_number : -1);
+					(*s == 'w' ? 0 : 1)
+						| (esc.flags.lng ? 0 : 2)
+						| (esc.flags.plus ? 4 : 0)
+						| (esc.flags.minus ? 8 : 0),
+					win ? win->w_number : -1);
 				if (display)
 					D_fore = oldfore;
 			}
@@ -507,7 +510,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 			p += strlen(p) - 1;
 			break;
 		case WINMSG_REND_START:
-			s = WinMsgEsc(Rend);
+			s = WinMsgDoEsc(Rend);
 			break;
 		case 'H':
 			*p = 0;
@@ -532,18 +535,18 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 			}
 			break;
 		case WINMSG_PID:
-			s = WinMsgEscEx(Pid, plusflg);
+			s = WinMsgDoEsc(Pid);
 			break;
 		case 'F':
 			p--;
 			/* small hack */
 			if (display && ((ev && ev == &D_forecv->c_captev) || (!ev && win && win == D_fore)))
-				minusflg = !minusflg;
-			if (minusflg)
+				esc.flags.minus ^= 1;
+			if (esc.flags.minus)
 				qmflag = 1;
 			break;
 		case WINMSG_COPY_MODE:
-			s = WinMsgEscEx(CopyMode, ev, &qmflag);
+			s = WinMsgDoEscEx(CopyMode, ev, &qmflag);
 			break;
 		case 'E':
 			p--;
@@ -553,54 +556,54 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 			break;
 		case '>':
 			truncpos = p - winmsg_buf;
-			truncper = num > 100 ? 100 : num;
-			trunclong = longflg;
+			truncper = esc.num > 100 ? 100 : esc.num;
+			trunclong = esc.flags.lng;
 			p--;
 			break;
 		case '=':
 		case '<':
 			*p = ' ';
-			if (num || zeroflg || plusflg || longflg || (*s != '=')) {
+			if (esc.num || esc.flags.zero || esc.flags.plus || esc.flags.lng || (*s != '=')) {
 				/* expand all pads */
-				if (minusflg) {
-					num = (plusflg ? lastpad : padlen) - num;
-					if (!plusflg && padlen == 0)
-						num = p - winmsg_buf;
-					plusflg = 0;
-				} else if (!zeroflg) {
-					if (*s != '=' && num == 0 && !plusflg)
-						num = 100;
-					if (num > 100)
-						num = 100;
+				if (esc.flags.minus) {
+					esc.num = (esc.flags.plus ? lastpad : padlen) - esc.num;
+					if (!esc.flags.plus && padlen == 0)
+						esc.num = p - winmsg_buf;
+					esc.flags.plus = 0;
+				} else if (!esc.flags.zero) {
+					if (*s != '=' && esc.num == 0 && !esc.flags.plus)
+						esc.num = 100;
+					if (esc.num > 100)
+						esc.num = 100;
 					if (padlen == 0)
-						num = p - winmsg_buf;
+						esc.num = p - winmsg_buf;
 					else
-						num = (padlen - (plusflg ? lastpad : 0)) * num / 100;
+						esc.num = (padlen - (esc.flags.plus ? lastpad : 0)) * esc.num / 100;
 				}
-				if (num < 0)
-					num = 0;
-				if (plusflg)
-					num += lastpad;
-				if (num > MAXSTR - 1)
-					num = MAXSTR - 1;
+				if (esc.num < 0)
+					esc.num = 0;
+				if (esc.flags.plus)
+					esc.num += lastpad;
+				if (esc.num > MAXSTR - 1)
+					esc.num = MAXSTR - 1;
 				if (numpad)
-					p = pad_expand(winmsg_buf, p, numpad, num);
+					p = pad_expand(winmsg_buf, p, numpad, esc.num);
 				numpad = 0;
-				if (p - winmsg_buf > num && !longflg) {
+				if (p - winmsg_buf > esc.num && !esc.flags.lng) {
 					int left, trunc;
 
 					if (truncpos == -1) {
 						truncpos = lastpad;
 						truncper = 0;
 					}
-					trunc = lastpad + truncper * (num - lastpad) / 100;
-					if (trunc > num)
-						trunc = num;
+					trunc = lastpad + truncper * (esc.num - lastpad) / 100;
+					if (trunc > esc.num)
+						trunc = esc.num;
 					if (trunc < lastpad)
 						trunc = lastpad;
 					left = truncpos - trunc;
-					if (left > p - winmsg_buf - num)
-						left = p - winmsg_buf - num;
+					if (left > p - winmsg_buf - esc.num)
+						left = p - winmsg_buf - esc.num;
 					if (left > 0) {
 						if (left + lastpad > p - winmsg_buf)
 							left = p - winmsg_buf - lastpad;
@@ -624,19 +627,19 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 								winmsg_buf[lastpad + 2] = '.';
 						}
 					}
-					if (p - winmsg_buf > num) {
-						p = winmsg_buf + num;
+					if (p - winmsg_buf > esc.num) {
+						p = winmsg_buf + esc.num;
 						if (trunclong) {
-							if (num - 1 >= lastpad)
+							if (esc.num - 1 >= lastpad)
 								p[-1] = '.';
-							if (num - 2 >= lastpad)
+							if (esc.num - 2 >= lastpad)
 								p[-2] = '.';
-							if (num - 3 >= lastpad)
+							if (esc.num - 3 >= lastpad)
 								p[-3] = '.';
 						}
 						r = winmsg_numrend;
-						while (r && winmsg_rendpos[r - 1] > num)
-							winmsg_rendpos[--r] = num;
+						while (r && winmsg_rendpos[r - 1] > esc.num)
+							winmsg_rendpos[--r] = esc.num;
 					}
 					truncpos = -1;
 					trunclong = 0;
@@ -644,7 +647,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 						lastpad = p - winmsg_buf;
 				}
 				if (*s == '=') {
-					while (p - winmsg_buf < num)
+					while (p - winmsg_buf < esc.num)
 						*p++ = ' ';
 					lastpad = p - winmsg_buf;
 					truncpos = -1;
@@ -669,13 +672,13 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *ev, int r
 			/* FALLTHROUGH */
 		default:
 			s--;
-			if (l > 10 + num) {
-				if (num == 0)
-					num = 1;
+			if (l > 10 + esc.num) {
+				if (esc.num == 0)
+					esc.num = 1;
 				if (!win)
-					sprintf(p, "%*s", num, num > 1 ? "--" : "-");
+					sprintf(p, "%*s", esc.num, esc.num > 1 ? "--" : "-");
 				else
-					sprintf(p, "%*d", num, win->w_number);
+					sprintf(p, "%*d", esc.num, win->w_number);
 				qmflag = 1;
 				p += strlen(p) - 1;
 			}
