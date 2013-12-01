@@ -294,7 +294,7 @@ void FreeDisplay()
 			p->w_pdisplay = 0;
 		if (p->w_lastdisp == display)
 			p->w_lastdisp = 0;
-		if (p->w_readev.condneg == &D_status || p->w_readev.condneg == &D_obuflenmax)
+		if (p->w_readev.condneg == (int *)&D_status || p->w_readev.condneg == &D_obuflenmax)
 			p->w_readev.condpos = p->w_readev.condneg = 0;
 	}
 	if (D_mousetrack) {
@@ -1553,7 +1553,7 @@ static void RemoveStatusMinWait()
 
 static int strlen_onscreen(char *c, char *end)
 {
-	int l, len = 0;
+	int len = 0;
 	while (*c && (!end || c < end)) {
 		len += wcwidth(*c++);
 	}

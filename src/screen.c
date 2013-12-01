@@ -1809,7 +1809,7 @@ char *MakeWinMsgEv(char *str, Window *win, int esc, int padlen, Event *event, in
 				if (!tick || oldtick < tick)
 					tick = oldtick;
 				if ((int)strlen(winmsg_buf) < l)
-					strncat(savebuf, winmsg_buf, sizeof(savebuf) - strlen(savebuf));
+					strncat(savebuf, winmsg_buf, sizeof(savebuf) - strlen(savebuf) - 1);
 				strncpy(winmsg_buf, savebuf, sizeof(winmsg_buf));
 				while (oldnumrend < winmsg_numrend)
 					winmsg_rendpos[oldnumrend++] += p - winmsg_buf;
