@@ -1361,7 +1361,7 @@ static int muchpending(Window *p, Event *event)
 		if (D_status == STATUS_ON_WIN && !D_status_bell) {
 			/* wait 'til status is gone */
 			event->condpos = &const_one;
-			event->condneg = &D_status;
+			event->condneg = (int *)&D_status;
 			return 1;
 		}
 		if (D_blocked)

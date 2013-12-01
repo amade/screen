@@ -296,7 +296,7 @@ void FreeDisplay()
 			p->w_pdisplay = 0;
 		if (p->w_lastdisp == display)
 			p->w_lastdisp = 0;
-		if (p->w_readev.condneg == &D_status || p->w_readev.condneg == &D_obuflenmax)
+		if (p->w_readev.condneg == (int *)&D_status || p->w_readev.condneg == &D_obuflenmax)
 			p->w_readev.condpos = p->w_readev.condneg = 0;
 	}
 	for (p = windows; p; p = p->w_next)
