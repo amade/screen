@@ -1626,7 +1626,7 @@ void ShowHStatus(char *str)
 			ClearArea(l, D_height - 1, l, D_width - 1, D_width - 1, D_height - 1, 0, 0);
 		if (ox != -1 && oy != -1)
 			GotoPos(ox, oy);
-		D_hstatus = (*str != NULL);
+		D_hstatus = (str != NULL);
 		SetRendition(&mchar_null);
 	} else if (D_has_hstatus == HSTATUS_FIRSTLINE) {
 		ox = D_x;
@@ -1645,7 +1645,7 @@ void ShowHStatus(char *str)
 			ClearArea(l, 0, l, D_width - 1, D_width - 1, 0, 0, 0);
 		if (ox != -1 && oy != -1)
 			GotoPos(ox, oy);
-		D_hstatus = (*str != NULL);
+		D_hstatus = (str != NULL);
 		SetRendition(&mchar_null);
 	} else if (str && *str && D_has_hstatus == HSTATUS_MESSAGE) {
 		Msg(0, "%s", str);
