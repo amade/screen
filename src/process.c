@@ -4421,6 +4421,7 @@ static void LogToggle(int on)
 	WindowChanged(fore, 'f');
 }
 
+/* TODO: flags enum; update all callers */
 char *AddWindows(char *buf, int len, int flags, int where)
 {
 	char *s, *ss;

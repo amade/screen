@@ -321,6 +321,33 @@ winmsg_esc(Rend)
 	return s;
 }
 
+winmsg_esc_ex(WinNames, const bool hide_cur, Window *win, int plen, int *qmflag)
+{
+	Window *oldfore = 0;
+
+	if (display) {
+		oldfore = D_fore;
+		D_fore = win;
+	}
+
+	AddWindows(*p, plen - 1,
+		hide_cur
+			| (esc->flags.lng ? 0 : 2)
+			| (esc->flags.plus ? 4 : 0)
+			| (esc->flags.minus ? 8 : 0),
+		win ? win->w_number : -1);
+
+	if (display)
+		D_fore = oldfore;
+
+	if (**p)
+		*qmflag = 1;
+
+	*p += strlen(*p) - 1;
+	return s;
+}
+
+
 char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int rec)
 {
 	static int tick;
@@ -470,27 +497,9 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 			}
 			p--;
 			break;
-		case 'w':
-		case 'W':
-			{
-				Window *oldfore = 0;
-
-				if (display) {
-					oldfore = D_fore;
-					D_fore = win;
-				}
-				AddWindows(p, l - 1,
-					(*s == 'w' ? 0 : 1)
-						| (esc.flags.lng ? 0 : 2)
-						| (esc.flags.plus ? 4 : 0)
-						| (esc.flags.minus ? 8 : 0),
-					win ? win->w_number : -1);
-				if (display)
-					D_fore = oldfore;
-			}
-			if (*p)
-				qmflag = 1;
-			p += strlen(p) - 1;
+		case WINMSG_WIN_NAMES:
+		case WINMSG_WIN_NAMES_NOCUR:
+			s = WinMsgDoEscEx(WinNames, (*s == WINMSG_WIN_NAMES_NOCUR), win, l, &qmflag);
 			break;
 		case 'f':
 			*p = 0;
