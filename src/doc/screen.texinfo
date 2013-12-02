@@ -5489,6 +5489,10 @@ window; with @code{+} qualifier: starting with the window after the current
 one.
 @item W
 all window numbers and names except the current one
+@item x
+window command arguments
+@item X
+window command
 @item y
 last two digits of the year number
 @item Y
