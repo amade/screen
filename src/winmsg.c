@@ -349,8 +349,10 @@ winmsg_esc_ex(WinNames, const bool hide_cur, Window *win, int plen, int *qmflag)
 
 winmsg_esc_ex(WinArgv, Window *win)
 {
-	if (!win || !win->w_cmdargs[0])
+	if (!win || !win->w_cmdargs[0]) {
+		(*p)--;
 		return s;
+	}
 
 	sprintf(*p, "%s", win->w_cmdargs[0]);
 	*p += strlen(*p);
