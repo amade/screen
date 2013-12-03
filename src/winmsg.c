@@ -335,6 +335,21 @@ winmsg_esc(Rend)
 	return s;
 }
 
+winmsg_esc_ex(SessName, int plen, int *qmflag)
+{
+	char *session_name = strchr(SocketName, '.') + 1;
+
+	**p = 0;
+	if ((int)strlen(session_name) < plen) {
+		strncpy(*p, session_name, plen);
+		if (**p)
+			*qmflag = 1;
+	}
+
+	*p += strlen(*p) - 1;
+	return s;
+}
+
 winmsg_esc_ex(WinNames, const bool hide_cur, Window *win, int plen, int *qmflag)
 {
 	Window *oldfore = 0;
@@ -551,18 +566,8 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 			}
 			p += strlen(p) - 1;
 			break;
-		case 'S':
-			{
-				char *session_name;
-				*p = 0;
-				session_name = strchr(SocketName, '.') + 1;
-				if ((int)strlen(session_name) < l) {
-					strncpy(p, session_name, l);
-					if (*p)
-						qmflag = 1;
-				}
-				p += strlen(p) - 1;
-			}
+		case WINESC_SESS_NAME:
+			s = WinMsgDoEscEx(SessName, l, &qmflag);
 			break;
 		case WINESC_PID:
 			s = WinMsgDoEsc(Pid);
