@@ -42,6 +42,7 @@
 
 /* escape characters */
 typedef enum {
+	WINESC_WFLAGS          = 'f',
 	WINESC_PID             = 'p',
 	WINESC_COPY_MODE       = 'P', /* copy/_P_aste mode */
 	WINESC_WIN_NAMES       = 'w',
