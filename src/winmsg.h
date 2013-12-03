@@ -46,6 +46,8 @@ typedef enum {
 	WINMSG_COPY_MODE       = 'P', /* copy/_P_aste mode */
 	WINMSG_WIN_NAMES       = 'w',
 	WINMSG_WIN_NAMES_NOCUR = 'W',
+	WINMSG_CMD_ARGS        = 'x',
+	WINMSG_CMD             = 'X',
 	WINMSG_REND_START      = '{',
 	WINMSG_REND_END        = '}',
 	WINMSG_REND_POP        = '-',
