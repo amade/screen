@@ -425,6 +425,19 @@ winmsg_esc_ex(WinArgv, Window *win)
 	return s;
 }
 
+winmsg_esc_ex(WinTitle, Window *win, int plen, int *qmflag)
+{
+	**p = '\0';
+	if (win && (int)strlen(win->w_title) < plen) {
+		strncpy(*p, win->w_title, plen);
+		if (**p)
+			*qmflag = 1;
+	}
+
+	*p += strlen(*p) - 1;
+	return s;
+}
+
 
 char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int rec)
 {
@@ -572,14 +585,8 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 		case WINESC_WFLAGS:
 			s = WinMsgDoEscEx(Wflags, win, l, &qmflag);
 			break;
-		case 't':
-			*p = 0;
-			if (win && (int)strlen(win->w_title) < l) {
-				strncpy(p, win->w_title, l);
-				if (*p)
-					qmflag = 1;
-			}
-			p += strlen(p) - 1;
+		case WINESC_WIN_TITLE:
+			s = WinMsgDoEscEx(WinTitle, win, l, &qmflag);
 			break;
 		case WINESC_REND_START:
 			s = WinMsgDoEsc(Rend);
