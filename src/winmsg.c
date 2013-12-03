@@ -301,17 +301,17 @@ winmsg_esc(Rend)
 
 	s++;
 	for (i = 0; i < (RENDBUF_SIZE-1); i++)
-		if (s[i] && s[i] != WINMSG_REND_END)
+		if (s[i] && s[i] != WINESC_REND_END)
 			rbuf[i] = s[i];
 		else
 			break;
 
-	if ((s[i] == WINMSG_REND_END) && (winmsg_numrend < MAX_WINMSG_REND)) {
+	if ((s[i] == WINESC_REND_END) && (winmsg_numrend < MAX_WINMSG_REND)) {
 		r = 0;
 		rbuf[i] = '\0';
-		if (i != 1 || rbuf[0] != WINMSG_REND_POP)
+		if (i != 1 || rbuf[0] != WINESC_REND_POP)
 			r = ParseAttrColor(rbuf, 0);
-		if (r != 0 || (i == 1 && (rbuf[0] == WINMSG_REND_POP))) {
+		if (r != 0 || (i == 1 && (rbuf[0] == WINESC_REND_POP))) {
 			AddWinMsgRend(*p, r);
 		}
 	}
@@ -357,7 +357,7 @@ winmsg_esc_ex(WinArgv, Window *win)
 	sprintf(*p, "%s", win->w_cmdargs[0]);
 	*p += strlen(*p);
 
-	if (*s == WINMSG_CMD_ARGS) {
+	if (*s == WINESC_CMD_ARGS) {
 		int i;
 		for (i = 1; win->w_cmdargs[i]; i++) {
 			sprintf(*p, " %s", win->w_cmdargs[i]);
@@ -505,13 +505,13 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 				p += strlen(p) - 1;
 			}
 			break;
-		case WINMSG_CMD:
-		case WINMSG_CMD_ARGS:
+		case WINESC_CMD:
+		case WINESC_CMD_ARGS:
 			s = WinMsgDoEscEx(WinArgv, win);
 			break;
-		case WINMSG_WIN_NAMES:
-		case WINMSG_WIN_NAMES_NOCUR:
-			s = WinMsgDoEscEx(WinNames, (*s == WINMSG_WIN_NAMES_NOCUR), win, l, &qmflag);
+		case WINESC_WIN_NAMES:
+		case WINESC_WIN_NAMES_NOCUR:
+			s = WinMsgDoEscEx(WinNames, (*s == WINESC_WIN_NAMES_NOCUR), win, l, &qmflag);
 			break;
 		case 'f':
 			*p = 0;
@@ -530,7 +530,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 			}
 			p += strlen(p) - 1;
 			break;
-		case WINMSG_REND_START:
+		case WINESC_REND_START:
 			s = WinMsgDoEsc(Rend);
 			break;
 		case 'H':
@@ -555,7 +555,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 				p += strlen(p) - 1;
 			}
 			break;
-		case WINMSG_PID:
+		case WINESC_PID:
 			s = WinMsgDoEsc(Pid);
 			break;
 		case 'F':
@@ -566,7 +566,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 			if (esc.flags.minus)
 				qmflag = 1;
 			break;
-		case WINMSG_COPY_MODE:
+		case WINESC_COPY_MODE:
 			s = WinMsgDoEscEx(CopyMode, ev, &qmflag);
 			break;
 		case 'E':
