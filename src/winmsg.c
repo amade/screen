@@ -301,6 +301,16 @@ winmsg_esc_ex(CopyMode, Event *ev, int *qmflag)
 	return s;
 }
 
+winmsg_esc_ex(EscSeen, int *qmflag)
+{
+	(*p)--;
+	if (display && D_ESCseen) {
+		*qmflag = 1;
+	}
+
+	return s;
+}
+
 winmsg_esc_ex(Focus, Window *win, Event *ev, int *qmflag)
 {
 	(*p)--;
@@ -606,11 +616,8 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 		case WINESC_COPY_MODE:
 			s = WinMsgDoEscEx(CopyMode, ev, &qmflag);
 			break;
-		case 'E':
-			p--;
-			if (display && D_ESCseen) {
-				qmflag = 1;
-			}
+		case WINESC_ESC_SEEN:
+			s = WinMsgDoEscEx(EscSeen, &qmflag);
 			break;
 		case '>':
 			truncpos = p - winmsg_buf;
