@@ -43,6 +43,7 @@
 /* escape characters */
 typedef enum {
 	WINESC_WFLAGS          = 'f',
+	WINESC_ESC_SEEN        = 'E',
 	WINESC_FOCUS           = 'F',
 	WINESC_HOST            = 'H',
 	WINESC_PID             = 'p',
