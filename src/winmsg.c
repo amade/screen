@@ -266,6 +266,20 @@ int AddWinMsgRend(const char *str, uint64_t r)
 }
 
 
+winmsg_esc_ex(Wflags, Window *win, int plen, int *qmflag)
+{
+	**p = '\0';
+
+	if (win)
+		AddWindowFlags(*p, plen - 1, win);
+
+	if (**p)
+		*qmflag = 1;
+
+	*p += strlen(*p) - 1;
+	return s;
+}
+
 winmsg_esc(Pid)
 {
 	sprintf(*p, "%d", (esc->flags.plus && display) ? D_userpid : getpid());
@@ -513,13 +527,8 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 		case WINESC_WIN_NAMES_NOCUR:
 			s = WinMsgDoEscEx(WinNames, (*s == WINESC_WIN_NAMES_NOCUR), win, l, &qmflag);
 			break;
-		case 'f':
-			*p = 0;
-			if (win)
-				AddWindowFlags(p, l - 1, win);
-			if (*p)
-				qmflag = 1;
-			p += strlen(p) - 1;
+		case WINESC_WFLAGS:
+			s = WinMsgDoEscEx(Wflags, win, l, &qmflag);
 			break;
 		case 't':
 			*p = 0;
