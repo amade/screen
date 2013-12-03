@@ -301,6 +301,20 @@ winmsg_esc_ex(CopyMode, Event *ev, int *qmflag)
 	return s;
 }
 
+winmsg_esc_ex(Focus, Window *win, Event *ev, int *qmflag)
+{
+	(*p)--;
+
+	/* small hack (TODO: explain.) */
+	if (display && ((ev && ev == &D_forecv->c_captev) || (!ev && win && win == D_fore)))
+		esc->flags.minus ^= 1;
+
+	if (esc->flags.minus)
+		*qmflag = 1;
+
+	return s;
+}
+
 winmsg_esc_ex(HostName, int plen, int *qmflag)
 {
 	**p = 0;
@@ -579,13 +593,8 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 		case WINESC_PID:
 			s = WinMsgDoEsc(Pid);
 			break;
-		case 'F':
-			p--;
-			/* small hack */
-			if (display && ((ev && ev == &D_forecv->c_captev) || (!ev && win && win == D_fore)))
-				esc.flags.minus ^= 1;
-			if (esc.flags.minus)
-				qmflag = 1;
+		case WINESC_FOCUS:
+			s = WinMsgDoEscEx(Focus, win, ev, &qmflag);
 			break;
 		case WINESC_COPY_MODE:
 			s = WinMsgDoEscEx(CopyMode, ev, &qmflag);
