@@ -347,6 +347,26 @@ winmsg_esc_ex(WinNames, const bool hide_cur, Window *win, int plen, int *qmflag)
 	return s;
 }
 
+winmsg_esc_ex(WinArgv, Window *win)
+{
+	if (!win || !win->w_cmdargs[0])
+		return s;
+
+	sprintf(*p, "%s", win->w_cmdargs[0]);
+	*p += strlen(*p);
+
+	if (*s == WINMSG_CMD_ARGS) {
+		int i;
+		for (i = 1; win->w_cmdargs[i]; i++) {
+			sprintf(*p, " %s", win->w_cmdargs[i]);
+			*p += strlen(*p);
+		}
+	}
+
+	(*p)--;
+	return s;
+}
+
 
 char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int rec)
 {
@@ -355,7 +375,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 	char *p = winmsg_buf;
 	register int ctrl;
 	struct timeval now;
-	int l, i;
+	int l;
 	int qmflag = 0, omflag = 0, qmnumrend = 0;
 	char *qmpos = 0;
 	int numpad = 0;
@@ -483,19 +503,9 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 				p += strlen(p) - 1;
 			}
 			break;
-		case 'X':
-		case 'x':
-			*p = 0;
-			for (i = 0; win && win->w_cmdargs[i]; i++) {
-				if (l < strlen(win->w_cmdargs[i]) + 1)
-					break;
-				sprintf(p, i ? "%s" : " %s", win->w_cmdargs[i]);
-				l -= strlen(p);
-				p += strlen(p);
-				if (i == 0 && *s == 'X')
-					break;
-			}
-			p--;
+		case WINMSG_CMD:
+		case WINMSG_CMD_ARGS:
+			s = WinMsgDoEscEx(WinArgv, win);
 			break;
 		case WINMSG_WIN_NAMES:
 		case WINMSG_WIN_NAMES_NOCUR:
