@@ -301,6 +301,19 @@ winmsg_esc_ex(CopyMode, Event *ev, int *qmflag)
 	return s;
 }
 
+winmsg_esc_ex(HostName, int plen, int *qmflag)
+{
+	**p = 0;
+	if ((int)strlen(HostName) < plen) {
+		strncpy(*p, HostName, plen);
+		if (**p)
+			*qmflag = 1;
+	}
+	*p += strlen(*p) - 1;
+
+	return s;
+}
+
 /**
  * Processes rendition
  *
@@ -557,14 +570,8 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 		case WINESC_REND_START:
 			s = WinMsgDoEsc(Rend);
 			break;
-		case 'H':
-			*p = 0;
-			if ((int)strlen(HostName) < l) {
-				strncpy(p, HostName, l);
-				if (*p)
-					qmflag = 1;
-			}
-			p += strlen(p) - 1;
+		case WINESC_HOST:
+			s = WinMsgDoEscEx(HostName, l, &qmflag);
 			break;
 		case WINESC_SESS_NAME:
 			s = WinMsgDoEscEx(SessName, l, &qmflag);
