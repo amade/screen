@@ -252,26 +252,6 @@
 #undef HAVE_EXECVPE
 
 /*
- * If you want the "time" command to display the current load average
- * define LOADAV. Maybe you must install screen with the needed
- * privileges to read /dev/kmem.
- * Note that NLIST_ stuff is only checked, when getloadavg() is not available.
- */
-#undef LOADAV
-
-#undef LOADAV_NUM
-#undef LOADAV_TYPE
-#undef LOADAV_SCALE
-#undef LOADAV_GETLOADAVG
-#undef LOADAV_UNIX
-#undef LOADAV_AVENRUN
-#undef LOADAV_USE_NLIST64
-
-#undef NLIST_DECLARED
-#undef NLIST_STRUCT
-#undef NLIST_NAME_UNION
-
-/*
  * If your system has the new format /etc/ttys (like 4.3 BSD) and the
  * getttyent(3) library functions, define GETTTYENT.
  */
@@ -285,41 +265,10 @@
 #undef USEVARARGS
 
 /*
- * If the select return value doesn't treat a descriptor that is
- * usable for reading and writing as two hits, define SELECT_BROKEN.
- */
-#undef SELECT_BROKEN
-
-/*
- * Define this if your system exits select() immediatly if a pipe is
- * opened read-only and no writer has opened it.
- */
-#undef BROKEN_PIPE
-
-/*
- * Define this if the unix-domain socket implementation doesn't
- * create a socket in the filesystem.
- */
-#undef SOCK_NOT_IN_FS
-
-/*
  * define HAVE_NL_LANGINFO if your system has the nl_langinfo() call
  * and <langinfo.h> defines CODESET.
  */
 #undef HAVE_NL_LANGINFO
-
-/*
- * Newer versions of Solaris include fdwalk, which can greatly improve
- * the startup time of screen; otherwise screen spends a lot of time
- * closing file descriptors.
- */
-#undef HAVE_FDWALK
-
-/*
- * define HAVE_DEV_PTC if you have a /dev/ptc character special
- * device.
- */
-#undef HAVE_DEV_PTC
 
 /*
  * define PTYRANGE0 and or PTYRANGE1 if you want to adapt screen

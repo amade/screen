@@ -35,10 +35,6 @@
 #include "config.h"
 #include "screen.h"
 
-#ifdef HAVE_FDWALK
-static int close_func(void *, int);
-#endif
-
 char *SaveStr(const char *str)
 {
 	char *cp;
@@ -164,27 +160,6 @@ void Kill(int pid, int sig)
 	(void)kill(pid, sig);
 }
 
-#ifdef HAVE_FDWALK
-/*
- * Modern versions of Solaris include fdwalk(3c) which allows efficient
- * implementation of closing open descriptors; this is helpful because
- * the default file descriptor limit has risen to 65k.
- */
-static int close_func(void *cb_data, int fd)
-{
-	int except = *(int *)cb_data;
-	if (fd > 2 && fd != except)
-		(void)close(fd);
-	return (0);
-}
-
-void closeallfiles(int except)
-{
-	(void)fdwalk(close_func, &except);
-}
-
-#else				/* HAVE_FDWALK */
-
 void closeallfiles(int except)
 {
 	int f;
@@ -193,8 +168,6 @@ void closeallfiles(int except)
 		if (f != except)
 			close(f);
 }
-
-#endif				/* HAVE_FDWALK */
 
 /*
  *  Security - switch to real uid
