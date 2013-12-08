@@ -1447,11 +1447,7 @@ void MakeNewEnv()
 	*np++ = stybuf;		/* NewEnv[0] */
 	*np++ = Term;		/* NewEnv[1] */
 	np++;			/* room for SHELL */
-#ifdef TIOCSWINSZ
 	np += 2;		/* room for TERMCAP and WINDOW */
-#else
-	np += 4;		/* room for TERMCAP WINDOW LINES COLUMNS */
-#endif
 
 	for (op = environ; *op; ++op) {
 		if (!IsSymbol(*op, "TERM") && !IsSymbol(*op, "TERMCAP")

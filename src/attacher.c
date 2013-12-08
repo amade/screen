@@ -48,9 +48,7 @@
 
 static int WriteMessage(int, struct msg *);
 static void AttacherSigInt(int);
-#if defined(SIGWINCH) && defined(TIOCGWINSZ)
 static void AttacherWinch(int);
-#endif
 static void DoLock(int);
 static void LockTerminal(void);
 static void LockHup(int);
@@ -376,7 +374,6 @@ static void DoLock(int sigsig)
 	LockPlease = 1;
 }
 
-#if defined(SIGWINCH) && defined(TIOCGWINSZ)
 static int SigWinchPlease;
 
 static void AttacherWinch(int sigsig)
@@ -385,7 +382,6 @@ static void AttacherWinch(int sigsig)
 
 	SigWinchPlease = 1;
 }
-#endif
 
 /*
  *  Attacher loop - no return
@@ -399,9 +395,7 @@ void Attacher()
 	xsignal(SIG_LOCK, DoLock);
 	xsignal(SIGINT, AttacherSigInt);
 	xsignal(SIG_STOP, SigStop);
-#if defined(SIGWINCH) && defined(TIOCGWINSZ)
 	xsignal(SIGWINCH, AttacherWinch);
-#endif
 	dflag = 0;
 	xflag = 1;
 	for (;;) {
@@ -430,12 +424,10 @@ void Attacher()
 			LockTerminal();
 			(void)Attach(MSG_CONT);
 		}
-#if defined(SIGWINCH) && defined(TIOCGWINSZ)
 		if (SigWinchPlease) {
 			SigWinchPlease = 0;
 			(void)Attach(MSG_WINCH);
 		}
-#endif				/* SIGWINCH */
 	}
 }
 

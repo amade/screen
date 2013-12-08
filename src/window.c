@@ -923,9 +923,6 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 	char ebuf[20];
 	char shellbuf[7 + MAXPATHLEN];
 	char *proc;
-#ifndef TIOCSWINSZ
-	char libuf[20], cobuf[20];
-#endif
 	int newfd;
 	int w = win->w_width;
 	int h = win->w_height;
@@ -1048,20 +1045,12 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 #endif
 			}
 			SetTTY(newfd, modep);
-#ifdef TIOCSWINSZ
 			glwz.ws_col = w;
 			glwz.ws_row = h;
 			(void)ioctl(newfd, TIOCSWINSZ, (char *)&glwz);
-#endif
 			/* Always turn off nonblocking mode */
 			(void)fcntl(newfd, F_SETFL, 0);
 		}
-#ifndef TIOCSWINSZ
-		sprintf(libuf, "LINES=%d", h);
-		sprintf(cobuf, "COLUMNS=%d", w);
-		NewEnv[5] = libuf;
-		NewEnv[6] = cobuf;
-#endif
 		NewEnv[2] = MakeTermcap(display == 0 || win->w_aflag);
 		strcpy(shellbuf, "SHELL=");
 		strncpy(shellbuf + 6, ShellProg + (*ShellProg == '-'), sizeof(shellbuf) - 7);
