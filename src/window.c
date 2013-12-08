@@ -750,24 +750,16 @@ static int OpenDevice(char **args, int *typep, char **namep)
 	if (*typep != W_TYPE_PTY)
 		return fd;
 
-#ifndef PTYROFS
-#ifdef PTYGROUP
-	if (chown(*namep, real_uid, PTYGROUP))
-#else
-	if (chown(*namep, real_uid, real_gid))
-#endif
-	{
+	if (chown(*namep, real_uid, real_gid)) {
 		Msg(errno, "chown tty");
 		close(fd);
 		return -1;
 	}
-	if (chmod(*namep, TtyMode))
-	{
+	if (chmod(*namep, TtyMode)) {
 		Msg(errno, "chmod tty");
 		close(fd);
 		return -1;
 	}
-#endif
 	return fd;
 }
 

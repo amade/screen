@@ -47,21 +47,6 @@
 #define ALLOW_SYSSCREENRC 1
 
 /*
- * define PTYMODE if you do not like the default of 0622, which allows
- * public write to your pty.
- * define PTYGROUP to some numerical group-id if you do not want the
- * tty to be in "your" group.
- * Note, screen is unable to change mode or group of the pty if it
- * is not installed with sufficient privilege. (e.g. set-uid-root)
- * define PTYROFS if the /dev/pty devices are mounted on a read-only
- * filesystem so screen should not even attempt to set mode or group
- * even if running as root (e.g. on TiVo).
- */
-#undef PTYMODE
-#undef PTYGROUP
-#undef PTYROFS
-
-/*
  * If screen is NOT installed set-uid root, screen can provide tty
  * security by exclusively locking the ptys.  While this keeps other
  * users from opening your ptys, it also keeps your own subprocesses

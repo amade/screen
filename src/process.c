@@ -108,11 +108,7 @@ static int   DoAlias __P((const char *, char **, int *));
 
 struct plop plop_tab[MAX_PLOP_DEFS];
 
-#ifndef PTYMODE
-#define PTYMODE 0622
-#endif
-
-int TtyMode = PTYMODE;
+int TtyMode = 0600;
 int hardcopy_append = 0;
 int all_norefresh = 0;
 
