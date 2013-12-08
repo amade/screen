@@ -46,9 +46,7 @@ static void kaablamm(void);
 static int BcopyMline(struct mline *, int, struct mline *, int, int, int);
 static void SwapAltScreen(Window *);
 
-#if defined(TIOCGWINSZ) || defined(TIOCSWINSZ)
 struct winsize glwz;
-#endif
 
 static struct mline mline_zero = {
 	(uint32_t *)0,
@@ -75,7 +73,7 @@ void CheckScreenSize(int change_flag)
 	if (display == 0) {
 		return;
 	}
-#ifdef TIOCGWINSZ
+
 	if (ioctl(D_userfd, TIOCGWINSZ, (char *)&glwz) != 0) {
 		wi = D_CO;
 		he = D_LI;
@@ -87,10 +85,6 @@ void CheckScreenSize(int change_flag)
 		if (he == 0)
 			he = D_LI;
 	}
-#else
-	wi = D_CO;
-	he = D_LI;
-#endif
 
 	if (D_width == wi && D_height == he) {
 		return;
@@ -738,14 +732,12 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 	p->w_bot = he - 1;
 
 	/* signal new size to window */
-#ifdef TIOCSWINSZ
 	if (wi && (p->w_width != wi || p->w_height != he)
 	    && p->w_width != 0 && p->w_height != 0 && p->w_ptyfd >= 0 && p->w_pid) {
 		glwz.ws_col = wi;
 		glwz.ws_row = he;
 		ioctl(p->w_ptyfd, TIOCSWINSZ, (char *)&glwz);
 	}
-#endif				/* TIOCSWINSZ */
 
 	/* store new size */
 	p->w_width = wi;

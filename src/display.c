@@ -2741,9 +2741,6 @@ void RunBlanker(char **cmdv)
 	int pid;
 	int slave = -1;
 	char termname[FILENAME_MAX + 1];
-#ifndef TIOCSWINSZ
-	char libuf[20], cobuf[20];
-#endif
 	char **np;
 
 	strncpy(termname, "TERM=", 6);
@@ -2790,16 +2787,9 @@ void RunBlanker(char **cmdv)
 		np = NewEnv + 3;
 		*np++ = NewEnv[0];
 		*np++ = termname;
-#ifdef TIOCSWINSZ
 		glwz.ws_col = D_width;
 		glwz.ws_row = D_height;
 		(void)ioctl(0, TIOCSWINSZ, (char *)&glwz);
-#else
-		sprintf(libuf, "LINES=%d", D_height);
-		sprintf(cobuf, "COLUMNS=%d", D_width);
-		*np++ = libuf;
-		*np++ = cobuf;
-#endif
 		display = 0;
 		execvpe(*cmdv, cmdv, NewEnv + 3);
 		Panic(errno, "%s", *cmdv);
