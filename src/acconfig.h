@@ -143,14 +143,6 @@
 #undef USRLIMIT
 
 /*
- * both must be defined if you want to favor tcsendbreak over
- * other calls to generate a break condition on serial lines.
- * (Do not bother, if you are not using plain tty windows.)
- */
-#define POSIX_HAS_A_GOOD_TCSENDBREAK
-#define SUNOS4_AND_WE_TRUST_TCSENDBREAK
-
-/*
  * to lower the interrupt load on the host machine, you may want to
  * adjust the VMIN and VTIME settings used for plain tty windows.
  * See the termio(4) manual page (Non-Canonical Mode Input Processing)
@@ -161,17 +153,6 @@
  */
 #define TTYVMIN 100
 #define TTYVTIME 2
-
-/*
- * looks like the above values are ignored by setting FNDELAY.
- * This is default for all pty/ttys, you may disable it for
- * ttys here. After playing with it for a while, one may find out
- * that this feature may cause screen to lock up.
- */
-#ifdef bsdi
-# define TTY_DISABLE_FNBLOCK /* select barfs without it ... */
-#endif
-
 
 /*
  * Some terminals, e.g. Wyse 120, use a bitfield to select attributes.
@@ -190,13 +171,6 @@
  * (You may also need to add -lpam to LIBS in the Makefile.)
  */
 #undef USE_PAM
-
-/*
- * Define CHECK_SCREEN_W if you want screen to set TERM to screen-w
- * if the terminal width is greater than 131 columns. No longer needed
- * on modern systems which use $COLUMNS or the tty settings instead.
- */
-#undef CHECK_SCREEN_W
 
 /**********************************************************************
  *
