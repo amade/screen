@@ -328,13 +328,13 @@ static struct digraph digraphs[MAX_DIGRAPH + 1] = {
 
 static char *resizeprompts[] = {
 	"resize # lines: ",
-	"resize -h # lines: ",
+	"resize -h # columns: ",
 	"resize -v # lines: ",
-	"resize -b # lines: ",
+	"resize -b # columns: ",
 	"resize -l # lines: ",
-	"resize -l -h # lines: ",
+	"resize -l -h # columns: ",
 	"resize -l -v # lines: ",
-	"resize -l -b # lines: ",
+	"resize -l -b # columns: ",
 };
 
 static int parse_input_int(const char *buf, int len, int *val)
