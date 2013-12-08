@@ -42,7 +42,6 @@ struct NewWindow {
 	char	*term;		/* TERM to be set instead of "screen" */
 	int	aflag;
 	int	flowflag;
-	int	lflag;
 	int	histheight;
 	int	monitor;
 	int	wlock;		/* default writelock setting */
@@ -219,7 +218,6 @@ struct Window {
 	char	*w_dir;			/* directory for chdir */
 	char	*w_term;		/* TERM to be set instead of "screen" */
 
-	int	 w_lflag;		/* login flag */
 	slot_t	 w_slot;		/* utmp slot */
 #if defined (UTMPOK)
 	struct utmp w_savut;		/* utmp entry of this window */

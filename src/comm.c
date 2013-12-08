@@ -82,9 +82,6 @@ struct comm comms[RC_LAST + 1] =
   { "defhstatus",	ARGS_01,			},
   { "defkanji",		ARGS_1,				},
   { "deflog",		ARGS_1,				},
-#if defined(UTMPOK) && defined(LOGOUTOK)
-  { "deflogin",		ARGS_1,				},
-#endif
   { "defmode",		ARGS_1,				},
   { "defmonitor",	ARGS_1,				},
   { "defmousetrack",	ARGS_1,				},
@@ -132,9 +129,6 @@ struct comm comms[RC_LAST + 1] =
   { "lockscreen",	NEED_DISPLAY|ARGS_0,		},
   { "log",		NEED_FORE|ARGS_01,		},
   { "logfile",		ARGS_012,			},
-#if defined(UTMPOK) && defined(LOGOUTOK)
-  { "login",		NEED_FORE|ARGS_01,		},
-#endif
   { "logtstamp",	ARGS_012,			},
   { "mapdefault",	NEED_DISPLAY|ARGS_0,		},
   { "mapnotnext",	NEED_DISPLAY|ARGS_0,		},

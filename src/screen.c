@@ -363,19 +363,8 @@ int main(int argc, char **argv)
 				case 'l':
 					ap++;
 					switch (*ap++) {
-					case 'n':
-					case '0':
-						nwin_options.lflag = 0;
-						break;
 					case '\0':
 						ap--;
-						/* FALLTHROUGH */
-					case 'y':
-					case '1':
-						nwin_options.lflag = 1;
-						break;
-					case 'a':
-						nwin_options.lflag = 3;
 						break;
 					case 's':	/* -ls */
 					case 'i':	/* -list */
@@ -798,11 +787,6 @@ int main(int argc, char **argv)
 		(void)StartRc(ETCSCREENRC, 0);
 #endif
 	(void)StartRc(RcFileName, 0);
-#ifdef UTMPOK
-#ifndef UTNOKEEP
-	InitUtmp();
-#endif				/* UTNOKEEP */
-#endif				/* UTMPOK */
 	if (display) {
 		if (InitTermcap(0, 0)) {
 			fcntl(D_userfd, F_SETFL, 0);	/* Flush sets FNBLOCK */
@@ -813,9 +797,6 @@ int main(int argc, char **argv)
 		}
 		MakeDefaultCanvas();
 		InitTerm(0);
-#ifdef UTMPOK
-		RemoveLoginSlot();
-#endif
 	} else
 		MakeTermcap(1);
 	MakeNewEnv();
@@ -939,12 +920,6 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 		s = ctime(&now);
 		if (s && *s)
 			s[strlen(s) - 1] = '\0';
-#ifdef UTMPOK
-		if (p->w_slot != (slot_t) 0 && p->w_slot != (slot_t) - 1) {
-			RemoveUtmp(p);
-			p->w_slot = 0;	/* "detached" */
-		}
-#endif
 		CloseDevice(p);
 
 		p->w_deadpid = p->w_pid;
@@ -961,9 +936,6 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 		WindowChanged(p, 'f');
 	} else
 		KillWindow(p);
-#ifdef UTMPOK
-	CarefulUtmp();
-#endif
 }
 
 static void SigChldHandler()
@@ -1126,9 +1098,6 @@ void Finit(int i)
 		if (D_status)
 			RemoveStatus();
 		FinitTerm();
-#ifdef UTMPOK
-		RestoreLoginSlot();
-#endif
 		AddStr("[screen is terminating]\r\n");
 		Flush(3);
 		SetTTY(D_userfd, &D_OldMode);
@@ -1246,22 +1215,6 @@ void Detach(int mode)
 		/* tell attacher to lock terminal with a lockprg. */
 		break;
 	}
-#ifdef UTMPOK
-	if (displays->d_next == 0) {
-		for (p = windows; p; p = p->w_next) {
-			if (p->w_slot != (slot_t) - 1 && !(p->w_lflag & 2)) {
-				RemoveUtmp(p);
-				/*
-				 * Set the slot to 0 to get the window
-				 * logged in again.
-				 */
-				p->w_slot = (slot_t) 0;
-			}
-		}
-	}
-	if (mode != D_HANGUP)
-		RestoreLoginSlot();
-#endif
 	if (displays->d_next == 0 && console_window) {
 		if (TtyGrabConsole(console_window->w_ptyfd, 0, "detach")) {
 			KillWindow(console_window);
@@ -1402,9 +1355,6 @@ void Panic(int err, const char *fmt, ...)
 				RemoveStatus();
 			FinitTerm();
 			Flush(3);
-#ifdef UTMPOK
-			RestoreLoginSlot();
-#endif
 			SetTTY(D_userfd, &D_OldMode);
 			fcntl(D_userfd, F_SETFL, 0);
 			write(D_userfd, buf, strlen(buf));

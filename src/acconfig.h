@@ -77,58 +77,6 @@
 #undef TOPSTAT
 
 /*
- * define SCRIPT to add scripting support to screen.
- */
-#define SCRIPT
-
-/*Include the binding you would like to use.*/
-#ifdef SCRIPT
-#define LUA_BINDING
-#define PY_BINDING
-#endif
-
-/*
- * If screen is installed with permissions to update /etc/utmp (such
- * as if it is installed set-uid root), define UTMPOK.
- */
-#define UTMPOK
-
-/* Set LOGINDEFAULT to one (1)
- * if you want entries added to /etc/utmp by default, else set it to
- * zero (0).
- * LOGINDEFAULT will be one (1) whenever LOGOUTOK is undefined!
- */
-#define LOGINDEFAULT	1
-
-/* Set LOGOUTOK to one (1)
- * if you want the user to be able to log her/his windows out.
- * (Meaning: They are there, but not visible in /etc/utmp).
- * Disabling this feature only makes sense if you have a secure /etc/utmp
- * database.
- * Negative examples: suns usually have a world writable utmp file,
- * xterm will run perfectly without s-bit.
- *
- * If LOGOUTOK is undefined and UTMPOK is defined, all windows are
- * initially and permanently logged in.
- *
- * Set CAREFULUTMP to one (1) if you want that users have at least one
- * window per screen session logged in.
- */
-#define LOGOUTOK 1
-#undef CAREFULUTMP
-
-
-/*
- * If UTMPOK is defined and your system (incorrectly) counts logins by
- * counting non-null entries in /etc/utmp (instead of counting non-null
- * entries with no hostname that are not on a pseudo tty), define USRLIMIT
- * to have screen put an upper-limit on the number of entries to write
- * into /etc/utmp.  This helps to keep you from exceeding a limited-user
- * license.
- */
-#undef USRLIMIT
-
-/*
  * to lower the interrupt load on the host machine, you may want to
  * adjust the VMIN and VTIME settings used for plain tty windows.
  * See the termio(4) manual page (Non-Canonical Mode Input Processing)

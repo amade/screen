@@ -59,9 +59,6 @@ void exit_with_usage(char *myname, char *message, char *arg)
 	printf("-f            Flow control on, -fn = off, -fa = auto.\n");
 	printf("-h lines      Set the size of the scrollback history buffer.\n");
 	printf("-i            Interrupt output sooner when flow control is on.\n");
-#if defined(LOGOUTOK) && defined(UTMPOK)
-	printf("-l            Login mode on (update %s), -ln = off.\n", UTMPFILE);
-#endif
 	printf("-ls [match]   or -list. Do nothing, just list our SocketDir [on possible matches].\n");
 	printf("-L            Turn on output logging.\n");
 	printf("-m            ignore $STY variable, do create a new screen session.\n");

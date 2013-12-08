@@ -1600,9 +1600,6 @@ void InitKeytab()
 	ktab['i'].nr = ktab[Ctrl('i')].nr = RC_INFO;
 	ktab['m'].nr = ktab[Ctrl('m')].nr = RC_LASTMSG;
 	ktab['A'].nr = RC_TITLE;
-#if defined(UTMPOK) && defined(LOGOUTOK)
-	ktab['L'].nr = RC_LOGIN;
-#endif
 	ktab[','].nr = RC_LICENSE;
 	ktab['W'].nr = RC_WIDTH;
 	ktab['.'].nr = RC_DUMPTERMCAP;
@@ -3268,33 +3265,6 @@ void DoAction(struct action *act, int key)
 		}
 		(void)ParseSaveStr(act, &PowDetachString);
 		break;
-#if defined(UTMPOK) && defined(LOGOUTOK)
-	case RC_LOGIN:
-		n = fore->w_slot != (slot_t) - 1;
-		if (*args && !strcmp(*args, "always")) {
-			fore->w_lflag = 3;
-			if (!displays && n)
-				SlotToggle(n);
-			break;
-		}
-		if (*args && !strcmp(*args, "attached")) {
-			fore->w_lflag = 1;
-			if (!displays && n)
-				SlotToggle(0);
-			break;
-		}
-		if (ParseSwitch(act, &n) == 0)
-			SlotToggle(n);
-		break;
-	case RC_DEFLOGIN:
-		if (!strcmp(*args, "always"))
-			nwin_default.lflag |= 2;
-		else if (!strcmp(*args, "attached"))
-			nwin_default.lflag &= ~2;
-		else
-			(void)ParseOnOff(act, &nwin_default.lflag);
-		break;
-#endif
 	case RC_DEFFLOW:
 		if (args[0] && args[1] && args[1][0] == 'i') {
 			iflag = true;
@@ -5447,10 +5417,6 @@ char *AddWindowFlags(char *buf, int len, Window *p)
 		*s++ = '@';
 	if (p->w_bell == BELL_DONE)
 		*s++ = '!';
-#ifdef UTMPOK
-	if (p->w_slot != (slot_t) 0 && p->w_slot != (slot_t) - 1)
-		*s++ = '$';
-#endif
 	if (p->w_log != 0) {
 		strcpy(s, "(L)");
 		s += 3;
@@ -5858,26 +5824,6 @@ void DoScreen(char *fn, char **av)
 			else
 				--av;
 			break;
-#ifdef LOGOUTOK
-		case 'l':
-			switch (av[0][2]) {
-			case 'n':
-			case '0':
-				nwin.lflag = 0;
-				break;
-			case 'y':
-			case '1':
-			case '\0':
-				nwin.lflag = 1;
-				break;
-			case 'a':
-				nwin.lflag = 3;
-				break;
-			default:
-				break;
-			}
-			break;
-#endif
 		case 'a':
 			nwin.aflag = 1;
 			break;

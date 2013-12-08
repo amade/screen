@@ -68,7 +68,7 @@ static void pseu_writeev_fn(Event *, void *);
 static void win_silenceev_fn(Event *, void *);
 static void win_destroyev_fn(Event *, void *);
 
-static int OpenDevice(char **, int, int *, char **);
+static int OpenDevice(char **, int *, char **);
 static int ForkWindow(Window *, char **, char *);
 
 Window **wtab;		/* window table */
@@ -89,7 +89,6 @@ struct NewWindow nwin_undef = {
 	(char *)0,		/* term */
 	-1,			/* aflag */
 	-1,			/* flowflag */
-	-1,			/* lflag */
 	-1,			/* histheight */
 	-1,			/* monitor */
 	-1,			/* wlock */
@@ -114,7 +113,6 @@ struct NewWindow nwin_default = {
 	screenterm,		/* term */
 	0,			/* aflag */
 	1 * FLOW_NOW,		/* flowflag */
-	LOGINDEFAULT,		/* lflag */
 	DEFAULTHISTHEIGHT,	/* histheight */
 	MON_OFF,		/* monitor */
 	WLOCK_OFF,		/* wlock */
@@ -146,7 +144,6 @@ void nwin_compose(struct NewWindow *def, struct NewWindow *new, struct NewWindow
 	COMPOSE(term);
 	COMPOSE(aflag);
 	COMPOSE(flowflag);
-	COMPOSE(lflag);
 	COMPOSE(histheight);
 	COMPOSE(monitor);
 	COMPOSE(wlock);
@@ -380,18 +377,9 @@ int MakeWindow(struct NewWindow *newwin)
 		Msg(0, "No more windows.");
 		return -1;
 	}
-#if defined(USRLIMIT) && defined(UTMPOK)
-	/*
-	 * Count current number of users, if logging windows in.
-	 */
-	if (nwin.lflag && CountUsers() >= USRLIMIT) {
-		Msg(0, "User limit reached.  Window will not be logged in.");
-		nwin.lflag = 0;
-	}
-#endif
 	n = pp - wtab;
 
-	if ((f = OpenDevice(nwin.args, nwin.lflag, &type, &TtyName)) < 0)
+	if ((f = OpenDevice(nwin.args, &type, &TtyName)) < 0)
 		return -1;
 	if (type == W_TYPE_GROUP)
 		f = -1;
@@ -401,10 +389,6 @@ int MakeWindow(struct NewWindow *newwin)
 		Msg(0, "%s", strnomem);
 		return -1;
 	}
-#ifdef UTMPOK
-	if (type != W_TYPE_PTY)
-		nwin.lflag = 0;
-#endif
 
 	p->w_type = type;
 
@@ -513,22 +497,6 @@ int MakeWindow(struct NewWindow *newwin)
 		return n;
 	}
 
-	p->w_lflag = nwin.lflag;
-#ifdef UTMPOK
-	p->w_slot = (slot_t) - 1;
-#ifdef LOGOUTOK
-	if (nwin.lflag & 1)
-#endif				/* LOGOUTOK */
-	{
-		p->w_slot = (slot_t) 0;
-		if (display || (p->w_lflag & 2))
-			SetUtmp(p);
-	}
-#ifdef CAREFULUTMP
-	CarefulUtmp();		/* If all 've been zombies, we've had no slot */
-#endif
-#endif				/* UTMPOK */
-
 	if (nwin.Lflag) {
 		char buf[1024];
 		DoStartLog(p, buf, sizeof(buf));
@@ -582,10 +550,9 @@ int MakeWindow(struct NewWindow *newwin)
 int RemakeWindow(Window *window)
 {
 	char *TtyName;
-	int lflag, fd, i;
+	int fd, i;
 
-	lflag = nwin_default.lflag;
-	if ((fd = OpenDevice(window->w_cmdargs, lflag, &window->w_type, &TtyName)) < 0)
+	if ((fd = OpenDevice(window->w_cmdargs, &window->w_type, &TtyName)) < 0)
 		return -1;
 
 	evdeq(&window->w_destroyev);	/* no re-destroy of resurrected zombie */
@@ -619,13 +586,6 @@ int RemakeWindow(Window *window)
 		if (window->w_pid < 0)
 			return -1;
 	}
-#ifdef UTMPOK
-	if (window->w_slot == (slot_t) 0 && (display || (window->w_lflag & 2)))
-		SetUtmp(window);
-#ifdef CAREFULUTMP
-	CarefulUtmp();		/* If all 've been zombies, we've had no slot */
-#endif
-#endif
 	WindowChanged(window, 'f');
 	return window->w_number;
 }
@@ -656,9 +616,6 @@ void FreeWindow(Window *window)
 
 	if (window->w_pwin)
 		FreePseudowin(window);
-#ifdef UTMPOK
-	RemoveUtmp(window);
-#endif
 	CloseDevice(window);
 
 	if (window == console_window) {
@@ -727,7 +684,7 @@ void FreeWindow(Window *window)
 	free((char *)window);
 }
 
-static int OpenDevice(char **args, int lflag, int *typep, char **namep)
+static int OpenDevice(char **args, int *typep, char **namep)
 {
 	char *arg = args[0];
 	struct stat st;
@@ -750,7 +707,6 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 		}
 		if ((fd = OpenTTY(arg, args[1])) < 0)
 			return -1;
-		lflag = 0;
 		*typep = W_TYPE_PLAIN;
 		*namep = arg;
 	} else {
@@ -805,11 +761,7 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 		close(fd);
 		return -1;
 	}
-#ifdef UTMPOK
-	if (chmod(*namep, lflag ? TtyMode : (TtyMode & ~022)))
-#else
 	if (chmod(*namep, TtyMode))
-#endif
 	{
 		Msg(errno, "chmod tty");
 		close(fd);
@@ -1116,7 +1068,7 @@ int winexec(char **av)
 	}
 	*--t = '\0';
 
-	if ((pwin->p_ptyfd = OpenDevice(av, 0, &type, &t)) < 0) {
+	if ((pwin->p_ptyfd = OpenDevice(av, &type, &t)) < 0) {
 		free((char *)pwin);
 		return -1;
 	}
@@ -1469,18 +1421,6 @@ int SwapWindows(int old, int dest)
 	wtab[old] = p;
 	if (p)
 		p->w_number = old;
-#ifdef UTMPOK
-	/* exchange the utmp-slots for these windows */
-	if ((win_old->w_slot != (slot_t) - 1) && (win_old->w_slot != (slot_t) 0)) {
-		RemoveUtmp(win_old);
-		SetUtmp(win_old);
-	}
-	if (p && (p->w_slot != (slot_t) - 1) && (p->w_slot != (slot_t) 0)) {
-		display = win_old->w_layer.l_cvlist ? win_old->w_layer.l_cvlist->c_display : 0;
-		RemoveUtmp(p);
-		SetUtmp(p);
-	}
-#endif
 
 	WindowChanged(win_old, 'n');
 	WindowChanged((Window *)0, 'w');

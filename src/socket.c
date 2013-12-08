@@ -387,7 +387,6 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	m.m.create.nargs = n;
 	m.m.create.aflag = nwin->aflag;
 	m.m.create.flowflag = nwin->flowflag;
-	m.m.create.lflag = nwin->lflag;
 	m.m.create.hheight = nwin->histheight;
 	if (getcwd(m.m.create.dir, sizeof(m.m.create.dir)) == 0) {
 		Msg(errno, "getcwd");
@@ -459,7 +458,6 @@ static void ExecCreate(struct msg *mp)
 	nwin.flowflag = mp->m.create.flowflag;
 	if (*mp->m.create.dir)
 		nwin.dir = mp->m.create.dir;
-	nwin.lflag = mp->m.create.lflag;
 	nwin.histheight = mp->m.create.hheight;
 	if (*mp->m.create.screenterm)
 		nwin.term = mp->m.create.screenterm;
@@ -858,18 +856,6 @@ static void FinishAttach(struct msg *m)
 		DefaultEsc = m->m.attach.esc;
 		DefaultMetaEsc = m->m.attach.meta_esc;
 	}
-#ifdef UTMPOK
-	/*
-	 * we set the Utmp slots again, if we were detached normally
-	 * and if we were detached by ^Z.
-	 * don't log zomies back in!
-	 */
-	RemoveLoginSlot();
-	if (displays->d_next == 0)
-		for (wi = windows; wi; wi = wi->w_next)
-			if (wi->w_ptyfd >= 0 && wi->w_slot != (slot_t) - 1)
-				SetUtmp(wi);
-#endif
 
 	D_fore = NULL;
 	if (layout_attach) {

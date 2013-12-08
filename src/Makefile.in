@@ -47,13 +47,13 @@ AWK = @AWK@
 SHELL=/bin/sh
 
 CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
-	search.c tty.c term.c window.c utmp.c help.c \
+	search.c tty.c term.c window.c help.c \
 	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
 	kmapdef.c logfile.c layer.c \
 	sched.c encoding.c canvas.c layout.c viewport.c \
 	list_display.c list_generic.c list_window.c authentication.c
 OFILES=	screen.o ansi.o fileio.o mark.o misc.o resize.o socket.o \
-	search.o tty.o term.o window.o utmp.o help.o \
+	search.o tty.o term.o window.o help.o \
 	termcap.o input.o attacher.o pty.o process.o display.o comm.o \
 	kmapdef.o logfile.o layer.o \
 	list_generic.o list_display.o list_window.o \
@@ -191,8 +191,6 @@ tty.o: layout.h viewport.h canvas.h tty.c config.h screen.h os.h ansi.h comm.h \
 term.o: layout.h viewport.h canvas.h term.c term.h
 window.o: layout.h viewport.h canvas.h window.c config.h screen.h os.h ansi.h \
  comm.h layer.h term.h image.h display.h window.h logfile.h
-utmp.o: layout.h viewport.h canvas.h utmp.c config.h screen.h os.h ansi.h \
- comm.h layer.h term.h image.h display.h window.h
 help.o: layout.h viewport.h canvas.h help.c config.h screen.h os.h ansi.h \
  comm.h layer.h term.h image.h display.h window.h list_generic.h
 termcap.o: layout.h viewport.h canvas.h termcap.c config.h screen.h os.h ansi.h \
