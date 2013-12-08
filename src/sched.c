@@ -146,14 +146,6 @@ void sched()
 			evdeq(timeoutev);
 			timeoutev->handler(timeoutev, timeoutev->data);
 		}
-#ifdef SELECT_BROKEN
-		/*
-		 * Sequents select emulation counts a descriptor which is
-		 * readable and writeable only as one hit. Waaaaa.
-		 */
-		if (nsel)
-			nsel = 2 * FD_SETSIZE;
-#endif
 
 		for (ev = evs; ev; ev = nextev) {
 			nextev = ev->next;

@@ -158,13 +158,6 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 		if (stat(SocketPath, &st)) {
 			continue;
 		}
-#ifndef SOCK_NOT_IN_FS
-#else
-#ifdef S_ISSOCK
-		if (!S_ISSOCK(st.st_mode))
-			continue;
-#endif
-#endif
 
 		if (st.st_uid != real_uid)
 			continue;
@@ -325,17 +318,8 @@ int MakeServerSocket()
 	(void)unlink(SocketPath);
 	if (bind(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) == -1)
 		Panic(errno, "bind (%s)", SocketPath);
-#ifdef SOCK_NOT_IN_FS
-	{
-		int f;
-		if ((f = open(SocketPath, O_RDWR | O_CREAT, SOCKMODE)) < 0)
-			Panic(errno, "shadow socket open");
-		close(f);
-	}
-#else
 	chmod(SocketPath, SOCKMODE);
 	chown(SocketPath, real_uid, real_gid);
-#endif				/* SOCK_NOT_IN_FS */
 	if (listen(s, 5) == -1)
 		Panic(errno, "listen");
 #ifdef F_SETOWN
