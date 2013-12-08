@@ -68,9 +68,7 @@ int pty_preopen = 0;
 static void initmaster(int f)
 {
 	tcflush(f, TCIOFLUSH);
-#ifdef LOCKPTY
 	(void)ioctl(f, TIOCEXCL, (char *)0);
-#endif
 }
 
 int OpenPTY(char **ttyn)
