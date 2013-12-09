@@ -46,12 +46,16 @@ int winmsg_numrend;
 /* redundant definition abstraction for escape character handlers; note that
  * a variable varadic macro name is a gcc extension and is not portable, so
  * we instead use two separate macros */
-#define WINMSG_ESC_PARAMS __attribute__((unused)) WinMsgEsc *esc, char *s, char **p
+#define WINMSG_ESC_PARAMS \
+	__attribute__((unused)) WinMsgEsc *esc, \
+	char *s, \
+	char **p, \
+	__attribute__((unused)) WinMsgCond *cond
 #define winmsg_esc__name(name) __WinMsgEsc##name
 #define winmsg_esc__def(name) static char *winmsg_esc__name(name)
 #define winmsg_esc(name) winmsg_esc__def(name)(WINMSG_ESC_PARAMS)
 #define winmsg_esc_ex(name, ...) winmsg_esc__def(name)(WINMSG_ESC_PARAMS, __VA_ARGS__)
-#define WINMSG_ESC_ARGS &esc, s, &p
+#define WINMSG_ESC_ARGS &esc, s, &p, cond
 #define WinMsgDoEsc(name) winmsg_esc__name(name)(WINMSG_ESC_ARGS)
 #define WinMsgDoEscEx(name, ...) winmsg_esc__name(name)(WINMSG_ESC_ARGS, __VA_ARGS__)
 
@@ -266,7 +270,7 @@ int AddWinMsgRend(const char *str, uint64_t r)
 }
 
 
-winmsg_esc_ex(Wflags, Window *win, int plen, int *qmflag)
+winmsg_esc_ex(Wflags, Window *win, int plen)
 {
 	**p = '\0';
 
@@ -274,7 +278,7 @@ winmsg_esc_ex(Wflags, Window *win, int plen, int *qmflag)
 		AddWindowFlags(*p, plen - 1, win);
 
 	if (**p)
-		*qmflag = 1;
+		wmc_set(cond);
 
 	*p += strlen(*p) - 1;
 	return s;
@@ -288,30 +292,30 @@ winmsg_esc(Pid)
 	return s;
 }
 
-winmsg_esc_ex(CopyMode, Event *ev, int *qmflag)
+winmsg_esc_ex(CopyMode, Event *ev)
 {
 	(*p)--;
 	if (display && ev && ev != &D_hstatusev) {	/* Hack */
 		/* Is the layer in the current canvas in copy mode? */
 		Canvas *cv = (Canvas *)ev->data;
 		if (ev == &cv->c_captev && cv->c_layer->l_layfn == &MarkLf)
-			*qmflag = 1;
+			wmc_set(cond);
 	}
 
 	return s;
 }
 
-winmsg_esc_ex(EscSeen, int *qmflag)
+winmsg_esc(EscSeen)
 {
 	(*p)--;
 	if (display && D_ESCseen) {
-		*qmflag = 1;
+		wmc_set(cond);
 	}
 
 	return s;
 }
 
-winmsg_esc_ex(Focus, Window *win, Event *ev, int *qmflag)
+winmsg_esc_ex(Focus, Window *win, Event *ev)
 {
 	(*p)--;
 
@@ -320,18 +324,18 @@ winmsg_esc_ex(Focus, Window *win, Event *ev, int *qmflag)
 		esc->flags.minus ^= 1;
 
 	if (esc->flags.minus)
-		*qmflag = 1;
+		wmc_set(cond);
 
 	return s;
 }
 
-winmsg_esc_ex(HostName, int plen, int *qmflag)
+winmsg_esc_ex(HostName, int plen)
 {
 	**p = 0;
 	if ((int)strlen(HostName) < plen) {
 		strncpy(*p, HostName, plen);
 		if (**p)
-			*qmflag = 1;
+			wmc_set(cond);
 	}
 	*p += strlen(*p) - 1;
 
@@ -372,7 +376,7 @@ winmsg_esc(Rend)
 	return s;
 }
 
-winmsg_esc_ex(SessName, int plen, int *qmflag)
+winmsg_esc_ex(SessName, int plen)
 {
 	char *session_name = strchr(SocketName, '.') + 1;
 
@@ -380,14 +384,14 @@ winmsg_esc_ex(SessName, int plen, int *qmflag)
 	if ((int)strlen(session_name) < plen) {
 		strncpy(*p, session_name, plen);
 		if (**p)
-			*qmflag = 1;
+			wmc_set(cond);
 	}
 
 	*p += strlen(*p) - 1;
 	return s;
 }
 
-winmsg_esc_ex(WinNames, const bool hide_cur, Window *win, int plen, int *qmflag)
+winmsg_esc_ex(WinNames, const bool hide_cur, Window *win, int plen)
 {
 	Window *oldfore = 0;
 
@@ -407,7 +411,7 @@ winmsg_esc_ex(WinNames, const bool hide_cur, Window *win, int plen, int *qmflag)
 		D_fore = oldfore;
 
 	if (**p)
-		*qmflag = 1;
+		wmc_set(cond);
 
 	*p += strlen(*p) - 1;
 	return s;
@@ -435,17 +439,26 @@ winmsg_esc_ex(WinArgv, Window *win)
 	return s;
 }
 
-winmsg_esc_ex(WinTitle, Window *win, int plen, int *qmflag)
+winmsg_esc_ex(WinTitle, Window *win, int plen)
 {
 	**p = '\0';
 	if (win && (int)strlen(win->w_title) < plen) {
 		strncpy(*p, win->w_title, plen);
 		if (**p)
-			*qmflag = 1;
+			wmc_set(cond);
 	}
 
 	*p += strlen(*p) - 1;
 	return s;
+}
+
+
+static inline char *cond_cancel(WinMsgCond *cond, int condrend, int *destrend)
+{
+	if (condrend < *destrend)
+		*destrend = condrend;
+
+	return wmc_get_pos(cond);
 }
 
 
@@ -457,8 +470,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 	register int ctrl;
 	struct timeval now;
 	int l;
-	int qmflag = 0, omflag = 0, qmnumrend = 0;
-	char *qmpos = 0;
+	int omflag = 0, qmnumrend = 0;
 	int numpad = 0;
 	int lastpad = 0;
 	int truncpos = -1;
@@ -467,6 +479,13 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 	uint64_t r;
 	struct backtick *bt = NULL;
 	WinMsgEsc esc;
+	WinMsgCond *cond = alloca(sizeof(WinMsgCond));
+
+	if (cond == NULL)
+		Panic(0, "%s", strnomem);
+
+	/* set to sane state (clear garbage) */
+	wmc_deinit(cond);
 
 	if (winmsg_numrend >= 0)
 		winmsg_numrend = 0;
@@ -519,31 +538,31 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 		switch (*s) {
 		case '?':
 			p--;
-			if (qmpos) {
-				if ((!qmflag && !omflag) || omflag == 1) {
-					p = qmpos;
-					if (qmnumrend < winmsg_numrend)
-						winmsg_numrend = qmnumrend;
+			if (wmc_is_active(cond)) {
+				if ((!wmc_is_set(cond) && !omflag) || omflag == 1) {
+					/* no match; no output */
+					p = cond_cancel(cond, qmnumrend, &winmsg_numrend);
 				}
-				qmpos = 0;
+				wmc_deinit(cond);
 				break;
 			}
-			qmpos = p;
+			wmc_init(cond, p);
 			qmnumrend = winmsg_numrend;
-			qmflag = omflag = 0;
+			omflag = 0;
 			break;
 		case ':':
 			p--;
-			if (!qmpos)
+			if (!wmc_is_active(cond))
 				break;
-			if (qmflag && omflag != 1) {
+			if (wmc_is_set(cond) && omflag != 1) {
+				/* encountered else, but we're already true */
 				omflag = 1;
-				qmpos = p;
+				wmc_init(cond, p);
 				qmnumrend = winmsg_numrend;
 			} else {
-				p = qmpos;
-				if (qmnumrend < winmsg_numrend)
-					winmsg_numrend = qmnumrend;
+				/* encountered else and we're not true; get rid of true part of
+				 * condition */
+				p = cond_cancel(cond, qmnumrend, &winmsg_numrend);
 				omflag = -1;
 			}
 			break;
@@ -580,7 +599,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 				while (oldnumrend < winmsg_numrend)
 					winmsg_rendpos[oldnumrend++] += p - winmsg_buf;
 				if (*p)
-					qmflag = 1;
+					wmc_set(cond);
 				p += strlen(p) - 1;
 			}
 			break;
@@ -590,34 +609,34 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 			break;
 		case WINESC_WIN_NAMES:
 		case WINESC_WIN_NAMES_NOCUR:
-			s = WinMsgDoEscEx(WinNames, (*s == WINESC_WIN_NAMES_NOCUR), win, l, &qmflag);
+			s = WinMsgDoEscEx(WinNames, (*s == WINESC_WIN_NAMES_NOCUR), win, l);
 			break;
 		case WINESC_WFLAGS:
-			s = WinMsgDoEscEx(Wflags, win, l, &qmflag);
+			s = WinMsgDoEscEx(Wflags, win, l);
 			break;
 		case WINESC_WIN_TITLE:
-			s = WinMsgDoEscEx(WinTitle, win, l, &qmflag);
+			s = WinMsgDoEscEx(WinTitle, win, l);
 			break;
 		case WINESC_REND_START:
 			s = WinMsgDoEsc(Rend);
 			break;
 		case WINESC_HOST:
-			s = WinMsgDoEscEx(HostName, l, &qmflag);
+			s = WinMsgDoEscEx(HostName, l);
 			break;
 		case WINESC_SESS_NAME:
-			s = WinMsgDoEscEx(SessName, l, &qmflag);
+			s = WinMsgDoEscEx(SessName, l);
 			break;
 		case WINESC_PID:
 			s = WinMsgDoEsc(Pid);
 			break;
 		case WINESC_FOCUS:
-			s = WinMsgDoEscEx(Focus, win, ev, &qmflag);
+			s = WinMsgDoEscEx(Focus, win, ev);
 			break;
 		case WINESC_COPY_MODE:
-			s = WinMsgDoEscEx(CopyMode, ev, &qmflag);
+			s = WinMsgDoEscEx(CopyMode, ev);
 			break;
 		case WINESC_ESC_SEEN:
-			s = WinMsgDoEscEx(EscSeen, &qmflag);
+			s = WinMsgDoEsc(EscSeen);
 			break;
 		case '>':
 			truncpos = p - winmsg_buf;
@@ -744,14 +763,14 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 					sprintf(p, "%*s", esc.num, esc.num > 1 ? "--" : "-");
 				else
 					sprintf(p, "%*d", esc.num, win->w_number);
-				qmflag = 1;
+				wmc_set(cond);
 				p += strlen(p) - 1;
 			}
 			break;
 		}
 	}
-	if (qmpos && !qmflag)
-		p = qmpos + 1;
+	if (wmc_is_active(cond) && !wmc_is_set(cond))
+		p = wmc_get_pos(cond) + 1;
 	*p = '\0';
 	if (numpad) {
 		if (padlen > MAXSTR - 1)

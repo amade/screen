@@ -34,8 +34,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "window.h"
+#include "winmsgcond.h"
 
 #define MAX_WINMSG_REND 256	/* rendition changes */
 #define RENDBUF_SIZE 128 /* max rendition byte count */
