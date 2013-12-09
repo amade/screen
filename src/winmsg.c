@@ -453,14 +453,15 @@ winmsg_esc_ex(WinTitle, Window *win, int plen)
 }
 
 
-static inline char *cond_cancel(WinMsgCond *cond, int condrend, int *destrend)
+static inline char *_WinMsgCondProcess(char *posnew, char *pos, int condrend, int *destrend)
 {
-	if (condrend < *destrend)
-		*destrend = condrend;
+	if (posnew == pos)
+		return pos;
 
-	return wmc_get_pos(cond);
+	/* position has changed, so be sure to also restore renditions */
+	*destrend = condrend;
+	return posnew;
 }
-
 
 char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int rec)
 {
@@ -470,7 +471,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 	register int ctrl;
 	struct timeval now;
 	int l;
-	int omflag = 0, qmnumrend = 0;
+	int qmnumrend = 0;
 	int numpad = 0;
 	int lastpad = 0;
 	int truncpos = -1;
@@ -539,31 +540,17 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 		case '?':
 			p--;
 			if (wmc_is_active(cond)) {
-				if ((!wmc_is_set(cond) && !omflag) || omflag == 1) {
-					/* no match; no output */
-					p = cond_cancel(cond, qmnumrend, &winmsg_numrend);
-				}
+				p = _WinMsgCondProcess(wmc_end(cond, p), p, qmnumrend, &winmsg_numrend);
 				wmc_deinit(cond);
 				break;
 			}
 			wmc_init(cond, p);
 			qmnumrend = winmsg_numrend;
-			omflag = 0;
 			break;
 		case ':':
 			p--;
-			if (!wmc_is_active(cond))
-				break;
-			if (wmc_is_set(cond) && omflag != 1) {
-				/* encountered else, but we're already true */
-				omflag = 1;
-				wmc_init(cond, p);
-				qmnumrend = winmsg_numrend;
-			} else {
-				/* encountered else and we're not true; get rid of true part of
-				 * condition */
-				p = cond_cancel(cond, qmnumrend, &winmsg_numrend);
-				omflag = -1;
+			if (wmc_is_active(cond)) {
+				p = _WinMsgCondProcess(wmc_else(cond, p), p, qmnumrend, &winmsg_numrend);
 			}
 			break;
 		case '`':
@@ -770,7 +757,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 		}
 	}
 	if (wmc_is_active(cond) && !wmc_is_set(cond))
-		p = wmc_get_pos(cond) + 1;
+		p = wmc_end(cond, p) + 1;
 	*p = '\0';
 	if (numpad) {
 		if (padlen > MAXSTR - 1)

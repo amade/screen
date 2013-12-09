@@ -29,8 +29,9 @@
 
 /* represents a window message condition (e.g. %?)*/
 typedef struct {
-	char *pos;    /* starting position in dest string */
-	bool  state;  /* conditional truth value */
+	char *pos;     /* starting position in dest string */
+	bool  state;   /* conditional truth value */
+	bool  locked;  /* when set, prevents state from changing */
 } WinMsgCond;
 
 /* WinMsgCond is intended to be used as an opaque type */
@@ -39,7 +40,8 @@ inline void  wmc_set(WinMsgCond *);
 inline void  wmc_clear(WinMsgCond *);
 inline bool  wmc_is_active(const WinMsgCond *);
 inline bool  wmc_is_set(const WinMsgCond *);
-inline char *wmc_get_pos(const WinMsgCond *);
+inline char *wmc_else(WinMsgCond *, char *);
+inline char *wmc_end(const WinMsgCond *, char *);
 inline void  wmc_deinit(WinMsgCond *);
 
 #endif
