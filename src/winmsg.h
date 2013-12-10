@@ -49,7 +49,7 @@ typedef enum {
 	WINESC_FOCUS           = 'F',
 	WINESC_HOST            = 'H',
 	WINESC_PID             = 'p',
-	WINESC_COPY_MODE       = 'P', /* copy/_P_aste mode */
+	WINESC_COPY_MODE       = 'P',  /* copy/_P_aste mode */
 	WINESC_SESS_NAME       = 'S',
 	WINESC_WIN_TITLE       = 't',
 	WINESC_WIN_NAMES       = 'w',
@@ -59,6 +59,8 @@ typedef enum {
 	WINESC_REND_START      = '{',
 	WINESC_REND_END        = '}',
 	WINESC_REND_POP        = '-',
+	WINESC_COND            = '?',  /* start and end delimiter */
+	WINESC_COND_ELSE       = ':',
 } WinMsgEscapeChar;
 
 /* escape sequence */
