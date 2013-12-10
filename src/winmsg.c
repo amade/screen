@@ -452,7 +452,6 @@ winmsg_esc_ex(WinTitle, Window *win, int plen)
 	return s;
 }
 
-
 static inline char *_WinMsgCondProcess(char *posnew, char *pos, int condrend, int *destrend)
 {
 	if (posnew == pos)
@@ -462,6 +461,33 @@ static inline char *_WinMsgCondProcess(char *posnew, char *pos, int condrend, in
 	*destrend = condrend;
 	return posnew;
 }
+
+winmsg_esc_ex(Cond, int *condrend)
+{
+	(*p)--;
+
+	if (wmc_is_active(cond)) {
+		*p = _WinMsgCondProcess(wmc_end(cond, *p), *p, *condrend, &winmsg_numrend);
+		wmc_deinit(cond);
+		return s;
+	}
+
+	wmc_init(cond, *p);
+	*condrend = winmsg_numrend;
+	return s;
+}
+
+winmsg_esc_ex(CondElse, int *condrend)
+{
+	(*p)--;
+
+	if (wmc_is_active(cond)) {
+		*p = _WinMsgCondProcess(wmc_else(cond, *p), *p, *condrend, &winmsg_numrend);
+	}
+
+	return s;
+}
+
 
 char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int rec)
 {
@@ -537,21 +563,11 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 			s++;
 
 		switch (*s) {
-		case '?':
-			p--;
-			if (wmc_is_active(cond)) {
-				p = _WinMsgCondProcess(wmc_end(cond, p), p, qmnumrend, &winmsg_numrend);
-				wmc_deinit(cond);
-				break;
-			}
-			wmc_init(cond, p);
-			qmnumrend = winmsg_numrend;
+		case WINESC_COND:
+			s = WinMsgDoEscEx(Cond, &qmnumrend);
 			break;
-		case ':':
-			p--;
-			if (wmc_is_active(cond)) {
-				p = _WinMsgCondProcess(wmc_else(cond, p), p, qmnumrend, &winmsg_numrend);
-			}
+		case WINESC_COND_ELSE:
+			s = WinMsgDoEscEx(CondElse, &qmnumrend);
 			break;
 		case '`':
 		case 'h':
