@@ -48,6 +48,8 @@ inline void wmb_reset(WinMsgBuf *);
 void wmb_free(WinMsgBuf *);
 
 WinMsgBufContext *wmbc_create(WinMsgBuf *);
+inline void wmbc_fastfw(WinMsgBufContext *);
+inline void wmbc_fastfw0(WinMsgBufContext *);
 inline void wmbc_putchar(WinMsgBufContext *, char);
 void wmbc_free(WinMsgBufContext *);
 

@@ -65,8 +65,21 @@ WinMsgBufContext *wmbc_create(WinMsgBuf *w)
 	return c;
 }
 
+/* Place pointer at character immediately preceding the terminating null
+ * character. */
+inline void wmbc_fastfw(WinMsgBufContext *wmbc)
+{
+	wmbc->p += strlen(wmbc->p) - 1;
+}
+
+/* Place pointer at terminating null character. */
+inline void wmbc_fastfw0(WinMsgBufContext *wmbc)
+{
+	wmbc->p += strlen(wmbc->p);
+}
+
 /* Sets a character at the current buffer position and increments the pointer.
- * The terminating null byte is not retained. */
+ * The terminating null character is not retained. */
 inline void wmbc_putchar(WinMsgBufContext *wmbc, char c)
 {
 	assert(wmbc);

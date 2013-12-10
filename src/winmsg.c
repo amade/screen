@@ -277,14 +277,14 @@ winmsg_esc_ex(Wflags, Window *win, int plen)
 	if (*winmsg.buf)
 		wmc_set(cond);
 
-	wmbc->p += strlen(wmbc->p) - 1;
+	wmbc_fastfw(wmbc);
 	return s;
 }
 
 winmsg_esc(Pid)
 {
 	sprintf(wmbc->p, "%d", (esc->flags.plus && display) ? D_userpid : getpid());
-	(wmbc->p) += strlen(wmbc->p) - 1;
+	wmbc_fastfw(wmbc);
 
 	return s;
 }
@@ -334,7 +334,7 @@ winmsg_esc_ex(HostName, int plen)
 		if (*wmbc->p)
 			wmc_set(cond);
 	}
-	(wmbc->p) += strlen(wmbc->p) - 1;
+	wmbc_fastfw(wmbc);
 
 	return s;
 }
@@ -384,7 +384,7 @@ winmsg_esc_ex(SessName, int plen)
 			wmc_set(cond);
 	}
 
-	wmbc->p += strlen(wmbc->p) - 1;
+	wmbc_fastfw(wmbc);
 	return s;
 }
 
@@ -410,7 +410,7 @@ winmsg_esc_ex(WinNames, const bool hide_cur, Window *win, int plen)
 	if (*wmbc->p)
 		wmc_set(cond);
 
-	wmbc->p += strlen(wmbc->p) - 1;
+	wmbc_fastfw(wmbc);
 	return s;
 }
 
@@ -422,13 +422,13 @@ winmsg_esc_ex(WinArgv, Window *win)
 	}
 
 	sprintf(wmbc->p, "%s", win->w_cmdargs[0]);
-	wmbc->p += strlen(wmbc->p);
+	wmbc_fastfw0(wmbc);
 
 	if (*s == WINESC_CMD_ARGS) {
 		int i;
 		for (i = 1; win->w_cmdargs[i]; i++) {
 			sprintf(wmbc->p, " %s", win->w_cmdargs[i]);
-			wmbc->p += strlen(wmbc->p);
+			wmbc_fastfw0(wmbc);
 		}
 	}
 
@@ -445,7 +445,7 @@ winmsg_esc_ex(WinTitle, Window *win, int plen)
 			wmc_set(cond);
 	}
 
-	wmbc->p += strlen(wmbc->p) - 1;
+	wmbc_fastfw(wmbc);
 	return s;
 }
 
@@ -604,7 +604,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 					winmsg.rendpos[oldnumrend++] += wmbc->p - winmsg.buf;
 				if (*wmbc->p)
 					wmc_set(cond);
-				wmbc->p += strlen(wmbc->p) - 1;
+				wmbc_fastfw(wmbc);
 			}
 			break;
 		case WINESC_CMD:
@@ -753,7 +753,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 				sprintf(wmbc->p, "--x--");
 			else
 				sprintf(wmbc->p, "%dx%d", win->w_width, win->w_height);
-			wmbc->p += strlen(wmbc->p) - 1;
+			wmbc_fastfw(wmbc);
 			break;
 		case 'n':
 			s++;
@@ -768,7 +768,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 				else
 					sprintf(wmbc->p, "%*d", esc.num, win->w_number);
 				wmc_set(cond);
-				wmbc->p += strlen(wmbc->p) - 1;
+				wmbc_fastfw(wmbc);
 			}
 			break;
 		}
