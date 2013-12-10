@@ -42,6 +42,14 @@
 #define MAX_WINMSG_REND 256	/* rendition changes */
 #define RENDBUF_SIZE 128 /* max rendition byte count */
 
+/* Represents a working buffer for window messages */
+typedef struct {
+	char     buf[MAXSTR];
+	uint64_t rend[MAX_WINMSG_REND];
+	int      rendpos[MAX_WINMSG_REND];
+	int      numrend;
+} WinMsgBuf;
+
 /* escape characters */
 typedef enum {
 	WINESC_WFLAGS          = 'f',

@@ -54,10 +54,7 @@
 
 extern char **environ;
 
-extern char winmsg_buf[MAXSTR];
-extern uint64_t winmsg_rend[MAX_WINMSG_REND];
-extern int winmsg_rendpos[MAX_WINMSG_REND];
-extern int winmsg_numrend;
+extern WinMsgBuf winmsg;
 
 int force_vt = 1;
 int VBellWait, MsgWait, MsgMinWait, SilenceWait;
@@ -1402,7 +1399,7 @@ void PutWinMsg(char *s, int start, int max)
 	struct mchar rendstack[MAX_WINMSG_REND];
 	int rendstackn = 0;
 
-	if (s != winmsg_buf) {
+	if (s != winmsg.buf) {
 		/* sorry, no fancy coloring available */
 		l = strlen(s);
 		if (l > max)
@@ -1416,11 +1413,11 @@ void PutWinMsg(char *s, int start, int max)
 	rend = D_rend;
 	p = 0;
 	l = strlen(s);
-	for (i = 0; i < winmsg_numrend && max > 0; i++) {
-		if (p > winmsg_rendpos[i] || winmsg_rendpos[i] > l)
+	for (i = 0; i < winmsg.numrend && max > 0; i++) {
+		if (p > winmsg.rendpos[i] || winmsg.rendpos[i] > l)
 			break;
-		if (p < winmsg_rendpos[i]) {
-			n = winmsg_rendpos[i] - p;
+		if (p < winmsg.rendpos[i]) {
+			n = winmsg.rendpos[i] - p;
 			if (n > max)
 				n = max;
 			max -= n;
@@ -1432,7 +1429,7 @@ void PutWinMsg(char *s, int start, int max)
 					PUTCHARLP(*s++);
 			}
 		}
-		r = winmsg_rend[i];
+		r = winmsg.rend[i];
 		if (r == 0) {
 			if (rendstackn > 0)
 				rend = rendstack[--rendstackn];

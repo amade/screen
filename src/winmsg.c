@@ -35,11 +35,8 @@
 #include "sched.h"
 #include "mark.h"
 
-
-char winmsg_buf[MAXSTR];
-uint64_t winmsg_rend[MAX_WINMSG_REND];
-int winmsg_rendpos[MAX_WINMSG_REND];
-int winmsg_numrend;
+/* TODO: rid global variable */
+WinMsgBuf winmsg;
 
 #define CHRPAD 127
 
@@ -82,10 +79,10 @@ static char *pad_expand(char *buf, char *p, int numpad, int padlen)
 	if (padlen < 0)
 		padlen = 0;
 	pn2 = pn = p + padlen;
-	r = winmsg_numrend;
+	r = winmsg.numrend;
 	while (p >= buf) {
-		if (r && *p != CHRPAD && p - buf == winmsg_rendpos[r - 1]) {
-			winmsg_rendpos[--r] = pn - buf;
+		if (r && *p != CHRPAD && p - buf == winmsg.rendpos[r - 1]) {
+			winmsg.rendpos[--r] = pn - buf;
 			continue;
 		}
 		*pn-- = *p;
@@ -96,8 +93,8 @@ static char *pad_expand(char *buf, char *p, int numpad, int padlen)
 			while (i-- > 0)
 				*pn-- = ' ';
 			numpad--;
-			if (r && p - buf == winmsg_rendpos[r - 1])
-				winmsg_rendpos[--r] = pn - buf;
+			if (r && p - buf == winmsg.rendpos[r - 1])
+				winmsg.rendpos[--r] = pn - buf;
 		}
 	}
 	return pn2;
@@ -259,12 +256,12 @@ static char *runbacktick(struct backtick *bt, int *tickp, time_t now)
 
 int AddWinMsgRend(const char *str, uint64_t r)
 {
-	if (winmsg_numrend >= MAX_WINMSG_REND || str < winmsg_buf || str >= winmsg_buf + MAXSTR)
+	if (winmsg.numrend >= MAX_WINMSG_REND || str < winmsg.buf || str >= winmsg.buf + MAXSTR)
 		return -1;
 
-	winmsg_rend[winmsg_numrend] = r;
-	winmsg_rendpos[winmsg_numrend] = str - winmsg_buf;
-	winmsg_numrend++;
+	winmsg.rend[winmsg.numrend] = r;
+	winmsg.rendpos[winmsg.numrend] = str - winmsg.buf;
+	winmsg.numrend++;
 
 	return 0;
 }
@@ -361,7 +358,7 @@ winmsg_esc(Rend)
 		else
 			break;
 
-	if ((s[i] == WINESC_REND_END) && (winmsg_numrend < MAX_WINMSG_REND)) {
+	if ((s[i] == WINESC_REND_END) && (winmsg.numrend < MAX_WINMSG_REND)) {
 		r = 0;
 		rbuf[i] = '\0';
 		if (i != 1 || rbuf[0] != WINESC_REND_POP)
@@ -467,13 +464,13 @@ winmsg_esc_ex(Cond, int *condrend)
 	(*p)--;
 
 	if (wmc_is_active(cond)) {
-		*p = _WinMsgCondProcess(wmc_end(cond, *p), *p, *condrend, &winmsg_numrend);
+		*p = _WinMsgCondProcess(wmc_end(cond, *p), *p, *condrend, &winmsg.numrend);
 		wmc_deinit(cond);
 		return s;
 	}
 
 	wmc_init(cond, *p);
-	*condrend = winmsg_numrend;
+	*condrend = winmsg.numrend;
 	return s;
 }
 
@@ -482,7 +479,7 @@ winmsg_esc_ex(CondElse, int *condrend)
 	(*p)--;
 
 	if (wmc_is_active(cond)) {
-		*p = _WinMsgCondProcess(wmc_else(cond, *p), *p, *condrend, &winmsg_numrend);
+		*p = _WinMsgCondProcess(wmc_else(cond, *p), *p, *condrend, &winmsg.numrend);
 	}
 
 	return s;
@@ -493,7 +490,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 {
 	static int tick;
 	char *s = str;
-	char *p = winmsg_buf;
+	char *p = winmsg.buf;
 	register int ctrl;
 	struct timeval now;
 	int l;
@@ -514,17 +511,17 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 	/* set to sane state (clear garbage) */
 	wmc_deinit(cond);
 
-	if (winmsg_numrend >= 0)
-		winmsg_numrend = 0;
+	if (winmsg.numrend >= 0)
+		winmsg.numrend = 0;
 	else
-		winmsg_numrend = -winmsg_numrend;
+		winmsg.numrend = -winmsg.numrend;
 
 	*p = '\0';
 
 	tick = 0;
 	ctrl = 0;
 	gettimeofday(&now, NULL);
-	for (s = str; *s && (l = winmsg_buf + MAXSTR - 1 - p) > 0; s++, p++) {
+	for (s = str; *s && (l = winmsg.buf + MAXSTR - 1 - p) > 0; s++, p++) {
 		*p = *s;
 		if (ctrl) {
 			ctrl = 0;
@@ -585,22 +582,22 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 				}
 			}
 			{
-				char savebuf[sizeof(winmsg_buf)];
+				char savebuf[sizeof(winmsg.buf)];
 				int oldtick = tick;
-				int oldnumrend = winmsg_numrend;
+				int oldnumrend = winmsg.numrend;
 
 				*p = 0;
-				strncpy(savebuf, winmsg_buf, sizeof(winmsg_buf));
-				winmsg_numrend = -winmsg_numrend;
+				strncpy(savebuf, winmsg.buf, sizeof(winmsg.buf));
+				winmsg.numrend = -winmsg.numrend;
 				MakeWinMsgEv(*s == 'h' ? win->w_hstatus : runbacktick(bt, &oldtick, now.tv_sec), win,
 					     '\005', 0, (Event *)0, rec + 1);
 				if (!tick || oldtick < tick)
 					tick = oldtick;
-				if ((int)strlen(winmsg_buf) < l)
-					strncat(savebuf, winmsg_buf, sizeof(savebuf) - strlen(savebuf));
-				strncpy(winmsg_buf, savebuf, sizeof(winmsg_buf));
-				while (oldnumrend < winmsg_numrend)
-					winmsg_rendpos[oldnumrend++] += p - winmsg_buf;
+				if ((int)strlen(winmsg.buf) < l)
+					strncat(savebuf, winmsg.buf, sizeof(savebuf) - strlen(savebuf));
+				strncpy(winmsg.buf, savebuf, sizeof(winmsg.buf));
+				while (oldnumrend < winmsg.numrend)
+					winmsg.rendpos[oldnumrend++] += p - winmsg.buf;
 				if (*p)
 					wmc_set(cond);
 				p += strlen(p) - 1;
@@ -642,7 +639,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 			s = WinMsgDoEsc(EscSeen);
 			break;
 		case '>':
-			truncpos = p - winmsg_buf;
+			truncpos = p - winmsg.buf;
 			truncper = esc.num > 100 ? 100 : esc.num;
 			trunclong = esc.flags.lng;
 			p--;
@@ -655,7 +652,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 				if (esc.flags.minus) {
 					esc.num = (esc.flags.plus ? lastpad : padlen) - esc.num;
 					if (!esc.flags.plus && padlen == 0)
-						esc.num = p - winmsg_buf;
+						esc.num = p - winmsg.buf;
 					esc.flags.plus = 0;
 				} else if (!esc.flags.zero) {
 					if (*s != '=' && esc.num == 0 && !esc.flags.plus)
@@ -663,7 +660,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 					if (esc.num > 100)
 						esc.num = 100;
 					if (padlen == 0)
-						esc.num = p - winmsg_buf;
+						esc.num = p - winmsg.buf;
 					else
 						esc.num = (padlen - (esc.flags.plus ? lastpad : 0)) * esc.num / 100;
 				}
@@ -674,9 +671,9 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 				if (esc.num > MAXSTR - 1)
 					esc.num = MAXSTR - 1;
 				if (numpad)
-					p = pad_expand(winmsg_buf, p, numpad, esc.num);
+					p = pad_expand(winmsg.buf, p, numpad, esc.num);
 				numpad = 0;
-				if (p - winmsg_buf > esc.num && !esc.flags.lng) {
+				if (p - winmsg.buf > esc.num && !esc.flags.lng) {
 					int left, trunc;
 
 					if (truncpos == -1) {
@@ -689,33 +686,33 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 					if (trunc < lastpad)
 						trunc = lastpad;
 					left = truncpos - trunc;
-					if (left > p - winmsg_buf - esc.num)
-						left = p - winmsg_buf - esc.num;
+					if (left > p - winmsg.buf - esc.num)
+						left = p - winmsg.buf - esc.num;
 					if (left > 0) {
-						if (left + lastpad > p - winmsg_buf)
-							left = p - winmsg_buf - lastpad;
-						if (p - winmsg_buf - lastpad - left > 0)
-							memmove(winmsg_buf + lastpad, winmsg_buf + lastpad + left,
-								p - winmsg_buf - lastpad - left);
+						if (left + lastpad > p - winmsg.buf)
+							left = p - winmsg.buf - lastpad;
+						if (p - winmsg.buf - lastpad - left > 0)
+							memmove(winmsg.buf + lastpad, winmsg.buf + lastpad + left,
+								p - winmsg.buf - lastpad - left);
 						p -= left;
-						r = winmsg_numrend;
-						while (r && winmsg_rendpos[r - 1] > lastpad) {
+						r = winmsg.numrend;
+						while (r && winmsg.rendpos[r - 1] > lastpad) {
 							r--;
-							winmsg_rendpos[r] -= left;
-							if (winmsg_rendpos[r] < lastpad)
-								winmsg_rendpos[r] = lastpad;
+							winmsg.rendpos[r] -= left;
+							if (winmsg.rendpos[r] < lastpad)
+								winmsg.rendpos[r] = lastpad;
 						}
 						if (trunclong) {
-							if (p - winmsg_buf > lastpad)
-								winmsg_buf[lastpad] = '.';
-							if (p - winmsg_buf > lastpad + 1)
-								winmsg_buf[lastpad + 1] = '.';
-							if (p - winmsg_buf > lastpad + 2)
-								winmsg_buf[lastpad + 2] = '.';
+							if (p - winmsg.buf > lastpad)
+								winmsg.buf[lastpad] = '.';
+							if (p - winmsg.buf > lastpad + 1)
+								winmsg.buf[lastpad + 1] = '.';
+							if (p - winmsg.buf > lastpad + 2)
+								winmsg.buf[lastpad + 2] = '.';
 						}
 					}
-					if (p - winmsg_buf > esc.num) {
-						p = winmsg_buf + esc.num;
+					if (p - winmsg.buf > esc.num) {
+						p = winmsg.buf + esc.num;
 						if (trunclong) {
 							if (esc.num - 1 >= lastpad)
 								p[-1] = '.';
@@ -724,19 +721,19 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 							if (esc.num - 3 >= lastpad)
 								p[-3] = '.';
 						}
-						r = winmsg_numrend;
-						while (r && winmsg_rendpos[r - 1] > esc.num)
-							winmsg_rendpos[--r] = esc.num;
+						r = winmsg.numrend;
+						while (r && winmsg.rendpos[r - 1] > esc.num)
+							winmsg.rendpos[--r] = esc.num;
 					}
 					truncpos = -1;
 					trunclong = 0;
-					if (lastpad > p - winmsg_buf)
-						lastpad = p - winmsg_buf;
+					if (lastpad > p - winmsg.buf)
+						lastpad = p - winmsg.buf;
 				}
 				if (*s == '=') {
-					while (p - winmsg_buf < esc.num)
+					while (p - winmsg.buf < esc.num)
 						*p++ = ' ';
-					lastpad = p - winmsg_buf;
+					lastpad = p - winmsg.buf;
 					truncpos = -1;
 					trunclong = 0;
 				}
@@ -778,7 +775,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 	if (numpad) {
 		if (padlen > MAXSTR - 1)
 			padlen = MAXSTR - 1;
-		pad_expand(winmsg_buf, p, numpad, padlen);
+		pad_expand(winmsg.buf, p, numpad, padlen);
 	}
 	if (ev) {
 		evdeq(ev);	/* just in case */
@@ -793,7 +790,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 			now.tv_sec += tick - (now.tv_sec % tick);
 		ev->timeout = now;
 	}
-	return winmsg_buf;
+	return winmsg.buf;
 }
 
 char *MakeWinMsg(char *s, Window *win, int esc)
