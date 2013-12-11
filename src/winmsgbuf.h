@@ -51,6 +51,8 @@ WinMsgBufContext *wmbc_create(WinMsgBuf *);
 inline void wmbc_fastfw(WinMsgBufContext *);
 inline void wmbc_fastfw0(WinMsgBufContext *);
 inline void wmbc_putchar(WinMsgBufContext *, char);
+       int  wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
+	__attribute__((format(printf,2,3)));
 void wmbc_free(WinMsgBufContext *);
 
 #endif

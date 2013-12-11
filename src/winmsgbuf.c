@@ -87,6 +87,28 @@ inline void wmbc_putchar(WinMsgBufContext *wmbc, char c)
 	*wmbc->p++ = c;
 }
 
+int wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
+{
+	va_list ap;
+	int     n;
+
+	/* XXX: need overflow protection */
+	va_start(ap, fmt);
+	n = vsprintf(wmbc->p, fmt, ap);
+
+	/* TODO: it makes more sense to fast-forward to the terminating null byte,
+	 * but the code that this function replaces makes certain assumptions that
+	 * makes doing so inconvenient */
+	wmbc_fastfw(wmbc);
+
+	return n;
+}
+
+inline size_t wmbc_bytesleft(WinMsgBufContext *wmbc)
+{
+	return (wmbc->buf->buf + wmbc->buf->size - 1) - wmbc->p;
+}
+
 /* Deinitializes and frees previously allocated context. The contained buffer
  * must be freed separately; this function will not do so for you. */
 void wmbc_free(WinMsgBufContext *c)
