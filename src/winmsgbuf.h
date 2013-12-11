@@ -26,11 +26,14 @@
 #include <stdint.h>
 #include "screen.h"
 
+/* Default window message buffer size */
+#define WINMSGBUF_SIZE MAXSTR
+
 #define MAX_WINMSG_REND 256 /* rendition changes */
 
 /* Represents a working buffer for window messages */
 typedef struct {
-	char      buf[MAXSTR];
+	char     *buf;
 	size_t    size;
 	uint64_t  rend[MAX_WINMSG_REND];
 	int       rendpos[MAX_WINMSG_REND];

@@ -29,12 +29,15 @@
 WinMsgBuf *wmb_create()
 {
 	WinMsgBuf *w = malloc(sizeof(WinMsgBuf));
-	if (w == NULL) {
+	if (w == NULL)
 		Panic(0, "%s", strnomem);
-	}
 
+	w->buf = malloc(WINMSGBUF_SIZE);
+	if (w->buf == NULL)
+		Panic(0, "%s", strnomem);
+
+	w->size = WINMSGBUF_SIZE;
 	wmb_reset(w);
-	w->size = sizeof(((WinMsgBuf *)0)->buf);  /* TODO: allocate */
 	return w;
 }
 
@@ -48,6 +51,7 @@ inline void wmb_reset(WinMsgBuf *w)
 /* Deinitialize and free memory allocated to the given window buffer */
 void wmb_free(WinMsgBuf *w)
 {
+	free(w->buf);
 	free(w);
 }
 
