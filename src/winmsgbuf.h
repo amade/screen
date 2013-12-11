@@ -48,6 +48,7 @@ typedef struct {
 
 WinMsgBuf *wmb_create();
 inline void wmb_reset(WinMsgBuf *);
+size_t wmb_expand(WinMsgBuf *wmb, size_t min);
 void wmb_free(WinMsgBuf *);
 
 WinMsgBufContext *wmbc_create(WinMsgBuf *);
@@ -56,6 +57,7 @@ inline void wmbc_fastfw0(WinMsgBufContext *);
 inline void wmbc_putchar(WinMsgBufContext *, char);
        int  wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
 	__attribute__((format(printf,2,3)));
+inline size_t wmbc_bytesleft(WinMsgBufContext *wmbc);
 void wmbc_free(WinMsgBufContext *);
 
 #endif

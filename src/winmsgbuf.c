@@ -20,8 +20,13 @@
  ****************************************************************
  */
 
+#include <stdarg.h>
+#include <stdio.h>
 #include <assert.h>
 #include "winmsgbuf.h"
+
+/* TODO: why is this necessary?! (gcc 4.6.3) */
+#define xvsnprintf vsnprintf
 
 
 /* Allocate and initialize to the empty string a new window message buffer. The
@@ -39,6 +44,36 @@ WinMsgBuf *wmb_create()
 	w->size = WINMSGBUF_SIZE;
 	wmb_reset(w);
 	return w;
+}
+
+/* Attempts to expand the buffer to hold at least MIN bytes. The new size of the
+ * buffer is returned, which may be unchanged from the original size if
+ * additional memory could not be allocated. */
+size_t wmb_expand(WinMsgBuf *wmb, size_t min)
+{
+	size_t size = wmb->size;
+
+	if (size >= min)
+		return size;
+
+	/* keep doubling the buffer until we reach at least the requested size; this
+	 * ensures that we'll always be a power of two (so long as the original
+	 * buffer size was) and doubling will help cut down on excessive allocation
+	 * requests on large buffers */
+	while (size < min) {
+		size *= 2;
+	}
+
+	void *p = realloc(wmb->buf, size);
+	if (p == NULL) {
+		/* reallocation failed; maybe the caller can do without? */
+		return wmb->size;
+	}
+
+	/* realloc already handled the free for us */
+	wmb->buf = p;
+	wmb->size = size;
+	return size;
 }
 
 /* Initializes window buffer to the empty string; useful for re-using an
@@ -83,6 +118,13 @@ inline void wmbc_fastfw0(WinMsgBufContext *wmbc)
 	wmbc->p += strlen(wmbc->p);
 }
 
+/* Place pointer at the last byte in the buffer, ignoring terminating null
+ * characters */
+inline void wmbc_fastfw_end(WinMsgBufContext *wmbc)
+{
+	wmbc->p = wmbc->buf->buf + wmbc->buf->size - 1;
+}
+
 /* Sets a character at the current buffer position and increments the pointer.
  * The terminating null character is not retained. */
 inline void wmbc_putchar(WinMsgBufContext *wmbc, char c)
@@ -91,23 +133,40 @@ inline void wmbc_putchar(WinMsgBufContext *wmbc, char c)
 	*wmbc->p++ = c;
 }
 
+/* Write data to the buffer using a printf-style format string. If needed, the
+ * buffer will be automatically expanded to accomodate the resulting string and
+ * is therefore protected against overflows. */
 int wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
 {
 	va_list ap;
-	int     n;
+	size_t  n, max;
 
-	/* XXX: need overflow protection */
+	/* to prevent buffer overflows, cap the number of bytes to the remaining
+	 * buffer size */
 	va_start(ap, fmt);
-	n = vsprintf(wmbc->p, fmt, ap);
+	max = wmbc_bytesleft(wmbc);
+	n = vsnprintf(wmbc->p, max, fmt, ap);
 
-	/* TODO: it makes more sense to fast-forward to the terminating null byte,
-	 * but the code that this function replaces makes certain assumptions that
-	 * makes doing so inconvenient */
+	/* more space is needed if vsnprintf returns a larger number than our max,
+	 * in which case we should accomodate by dynamically resizing the buffer and
+	 * trying again */
+	if (n > max) {
+		if (wmb_expand(wmbc->buf, n) < n) {
+			/* failed to allocate additional memory; this will simply have to do */
+			wmbc_fastfw_end(wmbc);
+			return max;
+		}
+
+		size_t m = vsnprintf(wmbc->p, n, fmt, ap);
+		assert(m == n); /* this should never fail */
+	}
+
 	wmbc_fastfw(wmbc);
-
 	return n;
 }
 
+/* Calculate the number of bytes remaining in the buffer relative to the current
+ * position within the buffer */
 inline size_t wmbc_bytesleft(WinMsgBufContext *wmbc)
 {
 	return (wmbc->buf->buf + wmbc->buf->size - 1) - wmbc->p;
