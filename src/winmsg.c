@@ -45,14 +45,14 @@ WinMsgBuf *winmsg;
  * we instead use two separate macros */
 #define WINMSG_ESC_PARAMS \
 	__attribute__((unused)) WinMsgEsc *esc, \
-	char *s, \
+	__attribute__((unused)) char **src, \
 	__attribute__((unused)) WinMsgBufContext *wmbc, \
 	__attribute__((unused)) WinMsgCond *cond
 #define winmsg_esc__name(name) __WinMsgEsc##name
-#define winmsg_esc__def(name) static char *winmsg_esc__name(name)
+#define winmsg_esc__def(name) static void winmsg_esc__name(name)
 #define winmsg_esc(name) winmsg_esc__def(name)(WINMSG_ESC_PARAMS)
 #define winmsg_esc_ex(name, ...) winmsg_esc__def(name)(WINMSG_ESC_PARAMS, __VA_ARGS__)
-#define WINMSG_ESC_ARGS &esc, s, wmbc, cond
+#define WINMSG_ESC_ARGS &esc, &s, wmbc, cond
 #define WinMsgDoEsc(name) winmsg_esc__name(name)(WINMSG_ESC_ARGS)
 #define WinMsgDoEscEx(name, ...) winmsg_esc__name(name)(WINMSG_ESC_ARGS, __VA_ARGS__)
 
@@ -278,13 +278,11 @@ winmsg_esc_ex(Wflags, Window *win)
 		wmc_set(cond);
 
 	wmbc_fastfw(wmbc);
-	return s;
 }
 
 winmsg_esc(Pid)
 {
 	wmbc_printf(wmbc, "%d", (esc->flags.plus && display) ? D_userpid : getpid());
-	return s;
 }
 
 winmsg_esc_ex(CopyMode, Event *ev)
@@ -295,8 +293,6 @@ winmsg_esc_ex(CopyMode, Event *ev)
 		if (ev == &cv->c_captev && cv->c_layer->l_layfn == &MarkLf)
 			wmc_set(cond);
 	}
-
-	return s;
 }
 
 winmsg_esc(EscSeen)
@@ -304,8 +300,6 @@ winmsg_esc(EscSeen)
 	if (display && D_ESCseen) {
 		wmc_set(cond);
 	}
-
-	return s;
 }
 
 winmsg_esc_ex(Focus, Window *win, Event *ev)
@@ -316,22 +310,18 @@ winmsg_esc_ex(Focus, Window *win, Event *ev)
 
 	if (esc->flags.minus)
 		wmc_set(cond);
-
-	return s;
 }
 
 winmsg_esc(HostName)
 {
 	if (*wmbc_strcpy(wmbc, HostName))
 		wmc_set(cond);
-
-	return s;
 }
 
 /**
  * Processes rendition
  *
- * The first character of s is assumed to be (unverified) the opening brace
+ * The first character of SRC is assumed to be (unverified) the opening brace
  * of the sequence.
  */
 winmsg_esc(Rend)
@@ -340,14 +330,16 @@ winmsg_esc(Rend)
 	uint8_t i;
 	uint64_t r;
 
-	s++;
-	for (i = 0; i < (RENDBUF_SIZE-1); i++)
-		if (s[i] && s[i] != WINESC_REND_END)
-			rbuf[i] = s[i];
+	(*src)++;
+	for (i = 0; i < (RENDBUF_SIZE-1); i++) {
+		char c = (*src)[i];
+		if (c && c != WINESC_REND_END)
+			rbuf[i] = c;
 		else
 			break;
+	}
 
-	if ((s[i] == WINESC_REND_END) && (winmsg->numrend < MAX_WINMSG_REND)) {
+	if (((*src)[i] == WINESC_REND_END) && (winmsg->numrend < MAX_WINMSG_REND)) {
 		r = 0;
 		rbuf[i] = '\0';
 		if (i != 1 || rbuf[0] != WINESC_REND_POP)
@@ -356,9 +348,7 @@ winmsg_esc(Rend)
 			AddWinMsgRend(wmbc->p, r);
 		}
 	}
-	s += i;
-
-	return s;
+	*src += i;
 }
 
 winmsg_esc(SessName)
@@ -367,8 +357,6 @@ winmsg_esc(SessName)
 
 	if (*wmbc_strcpy(wmbc, session_name))
 		wmc_set(cond);
-
-	return s;
 }
 
 winmsg_esc_ex(WinNames, const bool hide_cur, Window *win)
@@ -395,38 +383,32 @@ winmsg_esc_ex(WinNames, const bool hide_cur, Window *win)
 		wmc_set(cond);
 
 	wmbc_fastfw(wmbc);
-	return s;
 }
 
 winmsg_esc_ex(WinArgv, Window *win)
 {
-	if (!win || !win->w_cmdargs[0]) {
-		return s;
-	}
+	if (!win || !win->w_cmdargs[0])
+		return;
 
 	wmbc_printf(wmbc, "%s", win->w_cmdargs[0]);
 	wmbc_fastfw0(wmbc);
 
-	if (*s == WINESC_CMD_ARGS) {
+	if (**src == WINESC_CMD_ARGS) {
 		int i;
 		for (i = 1; win->w_cmdargs[i]; i++) {
 			wmbc_printf(wmbc, " %s", win->w_cmdargs[i]);
 			wmbc_fastfw0(wmbc);
 		}
 	}
-
-	return s;
 }
 
 winmsg_esc_ex(WinTitle, Window *win)
 {
 	if (!win)
-		return s;
+		return;
 
 	if (*wmbc_strcpy(wmbc, win->w_title))
 		wmc_set(cond);
-
-	return s;
 }
 
 static inline char *_WinMsgCondProcess(char *posnew, char *pos, int condrend, int *destrend)
@@ -445,12 +427,11 @@ winmsg_esc_ex(Cond, int *condrend)
 		wmbc->p = _WinMsgCondProcess(wmc_end(cond, wmbc->p), wmbc->p,
 			*condrend, &winmsg->numrend);
 		wmc_deinit(cond);
-		return s;
+		return;
 	}
 
 	wmc_init(cond, wmbc->p);
 	*condrend = winmsg->numrend;
-	return s;
 }
 
 winmsg_esc_ex(CondElse, int *condrend)
@@ -459,8 +440,6 @@ winmsg_esc_ex(CondElse, int *condrend)
 		wmbc->p = _WinMsgCondProcess(wmc_else(cond, wmbc->p), wmbc->p,
 			*condrend, &winmsg->numrend);
 	}
-
-	return s;
 }
 
 
@@ -541,10 +520,10 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 
 		switch (*s) {
 		case WINESC_COND:
-			s = WinMsgDoEscEx(Cond, &qmnumrend);
+			WinMsgDoEscEx(Cond, &qmnumrend);
 			break;
 		case WINESC_COND_ELSE:
-			s = WinMsgDoEscEx(CondElse, &qmnumrend);
+			WinMsgDoEscEx(CondElse, &qmnumrend);
 			break;
 		case '`':
 		case 'h':
@@ -583,38 +562,38 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 			break;
 		case WINESC_CMD:
 		case WINESC_CMD_ARGS:
-			s = WinMsgDoEscEx(WinArgv, win);
+			WinMsgDoEscEx(WinArgv, win);
 			break;
 		case WINESC_WIN_NAMES:
 		case WINESC_WIN_NAMES_NOCUR:
-			s = WinMsgDoEscEx(WinNames, (*s == WINESC_WIN_NAMES_NOCUR), win);
+			WinMsgDoEscEx(WinNames, (*s == WINESC_WIN_NAMES_NOCUR), win);
 			break;
 		case WINESC_WFLAGS:
-			s = WinMsgDoEscEx(Wflags, win);
+			WinMsgDoEscEx(Wflags, win);
 			break;
 		case WINESC_WIN_TITLE:
-			s = WinMsgDoEscEx(WinTitle, win);
+			WinMsgDoEscEx(WinTitle, win);
 			break;
 		case WINESC_REND_START:
-			s = WinMsgDoEsc(Rend);
+			WinMsgDoEsc(Rend);
 			break;
 		case WINESC_HOST:
-			s = WinMsgDoEsc(HostName);
+			WinMsgDoEsc(HostName);
 			break;
 		case WINESC_SESS_NAME:
-			s = WinMsgDoEsc(SessName);
+			WinMsgDoEsc(SessName);
 			break;
 		case WINESC_PID:
-			s = WinMsgDoEsc(Pid);
+			WinMsgDoEsc(Pid);
 			break;
 		case WINESC_FOCUS:
-			s = WinMsgDoEscEx(Focus, win, ev);
+			WinMsgDoEscEx(Focus, win, ev);
 			break;
 		case WINESC_COPY_MODE:
-			s = WinMsgDoEscEx(CopyMode, ev);
+			WinMsgDoEscEx(CopyMode, ev);
 			break;
 		case WINESC_ESC_SEEN:
-			s = WinMsgDoEsc(EscSeen);
+			WinMsgDoEsc(EscSeen);
 			break;
 		case '>':
 			truncpos = wmbc_offset(wmbc);
