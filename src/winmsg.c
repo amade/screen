@@ -267,12 +267,12 @@ int AddWinMsgRend(const char *str, uint64_t r)
 }
 
 
-winmsg_esc_ex(Wflags, Window *win, int plen)
+winmsg_esc_ex(Wflags, Window *win)
 {
 	*wmbc->p = '\0';
 
 	if (win)
-		AddWindowFlags(wmbc->p, plen - 1, win);
+		AddWindowFlags(wmbc->p, wmbc_bytesleft(wmbc), win);
 
 	if (*winmsg->buf)
 		wmc_set(cond);
@@ -324,11 +324,13 @@ winmsg_esc_ex(Focus, Window *win, Event *ev)
 	return s;
 }
 
-winmsg_esc_ex(HostName, int plen)
+winmsg_esc(HostName)
 {
+	size_t max = wmbc_bytesleft(wmbc);
+
 	*wmbc->p = '\0';
-	if ((int)strlen(HostName) < plen) {
-		strncpy(wmbc->p, HostName, plen);
+	if (strlen(HostName) < max) {
+		strncpy(wmbc->p, HostName, max);
 		if (*wmbc->p)
 			wmc_set(cond);
 	}
@@ -371,13 +373,14 @@ winmsg_esc(Rend)
 	return s;
 }
 
-winmsg_esc_ex(SessName, int plen)
+winmsg_esc(SessName)
 {
 	char *session_name = strchr(SocketName, '.') + 1;
+	size_t max = wmbc_bytesleft(wmbc);
 
 	*wmbc->p = '\0';
-	if ((int)strlen(session_name) < plen) {
-		strncpy(wmbc->p, session_name, plen);
+	if (strlen(session_name) < max) {
+		strncpy(wmbc->p, session_name, max);
 		if (*wmbc->p)
 			wmc_set(cond);
 	}
@@ -386,16 +389,17 @@ winmsg_esc_ex(SessName, int plen)
 	return s;
 }
 
-winmsg_esc_ex(WinNames, const bool hide_cur, Window *win, int plen)
+winmsg_esc_ex(WinNames, const bool hide_cur, Window *win)
 {
 	Window *oldfore = 0;
+	size_t max = wmbc_bytesleft(wmbc);
 
 	if (display) {
 		oldfore = D_fore;
 		D_fore = win;
 	}
 
-	AddWindows(wmbc->p, plen - 1,
+	AddWindows(wmbc->p, max - 1,
 		hide_cur
 			| (esc->flags.lng ? 0 : 2)
 			| (esc->flags.plus ? 4 : 0)
@@ -434,11 +438,13 @@ winmsg_esc_ex(WinArgv, Window *win)
 	return s;
 }
 
-winmsg_esc_ex(WinTitle, Window *win, int plen)
+winmsg_esc_ex(WinTitle, Window *win)
 {
+	size_t max = wmbc_bytesleft(wmbc);
+
 	*wmbc->p = '\0';
-	if (win && (int)strlen(win->w_title) < plen) {
-		strncpy(wmbc->p, win->w_title, plen);
+	if (win && strlen(win->w_title) < max) {
+		strncpy(wmbc->p, win->w_title, max);
 		if (*wmbc->p)
 			wmc_set(cond);
 	}
@@ -528,7 +534,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 	tick = 0;
 	ctrl = 0;
 	gettimeofday(&now, NULL);
-	for (s = str; *s && (l = winmsg->buf + MAXSTR - 1 - wmbc->p) > 0; s++, wmbc->p++) {
+	for (s = str; *s && (l = wmbc_bytesleft(wmbc)) > 0; s++, wmbc->p++) {
 		*wmbc->p = *s;
 
 		if (ctrl) {
@@ -617,22 +623,22 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 			break;
 		case WINESC_WIN_NAMES:
 		case WINESC_WIN_NAMES_NOCUR:
-			s = WinMsgDoEscEx(WinNames, (*s == WINESC_WIN_NAMES_NOCUR), win, l);
+			s = WinMsgDoEscEx(WinNames, (*s == WINESC_WIN_NAMES_NOCUR), win);
 			break;
 		case WINESC_WFLAGS:
-			s = WinMsgDoEscEx(Wflags, win, l);
+			s = WinMsgDoEscEx(Wflags, win);
 			break;
 		case WINESC_WIN_TITLE:
-			s = WinMsgDoEscEx(WinTitle, win, l);
+			s = WinMsgDoEscEx(WinTitle, win);
 			break;
 		case WINESC_REND_START:
 			s = WinMsgDoEsc(Rend);
 			break;
 		case WINESC_HOST:
-			s = WinMsgDoEscEx(HostName, l);
+			s = WinMsgDoEsc(HostName);
 			break;
 		case WINESC_SESS_NAME:
-			s = WinMsgDoEscEx(SessName, l);
+			s = WinMsgDoEsc(SessName);
 			break;
 		case WINESC_PID:
 			s = WinMsgDoEsc(Pid);
