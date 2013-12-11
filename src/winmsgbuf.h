@@ -31,7 +31,7 @@
 /* Represents a working buffer for window messages */
 typedef struct {
 	char      buf[MAXSTR];
-	char     *bufp;
+	size_t    size;
 	uint64_t  rend[MAX_WINMSG_REND];
 	int       rendpos[MAX_WINMSG_REND];
 	int       numrend;

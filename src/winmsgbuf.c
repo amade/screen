@@ -34,6 +34,7 @@ WinMsgBuf *wmb_create()
 	}
 
 	wmb_reset(w);
+	w->size = sizeof(((WinMsgBuf *)0)->buf);  /* TODO: allocate */
 	return w;
 }
 
