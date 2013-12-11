@@ -326,15 +326,8 @@ winmsg_esc_ex(Focus, Window *win, Event *ev)
 
 winmsg_esc(HostName)
 {
-	size_t max = wmbc_bytesleft(wmbc);
-
-	*wmbc->p = '\0';
-	if (strlen(HostName) < max) {
-		strncpy(wmbc->p, HostName, max);
-		if (*wmbc->p)
-			wmc_set(cond);
-	}
-	wmbc_fastfw(wmbc);
+	if (*wmbc_strcpy(wmbc, HostName))
+		wmc_set(cond);
 
 	return s;
 }
@@ -376,16 +369,10 @@ winmsg_esc(Rend)
 winmsg_esc(SessName)
 {
 	char *session_name = strchr(SocketName, '.') + 1;
-	size_t max = wmbc_bytesleft(wmbc);
 
-	*wmbc->p = '\0';
-	if (strlen(session_name) < max) {
-		strncpy(wmbc->p, session_name, max);
-		if (*wmbc->p)
-			wmc_set(cond);
-	}
+	if (*wmbc_strcpy(wmbc, session_name))
+		wmc_set(cond);
 
-	wmbc_fastfw(wmbc);
 	return s;
 }
 
@@ -440,16 +427,12 @@ winmsg_esc_ex(WinArgv, Window *win)
 
 winmsg_esc_ex(WinTitle, Window *win)
 {
-	size_t max = wmbc_bytesleft(wmbc);
+	if (!win)
+		return s;
 
-	*wmbc->p = '\0';
-	if (win && strlen(win->w_title) < max) {
-		strncpy(wmbc->p, win->w_title, max);
-		if (*wmbc->p)
-			wmc_set(cond);
-	}
+	if (*wmbc_strcpy(wmbc, win->w_title))
+		wmc_set(cond);
 
-	wmbc_fastfw(wmbc);
 	return s;
 }
 

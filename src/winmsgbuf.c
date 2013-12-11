@@ -126,11 +126,51 @@ inline void wmbc_fastfw_end(WinMsgBufContext *wmbc)
 }
 
 /* Sets a character at the current buffer position and increments the pointer.
- * The terminating null character is not retained. */
+ * The terminating null character is not retained. The buffer will be
+ * dynamically resized as needed. */
 inline void wmbc_putchar(WinMsgBufContext *wmbc, char c)
 {
-	assert(wmbc);
+	/* attempt to accomodate this character, but bail out silenty if it cannot
+	 * fit */
+	if (!wmbc_bytesleft(wmbc)) {
+		size_t size = wmbc->buf->size + 1;
+		if (wmb_expand(wmbc->buf, size) < size) {
+			return;
+		}
+	}
+
 	*wmbc->p++ = c;
+}
+
+/* Copies a string into the buffer, dynamically resizing the buffer as needed to
+ * accomodate length N. If S is shorter than N characters in length, the
+ * remaining bytes are filled will nulls. The pointer is adjusted to the last
+ * character before the first terminating null byte. */
+inline char *wmbc_strncpy(WinMsgBufContext *wmbc, const char *s, size_t n)
+{
+	size_t l = wmbc_bytesleft(wmbc);
+
+	/* silently fail in the event that we cannot accomodate */
+	if (l < n) {
+		size_t size = wmbc->buf->size + (n - l);
+		if (wmb_expand(wmbc->buf, size) < size) {
+			return wmbc->p;
+		}
+	}
+
+	char *p = wmbc->p;
+	strncpy(wmbc->p, s, n);
+	wmbc_fastfw(wmbc);
+	return p;
+}
+
+/* Copies a string into the buffer, dynamically resizing the buffer as needed to
+ * accomodate the length of the string plus its terminating null byte. The
+ * pointer is adjusted to the last character before the terminiating null byte.
+ * */
+inline char *wmbc_strcpy(WinMsgBufContext *wmbc, const char *s)
+{
+	return wmbc_strncpy(wmbc, s, strlen(s) + 1);
 }
 
 /* Write data to the buffer using a printf-style format string. If needed, the

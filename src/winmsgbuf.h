@@ -55,8 +55,10 @@ WinMsgBufContext *wmbc_create(WinMsgBuf *);
 inline void wmbc_fastfw(WinMsgBufContext *);
 inline void wmbc_fastfw0(WinMsgBufContext *);
 inline void wmbc_putchar(WinMsgBufContext *, char);
-       int  wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
-	__attribute__((format(printf,2,3)));
+inline char *wmbc_strncpy(WinMsgBufContext *wmbc, const char *s, size_t n);
+inline char *wmbc_strcpy(WinMsgBufContext *wmbc, const char *s);
+int wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
+	            __attribute__((format(printf,2,3)));
 inline size_t wmbc_bytesleft(WinMsgBufContext *wmbc);
 void wmbc_free(WinMsgBufContext *);
 
