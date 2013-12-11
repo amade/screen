@@ -144,8 +144,8 @@ inline void wmbc_putchar(WinMsgBufContext *wmbc, char c)
 
 /* Copies a string into the buffer, dynamically resizing the buffer as needed to
  * accomodate length N. If S is shorter than N characters in length, the
- * remaining bytes are filled will nulls. The pointer is adjusted to the last
- * character before the first terminating null byte. */
+ * remaining bytes are filled will nulls. The context pointer is adjusted to the
+ * terminating null byte. */
 inline char *wmbc_strncpy(WinMsgBufContext *wmbc, const char *s, size_t n)
 {
 	size_t l = wmbc_bytesleft(wmbc);
@@ -160,14 +160,13 @@ inline char *wmbc_strncpy(WinMsgBufContext *wmbc, const char *s, size_t n)
 
 	char *p = wmbc->p;
 	strncpy(wmbc->p, s, n);
-	wmbc_fastfw(wmbc);
+	wmbc_fastfw0(wmbc);
 	return p;
 }
 
 /* Copies a string into the buffer, dynamically resizing the buffer as needed to
  * accomodate the length of the string plus its terminating null byte. The
- * pointer is adjusted to the last character before the terminiating null byte.
- * */
+ * context pointer is adjusted to the the terminiating null byte. */
 inline char *wmbc_strcpy(WinMsgBufContext *wmbc, const char *s)
 {
 	return wmbc_strncpy(wmbc, s, strlen(s) + 1);
@@ -201,15 +200,28 @@ int wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
 		assert(m == n); /* this should never fail */
 	}
 
-	wmbc_fastfw(wmbc);
+	wmbc_fastfw0(wmbc);
 	return n;
+}
+
+/* Retrieve the 0-indexed offset of the context pointer into the buffer */
+inline size_t wmbc_offset(WinMsgBufContext *wmbc)
+{
+	ptrdiff_t offset = wmbc->p - wmbc->buf->buf;
+
+	/* when using wmbc_* functions (as one always should), the offset should
+	 * always be within the bounds of the buffer */
+	assert(offset > -1);
+	assert((size_t)offset < wmbc->buf->size);
+
+	return (size_t)offset;
 }
 
 /* Calculate the number of bytes remaining in the buffer relative to the current
  * position within the buffer */
 inline size_t wmbc_bytesleft(WinMsgBufContext *wmbc)
 {
-	return (wmbc->buf->buf + wmbc->buf->size - 1) - wmbc->p;
+	return wmbc->buf->size - (wmbc_offset(wmbc) + 1);
 }
 
 /* Deinitializes and frees previously allocated context. The contained buffer
