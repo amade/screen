@@ -283,9 +283,7 @@ winmsg_esc_ex(Wflags, Window *win, int plen)
 
 winmsg_esc(Pid)
 {
-	sprintf(wmbc->p, "%d", (esc->flags.plus && display) ? D_userpid : getpid());
-	wmbc_fastfw(wmbc);
-
+	wmbc_printf(wmbc, "%d", (esc->flags.plus && display) ? D_userpid : getpid());
 	return s;
 }
 
@@ -421,13 +419,13 @@ winmsg_esc_ex(WinArgv, Window *win)
 		return s;
 	}
 
-	sprintf(wmbc->p, "%s", win->w_cmdargs[0]);
+	wmbc_printf(wmbc, "%s", win->w_cmdargs[0]);
 	wmbc_fastfw0(wmbc);
 
 	if (*s == WINESC_CMD_ARGS) {
 		int i;
 		for (i = 1; win->w_cmdargs[i]; i++) {
-			sprintf(wmbc->p, " %s", win->w_cmdargs[i]);
+			wmbc_printf(wmbc, " %s", win->w_cmdargs[i]);
 			wmbc_fastfw0(wmbc);
 		}
 	}
@@ -756,10 +754,9 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 		case 's':
 			*wmbc->p = '\0';
 			if (!win)
-				sprintf(wmbc->p, "--x--");
+				wmbc_printf(wmbc, "--x--");
 			else
-				sprintf(wmbc->p, "%dx%d", win->w_width, win->w_height);
-			wmbc_fastfw(wmbc);
+				wmbc_printf(wmbc, "%dx%d", win->w_width, win->w_height);
 			break;
 		case 'n':
 			s++;
@@ -770,11 +767,10 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 				if (esc.num == 0)
 					esc.num = 1;
 				if (!win)
-					sprintf(wmbc->p, "%*s", esc.num, esc.num > 1 ? "--" : "-");
+					wmbc_printf(wmbc, "%*s", esc.num, esc.num > 1 ? "--" : "-");
 				else
-					sprintf(wmbc->p, "%*d", esc.num, win->w_number);
+					wmbc_printf(wmbc, "%*d", esc.num, win->w_number);
 				wmc_set(cond);
-				wmbc_fastfw(wmbc);
 			}
 			break;
 		}
