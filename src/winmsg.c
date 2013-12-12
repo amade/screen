@@ -44,6 +44,9 @@ extern backtick *backticks;
 
 #define CHRPAD 127
 
+/* maximum limit on MakeWinMsgEv recursion */
+#define WINMSG_RECLIMIT 10
+
 /* redundant definition abstraction for escape character handlers; note that
  * a variable varadic macro name is a gcc extension and is not portable, so
  * we instead use two separate macros */
@@ -463,6 +466,9 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 	if (cond == NULL)
 		Panic(0, "%s", strnomem);
 
+	if (rec > WINMSG_RECLIMIT)
+		return winmsg->buf;
+
 	/* set to sane state (clear garbage) */
 	wmc_deinit(cond);
 
@@ -516,11 +522,11 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 		case WINESC_COND_ELSE:
 			WinMsgDoEscEx(CondElse, &qmnumrend);
 			break;
-		case '`':
 		case 'h':
-			if (rec >= 10 || (*s == 'h' && (win == 0 || win->w_hstatus == 0 || *win->w_hstatus == 0))) {
+			if (win == 0 || win->w_hstatus == 0 || *win->w_hstatus == 0)
 				break;
-			}
+			/* intentional fallthrough */
+		case '`':
 			if (*s == '`') {
 				if (!(bt = bt_find_id(esc.num)))
 					break;
