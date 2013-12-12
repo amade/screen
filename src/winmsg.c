@@ -47,6 +47,9 @@ extern backtick *backticks;
 /* maximum limit on MakeWinMsgEv recursion */
 #define WINMSG_RECLIMIT 10
 
+/* escape char for backtick output */
+#define WINMSG_BT_ESC '\005'
+
 /* redundant definition abstraction for escape character handlers; note that
  * a variable varadic macro name is a gcc extension and is not portable, so
  * we instead use two separate macros */
@@ -62,6 +65,8 @@ extern backtick *backticks;
 #define WINMSG_ESC_ARGS &esc, &s, wmbc, cond
 #define WinMsgDoEsc(name) winmsg_esc__name(name)(WINMSG_ESC_ARGS)
 #define WinMsgDoEscEx(name, ...) winmsg_esc__name(name)(WINMSG_ESC_ARGS, __VA_ARGS__)
+
+static void _MakeWinMsgEvRec(WinMsgBufContext *, WinMsgCond *, char *, Window *, int *, int);
 
 
 /* TODO: remove the redundant arguments */
@@ -277,6 +282,19 @@ winmsg_esc(Pid)
 	wmbc_printf(wmbc, "%d", (esc->flags.plus && display) ? D_userpid : getpid());
 }
 
+winmsg_esc_ex(Backtick, int id, Window *win, int *tick, struct timeval *now, int rec)
+{
+	backtick *bt;
+	char *btresult;
+
+	if (!(bt = bt_find_id(id)))
+		return;
+
+	/* TODO: not re-entrant; static buffer returned */
+	btresult = runbacktick(bt, tick, now->tv_sec);
+	_MakeWinMsgEvRec(wmbc, cond, btresult, win, tick, rec);
+}
+
 winmsg_esc_ex(CopyMode, Event *ev)
 {
 	if (display && ev && ev != &D_hstatusev) {	/* Hack */
@@ -308,6 +326,14 @@ winmsg_esc(HostName)
 {
 	if (*wmbc_strcpy(wmbc, HostName))
 		wmc_set(cond);
+}
+
+winmsg_esc_ex(Hstatus, Window *win, int *tick, int rec)
+{
+	if (!win || win->w_hstatus == NULL || *win->w_hstatus == '\0')
+		return;
+
+	_MakeWinMsgEvRec(wmbc, cond, win->w_hstatus, win, tick, rec);
 }
 
 /**
@@ -436,6 +462,27 @@ winmsg_esc_ex(CondElse, int *condrend)
 }
 
 
+/* TODO: this is temporary until refactoring is complete and this code need not
+ * be abstracted */
+static void _MakeWinMsgEvRec(WinMsgBufContext *wmbc, WinMsgCond *cond, char *str,
+                             Window *win, int *tick, int rec)
+{
+	int oldtick = *tick;
+	WinMsgBuf *tmp = wmb_create();
+
+	/* create message in a new buffer and merge into our own */
+	MakeWinMsgEv(tmp, str, win, WINMSG_BT_ESC, 0, NULL, rec + 1);
+	if (*wmbc_mergewmb(wmbc, tmp))
+		wmc_set(cond);
+
+	/* TODO: handle some other way; not re-entrant */
+	if (!*tick || oldtick < *tick)
+		*tick = oldtick;
+
+	wmb_free(tmp);
+}
+
+/* TODO: const char *str for safety and reassurance */
 char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
                    int chesc, int padlen, Event *ev, int rec)
 {
@@ -451,7 +498,6 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 	int truncper = 0;
 	int trunclong = 0;
 	uint64_t r;
-	struct backtick *bt = NULL;
 	WinMsgBufContext *wmbc;
 	WinMsgEsc esc;
 	WinMsgCond *cond = alloca(sizeof(WinMsgCond));
@@ -522,27 +568,11 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 		case WINESC_COND_ELSE:
 			WinMsgDoEscEx(CondElse, &qmnumrend);
 			break;
-		case 'h':
-			if (win == 0 || win->w_hstatus == 0 || *win->w_hstatus == 0)
-				break;
-			/* intentional fallthrough */
-		case '`':
-			if (*s == '`') {
-				if (!(bt = bt_find_id(esc.num)))
-					break;
-			}
-			{
-				int oldtick = tick;
-				WinMsgBuf *tmp = wmb_create();
-
-				MakeWinMsgEv(tmp, *s == 'h' ? win->w_hstatus : runbacktick(bt, &oldtick, now.tv_sec), win,
-					     '\005', 0, (Event *)0, rec + 1);
-				if (!tick || oldtick < tick)
-					tick = oldtick;
-				if (*wmbc_mergewmb(wmbc, tmp))
-					wmc_set(cond);
-				wmb_free(tmp);
-			}
+		case WINESC_HSTATUS:
+			WinMsgDoEscEx(Hstatus, win, &tick, rec);
+			break;
+		case WINESC_BACKTICK:
+			WinMsgDoEscEx(Backtick, esc.num, win, &tick, &now, rec);
 			break;
 		case WINESC_CMD:
 		case WINESC_CMD_ARGS:
