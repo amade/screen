@@ -76,11 +76,24 @@ size_t wmb_expand(WinMsgBuf *wmb, size_t min)
 	return size;
 }
 
+/* Add a rendition to the buffer */
+void wmb_rendadd(WinMsgBuf *wmb, uint64_t r, int offset)
+{
+	/* TODO: lift arbitrary limit; dynamically allocate */
+	if (wmb->numrend >= MAX_WINMSG_REND)
+		return;
+
+	wmb->rend[wmb->numrend] = r;
+	wmb->rendpos[wmb->numrend] = offset;
+	wmb->numrend++;
+}
+
 /* Initializes window buffer to the empty string; useful for re-using an
  * existing buffer without allocating a new one. */
 inline void wmb_reset(WinMsgBuf *w)
 {
 	*w->buf = '\0';
+	w->numrend = 0;
 }
 
 /* Deinitialize and free memory allocated to the given window buffer */
@@ -222,6 +235,26 @@ inline size_t wmbc_offset(WinMsgBufContext *wmbc)
 inline size_t wmbc_bytesleft(WinMsgBufContext *wmbc)
 {
 	return wmbc->buf->size - (wmbc_offset(wmbc) + 1);
+}
+
+/* Merges the contents of another null-terminated buffer and its renditions. The
+ * return value is a pointer to the first character of WMB's buffer. */
+char *wmbc_mergewmb(WinMsgBufContext *wmbc, WinMsgBuf *wmb)
+{
+	char *p = wmbc->p;
+	size_t offset = wmbc_offset(wmbc);
+	int ri;
+
+	/* import buffer contents into our own at our current position */
+	assert(wmb);
+	wmbc_strcpy(wmbc, wmb->buf);
+
+	/* merge renditions, adjusting them to reflect their new offset */
+	for (ri = 0; ri < wmb->numrend; ri++) {
+		wmb_rendadd(wmbc->buf, wmb->rend[ri], offset + wmb->rendpos[ri]);
+	}
+
+	return p;
 }
 
 /* Deinitializes and frees previously allocated context. The contained buffer

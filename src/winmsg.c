@@ -251,10 +251,7 @@ int AddWinMsgRend(WinMsgBuf *winmsg, const char *str, uint64_t r)
 	if (winmsg->numrend >= MAX_WINMSG_REND || str < winmsg->buf || str >= winmsg->buf + MAXSTR)
 		return -1;
 
-	winmsg->rend[winmsg->numrend] = r;
-	winmsg->rendpos[winmsg->numrend] = str - winmsg->buf;
-	winmsg->numrend++;
-
+	wmb_rendadd(winmsg, r, str - winmsg->buf);
 	return 0;
 }
 
@@ -469,10 +466,9 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 	/* set to sane state (clear garbage) */
 	wmc_deinit(cond);
 
-	if (winmsg->numrend >= 0)
+	/* TODO: we can get rid of this once winmsg is properly handled by caller */
+	if (winmsg->numrend > 0)
 		winmsg->numrend = 0;
-	else
-		winmsg->numrend = -winmsg->numrend;
 
 	wmb_reset(winmsg);
 	wmbc = wmbc_create(winmsg);
@@ -530,24 +526,14 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 					break;
 			}
 			{
-				size_t offset = wmbc_offset(wmbc);
 				int oldtick = tick;
-				int oldnumrend = winmsg->numrend;
 				WinMsgBuf *tmp = wmb_create();
 
-				/* TODO: this is unnecessary now that we're allocating a new
-				 * buffer obj */
-				tmp->numrend = -winmsg->numrend;
 				MakeWinMsgEv(tmp, *s == 'h' ? win->w_hstatus : runbacktick(bt, &oldtick, now.tv_sec), win,
 					     '\005', 0, (Event *)0, rec + 1);
 				if (!tick || oldtick < tick)
 					tick = oldtick;
-				/* TODO: encapsulate; provide a merge function */
-				wmbc_strcpy(wmbc, tmp->buf);
-				while (oldnumrend < tmp->numrend) {
-					winmsg->rendpos[oldnumrend] = tmp->rendpos[oldnumrend] + offset;
-				}
-				if (*tmp->buf)
+				if (*wmbc_mergewmb(wmbc, tmp))
 					wmc_set(cond);
 				wmb_free(tmp);
 			}
