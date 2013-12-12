@@ -1029,7 +1029,7 @@ void ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 {
 	int i;
 	int up;
-	int oldtop, oldbot;
+	int /*oldtop,*/ oldbot;
 	int alok, dlok, aldlfaster;
 	int missy = 0;
 
@@ -1062,7 +1062,7 @@ void ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 	if (n >= ye - ys + 1)
 		n = ye - ys + 1;
 
-	oldtop = D_top;
+	/* oldtop = D_top; */
 	oldbot = D_bot;
 	if (ys < D_top || D_bot != ye)
 		ChangeScrollRegion(ys, ye);
