@@ -50,6 +50,9 @@ typedef struct backtick {
 	int bufi;
 } Backtick;
 
+/* TODO: these still need refactoring */
+void setbacktick(int, int, int, char **);
+char *runbacktick(Backtick *bt, int *tickp, time_t now);
 
 /* opaque interface */
 Backtick *bt_find_id(int);
