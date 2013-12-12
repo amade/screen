@@ -52,12 +52,7 @@ CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
 	kmapdef.c logfile.c layer.c winmsg.c winmsgbuf.c winmsgcond.c \
 	sched.c encoding.c canvas.c layout.c viewport.c \
 	list_display.c list_generic.c list_window.c authentication.c
-OFILES=	screen.o ansi.o fileio.o mark.o misc.o resize.o socket.o \
-	search.o tty.o term.o window.o help.o \
-	termcap.o input.o attacher.o pty.o process.o display.o comm.o \
-	kmapdef.o logfile.o layer.o winmsg.o winmsgbuf.o winmsgcond.o \
-	list_generic.o list_display.o list_window.o \
-	sched.o encoding.o canvas.o layout.o viewport.o authentication.o
+OFILES=$(CFILES:c=o)
 
 all:	screen
 
