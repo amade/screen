@@ -48,10 +48,10 @@ typedef struct backtick {
 	Event ev;
 	char *buf;
 	int bufi;
-} backtick;
+} Backtick;
 
 
 /* opaque interface */
-backtick *bt_find_id(int);
+Backtick *bt_find_id(int);
 
 #endif

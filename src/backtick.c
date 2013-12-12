@@ -34,14 +34,14 @@
 #include "backtick.h"
 
 /* TODO: get rid of global var */
-backtick *backticks;
+Backtick *backticks;
 
 
 /* Locate a backtick by its id (number); returns NULL if no such backtick
  * exists. */
-backtick *bt_find_id(int num)
+Backtick *bt_find_id(int num)
 {
-	backtick *bt;
+	Backtick *bt;
 
 	for (bt = backticks; bt; bt = bt->next) {
 		if (bt->num == num)
