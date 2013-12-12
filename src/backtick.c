@@ -1,4 +1,6 @@
-/* Copyright (c) 2010
+/* Copyright (c) 2013
+ *      Mike Gerwitz (mike@mikegerwitz.com)
+ * Copyright (c) 2010
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
  * Copyright (c) 2008, 2009
@@ -29,54 +31,22 @@
  ****************************************************************
  */
 
-#ifndef SCREEN_WINMSG_H
-#define SCREEN_WINMSG_H
-
-#include <stdint.h>
-#include <stdbool.h>
-#include <assert.h>
-
-#include "window.h"
-#include "winmsgbuf.h"
-#include "winmsgcond.h"
 #include "backtick.h"
 
-#define RENDBUF_SIZE 128 /* max rendition byte count */
+/* TODO: get rid of global var */
+backtick *backticks;
 
-/* escape characters */
-typedef enum {
-	WINESC_WFLAGS          = 'f',
-	WINESC_ESC_SEEN        = 'E',
-	WINESC_FOCUS           = 'F',
-	WINESC_HOST            = 'H',
-	WINESC_PID             = 'p',
-	WINESC_COPY_MODE       = 'P',  /* copy/_P_aste mode */
-	WINESC_SESS_NAME       = 'S',
-	WINESC_WIN_TITLE       = 't',
-	WINESC_WIN_NAMES       = 'w',
-	WINESC_WIN_NAMES_NOCUR = 'W',
-	WINESC_CMD_ARGS        = 'x',
-	WINESC_CMD             = 'X',
-	WINESC_REND_START      = '{',
-	WINESC_REND_END        = '}',
-	WINESC_REND_POP        = '-',
-	WINESC_COND            = '?',  /* start and end delimiter */
-	WINESC_COND_ELSE       = ':',
-} WinMsgEscapeChar;
 
-/* escape sequence */
-typedef struct {
-	int num;
-	struct {
-		bool zero  : 1;
-		bool lng   : 1;
-		bool minus : 1;
-		bool plus  : 1;
-	} flags;
-} WinMsgEsc;
+/* Locate a backtick by its id (number); returns NULL if no such backtick
+ * exists. */
+backtick *bt_find_id(int num)
+{
+	backtick *bt;
 
-char *MakeWinMsg(char *, Window *, int);
-char *MakeWinMsgEv(WinMsgBuf *, char *, Window *, int, int, Event *, int);
-int   AddWinMsgRend(WinMsgBuf *, const char *, uint64_t);
+	for (bt = backticks; bt; bt = bt->next) {
+		if (bt->num == num)
+			return bt;
+	}
 
-#endif
+	return NULL;
+}
