@@ -40,7 +40,7 @@
 WinMsgBuf *g_winmsg;
 
 /* TODO: same with this guy */
-extern backtick *backticks;
+extern Backtick *backticks;
 
 #define CHRPAD 127
 
@@ -284,7 +284,7 @@ winmsg_esc(Pid)
 
 winmsg_esc_ex(Backtick, int id, Window *win, int *tick, struct timeval *now, int rec)
 {
-	backtick *bt;
+	Backtick *bt;
 	char *btresult;
 
 	if (!(bt = bt_find_id(id)))
