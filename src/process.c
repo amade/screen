@@ -5333,12 +5333,13 @@ static void LogToggle(int on)
 	WindowChanged(fore, 'f');
 }
 
-/* TODO: flags enum; update all callers */
-char *AddWindows(char *buf, int len, int flags, int where)
+/* TODO: wmb encapsulation; flags enum; update all callers */
+char *AddWindows(WinMsgBufContext *wmbc, int len, int flags, int where)
 {
 	char *s, *ss;
 	Window **pp, *p;
 	char *cmd;
+	char *buf = wmbc->p;
 	int l;
 
 	s = ss = buf;
@@ -5346,6 +5347,7 @@ char *AddWindows(char *buf, int len, int flags, int where)
 		*s = 0;
 		return ss;
 	}
+
 	for (pp = ((flags & 4) && where >= 0) ? wtab + where + 1 : wtab; pp < wtab + maxwin; pp++) {
 		int rend = -1;
 		if (pp - wtab == where && ss == buf)
@@ -5382,7 +5384,7 @@ char *AddWindows(char *buf, int len, int flags, int where)
 				rend = renditions[REND_SILENCE];
 		}
 		if (rend != -1)
-			AddWinMsgRend(s, rend);
+			AddWinMsgRend(wmbc->buf, s, rend);
 		sprintf(s, "%d", p->w_number);
 		s += strlen(s);
 		if (!(flags & 2)) {
@@ -5392,7 +5394,7 @@ char *AddWindows(char *buf, int len, int flags, int where)
 		strncpy(s, cmd, l);
 		s += l;
 		if (rend != -1)
-			AddWinMsgRend(s, 0);
+			AddWinMsgRend(wmbc->buf, s, 0);
 	}
 	*s = 0;
 	return ss;

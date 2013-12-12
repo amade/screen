@@ -35,8 +35,9 @@
 #include "sched.h"
 #include "mark.h"
 
-/* TODO: rid global variable */
-WinMsgBuf *winmsg;
+/* TODO: rid global variable (has been renamed to point this out; see commit
+ * history) */
+WinMsgBuf *g_winmsg;
 
 #define CHRPAD 127
 
@@ -70,7 +71,8 @@ struct backtick {
 } *backticks;
 
 
-static char *pad_expand(char *buf, char *p, int numpad, int padlen)
+/* TODO: remove the redundant arguments */
+static char *pad_expand(WinMsgBuf *winmsg, char *buf, char *p, int numpad, int padlen)
 {
 	char *pn, *pn2;
 	int i, r;
@@ -254,7 +256,7 @@ static char *runbacktick(struct backtick *bt, int *tickp, time_t now)
 	return bt->result;
 }
 
-int AddWinMsgRend(const char *str, uint64_t r)
+int AddWinMsgRend(WinMsgBuf *winmsg, const char *str, uint64_t r)
 {
 	if (winmsg->numrend >= MAX_WINMSG_REND || str < winmsg->buf || str >= winmsg->buf + MAXSTR)
 		return -1;
@@ -274,7 +276,7 @@ winmsg_esc_ex(Wflags, Window *win)
 	if (win)
 		AddWindowFlags(wmbc->p, wmbc_bytesleft(wmbc), win);
 
-	if (*winmsg->buf)
+	if (*wmbc->p)
 		wmc_set(cond);
 
 	wmbc_fastfw(wmbc);
@@ -339,13 +341,13 @@ winmsg_esc(Rend)
 			break;
 	}
 
-	if (((*src)[i] == WINESC_REND_END) && (winmsg->numrend < MAX_WINMSG_REND)) {
+	if (((*src)[i] == WINESC_REND_END) && (wmbc->buf->numrend < MAX_WINMSG_REND)) {
 		r = 0;
 		rbuf[i] = '\0';
 		if (i != 1 || rbuf[0] != WINESC_REND_POP)
 			r = ParseAttrColor(rbuf, 0);
 		if (r != 0 || (i == 1 && (rbuf[0] == WINESC_REND_POP))) {
-			AddWinMsgRend(wmbc->p, r);
+			AddWinMsgRend(wmbc->buf, wmbc->p, r);
 		}
 	}
 	*src += i;
@@ -369,7 +371,8 @@ winmsg_esc_ex(WinNames, const bool hide_cur, Window *win)
 		D_fore = win;
 	}
 
-	AddWindows(wmbc->p, max - 1,
+	/* TODO: no need to enforce a limit here */
+	AddWindows(wmbc, max - 1,
 		hide_cur
 			| (esc->flags.lng ? 0 : 2)
 			| (esc->flags.plus ? 4 : 0)
@@ -425,25 +428,26 @@ winmsg_esc_ex(Cond, int *condrend)
 {
 	if (wmc_is_active(cond)) {
 		wmbc->p = _WinMsgCondProcess(wmc_end(cond, wmbc->p), wmbc->p,
-			*condrend, &winmsg->numrend);
+			*condrend, &wmbc->buf->numrend);
 		wmc_deinit(cond);
 		return;
 	}
 
 	wmc_init(cond, wmbc->p);
-	*condrend = winmsg->numrend;
+	*condrend = wmbc->buf->numrend;
 }
 
 winmsg_esc_ex(CondElse, int *condrend)
 {
 	if (wmc_is_active(cond)) {
 		wmbc->p = _WinMsgCondProcess(wmc_else(cond, wmbc->p), wmbc->p,
-			*condrend, &winmsg->numrend);
+			*condrend, &wmbc->buf->numrend);
 	}
 }
 
 
-char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int rec)
+char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
+                   int chesc, int padlen, Event *ev, int rec)
 {
 	static int tick;
 	char *s = str;
@@ -462,11 +466,12 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 	WinMsgEsc esc;
 	WinMsgCond *cond = alloca(sizeof(WinMsgCond));
 
-	/* XXX: This allocation exists temporarily during the buffer refactoring; it
-	 * is not freed, as it exists as an alternative to the previous global
-	 * static storage so that wmb_create may be eased in */
-	if (!winmsg)
-		winmsg = wmb_create();
+	/* TODO: temporary to work into existing code */
+	if (winmsg == NULL) {
+		if (g_winmsg == NULL)
+			g_winmsg = wmb_create();
+		winmsg = g_winmsg;
+	}
 
 	if (cond == NULL)
 		Panic(0, "%s", strnomem);
@@ -538,26 +543,27 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 					break;
 				}
 			}
-			{ /* XXX: currently broken */
-				char savebuf[sizeof(winmsg->buf)];
+			{
+				size_t offset = wmbc_offset(wmbc);
 				int oldtick = tick;
 				int oldnumrend = winmsg->numrend;
+				WinMsgBuf *tmp = wmb_create();
 
-				*wmbc->p = '\0';
-				strncpy(savebuf, winmsg->buf, sizeof(winmsg->buf));
-				winmsg->numrend = -winmsg->numrend;
-				MakeWinMsgEv(*s == 'h' ? win->w_hstatus : runbacktick(bt, &oldtick, now.tv_sec), win,
+				/* TODO: this is unnecessary now that we're allocating a new
+				 * buffer obj */
+				tmp->numrend = -winmsg->numrend;
+				MakeWinMsgEv(tmp, *s == 'h' ? win->w_hstatus : runbacktick(bt, &oldtick, now.tv_sec), win,
 					     '\005', 0, (Event *)0, rec + 1);
 				if (!tick || oldtick < tick)
 					tick = oldtick;
-				if ((int)strlen(winmsg->buf) < l)
-					strncat(savebuf, winmsg->buf, sizeof(savebuf) - strlen(savebuf));
-				strncpy(winmsg->buf, savebuf, sizeof(winmsg->buf));
-				while (oldnumrend < winmsg->numrend)
-					winmsg->rendpos[oldnumrend++] += wmbc->p - winmsg->buf;
-				if (*wmbc->p)
+				/* TODO: encapsulate; provide a merge function */
+				wmbc_strcpy(wmbc, tmp->buf);
+				while (oldnumrend < tmp->numrend) {
+					winmsg->rendpos[oldnumrend] = tmp->rendpos[oldnumrend] + offset;
+				}
+				if (*tmp->buf)
 					wmc_set(cond);
-				wmbc_fastfw(wmbc);
+				wmb_free(tmp);
 			}
 			break;
 		case WINESC_CMD:
@@ -629,7 +635,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 				if (esc.num > MAXSTR - 1)
 					esc.num = MAXSTR - 1;
 				if (numpad)
-					wmbc->p = pad_expand(winmsg->buf, wmbc->p, numpad, esc.num);
+					wmbc->p = pad_expand(winmsg, winmsg->buf, wmbc->p, numpad, esc.num);
 				numpad = 0;
 				if (wmbc->p - winmsg->buf > esc.num && !esc.flags.lng) {
 					int left, trunc;
@@ -731,7 +737,7 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 	if (numpad) {
 		if (padlen > MAXSTR - 1)
 			padlen = MAXSTR - 1;
-		pad_expand(winmsg->buf, wmbc->p, numpad, padlen);
+		pad_expand(winmsg, winmsg->buf, wmbc->p, numpad, padlen);
 	}
 	if (ev) {
 		evdeq(ev);	/* just in case */
@@ -753,5 +759,5 @@ char *MakeWinMsgEv(char *str, Window *win, int chesc, int padlen, Event *ev, int
 
 char *MakeWinMsg(char *s, Window *win, int esc)
 {
-	return MakeWinMsgEv(s, win, esc, 0, (Event *)0, 0);
+	return MakeWinMsgEv(NULL, s, win, esc, 0, (Event *)0, 0);
 }
