@@ -39,6 +39,9 @@
  * history) */
 WinMsgBuf *g_winmsg;
 
+/* TODO: same with this guy */
+extern backtick *backticks;
+
 #define CHRPAD 127
 
 /* redundant definition abstraction for escape character handlers; note that
@@ -56,19 +59,6 @@ WinMsgBuf *g_winmsg;
 #define WINMSG_ESC_ARGS &esc, &s, wmbc, cond
 #define WinMsgDoEsc(name) winmsg_esc__name(name)(WINMSG_ESC_ARGS)
 #define WinMsgDoEscEx(name, ...) winmsg_esc__name(name)(WINMSG_ESC_ARGS, __VA_ARGS__)
-
-struct backtick {
-	struct backtick *next;
-	int num;
-	int tick;
-	int lifespan;
-	time_t bestbefore;
-	char result[MAXSTR];
-	char **cmdv;
-	Event ev;
-	char *buf;
-	int bufi;
-} *backticks;
 
 
 /* TODO: remove the redundant arguments */
@@ -536,12 +526,8 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 				break;
 			}
 			if (*s == '`') {
-				for (bt = backticks; bt; bt = bt->next)
-					if (bt->num == esc.num)
-						break;
-				if (bt == 0) {
+				if (!(bt = bt_find_id(esc.num)))
 					break;
-				}
 			}
 			{
 				size_t offset = wmbc_offset(wmbc);

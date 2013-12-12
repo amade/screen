@@ -30,6 +30,8 @@
 #ifndef SCREEN_ANSI_H
 #define SCREEN_ANSI_H
 
+#include <stdint.h>
+
 #define NATTR		6
 
 #define ATTR_DI		0	/* Dim mode */

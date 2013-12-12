@@ -50,7 +50,7 @@ CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
 	search.c tty.c term.c window.c utmp.c help.c \
 	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
 	kmapdef.c acls.c logfile.c layer.c winmsg.c winmsgbuf.c winmsgcond.c \
-	sched.c teln.c encoding.c canvas.c layout.c viewport.c \
+	backtick.c sched.c teln.c encoding.c canvas.c layout.c viewport.c \
 	list_display.c list_generic.c list_window.c
 OFILES=$(CFILES:c=o)
 
@@ -186,9 +186,10 @@ tty.o: layout.h viewport.h canvas.h tty.c config.h screen.h os.h ansi.h acls.h c
 term.o: layout.h viewport.h canvas.h term.c term.h
 window.o: layout.h viewport.h canvas.h window.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h logfile.h
-winmsg.o: winmsgbuf.h winmsgcond.h
+winmsg.o: winmsgbuf.h winmsgcond.h backtick.h
 winmsgbuf.o:
 winmsgcond.o:
+backtick.o:
 utmp.o: layout.h viewport.h canvas.h utmp.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h
 help.o: layout.h viewport.h canvas.h help.c config.h screen.h os.h ansi.h \
