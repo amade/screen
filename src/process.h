@@ -1,6 +1,8 @@
 #ifndef SCREEN_PROCESS_H
 #define SCREEN_PROCESS_H
 
+#include "winmsgbuf.h"
+
 void  InitKeytab (void);
 void  ProcessInput (char *, int);
 void  ProcessInput2 (char *, int);
@@ -16,7 +18,7 @@ void  SetEscape (struct acluser *, int, int);
 void  DoScreen (char *, char **);
 int   IsNumColon (char *, int, char *, int);
 void  ShowWindows (int);
-char *AddWindows (char *, int, int, int);
+char *AddWindows (WinMsgBufContext *, int, int, int);
 char *AddWindowFlags (char *, int, Window *);
 char *AddOtherUsers (char *, int, Window *);
 int   WindowByNoN (char *);

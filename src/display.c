@@ -1686,9 +1686,8 @@ void RefreshHStatus()
 	if (D_status == STATUS_ON_HS)
 		return;
 	buf =
-	    MakeWinMsgEv(hstatusstring, D_fore, '%',
-			 (D_HS && D_has_hstatus == HSTATUS_HS
-			  && D_WS > 0) ? D_WS : D_width - !D_CLP + extrabytes, &D_hstatusev, 0);
+	    MakeWinMsgEv(NULL, hstatusstring, D_fore, '%',
+			 (D_HS && D_has_hstatus == HSTATUS_HS && D_WS > 0) ? D_WS : D_width - !D_CLP + extrabytes, &D_hstatusev, 0);
 	if (buf && *buf) {
 		ShowHStatus(buf);
 		if (D_has_hstatus != HSTATUS_IGNORE && D_hstatusev.timeout.tv_sec)
@@ -1764,7 +1763,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 #endif
 				p = Layer2Window(cv->c_layer);
 				buf =
-				    MakeWinMsgEv(captionstring, p, '%',
+				    MakeWinMsgEv(NULL, captionstring, p, '%',
 						 cv->c_xe - cv->c_xs + (cv->c_xe + 1 < D_width
 									|| D_CLP) + extrabytes, &cv->c_captev, 0);
 				if (cv->c_captev.timeout.tv_sec)

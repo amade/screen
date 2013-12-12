@@ -75,7 +75,7 @@ typedef struct {
 } WinMsgEsc;
 
 char *MakeWinMsg(char *, Window *, int);
-char *MakeWinMsgEv(char *, Window *, int, int, Event *, int);
-int   AddWinMsgRend(const char *, uint64_t);
+char *MakeWinMsgEv(WinMsgBuf *, char *, Window *, int, int, Event *, int);
+int   AddWinMsgRend(WinMsgBuf *, const char *, uint64_t);
 
 #endif

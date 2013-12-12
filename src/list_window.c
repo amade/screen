@@ -189,7 +189,7 @@ static int gl_Window_header(ListData *ldata)
 	}
 
 	display = 0;
-	str = MakeWinMsgEv(wlisttit, (Window *)0, '%', flayer->l_width, (Event *)0, 0);
+	str = MakeWinMsgEv(NULL, wlisttit, (Window *)0, '%', flayer->l_width, (Event *)0, 0);
 
 	LPutWinMsg(flayer, str, strlen(str), &mchar_blank, 0, g);
 	return 2 + g;
@@ -221,7 +221,7 @@ static int gl_Window_row(ListData *ldata, ListRow *lrow)
 	for (xoff = 0, g = w->w_group; g != wdata->group; g = g->w_group)
 		xoff += 2;
 	display = Layer2Window(flayer) ? 0 : flayer->l_cvlist ? flayer->l_cvlist->c_display : 0;
-	str = MakeWinMsgEv(wliststr, w, '%', flayer->l_width - xoff, NULL, 0);
+	str = MakeWinMsgEv(NULL, wliststr, w, '%', flayer->l_width - xoff, NULL, 0);
 	if (ldata->selected == lrow)
 		mchar = &mchar_so;
 	else if (w->w_monitor == MON_DONE && renditions[REND_MONITOR] != 0) {
