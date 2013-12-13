@@ -25,9 +25,6 @@
 #include <assert.h>
 #include "winmsgbuf.h"
 
-/* TODO: why is this necessary?! (gcc 4.6.3) */
-#define xvsnprintf vsnprintf
-
 
 /* Allocate and initialize to the empty string a new window message buffer. The
  * return value must be freed using wmbc_free. */
