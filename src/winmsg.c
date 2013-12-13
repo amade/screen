@@ -267,6 +267,14 @@ winmsg_esc_ex(WinArgv, Window *win)
 	}
 }
 
+winmsg_esc_ex(WinSize, Window *win)
+{
+	if (!win)
+		wmbc_printf(wmbc, "--x--");
+	else
+		wmbc_printf(wmbc, "%dx%d", win->w_width, win->w_height);
+}
+
 winmsg_esc_ex(WinTitle, Window *win)
 {
 	if (!win)
@@ -561,11 +569,8 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 			}
 			wmbc->p++; /* TODO: temporary; see above */
 			break;
-		case 's':
-			if (!win)
-				wmbc_printf(wmbc, "--x--");
-			else
-				wmbc_printf(wmbc, "%dx%d", win->w_width, win->w_height);
+		case WINESC_WIN_SIZE:
+			WinMsgDoEscEx(WinSize, win);
 			break;
 		case 'n':
 			s++;
