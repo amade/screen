@@ -49,21 +49,21 @@ typedef struct {
 
 WinMsgBuf *wmb_create();
 inline void wmb_reset(WinMsgBuf *);
-size_t wmb_expand(WinMsgBuf *wmb, size_t min);
-void wmb_rendadd(WinMsgBuf *wmb, uint64_t r, int offset);
+size_t wmb_expand(WinMsgBuf *, size_t);
+void wmb_rendadd(WinMsgBuf *, uint64_t, int);
 void wmb_free(WinMsgBuf *);
 
 WinMsgBufContext *wmbc_create(WinMsgBuf *);
 inline void wmbc_fastfw(WinMsgBufContext *);
 inline void wmbc_fastfw0(WinMsgBufContext *);
 inline void wmbc_putchar(WinMsgBufContext *, char);
-inline char *wmbc_strncpy(WinMsgBufContext *wmbc, const char *s, size_t n);
-inline char *wmbc_strcpy(WinMsgBufContext *wmbc, const char *s);
-int wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
-	            __attribute__((format(printf,2,3)));
-inline size_t wmbc_offset(WinMsgBufContext *wmbc);
-inline size_t wmbc_bytesleft(WinMsgBufContext *wmbc);
-char *wmbc_mergewmb(WinMsgBufContext *wmbc, WinMsgBuf *wmb);
+inline char *wmbc_strncpy(WinMsgBufContext *, const char *, size_t);
+inline char *wmbc_strcpy(WinMsgBufContext *, const char *);
+int wmbc_printf(WinMsgBufContext *, const char *, ...)
+                __attribute__((format(printf,2,3)));
+inline size_t wmbc_offset(WinMsgBufContext *);
+inline size_t wmbc_bytesleft(WinMsgBufContext *);
+char *wmbc_mergewmb(WinMsgBufContext *, WinMsgBuf *);
 void wmbc_free(WinMsgBufContext *);
 
 #endif
