@@ -324,6 +324,9 @@ static void _MakeWinMsgEvRec(WinMsgBufContext *wmbc, WinMsgCond *cond, char *str
 	int oldtick = *tick;
 	WinMsgBuf *tmp = wmb_create();
 
+	if (tmp == NULL)
+		Panic(0, "%s", strnomem);
+
 	/* create message in a new buffer and merge into our own */
 	MakeWinMsgEv(tmp, str, win, WINMSG_BT_ESC, 0, NULL, rec + 1);
 	if (*wmbc_mergewmb(wmbc, tmp))
@@ -358,8 +361,10 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 
 	/* TODO: temporary to work into existing code */
 	if (winmsg == NULL) {
-		if (g_winmsg == NULL)
-			g_winmsg = wmb_create();
+		if (g_winmsg == NULL) {
+			if ((g_winmsg = wmb_create()) == NULL)
+				Panic(0, "%s", strnomem);
+		}
 		winmsg = g_winmsg;
 	}
 
@@ -378,6 +383,9 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 
 	wmb_reset(winmsg);
 	wmbc = wmbc_create(winmsg);
+
+	if (wmbc == NULL)
+		Panic(0, "%s", strnomem);
 
 	tick = 0;
 	ctrl = 0;
