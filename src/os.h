@@ -50,9 +50,6 @@
 #ifndef HAVE_UTIMES
 # define utimes utime
 #endif
-#ifndef HAVE_VSNPRINTF
-# define vsnprintf xvsnprintf
-#endif
 
 /*****************************************************************
  *    terminal handling
