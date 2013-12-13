@@ -107,6 +107,7 @@ inline char *wmc_end(const WinMsgCond *cond, char *pos)
  * to be re-used and ignored until activated */
 inline void wmc_deinit(WinMsgCond *cond)
 {
+	cond->state = false;
 	cond->pos = NULL;
 	cond->locked = true;
 }
