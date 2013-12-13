@@ -54,6 +54,9 @@ CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
 	list_display.c list_generic.c list_window.c
 OFILES=$(CFILES:c=o)
 
+TESTCFILES := $(wildcard tests/test-*.c)
+TESTBIN := $(TESTCFILES:.c=)
+
 all:	screen
 
 screen: $(OFILES)
@@ -61,6 +64,14 @@ screen: $(OFILES)
 
 .c.o:
 	$(CC) -c $(M_CFLAGS) $(CPPFLAGS) $(CFLAGS) $<
+
+check: $(TESTBIN)
+	for f in $(TESTBIN); do \
+		echo "$$f"; \
+		"$$f"; \
+	done
+tests/test-%: tests/test-%.c %.o
+	$(CC) $(M_CFLAGS) $(CPPFLAGS) $(CFLAGS) $< -o $@ $*.o
 
 install_bin: .version screen
 	-if [ -f $(DESTDIR)$(bindir)/$(SCREEN) ] && [ ! -f $(DESTDIR)$(bindir)/$(SCREEN).old ]; \
