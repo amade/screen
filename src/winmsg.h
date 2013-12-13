@@ -52,6 +52,7 @@ typedef enum {
 	WINESC_HOST            = 'H',
 	WINESC_PID             = 'p',
 	WINESC_COPY_MODE       = 'P',  /* copy/_P_aste mode */
+	WINESC_WIN_SIZE        = 's',
 	WINESC_SESS_NAME       = 'S',
 	WINESC_WIN_TITLE       = 't',
 	WINESC_WIN_NAMES       = 'w',
