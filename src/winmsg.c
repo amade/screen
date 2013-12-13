@@ -120,7 +120,7 @@ winmsg_esc_ex(Wflags, Window *win)
 	if (*wmbc->p)
 		wmc_set(cond);
 
-	wmbc_fastfw(wmbc);
+	wmbc_fastfw0(wmbc);
 }
 
 winmsg_esc(Pid)
@@ -247,7 +247,7 @@ winmsg_esc_ex(WinNames, const bool hide_cur, Window *win)
 	if (*wmbc->p)
 		wmc_set(cond);
 
-	wmbc_fastfw(wmbc);
+	wmbc_fastfw0(wmbc);
 }
 
 winmsg_esc_ex(WinArgv, Window *win)
