@@ -32,11 +32,13 @@ WinMsgBuf *wmb_create()
 {
 	WinMsgBuf *w = malloc(sizeof(WinMsgBuf));
 	if (w == NULL)
-		Panic(0, "%s", strnomem);
+		return NULL;
 
 	w->buf = malloc(WINMSGBUF_SIZE);
-	if (w->buf == NULL)
-		Panic(0, "%s", strnomem);
+	if (w->buf == NULL) {
+		free(w);
+		return NULL;
+	}
 
 	w->size = WINMSGBUF_SIZE;
 	wmb_reset(w);
@@ -106,9 +108,8 @@ void wmb_free(WinMsgBuf *w)
 WinMsgBufContext *wmbc_create(WinMsgBuf *w)
 {
 	WinMsgBufContext *c = malloc(sizeof(WinMsgBufContext));
-	if (c == NULL) {
-		Panic(0, "%s", strnomem);
-	}
+	if (c == NULL)
+		return NULL;
 
 	c->buf = w;
 	c->p = w->buf;
