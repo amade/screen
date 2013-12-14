@@ -27,6 +27,9 @@
 SIGNATURE_CHECK(wmb_create, WinMsgBuf *, ());
 SIGNATURE_CHECK(wmb_expand, size_t, (WinMsgBuf *, size_t));
 SIGNATURE_CHECK(wmb_rendadd, void, (WinMsgBuf *, uint64_t, int));
+SIGNATURE_CHECK(wmb_size, size_t, (const WinMsgBuf *));
+SIGNATURE_CHECK(wmb_contents, const char *, (const WinMsgBuf *));
+SIGNATURE_CHECK(wmb_reset, void, (WinMsgBuf *));
 SIGNATURE_CHECK(wmb_free, void, (WinMsgBuf *));
 
 SIGNATURE_CHECK(wmbc_create, WinMsgBufContext *, (WinMsgBuf *));
@@ -43,6 +46,16 @@ SIGNATURE_CHECK(wmbc_free, void, (WinMsgBufContext *));
 
 int main(void)
 {
-	/* TODO: wmb_* lacks an introspective interface */
+	{
+		WinMsgBuf *wmb = wmb_create();
+
+		/* we should start off with a null-terminated buffer */
+		ASSERT(wmb_size(wmb) > 0);
+		ASSERT(*wmb_contents(wmb) == '\0');
+
+
+		wmb_free(wmb);
+	}
+
 	return 0;
 }

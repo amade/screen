@@ -51,6 +51,9 @@ WinMsgBuf *wmb_create();
 inline void wmb_reset(WinMsgBuf *);
 size_t wmb_expand(WinMsgBuf *, size_t);
 void wmb_rendadd(WinMsgBuf *, uint64_t, int);
+inline size_t wmb_size(const WinMsgBuf *);
+inline const char *wmb_contents(const WinMsgBuf *);
+inline void wmb_reset(WinMsgBuf *);
 void wmb_free(WinMsgBuf *);
 
 WinMsgBufContext *wmbc_create(WinMsgBuf *);

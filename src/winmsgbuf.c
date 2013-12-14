@@ -87,6 +87,20 @@ void wmb_rendadd(WinMsgBuf *wmb, uint64_t r, int offset)
 	wmb->numrend++;
 }
 
+/* Retrieve buffer size. This returns the total size of the buffer, not how much
+ * has been used. */
+inline size_t wmb_size(const WinMsgBuf *wmb)
+{
+	return wmb->size;
+}
+
+/* Retrieve a pointer to the raw buffer contents. This should not be used to
+ * modify the buffer. */
+inline const char *wmb_contents(const WinMsgBuf *wmb)
+{
+	return wmb->buf;
+}
+
 /* Initializes window buffer to the empty string; useful for re-using an
  * existing buffer without allocating a new one. */
 inline void wmb_reset(WinMsgBuf *w)
