@@ -64,7 +64,15 @@ int main(void)
 		ASSERT_NOALLOC(ASSERT(wmb_expand(wmb, want - 1) == new));
 		ASSERT_NOALLOC(ASSERT(wmb_expand(wmb, 0) == new););
 
+		/* if buffer expansion fails, the original size shall be retained */
+		ASSERT_GCC(FAILLOC(size_t, wmb_expand(wmb, new + 5)) == new);
+
 		wmb_free(wmb);
+	}
+
+	/* wmb_create should return NULL on allocation failure */
+	{
+		ASSERT_GCC(FAILLOC(WinMsgBuf *, wmb_create()) == NULL);
 	}
 
 	return 0;
