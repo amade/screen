@@ -56,13 +56,13 @@ int main(void)
 		/* buffer shall be expandable to accomodate a minimum number of bytes */
 		size_t old = wmb_size(wmb);
 		size_t want = old + 3;
-		ASSERT(wmb_expand(wmb, want) >= want);
+		ASSERT_REALLOC(>= want, ASSERT(wmb_expand(wmb, want) >= want));
 
 		/* buffer will not expand if unneeded */
 		size_t new = wmb_size(wmb);
-		ASSERT(wmb_expand(wmb, want) == new);
-		ASSERT(wmb_expand(wmb, want - 1) == new);
-		ASSERT(wmb_expand(wmb, 0) == new);
+		ASSERT_NOALLOC(ASSERT(wmb_expand(wmb, want) == new));
+		ASSERT_NOALLOC(ASSERT(wmb_expand(wmb, want - 1) == new));
+		ASSERT_NOALLOC(ASSERT(wmb_expand(wmb, 0) == new););
 
 		wmb_free(wmb);
 	}

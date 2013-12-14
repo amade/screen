@@ -32,8 +32,7 @@
 
 /* ASSERT (condition);
    verifies that the specified condition is fulfilled.  If not, a message
-   is printed to ASSERT_STREAM if defined (defaulting to stderr if
-   undefined) and the program is terminated with an error code.
+   is printed to ASSERT_STREAM if defined (defaulting to stderr if undefined) and the program is terminated with an error code.
 
    This macro has the following properties:
      - The programmer specifies the expected condition, not the failure
