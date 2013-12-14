@@ -63,15 +63,15 @@ screen: $(OFILES)
 	$(CC) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
 .c.o:
-	$(CC) -c $(M_CFLAGS) $(CPPFLAGS) $(CFLAGS) $<
+	$(CC) -c $(M_CFLAGS) $(CPPFLAGS) $(CFLAGS) $< -o $@
 
 check: $(TESTBIN)
 	for f in $(TESTBIN); do \
 		echo "$$f"; \
 		"$$f"; \
 	done
-tests/test-%: tests/test-%.c %.o
-	$(CC) $(M_CFLAGS) $(CPPFLAGS) $(CFLAGS) $< -o $@ $*.o
+tests/test-%: tests/test-%.c %.o tests/mallocmock.o tests/macros.h tests/signature.h
+	$(CC) $(M_CFLAGS) $(CPPFLAGS) $(CFLAGS) $< -o $@ $*.o tests/mallocmock.o
 
 install_bin: .version screen
 	-if [ -f $(DESTDIR)$(bindir)/$(SCREEN) ] && [ ! -f $(DESTDIR)$(bindir)/$(SCREEN).old ]; \

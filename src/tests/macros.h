@@ -1,4 +1,7 @@
 /* Common macros used by gnulib tests.
+
+   Modified from its original by the GNU screen project.
+
    Copyright (C) 2006-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -71,3 +74,27 @@
 extern const float randomf[1000];
 extern const double randomd[1000];
 extern const long double randoml[1000];
+
+/* GNU supports malloc hooks; otherwise, assertions will be skipped (but calls
+ * will still be run for side-effects) */
+#ifdef _GNU_SOURCE
+	extern size_t _mallocmock_malloc_size;
+	extern size_t _mallocmock_realloc_size;
+	void mallocmock_reset();
+
+	#define ASSERT_ALLOC(type, cmp, x) \
+		MALLOC_RESET_COUNT(); x; ASSERT(_mallocmock_##type##_size cmp)
+	#define ASSERT_MALLOC(cmp, x) ASSERT_ALLOC(malloc, cmp, x);
+	#define ASSERT_REALLOC(cmp, x) ASSERT_ALLOC(realloc, cmp, x);
+	#define MALLOC_RESET_COUNT() mallocmock_reset()
+
+	#define ASSERT_NOALLOC(x) \
+		MALLOC_RESET_COUNT(); \
+		x; \
+		ASSERT(_mallocmock_malloc_size == 0); \
+		ASSERT(_mallocmock_realloc_size == 0);
+#else
+	#define ASSERT_MALLOC(cmp, x) x
+	#define ASSERT_REALLOC(cmp, x) x
+	#define MALLOC_RESET_COUNT()
+#endif
