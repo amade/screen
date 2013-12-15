@@ -101,6 +101,10 @@ extern const long double randoml[1000];
 		_mallocmock_fail = false; \
 		__ret; \
 	})
+	#define FAILLOC_VOID(x) \
+		_mallocmock_fail = true; \
+		x; \
+		_mallocmock_fail = false;
 
 	#define ASSERT_GCC(x) ASSERT(x)
 #else
@@ -109,6 +113,7 @@ extern const long double randoml[1000];
 	#define ASSERT_NOALLOC(cmp, x) x
 	#define MALLOC_RESET_COUNT()
 	#define FAILLOC(type, x) /* no portable equivalent! */
+	#define FAILLOC_VOID(x)  /* no portable equivalent! */
 	#define ASSERT_GCC(x)
 #endif
 #define FAILLOC_PTR(x) FAILLOC(void *, x)
