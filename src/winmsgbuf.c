@@ -121,6 +121,9 @@ void wmb_free(WinMsgBuf *w)
  * value must be freed using wmbc_free. */
 WinMsgBufContext *wmbc_create(WinMsgBuf *w)
 {
+	if (w == NULL)
+		return NULL;
+
 	WinMsgBufContext *c = malloc(sizeof(WinMsgBufContext));
 	if (c == NULL)
 		return NULL;
@@ -246,7 +249,7 @@ inline size_t wmbc_offset(WinMsgBufContext *wmbc)
  * position within the buffer */
 inline size_t wmbc_bytesleft(WinMsgBufContext *wmbc)
 {
-	return wmbc->buf->size - (wmbc_offset(wmbc) + 1);
+	return wmbc->buf->size - wmbc_offset(wmbc);
 }
 
 /* Merges the contents of another null-terminated buffer and its renditions. The
@@ -267,6 +270,25 @@ char *wmbc_mergewmb(WinMsgBufContext *wmbc, WinMsgBuf *wmb)
 	}
 
 	return p;
+}
+
+/* Write a terminating null byte to the buffer and return a pointer to the
+ * buffer contents. This should not be used to modify the buffer. If buffer is
+ * full and expansion fails, then the last byte in the buffer will be replaced
+ * with the null byte. */
+const char *wmbc_finish(WinMsgBufContext *wmbc)
+{
+	if (!wmbc_bytesleft(wmbc)) {
+		size_t size = wmbc->buf->size + 1;
+		if (wmb_expand(wmbc->buf, size) < size) {
+			/* we must terminate the string or we may cause big problems for the
+			 * caller; overwrite the last char :x */
+			wmbc->p--;
+		}
+	}
+
+	*wmbc->p = '\0';
+	return wmb_contents(wmbc->buf);
 }
 
 /* Deinitializes and frees previously allocated context. The contained buffer
