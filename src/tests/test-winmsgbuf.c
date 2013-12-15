@@ -52,6 +52,7 @@ int main(void)
 		/* we should start off with a null-terminated buffer */
 		ASSERT(wmb_size(wmb) > 0);
 		ASSERT(*wmb_contents(wmb) == '\0');
+		/* TODO: rendition state */
 
 		/* buffer shall be expandable to accomodate a minimum number of bytes */
 		size_t old = wmb_size(wmb);
@@ -66,6 +67,13 @@ int main(void)
 
 		/* if buffer expansion fails, the original size shall be retained */
 		ASSERT_GCC(FAILLOC(size_t, wmb_expand(wmb, new + 5)) == new);
+
+		/* resetting should put us back to our starting state, but should do
+		 * nothing with the buffer size */
+		wmb_reset(wmb);
+		ASSERT(*wmb_contents(wmb) == '\0');
+		ASSERT(wmb_size(wmb) == new);
+		/* TODO: rendition state */
 
 		wmb_free(wmb);
 	}
