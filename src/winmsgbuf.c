@@ -152,6 +152,21 @@ inline void wmbc_fastfw_end(WinMsgBufContext *wmbc)
 	wmbc->p = wmbc->buf->buf + wmbc->buf->size;
 }
 
+/* Attempts buffer expansion and updates context pointers appropriately. The
+ * result is true if expansion succeeded, otherwise false. */
+static bool _wmbc_expand(WinMsgBufContext *wmbc, size_t size)
+{
+	size_t offset = wmbc_offset(wmbc);
+
+	if (wmb_expand(wmbc->buf, size) < size) {
+		return false;
+	}
+
+	/* the buffer address may have changed; re-calculate pointer address */
+	wmbc->p = wmbc->buf->buf + offset;
+	return true;
+}
+
 /* Sets a character at the current buffer position and increments the pointer.
  * The terminating null character is not retained. The buffer will be
  * dynamically resized as needed. */
@@ -160,8 +175,7 @@ inline void wmbc_putchar(WinMsgBufContext *wmbc, char c)
 	/* attempt to accomodate this character, but bail out silenty if it cannot
 	 * fit */
 	if (!wmbc_bytesleft(wmbc)) {
-		size_t size = wmbc->buf->size + 1;
-		if (wmb_expand(wmbc->buf, size) < size) {
+		if (!_wmbc_expand(wmbc, wmbc->buf->size + 1)) {
 			return;
 		}
 	}
@@ -180,7 +194,7 @@ inline char *wmbc_strncpy(WinMsgBufContext *wmbc, const char *s, size_t n)
 	/* silently fail in the event that we cannot accomodate */
 	if (l < n) {
 		size_t size = wmbc->buf->size + (n - l);
-		if (wmb_expand(wmbc->buf, size) < size) {
+		if (!_wmbc_expand(wmbc, size)) {
 			return wmbc->p;
 		}
 	}
@@ -217,7 +231,7 @@ int wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
 	 * in which case we should accomodate by dynamically resizing the buffer and
 	 * trying again */
 	if (n > max) {
-		if (wmb_expand(wmbc->buf, n) < n) {
+		if (!_wmbc_expand(wmbc, n)) {
 			/* failed to allocate additional memory; this will simply have to do */
 			wmbc_fastfw_end(wmbc);
 			return max;
