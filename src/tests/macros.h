@@ -108,6 +108,7 @@ extern const long double randoml[1000];
 	#define ASSERT_REALLOC(cmp, x) x
 	#define ASSERT_NOALLOC(cmp, x) x
 	#define MALLOC_RESET_COUNT()
-	#define FAILLOC(x) /* no portable equivalent! */
+	#define FAILLOC(type, x) /* no portable equivalent! */
 	#define ASSERT_GCC(x)
 #endif
+#define FAILLOC_PTR(x) FAILLOC(void *, x)
