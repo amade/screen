@@ -33,8 +33,9 @@ SIGNATURE_CHECK(wmb_reset, void, (WinMsgBuf *));
 SIGNATURE_CHECK(wmb_free, void, (WinMsgBuf *));
 
 SIGNATURE_CHECK(wmbc_create, WinMsgBufContext *, (WinMsgBuf *));
-SIGNATURE_CHECK(wmbc_fastfw, void, (WinMsgBufContext *));
+SIGNATURE_CHECK(wmbc_rewind, void, (WinMsgBufContext *));
 SIGNATURE_CHECK(wmbc_fastfw0, void, (WinMsgBufContext *));
+SIGNATURE_CHECK(wmbc_fastfw_end, void, (WinMsgBufContext *));
 SIGNATURE_CHECK(wmbc_putchar, void, (WinMsgBufContext *, char));
 SIGNATURE_CHECK(wmbc_strncpy, char *, (WinMsgBufContext *, const char *, size_t));
 SIGNATURE_CHECK(wmbc_strcpy, char *, (WinMsgBufContext *, const char *));
@@ -138,6 +139,54 @@ int main(void)
 		ASSERT(wmb_contents(wmb)[1] == cx);
 
 		wmbc_free(wmbc2);
+		wmbc_free(wmbc);
+		wmb_free(wmb);
+	}
+
+	/* scenerio: write bytes and move around the buffer */
+	{
+		WinMsgBuf *wmb = wmb_create();
+		WinMsgBufContext *wmbc = wmbc_create(wmb);
+
+		/* initialize buffer to contain the string "foo" */
+		wmbc_putchar(wmbc, 'f');
+		wmbc_putchar(wmbc, 'o');
+		wmbc_putchar(wmbc, 'o');
+		wmbc_putchar(wmbc, '\0');
+
+		/* before continuing, just make sure we are where we expect to be (test
+		 * sanity check) */
+		ASSERT(wmbc_offset(wmbc) == 4);
+
+		/* rewind to the beginning */
+		wmbc_rewind(wmbc);
+		ASSERT(wmbc_offset(wmbc) == 0);
+
+		/* we should be able to now affect the first character */
+		char c = 'm';
+		ASSERT(*wmb_contents(wmb) == 'f');  /* sanity check */
+		wmbc_putchar(wmbc, c);
+		ASSERT(*wmb_contents(wmb) == c);
+
+		/* fast-forward to the null byte (which should bring our pointer to a
+		 * single byte before our position after having written "foo") */
+		ASSERT(wmbc_offset(wmbc) == 1);  /* sanity check */
+		wmbc_fastfw0(wmbc);
+		ASSERT(wmbc_offset(wmbc) == 3);
+
+		/* that should allow us to continue where we left off, similar to how
+		 * wmbc_finish allows us to continue */
+		ASSERT(wmb_contents(wmb)[3] != c);  /* test case sanity check */
+		wmbc_putchar(wmbc, c);
+		ASSERT(wmb_contents(wmb)[3] == c);
+
+		/* we should also be able to fast-forward to the very end of the buffer
+		 * (that is, the next write would trigger an expansion); this is of
+		 * limited use externally */
+		wmbc_fastfw_end(wmbc);
+		ASSERT(wmbc_offset(wmbc) == wmb_size(wmb));
+		ASSERT(wmbc_bytesleft(wmbc) == 0);
+
 		wmbc_free(wmbc);
 		wmb_free(wmb);
 	}

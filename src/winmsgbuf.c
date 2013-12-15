@@ -133,11 +133,10 @@ WinMsgBufContext *wmbc_create(WinMsgBuf *w)
 	return c;
 }
 
-/* Place pointer at character immediately preceding the terminating null
- * character. */
-inline void wmbc_fastfw(WinMsgBufContext *wmbc)
+/* Rewind pointer to the first byte of the buffer. */
+inline void wmbc_rewind(WinMsgBufContext *wmbc)
 {
-	wmbc->p += strlen(wmbc->p) - 1;
+	wmbc->p = wmbc->buf->buf;
 }
 
 /* Place pointer at terminating null character. */
@@ -146,11 +145,11 @@ inline void wmbc_fastfw0(WinMsgBufContext *wmbc)
 	wmbc->p += strlen(wmbc->p);
 }
 
-/* Place pointer at the last byte in the buffer, ignoring terminating null
- * characters */
+/* Place pointer just past the last byte in the buffer, ignoring terminating null
+ * characters. The next write will trigger an expansion. */
 inline void wmbc_fastfw_end(WinMsgBufContext *wmbc)
 {
-	wmbc->p = wmbc->buf->buf + wmbc->buf->size - 1;
+	wmbc->p = wmbc->buf->buf + wmbc->buf->size;
 }
 
 /* Sets a character at the current buffer position and increments the pointer.
@@ -238,9 +237,10 @@ inline size_t wmbc_offset(WinMsgBufContext *wmbc)
 	ptrdiff_t offset = wmbc->p - wmbc->buf->buf;
 
 	/* when using wmbc_* functions (as one always should), the offset should
-	 * always be within the bounds of the buffer */
+	 * always be within the bounds of the buffer or one byte outside of it
+	 * (the latter case would require an expansion before writing) */
 	assert(offset > -1);
-	assert((size_t)offset < wmbc->buf->size);
+	assert((size_t)offset <= wmbc->buf->size);
 
 	return (size_t)offset;
 }
