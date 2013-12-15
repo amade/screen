@@ -351,9 +351,6 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 	int qmnumrend = 0;
 	int numpad = 0;
 	int lastpad = 0;
-	int truncpos = -1;
-	int truncper = 0;
-	int trunclong = 0;
 	uint64_t r;
 	WinMsgBufContext *wmbc;
 	WinMsgEsc esc;
@@ -471,13 +468,13 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 		case WINESC_ESC_SEEN:
 			WinMsgDoEsc(EscSeen);
 			break;
-		case '>':
-			truncpos = wmbc_offset(wmbc);
-			truncper = esc.num > 100 ? 100 : esc.num;
-			trunclong = esc.flags.lng;
+		case WINESC_TRUNC_POS:
+			winmsg->trunc.pos = wmbc_offset(wmbc);
+			winmsg->trunc.perc = esc.num > 100 ? 100 : esc.num;
+			winmsg->trunc.ellip = esc.flags.lng;
 			break;
-		case '=':
-		case '<':
+		case WINESC_PAD:
+		case WINESC_TRUNC:
 			wmbc_putchar(wmbc, ' ');
 			wmbc->p--; /* TODO: temporary to work with old code */
 
@@ -510,16 +507,16 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 				if (wmbc->p - winmsg->buf > esc.num && !esc.flags.lng) {
 					int left, trunc;
 
-					if (truncpos == -1) {
-						truncpos = lastpad;
-						truncper = 0;
+					if (winmsg->trunc.pos == -1) {
+						winmsg->trunc.pos = lastpad;
+						winmsg->trunc.perc = 0;
 					}
-					trunc = lastpad + truncper * (esc.num - lastpad) / 100;
+					trunc = lastpad + winmsg->trunc.perc * (esc.num - lastpad) / 100;
 					if (trunc > esc.num)
 						trunc = esc.num;
 					if (trunc < lastpad)
 						trunc = lastpad;
-					left = truncpos - trunc;
+					left = winmsg->trunc.pos - trunc;
 					if (left > wmbc->p - winmsg->buf - esc.num)
 						left = wmbc->p - winmsg->buf - esc.num;
 					if (left > 0) {
@@ -536,7 +533,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 							if (winmsg->rendpos[r] < lastpad)
 								winmsg->rendpos[r] = lastpad;
 						}
-						if (trunclong) {
+						if (winmsg->trunc.ellip) {
 							if (wmbc->p - winmsg->buf > lastpad)
 								winmsg->buf[lastpad] = '.';
 							if (wmbc->p - winmsg->buf > lastpad + 1)
@@ -547,7 +544,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 					}
 					if (wmbc->p - winmsg->buf > esc.num) {
 						wmbc->p = winmsg->buf + esc.num;
-						if (trunclong) {
+						if (winmsg->trunc.ellip) {
 							if (esc.num - 1 >= lastpad)
 								wmbc->p[-1] = '.';
 							if (esc.num - 2 >= lastpad)
@@ -559,8 +556,8 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 						while (r && winmsg->rendpos[r - 1] > esc.num)
 							winmsg->rendpos[--r] = esc.num;
 					}
-					truncpos = -1;
-					trunclong = 0;
+					winmsg->trunc.pos = -1;
+					winmsg->trunc.ellip = false;
 					if (lastpad > wmbc->p - winmsg->buf)
 						lastpad = wmbc->p - winmsg->buf;
 				}
@@ -568,8 +565,8 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 					while (wmbc->p - winmsg->buf < esc.num)
 						wmbc_putchar(wmbc, ' ');
 					lastpad = wmbc->p - winmsg->buf;
-					truncpos = -1;
-					trunclong = 0;
+					winmsg->trunc.pos = -1;
+					winmsg->trunc.ellip = false;
 				}
 			} else if (padlen) {
 				*wmbc->p = CHRPAD;	/* internal pad representation */

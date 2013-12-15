@@ -32,6 +32,8 @@
 
 #define MAX_WINMSG_REND 256 /* rendition changes */
 
+/* TODO: complete truncation and rendition API */
+
 /* Represents a working buffer for window messages */
 typedef struct {
 	char     *buf;
@@ -39,6 +41,17 @@ typedef struct {
 	uint64_t  rend[MAX_WINMSG_REND];
 	int       rendpos[MAX_WINMSG_REND];
 	int       numrend;
+
+	/* truncation mark */
+	struct {
+		/* starting position of truncation; TODO: make this size_t and remove
+		 * -1 as inactive indicator */
+		int pos;
+		/* target offset percentage relative to pos and trunc operator */
+		uint8_t perc;
+		/* whether to show ellipses */
+		bool ellip;
+	} trunc;
 } WinMsgBuf;
 
 typedef struct {

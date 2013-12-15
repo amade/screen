@@ -65,6 +65,9 @@ typedef enum {
 	WINESC_COND            = '?',  /* start and end delimiter */
 	WINESC_COND_ELSE       = ':',
 	WINESC_BACKTICK        = '`',
+	WINESC_PAD             = '=',
+	WINESC_TRUNC           = '<',
+	WINESC_TRUNC_POS       = '>',
 } WinMsgEscapeChar;
 
 /* escape sequence */
