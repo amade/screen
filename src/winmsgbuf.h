@@ -70,8 +70,9 @@ inline void wmb_reset(WinMsgBuf *);
 void wmb_free(WinMsgBuf *);
 
 WinMsgBufContext *wmbc_create(WinMsgBuf *);
-inline void wmbc_fastfw(WinMsgBufContext *);
+inline void wmbc_rewind(WinMsgBufContext *);
 inline void wmbc_fastfw0(WinMsgBufContext *);
+inline void wmbc_fastfw_end(WinMsgBufContext *);
 inline void wmbc_putchar(WinMsgBufContext *, char);
 inline char *wmbc_strncpy(WinMsgBufContext *, const char *, size_t);
 inline char *wmbc_strcpy(WinMsgBufContext *, const char *);
