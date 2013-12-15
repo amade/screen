@@ -42,6 +42,7 @@ SIGNATURE_CHECK(wmbc_printf, int, (WinMsgBufContext *, const char *, ...));
 SIGNATURE_CHECK(wmbc_offset, size_t, (WinMsgBufContext *));
 SIGNATURE_CHECK(wmbc_bytesleft, size_t, (WinMsgBufContext *));
 SIGNATURE_CHECK(wmbc_mergewmb, char *, (WinMsgBufContext *, WinMsgBuf *));
+SIGNATURE_CHECK(wmbc_finish, const char *, (WinMsgBufContext *));
 SIGNATURE_CHECK(wmbc_free, void, (WinMsgBufContext *));
 
 int main(void)
@@ -80,7 +81,79 @@ int main(void)
 
 	/* wmb_create should return NULL on allocation failure */
 	{
-		ASSERT_GCC(FAILLOC(WinMsgBuf *, wmb_create()) == NULL);
+		ASSERT_GCC(FAILLOC_PTR(wmb_create()) == NULL);
+	}
+
+	/* scenerio: writing to single buffer via separate contexts---while
+	 * maintaining separate pointers between them---and retrieving a final
+	 * result */
+	{
+		WinMsgBuf *wmb = wmb_create();
+		WinMsgBufContext *wmbc = wmbc_create(wmb);
+		WinMsgBufContext *wmbc2 = wmbc_create(wmb);
+
+		/* the offset at this point should be 0 (beginning of buffer) */
+		ASSERT(wmbc_offset(wmbc) == 0);
+		ASSERT(wmbc_offset(wmbc2) == 0);
+		ASSERT(wmbc_bytesleft(wmbc) == wmb_size(wmb));
+		ASSERT(wmbc_bytesleft(wmbc2) == wmb_size(wmb));
+
+		/* putting a character should increase the offset and decrease the
+		 * number of bytes remaining */
+		char c = 'c';
+		wmbc_putchar(wmbc, c);
+		ASSERT(wmbc_offset(wmbc) == 1);
+		ASSERT(wmbc_bytesleft(wmbc) == wmb_size(wmb) - 1);
+
+		/* multiple contexts should move independently of one-another */
+		ASSERT(wmbc_offset(wmbc2) == 0);
+		ASSERT(wmbc_bytesleft(wmbc2) == wmb_size(wmb));
+
+		/* the contents of the buffer should reflect the change */
+		ASSERT(*wmb_contents(wmb) == c);
+		ASSERT(*wmbc_finish(wmbc) == c);
+
+		/* the second context is still at the first position, so it should
+		 * overwrite the first character */
+		char c2 = 'd';
+		wmbc_putchar(wmbc2, c2);
+		ASSERT(wmbc_offset(wmbc2) == 1);
+		ASSERT(*wmb_contents(wmb) == c2);
+		ASSERT(*wmbc_finish(wmbc) == c2);
+		ASSERT(*wmbc_finish(wmbc2) == c2);
+
+		/* wmbc_finish should terminate the string; we will add a character at
+		 * the second index to ensure that it is added */
+		char cx = 'x';
+		wmbc_putchar(wmbc2, cx);
+		ASSERT(wmbc_offset(wmbc2) == 2);
+		ASSERT(wmb_contents(wmb)[1] == cx);
+		ASSERT(wmbc_finish(wmbc)[1] == '\0');
+		ASSERT(wmb_contents(wmb)[1] == '\0');
+
+		/* furthermore, finishing should not adjust the offset, so that we can
+		 * continue where we left off */
+		ASSERT(wmbc_offset(wmbc) == 1);
+		wmbc_putchar(wmbc, cx);
+		ASSERT(wmb_contents(wmb)[1] == cx);
+
+		wmbc_free(wmbc2);
+		wmbc_free(wmbc);
+		wmb_free(wmb);
+	}
+
+	/* context creation issues */
+	{
+		WinMsgBuf *wmb = wmb_create();
+
+		/* wmbc_create() should return NULL on allocation failure */
+		ASSERT_GCC(FAILLOC_PTR(wmbc_create(wmb)) == NULL);
+
+		/* it should also return NULL if no buffer is provided (this could
+		 * happen on an unchecked (*gasp*) wmb_create() failure */
+		ASSERT(wmbc_create(NULL) == NULL);
+
+		wmb_free(wmb);
 	}
 
 	return 0;
