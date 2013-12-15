@@ -191,6 +191,38 @@ int main(void)
 		wmb_free(wmb);
 	}
 
+	/* scenerio: write past end of buffer to trigger buffer expansion rather
+	 * than overflow */
+	{
+		WinMsgBuf *wmb = wmb_create();
+		WinMsgBufContext *wmbc = wmbc_create(wmb);
+		size_t szstart = wmb_size(wmb);
+
+		/* fast-forward to end of buffer and write a character, which shall
+		 * trigger expansion */
+		char c = 'c';
+		wmbc_fastfw_end(wmbc);
+		wmbc_putchar(wmbc, c);
+		ASSERT(wmb_size(wmb) > szstart);
+		ASSERT(wmb_contents(wmb)[wmbc_offset(wmbc) - 1] == c);
+
+		/* if expansion fails, then the character will not be written and shall
+		 * be silently ignored; this has the effect of truncating the string
+		 * (and should only ever happen in terrible conditions) */
+		size_t sznew = wmb_size(wmb);
+		char cfail = wmb_contents(wmb)[sznew - 1] + 1;
+		wmbc_fastfw_end(wmbc);
+		ASSERT(wmbc_offset(wmbc) > szstart);      /* sanity check */
+		FAILLOC_VOID(wmbc_putchar(wmbc, cfail));  /* fail expansion */
+		ASSERT_GCC(wmb_size(wmb) == sznew);
+		/* should not have written char at last position */
+		ASSERT_GCC(wmb_contents(wmb)[sznew - 1] != cfail);
+		ASSERT_GCC(wmbc_offset(wmbc) == sznew);
+
+		wmbc_free(wmbc);
+		wmb_free(wmb);
+	}
+
 	/* context creation issues */
 	{
 		WinMsgBuf *wmb = wmb_create();
