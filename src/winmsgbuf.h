@@ -41,6 +41,11 @@ typedef struct {
 	uint64_t  rend[MAX_WINMSG_REND];
 	int       rendpos[MAX_WINMSG_REND];
 	int       numrend;
+} WinMsgBuf;
+
+typedef struct {
+	WinMsgBuf *buf;
+	char      *p;    /* pointer within buffer */
 
 	/* truncation mark */
 	struct {
@@ -52,11 +57,6 @@ typedef struct {
 		/* whether to show ellipses */
 		bool ellip;
 	} trunc;
-} WinMsgBuf;
-
-typedef struct {
-	WinMsgBuf *buf;
-	char      *p;    /* pointer within buffer */
 } WinMsgBufContext;
 
 

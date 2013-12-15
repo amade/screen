@@ -229,18 +229,18 @@ winmsg_esc_ex(PadOrTrunc, int *numpad, int *lastpad, int padlen)
 		if (wmbc->p - winmsg->buf > esc->num && !esc->flags.lng) {
 			int left, trunc;
 
-			if (winmsg->trunc.pos == -1) {
-				winmsg->trunc.pos = *lastpad;
-				winmsg->trunc.perc = 0;
+			if (wmbc->trunc.pos == -1) {
+				wmbc->trunc.pos = *lastpad;
+				wmbc->trunc.perc = 0;
 			}
 
-			trunc = *lastpad + winmsg->trunc.perc * (esc->num - *lastpad) / 100;
+			trunc = *lastpad + wmbc->trunc.perc * (esc->num - *lastpad) / 100;
 			if (trunc > esc->num)
 				trunc = esc->num;
 			if (trunc < *lastpad)
 				trunc = *lastpad;
 
-			left = winmsg->trunc.pos - trunc;
+			left = wmbc->trunc.pos - trunc;
 			if (left > wmbc->p - winmsg->buf - esc->num)
 				left = wmbc->p - winmsg->buf - esc->num;
 
@@ -261,7 +261,7 @@ winmsg_esc_ex(PadOrTrunc, int *numpad, int *lastpad, int padlen)
 						winmsg->rendpos[r] = *lastpad;
 				}
 
-				if (winmsg->trunc.ellip) {
+				if (wmbc->trunc.ellip) {
 					if (wmbc->p - winmsg->buf > *lastpad)
 						winmsg->buf[*lastpad] = '.';
 					if (wmbc->p - winmsg->buf > *lastpad + 1)
@@ -273,7 +273,7 @@ winmsg_esc_ex(PadOrTrunc, int *numpad, int *lastpad, int padlen)
 
 			if (wmbc->p - winmsg->buf > esc->num) {
 				wmbc->p = winmsg->buf + esc->num;
-				if (winmsg->trunc.ellip) {
+				if (wmbc->trunc.ellip) {
 					if (esc->num - 1 >= *lastpad)
 						wmbc->p[-1] = '.';
 					if (esc->num - 2 >= *lastpad)
@@ -287,8 +287,8 @@ winmsg_esc_ex(PadOrTrunc, int *numpad, int *lastpad, int padlen)
 					winmsg->rendpos[--r] = esc->num;
 			}
 
-			winmsg->trunc.pos = -1;
-			winmsg->trunc.ellip = false;
+			wmbc->trunc.pos = -1;
+			wmbc->trunc.ellip = false;
 
 			if (*lastpad > wmbc->p - winmsg->buf)
 				*lastpad = wmbc->p - winmsg->buf;
@@ -299,8 +299,8 @@ winmsg_esc_ex(PadOrTrunc, int *numpad, int *lastpad, int padlen)
 				wmbc_putchar(wmbc, ' ');
 
 			*lastpad = wmbc->p - winmsg->buf;
-			winmsg->trunc.pos = -1;
-			winmsg->trunc.ellip = false;
+			wmbc->trunc.pos = -1;
+			wmbc->trunc.ellip = false;
 		}
 	} else if (padlen) {
 		*wmbc->p = CHRPAD;	/* internal pad representation */
@@ -354,9 +354,9 @@ winmsg_esc(SessName)
 winmsg_esc_ex(TruncPos, uint8_t perc, bool ellip)
 {
 	/* TODO: encapsulate */
-	wmbc->buf->trunc.pos = wmbc_offset(wmbc);
-	wmbc->buf->trunc.perc = perc;
-	wmbc->buf->trunc.ellip = ellip;
+	wmbc->trunc.pos = wmbc_offset(wmbc);
+	wmbc->trunc.perc = perc;
+	wmbc->trunc.ellip = ellip;
 }
 
 winmsg_esc_ex(WinNames, const bool hide_cur, Window *win)
