@@ -74,8 +74,8 @@ inline void wmbc_rewind(WinMsgBufContext *);
 inline void wmbc_fastfw0(WinMsgBufContext *);
 inline void wmbc_fastfw_end(WinMsgBufContext *);
 inline void wmbc_putchar(WinMsgBufContext *, char);
-inline char *wmbc_strncpy(WinMsgBufContext *, const char *, size_t);
-inline char *wmbc_strcpy(WinMsgBufContext *, const char *);
+const char *wmbc_strncpy(WinMsgBufContext *, const char *, size_t);
+inline const char *wmbc_strcpy(WinMsgBufContext *, const char *);
 int wmbc_printf(WinMsgBufContext *, const char *, ...)
                 __attribute__((format(printf,2,3)));
 inline size_t wmbc_offset(WinMsgBufContext *);

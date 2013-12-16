@@ -37,8 +37,8 @@ SIGNATURE_CHECK(wmbc_rewind, void, (WinMsgBufContext *));
 SIGNATURE_CHECK(wmbc_fastfw0, void, (WinMsgBufContext *));
 SIGNATURE_CHECK(wmbc_fastfw_end, void, (WinMsgBufContext *));
 SIGNATURE_CHECK(wmbc_putchar, void, (WinMsgBufContext *, char));
-SIGNATURE_CHECK(wmbc_strncpy, char *, (WinMsgBufContext *, const char *, size_t));
-SIGNATURE_CHECK(wmbc_strcpy, char *, (WinMsgBufContext *, const char *));
+SIGNATURE_CHECK(wmbc_strncpy, const char *, (WinMsgBufContext *, const char *, size_t));
+SIGNATURE_CHECK(wmbc_strcpy, const char *, (WinMsgBufContext *, const char *));
 SIGNATURE_CHECK(wmbc_printf, int, (WinMsgBufContext *, const char *, ...));
 SIGNATURE_CHECK(wmbc_offset, size_t, (WinMsgBufContext *));
 SIGNATURE_CHECK(wmbc_bytesleft, size_t, (WinMsgBufContext *));
@@ -68,7 +68,7 @@ int main(void)
 		ASSERT_NOALLOC(ASSERT(wmb_expand(wmb, 0) == new););
 
 		/* if buffer expansion fails, the original size shall be retained */
-		ASSERT_GCC(FAILLOC(size_t, wmb_expand(wmb, new + 5)) == new);
+		ASSERT_GCC(FAILLOC(wmb_expand(wmb, new + 5)) == new);
 
 		/* resetting should put us back to our starting state, but should do
 		 * nothing with the buffer size */
@@ -82,7 +82,7 @@ int main(void)
 
 	/* wmb_create should return NULL on allocation failure */
 	{
-		ASSERT_GCC(FAILLOC_PTR(wmb_create()) == NULL);
+		ASSERT_GCC(FAILLOC(wmb_create()) == NULL);
 	}
 
 	/* scenerio: writing to single buffer via separate contexts---while
@@ -223,12 +223,66 @@ int main(void)
 		wmb_free(wmb);
 	}
 
+	/* scenerio: copy strings into buffer, also attempting to expand buffer */
+	{
+		WinMsgBuf *wmb = wmb_create();
+		WinMsgBufContext *wmbc = wmbc_create(wmb);
+
+		/* attempt complete string copy (just like strcpy, a pointer is returned
+		 * to the first copied character in the destination) */
+		const char str[] = "test string";
+		ASSERT(*wmbc_strcpy(wmbc, str) == str[0]);
+		ASSERT(wmbc_offset(wmbc) == strlen(str));
+		ASSERT(STREQ(wmbc_finish(wmbc), str));
+
+		/* how about a partial string copy (which does not contain a null byte)? */
+		size_t n = 4;
+		wmbc_rewind(wmbc);
+		ASSERT(*wmbc_strncpy(wmbc, str, n) == str[0]);
+		ASSERT(wmbc_offset(wmbc) == n);
+		ASSERT(STREQ(wmbc_finish(wmbc), "test"));  /* finish adds null byte */
+
+		/* if we cannot fit any more contents, then the buffer should be
+		 * expanded in both instances (look at that---a safe strcpy) */
+		size_t szfirst = wmb_size(wmb);
+		wmbc_fastfw_end(wmbc);
+		/* first try strcpy */
+		wmbc_strcpy(wmbc, str);
+		size_t szsecond = wmb_size(wmb);
+		ASSERT(szsecond > szfirst);
+		ASSERT(wmbc_offset(wmbc) == szfirst + strlen(str));
+		/* then strncpy */
+		wmbc_fastfw_end(wmbc);
+		wmbc_strncpy(wmbc, str, n);
+		ASSERT(wmb_size(wmb) > szsecond);
+		ASSERT(wmbc_offset(wmbc) == szsecond + n);
+
+		/* if the buffer cannot be expanded, nothing shall be copied (similar to
+		 * putchar); importantly, we cannot return a pointer to the buffer
+		 * position that would represent the first character copied, because it
+		 * is outside the bounds of the buffer */
+		size_t szmax = wmb_size(wmb);
+		char last = wmb_contents(wmb)[szmax - 1];
+		wmbc_fastfw_end(wmbc);
+		/* strcpy */
+		ASSERT(FAILLOC(wmbc_strcpy(wmbc, str)) == NULL);
+		ASSERT_GCC(wmb_size(wmb) == szmax);
+		ASSERT_GCC(wmb_contents(wmb)[szmax - 1] == last);
+		/* strncpy */
+		ASSERT(FAILLOC(wmbc_strncpy(wmbc, str, n)) == NULL);
+		ASSERT_GCC(wmb_size(wmb) == szmax);
+		ASSERT_GCC(wmb_contents(wmb)[szmax - 1] == last);
+
+		wmbc_free(wmbc);
+		wmb_free(wmb);
+	}
+
 	/* context creation issues */
 	{
 		WinMsgBuf *wmb = wmb_create();
 
 		/* wmbc_create() should return NULL on allocation failure */
-		ASSERT_GCC(FAILLOC_PTR(wmbc_create(wmb)) == NULL);
+		ASSERT_GCC(FAILLOC(wmbc_create(wmb)) == NULL);
 
 		/* it should also return NULL if no buffer is provided (this could
 		 * happen on an unchecked (*gasp*) wmb_create() failure */
