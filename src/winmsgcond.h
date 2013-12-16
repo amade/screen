@@ -40,8 +40,8 @@ inline void  wmc_set(WinMsgCond *);
 inline void  wmc_clear(WinMsgCond *);
 inline bool  wmc_is_active(const WinMsgCond *);
 inline bool  wmc_is_set(const WinMsgCond *);
-inline char *wmc_else(WinMsgCond *, char *);
-inline char *wmc_end(const WinMsgCond *, char *);
+inline char *wmc_else(WinMsgCond *, char *, bool *);
+inline char *wmc_end(const WinMsgCond *, char *, bool *);
 inline void  wmc_deinit(WinMsgCond *);
 
 #endif
