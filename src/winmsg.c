@@ -420,21 +420,15 @@ winmsg_esc_ex(WinTitle, Window *win)
 		wmc_set(cond);
 }
 
-static inline char *_WinMsgCondProcess(char *posnew, char *pos, int condrend, int *destrend)
-{
-	if (posnew == pos)
-		return pos;
-
-	/* position has changed, so be sure to also restore renditions */
-	*destrend = condrend;
-	return posnew;
-}
-
 winmsg_esc_ex(Cond, int *condrend)
 {
 	if (wmc_is_active(cond)) {
-		wmbc->p = _WinMsgCondProcess(wmc_end(cond, wmbc->p), wmbc->p,
-			*condrend, &wmbc->buf->numrend);
+		bool chg;
+		wmbc->p = wmc_end(cond, wmbc->p, &chg);
+
+		if (chg)
+			wmbc->buf->numrend = *condrend;
+
 		wmc_deinit(cond);
 		return;
 	}
@@ -446,8 +440,15 @@ winmsg_esc_ex(Cond, int *condrend)
 winmsg_esc_ex(CondElse, int *condrend)
 {
 	if (wmc_is_active(cond)) {
-		wmbc->p = _WinMsgCondProcess(wmc_else(cond, wmbc->p), wmbc->p,
-			*condrend, &wmbc->buf->numrend);
+		bool chg;
+		wmbc->p = wmc_else(cond, wmbc->p, &chg);
+
+		/* if the true branch was discarded, restore to previous rendition
+		 * state; otherwise, we're keeping it, so update the rendition state */
+		if (chg)
+			wmbc->buf->numrend = *condrend;
+		else
+			*condrend = wmbc->buf->numrend;
 	}
 }
 
@@ -633,7 +634,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 		}
 	}
 	if (wmc_is_active(cond) && !wmc_is_set(cond))
-		wmbc->p = wmc_end(cond, wmbc->p) + 1;
+		wmbc->p = wmc_end(cond, wmbc->p, NULL) + 1;
 	wmbc_putchar(wmbc, '\0' );
 	wmbc->p--; /* TODO: temporary to work with old code */
 	if (numpad) {

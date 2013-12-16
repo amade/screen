@@ -65,7 +65,7 @@ inline bool wmc_is_set(const WinMsgCond *cond)
 }
 
 /* "else" encounted */
-inline char *wmc_else(WinMsgCond *cond, char *pos)
+inline char *wmc_else(WinMsgCond *cond, char *pos, bool *changed)
 {
 	assert(wmc_is_active(cond));
 
@@ -79,6 +79,8 @@ inline char *wmc_else(WinMsgCond *cond, char *pos)
 		cond->locked = true;  /* "else" shall never succeed at this point */
 
 		/* we want to keep the string we have so far (the truth string) */
+		if (changed)
+			*changed = false;
 		return pos;
 	}
 
@@ -92,15 +94,21 @@ inline char *wmc_else(WinMsgCond *cond, char *pos)
 	wmc_set(cond);
 	cond->locked = true;
 
+	if (changed)
+		*changed = true;
 	return prevpos;
 }
 
 /* End condition and determine if string should be reset or kept---if our value
  * is truthful, then accept the string, otherwise reject and reset to the
  * position that we were initialized with */
-inline char *wmc_end(const WinMsgCond *cond, char *pos)
+inline char *wmc_end(const WinMsgCond *cond, char *pos, bool *changed)
 {
-	return (wmc_is_set(cond)) ? pos : cond->pos;
+	bool set = wmc_is_set(cond);
+	if (changed)
+		*changed = !set;
+
+	return (set) ? pos : cond->pos;
 }
 
 /* Deactivate a condition, preventing its use; this allows a single allocation
