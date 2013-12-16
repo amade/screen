@@ -95,9 +95,9 @@ extern const long double randoml[1000];
 		ASSERT(_mallocmock_realloc_size == 0);
 
 	/* Use only with ASSERT_GCC */
-	#define FAILLOC(type, x) ({ \
+	#define FAILLOC(x) ({ \
 		_mallocmock_fail = true; \
-		type __ret = (x); \
+		typeof (x) __ret = (x); \
 		_mallocmock_fail = false; \
 		__ret; \
 	})
@@ -112,8 +112,7 @@ extern const long double randoml[1000];
 	#define ASSERT_REALLOC(cmp, x) x
 	#define ASSERT_NOALLOC(cmp, x) x
 	#define MALLOC_RESET_COUNT()
-	#define FAILLOC(type, x) /* no portable equivalent! */
+	#define FAILLOC(x) /* no portable equivalent! */
 	#define FAILLOC_VOID(x)  /* no portable equivalent! */
 	#define ASSERT_GCC(x)
 #endif
-#define FAILLOC_PTR(x) FAILLOC(void *, x)
