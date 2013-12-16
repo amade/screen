@@ -186,8 +186,9 @@ inline void wmbc_putchar(WinMsgBufContext *wmbc, char c)
 /* Copies a string into the buffer, dynamically resizing the buffer as needed to
  * accomodate length N. If S is shorter than N characters in length, the
  * remaining bytes are filled will nulls. The context pointer is adjusted to the
- * terminating null byte. */
-inline char *wmbc_strncpy(WinMsgBufContext *wmbc, const char *s, size_t n)
+ * terminating null byte. A pointer to the first copied character in the buffer
+ * is returned; it shall not be used to modify the buffer. */
+const char *wmbc_strncpy(WinMsgBufContext *wmbc, const char *s, size_t n)
 {
 	size_t l = wmbc_bytesleft(wmbc);
 
@@ -195,22 +196,24 @@ inline char *wmbc_strncpy(WinMsgBufContext *wmbc, const char *s, size_t n)
 	if (l < n) {
 		size_t size = wmbc->buf->size + (n - l);
 		if (!_wmbc_expand(wmbc, size)) {
-			return wmbc->p;
+			return NULL;
 		}
 	}
 
 	char *p = wmbc->p;
 	strncpy(wmbc->p, s, n);
-	wmbc_fastfw0(wmbc);
+	wmbc->p += n;
 	return p;
 }
 
 /* Copies a string into the buffer, dynamically resizing the buffer as needed to
- * accomodate the length of the string plus its terminating null byte. The
- * context pointer is adjusted to the the terminiating null byte. */
-inline char *wmbc_strcpy(WinMsgBufContext *wmbc, const char *s)
+ * accomodate the length of the string sans its terminating null byte. The
+ * context pointer is adjusted to the the terminiating null byte. A pointer to
+ * the first copied character in the destination buffer is returned; it shall
+ * not be used to modify the buffer. */
+inline const char *wmbc_strcpy(WinMsgBufContext *wmbc, const char *s)
 {
-	return wmbc_strncpy(wmbc, s, strlen(s) + 1);
+	return wmbc_strncpy(wmbc, s, strlen(s));
 }
 
 /* Write data to the buffer using a printf-style format string. If needed, the
