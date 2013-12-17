@@ -277,6 +277,53 @@ int main(void)
 		wmb_free(wmb);
 	}
 
+	/* scenerio: formatted strings into buffer, also triggering expansion */
+	{
+		WinMsgBuf *wmb = wmb_create();
+		WinMsgBufContext *wmbc = wmbc_create(wmb);
+
+		/* we will not be testing whether sprintf-style formatting works (since
+		 * that would be testing vsnprintf), but make sure that it actually does
+		 * something */
+		char *expect = "test: foo";
+		ASSERT(wmbc_printf(wmbc, "test: %s", "foo") == (int)strlen(expect));
+		ASSERT(STREQ(wmbc_finish(wmbc), expect));
+		ASSERT(wmbc_offset(wmbc) == strlen(expect));
+
+		/* even though sprintf produces a null-terminated string, we do not make
+		 * use of the null byte, so we should be able to treat multiple calls as
+		 * concatenation */
+		char *add = "bar";
+		size_t szadd = strlen(add);
+		char *expect2 = alloca(strlen(expect) + szadd + 1);
+		strcpy(expect2, expect);
+		strcat(expect2, add);
+		ASSERT(wmbc_printf(wmbc, "%s", add) == (int)szadd);
+		ASSERT(STREQ(wmbc_finish(wmbc), expect2));
+		ASSERT(wmbc_offset(wmbc) == strlen(expect2));
+
+		/* should trigger expansion if we do not have enough room */
+		size_t szfirst = wmb_size(wmb);
+		wmbc_fastfw_end(wmbc);
+		ASSERT(wmbc_offset(wmbc) == szfirst);  /* sanity check */
+		ASSERT(wmbc_printf(wmbc, "%s", add) == (int)szadd);
+		ASSERT(wmb_size(wmb) > szfirst);
+		ASSERT(STREQ(&wmbc_finish(wmbc)[szfirst], add));
+		ASSERT(wmbc_offset(wmbc) == szfirst + szadd);
+
+		/* if the buffer cannot be expanded, then we should write only the
+		 * number of bytes that could fit */
+		size_t szsecond = wmb_size(wmb);
+		wmbc_fastfw_end(wmbc);
+		wmbc->p--;  /* :x */
+		ASSERT_GCC(FAILLOC(wmbc_printf(wmbc, "%s", add)) == 1);
+		ASSERT_GCC(wmbc_offset(wmbc) == wmb_size(wmb));
+		ASSERT_GCC(wmb_size(wmb) == szsecond);  /* sanity check */
+
+		wmbc_free(wmbc);
+		wmb_free(wmb);
+	}
+
 	/* context creation issues */
 	{
 		WinMsgBuf *wmb = wmb_create();

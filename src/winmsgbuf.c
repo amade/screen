@@ -196,6 +196,7 @@ const char *wmbc_strncpy(WinMsgBufContext *wmbc, const char *s, size_t n)
 	if (l < n) {
 		size_t size = wmbc->buf->size + (n - l);
 		if (!_wmbc_expand(wmbc, size)) {
+			/* TODO: we should copy what can fit. */
 			return NULL;
 		}
 	}
@@ -229,19 +230,23 @@ int wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
 	va_start(ap, fmt);
 	max = wmbc_bytesleft(wmbc);
 	n = vsnprintf(wmbc->p, max, fmt, ap);
+	va_end(ap);
 
 	/* more space is needed if vsnprintf returns a larger number than our max,
 	 * in which case we should accomodate by dynamically resizing the buffer and
 	 * trying again */
 	if (n > max) {
-		if (!_wmbc_expand(wmbc, n)) {
+		if (!_wmbc_expand(wmbc, wmb_size(wmbc->buf) + n - max)) {
 			/* failed to allocate additional memory; this will simply have to do */
 			wmbc_fastfw_end(wmbc);
+			va_end(ap);
 			return max;
 		}
 
-		size_t m = vsnprintf(wmbc->p, n, fmt, ap);
+		va_start(ap, fmt);
+		size_t m = vsnprintf(wmbc->p, n + 1, fmt, ap);
 		assert(m == n); /* this should never fail */
+		va_end(ap);
 	}
 
 	wmbc_fastfw0(wmbc);
