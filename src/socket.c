@@ -809,7 +809,6 @@ static void FinishAttach(struct msg *m)
 	char *p;
 	int pid;
 	int noshowwin;
-	Window *wi;
 
 	struct sigaction sigact;
 
