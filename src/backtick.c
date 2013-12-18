@@ -51,7 +51,7 @@ static void backtick_filter(struct backtick *bt)
 	*q = 0;
 }
 
-static void backtick_fn(Event *ev, char *data)
+static void backtick_fn(Event *ev, void *data)
 {
 	struct backtick *bt;
 	int i, j, k, l;
