@@ -2989,7 +2989,7 @@ void DoAction(struct action *act, int key)
 			 * special and is skipped if no display exists.
 			 */
 			for (ss = s; (ch = *ss); ss++) {
-				struct plop *pp = (ch == '.' ? &GlobalPlop : &plop_tab[(int)(unsigned char)ch]);
+				struct plop *pp = (ch == '.' ? GlobalPlop : &plop_tab[(int)(unsigned char)ch]);
 				if (pp->enc != enc) {
 					l += RecodeBuf((unsigned char *)pp->buf, pp->len, pp->enc, enc,
 						       (unsigned char *)dbuf + l);
