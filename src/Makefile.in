@@ -29,7 +29,7 @@ endif
 SCREENENCODINGS = $(datadir)/screen/utf8encodings
 
 CC = @CC@
-CFLAGS = @CFLAGS@ -Wall -Wextra
+CFLAGS = @CFLAGS@ -std=c11 -Wall -Wextra
 CPPFLAGS = @CPPFLAGS@ -DETCSCREENRC='"$(ETCSCREENRC)"' \
            -DSCREENENCODINGS='"$(SCREENENCODINGS)"'
 LDFLAGS = @LDFLAGS@
