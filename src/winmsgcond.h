@@ -35,13 +35,13 @@ typedef struct {
 } WinMsgCond;
 
 /* WinMsgCond is intended to be used as an opaque type */
-inline void  wmc_init(WinMsgCond *, char *);
-inline void  wmc_set(WinMsgCond *);
-inline void  wmc_clear(WinMsgCond *);
-inline bool  wmc_is_active(const WinMsgCond *);
-inline bool  wmc_is_set(const WinMsgCond *);
-inline char *wmc_else(WinMsgCond *, char *, bool *);
-inline char *wmc_end(const WinMsgCond *, char *, bool *);
-inline void  wmc_deinit(WinMsgCond *);
+void  wmc_init(WinMsgCond *, char *);
+void  wmc_set(WinMsgCond *);
+void  wmc_clear(WinMsgCond *);
+bool  wmc_is_active(const WinMsgCond *);
+bool  wmc_is_set(const WinMsgCond *);
+char *wmc_else(WinMsgCond *, char *, bool *);
+char *wmc_end(const WinMsgCond *, char *, bool *);
+void  wmc_deinit(WinMsgCond *);
 
 #endif
