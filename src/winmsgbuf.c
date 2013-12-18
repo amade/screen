@@ -89,21 +89,21 @@ void wmb_rendadd(WinMsgBuf *wmb, uint64_t r, int offset)
 
 /* Retrieve buffer size. This returns the total size of the buffer, not how much
  * has been used. */
-inline size_t wmb_size(const WinMsgBuf *wmb)
+size_t wmb_size(const WinMsgBuf *wmb)
 {
 	return wmb->size;
 }
 
 /* Retrieve a pointer to the raw buffer contents. This should not be used to
  * modify the buffer. */
-inline const char *wmb_contents(const WinMsgBuf *wmb)
+const char *wmb_contents(const WinMsgBuf *wmb)
 {
 	return wmb->buf;
 }
 
 /* Initializes window buffer to the empty string; useful for re-using an
  * existing buffer without allocating a new one. */
-inline void wmb_reset(WinMsgBuf *w)
+void wmb_reset(WinMsgBuf *w)
 {
 	*w->buf = '\0';
 	w->numrend = 0;
@@ -134,20 +134,20 @@ WinMsgBufContext *wmbc_create(WinMsgBuf *w)
 }
 
 /* Rewind pointer to the first byte of the buffer. */
-inline void wmbc_rewind(WinMsgBufContext *wmbc)
+void wmbc_rewind(WinMsgBufContext *wmbc)
 {
 	wmbc->p = wmbc->buf->buf;
 }
 
 /* Place pointer at terminating null character. */
-inline void wmbc_fastfw0(WinMsgBufContext *wmbc)
+void wmbc_fastfw0(WinMsgBufContext *wmbc)
 {
 	wmbc->p += strlen(wmbc->p);
 }
 
 /* Place pointer just past the last byte in the buffer, ignoring terminating null
  * characters. The next write will trigger an expansion. */
-inline void wmbc_fastfw_end(WinMsgBufContext *wmbc)
+void wmbc_fastfw_end(WinMsgBufContext *wmbc)
 {
 	wmbc->p = wmbc->buf->buf + wmbc->buf->size;
 }
@@ -170,7 +170,7 @@ static bool _wmbc_expand(WinMsgBufContext *wmbc, size_t size)
 /* Sets a character at the current buffer position and increments the pointer.
  * The terminating null character is not retained. The buffer will be
  * dynamically resized as needed. */
-inline void wmbc_putchar(WinMsgBufContext *wmbc, char c)
+void wmbc_putchar(WinMsgBufContext *wmbc, char c)
 {
 	/* attempt to accomodate this character, but bail out silenty if it cannot
 	 * fit */
@@ -212,7 +212,7 @@ const char *wmbc_strncpy(WinMsgBufContext *wmbc, const char *s, size_t n)
  * context pointer is adjusted to the the terminiating null byte. A pointer to
  * the first copied character in the destination buffer is returned; it shall
  * not be used to modify the buffer. */
-inline const char *wmbc_strcpy(WinMsgBufContext *wmbc, const char *s)
+const char *wmbc_strcpy(WinMsgBufContext *wmbc, const char *s)
 {
 	return wmbc_strncpy(wmbc, s, strlen(s));
 }
@@ -254,7 +254,7 @@ int wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
 }
 
 /* Retrieve the 0-indexed offset of the context pointer into the buffer */
-inline size_t wmbc_offset(WinMsgBufContext *wmbc)
+size_t wmbc_offset(WinMsgBufContext *wmbc)
 {
 	ptrdiff_t offset = wmbc->p - wmbc->buf->buf;
 
@@ -269,7 +269,7 @@ inline size_t wmbc_offset(WinMsgBufContext *wmbc)
 
 /* Calculate the number of bytes remaining in the buffer relative to the current
  * position within the buffer */
-inline size_t wmbc_bytesleft(WinMsgBufContext *wmbc)
+size_t wmbc_bytesleft(WinMsgBufContext *wmbc)
 {
 	return wmbc->buf->size - wmbc_offset(wmbc);
 }

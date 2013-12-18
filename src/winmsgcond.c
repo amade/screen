@@ -26,7 +26,7 @@
 
 /* Initialize new condition and set to false; can be used to re-initialize a
  * condition for re-use */
-inline void wmc_init(WinMsgCond *cond, char *pos)
+void wmc_init(WinMsgCond *cond, char *pos)
 {
 	cond->locked = false;
 	cond->pos = pos;
@@ -34,7 +34,7 @@ inline void wmc_init(WinMsgCond *cond, char *pos)
 }
 
 /* Mark condition as true */
-inline void wmc_set(WinMsgCond *cond)
+void wmc_set(WinMsgCond *cond)
 {
 	if (cond->locked)
 		return;
@@ -43,7 +43,7 @@ inline void wmc_set(WinMsgCond *cond)
 }
 
 /* Clear condition (equivalent to non-match) */
-inline void wmc_clear(WinMsgCond *cond)
+void wmc_clear(WinMsgCond *cond)
 {
 	if (cond->locked)
 		return;
@@ -52,20 +52,20 @@ inline void wmc_clear(WinMsgCond *cond)
 }
 
 /* Determine if condition is active (has been initialized and can be used) */
-inline bool wmc_is_active(const WinMsgCond *cond)
+bool wmc_is_active(const WinMsgCond *cond)
 {
 	return (cond->pos != NULL);
 }
 
 /* Determine if a condition is true; the result is undefined if
  * !wmc_active(cond) */
-inline bool wmc_is_set(const WinMsgCond *cond)
+bool wmc_is_set(const WinMsgCond *cond)
 {
 	return cond->state;
 }
 
 /* "else" encounted */
-inline char *wmc_else(WinMsgCond *cond, char *pos, bool *changed)
+char *wmc_else(WinMsgCond *cond, char *pos, bool *changed)
 {
 	assert(wmc_is_active(cond));
 
@@ -102,7 +102,7 @@ inline char *wmc_else(WinMsgCond *cond, char *pos, bool *changed)
 /* End condition and determine if string should be reset or kept---if our value
  * is truthful, then accept the string, otherwise reject and reset to the
  * position that we were initialized with */
-inline char *wmc_end(const WinMsgCond *cond, char *pos, bool *changed)
+char *wmc_end(const WinMsgCond *cond, char *pos, bool *changed)
 {
 	bool set = wmc_is_set(cond);
 	if (changed)
@@ -113,7 +113,7 @@ inline char *wmc_end(const WinMsgCond *cond, char *pos, bool *changed)
 
 /* Deactivate a condition, preventing its use; this allows a single allocation
  * to be re-used and ignored until activated */
-inline void wmc_deinit(WinMsgCond *cond)
+void wmc_deinit(WinMsgCond *cond)
 {
 	cond->state = false;
 	cond->pos = NULL;
