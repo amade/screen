@@ -32,6 +32,7 @@ uint64_t ParseAttrColor (char *, int);
 void  ApplyAttrColor (uint64_t, struct mchar *);
 void  SwitchWindow (int);
 int   StuffKey (int);
+char **SaveArgs(char **);
 
 /* global variables */
 

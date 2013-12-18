@@ -90,5 +90,19 @@ sed < comm.cpp \
 END  {	printf "\n#define RC_LAST %d\n",i-1;
      }
 ' >> comm.h
+
+cat << EOF > comm.h_
+#ifndef SCREEN_COMM_H
+#define SCREEN_COMM_H
+EOF
+
+cat comm.h >> comm.h_
+
+cat << EOF >> comm.h_
+#endif /* SCREEN_COMM_H */
+EOF
+
+mv comm.h_ comm.h
+
 chmod a-w comm.h
 rm -f comm.cpp

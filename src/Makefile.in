@@ -47,7 +47,7 @@ AWK = @AWK@
 SHELL=/bin/sh
 
 CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
-	search.c tty.c term.c window.c help.c \
+	search.c tty.c term.c window.c help.c alias.c \
 	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
 	kmapdef.c logfile.c layer.c winmsg.c winmsgbuf.c winmsgcond.c \
 	backtick.c sched.c encoding.c canvas.c layout.c viewport.c \
@@ -236,3 +236,4 @@ viewport.o: layout.h viewport.h canvas.h viewport.c config.h screen.h os.h ansi.
 list_generic.o: list_generic.h list_generic.c layer.h
 list_display.o: list_generic.h list_display.c layer.h
 list_window.o: list_generic.h list_window.c window.h layer.h winmsg.h
+alias.o: alias.h comm.h fileio.h process.h

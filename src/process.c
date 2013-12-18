@@ -43,6 +43,7 @@
 #include "screen.h"
 #include "winmsg.h"
 
+#include "alias.h"
 #include "encoding.h"
 #include "fileio.h"
 #include "help.h"
@@ -78,7 +79,6 @@ static int ParseOnOff(struct action *, int *);
 static int ParseWinNum(struct action *, int *);
 static int ParseBase(struct action *, char *, int *, int, char *);
 static int ParseNum1000(struct action *, int *);
-static char **SaveArgs(char **);
 static int IsNum(char *, int);
 static void Colonfin(char *, int, void *);
 static void InputSelect(void);
@@ -98,14 +98,6 @@ static void ResizeFin(char *, int, void *);
 static struct action *FindKtab(char *, int);
 static void SelectFin(char *, int, void *);
 static void SelectLayoutFin(char *, int, void *);
-
-/* Alias */
-static void  AddAlias __P((const char *name, const char *val , char **args, int *argl, int count));
-static struct alias * FindAlias __P((const char *name));
-static struct alias * FindAliasnr __P((int));
-static void  DelAlias __P((const char *name));
-static int   DoAlias __P((const char *, char **, int *));
-
 
 struct plop plop_tab[MAX_PLOP_DEFS];
 
@@ -136,20 +128,6 @@ struct digraph {
 	unsigned char d[2];
 	int value;
 };
-
-/*
- * Command aliases.
- */
-struct alias {
-  int nr;
-  char *name;   /* Name of the alias */
-  int cmdnr;    /* Number of the command this is alias for */
-  char **args;  /* The argument list for the command */
-  int *argl;
-  struct alias *next;
-};
-struct alias *g_aliases_list = NULL;
-
 
 /* digraph table taken from old vim and rfc1345 */
 static struct digraph digraphs[] = {
@@ -2048,7 +2026,7 @@ void DoAction(struct action *act, int key)
 	Display *odisplay = display;
 
 	if (nr > RC_LAST) {
-		struct alias *alias = FindAliasnr(nr);
+		Alias *alias = FindAliasnr(nr);
 		if (alias) {
 			DoAlias(alias->name, act->args, act->argl);
 			return;
@@ -3715,7 +3693,7 @@ void DoAction(struct action *act, int key)
 
 			if (args[1]) {
 				if ((i = FindCommnr(args[1])) == RC_ILLEGAL) {
-					struct alias *alias = FindAlias(args[1]);
+					Alias *alias = FindAlias(args[1]);
 					if (!alias) {
 						OutputMsg(0, "%s: bind: unknown command or alias '%s'", rc_name, args[1]);
 						break;
@@ -3830,7 +3808,7 @@ void DoAction(struct action *act, int key)
 			}
 			if (args[1]) {
 				if ((newnr = FindCommnr(args[1])) == RC_ILLEGAL) {
-					struct alias *alias = FindAlias(args[1]);
+					Alias *alias = FindAlias(args[1]);
 					if (!alias) {
 						OutputMsg(0, "%s: bindkey: unknown command or alias '%s'", rc_name, args[1]);
 						break;
@@ -4335,7 +4313,7 @@ void DoAction(struct action *act, int key)
 				idletimo = atoi(*args) * 1000;
 			if (argc > 1) {
 				if ((i = FindCommnr(args[1])) == RC_ILLEGAL) {
-					struct alias *alias = FindAlias(args[1]);
+					Alias *alias = FindAlias(args[1]);
 					if (!alias) {
 						OutputMsg(0, "%s: idle: unknown command or alias '%s'", rc_name, args[1]);
 						break;
@@ -4623,47 +4601,6 @@ void CollapseWindowlist()
 				}
 }
 
-static int DoAlias(const char *name, char **args, int *argl)
-{
-	char **mergeds;
-	int *mergedl;
-	int count, i;
-	struct alias *alias = FindAlias(name);
-
-	if (alias == NULL)
-		return 0;
-
-	count = 0;
-	for (; args && args[count]; count++)
-	;
-	for (i = 0; alias->args && alias->args[i]; i++, count++)
-	;
-	++count;
-
-	if ((mergeds = malloc(count * sizeof(char *))) == 0)
-		return 0;
-	if ((mergedl = malloc(count * sizeof(int))) == 0) {
-		free(mergeds);
-		return 0;
-	}
-	for (count = 0; alias->args && alias->args[count]; count++) {
-		mergeds[count] = alias->args[count];
-		mergedl[count] = alias->argl[count];
-	}
-	for (i = 0; args && args[i]; i++, count++) {
-		mergeds[count] = args[i];
-		mergedl[count] = argl[i];
-	}
-	mergeds[count] = 0;
-	mergedl[count] = 0 ;
-
-	DoCommand(mergeds, mergedl);
-
-	free(mergeds);
-	free(mergedl);
-	return 1;
-}
-
 void DoCommand(char **argv, int *argl)
 {
 	struct action act;
@@ -4724,7 +4661,7 @@ static void SaveAction(struct action *act, int nr, char **args, int *argl)
 	*pp = 0;
 }
 
-static char **SaveArgs(char **args)
+char **SaveArgs(char **args)
 {
 	char **ap, **pp;
 	int argc = 0;
@@ -6107,118 +6044,6 @@ int StuffKey(int i)
 		return -1;
 	DoAction(act, 0);
 	return 0;
-}
-
-/**
- * Add an alias
- */
-void AddAlias(const char *name, const char *value, char **args, int *argl, int count)
-{
-	struct alias *nalias = NULL;
-	static int next_command = RC_LAST;
-	int nr;
-
-	/* Make sure we don't already have this alias name defined. */
-	if (FindAlias(name) != NULL) {
-		Msg(0, "alias already defined: %s", name);
-		return;
-	}
-
-	/* Make sure the alias maps to something */
-	if ((nr = FindCommnr((char *)value)) == RC_ILLEGAL) {
-		struct alias *alias = FindAlias(value);
-		if (!alias) {
-			Msg(0, "%s: could not find command or alias '%s'", rc_name, value);
-			return;
-		}
-		nr = alias->nr;
-	}
-
-	nalias = (struct alias *)calloc(1, sizeof(struct alias));
-
-	/* store it */
-	nalias->next = NULL;
-	nalias->name = SaveStr(name);
-	nalias->cmdnr = nr;
-	if (count > 0) {
-		nalias->args = SaveArgs(args);
-		nalias->argl = calloc(count + 1, sizeof(int));
-		while (count--)
-			nalias->argl[count] = argl[count];
-	}
-	nalias->nr = ++next_command;
-
-	/* Add to head */
-	nalias->next = g_aliases_list;
-	g_aliases_list = nalias;
-}
-
-
-/**
- * Find an alias by name.
- */
-static struct alias *FindAlias(const char *name)
-{
-	struct alias *t = g_aliases_list;
-
-	while(t != NULL) {
-		if ((t->name != NULL) && (strcmp(t->name, name) == 0))
-			return t;
-
-		t = t->next;
-	}
-
-	return NULL;
-}
-
-/**
- * Find an alias by number.
- */
-static struct alias *FindAliasnr(int nr)
-{
-	struct alias *t;
-	for (t = g_aliases_list; t; t = t->next) {
-		if (t->nr == nr)
-			return t;
-	}
-
-	return NULL;
-}
-
-/**
- * Delete an alias
- */
-void DelAlias(const char *name)
-{
-	/* Find the previous alias */
-	struct alias *cur  = g_aliases_list;
-	struct alias **pcur = &g_aliases_list;
-
-	while (cur != NULL) {
-		if ((cur->name != NULL) && (strcmp(cur->name, name) == 0)) {
-			struct alias *found = cur;
-			int c;
-
-			/* remove this one from the chain. */
-			*pcur = found->next;
-
-			free(found->name);
-			if (found->args) {
-				for (c = 0; found->args[c]; c++)
-					free(found->args[c]);
-				free(found->args);
-				free(found->argl);
-			}
-			free(found);
-
-			Msg(0, "alias %s removed", name);
-			return;
-		}
-		pcur = &cur->next;
-		cur = cur->next;
-	}
-
-	Msg(0, "alias %s not found", name);
 }
 
 static int IsOnDisplay(Window *win)
