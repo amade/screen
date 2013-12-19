@@ -336,9 +336,7 @@ winmsg_esc(Rend)
 		rbuf[i] = '\0';
 		if (i != 1 || rbuf[0] != WINESC_REND_POP)
 			r = ParseAttrColor(rbuf, 0);
-		if (r != 0 || (i == 1 && (rbuf[0] == WINESC_REND_POP))) {
-			AddWinMsgRend(wmbc->buf, wmbc->p, r);
-		}
+		AddWinMsgRend(wmbc->buf, wmbc->p, r);
 	}
 	*src += i;
 }
