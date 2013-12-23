@@ -46,6 +46,7 @@
 #define dirent direct
 #endif
 
+#include "comm.h"
 #include "encoding.h"
 #include "fileio.h"
 #include "list_generic.h"
