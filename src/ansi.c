@@ -1711,6 +1711,7 @@ static void SelectRendition()
 
 	do {
 		j = curr->w_args[i];
+		/* indexed colour space aka 256 colours; example escape \e[48;2;12m */
 		if ((j == 38 || j == 48) && i + 2 < curr->w_NumArgs && curr->w_args[i + 1] == 5) {
 			int jj;
 
@@ -1723,6 +1724,23 @@ static void SelectRendition()
 			} else {
 				colorbg = jj | 0x01000000;
 			}
+			continue;
+		}
+		/* truecolor (24bit) colour space; example escape \e[48;5;12;13;14m 
+		 * where 12;13;14 are rgb values */
+		if ((j == 38 || j == 48) && i + 4 < curr->w_NumArgs && curr->w_args[i + 1] == 2) {
+			uint8_t r, g, b;
+
+			r = curr->w_args[i + 2];
+			g = curr->w_args[i + 3];
+			b = curr->w_args[i + 4];
+
+			if (j == 38) {
+				colorfg = 0x02000000 | (r << 16) | (g << 8) | b;
+			} else {
+				colorbg = 0x02000000 | (r << 16) | (g << 8) | b;
+			}
+			i += 4;
 			continue;
 		}
 		if (j >= 90 && j <= 97)
