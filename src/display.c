@@ -1337,9 +1337,9 @@ void SetColor(uint32_t foreground, uint32_t background)
 	if (f != of && (f & 0x02000000)) {
 		uint8_t _r, _g, _b;
 
-		_r = (b & 0x00ff0000) >> 16;
-		_g = (b & 0x0000ff00) >> 8;
-		_b = (b & 0x000000ff);
+		_r = (f & 0x00ff0000) >> 16;
+		_g = (f & 0x0000ff00) >> 8;
+		_b = (f & 0x000000ff);
 
 		ospeed = D_dospeed;
 		/* TODO - properly get escape code */
