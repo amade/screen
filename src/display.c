@@ -1154,7 +1154,6 @@ void SetAttr(int new)
 		return;
 #if defined(USE_SGR)
 	if (D_SA) {
-		char *tparm();
 		SetFont(ASCII);
 		ospeed = D_dospeed;
 		tputs(tparm(D_SA, new & A_SO, new & A_US, new & A_RV, new & A_BL,
@@ -1341,6 +1340,17 @@ void SetColor(uint32_t foreground, uint32_t background)
 			AddCStr2("\033[9%p1%dm", f & 7);
 		}
 	}
+	if (f != of && (f & 0x02000000)) {
+		uint8_t _r, _g, _b;
+
+		_r = (f & 0x00ff0000) >> 16;
+		_g = (f & 0x0000ff00) >> 8;
+		_b = (f & 0x000000ff);
+
+		ospeed = D_dospeed;
+		/* TODO - properly get escape code */
+		tputs(tparm("\E[38;2;%d;%d;%dm", _r, _g, _b), 1, DoAddChar);
+	}
 
 /* BACKGROUND */
 	if (b != ob && b == 0) {
@@ -1364,6 +1374,17 @@ void SetColor(uint32_t foreground, uint32_t background)
 		if (D_CXT && b >= 8 && b <= 15) {
 			AddCStr2("\033[10%p1%dm", b & 7);
 		}
+	}
+	if (b != ob && (b & 0x02000000)) {
+		uint8_t _r, _g, _b;
+
+		_r = (b & 0x00ff0000) >> 16;
+		_g = (b & 0x0000ff00) >> 8;
+		_b = (b & 0x000000ff);
+
+		ospeed = D_dospeed;
+		/* TODO - properly get escape code */
+		tputs(tparm("\E[48;2;%d;%d;%dm", _r, _g, _b), 1, DoAddChar);
 	}
 }
 
