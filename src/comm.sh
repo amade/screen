@@ -81,7 +81,7 @@ $AWK < ${srcdir}/comm.c >> comm.h '
 	}
 '
 
-$CC -E -I. -I${srcdir} ${srcdir}/comm.c > comm.cpp
+$CC -E -I. -I${srcdir} ${srcdir}/comm.c > comm.cpp || exit $?
 sed < comm.cpp \
   -n \
   -e '/^ *{ "/y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/' \
