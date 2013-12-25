@@ -1349,7 +1349,7 @@ void SetColor(uint32_t foreground, uint32_t background)
 
 		ospeed = D_dospeed;
 		/* TODO - properly get escape code */
-		tputs(tparm("\E[38;2;%d;%d;%dm", _r, _g, _b), 1, DoAddChar);
+		tputs(tparm("\033[38;2;%d;%d;%dm", _r, _g, _b), 1, DoAddChar);
 	}
 
 /* BACKGROUND */
@@ -1384,7 +1384,7 @@ void SetColor(uint32_t foreground, uint32_t background)
 
 		ospeed = D_dospeed;
 		/* TODO - properly get escape code */
-		tputs(tparm("\E[48;2;%d;%d;%dm", _r, _g, _b), 1, DoAddChar);
+		tputs(tparm("\033[48;2;%d;%d;%dm", _r, _g, _b), 1, DoAddChar);
 	}
 }
 
