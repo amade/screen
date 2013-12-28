@@ -497,7 +497,6 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 {
 	static int tick;
 	char *s = str;
-	register int ctrl;
 	struct timeval now;
 	int qmnumrend = 0;
 	int numpad = 0;
@@ -535,19 +534,13 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 		Panic(0, "%s", strnomem);
 
 	tick = 0;
-	ctrl = 0;
 	gettimeofday(&now, NULL);
 	for (s = str; *s; s++) {
-		if (ctrl) {
-			ctrl = 0;
-			if (*s != '^' && *s >= 64)
-				wmbc_putchar(wmbc, *s & 0x1f);
-			continue;
-		}
-
 		if (*s != chesc) {
 			if ((chesc == '%') && (*s == '^')) {
-				ctrl = 1;
+				s++;
+				if (*s != '^' && *s >= 64)
+					wmbc_putchar(wmbc, *s & 0x1f);
 				continue;
 			}
 			wmbc_putchar(wmbc, *s);
