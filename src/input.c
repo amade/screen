@@ -60,7 +60,7 @@ struct inpdata {
 	char *inpstring;	/* the prompt */
 	int inpstringlen;	/* length of the prompt */
 	int inpmode;		/* INP_NOECHO, INP_RAW, INP_EVERY */
-	void (*inpfinfunc) (char *buf, int len, void *priv);
+	void (*inpfinfunc) (char *buf, size_t len, void *priv);
 	char *priv;		/* private data for finfunc */
 	int privdata;		/* private data space */
 	char *search;		/* the search string */
@@ -111,9 +111,9 @@ void inp_setprompt(char *p, char *s)
  * INP_RAW    == raw mode. call finfunc after each character typed.
  * INP_EVERY  == digraph mode.
  */
-void Input(char *istr, int len, int mode, void (*finfunc) (char *buf, int len, void *priv), char *priv, int data)
+void Input(char *istr, size_t len, int mode, void (*finfunc) (char *buf, size_t len, void *priv), char *priv, int data)
 {
-	int maxlen;
+	size_t maxlen;
 	struct inpdata *inpdata;
 
 	if (!flayer)
@@ -125,10 +125,6 @@ void Input(char *istr, int len, int mode, void (*finfunc) (char *buf, int len, v
 		maxlen = flayer->l_width - 1 - strlen(istr);
 		if (len > maxlen)
 			len = maxlen;
-	}
-	if (len < 0) {
-		LMsg(0, "Width %d chars too small", -len);
-		return;
 	}
 	if (InitOverlayPage(sizeof(*inpdata), &InpLf, 1))
 		return;

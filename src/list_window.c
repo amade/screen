@@ -87,7 +87,7 @@ static int window_ancestor(Window *a, Window *d)
 	return 0;
 }
 
-static void window_kill_confirm(char *buf, int len, void *data)
+static void window_kill_confirm(char *buf, size_t len, void *data)
 {
 	Window *w = windows;
 	struct action act;

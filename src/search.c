@@ -45,8 +45,8 @@ int search_ic;
  */
 
 static int matchword(char *, int, int, int);
-static void searchend(char *, int, void *);
-static void backsearchend(char *, int, void *);
+static void searchend(char *, size_t, void *);
+static void backsearchend(char *, size_t, void *);
 
 void Search(int dir)
 {
@@ -64,7 +64,7 @@ void Search(int dir)
 		      (dir > 0 ? searchend : backsearchend), NULL, 0);
 }
 
-static void searchend(char *buf, int len, void *data)
+static void searchend(char *buf, size_t len, void *data)
 {
 	int x = 0, sx, ex, y;
 	struct markdata *markdata;
@@ -90,7 +90,7 @@ static void searchend(char *buf, int len, void *data)
 		revto(x, y);
 }
 
-static void backsearchend(char *buf, int len, void *data)
+static void backsearchend(char *buf, size_t len, void *data)
 {
 	int sx, ex, x = -1, y;
 	struct markdata *markdata;
@@ -156,7 +156,7 @@ static char *isprompts[] = {
 };
 
 static int is_redo(struct markdata *);
-static void is_process(char *, int, void *);
+static void is_process(char *, size_t, void *);
 static int is_bm(char *, int, int, int, int);
 
 static int is_bm(char *str, int l, int p, int end, int dir)
@@ -203,14 +203,14 @@ static int is_bm(char *str, int l, int p, int end, int dir)
 	return -1;
 }
 
-static void is_process(char *p, int n, void *data)
+static void is_process(char *p, size_t len, void *data)
 {				/* i-search */
 	int pos, x, y, dir;
 	struct markdata *markdata;
 
 	(void)data; /* unused */
 
-	if (n == 0)
+	if (len == 0)
 		return;
 	markdata = (struct markdata *)flayer->l_next->l_data;
 

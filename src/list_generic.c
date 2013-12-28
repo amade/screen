@@ -102,7 +102,7 @@ static ListRow *glist_search_dir(ListData *ldata, ListRow *start, int dir)
 	return row;
 }
 
-static void glist_search(char *buf, int len, void *data)
+static void glist_search(char *buf, size_t len, void *data)
 {
 	ListData *ldata = (ListData *)data;
 	ListRow *row;

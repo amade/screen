@@ -80,28 +80,28 @@ static int ParseBase(struct action *, char *, int *, int, char *);
 static int ParseNum1000(struct action *, int *);
 static char **SaveArgs(char **);
 static int IsNum(char *, int);
-static void Colonfin(char *, int, void *);
+static void ColonFin(char *, size_t, void *);
 static void InputSelect(void);
 static void InputSetenv(char *);
 static void InputAKA(void);
 static int InputSu(Window *, struct acluser **, char *);
-static void su_fin(char *, int, void *);
-static void AKAfin(char *, int, void *);
-static void copy_reg_fn(char *, int, void *);
-static void ins_reg_fn(char *, int, void *);
-static void process_fn(char *, int, void *);
-static void pass1(char *, int, void *);
-static void pass2(char *, int, void *);
-static void pow_detach_fn(char *, int, void *);
-static void digraph_fn(char *, int, void *);
+static void suFin(char *, size_t, void *);
+static void AKAFin(char *, size_t, void *);
+static void copy_reg_fn(char *, size_t, void *);
+static void ins_reg_fn(char *, size_t, void *);
+static void process_fn(char *, size_t, void *);
+static void pass1(char *, size_t, void *);
+static void pass2(char *, size_t, void *);
+static void pow_detach_fn(char *, size_t, void *);
+static void digraph_fn(char *, size_t, void *);
 static int digraph_find(const char *buf);
-static void confirm_fn(char *, int, void *);
+static void confirm_fn(char *, size_t, void *);
 static int IsOnDisplay(Window *);
 static void ResizeRegions(char *, int);
-static void ResizeFin(char *, int, void *);
+static void ResizeFin(char *, size_t, void *);
 static struct action *FindKtab(char *, int);
-static void SelectFin(char *, int, void *);
-static void SelectLayoutFin(char *, int, void *);
+static void SelectFin(char *, size_t, void *);
+static void SelectLayoutFin(char *, size_t, void *);
 static void ShowWindowsX(char *);
 
 char NullStr[] = "";
@@ -868,7 +868,7 @@ static int CheckArgNum(int nr, char **args)
 	return i;
 }
 
-static void StuffFin(char *buf, int len, void *data)
+static void StuffFin(char *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -1676,7 +1676,7 @@ void DoAction(struct action *act, int key)
 			ChangeAKA(fore, *args, strlen(*args));
 		break;
 	case RC_COLON:
-		Input(":", MAXSTR, INP_EVERY, Colonfin, NULL, 0);
+		Input(":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
 		if (*args && **args) {
 			s = *args;
 			n = strlen(s);
@@ -3350,7 +3350,7 @@ void DoAction(struct action *act, int key)
 		args = SaveArgs(args);
 		for (i = 0; args[i]; i++) {
 			if (args[i][0])
-				Colonfin(args[i], strlen(args[i]), (char *)0);
+				ColonFin(args[i], strlen(args[i]), (char *)0);
 			free(args[i]);
 		}
 		free(args);
@@ -4721,7 +4721,7 @@ static void ShowDInfo()
 	Msg(0, "%s", buf);
 }
 
-static void AKAfin(char *buf, int len, void *data)
+static void AKAFin(char *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -4741,7 +4741,7 @@ static void InputAKA()
 
 	enter_window_name_mode = 1;
 
-	Input("Set window's title to: ", sizeof(fore->w_akabuf) - 1, INP_COOKED, AKAfin, NULL, 0);
+	Input("Set window's title to: ", sizeof(fore->w_akabuf) - 1, INP_COOKED, AKAFin, NULL, 0);
 	s = fore->w_title;
 	if (!s)
 		return;
@@ -4754,7 +4754,7 @@ static void InputAKA()
 	}
 }
 
-static void Colonfin(char *buf, int len, void *data)
+static void ColonFin(char *buf, size_t len, void *data)
 {
 	char mbuf[256];
 
@@ -4819,7 +4819,7 @@ static void Colonfin(char *buf, int len, void *data)
 	}
 }
 
-static void SelectFin(char *buf, int len, void *data)
+static void SelectFin(char *buf, size_t len, void *data)
 {
 	int n;
 
@@ -4837,7 +4837,7 @@ static void SelectFin(char *buf, int len, void *data)
 	SwitchWindow(n);
 }
 
-static void SelectLayoutFin(char *buf, int len, void *data)
+static void SelectLayoutFin(char *buf, size_t len, void *data)
 {
 	Layout *lay;
 
@@ -4868,7 +4868,7 @@ static void InputSelect()
 
 static char setenv_var[31];
 
-static void SetenvFin1(char *buf, int len, void *data)
+static void SetenvFin1(char *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -4877,7 +4877,7 @@ static void SetenvFin1(char *buf, int len, void *data)
 	InputSetenv(buf);
 }
 
-static void SetenvFin2(char *buf, int len, void *data)
+static void SetenvFin2(char *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -5059,7 +5059,7 @@ int CompileKeys(char *s, int sl, unsigned char *array)
  *  Asynchronous input functions
  */
 
-static void pow_detach_fn(char *buf, int len, void *data)
+static void pow_detach_fn(char *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -5075,7 +5075,7 @@ static void pow_detach_fn(char *buf, int len, void *data)
 		Detach(D_POWER);
 }
 
-static void copy_reg_fn(char *buf, int len, void *data)
+static void copy_reg_fn(char *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -5101,7 +5101,7 @@ static void copy_reg_fn(char *buf, int len, void *data)
 	Msg(0, "Copied %d characters into register %c", D_user->u_plop.len, *buf);
 }
 
-static void ins_reg_fn(char *buf, int len, void *data)
+static void ins_reg_fn(char *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -5122,7 +5122,7 @@ static void ins_reg_fn(char *buf, int len, void *data)
 	Msg(0, "Empty register.");
 }
 
-static void process_fn(char *buf, int len, void *data)
+static void process_fn(char *buf, size_t len, void *data)
 {
 	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
@@ -5139,7 +5139,7 @@ static void process_fn(char *buf, int len, void *data)
 	Msg(0, "Empty register.");
 }
 
-static void confirm_fn(char *buf, int len, void *data)
+static void confirm_fn(char *buf, size_t len, void *data)
 {
 	struct action act;
 
@@ -5161,7 +5161,7 @@ struct inputsu {
 	char pw2[130];
 };
 
-static void su_fin(char *buf, int len, void *data)
+static void suFin(char *buf, size_t len, void *data)
 {
 	struct inputsu *i = (struct inputsu *)data;
 	char *p;
@@ -5180,11 +5180,11 @@ static void su_fin(char *buf, int len, void *data)
 	if (buf && len)
 		strncpy(p, buf, 1 + ((l < len) ? l : len));
 	if (!*i->name)
-		Input("Screen User: ", sizeof(i->name) - 1, INP_COOKED, su_fin, (char *)i, 0);
+		Input("Screen User: ", sizeof(i->name) - 1, INP_COOKED, suFin, (char *)i, 0);
 	else if (!*i->pw1)
-		Input("User's UNIX Password: ", sizeof(i->pw1) - 1, INP_COOKED | INP_NOECHO, su_fin, (char *)i, 0);
+		Input("User's UNIX Password: ", sizeof(i->pw1) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
 	else if (!*i->pw2)
-		Input("User's Screen Password: ", sizeof(i->pw2) - 1, INP_COOKED | INP_NOECHO, su_fin, (char *)i, 0);
+		Input("User's Screen Password: ", sizeof(i->pw2) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
 	else {
 		if ((p = DoSu(i->up, i->name, i->pw2, i->pw1)))
 			Msg(0, "%s", p);
@@ -5201,13 +5201,13 @@ static int InputSu(Window *win, struct acluser **up, char *name)
 
 	i->up = up;
 	if (name && *name)
-		su_fin(name, (int)strlen(name), (char *)i);	/* can also initialise stuff */
+		suFin(name, (int)strlen(name), (char *)i);	/* can also initialise stuff */
 	else
-		su_fin((char *)0, 0, (char *)i);
+		suFin((char *)0, 0, (char *)i);
 	return 0;
 }
 
-static void pass1(char *buf, int len, void *data)
+static void pass1(char *buf, size_t len, void *data)
 {
 	struct acluser *u = (struct acluser *)data;
 
@@ -5220,7 +5220,7 @@ static void pass1(char *buf, int len, void *data)
 	Input("Retype new password:", 100, INP_NOECHO, pass2, data, 0);
 }
 
-static void pass2(char *buf, int len, void *data)
+static void pass2(char *buf, size_t len, void *data)
 {
 	int st;
 	char salt[3];
@@ -5274,7 +5274,7 @@ static int digraph_find(const char *buf)
 	return i;
 }
 
-static void digraph_fn(char *buf, int len, void *data)
+static void digraph_fn(char *buf, size_t len, void *data)
 {
 	int ch, i, x;
 
@@ -5632,7 +5632,7 @@ static void ResizeRegions(char *arg, int flags)
 	return;
 }
 
-static void ResizeFin(char *buf, int len, void *data)
+static void ResizeFin(char *buf, size_t len, void *data)
 {
 	int ch;
 	int flags = *(int *)data;
