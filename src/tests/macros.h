@@ -97,7 +97,7 @@ extern const long double randoml[1000];
 	/* Use only with ASSERT_GCC */
 	#define FAILLOC(x) ({ \
 		_mallocmock_fail = true; \
-		typeof (x) __ret = (x); \
+		__typeof__ (x) __ret = (x); \
 		_mallocmock_fail = false; \
 		__ret; \
 	})
