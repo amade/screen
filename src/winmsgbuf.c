@@ -278,13 +278,13 @@ size_t wmbc_bytesleft(WinMsgBufContext *wmbc)
  * return value is a pointer to the first character of WMB's buffer. */
 char *wmbc_mergewmb(WinMsgBufContext *wmbc, WinMsgBuf *wmb)
 {
-	char *p = wmbc->p;
+	char *p;
 	size_t offset = wmbc_offset(wmbc);
 	int ri;
 
 	/* import buffer contents into our own at our current position */
 	assert(wmb);
-	wmbc_strcpy(wmbc, wmb->buf);
+	p = wmbc_strcpy(wmbc, wmb->buf);
 
 	/* merge renditions, adjusting them to reflect their new offset */
 	for (ri = 0; ri < wmb->numrend; ri++) {

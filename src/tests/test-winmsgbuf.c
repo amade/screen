@@ -324,6 +324,60 @@ int main(void)
 		wmb_free(wmb);
 	}
 
+	/* scenerio: merging the contents of two separate buffers, also
+	 * triggering expansion */
+	{
+		WinMsgBuf *wmb1 = wmb_create();
+		WinMsgBuf *wmb2 = wmb_create();
+		WinMsgBufContext *wmbc1 = wmbc_create(wmb1);
+		WinMsgBufContext *wmbc2 = wmbc_create(wmb2);
+
+		/* populate both buffers; by this point, we know that everything is
+		 * working properly, so no need to assert on these */
+		char *str2 = "bar";
+		wmbc_strcpy(wmbc1, "foo");
+		wmbc_strcpy(wmbc2, str2);
+
+		/* if we merge the second into the first, we'd expect the equivalent
+		 * of string concatenation (note that the buffer is expected to be
+		 * null-terminated!) */
+		const char *expected = "foobar";
+		/* technically we don't need to finish here because we wrote a null
+		 * byte, but this is depending on implementation details; for
+		 * safety, we should always ensure we have a null byte */
+		wmbc_finish(wmbc2);
+		ASSERT(*wmbc_mergewmb(wmbc1, wmb2) == *str2);
+		ASSERT(STREQ(wmbc_finish(wmbc1), expected));
+
+		/* we futher expect to have advanced the pointer by the length of
+		 * the merged buffer, sans the terminating null byte */
+		ASSERT(wmbc_offset(wmbc1) == strlen(expected));
+		/* TODO: rendition state */
+
+		/* if we now attempt to merge past the end of the buffer, we would
+		 * expect that expansion will take place */
+		size_t szfirst = wmb_size(wmb1);
+		wmbc_fastfw_end(wmbc1);
+		ASSERT(wmbc_offset(wmbc1) == szfirst);  /* sanity check */
+		/* this line did actually catch a bug due to realloc */
+		ASSERT(*wmbc_mergewmb(wmbc1, wmb2) == *str2);
+		ASSERT(wmb_size(wmb1) > szfirst);
+		ASSERT(STREQ(&wmbc_finish(wmbc1)[szfirst], str2));
+
+		/* if the buffer cannot be expanded, then we should simply not copy
+		 * the buffer contents */
+		size_t szsecond = wmb_size(wmb1);
+		wmbc_fastfw_end(wmbc1);
+		ASSERT(wmbc_offset(wmbc1) == szsecond);  /* sanity check */
+		ASSERT_GCC(FAILLOC(wmbc_mergewmb(wmbc1, wmb2) == NULL));
+		ASSERT_GCC(wmb_size(wmb1) == szsecond);
+
+		wmbc_free(wmbc2);
+		wmbc_free(wmbc1);
+		wmb_free(wmb2);
+		wmb_free(wmb1);
+	}
+
 	/* context creation issues */
 	{
 		WinMsgBuf *wmb = wmb_create();
