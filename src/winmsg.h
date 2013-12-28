@@ -1,4 +1,6 @@
-/* Copyright (c) 2010
+/* Copyright (c) 2013
+ *      Mike Gerwitz (mike@mikegerwitz.com)
+ * Copyright (c) 2010
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
  * Copyright (c) 2008, 2009
