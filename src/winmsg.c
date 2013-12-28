@@ -401,6 +401,20 @@ winmsg_esc_ex(WinArgv, Window *win)
 	}
 }
 
+winmsg_esc_ex(WinNum, Window *win)
+{
+	if (esc->num == 0)
+		esc->num = 1;
+
+	if (!win) {
+		wmbc_printf(wmbc, "%*s", esc->num, esc->num > 1 ? "--" : "-");
+	} else {
+		wmbc_printf(wmbc, "%*d", esc->num, win->w_number);
+	}
+
+	wmc_set(cond);
+}
+
 winmsg_esc_ex(WinSize, Window *win)
 {
 	if (!win)
@@ -614,13 +628,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 			WinMsgDoEscEx(WinSize, win);
 			break;
 		case WINESC_WIN_NUM:
-			if (esc.num == 0)
-				esc.num = 1;
-			if (!win)
-				wmbc_printf(wmbc, "%*s", esc.num, esc.num > 1 ? "--" : "-");
-			else
-				wmbc_printf(wmbc, "%*d", esc.num, win->w_number);
-			wmc_set(cond);
+			WinMsgDoEscEx(WinNum, win);
 			break;
 		}
 	}
