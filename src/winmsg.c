@@ -614,10 +614,6 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 			WinMsgDoEscEx(WinSize, win);
 			break;
 		case WINESC_WIN_NUM:
-			s++;
-			/* FALLTHROUGH */
-		default:
-			s--;
 			if (esc.num == 0)
 				esc.num = 1;
 			if (!win)
