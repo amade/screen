@@ -482,7 +482,6 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 	char *s = str;
 	register int ctrl;
 	struct timeval now;
-	int l;
 	int qmnumrend = 0;
 	int numpad = 0;
 	int lastpad = 0;
@@ -521,7 +520,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 	tick = 0;
 	ctrl = 0;
 	gettimeofday(&now, NULL);
-	for (s = str; *s && (l = wmbc_bytesleft(wmbc)) > 0; s++) {
+	for (s = str; *s; s++) {
 		if (ctrl) {
 			ctrl = 0;
 			if (*s != '^' && *s >= 64)
@@ -619,15 +618,13 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 			/* FALLTHROUGH */
 		default:
 			s--;
-			if (l > 10 + esc.num) {
-				if (esc.num == 0)
-					esc.num = 1;
-				if (!win)
-					wmbc_printf(wmbc, "%*s", esc.num, esc.num > 1 ? "--" : "-");
-				else
-					wmbc_printf(wmbc, "%*d", esc.num, win->w_number);
-				wmc_set(cond);
-			}
+			if (esc.num == 0)
+				esc.num = 1;
+			if (!win)
+				wmbc_printf(wmbc, "%*s", esc.num, esc.num > 1 ? "--" : "-");
+			else
+				wmbc_printf(wmbc, "%*d", esc.num, win->w_number);
+			wmc_set(cond);
 			break;
 		}
 	}
