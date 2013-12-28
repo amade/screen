@@ -613,7 +613,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 		case WINESC_WIN_SIZE:
 			WinMsgDoEscEx(WinSize, win);
 			break;
-		case 'n':
+		case WINESC_WIN_NUM:
 			s++;
 			/* FALLTHROUGH */
 		default:
