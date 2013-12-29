@@ -57,11 +57,11 @@
  * (* renditions set character output settings such as color or weight *)
  * rendition = '{' , rendexpr , '}' ;
  * rendexpr  = rendpop
- *           | rend attrmod , rend colordesc ;
+ *           | [ rend attrmod ] , rend colordesc ;
  * rendpop   = '-' ;
  *
  * (* attribute modifier *)
- * rend attrmod    = [ rend attrchtype , ' ' ] , rend attrvalue ;
+ * rend attrmod    = rend attrchtype , ' ' , rend attrvalue ;
  * rend attrchtype = '+' | '-' | '!' | '=' ;
  * rend attrvalue  = 'd' | 'u' | 'b' | 'r' | 's' | 'B' | 'l' ;
  *
