@@ -63,7 +63,7 @@
  * (* attribute modifier *)
  * rend attrmod    = rend attrchtype , ' ' , rend attrvalue ;
  * rend attrchtype = '+' | '-' | '!' | '=' ;
- * rend attrvalue  = 'd' | 'u' | 'b' | 'r' | 's' | 'B' | 'l' ;
+ * rend attrvalue  = 'd' | 'u' | 'b' | 'r' | 's' | 'B' ;
  *
  * (* color descriptor; fg and optional bg *)
  * rend colordesc = rend colorval , [ ';' ] , [ rend colorval ] ;
