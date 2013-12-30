@@ -268,6 +268,7 @@ extern char *VisualBellString;
 extern char **NewEnv;
 
 extern bool adaptflag;
+extern bool hastruecolor;
 extern bool iflag;
 extern bool lsflag;
 extern bool quietflag;

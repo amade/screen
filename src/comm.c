@@ -208,6 +208,7 @@ struct comm comms[RC_LAST + 1] =
   { "terminfo",		ARGS_23,			{NULL} },
   { "time",		CAN_QUERY|ARGS_01,		{NULL} },
   { "title",		CAN_QUERY|NEED_FORE|ARGS_01,	{NULL} },
+  { "truecolor",	ARGS_1,				{NULL} },
   { "umask",		ARGS_1|ARGS_ORMORE,		{NULL} },
   { "unbindall",	ARGS_0,				{NULL} },
   { "unsetenv",		ARGS_1,				{NULL} },

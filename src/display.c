@@ -1340,7 +1340,7 @@ void SetColor(uint32_t foreground, uint32_t background)
 			AddCStr2("\033[9%p1%dm", f & 7);
 		}
 	}
-	if (f != of && (f & 0x02000000)) {
+	if (f != of && (f & 0x02000000) && hastruecolor) {
 		uint8_t _r, _g, _b;
 
 		_r = (f & 0x00ff0000) >> 16;
@@ -1375,7 +1375,7 @@ void SetColor(uint32_t foreground, uint32_t background)
 			AddCStr2("\033[10%p1%dm", b & 7);
 		}
 	}
-	if (b != ob && (b & 0x02000000)) {
+	if (b != ob && (b & 0x02000000) && hastruecolor) {
 		uint8_t _r, _g, _b;
 
 		_r = (b & 0x00ff0000) >> 16;

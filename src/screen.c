@@ -121,6 +121,7 @@ int auto_detach = 1;
 bool adaptflag, cmdflag, iflag, lsflag, quietflag, wipeflag, xflag;
 int rflag, dflag;
 int queryflag = -1;
+bool hastruecolor = false;
 
 char *multi;
 char *multi_home;
