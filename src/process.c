@@ -4574,6 +4574,15 @@ void DoAction(struct action *act, int key)
 					  cjkwidth ? "full" : "half");
 		}
 		break;
+	case RC_TRUECOLOR:
+		if (!strcmp(args[0], "on")) {
+			hastruecolor = true;
+		}
+		if (!strcmp(args[0], "off")) {
+			hastruecolor = false;
+		}
+		Activate(-1); /* redisplay (check RC_REDISPLAY) */
+		break;
 	default:
 		break;
 	}

@@ -3224,6 +3224,16 @@ prompts for one. This command was known as `aka' in previous
 releases.
 .sp
 .ne 3
+.B truecolor
+.RB [ on | off ]
+.PP
+Enables truecolor support. Currently autodetection of truecolor support cannot
+be done reliably, as such it's left to user to enable. Default is off.
+Known terminals that may support it are: iTerm2, Konsole, st.
+Xterm includes support for truecolor escapes but converts them back to indexed
+256 color space.
+.sp
+.ne 3
 .BI "unbindall "
 .PP
 Unbind all the bindings. This can be useful when
