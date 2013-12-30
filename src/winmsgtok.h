@@ -32,7 +32,7 @@
  *      | escseq ;
  *
  * (* a sequence of characters to be echoed *)
- * literal = { ctrlesc | character - esc char } ;
+ * literal = { ctrlesc | character - escchar } ;
  *
  * (* a control escape sequence, e.g. ^[ *)
  * ctrlesc = '^' , ascii printable character ;
