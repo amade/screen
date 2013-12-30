@@ -42,7 +42,7 @@
  * escseq  = escchar , ( delimited escseq | standalone escseq ) ;
  * standalone escseq = [ escflag ] , [ number ] , [ esclong ] ,
  *                     ascii printable character ;
- * escflag = '+' | '-' | '0' ;
+ * escflag = '+' | '-' | '.' | '0' ;
  * esclong = 'L' ;
  *
  * (* the escape character can be dynamically set; default is '%' *)
