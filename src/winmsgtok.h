@@ -41,9 +41,15 @@
  * (* escape sequence; e.g. %n *)
  * escseq  = escchar , ( delimited escseq | standalone escseq ) ;
  * standalone escseq = [ escflag ] , [ number ] , [ esclong ] ,
- *                     ascii printable character ;
+ *                     ascii printable character , [ escfmt ] ;
  * escflag = '+' | '-' | '.' | '0' ;
  * esclong = 'L' ;
+ *
+ * (* used for certain escapes to override default format *)
+ * escfmt      = '{' , escfmt expr ;
+ * escfmt expr = { escfmt term } ;
+ * escfmt term = '}'
+ *             | term ;
  *
  * (* the escape character can be dynamically set; default is '%' *)
  * escchar = ? current escape character ? ;
