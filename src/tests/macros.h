@@ -21,6 +21,7 @@
 /* This file contains macros that are used by many gnulib tests.
    Put here only frequently used macros, say, used by 10 tests or more.  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
