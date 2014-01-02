@@ -122,6 +122,7 @@
  * end = '\0' ;
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <unistd.h>
 
@@ -165,6 +166,8 @@ typedef struct {
 /* Represents state and configuration options for tokenizer */
 typedef struct {
 	char esc;  /* escape character */
+
+	bool _dofree;  /* whether we allocated ourself */
 } WinMsgTokState;
 
 
