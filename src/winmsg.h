@@ -45,12 +45,16 @@
 
 /* escape characters */
 typedef enum {
+	WINESC_FLAG_BELL       = 'B',
 	WINESC_WFLAGS          = 'f',
-	WINESC_ESC_SEEN        = 'E',
-	WINESC_FOCUS           = 'F',
+	WINESC_FLAG_ESC_SEEN   = 'E',
+	WINESC_FLAG_FOCUS      = 'F',
 	WINESC_HSTATUS         = 'h',
 	WINESC_HOST            = 'H',
+	WINESC_FLAG_SILENCE    = 'I',
+	WINESC_FLAG_MONITOR    = 'M',
 	WINESC_WIN_NUM         = 'n',
+	WINESC_FLAG_STANDOUT   = 'O',
 	WINESC_PID             = 'p',
 	WINESC_COPY_MODE       = 'P',  /* copy/_P_aste mode */
 	WINESC_WIN_SIZE        = 's',

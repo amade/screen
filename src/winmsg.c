@@ -606,14 +606,22 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 		case WINESC_PID:
 			WinMsgDoEsc(Pid);
 			break;
-		case WINESC_FOCUS:
+		case WINESC_FLAG_FOCUS:
 			WinMsgDoEscEx(Focus, win, ev);
 			break;
 		case WINESC_COPY_MODE:
 			WinMsgDoEscEx(CopyMode, ev);
 			break;
-		case WINESC_ESC_SEEN:
+		case WINESC_FLAG_ESC_SEEN:
 			WinMsgDoEsc(EscSeen);
+			break;
+		case WINESC_FLAG_STANDOUT:
+			break;
+		case WINESC_FLAG_BELL:
+			break;
+		case WINESC_FLAG_MONITOR:
+			break;
+		case WINESC_FLAG_SILENCE:
 			break;
 		case WINESC_TRUNC_POS:
 			WinMsgDoEscEx(TruncPos,
