@@ -39,11 +39,13 @@ static WinMsgTok *_wmtok_tok()
 /* Initialize tokenizer state. If ST is the null pointer, then a state will
  * be allocated. In either case, ST must be freed using wmtok_free to ensure
  * that any resources allocated by this function (both now and in the
- * future) are properly freed. */
+ * future) are properly freed. If ST was allocated outside of this function,
+ * it must also be freed by the caller following a call to wmtok_free. */
 WinMsgTokState *wmtok_init(WinMsgTokState *st)
 {
 	if (st == NULL) {
 		st = malloc(sizeof(WinMsgTokState));
+		st->_dofree = true;
 	}
 
 	return st;
@@ -81,7 +83,9 @@ size_t wmtok_tokenize(WinMsgTok **dest, char *src,
  * called after wmtok_init, even if ST was allocated independently. */
 void wmtok_free(WinMsgTokState *st)
 {
-	free(st);
+	if (st->_dofree) {
+		free(st);
+	}
 }
 
 /* Retrieves the type of the given token as a WMTOK_* constant. */
