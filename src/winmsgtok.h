@@ -121,3 +121,59 @@
  *
  * end = '\0' ;
  */
+
+#include <stdint.h>
+#include <unistd.h>
+
+
+/* Token types */
+typedef enum {
+	WMTOK_END,        /* terminating token; end of string */
+	WMTOK_ECHO,       /* lexeme should be echoed */
+} WinMsgTokType;
+
+/* Transparent type exposing token values */
+union WinMsgTokData {
+	/* integers of various sorts */
+	uint_fast8_t  uint8;
+	uint_fast16_t uint16;
+	uint_fast32_t uint32;
+	uintmax_t     uintmax;
+	intmax_t      intmax;
+	size_t        size;
+
+	void *ptr;	/* pointer to separately allocated data */
+};
+
+/* Window message token */
+typedef struct {
+	WinMsgTokType type;  /* token type */
+
+	/* token src string; to reduce overhead, it will point into the original
+	 * src string, and therefore includes a length (since it may not be
+	 * null-terminated) */
+	struct {
+		char   *ptr;  /* pointer to lexeme in src string */
+		size_t	len;  /* length of lexeme */
+	} lexeme;
+
+	/* general-purpose, pre-allocated area for a basic value; use the void
+	 * ptr if additional allocation is necessary */
+	union WinMsgTokData data;
+} WinMsgTok;
+
+/* Represents state and configuration options for tokenizer */
+typedef struct {
+	char esc;  /* escape character */
+} WinMsgTokState;
+
+
+WinMsgTokState *wmtok_init(WinMsgTokState *);
+size_t wmtok_tokenize(WinMsgTok **, char *, size_t, WinMsgTokState *);
+void wmtok_free(WinMsgTokState *);
+
+/** These functions expose data from the opaque WinMsgTok type in a way that
+ * allows altering the structure in the future with no ill effects. **/
+WinMsgTokType wmtok_type(WinMsgTok *);
+char *wmtok_lexeme(char *, WinMsgTok *, size_t);
+union WinMsgTokData wmtok_data(WinMsgTok *);
