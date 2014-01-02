@@ -194,13 +194,13 @@ search.o: layout.h viewport.h canvas.h search.c config.h screen.h os.h ansi.h ac
  comm.h layer.h term.h image.h display.h window.h mark.h
 tty.o: layout.h viewport.h canvas.h tty.c config.h screen.h os.h ansi.h acls.h comm.h \
  layer.h term.h image.h display.h window.h
-term.o: layout.h viewport.h canvas.h term.c term.h
+term.o: layout.h viewport.h canvas.h term.c term.h comm.h
 window.o: layout.h viewport.h canvas.h window.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h logfile.h
-winmsg.o: winmsgbuf.h winmsgcond.h backtick.h
-winmsgbuf.o:
-winmsgcond.o:
-backtick.o:
+winmsg.o: winmsgbuf.h winmsgcond.h backtick.h comm.h
+winmsgbuf.o: comm.h
+winmsgcond.o: comm.h
+backtick.o: comm.h
 utmp.o: layout.h viewport.h canvas.h utmp.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h
 help.o: layout.h viewport.h canvas.h help.c config.h screen.h os.h ansi.h \
@@ -220,7 +220,7 @@ display.o: layout.h viewport.h canvas.h display.c config.h screen.h os.h ansi.h 
 canvas.o: layout.h viewport.h canvas.h canvas.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h 
 comm.o: layout.h viewport.h canvas.h comm.c config.h acls.h comm.h
-kmapdef.o: layout.h viewport.h canvas.h kmapdef.c config.h
+kmapdef.o: layout.h viewport.h canvas.h kmapdef.c config.h comm.h
 acls.o: layout.h viewport.h canvas.h acls.c config.h screen.h os.h ansi.h acls.h comm.h \
  layer.h term.h image.h display.h window.h 
 logfile.o: layout.h viewport.h canvas.h logfile.c config.h screen.h os.h ansi.h acls.h \
@@ -237,6 +237,6 @@ layout.o: layout.h viewport.h canvas.h layout.c config.h screen.h os.h ansi.h ac
  comm.h layer.h term.h image.h display.h window.h 
 viewport.o: layout.h viewport.h canvas.h viewport.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h 
-list_generic.o: list_generic.h list_generic.c layer.h screen.h
-list_display.o: list_generic.h list_display.c layer.h screen.h
-list_window.o: list_generic.h list_window.c window.h layer.h screen.h winmsg.h
+list_generic.o: list_generic.h list_generic.c layer.h screen.h comm.h
+list_display.o: list_generic.h list_display.c layer.h screen.h comm.h
+list_window.o: list_generic.h list_window.c window.h layer.h screen.h winmsg.h comm.h
