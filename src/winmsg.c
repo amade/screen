@@ -153,18 +153,31 @@ winmsg_esc_ex(CopyMode, Event *ev)
 
 winmsg_esc(EscSeen)
 {
-	if (display && D_ESCseen) {
+	if (display && D_ESCseen)
 		wmc_set(cond);
-	}
 }
 
 winmsg_esc_ex(Focus, Window *win, Event *ev)
 {
-	/* small hack (TODO: explain.) */
 	if (display && ((ev && ev == &D_forecv->c_captev) || (!ev && win && win == D_fore)))
-		esc->flags.minus ^= 1;
+		wmc_set(cond);
+}
 
-	if (esc->flags.minus)
+winmsg_esc_ex(Monitor, Window *win)
+{
+	if (display && win && win->w_monitor == MON_DONE)
+		wmc_set(cond);
+}
+
+winmsg_esc_ex(Bell, Window *win)
+{
+	if (display && win && (win->w_bell == BELL_DONE || win->w_bell == BELL_FOUND))
+		wmc_set(cond);
+}
+
+winmsg_esc_ex(Silence, Window *win)
+{
+	if (display && win && (win->w_silence == SILENCE_FOUND || win->w_silence == SILENCE_DONE))
 		wmc_set(cond);
 }
 
@@ -618,10 +631,13 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 		case WINESC_FLAG_STANDOUT:
 			break;
 		case WINESC_FLAG_BELL:
+			WinMsgDoEscEx(Bell, win);
 			break;
 		case WINESC_FLAG_MONITOR:
+			WinMsgDoEscEx(Monitor, win);
 			break;
 		case WINESC_FLAG_SILENCE:
+			WinMsgDoEscEx(Silence, win);
 			break;
 		case WINESC_TRUNC_POS:
 			WinMsgDoEscEx(TruncPos,
