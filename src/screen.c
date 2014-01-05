@@ -54,8 +54,6 @@
 
 extern char **environ;
 
-extern WinMsgBuf *g_winmsg;
-
 int force_vt = 1;
 int VBellWait, MsgWait, MsgMinWait, SilenceWait;
 
