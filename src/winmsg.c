@@ -29,6 +29,9 @@
  ****************************************************************
  */
 
+#include "config.h"
+#include "screen.h"
+
 #include "winmsg.h"
 #include "fileio.h"
 #include "process.h"
