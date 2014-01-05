@@ -86,4 +86,6 @@ char *MakeWinMsg(char *, Window *, int);
 char *MakeWinMsgEv(WinMsgBuf *, char *, Window *, int, int, Event *, int);
 int   AddWinMsgRend(WinMsgBuf *, const char *, uint64_t);
 
+extern WinMsgBuf *g_winmsg;
+
 #endif
