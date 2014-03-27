@@ -691,6 +691,7 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 				}
 				KillWindow(p);
 				Msg(0, "%s", strnomem);
+				free(nhlines);
 				return -1;
 			}
 			for (; t < wi; t++)

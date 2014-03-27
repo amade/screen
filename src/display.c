@@ -1933,7 +1933,7 @@ void DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 	}
 	for (x = from; x <= to; x++) {
 		{
-			if (x < to || x != D_width - 1 || ml->image[x + 1])
+			if (ml != NULL && (x < to || x != D_width - 1 || ml->image[x + 1]))
 				if (cmp_mline(oml, ml, x))
 					continue;
 			GotoPos(x, y);
@@ -2789,6 +2789,8 @@ void RunBlanker(char **cmdv)
 		Msg(errno, "fork");
 		close(D_blankerev.fd);
 		D_blankerev.fd = -1;
+		if (slave != -1)
+			close(slave);
 		return;
 	case 0:
 		displays = 0;
@@ -2822,6 +2824,8 @@ void RunBlanker(char **cmdv)
 	evenq(&D_blankerev);
 	D_blocked = 4;
 	ClearAll();
+	if (slave != -1)
+		close(slave);
 }
 
 void ClearScrollbackBuffer()
