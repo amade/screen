@@ -2831,7 +2831,8 @@ void RunBlanker(char **cmdv)
 		Msg(errno, "fork");
 		close(D_blankerev.fd);
 		D_blankerev.fd = -1;
-		close(slave);
+		if (slave != -1)
+			close(slave);
 		return;
 	case 0:
 		displays = 0;
@@ -2867,7 +2868,8 @@ void RunBlanker(char **cmdv)
 	evenq(&D_blankerev);
 	D_blocked = 4;
 	ClearAll();
-	close(slave);
+	if (slave != -1)
+		close(slave);
 }
 
 void ClearScrollbackBuffer()
