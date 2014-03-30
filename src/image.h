@@ -32,14 +32,15 @@
 
 #include <stdint.h>
 
+/* structure representing single cell of terminal */
 struct mchar {
-	uint32_t image;
-	uint32_t attr;
-	uint32_t font;
-	uint32_t fontx;
-	uint32_t colorbg;
-	uint32_t colorfg;
-	uint32_t mbcs;
+	uint32_t image;		/* actual letter like a, b, c ... */
+	uint32_t attr;		/* attributes - bold, standout etc. */
+	uint32_t font;		/* font :) */
+	uint32_t fontx; 	/* extended font; TODO: remove - merge with font */
+	uint32_t colorbg;	/* background color */
+	uint32_t colorfg;	/* foreground color */
+	uint32_t mbcs;		/* used for multi byte character sets; TODO: possible to remove? use image now that it has 32 bits*/
 };
 
 struct mline {
@@ -57,7 +58,7 @@ struct mline {
 	memmove(mline_old.image,   (ml)->image,   (n) * 4);	\
 	memmove(mline_old.attr,    (ml)->attr,    (n) * 4);	\
 	memmove(mline_old.font,    (ml)->font,    (n) * 4);	\
-	memmove(mline_old.fontx,   (ml)->fontx,    (n) * 4);	\
+	memmove(mline_old.fontx,   (ml)->fontx,   (n) * 4);	\
 	memmove(mline_old.colorbg, (ml)->colorbg, (n) * 4);	\
 	memmove(mline_old.colorfg, (ml)->colorfg, (n) * 4);	\
 }
