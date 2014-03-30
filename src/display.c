@@ -1640,7 +1640,7 @@ void ShowHStatus(char *str)
 		if (l > D_width)
 			l = D_width;
 		GotoPos(0, D_height - 1);
-		SetRendition(captionalways || D_cvlist == 0 || D_cvlist->c_next ? &mchar_null : &mchar_so);
+		SetRendition(&mchar_null);
 		l = PrePutWinMsg(str, 0, l);
 		if (!captionalways && D_cvlist && !D_cvlist->c_next)
 			while (l++ < D_width)
@@ -1659,7 +1659,7 @@ void ShowHStatus(char *str)
 		if (l > D_width)
 			l = D_width;
 		GotoPos(0, 0);
-		SetRendition(captionalways || D_cvlist == 0 || D_cvlist->c_next ? &mchar_null : &mchar_so);
+		SetRendition(&mchar_null);
 		l = PrePutWinMsg(str, 0, l);
 		if (!captionalways || (D_cvlist && !D_cvlist->c_next))
 			while (l++ < D_width)
