@@ -51,8 +51,6 @@
 
 static char TtyName[32];
 
-static void initmaster(int);
-
 int pty_preopen = 0;
 
 /*
@@ -65,21 +63,18 @@ int pty_preopen = 0;
 
 /***************************************************************/
 
-static void initmaster(int f)
-{
-	tcflush(f, TCIOFLUSH);
-#ifdef LOCKPTY
-	(void)ioctl(f, TIOCEXCL, (char *)0);
-#endif
-}
-
 int OpenPTY(char **ttyn)
 {
 	int f, s;
 	if (openpty(&f, &s, TtyName, NULL, NULL) != 0)
 		return -1;
 	close(s);
-	initmaster(f);
+
+	tcflush(f, TCIOFLUSH);
+#ifdef LOCKPTY
+	(void)ioctl(f, TIOCEXCL, (char *)0);
+#endif
+
 	pty_preopen = 1;
 	*ttyn = TtyName;
 	return f;
