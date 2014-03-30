@@ -1162,7 +1162,7 @@ Users with fonts that have usable characters in the
 c1 positions may want to turn this off.
 .sp
 .ne 3
-.BR "caption always" | splitonly
+.BR "caption [ top | bottom ] always" | splitonly
 .RI [ string ]
 .br
 .B "caption string"
@@ -1181,6 +1181,10 @@ all escapes from the \*QSTRING ESCAPES\*U chapter. Screen uses
 a default of `%3n %t'.
 .P
 You can mix both forms by providing a string as an additional argument.
+.P
+You can have the caption displayed either at the top or bottom of the window.
+The default is 
+.BR bottom .
 .sp
 .ne 3
 .BI "charset " set

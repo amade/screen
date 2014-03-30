@@ -3365,6 +3365,13 @@ void DoAction(struct action *act, int key)
 			OutputMsg(0, "messages displayed on %s", use_hardstatus ? "hardstatus line" : "window");
 		break;
 	case RC_CAPTION:
+		if (strcmp(args[0], "top") == 0) {
+			captiontop = 1;
+			args++;
+		} else if(strcmp(args[0], "bottom") == 0) {
+			captiontop = 0;
+			args++;
+		}
 		if (strcmp(args[0], "always") == 0 || strcmp(args[0], "splitonly") == 0) {
 			Display *olddisplay = display;
 
@@ -3380,7 +3387,7 @@ void DoAction(struct action *act, int key)
 				break;
 			}
 		} else {
-			OutputMsg(0, "%s: usage: caption always|splitonly|string <string>", rc_name);
+			OutputMsg(0, "%s: usage: caption [ top | bottom ] always|splitonly|string <string>", rc_name);
 			break;
 		}
 		if (!args[1])

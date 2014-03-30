@@ -2459,9 +2459,15 @@ void WindowChanged(Window *p, int what)
 				p = Layer2Window(cv->c_layer);
 				if (inwstr
 				    || (inwstrh && p && p->w_hstatus && *p->w_hstatus
-					&& WindowChangedCheck(p->w_hstatus, what, (int *)0)))
-					if (cv->c_ye + 1 < D_height)
-						RefreshLine(cv->c_ye + 1, 0, D_width - 1, 0);
+					&& WindowChangedCheck(p->w_hstatus, what, (int *)0))) {
+					if (captiontop) {
+						if (cv->c_ys - 1 >= 0)
+							RefreshLine(cv->c_ys - 1, 0, D_width -1 , 0);
+					} else {
+						if (cv->c_ye + 1 < D_height)
+							RefreshLine(cv->c_ye + 1, 0, D_width - 1, 0);
+					}
+				}
 			}
 			p = D_fore;
 			if (inhstr
@@ -2493,8 +2499,15 @@ void WindowChanged(Window *p, int what)
 			if (Layer2Window(cv->c_layer) != p)
 				continue;
 			got = 1;
-			if (inwstr && cv->c_ye + 1 < D_height)
-				RefreshLine(cv->c_ye + 1, 0, D_width - 1, 0);
+			if (inwstr) {
+				if (captiontop) {
+					if (cv->c_ys -1 >= 0)
+						RefreshLine(cv->c_ys - 1, 0, D_width - 1, 0);
+				} else {
+					if (cv->c_ye + 1 < D_height)
+						RefreshLine(cv->c_ye + 1, 0, D_width - 1, 0);
+				}
+			}
 		}
 		if (got && inhstr && p == D_fore)
 			RefreshHStatus();

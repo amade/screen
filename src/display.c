@@ -89,7 +89,8 @@ int defmousetrack = 0;
 int defbracketed = 0;
 int defcursorstyle = 0;
 int defautonuke = 0;
-int captionalways;
+int captionalways = 0;
+int captiontop = 0;
 int hardstatusemu = HSTATUS_IGNORE;
 
 int focusminwidth, focusminheight;
@@ -1754,7 +1755,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 		lcv = 0;
 		lvp = 0;
 		for (cv = display->d_cvlist; cv; cv = cv->c_next) {
-			if (y == cv->c_ye + 1 && from >= cv->c_xs && from <= cv->c_xe) {
+			if (y == (captiontop ? cv->c_ys - 1 : cv->c_ye + 1) && from >= cv->c_xs && from <= cv->c_xe) {
 				p = Layer2Window(cv->c_layer);
 				buf =
 				    MakeWinMsgEv(NULL, captionstring, p, '%',
@@ -1774,7 +1775,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 					PUTCHARLP(' ');
 				break;
 			}
-			if (from == cv->c_xe + 1 && y >= cv->c_ys && y <= cv->c_ye + 1) {
+			if (from == cv->c_xe + 1 && (y >= cv->c_ys - captiontop) && (y <= cv->c_ye + !captiontop)) {
 				GotoPos(from, y);
 				SetRendition(&mchar_so);
 				PUTCHARLP(' ');
