@@ -46,18 +46,18 @@
  *
  */
 
-static struct mline *mloff(struct mline *ml, int off)
+static struct mline *mlineoffset(const struct mline *ml, const int offset)
 {
 	static struct mline mml;
 
 	if (ml == 0)
 		return 0;
-	mml.image = ml->image + off;
-	mml.attr = ml->attr + off;
-	mml.font = ml->font + off;
-	mml.fontx = ml->fontx + off;
-	mml.colorbg = ml->colorbg + off;
-	mml.colorfg = ml->colorfg + off;
+	mml.image = ml->image + offset;
+	mml.attr = ml->attr + offset;
+	mml.font = ml->font + offset;
+	mml.fontx = ml->fontx + offset;
+	mml.colorbg = ml->colorbg + offset;
+	mml.colorfg = ml->colorfg + offset;
 	return &mml;
 }
 
@@ -114,7 +114,7 @@ void LScrollH(Layer *l, int n, int y, int xs, int xe, int bce, struct mline *ol)
 				 xe2 = vp->v_xe; if (xs2 > xe2)
 				 continue; display = cv->c_display; if (D_blocked)
 				 continue;
-				 ScrollH(y2, xs2, xe2, n, bce, ol ? mloff(ol, -vp->v_xoff) : 0);
+				 ScrollH(y2, xs2, xe2, n, bce, ol ? mlineoffset(ol, -vp->v_xoff) : 0);
 				 if (xe2 - xs2 == xe - xs)
 				 continue; if (n > 0) {
 				 xs2 = xe2 + 1 - n; xe2 = xe + vp->v_xoff - n;}
@@ -187,7 +187,7 @@ void LInsChar(Layer *l, struct mchar *c, int x, int y, struct mline *ol)
 				 continue; display = cv->c_display; if (D_blocked)
 				 continue;
 				 rol = RECODE_MLINE(ol);
-				 InsChar(RECODE_MCHAR(c2), xs2, xe2, y2, mloff(rol, -vp->v_xoff)); if (f)
+				 InsChar(RECODE_MCHAR(c2), xs2, xe2, y2, mlineoffset(rol, -vp->v_xoff)); if (f)
 				 RefreshArea(xs2, y2, xs2, y2, 1);}
 	) ;
 }
@@ -295,7 +295,7 @@ void LClearLine(Layer *l, int y, int xs, int xe, int bce, struct mline *ol)
 				 xe2 = vp->v_xe; if (xs2 > xe2)
 				 continue; display = cv->c_display; if (D_blocked)
 				 continue;
-				 ClearLine(ol ? mloff(RECODE_MLINE(ol), -vp->v_xoff) : (struct mline *)0, y2, xs2, xe2,
+				 ClearLine(ol ? mlineoffset(RECODE_MLINE(ol), -vp->v_xoff) : (struct mline *)0, y2, xs2, xe2,
 					   bce);}
 	) ;
 }
@@ -359,7 +359,7 @@ void LCDisplayLine(Layer *l, struct mline *ml, int y, int xs, int xe, int isblan
 				 xe2 = vp->v_xe; if (xs2 > xe2)
 				 continue;
 				 display = cv->c_display;
-				 DisplayLine(isblank ? &mline_blank : &mline_null, mloff(RECODE_MLINE(ml), -vp->v_xoff),
+				 DisplayLine(isblank ? &mline_blank : &mline_null, mlineoffset(RECODE_MLINE(ml), -vp->v_xoff),
 					     y2, xs2, xe2);}
 				 }
 	) ;
