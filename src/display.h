@@ -357,6 +357,7 @@ void  ClearScrollbackBuffer (void);
 /* global variables */
 
 extern int captionalways;
+extern int captiontop;
 extern int defautonuke;
 extern int defmousetrack;
 extern int defnonblock;

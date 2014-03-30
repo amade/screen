@@ -65,7 +65,7 @@ struct comm comms[RC_LAST + 1] =
   { "bumpleft",		ARGS_0,				{NULL} },
   { "bumpright",	ARGS_0,				{NULL} },
   { "c1",		NEED_FORE|ARGS_01,		{NULL} },
-  { "caption",		ARGS_12,			{NULL} },
+  { "caption",		ARGS_123,			{NULL} },
   { "chacl",		ARGS_23,			{NULL} },
   { "charset",          NEED_FORE|ARGS_1,		{NULL} },
   { "chdir",		ARGS_01,			{NULL} },
