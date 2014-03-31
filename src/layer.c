@@ -652,7 +652,7 @@ int InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
 	char *data;
 	Layer *newlay;
 	Canvas *cv, *cvp, **cvpp;
-	Window *p;
+	Window *win;
 
 	cv = 0;
 	if (display && D_forecv->c_layer == flayer)
@@ -671,12 +671,12 @@ int InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
 		}
 	}
 
-	p = Layer2Window(flayer);
+	win = Layer2Window(flayer);
 
-	if (p && (p->w_savelayer == flayer || (block && flayer->l_next == 0))) {
-		if (p->w_savelayer && p->w_savelayer != flayer && p->w_savelayer->l_cvlist == 0)
-			KillLayerChain(p->w_savelayer);
-		p->w_savelayer = newlay;
+	if (win && (win->w_savelayer == flayer || (block && flayer->l_next == 0))) {
+		if (win->w_savelayer && win->w_savelayer != flayer && win->w_savelayer->l_cvlist == 0)
+			KillLayerChain(win->w_savelayer);
+		win->w_savelayer = newlay;
 	}
 
 	if (cv && flayer->l_next == 0 && !block) {
@@ -696,7 +696,8 @@ int InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
 	} else {
 		LAY_DISPLAYS(flayer, RemoveStatus());
 		if (block && flayer->l_layfn == &WinLf) {
-			p->w_blocked++;
+			if (win)
+				win->w_blocked++;
 			newlay->l_blocking = 1;
 		}
 		/* change all canvases */
