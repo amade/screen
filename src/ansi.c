@@ -627,7 +627,7 @@ void WriteString(Window *wp, char *buf, int len)
 					}
 				}
 				if (font == '<' && c >= ' ') {
-					font = curr->w_rend.font = 0;
+					curr->w_rend.font = 0;
 					c |= 0x80;
 				} else if (curr->w_gr && curr->w_encoding != UTF8) {
 					if (c == 0x80 && font == 0 && curr->w_encoding == GBK)
@@ -2430,8 +2430,6 @@ void WindowChanged(Window *p, int what)
 	int got, ox, oy;
 	Display *olddisplay = display;
 	Canvas *cv;
-
-	inhstr = 0;
 
 	if (what == 'f') {
 		WindowChanged((Window *)0, 'w' | 0x100);
