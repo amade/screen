@@ -143,8 +143,10 @@ void sched()
 			}
 			nsel = 0;
 		} else if (nsel == 0) {	/* timeout */
-			evdeq(timeoutev);
-			timeoutev->handler(timeoutev, timeoutev->data);
+			if (timeoutev) {
+				evdeq(timeoutev);
+				timeoutev->handler(timeoutev, timeoutev->data);
+			}
 		}
 
 		for (ev = evs; ev; ev = nextev) {
