@@ -1932,26 +1932,26 @@ void DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 		from++;
 	}
 	for (x = from; x <= to; x++) {
-		{
-			if (ml != NULL && (x < to || x != D_width - 1 || ml->image[x + 1]))
+		if (ml != NULL) {
+			if ((x < to || x != D_width - 1 || ml->image[x + 1]))
 				if (cmp_mline(oml, ml, x))
 					continue;
 			GotoPos(x, y);
-		}
-		if (dw_right(ml, x, D_encoding)) {
-			if (x > 0) {
-				x--;
-			} else {
-				x++;
+			if (dw_right(ml, x, D_encoding)) {
+				if (x > 0) {
+					x--;
+				} else {
+					x++;
+				}
+				GotoPos(x, y);
 			}
-			GotoPos(x, y);
+			if (x == to && dw_left(ml, x, D_encoding))
+				break;	/* don't start new kanji */
+			SetRenditionMline(ml, x);
+			PUTCHAR(ml->image[x]);
+			if (dw_left(ml, x, D_encoding))
+				PUTCHAR(ml->image[++x]);
 		}
-		if (x == to && dw_left(ml, x, D_encoding))
-			break;	/* don't start new kanji */
-		SetRenditionMline(ml, x);
-		PUTCHAR(ml->image[x]);
-		if (dw_left(ml, x, D_encoding))
-			PUTCHAR(ml->image[++x]);
 	}
 	if (last2flag) {
 		GotoPos(x, y);
