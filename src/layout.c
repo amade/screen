@@ -139,6 +139,9 @@ Layout *FindLayout(char *name)
 
 void LoadLayout(Layout *lay)
 {
+	if (!display)
+		return;
+
 	AutosaveLayout(D_layout);
 	if (!lay) {
 		while (D_canvas.c_slperp)
