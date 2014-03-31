@@ -349,7 +349,7 @@ static int BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int 
 	if (mlt->font != null)
 		memmove(mlt->font + xt, mlf->font + xf, l * 4);
 	if (mlf->fontx != null && mlt->fontx == null) {
-		if ((mlt->fontx = calloc(w, 1)) == 0)
+		if ((mlt->fontx = calloc(w, 4)) == 0)
 			mlt->fontx = null, r = -1;
 	}
 	if (mlt->fontx != null)
