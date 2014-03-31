@@ -635,10 +635,14 @@ int AddCanvas(int orient)
 
 void RemCanvas()
 {
-	int ys, ye;
 	Canvas *cv;
+	int ys, ye;
 
 	cv = D_forecv;
+
+	ys = cv->c_slback->c_ys;
+	ye = cv->c_slback->c_ye;
+
 	if (cv->c_slorient == SLICE_UNKN)
 		return;
 	while (cv->c_slprev)
@@ -651,8 +655,6 @@ void RemCanvas()
 		FreePerp(cv->c_slprev ? cv->c_slprev : cv->c_slnext);
 		FreePerp(cv->c_slback);
 	}
-	ys = cv->c_slback->c_ys;
-	ye = cv->c_slback->c_ye;
 	/* free canvas */
 	cv = D_forecv;
 	D_forecv = cv->c_slprev;
