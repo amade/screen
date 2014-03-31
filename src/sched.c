@@ -63,7 +63,7 @@ void evenq(Event *ev)
 void evdeq(Event *ev)
 {
 	Event *evp, **evpp;
-	if (!ev->queued)
+	if (!ev || !ev->queued)
 		return;
 	evpp = &evs;
 	if (ev->type == EV_TIMEOUT) {
