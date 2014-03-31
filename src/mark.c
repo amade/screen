@@ -859,8 +859,10 @@ static void MarkProcess(char **inbufp, int *inlenp)
 				x2 = cx;
 				y2 = cy;
 				newcopylen = rem(markdata->x1, markdata->y1, x2, y2, 2, (char *)0, 0);	/* count */
-				if (GlobalPlop->buf && !append_mode)
+				if (GlobalPlop->buf && !append_mode) {
 					free(GlobalPlop->buf);
+					GlobalPlop->buf = 0;
+				}
 				yend = fore->w_height - 1;
 				if (fore->w_histheight - markdata->hist_offset < fore->w_height) {
 					markdata->second = 0;
