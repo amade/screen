@@ -4663,9 +4663,9 @@ static void SaveAction(struct action *act, int nr, char **args, int *argl)
 		act->argl = 0;
 		return;
 	}
-	if ((pp = malloc((unsigned)(argc + 1) * sizeof(char **))) == 0)
+	if ((pp = malloc((unsigned)(argc + 1) * sizeof(char *))) == 0)
 		Panic(0, "%s", strnomem);
-	if ((lp = malloc((unsigned)(argc) * sizeof(int *))) == 0)
+	if ((lp = malloc((unsigned)(argc) * sizeof(int))) == 0)
 		Panic(0, "%s", strnomem);
 	act->nr = nr;
 	act->args = pp;
@@ -4684,7 +4684,7 @@ char **SaveArgs(char **args)
 
 	while (args[argc])
 		argc++;
-	if ((pp = ap = malloc((unsigned)(argc + 1) * sizeof(char **))) == 0)
+	if ((pp = ap = malloc((unsigned)(argc + 1) * sizeof(char *))) == 0)
 		Panic(0, "%s", strnomem);
 	while (argc--)
 		*pp++ = SaveStr(*args++);

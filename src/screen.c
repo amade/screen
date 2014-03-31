@@ -1263,7 +1263,7 @@ void MakeNewEnv()
 	for (op = environ; *op; ++op) ;
 	if (NewEnv)
 		free((char *)NewEnv);
-	NewEnv = np = malloc((unsigned)(op - environ + 7 + 1) * sizeof(char **));
+	NewEnv = np = malloc((unsigned)(op - environ + 7 + 1) * sizeof(char *));
 	if (!NewEnv)
 		Panic(0, "%s", strnomem);
 	sprintf(stybuf, "STY=%s", strlen(SocketName) <= MAXSTR - 5 ? SocketName : "?");
