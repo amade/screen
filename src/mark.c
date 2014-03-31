@@ -657,7 +657,7 @@ static void MarkProcess(char **inbufp, int *inlenp)
 		case '\005':	/* CTRL-E  scroll up */
 			if (rep_cnt == 0)
 				rep_cnt = 1;
-			rep_cnt = MarkScrollUpDisplay(rep_cnt);
+			MarkScrollUpDisplay(rep_cnt);
 			if (cy < D2W(0))
 				revto(cx, D2W(0));
 			else
@@ -666,7 +666,7 @@ static void MarkProcess(char **inbufp, int *inlenp)
 		case '\031':	/* CTRL-Y  scroll down */
 			if (rep_cnt == 0)
 				rep_cnt = 1;
-			rep_cnt = MarkScrollDownDisplay(rep_cnt);
+			MarkScrollDownDisplay(rep_cnt);
 			if (cy > D2W(fore->w_height - 1))
 				revto(cx, D2W(fore->w_height - 1));
 			else
