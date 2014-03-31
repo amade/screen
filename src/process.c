@@ -1556,7 +1556,6 @@ void DoAction(struct action *act, int key)
 			int w, h;
 			int what = 0;
 
-			i = 1;
 			if (*args && !strcmp(*args, "-w"))
 				what = 1;
 			else if (*args && !strcmp(*args, "-d"))
@@ -3239,7 +3238,6 @@ void DoAction(struct action *act, int key)
 		/* We are here, means we want to set the sorendition. */
 		/* FALLTHROUGH */
 	case RC_SORENDITION:
-		i = 0;
 		if (args[0]) {
 			i = ParseAttrColor(args[0], 1);
 			if (i == 0)
