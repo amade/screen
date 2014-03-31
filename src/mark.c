@@ -400,7 +400,7 @@ int GetHistory()
 	if (yy < 0)
 		return 0;
 	if (GlobalPlop->buf)
-		free(GlobalPlop);
+		free(GlobalPlop->buf);
 	if ((GlobalPlop->buf = malloc((unsigned)(i - x + 2))) == NULL) {
 		LMsg(0, "Not enough memory... Sorry.");
 		return 0;
