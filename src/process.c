@@ -43,6 +43,7 @@
 #include "screen.h"
 #include "winmsg.h"
 
+#include "display.h"
 #include "encoding.h"
 #include "fileio.h"
 #include "help.h"
@@ -2363,6 +2364,30 @@ void DoAction(struct action *act, int key)
 		(void)ParseSwitch(act, &use_hardstatus);
 		if (msgok)
 			OutputMsg(0, "messages displayed on %s", use_hardstatus ? "hardstatus line" : "window");
+		break;
+	case RC_STATUS:
+		if (display) {
+			Msg(0, "%s", "");	/* wait till mintime (keep gcc quiet) */
+			RemoveStatus();
+		}
+		{
+			int	i = 0;
+			while ( (i <= 1) && args[i]) {
+				if ( (strcmp(args[i], "top") == 0) || (strcmp(args[i], "up") == 0) ) {
+					statuspos.row = STATUS_TOP;
+				} else if ( (strcmp(args[i], "bottom") == 0) || (strcmp(args[i], "down") == 0) ) {
+					statuspos.row = STATUS_BOTTOM;
+				} else if (strcmp(args[i], "left") == 0) {
+					statuspos.col = STATUS_LEFT;
+				} else if (strcmp(args[i], "right") == 0) {
+					statuspos.col = STATUS_RIGHT;
+				} else {
+					Msg(0, "%s: usage: status [top|up|down|bottom] [left|right]", rc_name);
+					break;
+				}
+				i++;
+			}
+		}
 		break;
 	case RC_CAPTION:
 		if (strcmp(args[0], "top") == 0) {

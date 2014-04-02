@@ -91,12 +91,6 @@
 #undef LOCKPTY
 
 /*
- * If you'd rather see the status line on the first line of your
- * terminal rather than the last, define TOPSTAT.
- */
-#undef TOPSTAT
-
-/*
  * define BUILTIN_TELNET to enable built in telnte support
  */
 #undef BUILTIN_TELNET

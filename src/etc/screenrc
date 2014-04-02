@@ -32,6 +32,9 @@ pow_detach_msg "Screen session of \$LOGNAME \$:cr:\$:nl:ended."
 
 defscrollback 1000
 
+# more convenient status messages location
+# status	top right
+
 # don't kill window after the process died
 # zombie "^["
 

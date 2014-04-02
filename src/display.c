@@ -87,6 +87,7 @@ int defautonuke = 0;
 int captionalways = 0;
 int captiontop = 0;
 int hardstatusemu = HSTATUS_IGNORE;
+struct statusposstr statuspos = { STATUS_BOTTOM, STATUS_LEFT };
 
 int focusminwidth, focusminheight;
 
@@ -1486,7 +1487,7 @@ void MakeStatus(char *msg)
 	D_status_lasty = D_y;
 	if (!use_hardstatus || D_has_hstatus == HSTATUS_IGNORE || D_has_hstatus == HSTATUS_MESSAGE) {
 		D_status = STATUS_ON_WIN;
-		GotoPos(0, STATLINE);
+		GotoPos(STATCOL(D_width, D_status_len), STATLINE());
 		SetRendition(&mchar_so);
 		InsertMode(0);
 		AddStr(msg);
@@ -1516,8 +1517,8 @@ void MakeStatus(char *msg)
 
 		/* this is copied over from RemoveStatus() */
 		D_status = 0;
-		GotoPos(0, STATLINE);
-		RefreshLine(STATLINE, 0, D_status_len - 1, 0);
+		GotoPos(STATCOL(D_width, D_status_len), STATLINE());
+		RefreshLine(STATLINE(), STATCOL(D_width, D_status_len), STATCOL(D_width, D_status_len) + D_status_len - 1, 0);
 		GotoPos(D_status_lastx, D_status_lasty);
 		flayer = D_forecv ? D_forecv->c_layer : 0;
 		if (flayer)
@@ -1552,8 +1553,8 @@ void RemoveStatus()
 	oldflayer = flayer;
 	if (where == STATUS_ON_WIN) {
 		if (captionalways || (D_canvas.c_slperp && D_canvas.c_slperp->c_slnext)) {
-			GotoPos(0, STATLINE);
-			RefreshLine(STATLINE, 0, D_status_len - 1, 0);
+			GotoPos(STATCOL(D_width, D_status_len), STATLINE());
+			RefreshLine(STATLINE(), STATCOL(D_width, D_status_len), STATCOL(D_width, D_status_len) + D_status_len - 1, 0);
 			GotoPos(D_status_lastx, D_status_lasty);
 		}
 	} else
@@ -1626,7 +1627,7 @@ void ShowHStatus(char *str)
 {
 	int l, ox, oy, max;
 
-	if (D_status == STATUS_ON_WIN && D_has_hstatus == HSTATUS_LASTLINE && STATLINE == D_height - 1)
+	if (D_status == STATUS_ON_WIN && (D_has_hstatus == HSTATUS_FIRSTLINE || D_has_hstatus == HSTATUS_LASTLINE) && STATLINE() == D_height - 1)
 		return;		/* sorry, in use */
 	if (D_blocked)
 		return;
@@ -1753,7 +1754,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 	char *buf;
 	Window *p;
 
-	if (D_status == STATUS_ON_WIN && y == STATLINE) {
+	if (D_status == STATUS_ON_WIN && y == STATLINE()) {
 		if (to >= D_status_len)
 			D_status_len = to + 1;
 		return;		/* can't refresh status */

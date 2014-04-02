@@ -62,6 +62,16 @@ typedef enum {
 	HSTATUS_ALWAYS		= (1<<3)
 } HardStatus;
 
+struct statusposstr {
+	int row, col;
+};
+
+#define STATUS_TOP		1
+#define STATUS_BOTTOM		0
+#define STATUS_LEFT		0
+#define STATUS_RIGHT		1
+
+
 typedef struct Display Display;
 struct Display {
 	Display *d_next;		/* linked list */
@@ -369,5 +379,7 @@ extern int hardstatusemu;
 extern Display *display, *displays;
 
 extern struct LayFuncs BlankLf;
+
+extern struct statusposstr statuspos;
 
 #endif /* SCREEN_DISPLAY_H */
