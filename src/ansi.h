@@ -108,12 +108,8 @@ enum move_t {
 
 #define ASCII		 0
 
-#ifdef TOPSTAT
-#define STATLINE	 (0)
-#else
-#define STATLINE	 (D_height-1)
-#endif
-
+#define STATLINE()	 	(statuspos.row == STATUS_BOTTOM ? D_height-1 : 0)
+#define	STATCOL(width, len)	(statuspos.col == STATUS_LEFT ? 0 : D_width - D_status_len - 2)
 
 #define KANJI		('B' & 037)
 #define KANJI0212	('D' & 037)

@@ -184,6 +184,7 @@ struct comm comms[RC_LAST + 1] =
   { "source",		ARGS_1,				},
   { "split",		NEED_DISPLAY|ARGS_01,		},
   { "startup_message",	ARGS_1,				},
+  { "status",		ARGS_12,			},
   { "stuff",		NEED_LAYER|ARGS_012,		},
   { "suspend",		NEED_DISPLAY|ARGS_0,		},
   { "term",		ARGS_1,				},

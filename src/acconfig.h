@@ -47,12 +47,6 @@
 #define ALLOW_SYSSCREENRC 1
 
 /*
- * If you'd rather see the status line on the first line of your
- * terminal rather than the last, define TOPSTAT.
- */
-#undef TOPSTAT
-
-/*
  * to lower the interrupt load on the host machine, you may want to
  * adjust the VMIN and VTIME settings used for plain tty windows.
  * See the termio(4) manual page (Non-Canonical Mode Input Processing)
