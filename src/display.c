@@ -2254,7 +2254,7 @@ char *str;
       GotoPos(0, 0);
       SetRendition(captionalways || D_cvlist == 0 || D_cvlist->c_next ? &mchar_null: &mchar_so);
       l = PrePutWinMsg(str, 0, l);
-      if (!captionalways || D_cvlist && !D_cvlist->c_next)
+      if (!captionalways || (D_cvlist && !D_cvlist->c_next))
         while (l++ < D_width)
           PUTCHARLP(' ');
       if (l < D_width)
@@ -2368,7 +2368,7 @@ int y, from, to, isblank;
       isblank = 1;
     }
 
-  if (y == D_height - 1 && D_has_hstatus == HSTATUS_LASTLINE || (y == 0 && D_has_hstatus == HSTATUS_FIRSTLINE) )
+  if ((y == D_height - 1 && D_has_hstatus == HSTATUS_LASTLINE) || (y == 0 && D_has_hstatus == HSTATUS_FIRSTLINE) )
     {
       RefreshHStatus();
       return;
