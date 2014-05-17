@@ -2257,7 +2257,7 @@ int padlen;
   r = winmsg_numrend;
   while (p >= buf)
     {
-      if (r && p - buf == winmsg_rendpos[r - 1])
+      if (r && *p != 127 && p - buf == winmsg_rendpos[r - 1])
 	{
 	  winmsg_rendpos[--r] = pn - buf;
 	  continue;
@@ -2271,6 +2271,8 @@ int padlen;
 	  while (i-- > 0)
 	    *pn-- = ' ';
 	  numpad--;
+	  if (r && p - buf == winmsg_rendpos[r - 1])
+	    winmsg_rendpos[--r] = pn - buf;
 	}
     }
   return pn2;
