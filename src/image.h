@@ -66,7 +66,7 @@ IFCOLORX(unsigned char *colorx; )
 	 memmove((char *)mline_old.image, (char *)(ml)->image, (n));	\
 	 memmove((char *)mline_old.attr,  (char *)(ml)->attr,  (n));	\
 IFFONT(	 memmove((char *)mline_old.font,  (char *)(ml)->font,  (n));    ) \
-IFFONTX( memmove((char *)mline_old.fontx, (char *)(ml)->font,  (n));    ) \
+IFFONTX( memmove((char *)mline_old.fontx, (char *)(ml)->fontx, (n));    ) \
 IFCOLOR( memmove((char *)mline_old.color, (char *)(ml)->color, (n));    ) \
 IFCOLORX(memmove((char *)mline_old.colorx,(char *)(ml)->colorx,(n));  ) \
 } while (0)
@@ -75,7 +75,7 @@ IFCOLORX(memmove((char *)mline_old.colorx,(char *)(ml)->colorx,(n));  ) \
 	 memmove((char *)(ml)->image + (xt), (char *)(ml)->image + (xf), (n));   \
 	 memmove((char *)(ml)->attr  + (xt), (char *)(ml)->attr  + (xf), (n));   \
 IFFONT(	 memmove((char *)(ml)->font  + (xt), (char *)(ml)->font  + (xf), (n)); ) \
-IFFONTX( memmove((char *)(ml)->fontx + (xt), (char *)(ml)->font  + (xf), (n)); ) \
+IFFONTX( memmove((char *)(ml)->fontx + (xt), (char *)(ml)->fontx + (xf), (n)); ) \
 IFCOLOR( memmove((char *)(ml)->color + (xt), (char *)(ml)->color + (xf), (n)); ) \
 IFCOLORX(memmove((char *)(ml)->colorx + (xt),(char *)(ml)->colorx + (xf),(n));) \
 } while (0)
@@ -84,7 +84,7 @@ IFCOLORX(memmove((char *)(ml)->colorx + (xt),(char *)(ml)->colorx + (xf),(n));) 
 	 bclear((char *)(ml)->image + (x), (n));			       \
 	 if ((ml)->attr != null) memset((char *)(ml)->attr  + (x), 0, (n));     \
 IFFONT(  if ((ml)->font != null) memset((char *)(ml)->font  + (x), 0, (n));   ) \
-IFFONTX( if ((ml)->fontx != null) memset((char *)(ml)->font  + (x), 0, (n));  ) \
+IFFONTX( if ((ml)->fontx != null) memset((char *)(ml)->fontx + (x), 0, (n));  ) \
 IFCOLOR( if ((ml)->color!= null) memset((char *)(ml)->color + (x), 0, (n));   ) \
 IFCOLORX(if ((ml)->colorx!= null) memset((char *)(ml)->colorx + (x), 0, (n)); ) \
 } while (0)
