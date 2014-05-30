@@ -595,10 +595,10 @@ main(int argc, char **argv)
 		case 'T':
 		  if (--argc == 0)
 		    exit_with_usage(myname, "Specify terminal-type with -T", NULL);
-		  if (strlen(*++argv) < 20)
-		    strncpy(screenterm, *argv, 20);
+		  if (strlen(*++argv) < MAXTERMLEN)
+		    strncpy(screenterm, *argv, MAXTERMLEN);
 		  else
-		    Panic(0, "-T: terminal name too long. (max. 20 char)");
+		    Panic(0, "-T: terminal name too long. (max. %d char)", MAXTERMLEN);
 		  nwin_options.term = screenterm;
 		  break;
 		case 'q':
