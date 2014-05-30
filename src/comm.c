@@ -29,10 +29,8 @@
 
 #include "config.h"
 #include "os.h"
-#include "acls.h"
-#include "comm.h"
 
-#define bcopy :-(		/* or include screen.h here */
+#include "screen.h"
 
 /* Must be in alpha order ! */
 
