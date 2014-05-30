@@ -694,7 +694,7 @@ char **av;
 		    strncpy(screenterm, *av, MAXTERMLEN);
 		    screenterm[MAXTERMLEN] = '\0';
 		  } else
-		    Panic(0, "-T: terminal name too long. (max. 20 char)");
+		    Panic(0, "-T: terminal name too long. (max. %d char)", MAXTERMLEN);
 		  nwin_options.term = screenterm;
 		  break;
 		case 'q':
