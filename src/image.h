@@ -27,112 +27,98 @@
  * $Id$ GNU
  */
 
-
-#undef IFFONT
-#undef IFCOLOR
-
-#define IFFONT(x) x
-
-#define IFFONTX(x) x
-
-#define IFCOLOR(x) x
-
-#define IFCOLORX(x) x
-
-#define IFDWCHAR(x) x
-
 struct mchar {
-	 unsigned char image;
-	 unsigned char attr;
-IFFONT(  unsigned char font; )
-IFFONTX( unsigned char fontx; )
-IFCOLOR( unsigned char color; )
-IFCOLORX(unsigned char colorx; )
-IFDWCHAR(unsigned char mbcs; )
+	unsigned char image;
+	unsigned char attr;
+	unsigned char font;
+	unsigned char fontx;
+	unsigned char color;
+	unsigned char colorx;
+	unsigned char mbcs;
 };
 
 struct mline {
-	 unsigned char *image;
-	 unsigned char *attr;
-IFFONT(  unsigned char *font; )
-IFFONTX( unsigned char *fontx; )
-IFCOLOR( unsigned char *color; )
-IFCOLORX(unsigned char *colorx; )
+	unsigned char *image;
+	unsigned char *attr;
+	unsigned char *font;
+	unsigned char *fontx;
+	unsigned char *color;
+	unsigned char *colorx;
 };
 
 
 
-#define save_mline(ml, n) do {						\
-	 memmove((char *)mline_old.image, (char *)(ml)->image, (n));	\
-	 memmove((char *)mline_old.attr,  (char *)(ml)->attr,  (n));	\
-IFFONT(	 memmove((char *)mline_old.font,  (char *)(ml)->font,  (n));    ) \
-IFFONTX( memmove((char *)mline_old.fontx, (char *)(ml)->fontx, (n));    ) \
-IFCOLOR( memmove((char *)mline_old.color, (char *)(ml)->color, (n));    ) \
-IFCOLORX(memmove((char *)mline_old.colorx,(char *)(ml)->colorx,(n));  ) \
+#define save_mline(ml, n) do { \
+	memmove((char *)mline_old.image, (char *)(ml)->image, (n)); \
+	memmove((char *)mline_old.attr,  (char *)(ml)->attr,  (n)); \
+	memmove((char *)mline_old.font,  (char *)(ml)->font,  (n)); \
+	memmove((char *)mline_old.fontx, (char *)(ml)->fontx, (n)); \
+	memmove((char *)mline_old.color, (char *)(ml)->color, (n)); \
+	memmove((char *)mline_old.colorx,(char *)(ml)->colorx,(n)); \
 } while (0)
 
-#define bcopy_mline(ml, xf, xt, n) do {					       \
-	 memmove((char *)(ml)->image + (xt), (char *)(ml)->image + (xf), (n));   \
-	 memmove((char *)(ml)->attr  + (xt), (char *)(ml)->attr  + (xf), (n));   \
-IFFONT(	 memmove((char *)(ml)->font  + (xt), (char *)(ml)->font  + (xf), (n)); ) \
-IFFONTX( memmove((char *)(ml)->fontx + (xt), (char *)(ml)->fontx + (xf), (n)); ) \
-IFCOLOR( memmove((char *)(ml)->color + (xt), (char *)(ml)->color + (xf), (n)); ) \
-IFCOLORX(memmove((char *)(ml)->colorx + (xt),(char *)(ml)->colorx + (xf),(n));) \
+#define bcopy_mline(ml, xf, xt, n) do { \
+	memmove((char *)(ml)->image + (xt), (char *)(ml)->image + (xf), (n)); \
+	memmove((char *)(ml)->attr  + (xt), (char *)(ml)->attr  + (xf), (n)); \
+	memmove((char *)(ml)->font  + (xt), (char *)(ml)->font  + (xf), (n)); \
+	memmove((char *)(ml)->fontx + (xt), (char *)(ml)->fontx + (xf), (n)); \
+	memmove((char *)(ml)->color + (xt), (char *)(ml)->color + (xf), (n)); \
+	memmove((char *)(ml)->colorx + (xt),(char *)(ml)->colorx + (xf),(n)); \
 } while (0)
 
-#define clear_mline(ml, x, n) do {					       \
-	 bclear((char *)(ml)->image + (x), (n));			       \
-	 if ((ml)->attr != null) memset((char *)(ml)->attr  + (x), 0, (n));     \
-IFFONT(  if ((ml)->font != null) memset((char *)(ml)->font  + (x), 0, (n));   ) \
-IFFONTX( if ((ml)->fontx != null) memset((char *)(ml)->fontx + (x), 0, (n));  ) \
-IFCOLOR( if ((ml)->color!= null) memset((char *)(ml)->color + (x), 0, (n));   ) \
-IFCOLORX(if ((ml)->colorx!= null) memset((char *)(ml)->colorx + (x), 0, (n)); ) \
+#define clear_mline(ml, x, n) do { \
+	bclear((char *)(ml)->image + (x), (n)); \
+	if ((ml)->attr != null) memset((char *)(ml)->attr  + (x), 0, (n));   \
+	if ((ml)->font != null) memset((char *)(ml)->font  + (x), 0, (n));   \
+	if ((ml)->fontx != null) memset((char *)(ml)->fontx + (x), 0, (n));  \
+	if ((ml)->color!= null) memset((char *)(ml)->color + (x), 0, (n));   \
+	if ((ml)->colorx!= null) memset((char *)(ml)->colorx + (x), 0, (n)); \
 } while (0)
 
-#define cmp_mline(ml1, ml2, x) (				\
-	    (ml1)->image[x] == (ml2)->image[x]			\
-	 && (ml1)->attr[x]  == (ml2)->attr[x]			\
-IFFONT(	 && (ml1)->font[x]  == (ml2)->font[x]		      ) \
-IFFONTX( && (ml1)->fontx[x] == (ml2)->fontx[x]		      ) \
-IFCOLOR( && (ml1)->color[x] == (ml2)->color[x]		      ) \
-IFCOLORX(&& (ml1)->colorx[x] == (ml2)->colorx[x]	      ) \
+#define cmp_mline(ml1, ml2, x) (		\
+	   (ml1)->image[x] == (ml2)->image[x]	\
+	&& (ml1)->attr[x]  == (ml2)->attr[x]	\
+	&& (ml1)->font[x]  == (ml2)->font[x]	\
+	&& (ml1)->fontx[x] == (ml2)->fontx[x]	\
+	&& (ml1)->color[x] == (ml2)->color[x]	\
+	&& (ml1)->colorx[x] == (ml2)->colorx[x]	\
 )
 
-#define cmp_mchar(mc1, mc2) (					\
-	    (mc1)->image == (mc2)->image			\
-	 && (mc1)->attr  == (mc2)->attr				\
-IFFONT(	 && (mc1)->font  == (mc2)->font			      ) \
-IFFONTX( && (mc1)->fontx == (mc2)->fontx		      ) \
-IFCOLOR( && (mc1)->color == (mc2)->color		      ) \
-IFCOLORX(&& (mc1)->colorx == (mc2)->colorx		      ) \
+#define cmp_mchar(mc1, mc2) (			\
+	   (mc1)->image == (mc2)->image		\
+	&& (mc1)->attr  == (mc2)->attr		\
+	&& (mc1)->font  == (mc2)->font		\
+	&& (mc1)->fontx == (mc2)->fontx		\
+	&& (mc1)->color == (mc2)->color		\
+	&& (mc1)->colorx == (mc2)->colorx	\
 )
 
-#define cmp_mchar_mline(mc, ml, x) (				\
-	    (mc)->image == (ml)->image[x]			\
-	 && (mc)->attr  == (ml)->attr[x]			\
-IFFONT(	 && (mc)->font  == (ml)->font[x]		      ) \
-IFFONTX( && (mc)->fontx == (ml)->fontx[x]		      ) \
-IFCOLOR( && (mc)->color == (ml)->color[x]		      ) \
-IFCOLORX(&& (mc)->colorx == (ml)->colorx[x]		      ) \
+#define cmp_mchar_mline(mc, ml, x) (		\
+	   (mc)->image == (ml)->image[x]	\
+	&& (mc)->attr  == (ml)->attr[x]		\
+	&& (mc)->font  == (ml)->font[x]		\
+	&& (mc)->fontx == (ml)->fontx[x]	\
+	&& (mc)->color == (ml)->color[x]	\
+	&& (mc)->colorx == (ml)->colorx[x]	\
 )
 
-#define copy_mchar2mline(mc, ml, x) do {			\
-	 (ml)->image[x] = (mc)->image;				\
-	 (ml)->attr[x]  = (mc)->attr;				\
-IFFONT(	 (ml)->font[x]  = (mc)->font;			      ) \
-IFFONTX( (ml)->fontx[x] = (mc)->fontx;			      ) \
-IFCOLOR( (ml)->color[x] = (mc)->color;			      ) \
-IFCOLORX((ml)->colorx[x] = (mc)->colorx;		      ) \
+#define copy_mchar2mline(mc, ml, x) do {	\
+	(ml)->image[x] = (mc)->image;		\
+	(ml)->attr[x]  = (mc)->attr;		\
+	(ml)->font[x]  = (mc)->font;		\
+	(ml)->fontx[x] = (mc)->fontx;		\
+	(ml)->color[x] = (mc)->color;		\
+	(ml)->colorx[x] = (mc)->colorx;		\
 } while (0)
 
-#define copy_mline2mchar(mc, ml, x) do {			\
-	 (mc)->image = (ml)->image[x];				\
-	 (mc)->attr  = (ml)->attr[x];				\
-IFFONT(	 (mc)->font  = (ml)->font[x];			      ) \
-IFFONTX( (mc)->fontx = (ml)->fontx[x];			      ) \
-IFCOLOR( (mc)->color = (ml)->color[x];			      ) \
-IFCOLORX((mc)->colorx = (ml)->colorx[x];		      ) \
-IFDWCHAR((mc)->mbcs  = 0;				      ) \
+#define copy_mline2mchar(mc, ml, x) do {	\
+	(mc)->image = (ml)->image[x];		\
+	(mc)->attr  = (ml)->attr[x];		\
+	(mc)->font  = (ml)->font[x];		\
+	(mc)->fontx = (ml)->fontx[x];		\
+	(mc)->color = (ml)->color[x];		\
+	(mc)->colorx = (ml)->colorx[x];		\
+	(mc)->mbcs  = 0;			\
 } while (0)
 
 #define rend_getbg(mc) (((mc)->color & 0xf0) >> 4 | ((mc)->attr & A_BBG ? 0x100 : 0) | ((mc)->colorx & 0xf0))
