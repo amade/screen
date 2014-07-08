@@ -1137,8 +1137,11 @@ char **av;
   else
 #endif
     {
+#ifdef SOCKDIR /* if SOCKDIR is not defined, the socket is in $HOME.
+                  in that case it does not make sense to compare uids. */
       if ((int)st.st_uid != real_uid)
 	Panic(0, "You are not the owner of %s.", SockPath);
+#endif
     }
   if ((st.st_mode & 0777) != 0700)
     Panic(0, "Directory %s must have mode 700.", SockPath);
