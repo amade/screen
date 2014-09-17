@@ -1182,8 +1182,8 @@ char **av;
       }
       if (fo == 0)
         Panic(0, "No Sockets found in %s.\n", SockPath);
-      Panic(0, "%d Socket%s in %s.\n", fo, fo > 1 ? "s" : "", SockPath);
-      /* NOTREACHED */
+      Msg(0, "%d Socket%s in %s.", fo, fo > 1 ? "s" : "", SockPath);
+      eexit(0);
     }
   signal(SIG_BYE, AttacherFinit);	/* prevent races */
   if (cmdflag)
