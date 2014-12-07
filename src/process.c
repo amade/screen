@@ -4133,7 +4133,10 @@ int key;
       else
 	{
 	  if (!windows)
-	    wtab = realloc(wtab, n * sizeof(struct win *));
+            {
+	      wtab = realloc(wtab, n * sizeof(struct win *));
+              bzero(wtab, n * sizeof(struct win *));
+            }
 	  maxwin = n;
 	}
       break;
