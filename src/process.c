@@ -68,7 +68,7 @@ static void Colonfin(char *, int, char *);
 static void InputSelect(void);
 static void InputSetenv(char *);
 static void InputAKA(void);
-static int InputSu(struct win *, struct acluser **, char *);
+//static int InputSu(struct win *, struct acluser **, char *);
 static void su_fin(char *, int, char *);
 static void AKAfin(char *, int, char *);
 static void copy_reg_fn(char *, int, char *);
@@ -4365,9 +4365,10 @@ void DoAction(struct action *act, int key)
 		s = NULL;
 		if (!*args) {
 			OutputMsg(0, "%s:%s screen login", HostName, SocketPath);
-			InputSu(D_fore, &D_user, NULL);
+
+			//InputSu(D_fore, &D_user, NULL);
 		} else if (!args[1])
-			InputSu(D_fore, &D_user, args[0]);
+			;//InputSu(D_fore, &D_user, args[0]);
 		else if (!args[2])
 			s = DoSu(&D_user, args[0], args[1], "\377");
 		else

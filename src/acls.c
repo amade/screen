@@ -382,9 +382,9 @@ int AclLinkUser(char *from, char *to)
 	struct acluser **u1, **u2;
 	struct aclusergroup **g;
 
-	if (!*(u1 = FindUserPtr(from)) && UserAdd(from, NULL, u1))
+	if (!*(u1 = FindUserPtr(from)) && UserAdd(from, u1))
 		return -1;
-	if (!*(u2 = FindUserPtr(to)) && UserAdd(to, NULL, u2))
+	if (!*(u2 = FindUserPtr(to)) && UserAdd(to, u2))
 		return -1;	/* hmm, could not find both users. */
 
 	if (*FindGroupPtr(&(*u2)->u_group, *u1, 1))
@@ -424,8 +424,7 @@ char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 			if (!(pw1 && *pw1 && *pw1 != '\377')) {
 				sorry++;
 			}
-		} else
-			pass = pp->pw_passwd;
+		}
 #ifdef SHADOWPW
 		for (t = 0; t < 13; t++) {
 			c = pass[t];
@@ -448,12 +447,6 @@ char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 		} else /* no pasword provided */ if (*pass)	/* but need one */
 			sorry++;
 #endif				/* CHECKLOGIN */
-		if (pw1 && *pw1 && *pw1 != '\377') {	/* provided a screen password */
-			if (!PasswordMatches(pw1, u->u_password)) {
-				sorry++;
-			}
-		} else /* no pasword provided */ if (*u->u_password)	/* but need one */
-			sorry++;
 	}
 
 #ifndef NOSYSLOG
@@ -696,13 +689,13 @@ static int UserAcl(struct acluser *uu, struct acluser **u, int argc, char **argv
 
 	switch (argc) {
 	case 1 + 1 + 2:
-		return (UserAdd(argv[0], argv[1], u) < 0) || AclSetPerm(uu, *u, argv[2], argv[3]);
+		return (UserAdd(argv[0], u) < 0) || AclSetPerm(uu, *u, argv[2], argv[3]);
 	case 1 + 2:
-		return (UserAdd(argv[0], NULL, u) < 0) || AclSetPerm(uu, *u, argv[1], argv[2]);
+		return (UserAdd(argv[0], u) < 0) || AclSetPerm(uu, *u, argv[1], argv[2]);
 	case 1 + 1:
-		return UserAdd(argv[0], argv[1], u) < 0;
+		return UserAdd(argv[0], u) < 0;
 	case 1:
-		return (UserAdd(argv[0], NULL, u) < 0) || AclSetPerm(uu, *u, "+a", "#?");
+		return (UserAdd(argv[0], u) < 0) || AclSetPerm(uu, *u, "+a", "#?");
 	default:
 		return -1;
 	}
