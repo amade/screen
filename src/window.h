@@ -57,6 +57,7 @@ struct NewWindow
   int   encoding;
   char	*hstatus;
   char	*charset;
+  int	poll_zombie_timeout;
 };
 
 #ifdef PSEUDOS
@@ -150,6 +151,8 @@ struct win
   struct event w_readev;
   struct event w_writeev;
   struct event w_silenceev;	/* silence event */
+  struct event w_zombieev;	/* event to try to resurrect window */
+  int	 w_poll_zombie_timeout;
   int	 w_ptyfd;		/* fd of the master pty */
   char	 w_inbuf[IOSIZE];
   int	 w_inlen;
