@@ -2688,6 +2688,20 @@ int rec;
 	    }
 	  p += strlen(p) - 1;
 	  break;
+	case 'X': case 'x':
+			*p = 0;
+			for (i = 0; win && win->w_cmdargs[i]; i++)
+			{
+				if (l < strlen(win->w_cmdargs[i]) + 1)
+			break;
+				sprintf(p, i ? "%s" : " %s", win->w_cmdargs[i]);
+				l -= strlen(p);
+				p += strlen(p);
+				if (i == 0 && *s == 'X')
+					break;
+			}
+			p--;
+			break;
 	case 'l':
 #ifdef LOADAV
 	  *p = 0;
