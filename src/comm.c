@@ -337,5 +337,6 @@ struct comm comms[RC_LAST + 1] =
 #ifdef ZMODEM
   { "zmodem",		ARGS_012 },
 #endif
-  { "zombie",		ARGS_012 }
+  { "zombie",		ARGS_012 },
+  { "zombie_timeout", ARGS_1 }
 };

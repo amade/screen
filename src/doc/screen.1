@@ -3547,6 +3547,15 @@ Optionally you can put the word \*Qonerror\*U after the keys. This will cause sc
 to monitor exit status of the process running in the window. If it exits normally ('0'), 
 the window disappears. Any other exit value causes the window to become a zombie.
 
+.BR "zombie_timeout" [\fIseconds\fP]
+.PP
+Per default
+.I screen
+windows are removed from the window list as soon as
+the windows process (e.g. shell) exits. If \fBzombie\fP keys are defined
+(compare with above \fBzombie\fP command), it is possible to also set a
+timeout when screen tries to automatically reconnect a dead screen window.
+
 .SH "THE MESSAGE LINE"
 .I Screen
 displays informational messages and other diagnostics in a \fImessage line\fP.

@@ -87,6 +87,7 @@ static int  DoAutolf __P((char *, int *, int));
 static void ZombieProcess __P((char **, int *));
 static void win_readev_fn __P((struct event *, char *));
 static void win_writeev_fn __P((struct event *, char *));
+static void win_resurrect_zombie_fn __P((struct event *, char *));
 static int  muchpending __P((struct win *, struct event *));
 #ifdef COPY_PASTE
 static void paste_slowev_fn __P((struct event *, char *));
@@ -139,7 +140,8 @@ struct NewWindow nwin_undef   =
   -1, 		/* bce */
   -1, 		/* encoding */
   (char *)0,	/* hstatus */
-  (char *)0	/* charset */
+  (char *)0,	/* charset */
+  0		/* poll_zombie_timeout */
 };
 
 struct NewWindow nwin_default = 
@@ -198,6 +200,7 @@ struct NewWindow *def, *new, *res;
   COMPOSE(encoding);
   COMPOSE(hstatus);
   COMPOSE(charset);
+  COMPOSE(poll_zombie_timeout);
 #undef COMPOSE
 }
 
@@ -835,6 +838,14 @@ struct NewWindow *newwin;
       DoStartLog(p, buf, sizeof(buf));
     }
 
+   /* Is this all where I have to init window poll timeout? */
+	if (nwin.poll_zombie_timeout)
+		p->w_poll_zombie_timeout = nwin.poll_zombie_timeout;
+
+	p->w_zombieev.type = EV_TIMEOUT;
+	p->w_zombieev.data = (char *)p;
+	p->w_zombieev.handler = win_resurrect_zombie_fn;
+
   p->w_readev.fd = p->w_writeev.fd = p->w_ptyfd;
   p->w_readev.type = EV_READ;
   p->w_writeev.type = EV_WRITE;
@@ -1050,6 +1061,7 @@ struct win *wp;
   evdeq(&wp->w_readev);		/* just in case */
   evdeq(&wp->w_writeev);	/* just in case */
   evdeq(&wp->w_silenceev);
+  evdeq(&wp->w_zombieev);
   evdeq(&wp->w_destroyev);
 #ifdef COPY_PASTE
   FreePaster(&wp->w_paster);
@@ -1941,6 +1953,21 @@ char *data;
   return;
 }
 
+static void
+win_resurrect_zombie_fn(ev, data)
+struct event *ev;
+char *data;
+{
+	struct win *p = (struct win *)data;
+	debug2("Try to resurrecting Zombie event: %d [%s]\n",
+	p->w_number, p->w_title);
+	/* Already reconnected? */
+	if (p->w_deadpid != p->w_pid)
+		return;
+	debug1("Resurrecting Zombie: %d\n", p->w_number);
+	WriteString(p, "\r\n", 2);
+	RemakeWindow(p);
+}
 
 static void
 win_writeev_fn(ev, data)

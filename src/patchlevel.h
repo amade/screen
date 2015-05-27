@@ -528,11 +528,11 @@
  * 12.10.2004, 4.00.03jw1 let docu of 'split' 'focus' 'remove' and 'only' refer to each other.
  * 01.11.2004, 4.00.03jw2 zombie command has new option 'onerror'
  * 2005-12-19, 4.00.03jw3 syntax error.
- */
+*/
 
 #define ORIGIN "GNU"
 #define REV 4
-#define VERS 2
-#define PATCHLEVEL 1
-#define DATE "28-Apr-14"
+#define VERS 3
+#define PATCHLEVEL 0
+#define DATE "27-May-15"
 #define STATE ""

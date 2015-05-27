@@ -1559,6 +1559,12 @@ int wstat_valid;
       p->w_y = MFindUsedLine(p, p->w_bot, 1);
       sprintf(buf, "\n\r=== Command %s (%s) ===", reason, s ? s : "?");
       WriteString(p, buf, strlen(buf));
+			if (p->w_poll_zombie_timeout) {
+				debug2("Set zombie poll timeout for window %s to %d\n", p->w_title,
+				p->w_poll_zombie_timeout);
+				SetTimeout(&p->w_zombieev, p->w_poll_zombie_timeout * 1000);
+				evenq(&p->w_zombieev);
+			}
       WindowChanged(p, 'f');
     }
   else
