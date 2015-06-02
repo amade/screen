@@ -7,7 +7,7 @@
 @finalout
 @setchapternewpage odd
 @c %**end of header
-@set version 4.1.0
+@set version 4.3.0
 
 @direntry
 * Screen: (screen).             Full-screen window manager.
@@ -52,7 +52,7 @@ by the Foundation.
 @title Screen
 @subtitle The virtual terminal manager
 @subtitle for Version @value{version}
-@subtitle Aug 2003
+@subtitle May 2015
 
 @page
 @vskip 0pt plus 1filll
@@ -5874,8 +5874,7 @@ features.
 @cindex bug report
 
 If you find a bug in @code{Screen}, please send electronic mail to
-@w{@samp{screen@@uni-erlangen.de}}, and also to
-@w{@samp{bug-gnu-utils@@prep.ai.mit.edu}}.  Include the version number
+@w{@samp{screen-devel@@gnu.org}}.  Include the version number
 of @code{Screen} which you are using.  Also include in your message the
 hardware and operating system, the compiler used to compile, a
 description of the bug behavior, and the conditions that triggered the
