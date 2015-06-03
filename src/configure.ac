@@ -8,7 +8,6 @@ dnl
 AC_REVISION($Revision$)dnl
 AC_INIT(screen.c)
 AC_CONFIG_HEADER(config.h)
-AC_PREREQ(2.60)
 
 dnl
 dnl Define some useful macros
@@ -202,6 +201,14 @@ AC_EGREP_CPP(yes,
 #endif
 ], LIBS="$LIBS -lsocket -linet";seqptx=1)
 
+oldlibs="$LIBS"
+LIBS="$LIBS -lelf"
+AC_CHECKING(SVR4)
+AC_TRY_LINK([#include <utmpx.h>
+],,
+[AC_CHECK_HEADER(dwarf.h, AC_DEFINE(SVR4) AC_DEFINE(BUGGYGETLOGIN),
+[AC_CHECK_HEADER(elf.h, AC_DEFINE(SVR4) AC_DEFINE(BUGGYGETLOGIN))])]
+,LIBS="$oldlibs")
 AC_CHECK_HEADERS([stropts.h string.h strings.h])
 
 AC_CHECKING(for Solaris 2.x)
