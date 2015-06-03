@@ -8,6 +8,7 @@ dnl
 AC_REVISION($Revision$)dnl
 AC_INIT(screen.c)
 AC_CONFIG_HEADER(config.h)
+AC_PREREQ(2.60)
 
 dnl
 dnl Define some useful macros
