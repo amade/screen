@@ -3039,6 +3039,49 @@ int key;
 			debug1("Setting zombie polling to %d\n", nwin_default.poll_zombie_timeout);
 			break;
 
+		case RC_SORT:
+			if (fore) {
+			/* Better do not allow this. Not sure what the utmp stuff in number
+			* command above is for (you get four entries in e.g. /var/log/wtmp
+			* per number switch). But I don't know enough about this.
+			*/
+				Msg(0, "Sorting inside a window is not allowed. Push CTRL-a \" "
+					"and try again\n");
+				break;
+			}
+			/*
+			* Simple sort algorithm: Look out for the smallest, put it
+			* to the first place, look out for the 2nd smallest, ...
+			*/
+			for (i = 0; i < maxwin ; i++) {
+				if (wtab[i] == NULL)
+					continue;
+				n = i;
+
+				for (nr = i + 1; nr < maxwin; nr++) {
+					if (wtab[nr] == NULL)
+						continue;
+					debug2("Testing window %d and %d.\n", nr, n);
+					if (strcmp(wtab[nr]->w_title,wtab[n]->w_title) < 0)
+						n = nr;
+				}
+
+				if (n != i) {
+					debug2("Exchange window %d and %d.\n", i, n);
+					p = wtab[n];
+					wtab[n] = wtab[i];
+					wtab[i] = p;
+					wtab[n]->w_number = n;
+					wtab[i]->w_number = i;
+#ifdef MULTIUSER
+					/* exchange the acls for these windows. */
+					AclWinSwap(i, n);
+#endif
+				}
+			}
+			WindowChanged((struct win *)0, 0);
+			break;
+
     case RC_SILENCE:
       n = fore->w_silence != 0;
       i = fore->w_silencewait;
