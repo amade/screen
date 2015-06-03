@@ -3440,7 +3440,7 @@ settings).
 and 6 characters high in order to display.
 .sp
 .ne 3
-.B windows
+.B windows [ string ]
 .PP
 Uses the message line to display a list of all the windows.
 Each window is listed by number with the name of process that has been
@@ -3456,6 +3456,9 @@ windows occupied by other users are marked with `&';
 windows in the zombie state are marked with `Z'.
 If this list is too long to fit on the terminal's status line only the
 portion around the current window is displayed.
+The optional string parameter follows the \*QSTRING ESCAPES\*U format.
+If string parameter is passed, the output size is unlimited.
+The default command without any parameter is limited to a size of 1024 bytes.
 .sp
 .ne 3
 .BR "wrap " [ on | off ]

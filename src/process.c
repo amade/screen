@@ -170,6 +170,7 @@ static void ResizeFin __P((char *, int, char *));
 static struct action *FindKtab __P((char *, int));
 static void SelectFin __P((char *, int, char *));
 static void SelectLayoutFin __P((char *, int, char *));
+static void ShowWindowsX __P((char *));
 
 
 extern struct layer *flayer;
@@ -1840,6 +1841,10 @@ int key;
       Activate(-1);
       break;
     case RC_WINDOWS:
+			if (args[0]) {
+				ShowWindowsX(args[0]);
+				break;
+			}
       ShowWindows(-1);
       break;
     case RC_VERSION:
@@ -5646,6 +5651,24 @@ int where;
     ss = buf;
   Msg(0, "%s", ss);
 }
+
+/*
+* String Escape based windows listing
+* mls: currently does a Msg() call for each(!) window, dunno why
+*/
+static void
+ShowWindowsX(str)
+char *str;
+{
+	int i;
+	debug1("ShowWindowsX: string [%s]", string);
+	for (i = 0; i < maxwin ; i++) {
+		if (!wtab[i])
+			continue;
+		Msg(0, "%s", MakeWinMsg(str, wtab[i], '%'));
+	}
+}
+
 
 static void
 ShowInfo()

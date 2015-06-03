@@ -2616,7 +2616,7 @@ before displaying a message. Default is 30 seconds.
 @section Windows
 @kindex w
 @kindex C-w
-@deffn Command windows
+@deffn Command windows [ string ]
 (@kbd{C-a w}, @kbd{C-a C-w})@*
 Uses the message line to display a list of all the windows.  Each
 window is listed by number with the name of the program running in the
@@ -2635,6 +2635,11 @@ windows in the zombie state are marked with @samp{Z}.
 
 If this list is too long to fit on the terminal's status line only the
 portion around the current window is displayed.
+
+You can customize the output format to any string you like including
+string escapes (@pxref{String Escapes}).
+In this case, if the string parameter is passed, the maximum output
+size is unlimited (instead of 1024 bytes if no parameter is passed).
 @end deffn
 
 @node Hardstatus, Mousetrack, Windows, Window Settings
