@@ -4847,7 +4847,7 @@ is a literal caret or up-arrow.
 @node Hardware Status Line, Last Message, Privacy Message, Message Line
 @section Hardware Status Line
 @deffn Command hardstatus [state]
-@deffnx Command hardstatus [@code{always}]@code{lastline}|@code{message}|@code{ignore} [string]
+@deffnx Command hardstatus [@code{always}]@code{firstline}|@code{lastline}|@code{message}|@code{ignore} [string]
 @deffnx Command hardstatus @code{string} [string]
 (none)@*
 This command configures the use and emulation of the terminal's
@@ -4860,8 +4860,8 @@ setting is @samp{on}.
 The second form tells screen what to do if the terminal doesn't
 have a hardstatus line (i.e. the termcap/terminfo capabilities
 "hs", "ts", "fs" and "ds" are not set). If the type
-@code{lastline} is used, screen will reserve the last line of the
-display for the hardstatus. @code{message} uses
+@code{firstline}/@code{lastline} is used, screen will reserve the first/last
+line of the display for the hardstatus. @code{message} uses
 @code{screen}'s message mechanism and
 @code{ignore} tells @code{screen} never to display the hardstatus.
 If you prepend the word @code{always} to the type (e.g., @code{alwayslastline}), @code{screen} will use

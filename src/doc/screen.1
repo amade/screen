@@ -2079,7 +2079,7 @@ current working directory.
 .ne 3
 .BR "hardstatus " [ on | off ]
 .br
-.BR "hardstatus \fR[\fBalways\fR]\fBlastline" | message | ignore
+.BR "hardstatus \fR[\fBalways\fR]\fBfirstline" | lastline | message | ignore
 .RI [ string ]
 .br
 .B "hardstatus string"
@@ -2098,11 +2098,10 @@ The second form tells
 .I screen 
 what to do if the terminal doesn't
 have a hardstatus line (i.e. the termcap/terminfo capabilities
-"hs", "ts", "fs" and "ds" are not set). If the type
-\*Qlastline\*U is used, 
+"hs", "ts", "fs" and "ds" are not set).
+When \*Qfirstline/lastline\*U is used, 
 .I screen 
-will reserve the last line of the
-display for
+will reserve the first/last line of the display for
 the hardstatus. \*Qmessage\*U uses 
 .I screen's
 message mechanism and
