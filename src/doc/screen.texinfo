@@ -406,6 +406,10 @@ runs in multiuser mode. This indicates that screen should look for
 sessions in another user's directory. This requires setuid-root.
 
 @item -R
+resumes screen only when it's unambiguous which one to attach, usually
+when only one @code{screen} is detached. Otherwise lists available sessions.
+
+@item -RR
 Resume the first appropriate detached @code{screen} session.  If
 successful, all other command-line options are ignored.  If no detached
 session exists, start a new session using the specified options, just as

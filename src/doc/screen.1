@@ -342,6 +342,11 @@ which runs in multiuser mode. This indicates that screen should look for
 sessions in another user's directory. This requires setuid-root.
 .TP 5
 .B \-R
+resumes screen only when it's unambiguous which one to attach, usually
+when only one
+.I screen
+is detached. Otherwise lists available sessions.
+.B \-RR
 attempts to resume the first detached
 .I screen
 session it finds.  If successful, all other command-line options are ignored.
