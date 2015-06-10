@@ -1167,6 +1167,16 @@ window (using the paste buffer, where a copy remains):
 .fi
 .sp
 .ne 3
+.BR bumpleft
+.PP
+Swaps window with previous one on window list.
+.sp
+.ne 3
+.BR bumpright
+.PP
+Swaps window with next one on window list.
+.sp
+.ne 3
 .BR "c1 " [ on | off ]
 .PP
 Change c1 code processing. \*QC1 on\*U tells screen to treat
@@ -1244,6 +1254,11 @@ Treat ambiguous width characters as full/half width.
 .B clear
 .PP
 Clears the current window and saves its image to the scrollback buffer.
+.sp
+.ne 3
+.B collapse
+.PP
+Reorders window on window list, removing number gaps between them.
 .sp
 .ne 3
 .B colon

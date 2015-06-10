@@ -905,6 +905,10 @@ Send a break signal to the current window.  @xref{Break}.
 Specify how to generate breaks.  @xref{Break}.
 @item bufferfile [@var{exchange-file}]
 Select a file for screen-exchange.  @xref{Screen Exchange}.
+@item bumpleft
+Swaps window with previous one on window list.  @xref{Bumpleft}.
+@item bumpright
+Swaps window with previous one on window list.  @xref{Bumpright}.
 @item c1 [@var{state}]
 Change c1 code processing.  @xref{Character Processing}.
 @item caption @var{mode} [@var{string}]
@@ -921,6 +925,8 @@ Treat ambiguous width characters as full/half width.  @xref{Character Processing
 Clear the window screen.  @xref{Clear}.
 @item colon
 Enter a @code{screen} command.  @xref{Colon}.
+@item collapse
+Reorders window on window list, removing number gaps between them.  @xref{Collapse}.
 @item command [-c @var{class}]
 Simulate the screen escape key.  @xref{Command Character}.
 @item compacthist [@var{state}]
@@ -5043,6 +5049,9 @@ categories.
 @menu
 * At::                          Execute a command at other displays or windows.
 * Break::                       Send a break signal to the window.
+* Bumpleft::			Swaps window with previous one on window list.
+* Bumpright::			Swaps window with next one on window list.
+* Collapse::			Collapses window list.
 * Debug::                       Suppress/allow debugging output.
 * License::                     Display the disclaimer page.
 * Nethack::                     Use @code{nethack}-like error messages.
@@ -5099,7 +5108,7 @@ that a display is associated with the target windows.  These commands may not
 work correctly under @code{at} looping over windows.
 @end deffn
 
-@node Break, Debug, At, Miscellaneous
+@node Break, Bumpleft, At, Miscellaneous
 @section Break
 @kindex b
 @kindex C-b
@@ -5141,7 +5150,30 @@ dependent, this also differs between serial board drivers.
 Calling @code{defbreaktype} with no parameter displays the current setting.
 @end deffn
 
-@node Debug, License, Break, Miscellaneous
+@node Bumpleft, Bumpright, Break, Miscellaneous
+@section Bumpleft
+@deffn Command bumpleft
+(none)@*
+Exchanges windows positions on window list, with window having lower number
+(left to current one).
+@end deffn
+
+@node Bumpright, Collapse, Bumpleft, Miscellaneous
+@section Bumpright
+@deffn Command bumpright
+(none)@*
+Exchanges windows positions on window list, with window having bigger number
+(right to current one).
+@end deffn
+
+@node Collapse, Debug, Bumpright, Miscellaneous
+@section Collapse
+@deffn Command collapse
+(none)@*
+Changes windows numbers, so there is no gaps between them.
+@end deffn
+
+@node Debug, License, Collapse, Miscellaneous
 @section Debug
 @deffn Command debug [on|off]
 (none)@*
