@@ -66,6 +66,10 @@ char *myname, *message, *arg;
 {
   printf("Use: %s [-opts] [cmd [args]]\n", myname);
   printf(" or: %s -r [host.tty]\n\nOptions:\n", myname);
+#ifdef BUILTIN_TELNET
+  printf("-4            Resolve hostnames only to IPv4 addresses.\n");
+  printf("-6            Resolve hostnames only to IPv6 addresses.\n");
+#endif
   printf("-a            Force all capabilities into each window's termcap.\n");
   printf("-A -[r|R]     Adapt all windows to the new display width & height.\n");
   printf("-c file       Read configuration file instead of '.screenrc'.\n");
