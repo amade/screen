@@ -243,13 +243,14 @@ int nethackflag = 0;
 #endif
 int maxwin;
 
-
 struct layer *flayer;
 struct win *fore;
 struct win *windows;
 struct win *console_window;
 
-
+#ifdef BUILTIN_TELNET
+int af;
+#endif
 
 /*
  * Do this last
@@ -507,6 +508,9 @@ char **av;
   nwin = nwin_undef;
   nwin_options = nwin_undef;
   strcpy(screenterm, "screen");
+#ifdef BUILTIN_TELNET
+  af = AF_UNSPEC;
+#endif
 
   logreopen_register(lf_secreopen);
 
@@ -541,6 +545,14 @@ char **av;
 	    {
 	      switch (*ap)
 		{
+#ifdef BUILTIN_TELNET
+		case '4':
+			af = AF_INET;
+			break;
+		case '6':
+			af = AF_INET6;
+			break;
+#endif
 		case 'a':
 		  nwin_options.aflag = 1;
 		  break;

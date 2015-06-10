@@ -271,7 +271,7 @@ struct win
   struct display *w_zdisplay;
 #endif
 #ifdef BUILTIN_TELNET
-  struct sockaddr_in w_telsa;
+  struct sockaddr_storage w_telsa;
   char   w_telbuf[IOSIZE];
   int    w_telbufl;
   char   w_telmopts[256];

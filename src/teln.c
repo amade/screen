@@ -30,6 +30,7 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include <stdio.h>
 
 #include "config.h"
 
@@ -42,12 +43,14 @@ extern struct win *fore;
 extern struct layer *flayer;
 extern int visual_bell;
 extern char screenterm[];
+extern int af;
 
 static void TelReply __P((struct win *, char *, int));
 static void TelDocmd __P((struct win *, int, int));
 static void TelDosub __P((struct win *));
 
-#define TEL_DEFPORT	23
+// why TEL_DEFPORT has "
+#define TEL_DEFPORT     "23"
 #define TEL_CONNECTING	(-2)
 
 #define TC_IAC          255
@@ -105,86 +108,81 @@ char *data;
 }
 
 int
-TelOpen(args)
-char **args;
-{
-  int fd;
-  int on = 1;
+TelOpenAndConnect(struct win *p) {
+	int fd, on = 1;
+	char buf[256];
 
-  if ((fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
-    {
-      Msg(errno, "TelOpen: socket");
-      return -1;
-    }
-  if (setsockopt(fd, SOL_SOCKET, SO_OOBINLINE, (char *)&on, sizeof(on)))
-    Msg(errno, "TelOpen: setsockopt SO_OOBINLINE");
-  return fd;
-}
+	struct addrinfo hints, *res0, *res;
 
-int
-TelConnect(p)
-struct win *p;
-{
-  int port = TEL_DEFPORT;
-  struct hostent *hp;
-  char **args;
-  char buf[256];
-
-  args = p->w_cmdargs + 1;
-
-  if (!*args)
-    {
-      Msg(0, "Usage: screen //telnet host [port]");
-      return -1;
-    }
-  if (args[1])
-    port = atoi(args[1]);
-  p->w_telsa.sin_family = AF_INET;
-  if((p->w_telsa.sin_addr.s_addr = inet_addr(*args)) == -1)
-    {
-      if ((hp = gethostbyname(*args)) == NULL)
-        {
-	  Msg(0, "unknown host: %s", *args);
-	  return -1;
-        }
-      if (hp->h_length != sizeof(p->w_telsa.sin_addr.s_addr) || hp->h_addrtype != AF_INET)
-	{
-	  Msg(0, "Bad address type for %s", hp->h_name);
-	  return -1;
+	if (!(p->w_cmdargs[1])) {
+		Msg(0, "Usage: screen //telnet host [port]");
+		return -1;
 	}
-      bcopy((char *)hp->h_addr,(char *)&p->w_telsa.sin_addr.s_addr, hp->h_length);
-      p->w_telsa.sin_family = hp->h_addrtype;
-    }
-  p->w_telsa.sin_port = htons(port);
-  if (port != TEL_DEFPORT)
-    sprintf(buf, "Trying %s %d...", inet_ntoa(p->w_telsa.sin_addr), port);
-  else
-    sprintf(buf, "Trying %s...", inet_ntoa(p->w_telsa.sin_addr));
-  WriteString(p, buf, strlen(buf));
-  if (connect(p->w_ptyfd, (struct sockaddr *)&p->w_telsa, sizeof(p->w_telsa)))
-    {
-      if (errno == EINPROGRESS)
-        {
-	  p->w_telstate = TEL_CONNECTING;
-	  p->w_telconnev.fd = p->w_ptyfd;
-	  p->w_telconnev.handler = tel_connev_fn;
-	  p->w_telconnev.data = (char *)p;
-	  p->w_telconnev.type = EV_WRITE;
-	  p->w_telconnev.pri = 1;
-	  debug("telnet connect in progress...\n");
-	  evenq(&p->w_telconnev);
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = af;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	if(getaddrinfo(p->w_cmdargs[1], p->w_cmdargs[2] ? p->w_cmdargs[2] : TEL_DEFPORT, &hints, &res0)) {
+		Msg(0, "unknown host: %s", p->w_cmdargs[1]);
+		return -1;
 	}
-      else
-        {
-	  Msg(errno, "TelOpen: connect");
-	  return -1;
+
+	for(res = res0; res; res = res->ai_next) {
+		if((fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1) {
+			if(res->ai_next)
+				continue;
+			else {
+				Msg(errno, "TelOpenAndConnect: socket");
+				freeaddrinfo(res0);
+				return -1;
+			}
+		}
+
+		if (setsockopt(fd, SOL_SOCKET, SO_OOBINLINE, (char *)&on, sizeof(on)))
+			Msg(errno, "TelOpenAndConnect: setsockopt SO_OOBINLINE");
+
+		if (p->w_cmdargs[2] && strcmp(p->w_cmdargs[2], TEL_DEFPORT))
+			snprintf(buf, 256, "Trying %s %s...", p->w_cmdargs[1], p->w_cmdargs[2]);
+		else
+			snprintf(buf, 256, "Trying %s...", p->w_cmdargs[1]);
+
+		WriteString(p, buf, strlen(buf));
+		if (connect(fd, res->ai_addr, res->ai_addrlen)) {
+			if (errno == EINPROGRESS) {
+				p->w_telstate = TEL_CONNECTING;
+				p->w_telconnev.fd = fd;
+				p->w_telconnev.handler = tel_connev_fn;
+				p->w_telconnev.data = (char *)p;
+				p->w_telconnev.type = EV_WRITE;
+				p->w_telconnev.pri = 1;
+				debug("telnet connect in progress...\n");
+				evenq(&p->w_telconnev);
+			}
+			else {
+				close(fd);
+				if(res->ai_next)
+					continue;
+				else {
+					Msg(errno, "TelOpenAndConnect: connect");
+					freeaddrinfo(res0);
+					return -1;
+				}
+			}
+		}
+		else
+			WriteString(p, "connected.\r\n", 12);
+
+		if (!(p->w_cmdargs[2] && strcmp(p->w_cmdargs[2], TEL_DEFPORT)))
+			TelReply(p, (char *)tn_init, sizeof(tn_init));
+
+		p->w_ptyfd = fd;
+		memcpy(&p->w_telsa, &res->ai_addr, sizeof(res->ai_addr));
+		freeaddrinfo(res0);
+		return 0;
 	}
-    }
-  else
-    WriteString(p, "connected.\r\n", 12);
-  if (port == TEL_DEFPORT)
-    TelReply(p, (char *)tn_init, sizeof(tn_init));
-  return 0;
+	return -1;
 }
 
 int

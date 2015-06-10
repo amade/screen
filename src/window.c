@@ -614,6 +614,13 @@ struct NewWindow *newwin;
   n = pp - wtab;
   debug1("Makewin creating %d\n", n);
 
+#ifdef BUILTIN_TELNET
+	if(!strcmp(nwin.args[0], "//telnet")) {
+		type = W_TYPE_TELNET;
+		TtyName = "telnet";
+	}
+  else
+#endif
   if ((f = OpenDevice(nwin.args, nwin.lflag, &type, &TtyName)) < 0)
     return -1;
   if (type == W_TYPE_GROUP)
@@ -775,7 +782,7 @@ struct NewWindow *newwin;
 #ifdef BUILTIN_TELNET
   if (type == W_TYPE_TELNET)
     {
-      if (TelConnect(p))
+      if (TelOpenAndConnect(p))
 	{
 	  FreeWindow(p);
 	  return -1;
@@ -895,6 +902,13 @@ struct win *p;
   int lflag, f;
 
   lflag = nwin_default.lflag;
+#ifdef BUILTIN_TELNET
+	if(!strcmp(p->w_cmdargs[0], "//telnet")) {
+		p->w_type = W_TYPE_TELNET;
+		TtyName = "telnet";
+	}
+	else
+#endif
   if ((f = OpenDevice(p->w_cmdargs, lflag, &p->w_type, &TtyName)) < 0)
     return -1;
 
@@ -928,7 +942,7 @@ struct win *p;
 #ifdef BUILTIN_TELNET
   if (p->w_type == W_TYPE_TELNET)
     {
-      if (TelConnect(p))
+      if (TelOpenAndConnect(p))
         return -1;
     }
   else
@@ -1088,16 +1102,6 @@ char **namep;
       *namep = "telnet";
       return 0;
     }
-#ifdef BUILTIN_TELNET
-  if (strcmp(arg, "//telnet") == 0)
-    {
-      f = TelOpen(args + 1);
-      lflag = 0;
-      *typep = W_TYPE_TELNET;
-      *namep = "telnet";
-    }
-  else
-#endif
   if (strncmp(arg, "//", 2) == 0)
     {
       Msg(0, "Invalid argument '%s'", arg);
