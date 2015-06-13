@@ -5,10 +5,10 @@
 
 
 
-Short introduction to screen (Version 3.6.0)                   lvirden 8-8-93
+Short introduction to screen (Version 4.3.0)
 
 Send bugreports, fixes, enhancements, t-shirts, money, beer & pizza to 
-                          screen@uni-erlangen.de
+                          screen-devel@gnu.org
 
 Screen provides you with an ANSI/vt100 terminal emulator, which can multiplex
 up to 10 pseudo-terminals. On startup, it executes $SHELL in window 0.

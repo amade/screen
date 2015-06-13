@@ -1,30 +1,33 @@
-Installation of screen3.6                                         jw 9.04.95
+Installation of screen 4.3.0
 
 
 0.) This instruction is quite lengthy
 -------------------------------------
-.. and there are still important items near the end. Start here:
+... and there are still important items near the end. Start here:
 Unpack. Screen comes as a compressed tar archive. You need gzip to 
 uncompress.  And... well, you probably already managed that step, 
 when you are reading this.
 
 For general documentation on the coding and usage standards this
 distributions follows, see the GNU standards document on
-prep.ai.mit.edu:pub/gnu/standards.*, especially the `Makefile
+https://www.gnu.org/prep/standards/, especially the `Makefile
 Conventions', `Configuration', and `User Interfaces' sections.
 
 0.) autogen.sh
 --------------
 First, run ./autogen.sh. This will create configure file that you can use.
+This should be already done, so you can skip this step.
 
 1.) configure & config.status
 -----------------------------
-Run configure. This should create a reasonable Makefile and a config.h file
+Run ./configure. This should create a reasonable Makefile and a config.h file
 suited for your machine. Rename config.status to reflect the architecture 
 (hostname) where it was built. To reconfigure quickly for that architecture
 just run that config.status file.
 If this process fails, try to find out what configure did do and what it
-should have checked. Mail me.
+should have checked.
+And then please report a bug (https://savannah.gnu.org/bugs/?group=screen
+or mail screen-devel@gnu.org).
 Actually the initial Makefile that comes with the distribution just runs
 configure -- thus you can start by typing 'make' right after unpacking.
 You will be prompted to run 'make' again, which will really make screen.
@@ -109,5 +112,3 @@ database is up to date. See the README in the terminfo subdirectory.
 ------------
 To get an idea what the basic screen commands are, read the file README.
 Request snail mail address for liquid and solid donations. :-)
-
-Juergen & Michael. (screen@uni-erlangen.de)
