@@ -250,9 +250,11 @@ extern int errno;
 #endif
 
 #if defined(UTMPOK) || defined(BUGGYGETLOGIN)
-# if defined(SVR4) && !defined(DGUX) && !defined(__hpux) && !defined(linux)
+# if defined(SVR4) && !defined(DGUX) && !defined(__hpux)
 #  include <utmpx.h>
-#  define UTMPFILE	UTMPX_FILE
+#  ifdef UTMPX_FILE /* GNU extension */
+#   define UTMPFILE	UTMPX_FILE
+#  endif
 #  define utmp		utmpx
 #  define getutent	getutxent
 #  define getutid	getutxid
@@ -260,7 +262,6 @@ extern int errno;
 #  define pututline	pututxline
 #  define setutent	setutxent
 #  define endutent	endutxent
-#  define ut_time	ut_xtime
 # else /* SVR4 */
 #  include <utmp.h>
 # endif /* SVR4 */
