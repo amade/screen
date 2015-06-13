@@ -631,7 +631,7 @@ int pid;
   /* must use temp variable because of NetBSD/sparc64, where
    * ut_xtime is long(64) but time_t is int(32) */
   (void)time(&now);
-  u->ut_time = now;
+  u->ut_tv.tv_sec = now;
 }
 
 static slot_t
@@ -743,7 +743,7 @@ int pid;
   strncpy(u->ut_line, line, sizeof(u->ut_line));
   strncpy(u->ut_name, user, sizeof(u->ut_name));
   (void)time(&now);
-  u->ut_time = now;
+  u->ut_tv.tv_sec = now;
 }
 
 static slot_t
