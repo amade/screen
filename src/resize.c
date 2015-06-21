@@ -538,7 +538,7 @@ int wi;
 	  wi = MAXWIDTH;
   if (wi <= maxwidth)
     return;
-  maxwidth = wi;
+  maxwidth = wi + 1;
   debug1("New maxwidth: %d\n", maxwidth);
   blank = (unsigned char *)xrealloc((char *)blank, maxwidth);
   null = (unsigned char *)xrealloc((char *)null, maxwidth);
