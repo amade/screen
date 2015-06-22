@@ -1,3 +1,14 @@
+Version 4.3.0 (13/06/2015):
+  * Introduce Xx string escape showing the executed command of a window
+  * Implement dead/zombie window polling, allowing for auto reconnecting
+  * Allow setting hardstatus on first line
+
+  New Commands:
+  * 'sort' command sorting windows by title
+  * 'bumpleft', 'bumpright' - manually move windows on window list
+  * 'collapse' removing numbering 'gaps' between windows, by renumbering
+  * 'windows' command now accepts arguments for use with querying
+
 Version 4.2.1 (28/04/2014):
   * allow for terminal with long $TERM (up to 32 characters)
   * allow to use long logins
@@ -92,6 +103,8 @@ Version 4.2.0 (17/04/2014):
   * Scripting support (thanks to Google Summer of Code 2009 project by Rui Guo)
 
   Developers:
+  * Alexander Naumov <alexander_naumov@opensuse.org>
+  * Amadeusz Sławiński <amade@asmblr.net>
   * Juergen Weigert <jw@suse.de>
   * Michael Schroeder <mls@suse.de>
   * Micah Cowan <micah@cowan.name>
