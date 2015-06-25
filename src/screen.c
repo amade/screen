@@ -511,10 +511,7 @@ int main(int argc, char **argv)
 	eff_uid = geteuid();
 	eff_gid = getegid();
 
-#ifdef SIGBUS			/* OOPS, linux has no bus errors! */
-	signal(SIGBUS, CoreDump);
-#endif				/* SIGBUS */
-	signal(SIGSEGV, CoreDump);
+	xsignal(SIGSEGV, CoreDump);
 
 	setlocale(LC_ALL, "");
 	if (nwin_options.encoding == -1) {
@@ -565,23 +562,6 @@ int main(int argc, char **argv)
 	if (argc)
 		nwin.args = argv;
 
-	/* make the write() calls return -1 on all errors */
-#ifdef SIGXFSZ
-	/*
-	 * Ronald F. Guilmette, Oct 29 '94, bug-gnu-utils@prep.ai.mit.edu:
-	 * It appears that in System V Release 4, UNIX, if you are writing
-	 * an output file and you exceed the currently set file size limit,
-	 * you _don't_ just get the call to `write' returning with a
-	 * failure code.  Rather, you get a signal called `SIGXFSZ' which,
-	 * if neither handled nor ignored, will cause your program to crash
-	 * with a core dump.
-	 */
-	signal(SIGXFSZ, SIG_IGN);
-#endif				/* SIGXFSZ */
-
-#ifdef SIGPIPE
-	signal(SIGPIPE, SIG_IGN);
-#endif
 
 	if (!ShellProg) {
 		register char *sh;
@@ -824,7 +804,7 @@ int main(int argc, char **argv)
 		Msg(0, "%d Socket%s in %s.", fo, fo > 1 ? "s" : "", SocketPath);
 		eexit(0);
 	}
-	signal(SIG_BYE, AttacherFinit);	/* prevent races */
+	xsignal(SIG_BYE, AttacherFinit);	/* prevent races */
 	if (cmdflag) {
 		/* attach_tty is not mandatory */
 		SET_TTYNAME(0);
@@ -979,12 +959,12 @@ int main(int argc, char **argv)
 	} else
 		MakeTermcap(1);
 	MakeNewEnv();
-	signal(SIGHUP, SigHup);
-	signal(SIGINT, FinitHandler);
-	signal(SIGQUIT, FinitHandler);
-	signal(SIGTERM, FinitHandler);
-	signal(SIGTTIN, SIG_IGN);
-	signal(SIGTTOU, SIG_IGN);
+	xsignal(SIGHUP, SigHup);
+	xsignal(SIGINT, FinitHandler);
+	xsignal(SIGQUIT, FinitHandler);
+	xsignal(SIGTERM, FinitHandler);
+	xsignal(SIGTTIN, SIG_IGN);
+	xsignal(SIGTTOU, SIG_IGN);
 
 	if (display) {
 		brktty(D_userfd);
@@ -995,7 +975,7 @@ int main(int argc, char **argv)
 			Msg(errno, "Warning: NBLOCK fcntl failed");
 	} else
 		brktty(-1);	/* just try */
-	signal(SIGCHLD, SigChld);
+	xsignal(SIGCHLD, SigChld);
 #ifdef ETCSCREENRC
 #ifdef ALLOW_SYSSCREENRC
 	if ((ap = getenv("SYSSCREENRC")))
@@ -1025,7 +1005,7 @@ int main(int argc, char **argv)
 
 	if (display && default_startup)
 		display_copyright();
-	signal(SIGINT, SigInt);
+	xsignal(SIGINT, SigInt);
 	if (rflag && (rflag & 1) == 0 && !quietflag) {
 		Msg(0, "New screen...");
 		rflag = 0;
@@ -1156,7 +1136,7 @@ void SigHup(__attribute__((unused))int sigsig)
  */
 static void SigInt(__attribute__((unused))int sigsig)
 {
-	signal(SIGINT, SigInt);
+	xsignal(SIGINT, SigInt);
 	InterruptPlease = 1;
 	return;
 }
@@ -1255,8 +1235,8 @@ static void FinitHandler(__attribute__((unused))int sigsig)
 
 void Finit(int i)
 {
-	signal(SIGCHLD, SIG_DFL);
-	signal(SIGHUP, SIG_IGN);
+	xsignal(SIGCHLD, SIG_DFL);
+	xsignal(SIGHUP, SIG_IGN);
 
 	while (windows) {
 		struct win *p = windows;
@@ -1348,7 +1328,7 @@ void Detach(int mode)
       AddStr("[" msg "]\r\n"); \
   } while (0)
 
-	signal(SIGHUP, SIG_IGN);
+	xsignal(SIGHUP, SIG_IGN);
 	if (D_status)
 		RemoveStatus();
 	FinitTerm();
@@ -1439,7 +1419,7 @@ void Detach(int mode)
 	 * if it was a power detach.
 	 */
 	Kill(pid, sign);
-	signal(SIGHUP, SigHup);
+	xsignal(SIGHUP, SigHup);
 #undef AddStrSocket
 }
 

@@ -223,13 +223,13 @@ int Attach(int how)
 			m.type = MSG_DETACH;
 		/* If there is no password for the session, or the user enters the correct
 		 * password, then we get a SIGCONT. Otherwise we get a SIG_BYE */
-		signal(SIGCONT, AttachSigCont);
+		xsignal(SIGCONT, AttachSigCont);
 		if (WriteMessage(lasts, &m))
 			Panic(errno, "WriteMessage");
 		close(lasts);
 		while (!ContinuePlease)
 			pause();	/* wait for SIGCONT */
-		signal(SIGCONT, SIG_DFL);
+		xsignal(SIGCONT, SIG_DFL);
 		ContinuePlease = 0;
 		if (how != MSG_ATTACH)
 			return 0;	/* we detached it. jw. */
@@ -265,7 +265,7 @@ int Attach(int how)
 
 	/* setup CONT signal handler to repair the terminal mode */
 	if (multi && (how == MSG_ATTACH || how == MSG_CONT))
-		signal(SIGCONT, AttachSigCont);
+		xsignal(SIGCONT, AttachSigCont);
 
 	if (WriteMessage(lasts, &m))
 		Panic(errno, "WriteMessage");
@@ -273,7 +273,7 @@ int Attach(int how)
 	if (multi && (how == MSG_ATTACH || how == MSG_CONT)) {
 		while (!ContinuePlease)
 			pause();	/* wait for SIGCONT */
-		signal(SIGCONT, SIG_DFL);
+		xsignal(SIGCONT, SIG_DFL);
 		ContinuePlease = 0;
 		xseteuid(own_uid);
 		if (tty_oldmode >= 0)
@@ -299,7 +299,7 @@ static void AttacherSigAlarm(__attribute__((unused))int sigsig)
  */
 static void AttacherSigInt(__attribute__((unused))int sigsig)
 {
-	signal(SIGINT, AttacherSigInt);
+	xsignal(SIGINT, AttacherSigInt);
 	Kill(MasterPid, SIGINT);
 	return;
 }
@@ -315,7 +315,7 @@ void AttacherFinit(__attribute__((unused))int sigsig)
 	struct msg m;
 	int s;
 
-	signal(SIGHUP, SIG_IGN);
+	xsignal(SIGHUP, SIG_IGN);
 	/* Check if signal comes from backend */
 	if (stat(SocketPath, &statb) == 0 && (statb.st_mode & 0777) != 0600) {
 		memset((char *)&m, 0, sizeof(m));
@@ -364,9 +364,6 @@ static int LockPlease;
 
 static void DoLock(__attribute__((unused))int sigsig)
 {
-#ifdef SYSVSIGS
-	signal(SIG_LOCK, DoLock);
-#endif
 	LockPlease = 1;
 	return;
 }
@@ -387,19 +384,19 @@ static void AttacherWinch(__attribute__((unused))int sigsig)
 
 void Attacher()
 {
-	signal(SIGHUP, AttacherFinit);
-	signal(SIG_BYE, AttacherFinit);
-	signal(SIG_POWER_BYE, AttacherFinitBye);
-	signal(SIG_LOCK, DoLock);
-	signal(SIGINT, AttacherSigInt);
-	signal(SIG_STOP, SigStop);
+	xsignal(SIGHUP, AttacherFinit);
+	xsignal(SIG_BYE, AttacherFinit);
+	xsignal(SIG_POWER_BYE, AttacherFinitBye);
+	xsignal(SIG_LOCK, DoLock);
+	xsignal(SIGINT, AttacherSigInt);
+	xsignal(SIG_STOP, SigStop);
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
-	signal(SIGWINCH, AttacherWinch);
+	xsignal(SIGWINCH, AttacherWinch);
 #endif
 	dflag = 0;
 	xflag = 1;
 	for (;;) {
-		signal(SIGALRM, AttacherSigAlarm);
+		xsignal(SIGALRM, AttacherSigAlarm);
 		alarm(15);
 		pause();
 		alarm(0);
@@ -414,25 +411,19 @@ void Attacher()
 		}
 		if (SuspendPlease) {
 			SuspendPlease = 0;
-			signal(SIGTSTP, SIG_DFL);
+			xsignal(SIGTSTP, SIG_DFL);
 			kill(getpid(), SIGTSTP);
-			signal(SIG_STOP, SigStop);
+			xsignal(SIG_STOP, SigStop);
 			(void)Attach(MSG_CONT);
 		}
 		if (LockPlease) {
 			LockPlease = 0;
 			LockTerminal();
-#ifdef SYSVSIGS
-			signal(SIG_LOCK, DoLock);
-#endif
 			(void)Attach(MSG_CONT);
 		}
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 		if (SigWinchPlease) {
 			SigWinchPlease = 0;
-#ifdef SYSVSIGS
-			signal(SIGWINCH, AttacherWinch);
-#endif
 			(void)Attach(MSG_WINCH);
 		}
 #endif				/* SIGWINCH */
@@ -459,19 +450,19 @@ static void LockHup(__attribute__((unused))int sigsig)
 static void LockTerminal()
 {
 	int sig, pid;
-	void (*sigs[NSIG]) (int);
+	void (*sigs[_NSIG - 1]) (int);
 
-	for (sig = 1; sig < NSIG; sig++)
-		sigs[sig] = signal(sig, sig == SIGCHLD ? SIG_DFL : SIG_IGN);
-	signal(SIGHUP, LockHup);
+	for (sig = 1; sig < _NSIG - 1; sig++)
+		sigs[sig] = xsignal(sig, sig == SIGCHLD ? SIG_DFL : SIG_IGN);
+	xsignal(SIGHUP, LockHup);
 	printf("\n");
 
 	screen_builtin_lck();
 
 	/* reset signals */
-	for (sig = 1; sig < NSIG; sig++) {
+	for (sig = 1; sig < _NSIG - 1; sig++) {
 		if (sigs[sig] != (void (*)(int))-1)
-			signal(sig, sigs[sig]);
+			xsignal(sig, sigs[sig]);
 	}
 }				/* LockTerminal */
 
@@ -699,15 +690,15 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 		m.m.command.writeback[sizeof(m.m.command.writeback) - 1] = '\0';
 
 		/* Send the message, then wait for a response */
-		signal(SIGCONT, QueryResultSuccess);
-		signal(SIG_BYE, QueryResultFail);
+		xsignal(SIGCONT, QueryResultSuccess);
+		xsignal(SIG_BYE, QueryResultFail);
 		if (WriteMessage(s, &m))
 			Msg(errno, "write");
 		close(s);
 		while (!QueryResult)
 			pause();
-		signal(SIGCONT, SIG_DFL);
-		signal(SIG_BYE, SIG_DFL);
+		xsignal(SIGCONT, SIG_DFL);
+		xsignal(SIG_BYE, SIG_DFL);
 
 		/* Read the result and spit it out to stdout */
 		ReceiveRaw(r);

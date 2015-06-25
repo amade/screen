@@ -91,7 +91,7 @@ OpenTTY(char *line, char *opt)
   struct mode Mode;
   void (*sigalrm)(int);
 
-  sigalrm = signal(SIGALRM, SigAlrmDummy);
+  sigalrm = xsignal(SIGALRM, SigAlrmDummy);
   alarm(2);
 
   /* this open only succeeds, if real uid is allowed */
@@ -102,14 +102,14 @@ OpenTTY(char *line, char *opt)
       else
         Msg(errno, "Cannot open line '%s' for R/W", line);
       alarm(0);
-      signal(SIGALRM, sigalrm);
+      xsignal(SIGALRM, sigalrm);
       return -1;
     }
   if (!isatty(f))
     {
       Msg(0, "'%s' is not a tty", line);
       alarm(0);
-      signal(SIGALRM, sigalrm);
+      xsignal(SIGALRM, sigalrm);
       close(f);
       return -1;
     }
@@ -149,7 +149,7 @@ OpenTTY(char *line, char *opt)
 
   brktty(f);
   alarm(0);
-  signal(SIGALRM, sigalrm);
+  xsignal(SIGALRM, sigalrm);
   return f;
 }
 
@@ -795,13 +795,13 @@ SendBreak(struct win *wp, int n, int closeopen)
     }
   else
     {
-      sigalrm = signal(SIGALRM, SigAlrmDummy);
+      sigalrm = xsignal(SIGALRM, SigAlrmDummy);
       alarm(15);
 
       DoSendBreak(wp->w_ptyfd, n, breaktype);
 
       alarm(0);
-      signal(SIGALRM, sigalrm);
+      xsignal(SIGALRM, sigalrm);
     }
 }
 

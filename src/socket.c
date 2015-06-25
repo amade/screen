@@ -945,7 +945,7 @@ static void FinishAttach(struct msg *m)
 	InitTerm(m->m.attach.adaptflag);	/* write init string on fd */
 	if (displays->d_next == 0)
 		(void)chsock();
-	signal(SIGHUP, SigHup);
+	xsignal(SIGHUP, SigHup);
 	if (m->m.attach.esc != -1 && m->m.attach.meta_esc != -1) {
 		D_user->u_Esc = m->m.attach.esc;
 		D_user->u_MetaEsc = m->m.attach.meta_esc;

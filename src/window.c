@@ -951,17 +951,14 @@ static int ForkWindow(struct win *win, char **args, char *ttyn)
 		Msg(errno, "fork");
 		break;
 	case 0:
-		signal(SIGHUP, SIG_DFL);
-		signal(SIGINT, SIG_DFL);
-		signal(SIGQUIT, SIG_DFL);
-		signal(SIGTERM, SIG_DFL);
-		signal(SIGTTIN, SIG_DFL);
-		signal(SIGTTOU, SIG_DFL);
-#ifdef SIGPIPE
-		signal(SIGPIPE, SIG_DFL);
-#endif
+		xsignal(SIGHUP, SIG_DFL);
+		xsignal(SIGINT, SIG_DFL);
+		xsignal(SIGQUIT, SIG_DFL);
+		xsignal(SIGTERM, SIG_DFL);
+		xsignal(SIGTTIN, SIG_DFL);
+		xsignal(SIGTTOU, SIG_DFL);
 #ifdef SIGXFSZ
-		signal(SIGXFSZ, SIG_DFL);
+		xsignal(SIGXFSZ, SIG_DFL);
 #endif
 
 		displays = 0;	/* beware of Panic() */
