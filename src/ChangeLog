@@ -1,3 +1,6 @@
+Version 4.3.1 (28/06/2015):
+  * Fix resize bug
+
 Version 4.3.0 (13/06/2015):
   * Introduce Xx string escape showing the executed command of a window
   * Implement dead/zombie window polling, allowing for auto reconnecting

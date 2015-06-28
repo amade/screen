@@ -7,7 +7,7 @@
 @finalout
 @setchapternewpage odd
 @c %**end of header
-@set version 4.3.0
+@set version 4.3.1
 
 @direntry
 * Screen: (screen).             Full-screen window manager.
