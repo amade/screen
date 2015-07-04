@@ -85,6 +85,9 @@ typedef struct acluser
 } User;
 
 
+/* forward declaration */
+struct comm;
+
 int AclSetPerm (struct acluser *, struct acluser *, char *, char *);
 int AclUmask (struct acluser *, char *, char **);
 int UsersAcl (struct acluser *, int, char **);
@@ -95,6 +98,10 @@ int UserFreeCopyBuffer (struct acluser *);
 struct acluser **FindUserPtr (char *);
 int UserAdd (char *, char *, struct acluser **);
 int UserDel (char *, struct acluser **);
+int AclCheckPermWin(struct acluser *, int, Window *);
+int NewWindowAcl(Window *, struct acluser *);
+void FreeWindowAcl(Window *);
+int AclCheckPermCmd(struct acluser *, int, struct comm *);
 
 /* global variables */
 

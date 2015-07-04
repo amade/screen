@@ -42,6 +42,8 @@
 #include "screen.h"
 #include "winmsg.h"
 #include "fileio.h"
+#include "help.h"
+#include "input.h"
 #include "logfile.h"		/* logfopen() */
 #include "mark.h"
 #include "misc.h"

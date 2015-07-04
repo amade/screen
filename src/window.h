@@ -318,6 +318,7 @@ int   DoStartLog (Window *, char *, int);
 int   ReleaseAutoWritelock (Display *, Window *);
 int   ObtainAutoWritelock (Display *, Window *);
 void  CloseDevice (Window *);
+void  zmodem_abort(Window *, Display *);
 #ifndef HAVE_EXECVPE
 #include <unistd.h>
 #endif

@@ -43,7 +43,9 @@
 #endif
 
 #include "screen.h"		/* includes acls.h */
+
 #include "mark.h"
+#include "misc.h"
 #include "process.h"
 
 /************************************************************************

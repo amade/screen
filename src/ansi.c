@@ -39,9 +39,10 @@
 #include "encoding.h"
 #include "fileio.h"
 #include "help.h"
+#include "logfile.h"
 #include "mark.h"
 #include "misc.h"
-#include "logfile.h"
+#include "process.h"
 #include "resize.h"
 
 int Z0width, Z1width;		/* widths for Z0/Z1 switching */

@@ -57,6 +57,7 @@
 #include "process.h"
 #include "resize.h"
 #include "search.h"
+#include "socket.h"
 #include "termcap.h"
 #include "tty.h"
 #include "utmp.h"
