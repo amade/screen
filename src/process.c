@@ -4601,6 +4601,10 @@ char *AddOtherUsers(char *buf, int len, Window *p)
 	return s;
 }
 
+
+/* Display window list as a message.  WHERE denotes the active window
+ * number; if -1, then the active window will be determined using the
+ * current foreground window, if available. */
 void ShowWindows(int where)
 {
 	char *ss;
