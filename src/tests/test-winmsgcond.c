@@ -1,5 +1,5 @@
 /* Copyright (c) 2013
- *      Mike Gerwitz (mike@mikegerwitz.com)
+ *      Mike Gerwitz (mtg@gnu.org)
  *
  * This file is part of GNU screen.
  *

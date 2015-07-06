@@ -1,5 +1,5 @@
 /* Copyright (c) 2013
- *      Mike Gerwitz (mike@mikegerwitz.com)
+ *      Mike Gerwitz (mtg@gnu.org)
  * Copyright (c) 2010
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
