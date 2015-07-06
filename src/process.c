@@ -1,4 +1,6 @@
-/* Copyright (c) 2010
+/* Copyright (c) 2013, 2015
+ *      Mike Gerwitz (mtg@gnu.org)
+ * Copyright (c) 2010
  *      Juergen Weigert (jnweiger@immd4.informatik.uni-erlangen.de)
  *      Sadrul Habib Chowdhury (sadrul@users.sourceforge.net)
  * Copyright (c) 2008, 2009
@@ -4601,13 +4603,22 @@ char *AddOtherUsers(char *buf, int len, Window *p)
 
 void ShowWindows(int where)
 {
-	char buf[1024];
-	char *s, *ss;
+	char *ss;
+	const char *buf, *s;
+
+	WinMsgBuf *wmb = wmb_create();
+	WinMsgBufContext *wmbc = wmbc_create(wmb);
+	size_t max = wmbc_bytesleft(wmbc);
 
 	if (display && where == -1 && D_fore)
 		where = D_fore->w_number;
-	ss = AddWindows(buf, sizeof(buf), 0, where);
+
+	/* TODO: this is a confusing mix of old and new; modernize */
+	ss = AddWindows(wmbc, max, 0, where);
+	wmbc_fastfw0(wmbc);
+	buf = wmbc_finish(wmbc);
 	s = buf + strlen(buf);
+
 	if (display && ss - buf > D_width / 2) {
 		ss -= D_width / 2;
 		if (s - ss < D_width) {
@@ -4618,6 +4629,9 @@ void ShowWindows(int where)
 	} else
 		ss = buf;
 	Msg(0, "%s", ss);
+
+	wmbc_free(wmbc);
+	wmb_free(wmb);
 }
 
 /*
