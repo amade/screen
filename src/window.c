@@ -86,54 +86,53 @@ char DefaultShell[] = "/bin/sh";
 static char DefaultPath[] = ":/usr/ucb:/bin:/usr/bin";
 #endif
 
-/* keep this in sync with the structure definition in window.h */
 struct NewWindow nwin_undef = {
-	-1,			/* StartAt */
-	(char *)0,		/* aka */
-	(char **)0,		/* args */
-	(char *)0,		/* dir */
-	(char *)0,		/* term */
-	-1,			/* aflag */
-	-1,			/* flowflag */
-	-1,			/* lflag */
-	-1,			/* histheight */
-	-1,			/* monitor */
-	-1,			/* wlock */
-	-1,			/* silence */
-	-1,			/* wrap */
-	-1,			/* logging */
-	-1,			/* slowpaste */
-	-1,			/* gr */
-	-1,			/* c1 */
-	-1,			/* bce */
-	-1,			/* encoding */
-	(char *)0,		/* hstatus */
-	(char *)0,		/* charset */
-	0			/* poll_zombie_timeout */
+	.StartAt             = -1,
+	.aka                 = (char *)0,
+	.args                = (char **)0,
+	.dir                 = (char *)0,
+	.term                = (char *)0,
+	.aflag               = -1,
+	.flowflag            = -1,
+	.lflag               = -1,
+	.histheight          = -1,
+	.monitor             = -1,
+	.wlock               = -1,
+	.silence             = -1,
+	.wrap                = -1,
+	.Lflag               = -1,
+	.slow                = -1,
+	.gr                  = -1,
+	.c1                  = -1,
+	.bce                 = -1,
+	.encoding            = -1,
+	.hstatus             = (char *)0,
+	.charset             = (char *)0,
+	.poll_zombie_timeout = 0
 };
 
 struct NewWindow nwin_default = {
-	0,			/* StartAt */
-	0,			/* aka */
-	ShellArgs,		/* args */
-	0,			/* dir */
-	screenterm,		/* term */
-	0,			/* aflag */
-	1 * FLOW_NOW,		/* flowflag */
-	LOGINDEFAULT,		/* lflag */
-	DEFAULTHISTHEIGHT,	/* histheight */
-	MON_OFF,		/* monitor */
-	WLOCK_OFF,		/* wlock */
-	0,			/* silence */
-	1,			/* wrap */
-	0,			/* logging */
-	0,			/* slowpaste */
-	0,			/* gr */
-	1,			/* c1 */
-	0,			/* bce */
-	0,			/* encoding */
-	(char *)0,		/* hstatus */
-	(char *)0		/* charset */
+	.StartAt    = 0,
+	.aka        = 0,
+	.args       = ShellArgs,
+	.dir        = 0,
+	.term       = screenterm,
+	.aflag      = 0,
+	.flowflag   = 1 * FLOW_NOW,
+	.lflag      = LOGINDEFAULT,
+	.histheight = DEFAULTHISTHEIGHT,
+	.monitor    = MON_OFF,
+	.wlock      = WLOCK_OFF,
+	.silence    = 0,
+	.wrap       = 1,
+	.Lflag      = 0,
+	.slow       = 0,
+	.gr         = 0,
+	.c1         = 1,
+	.bce        = 0,
+	.encoding   = 0,
+	.hstatus    = (char *)0,
+	.charset    = (char *)0
 };
 
 struct NewWindow nwin_options;

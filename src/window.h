@@ -36,7 +36,6 @@
 #include "sched.h"
 #include "screen.h"
 
-/* keep this in sync with the initialisations in window.c */
 struct NewWindow {
 	int	StartAt;	/* where to start the search for the slot */
 	char	*aka;		/* aka string */
