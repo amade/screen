@@ -32,12 +32,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "config.h"
+#include "screen.h"
+
+/* needs config.h */
 #ifdef HAVE_UTEMPTER
 #include <utempter.h>
 #endif
-
-#include "config.h"
-#include "screen.h"
 
 #include "misc.h"
 #include "tty.h"
@@ -390,9 +391,9 @@ static int pututslot(slot_t slot, struct utmpx *u, char *host, Window *win)
 	if (eff_uid && win && win->w_ptyfd != -1) {
 		/* sigh, linux hackers made the helper functions void */
 		if (SLOT_USED(u))
-			addToUtmp(win->w_tty, host, win->w_ptyfd);
+			utempter_add_record(win->w_ptyfd, host);
 		else
-			removeLineFromUtmp(win->w_tty, win->w_ptyfd);
+			utempter_remove_record(win->w_ptyfd);
 		return 1;	/* pray for success */
 	}
 #endif
