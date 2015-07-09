@@ -230,7 +230,7 @@ struct Window {
 	int	 w_lflag;		/* login flag */
 	slot_t	 w_slot;		/* utmp slot */
 #if defined (UTMPOK)
-	struct	 utmp w_savut;		/* utmp entry of this window */
+	struct	 utmpx w_savut;		/* utmp entry of this window */
 #endif
 
 	char	 w_tty[MAXSTR];

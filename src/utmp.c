@@ -43,8 +43,6 @@
 #include "tty.h"
 #include "utmp.h"
 
-extern struct utmp *getutline(), *pututline();
-
 /*
  *  we have a suid-root helper app that changes the utmp for us
  *  (won't work for login-slots)
@@ -56,38 +54,16 @@ extern struct utmp *getutline(), *pututline();
 #ifdef UTMPOK
 
 static slot_t TtyNameSlot(char *);
-static void makeuser(struct utmp *, char *, char *, int);
-static void makedead(struct utmp *);
-static int pututslot(slot_t, struct utmp *, char *, Window *);
-static struct utmp *getutslot(slot_t);
-#ifndef GETUTENT
-static struct utmp *getutent(void);
-static void endutent(void);
-static int initutmp(void);
-static void setutent(void);
-#endif
-#if defined(linux) && defined(GETUTENT)
-static struct utmp *xpututline(struct utmp *utmp);
-#define pututline xpututline
-#endif
+static void makeuser(struct utmpx *, char *, char *, int);
+static void makedead(struct utmpx *);
+static int pututslot(slot_t, struct utmpx *, char *, Window *);
+static struct utmpx *getutslot(slot_t);
 
 static int utmpok;
 static char UtmpName[] = UTMPFILE;
 #ifndef UTMP_HELPER
 static int utmpfd = -1;
 #endif
-
-#if !defined(GETUTENT)
-#ifdef GETTTYENT
-#include <ttyent.h>
-#else
-struct ttyent {
-	char *ty_name;
-};
-static void setttyent(void);
-static struct ttyent *getttyent(void);
-#endif
-#endif				/* !GETUTENT */
 
 #undef  D_loginhost
 #define D_loginhost D_utmp_logintty.ut_host
@@ -197,10 +173,8 @@ void InitUtmp()
 		utmpok = 0;
 		return;
 	}
-#ifdef GETUTENT
 	close(utmpfd);		/* it was just a test */
 	utmpfd = -1;
-#endif				/* GETUTENT */
 #endif				/* UTMP_HELPER */
 	utmpok = 1;
 }
@@ -208,14 +182,14 @@ void InitUtmp()
 #ifdef USRLIMIT
 int CountUsers()
 {
-	struct utmp *ut;
+	struct utmpx *ut;
 	int UserCount;
 
 	if (!utmpok)
 		return 0;
 	UserCount = 0;
-	setutent();
-	while (ut = getutent())
+	setutxent();
+	while (ut = getutxent())
 		if (SLOT_USED(ut))
 			UserCount++;
 	return UserCount;
@@ -228,7 +202,7 @@ int CountUsers()
  */
 void RemoveLoginSlot()
 {
-	struct utmp u, *uu;
+	struct utmpx u, *uu;
 
 	D_loginslot = TtyNameSlot(D_usertty);
 	if (D_loginslot == (slot_t) 0 || D_loginslot == (slot_t) - 1)
@@ -292,7 +266,7 @@ void RestoreLoginSlot()
 int SetUtmp(Window *win)
 {
 	slot_t slot;
-	struct utmp u;
+	struct utmpx u;
 	int saved_ut;
 #ifdef UTHOST
 	char *p;
@@ -367,7 +341,7 @@ int SetUtmp(Window *win)
 
 int RemoveUtmp(Window *win)
 {
-	struct utmp u, *uu;
+	struct utmpx u, *uu;
 	slot_t slot;
 
 	slot = win->w_slot;
@@ -398,20 +372,18 @@ int RemoveUtmp(Window *win)
  *  routines using the getut* api
  */
 
-#ifdef GETUTENT
-
 #define SLOT_USED(u) (u->ut_type == USER_PROCESS)
 
-static struct utmp *getutslot(slot_t slot)
+static struct utmpx *getutslot(slot_t slot)
 {
-	struct utmp u;
+	struct utmpx u;
 	memset((char *)&u, 0, sizeof(u));
 	strncpy(u.ut_line, slot, sizeof(u.ut_line));
-	setutent();
-	return getutline(&u);
+	setutxent();
+	return getutxline(&u);
 }
 
-static int pututslot(slot_t slot, struct utmp *u, char *host, Window *win)
+static int pututslot(slot_t slot, struct utmpx *u, char *host, Window *win)
 {
 	(void)slot; /* unused */
 #ifdef HAVE_UTEMPTER
@@ -425,11 +397,11 @@ static int pututslot(slot_t slot, struct utmp *u, char *host, Window *win)
 	}
 #endif
 
-	setutent();
-	return pututline(u) != 0;
+	setutxent();
+	return pututxline(u) != 0;
 }
 
-static void makedead(struct utmp *u)
+static void makedead(struct utmpx *u)
 {
 	u->ut_type = DEAD_PROCESS;
 	u->ut_exit.e_termination = 0;
@@ -437,7 +409,7 @@ static void makedead(struct utmp *u)
 	u->ut_user[0] = 0;	/* for Digital UNIX, kilbi@rad.rwth-aachen.de */
 }
 
-static void makeuser(struct utmp *u, char *line, char *user, int pid)
+static void makeuser(struct utmpx *u, char *line, char *user, int pid)
 {
 	time_t now;
 	u->ut_type = USER_PROCESS;
@@ -457,141 +429,6 @@ static slot_t TtyNameSlot(char *nam)
 	return stripdev(nam);
 }
 
-#else				/* GETUTENT */
-
-/*********************************************************************
- *
- *  getut emulation for systems lacking the api
- */
-
-static struct utmp uent;
-
-#define SLOT_USED(u) (u.ut_name[0] != 0)
-
-static int initutmp()
-{
-	if (utmpfd >= 0)
-		return 1;
-	return (utmpfd = open(UtmpName, O_RDWR)) >= 0;
-}
-
-static void setutent()
-{
-	if (utmpfd >= 0)
-		(void)lseek(utmpfd, (off_t) 0, 0);
-}
-
-static void endutent()
-{
-	if (utmpfd >= 0)
-		close(utmpfd);
-	utmpfd = -1;
-}
-
-static struct utmp *getutent()
-{
-	if (utmpfd < 0 && !initutmp())
-		return 0;
-	if (read(utmpfd, &uent, sizeof(uent)) != sizeof(uent))
-		return 0;
-	return &uent;
-}
-
-static struct utmp *getutslot(slot_t slot)
-{
-	if (utmpfd < 0 && !initutmp())
-		return 0;
-	lseek(utmpfd, (off_t) (slot * sizeof(struct utmp)), 0);
-	if (read(utmpfd, &uent, sizeof(uent)) != sizeof(uent))
-		return 0;
-	return &uent;
-}
-
-static int pututslot(slot_t slot, struct utmp *u, char *host, Window *win)
-{
-	if (utmpfd < 0 && !initutmp())
-		return 0;
-	lseek(utmpfd, (off_t) (slot * sizeof(*u)), 0);
-	if (write(utmpfd, u, sizeof(*u)) != sizeof(*u))
-		return 0;
-	return 1;
-}
-
-static void makedead(struct utmp *u)
-{
-	memset((char *)u, 0, sizeof(*u));
-}
-
-static void makeuser(struct utmp *u, char *line, char *user, int pid)
-{
-	time_t now;
-	strncpy(u->ut_line, line, sizeof(u->ut_line));
-	strncpy(u->ut_name, user, sizeof(u->ut_name));
-	(void)time(&now);
-	u->ut_tv.tv_sec = now;
-}
-
-static slot_t TtyNameSlot(char *nam)
-{
-	slot_t slot;
-	char *line;
-	struct ttyent *tp;
-
-	line = stripdev(nam);
-	slot = 1;
-	setttyent();
-	while ((tp = getttyent()) != 0 && strcmp(line, tp->ty_name) != 0)
-		slot++;
-	return slot;
-}
-
-#endif				/* GETUTENT */
-
-/*********************************************************************
- *
- *  Cheap plastic imitation of ttyent routines.
- */
-
-#if !defined(GETTTYENT) && !defined(GETUTENT)
-
-static char *tt, *ttnext;
-static char ttys[] = "/etc/ttys";
-
-static void setttyent()
-{
-	if (ttnext == 0) {
-		struct stat s;
-		int f;
-		char *p, *ep;
-
-		if ((f = open(ttys, O_RDONLY)) == -1 || fstat(f, &s) == -1)
-			Panic(errno, ttys);
-		if ((tt = malloc((unsigned)s.st_size + 1)) == 0)
-			Panic(0, strnomem);
-		if (read(f, tt, s.st_size) != s.st_size)
-			Panic(errno, ttys);
-		close(f);
-		for (p = tt, ep = p + s.st_size; p < ep; p++)
-			if (*p == '\n')
-				*p = '\0';
-		*p = '\0';
-	}
-	ttnext = tt;
-}
-
-static struct ttyent *getttyent()
-{
-	static struct ttyent t;
-
-	if (*ttnext == '\0')
-		return NULL;
-	t.ty_name = ttnext + 2;
-	ttnext += strlen(ttnext) + 1;
-	return &t;
-}
-
-#endif				/* !GETTTYENT && !GETUTENT */
-
 #endif				/* UTMPOK */
 
 /*********************************************************************
@@ -606,7 +443,7 @@ char *getlogin()
 #ifdef utmp
 #undef utmp
 #endif
-	struct utmp u;
+	struct utmpx u;
 	static char retbuf[sizeof(u.ut_user) + 1];
 	int fd;
 
@@ -615,7 +452,7 @@ char *getlogin()
 		return NULL;
 	tty = stripdev(tty);
 	retbuf[0] = '\0';
-	while (read(fd, (char *)&u, sizeof(struct utmp)) == sizeof(struct utmp)) {
+	while (read(fd, (char *)&u, sizeof(struct utmpx)) == sizeof(struct utmpx)) {
 		if (!strncmp(tty, u.ut_line, sizeof(u.ut_line))) {
 			strncpy(retbuf, u.ut_user, sizeof(u.ut_user));
 			retbuf[sizeof(u.ut_user)] = '\0';
@@ -629,18 +466,3 @@ char *getlogin()
 }
 #endif				/* BUGGYGETLOGIN */
 
-#if defined(linux) && defined(GETUTENT)
-#undef pututline
-
-/* aargh, linux' pututline returns void! */
-struct utmp *xpututline(struct utmp *u)
-{
-	struct utmp *u2;
-	pututline(u);
-	setutent();
-	u2 = getutline(u);
-	if (u2 == 0)
-		return u->ut_type == DEAD_PROCESS ? u : 0;
-	return u->ut_type == u2->ut_type ? u : 0;
-}
-#endif
