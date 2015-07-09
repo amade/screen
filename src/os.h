@@ -84,7 +84,7 @@
 #endif
 
 #if defined(UTMPOK) || defined(BUGGYGETLOGIN)
-# include <utmp.h>
+# include <utmpx.h>
 
 # ifndef UTMPFILE
 #  ifdef UTMP_FILE
