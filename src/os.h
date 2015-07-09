@@ -100,10 +100,6 @@
 
 #endif /* UTMPOK || BUGGYGETLOGIN */
 
-#if !defined(UTMPOK) && defined(USRLIMIT)
-# undef USRLIMIT
-#endif
-
 #ifdef LOGOUTOK
 # ifndef LOGINDEFAULT
 #  define LOGINDEFAULT 0

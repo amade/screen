@@ -9,9 +9,6 @@ int   SetUtmp (Window *);
 int   RemoveUtmp (Window *);
 #endif /* UTMPOK */
 void  SlotToggle (int);
-#ifdef USRLIMIT
-int   CountUsers (void);
-#endif
 #ifdef CAREFULUTMP
 void   CarefulUtmp (void);
 #else

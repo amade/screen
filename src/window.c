@@ -418,15 +418,6 @@ int MakeWindow(struct NewWindow *newwin)
 		Msg(0, "No more windows.");
 		return -1;
 	}
-#if defined(USRLIMIT) && defined(UTMPOK)
-	/*
-	 * Count current number of users, if logging windows in.
-	 */
-	if (nwin.lflag && CountUsers() >= USRLIMIT) {
-		Msg(0, "User limit reached.  Window will not be logged in.");
-		nwin.lflag = 0;
-	}
-#endif
 	n = pp - wtab;
 
 #ifdef BUILTIN_TELNET

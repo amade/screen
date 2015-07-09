@@ -107,12 +107,6 @@ void SlotToggle(int how)
 	}
 	if (how) {
 		if ((fore->w_slot == (slot_t) - 1) || (fore->w_slot == (slot_t) 0)) {
-#ifdef USRLIMIT
-			if (CountUsers() >= USRLIMIT) {
-				Msg(0, "User limit reached.");
-				return;
-			}
-#endif
 			if (SetUtmp(fore) == 0)
 				Msg(0, "This window is now logged in.");
 			else
@@ -179,23 +173,6 @@ void InitUtmp()
 #endif				/* UTMP_HELPER */
 	utmpok = 1;
 }
-
-#ifdef USRLIMIT
-int CountUsers()
-{
-	struct utmpx *ut;
-	int UserCount;
-
-	if (!utmpok)
-		return 0;
-	UserCount = 0;
-	setutxent();
-	while (ut = getutxent())
-		if (SLOT_USED(ut))
-			UserCount++;
-	return UserCount;
-}
-#endif				/* USRLIMIT */
 
 /*
  * the utmp entry for tty is located and removed.
