@@ -409,38 +409,3 @@ static slot_t TtyNameSlot(char *nam)
 
 #endif				/* UTMPOK */
 
-/*********************************************************************
- *
- *  getlogin() replacement (for SVR4 machines)
- */
-
-#if defined(BUGGYGETLOGIN) && defined(UTMP_FILE)
-char *getlogin()
-{
-	char *tty = NULL;
-#ifdef utmp
-#undef utmp
-#endif
-	struct utmpx u;
-	static char retbuf[sizeof(u.ut_user) + 1];
-	int fd;
-
-	for (fd = 0; fd <= 2 && (tty = ttyname(fd)) == NULL; fd++) ;
-	if ((tty == NULL) || CheckTtyname(tty) || ((fd = open(UTMP_FILE, O_RDONLY)) < 0))
-		return NULL;
-	tty = stripdev(tty);
-	retbuf[0] = '\0';
-	while (read(fd, (char *)&u, sizeof(struct utmpx)) == sizeof(struct utmpx)) {
-		if (!strncmp(tty, u.ut_line, sizeof(u.ut_line))) {
-			strncpy(retbuf, u.ut_user, sizeof(u.ut_user));
-			retbuf[sizeof(u.ut_user)] = '\0';
-			if (u.ut_type == USER_PROCESS)
-				break;
-		}
-	}
-	close(fd);
-
-	return *retbuf ? retbuf : NULL;
-}
-#endif				/* BUGGYGETLOGIN */
-

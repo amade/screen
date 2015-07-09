@@ -83,7 +83,7 @@
   typedef int slot_t;
 #endif
 
-#if defined(UTMPOK) || defined(BUGGYGETLOGIN)
+#if defined(UTMPOK)
 # include <utmpx.h>
 
 # ifndef UTMPFILE
@@ -98,7 +98,7 @@
 #  endif
 # endif
 
-#endif /* UTMPOK || BUGGYGETLOGIN */
+#endif /* UTMPOK */
 
 #ifdef LOGOUTOK
 # ifndef LOGINDEFAULT
