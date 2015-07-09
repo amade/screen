@@ -46,26 +46,6 @@
 extern struct utmp *getutline(), *pututline();
 
 /*
- *  UTNOKEEP: A (ugly) hack for apollo that does two things:
- *    1) Always close and reopen the utmp file descriptor. (I don't know
- *       for what reason this is done...)
- *    2) Implement an unsorted utmp file much like GETUTENT.
- *  (split into UT_CLOSE and UT_UNSORTED)
- */
-
-#ifdef UTNOKEEP
-#define UT_CLOSE
-#define UT_UNSORTED
-#endif
-
-#ifdef UT_CLOSE
-#undef UT_CLOSE
-#define UT_CLOSE endutent()
-#else
-#define UT_CLOSE
-#endif
-
-/*
  *  we have a suid-root helper app that changes the utmp for us
  *  (won't work for login-slots)
  */
@@ -97,7 +77,7 @@ static char UtmpName[] = UTMPFILE;
 static int utmpfd = -1;
 #endif
 
-#if !defined(GETUTENT) && !defined(UT_UNSORTED)
+#if !defined(GETUTENT)
 #ifdef GETTTYENT
 #include <ttyent.h>
 #else
@@ -107,7 +87,7 @@ struct ttyent {
 static void setttyent(void);
 static struct ttyent *getttyent(void);
 #endif
-#endif				/* !GETUTENT && !UT_UNSORTED */
+#endif				/* !GETUTENT */
 
 #undef  D_loginhost
 #define D_loginhost D_utmp_logintty.ut_host
@@ -238,7 +218,6 @@ int CountUsers()
 	while (ut = getutent())
 		if (SLOT_USED(ut))
 			UserCount++;
-	UT_CLOSE;
 	return UserCount;
 }
 #endif				/* USRLIMIT */
@@ -271,7 +250,6 @@ void RemoveLoginSlot()
 			if (pututslot(D_loginslot, &u, (char *)0, (Window *)0) == 0)
 				D_loginslot = 0;
 		}
-		UT_CLOSE;
 	}
 	if (D_loginslot == (slot_t) 0) {
 		/* couldn't remove slot, do a 'mesg n' at least. */
@@ -297,7 +275,6 @@ void RestoreLoginSlot()
 		if (pututslot(D_loginslot, &D_utmp_logintty, D_loginhost, (Window *)0) == 0)
 			Msg(errno, "Could not write %s", UtmpName);
 	}
-	UT_CLOSE;
 	D_loginslot = (slot_t) 0;
 	if (D_loginttymode && (tty = ttyname(D_userfd)) && !CheckTtyname(tty))
 		fchmod(D_userfd, D_loginttymode);
@@ -376,12 +353,10 @@ int SetUtmp(Window *win)
 
 	if (pututslot(slot, &u, host, win) == 0) {
 		Msg(errno, "Could not write %s", UtmpName);
-		UT_CLOSE;
 		return -1;
 	}
 	win->w_slot = slot;
 	memmove((char *)&win->w_savut, (char *)&u, sizeof(u));
-	UT_CLOSE;
 	return 0;
 }
 
@@ -412,11 +387,9 @@ int RemoveUtmp(Window *win)
 	makedead(&u);
 	if (pututslot(slot, &u, (char *)0, win) == 0) {
 		Msg(errno, "Could not write %s", UtmpName);
-		UT_CLOSE;
 		return -1;
 	}
 	win->w_slot = (slot_t) - 1;
-	UT_CLOSE;
 	return 0;
 }
 
@@ -546,14 +519,7 @@ static int pututslot(slot_t slot, struct utmp *u, char *host, Window *win)
 
 static void makedead(struct utmp *u)
 {
-#ifdef UT_UNSORTED
-	memset(u->ut_name, 0, sizeof(u->ut_name));
-#ifdef UTHOST
-	memset(u->ut_host, 0, sizeof(u->ut_host));
-#endif
-#else
 	memset((char *)u, 0, sizeof(*u));
-#endif
 }
 
 static void makeuser(struct utmp *u, char *line, char *user, int pid)
@@ -569,25 +535,13 @@ static slot_t TtyNameSlot(char *nam)
 {
 	slot_t slot;
 	char *line;
-#ifndef UT_UNSORTED
 	struct ttyent *tp;
-#endif
 
 	line = stripdev(nam);
-#ifdef UT_UNSORTED
-	setutent();
-	if (utmpfd < 0)
-		return -1;
-	for (slot = 0; getutent(); slot++)
-		if (strcmp(uent.ut_line, line) == 0)
-			break;
-	UT_CLOSE;
-#else
 	slot = 1;
 	setttyent();
 	while ((tp = getttyent()) != 0 && strcmp(line, tp->ty_name) != 0)
 		slot++;
-#endif
 	return slot;
 }
 
@@ -598,7 +552,7 @@ static slot_t TtyNameSlot(char *nam)
  *  Cheap plastic imitation of ttyent routines.
  */
 
-#if !defined(GETTTYENT) && !defined(GETUTENT) && !defined(UT_UNSORTED)
+#if !defined(GETTTYENT) && !defined(GETUTENT)
 
 static char *tt, *ttnext;
 static char ttys[] = "/etc/ttys";
@@ -636,7 +590,7 @@ static struct ttyent *getttyent()
 	return &t;
 }
 
-#endif				/* !GETTTYENT && !GETUTENT && !UT_UNSORTED */
+#endif				/* !GETTTYENT && !GETUTENT */
 
 #endif				/* UTMPOK */
 
