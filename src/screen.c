@@ -933,9 +933,7 @@ int main(int argc, char **argv)
 #endif
 	(void)StartRc(RcFileName, 0);
 #ifdef UTMPOK
-#ifndef UTNOKEEP
 	InitUtmp();
-#endif				/* UTNOKEEP */
 #endif				/* UTMPOK */
 	if (display) {
 		if (InitTermcap(0, 0)) {
