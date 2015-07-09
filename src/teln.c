@@ -150,7 +150,7 @@ int TelOpenAndConnect(Window *p)
 				p->w_telconnev.handler = tel_connev_fn;
 				p->w_telconnev.data = (char *)p;
 				p->w_telconnev.type = EV_WRITE;
-				p->w_telconnev.pri = 1;
+				p->w_telconnev.priority = 1;
 				evenq(&p->w_telconnev);
 			} else {
 				close(fd);
