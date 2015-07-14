@@ -10,7 +10,7 @@ int   ToUtf8 (char *, int);
 int   ToUtf8_comb (char *, int);
 int   utf8_isdouble (int);
 int   utf8_iscomb (int);
-void  utf8_handle_comb (int, struct mchar *);
+void  utf8_handle_comb (unsigned int, struct mchar *);
 int   ContainsSpecialDeffont (struct mline *, int, int, int);
 int   LoadFontTranslation (int, char *);
 void  LoadFontTranslationsForEncoding (int);

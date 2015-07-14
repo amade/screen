@@ -934,9 +934,10 @@ static void comb_tofront(int root, int i)
 	}
 }
 
-void utf8_handle_comb(int c, struct mchar *mc)
+void utf8_handle_comb(unsigned int c, struct mchar *mc)
 {
-	int root, i, c1;
+	int root;
+	unsigned int i, c1;
 	int isdouble;
 
 	c1 = mc->image | (mc->font << 8) | mc->fontx << 16;

@@ -285,7 +285,7 @@ extern int log_flush;
 extern int logtstamp_on;
 extern int logtstamp_after;
 extern uint16_t maxwin;
-extern int multi_uid;
+extern unsigned int multi_uid;
 extern int multiattach;
 extern int nversion;
 extern int own_uid;

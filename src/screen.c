@@ -123,7 +123,7 @@ bool hastruecolor = false;
 
 char *multi;
 char *multi_home;
-int multi_uid;
+unsigned int multi_uid;
 int own_uid;
 int multiattach;
 int tty_mode;
