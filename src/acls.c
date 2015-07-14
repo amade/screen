@@ -853,10 +853,6 @@ int AclUmask(struct acluser *u, char *str, char **errp)
 	return 0;
 }
 
-void AclWinSwap(int a, int b)
-{
-}
-
 struct acluser *EffectiveAclUser = NULL;	/* hook for AT command permission */
 
 int AclCheckPermWin(struct acluser *u, int mode, Window *w)

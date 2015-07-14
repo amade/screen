@@ -74,7 +74,7 @@ static void win_destroyev_fn(Event *, void *);
 static int OpenDevice(char **, int, int *, char **);
 static int ForkWindow(Window *, char **, char *);
 static void zmodem_found(Window *, int, char *, int);
-static void zmodem_fin(char *, int, char *);
+static void zmodem_fin(char *, int);
 static int zmodem_parse(Window *, char *, int);
 
 Window **wtab;		/* window table */
@@ -1651,7 +1651,7 @@ static int zmodem_parse(Window *p, char *bp, int len)
 	return 0;
 }
 
-static void zmodem_fin(char *buf, int len, char *data)
+static void zmodem_fin(char *buf, int len)
 {
 	char *s;
 	int n;
@@ -1761,7 +1761,6 @@ int SwapWindows(int old, int dest)
 	if (p)
 		p->w_number = old;
 	/* exchange the acls for these windows. */
-	AclWinSwap(old, dest);
 #ifdef UTMPOK
 	/* exchange the utmp-slots for these windows */
 	if ((win_old->w_slot != (slot_t) - 1) && (win_old->w_slot != (slot_t) 0)) {
