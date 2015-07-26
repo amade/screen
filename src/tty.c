@@ -591,16 +591,6 @@ int fgtty(int fd) {
 
 	mypid = getpid();
 
-	/* The next lines should be obsolete. Can anybody check if they
-	 * are really needed on the BSD platforms?
-	 *
-	 * this is to avoid the message:
-	 *	fgtty: Not a typewriter (25)
-	 */
-
-	if (separate_sids && tcsetpgrp(fd, mypid)) {
-		return -1;
-	}
 	return 0;
 }
 
