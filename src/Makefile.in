@@ -352,5 +352,5 @@ viewport.o: layout.h viewport.h canvas.h viewport.c config.h screen.h os.h osdef
  braille.h
 list_generic.o: list_generic.h list_generic.c layer.h screen.h osdef.h
 list_display.o: list_generic.h list_display.c layer.h screen.h osdef.h
-list_window.o: list_generic.h list_window.c window.h layer.h screen.h osdef.h
+list_window.o: list_generic.h list_window.c window.h layer.h screen.h osdef.h comm.h
 
