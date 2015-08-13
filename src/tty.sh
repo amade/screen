@@ -74,6 +74,7 @@ exit 0
 #ifdef __hpux
 # include <sys/modem.h>
 #endif
+#include <limits.h>
 
 #ifdef ISC
 # include <sys/tty.h>
@@ -1506,20 +1507,21 @@ CheckTtyname (tty)
 char *tty;
 {
   struct stat st;
-  char * real;
+  char realbuf[PATH_MAX];
+  const char *real;
   int rc;
 
-  real = realpath(tty, NULL);
+  real = realpath(tty, realbuf);
   if (!real)
     return -1;
+  realbuf[sizeof(realbuf)-1]='\0';
 
   if (lstat(real, &st) || !S_ISCHR(st.st_mode) ||
-    (st.st_nlink > 1 && strncmp(real, "/dev/", 5)))
+    (st.st_nlink > 1 && strncmp(real, "/dev", 4)))
     rc = -1;
   else
     rc = 0;
 
-  free(real);
   return rc;
 }
 
