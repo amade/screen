@@ -49,6 +49,13 @@
 #define dirent direct
 #endif
 
+#ifndef CMSG_LEN
+#define CMSG_LEN(length) ((_CMSG_DATA_ALIGN(sizeof(struct cmsghdr))) + (length))
+#endif
+#ifndef CMSG_SPACE
+#define CMSG_SPACE(length) ((_CMSG_DATA_ALIGN(sizeof(struct cmsghdr))) + (_CMSG_DATA_ALIGN(length)))
+#endif
+
 #include "encoding.h"
 #include "fileio.h"
 #include "list_generic.h"
