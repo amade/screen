@@ -148,88 +148,88 @@ static void MPutChar(Window *, struct mchar *, int, int);
 static void MWrapChar(Window *, struct mchar *, int, int, int, int);
 static void MBceLine(Window *, int, int, int, int);
 
-void ResetAnsiState(Window *p)
+void ResetAnsiState(Window *win)
 {
-	p->w_state = LIT;
-	p->w_StringType = NONE;
+	win->w_state = LIT;
+	win->w_StringType = NONE;
 }
 
-void ResetWindow(Window *p)
+void ResetWindow(Window *win)
 {
 	int i;
 
-	p->w_wrap = nwin_default.wrap;
-	p->w_origin = 0;
-	p->w_insert = 0;
-	p->w_revvid = 0;
-	p->w_mouse = 0;
-	p->w_bracketed = 0;
-	p->w_cursorstyle = 0;
-	p->w_curinv = 0;
-	p->w_curvvis = 0;
-	p->w_autolf = 0;
-	p->w_keypad = 0;
-	p->w_cursorkeys = 0;
-	p->w_top = 0;
-	p->w_bot = p->w_height - 1;
-	p->w_saved.on = 0;
-	p->w_x = p->w_y = 0;
-	p->w_state = LIT;
-	p->w_StringType = NONE;
-	memset(p->w_tabs, 0, p->w_width);
-	for (i = 8; i < p->w_width; i += 8)
-		p->w_tabs[i] = 1;
-	p->w_rend = mchar_null;
-	ResetCharsets(p);
+	win->w_wrap = nwin_default.wrap;
+	win->w_origin = 0;
+	win->w_insert = 0;
+	win->w_revvid = 0;
+	win->w_mouse = 0;
+	win->w_bracketed = 0;
+	win->w_cursorstyle = 0;
+	win->w_curinv = 0;
+	win->w_curvvis = 0;
+	win->w_autolf = 0;
+	win->w_keypad = 0;
+	win->w_cursorkeys = 0;
+	win->w_top = 0;
+	win->w_bot = win->w_height - 1;
+	win->w_saved.on = 0;
+	win->w_x = win->w_y = 0;
+	win->w_state = LIT;
+	win->w_StringType = NONE;
+	memset(win->w_tabs, 0, win->w_width);
+	for (i = 8; i < win->w_width; i += 8)
+		win->w_tabs[i] = 1;
+	win->w_rend = mchar_null;
+	ResetCharsets(win);
 }
 
 /* adds max 22 bytes */
-int GetAnsiStatus(Window *w, char *buf)
+int GetAnsiStatus(Window *win, char *buf)
 {
 	char *p = buf;
 
-	if (w->w_state == LIT)
+	if (win->w_state == LIT)
 		return 0;
 
-	strcpy(p, state_t_string[w->w_state]);
+	strcpy(p, state_t_string[win->w_state]);
 	p += strlen(p);
-	if (w->w_intermediate) {
+	if (win->w_intermediate) {
 		*p++ = '-';
-		if (w->w_intermediate > 0xff)
-			p += AddXChar(p, w->w_intermediate >> 8);
-		p += AddXChar(p, w->w_intermediate & 0xff);
+		if (win->w_intermediate > 0xff)
+			p += AddXChar(p, win->w_intermediate >> 8);
+		p += AddXChar(p, win->w_intermediate & 0xff);
 		*p = 0;
 	}
-	if (w->w_state == ASTR || w->w_state == STRESC)
-		sprintf(p, "-%s", string_t_string[w->w_StringType]);
+	if (win->w_state == ASTR || win->w_state == STRESC)
+		sprintf(p, "-%s", string_t_string[win->w_StringType]);
 	p += strlen(p);
 	return p - buf;
 }
 
-void ResetCharsets(Window *p)
+void ResetCharsets(Window *win)
 {
-	p->w_gr = nwin_default.gr;
-	p->w_c1 = nwin_default.c1;
-	SetCharsets(p, "BBBB02");
+	win->w_gr = nwin_default.gr;
+	win->w_c1 = nwin_default.c1;
+	SetCharsets(win, "BBBB02");
 	if (nwin_default.charset)
-		SetCharsets(p, nwin_default.charset);
-	ResetEncoding(p);
+		SetCharsets(win, nwin_default.charset);
+	ResetEncoding(win);
 }
 
-void SetCharsets(Window *p, char *s)
+void SetCharsets(Window *win, char *s)
 {
 	int i;
 
 	for (i = 0; i < 4 && *s; i++, s++)
 		if (*s != '.')
-			p->w_charsets[i] = ((*s == 'B') ? ASCII : *s);
+			win->w_charsets[i] = ((*s == 'B') ? ASCII : *s);
 	if (*s && *s++ != '.')
-		p->w_Charset = s[-1] - '0';
+		win->w_Charset = s[-1] - '0';
 	if (*s && *s != '.')
-		p->w_CharsetR = *s - '0';
-	p->w_ss = 0;
-	p->w_FontL = p->w_charsets[p->w_Charset];
-	p->w_FontR = p->w_charsets[p->w_CharsetR];
+		win->w_CharsetR = *s - '0';
+	win->w_ss = 0;
+	win->w_FontL = win->w_charsets[win->w_Charset];
+	win->w_FontR = win->w_charsets[win->w_CharsetR];
 }
 
 /*****************************************************************/
@@ -242,7 +242,7 @@ void SetCharsets(Window *p, char *s)
  *  - translate program output for the display and put it into the obuf.
  *
  */
-void WriteString(Window *wp, char *buf, int len)
+void WriteString(Window *win, char *buf, int len)
 {
 	int c;
 	int font;
@@ -250,11 +250,11 @@ void WriteString(Window *wp, char *buf, int len)
 
 	if (!len)
 		return;
-	if (wp->w_log)
-		WLogString(wp, buf, len);
+	if (win->w_log)
+		WLogString(win, buf, len);
 
 	/* set global variables (yuck!) */
-	curr = wp;
+	curr = win;
 	cols = curr->w_width;
 	rows = curr->w_height;
 
@@ -692,22 +692,22 @@ void WriteString(Window *wp, char *buf, int len)
 		PrintFlush();
 }
 
-static void WLogString(Window *p, char *buf, int len)
+static void WLogString(Window *win, char *buf, int len)
 {
-	if (!p->w_log)
+	if (!win->w_log)
 		return;
-	if (logtstamp_on && p->w_logsilence >= logtstamp_after * 2) {
-		char *t = MakeWinMsg(logtstamp_string, p, '%');
-		logfwrite(p->w_log, t, strlen(t));	/* long time no write */
+	if (logtstamp_on && win->w_logsilence >= logtstamp_after * 2) {
+		char *t = MakeWinMsg(logtstamp_string, win, '%');
+		logfwrite(win->w_log, t, strlen(t));	/* long time no write */
 	}
-	p->w_logsilence = 0;
-	if (logfwrite(p->w_log, buf, len) < 1) {
-		WMsg(p, errno, "Error writing logfile");
-		logfclose(p->w_log);
-		p->w_log = 0;
+	win->w_logsilence = 0;
+	if (logfwrite(win->w_log, buf, len) < 1) {
+		WMsg(win, errno, "Error writing logfile");
+		logfclose(win->w_log);
+		win->w_log = 0;
 	}
 	if (!log_flush)
-		logfflush(p->w_log);
+		logfflush(win->w_log);
 }
 
 static int Special(int c)
@@ -1418,13 +1418,13 @@ static void PrintFlush()
 	curr->w_stringp = curr->w_string;
 }
 
-void WNewAutoFlow(Window *window, int on)
+void WNewAutoFlow(Window *win, int on)
 {
-	if (window->w_flow & FLOW_AUTOFLAG)
-		window->w_flow = FLOW_AUTOFLAG | (FLOW_AUTO | FLOW_NOW) * on;
+	if (win->w_flow & FLOW_AUTOFLAG)
+		win->w_flow = FLOW_AUTOFLAG | (FLOW_AUTO | FLOW_NOW) * on;
 	else
-		window->w_flow = (window->w_flow & ~FLOW_AUTO) | FLOW_AUTO * on;
-	LSetFlow(&window->w_layer, window->w_flow & FLOW_NOW);
+		win->w_flow = (win->w_flow & ~FLOW_AUTO) | FLOW_AUTO * on;
+	LSetFlow(&win->w_layer, win->w_flow & FLOW_NOW);
 }
 
 static void DesignateCharset(int c, int n)
@@ -1830,26 +1830,26 @@ static void FillWithEs()
  *    FindAKA() searches for an autoaka match
  */
 
-void ChangeAKA(Window *p, char *s, size_t l)
+void ChangeAKA(Window *win, char *s, size_t l)
 {
 	int i, c;
 
 	for (i = 0; l > 0; l--) {
-		if (p->w_akachange + i == p->w_akabuf + sizeof(p->w_akabuf) - 1)
+		if (win->w_akachange + i == win->w_akabuf + sizeof(win->w_akabuf) - 1)
 			break;
 		c = (unsigned char)*s++;
 		if (c == 0)
 			break;
-		if (c < 32 || c == 127 || (c >= 128 && c < 160 && p->w_c1))
+		if (c < 32 || c == 127 || (c >= 128 && c < 160 && win->w_c1))
 			continue;
-		p->w_akachange[i++] = c;
+		win->w_akachange[i++] = c;
 	}
-	p->w_akachange[i] = 0;
-	p->w_title = p->w_akachange;
-	if (p->w_akachange != p->w_akabuf)
-		if (p->w_akachange[0] == 0 || p->w_akachange[-1] == ':')
-			p->w_title = p->w_akabuf + strlen(p->w_akabuf) + 1;
-	WindowChanged(p, 't');
+	win->w_akachange[i] = 0;
+	win->w_title = win->w_akachange;
+	if (win->w_akachange != win->w_akabuf)
+		if (win->w_akachange[0] == 0 || win->w_akachange[-1] == ':')
+			win->w_title = win->w_akabuf + strlen(win->w_akabuf) + 1;
+	WindowChanged(win, 't');
 	WindowChanged((Window *)0, 'w');
 	WindowChanged((Window *)0, 'W');
 }
@@ -1857,22 +1857,22 @@ void ChangeAKA(Window *p, char *s, size_t l)
 static void FindAKA()
 {
 	uint32_t *cp, *line;
-	Window *wp = curr;
-	int len = strlen(wp->w_akabuf);
+	Window *win = curr;
+	int len = strlen(win->w_akabuf);
 	int y;
 
-	y = (wp->w_autoaka > 0 && wp->w_autoaka <= wp->w_height) ? wp->w_autoaka - 1 : wp->w_y;
-	cols = wp->w_width;
+	y = (win->w_autoaka > 0 && win->w_autoaka <= win->w_height) ? win->w_autoaka - 1 : win->w_y;
+	cols = win->w_width;
  try_line:
-	cp = line = wp->w_mlines[y].image;
-	if (wp->w_autoaka > 0 && *wp->w_akabuf != '\0') {
+	cp = line = win->w_mlines[y].image;
+	if (win->w_autoaka > 0 && *win->w_akabuf != '\0') {
 		for (;;) {
 			if (cp - line >= cols - len) {
-				if (++y == wp->w_autoaka && y < rows)
+				if (++y == win->w_autoaka && y < rows)
 					goto try_line;
 				return;
 			}
-			if (strncmp((char *)cp, wp->w_akabuf, len) == 0)
+			if (strncmp((char *)cp, win->w_akabuf, len) == 0)
 				break;
 			cp++;
 		}
@@ -1880,19 +1880,19 @@ static void FindAKA()
 	}
 	for (len = cols - (cp - line); len && *cp == ' '; len--, cp++) ;
 	if (len) {
-		if (wp->w_autoaka > 0 && (*cp == '!' || *cp == '%' || *cp == '^'))
-			wp->w_autoaka = -1;
+		if (win->w_autoaka > 0 && (*cp == '!' || *cp == '%' || *cp == '^'))
+			win->w_autoaka = -1;
 		else
-			wp->w_autoaka = 0;
+			win->w_autoaka = 0;
 		line = cp;
 		while (len && *cp != ' ') {
 			if (*cp++ == '/')
 				line = cp;
 			len--;
 		}
-		ChangeAKA(wp, (char *)line, cp - line);
+		ChangeAKA(win, (char *)line, cp - line);
 	} else
-		wp->w_autoaka = 0;
+		win->w_autoaka = 0;
 }
 
 static void RestorePosRendition()
@@ -1934,43 +1934,43 @@ static void Report(char *fmt, int n1, int n2)
  *
  */
 
-static void MFixLine(Window *p, int y, struct mchar *mc)
+static void MFixLine(Window *win, int y, struct mchar *mc)
 {
-	struct mline *ml = &p->w_mlines[y];
+	struct mline *ml = &win->w_mlines[y];
 	if (mc->attr && ml->attr == null) {
-		if ((ml->attr = calloc(p->w_width + 1, 4)) == 0) {
+		if ((ml->attr = calloc(win->w_width + 1, 4)) == 0) {
 			ml->attr = null;
-			mc->attr = p->w_rend.attr = 0;
-			WMsg(p, 0, "Warning: no space for attr - turned off");
+			mc->attr = win->w_rend.attr = 0;
+			WMsg(win, 0, "Warning: no space for attr - turned off");
 		}
 	}
 	if (mc->font && ml->font == null) {
-		if ((ml->font = calloc(p->w_width + 1, 4)) == 0) {
+		if ((ml->font = calloc(win->w_width + 1, 4)) == 0) {
 			ml->font = null;
-			p->w_FontL = p->w_charsets[p->w_ss ? p->w_ss : p->w_Charset] = 0;
-			p->w_FontR = p->w_charsets[p->w_ss ? p->w_ss : p->w_CharsetR] = 0;
-			mc->font = mc->fontx = p->w_rend.font = 0;
-			WMsg(p, 0, "Warning: no space for font - turned off");
+			win->w_FontL = win->w_charsets[win->w_ss ? win->w_ss : win->w_Charset] = 0;
+			win->w_FontR = win->w_charsets[win->w_ss ? win->w_ss : win->w_CharsetR] = 0;
+			mc->font = mc->fontx = win->w_rend.font = 0;
+			WMsg(win, 0, "Warning: no space for font - turned off");
 		}
 	}
 	if (mc->fontx && ml->fontx == null) {
-		if ((ml->fontx = calloc(p->w_width + 1, 4)) == 0) {
+		if ((ml->fontx = calloc(win->w_width + 1, 4)) == 0) {
 			ml->fontx = null;
 			mc->fontx = 0;
 		}
 	}
 	if (mc->colorbg && ml->colorbg == null) {
-		if ((ml->colorbg = calloc(p->w_width + 1, 4)) == 0) {
+		if ((ml->colorbg = calloc(win->w_width + 1, 4)) == 0) {
 			ml->colorbg = null;
-			mc->colorbg = p->w_rend.colorbg = 0;
-			WMsg(p, 0, "Warning: no space for color background - turned off");
+			mc->colorbg = win->w_rend.colorbg = 0;
+			WMsg(win, 0, "Warning: no space for color background - turned off");
 		}
 	}
 	if (mc->colorfg && ml->colorfg == null) {
-		if ((ml->colorfg = calloc(p->w_width + 1, 4)) == 0) {
+		if ((ml->colorfg = calloc(win->w_width + 1, 4)) == 0) {
 			ml->colorfg = null;
-			mc->colorfg = p->w_rend.colorfg = 0;
-			WMsg(p, 0, "Warning: no space for color foreground - turned off");
+			mc->colorfg = win->w_rend.colorfg = 0;
+			WMsg(win, 0, "Warning: no space for color foreground - turned off");
 		}
 	}
 }
@@ -1992,38 +1992,38 @@ static void MFixLine(Window *p, int y, struct mchar *mc)
       copy_mchar2mline(&mchar_blank, ml, x + 1);		\
     }
 
-static void MScrollH(Window *p, int n, int y, int xs, int xe, int bce)
+static void MScrollH(Window *win, int n, int y, int xs, int xe, int bce)
 {
 	struct mline *ml;
 
 	if (n == 0)
 		return;
-	ml = &p->w_mlines[y];
-	MKillDwRight(p, ml, xs);
-	MKillDwLeft(p, ml, xe);
+	ml = &win->w_mlines[y];
+	MKillDwRight(win, ml, xs);
+	MKillDwLeft(win, ml, xe);
 	if (n > 0) {
 		if (xe - xs + 1 > n) {
-			MKillDwRight(p, ml, xs + n);
+			MKillDwRight(win, ml, xs + n);
 			copy_mline(ml, xs + n, xs, xe + 1 - xs - n);
 		} else
 			n = xe - xs + 1;
 		clear_mline(ml, xe + 1 - n, n);
 		if (bce)
-			MBceLine(p, y, xe + 1 - n, n, bce);
+			MBceLine(win, y, xe + 1 - n, n, bce);
 	} else {
 		n = -n;
 		if (xe - xs + 1 > n) {
-			MKillDwLeft(p, ml, xe - n);
+			MKillDwLeft(win, ml, xe - n);
 			copy_mline(ml, xs, xs + n, xe + 1 - xs - n);
 		} else
 			n = xe - xs + 1;
 		clear_mline(ml, xs, n);
 		if (bce)
-			MBceLine(p, y, xs, n, bce);
+			MBceLine(win, y, xs, n, bce);
 	}
 }
 
-static void MScrollV(Window *p, int n, int ys, int ye, int bce)
+static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 {
 	int i, cnt1, cnt2;
 	struct mline tmp[256];
@@ -2039,17 +2039,17 @@ static void MScrollV(Window *p, int n, int ys, int ye, int bce)
 			n = 256;
 		}
 		if (compacthist) {
-			ye = MFindUsedLine(p, ye, ys);
+			ye = MFindUsedLine(win, ye, ys);
 			if (ye - ys + 1 < n)
 				n = ye - ys + 1;
 			if (n <= 0)
 				return;
 		}
 		/* Clear lines */
-		ml = p->w_mlines + ys;
+		ml = win->w_mlines + ys;
 		for (i = ys; i < ys + n; i++, ml++) {
-			if (ys == p->w_top)
-				WAddLineToHist(p, ml);
+			if (ys == win->w_top)
+				WAddLineToHist(win, ml);
 			if (ml->attr != null)
 				free(ml->attr);
 			ml->attr = null;
@@ -2065,15 +2065,15 @@ static void MScrollV(Window *p, int n, int ys, int ye, int bce)
 			if (ml->colorfg != null)
 				free(ml->colorfg);
 			ml->colorfg = null;
-			memmove(ml->image, blank, (p->w_width + 1) * 4);
+			memmove(ml->image, blank, (win->w_width + 1) * 4);
 			if (bce)
-				MBceLine(p, i, 0, p->w_width, bce);
+				MBceLine(win, i, 0, win->w_width, bce);
 		}
 		/* switch 'em over */
 		cnt1 = n * sizeof(struct mline);
 		cnt2 = (ye - ys + 1 - n) * sizeof(struct mline);
 		if (cnt1 && cnt2)
-			Scroll((char *)(p->w_mlines + ys), cnt1, cnt2, (char *)tmp);
+			Scroll((char *)(win->w_mlines + ys), cnt1, cnt2, (char *)tmp);
 	} else {
 		n = -n;
 		if (ye - ys + 1 < n)
@@ -2083,7 +2083,7 @@ static void MScrollV(Window *p, int n, int ys, int ye, int bce)
 			n = 256;
 		}
 
-		ml = p->w_mlines + ye;
+		ml = win->w_mlines + ye;
 		/* Clear lines */
 		for (i = ye; i > ye - n; i--, ml--) {
 			if (ml->attr != null)
@@ -2101,14 +2101,14 @@ static void MScrollV(Window *p, int n, int ys, int ye, int bce)
 			if (ml->colorfg != null)
 				free(ml->colorfg);
 			ml->colorfg = null;
-			memmove(ml->image, blank, (p->w_width + 1) * 4);
+			memmove(ml->image, blank, (win->w_width + 1) * 4);
 			if (bce)
-				MBceLine(p, i, 0, p->w_width, bce);
+				MBceLine(win, i, 0, win->w_width, bce);
 		}
 		cnt1 = n * sizeof(struct mline);
 		cnt2 = (ye - ys + 1 - n) * sizeof(struct mline);
 		if (cnt1 && cnt2)
-			Scroll((char *)(p->w_mlines + ys), cnt2, cnt1, (char *)tmp);
+			Scroll((char *)(win->w_mlines + ys), cnt2, cnt1, (char *)tmp);
 	}
 }
 
@@ -2127,7 +2127,7 @@ static void Scroll(char *cp, int cnt1, int cnt2, char *tmp)
 	}
 }
 
-static void MClearArea(Window *p, int xs, int ys, int xe, int ye, int bce)
+static void MClearArea(Window *win, int xs, int ys, int xe, int ye, int bce)
 {
 	int n, y;
 	int xxe;
@@ -2138,98 +2138,98 @@ static void MClearArea(Window *p, int xs, int ys, int xe, int ye, int bce)
 		return;
 
 	/* check for magic margin condition */
-	if (xs >= p->w_width)
-		xs = p->w_width - 1;
-	if (xe >= p->w_width)
-		xe = p->w_width - 1;
+	if (xs >= win->w_width)
+		xs = win->w_width - 1;
+	if (xe >= win->w_width)
+		xe = win->w_width - 1;
 
-	MKillDwRight(p, p->w_mlines + ys, xs);
-	MKillDwLeft(p, p->w_mlines + ye, xe);
+	MKillDwRight(win, win->w_mlines + ys, xs);
+	MKillDwLeft(win, win->w_mlines + ye, xe);
 
-	ml = p->w_mlines + ys;
+	ml = win->w_mlines + ys;
 	for (y = ys; y <= ye; y++, ml++) {
-		xxe = (y == ye) ? xe : p->w_width - 1;
+		xxe = (y == ye) ? xe : win->w_width - 1;
 		n = xxe - xs + 1;
 		if (n > 0)
 			clear_mline(ml, xs, n);
 		if (n > 0 && bce)
-			MBceLine(p, y, xs, xs + n - 1, bce);
+			MBceLine(win, y, xs, xs + n - 1, bce);
 		xs = 0;
 	}
 }
 
-static void MInsChar(Window *p, struct mchar *c, int x, int y)
+static void MInsChar(Window *win, struct mchar *c, int x, int y)
 {
 	int n;
 	struct mline *ml;
 
-	MFixLine(p, y, c);
-	ml = p->w_mlines + y;
-	n = p->w_width - x - 1;
-	MKillDwRight(p, ml, x);
+	MFixLine(win, y, c);
+	ml = win->w_mlines + y;
+	n = win->w_width - x - 1;
+	MKillDwRight(win, ml, x);
 	if (n > 0) {
-		MKillDwRight(p, ml, p->w_width - 1);
+		MKillDwRight(win, ml, win->w_width - 1);
 		copy_mline(ml, x, x + 1, n);
 	}
 	copy_mchar2mline(c, ml, x);
 	if (c->mbcs) {
 		if (--n > 0) {
-			MKillDwRight(p, ml, p->w_width - 1);
+			MKillDwRight(win, ml, win->w_width - 1);
 			copy_mline(ml, x + 1, x + 2, n);
 		}
 		copy_mchar2mline(c, ml, x + 1);
 		ml->image[x + 1] = c->mbcs;
-		if (p->w_encoding != UTF8)
+		if (win->w_encoding != UTF8)
 			ml->font[x + 1] |= 0x80;
-		else if (p->w_encoding == UTF8 && c->mbcs) {
+		else if (win->w_encoding == UTF8 && c->mbcs) {
 			ml->font[x + 1] = c->mbcs;
 			ml->fontx[x + 1] = 0;
 		}
 	}
 }
 
-static void MPutChar(Window *p, struct mchar *c, int x, int y)
+static void MPutChar(Window *win, struct mchar *c, int x, int y)
 {
 	struct mline *ml;
 
-	MFixLine(p, y, c);
-	ml = &p->w_mlines[y];
-	MKillDwRight(p, ml, x);
-	MKillDwLeft(p, ml, x);
+	MFixLine(win, y, c);
+	ml = &win->w_mlines[y];
+	MKillDwRight(win, ml, x);
+	MKillDwLeft(win, ml, x);
 	copy_mchar2mline(c, ml, x);
 	if (c->mbcs) {
-		MKillDwLeft(p, ml, x + 1);
+		MKillDwLeft(win, ml, x + 1);
 		copy_mchar2mline(c, ml, x + 1);
 		ml->image[x + 1] = c->mbcs;
-		if (p->w_encoding != UTF8)
+		if (win->w_encoding != UTF8)
 			ml->font[x + 1] |= 0x80;
-		else if (p->w_encoding == UTF8 && c->mbcs) {
+		else if (win->w_encoding == UTF8 && c->mbcs) {
 			ml->font[x + 1] = c->mbcs;
 			ml->fontx[x + 1] = 0;
 		}
 	}
 }
 
-static void MWrapChar(Window *p, struct mchar *c, int y, int top, int bot, int ins)
+static void MWrapChar(Window *win, struct mchar *c, int y, int top, int bot, int ins)
 {
 	struct mline *ml;
 	int bce;
 
 	bce = c->colorbg;
-	MFixLine(p, y, c);
-	ml = &p->w_mlines[y];
-	copy_mchar2mline(&mchar_null, ml, p->w_width);
+	MFixLine(win, y, c);
+	ml = &win->w_mlines[y];
+	copy_mchar2mline(&mchar_null, ml, win->w_width);
 	if (y == bot)
-		MScrollV(p, 1, top, bot, bce);
-	else if (y < p->w_height - 1)
+		MScrollV(win, 1, top, bot, bce);
+	else if (y < win->w_height - 1)
 		y++;
 	if (ins)
-		MInsChar(p, c, 0, y);
+		MInsChar(win, c, 0, y);
 	else
-		MPutChar(p, c, 0, y);
+		MPutChar(win, c, 0, y);
 }
 
-static void MBceLine(Window *p, int y, int xs, int xe, int bce)
+static void MBceLine(Window *win, int y, int xs, int xe, int bce)
 {
 	struct mchar mc;
 	struct mline *ml;
@@ -2237,8 +2237,8 @@ static void MBceLine(Window *p, int y, int xs, int xe, int bce)
 
 	mc = mchar_null;
 	mc.colorbg = bce;
-	MFixLine(p, y, &mc);
-	ml = p->w_mlines + y;
+	MFixLine(win, y, &mc);
+	ml = win->w_mlines + y;
 	if (mc.attr)
 		for (x = xs; x <= xe; x++)
 			ml->attr[x] = mc.attr;
@@ -2250,14 +2250,14 @@ static void MBceLine(Window *p, int y, int xs, int xe, int bce)
 			ml->colorfg[x] = mc.colorfg;
 }
 
-static void WAddLineToHist(Window *wp, struct mline *ml)
+static void WAddLineToHist(Window *win, struct mline *ml)
 {
 	uint32_t *q, *o;
 	struct mline *hml;
 
-	if (wp->w_histheight == 0)
+	if (win->w_histheight == 0)
 		return;
-	hml = &wp->w_hlines[wp->w_histidx];
+	hml = &win->w_hlines[win->w_histidx];
 	q = ml->image;
 	ml->image = hml->image;
 	hml->image = q;
@@ -2293,28 +2293,28 @@ static void WAddLineToHist(Window *wp, struct mline *ml)
 	if (o != null)
 		free(o);
 
-	if (++wp->w_histidx >= wp->w_histheight)
-		wp->w_histidx = 0;
+	if (++win->w_histidx >= win->w_histheight)
+		win->w_histidx = 0;
 }
 
-int MFindUsedLine(Window *p, int ye, int ys)
+int MFindUsedLine(Window *win, int ye, int ys)
 {
 	int y;
-	struct mline *ml = p->w_mlines + ye;
+	struct mline *ml = win->w_mlines + ye;
 
 	for (y = ye; y >= ys; y--, ml--) {
-		if (memcmp(ml->image, blank, p->w_width * 4))
+		if (memcmp(ml->image, blank, win->w_width * 4))
 			break;
-		if (ml->attr != null && memcmp(ml->attr, null, p->w_width * 4))
+		if (ml->attr != null && memcmp(ml->attr, null, win->w_width * 4))
 			break;
-		if (ml->colorbg != null && memcmp(ml->colorbg, null, p->w_width * 4))
+		if (ml->colorbg != null && memcmp(ml->colorbg, null, win->w_width * 4))
 			break;
-		if (ml->colorfg != null && memcmp(ml->colorfg, null, p->w_width * 4))
+		if (ml->colorfg != null && memcmp(ml->colorfg, null, win->w_width * 4))
 			break;
-		if (p->w_encoding == UTF8) {
-			if (ml->font != null && bcmp((char *)ml->font, null, p->w_width))
+		if (win->w_encoding == UTF8) {
+			if (ml->font != null && bcmp((char *)ml->font, null, win->w_width))
 				break;
-			if (ml->fontx != null && bcmp((char *)ml->fontx, null, p->w_width))
+			if (ml->fontx != null && bcmp((char *)ml->fontx, null, win->w_width))
 				break;
 		}
 	}
@@ -2330,21 +2330,21 @@ int MFindUsedLine(Window *p, int ye, int ys)
  * Tricky: send only one bell even if the window is displayed
  * more than once.
  */
-void WBell(Window *p, int visual)
+void WBell(Window *win, int visual)
 {
 	Canvas *cv;
 	if (displays == NULL)
-		p->w_bell = BELL_DONE;
+		win->w_bell = BELL_DONE;
 	for (display = displays; display; display = display->d_next) {
 		for (cv = D_cvlist; cv; cv = cv->c_next)
-			if (cv->c_layer->l_bottom == &p->w_layer)
+			if (cv->c_layer->l_bottom == &win->w_layer)
 				break;
 		if (cv && !visual)
 			AddCStr(D_BL);
 		else if (cv && D_VB)
 			AddCStr(D_VB);
 		else
-			p->w_bell = visual ? BELL_VISUAL : BELL_FOUND;
+			win->w_bell = visual ? BELL_VISUAL : BELL_FOUND;
 	}
 }
 
@@ -2355,45 +2355,45 @@ void WBell(Window *p, int visual)
  * a visual bell we do this hack here.
  * (screen uses \Eg as special vbell sequence)
  */
-static void WReverseVideo(Window *p, int on)
+static void WReverseVideo(Window *win, int on)
 {
 	Canvas *cv;
-	for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
+	for (cv = win->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (cv != D_forecv)
 			continue;
 		ReverseVideo(on);
-		if (!on && p->w_revvid && !D_CVR) {
+		if (!on && win->w_revvid && !D_CVR) {
 			if (D_VB)
 				AddCStr(D_VB);
 			else
-				p->w_bell = BELL_VISUAL;
+				win->w_bell = BELL_VISUAL;
 		}
 	}
 }
 
-void WMsg(Window *p, int err, char *str)
+void WMsg(Window *win, int err, char *str)
 {
 	Layer *flayer;
 	Layer *oldflayer = flayer;
-	flayer = &p->w_layer;
+	flayer = &win->w_layer;
 	LMsg(err, "%s", str);
 	flayer = oldflayer;
 }
 
-void WChangeSize(Window *p, int w, int h)
+void WChangeSize(Window *win, int w, int h)
 {
 	int wok = 0;
 	Canvas *cv;
 
-	if (p->w_layer.l_cvlist == 0) {
+	if (win->w_layer.l_cvlist == 0) {
 		/* window not displayed -> works always */
-		ChangeWindowSize(p, w, h, p->w_histheight);
+		ChangeWindowSize(win, w, h, win->w_histheight);
 		return;
 	}
-	for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
+	for (cv = win->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
-		if (p != D_fore)
+		if (win != D_fore)
 			continue;	/* change only fore */
 		if (D_CWS)
 			break;
@@ -2403,10 +2403,10 @@ void WChangeSize(Window *p, int w, int h)
 	if (cv == 0 && wok == 0)	/* can't change any display */
 		return;
 	if (!D_CWS)
-		h = p->w_height;
-	ChangeWindowSize(p, w, h, p->w_histheight);
+		h = win->w_height;
+	ChangeWindowSize(win, w, h, win->w_histheight);
 	for (display = displays; display; display = display->d_next) {
-		if (p == D_fore) {
+		if (win == D_fore) {
 			if (D_cvlist && D_cvlist->c_next == 0)
 				ResizeDisplay(w, h);
 			else
@@ -2415,7 +2415,7 @@ void WChangeSize(Window *p, int w, int h)
 			continue;
 		}
 		for (cv = D_cvlist; cv; cv = cv->c_next)
-			if (cv->c_layer->l_bottom == &p->w_layer)
+			if (cv->c_layer->l_bottom == &win->w_layer)
 				break;
 		if (cv)
 			Redisplay(0);
@@ -2450,7 +2450,7 @@ static int WindowChangedCheck(char *s, int what, int *hp)
 	return *s ? 1 : 0;
 }
 
-void WindowChanged(Window *p, int what)
+void WindowChanged(Window *win, int what)
 {
 	int inwstr, inhstr, inlstr;
 	int inwstrh = 0, inhstrh = 0, inlstrh = 0;
@@ -2472,19 +2472,19 @@ void WindowChanged(Window *p, int what)
 		inlstr = 1;
 	}
 
-	if (p == 0) {
+	if (win == 0) {
 		for (display = displays; display; display = display->d_next) {
 			ox = D_x;
 			oy = D_y;
 			for (cv = D_cvlist; cv; cv = cv->c_next) {
 				if (inlstr
-				    || (inlstrh && p && p->w_hstatus && *p->w_hstatus
-					&& WindowChangedCheck(p->w_hstatus, what, (int *)0)))
+				    || (inlstrh && win && win->w_hstatus && *win->w_hstatus
+					&& WindowChangedCheck(win->w_hstatus, what, (int *)0)))
 					WListUpdatecv(cv, (Window *)0);
-				p = Layer2Window(cv->c_layer);
+				win = Layer2Window(cv->c_layer);
 				if (inwstr
-				    || (inwstrh && p && p->w_hstatus && *p->w_hstatus
-					&& WindowChangedCheck(p->w_hstatus, what, (int *)0))) {
+				    || (inwstrh && win && win->w_hstatus && *win->w_hstatus
+					&& WindowChangedCheck(win->w_hstatus, what, (int *)0))) {
 					if (captiontop) {
 						if (cv->c_ys - 1 >= 0)
 							RefreshLine(cv->c_ys - 1, 0, D_width -1 , 0);
@@ -2494,10 +2494,10 @@ void WindowChanged(Window *p, int what)
 					}
 				}
 			}
-			p = D_fore;
+			win = D_fore;
 			if (inhstr
-			    || (inhstrh && p && p->w_hstatus && *p->w_hstatus
-				&& WindowChangedCheck(p->w_hstatus, what, (int *)0)))
+			    || (inhstrh && win && win->w_hstatus && *win->w_hstatus
+				&& WindowChangedCheck(win->w_hstatus, what, (int *)0)))
 				RefreshHStatus();
 			if (ox != -1 && oy != -1)
 				GotoPos(ox, oy);
@@ -2506,8 +2506,8 @@ void WindowChanged(Window *p, int what)
 		return;
 	}
 
-	if (p->w_hstatus && *p->w_hstatus && (inwstrh || inhstrh || inlstrh)
-	    && WindowChangedCheck(p->w_hstatus, what, (int *)0)) {
+	if (win->w_hstatus && *win->w_hstatus && (inwstrh || inhstrh || inlstrh)
+	    && WindowChangedCheck(win->w_hstatus, what, (int *)0)) {
 		inwstr |= inwstrh;
 		inhstr |= inhstrh;
 		inlstr |= inlstrh;
@@ -2520,8 +2520,8 @@ void WindowChanged(Window *p, int what)
 		oy = D_y;
 		for (cv = D_cvlist; cv; cv = cv->c_next) {
 			if (inlstr)
-				WListUpdatecv(cv, p);
-			if (Layer2Window(cv->c_layer) != p)
+				WListUpdatecv(cv, win);
+			if (Layer2Window(cv->c_layer) != win)
 				continue;
 			got = 1;
 			if (inwstr) {
@@ -2534,7 +2534,7 @@ void WindowChanged(Window *p, int what)
 				}
 			}
 		}
-		if (got && inhstr && p == D_fore)
+		if (got && inhstr && win == D_fore)
 			RefreshHStatus();
 		if (ox != -1 && oy != -1)
 			GotoPos(ox, oy);
