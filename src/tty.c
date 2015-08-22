@@ -586,14 +586,6 @@ void brktty(int fd) {
 		setsid();		/* will break terminal affiliation */
 }
 
-int fgtty(int fd) {
-	int mypid;
-
-	mypid = getpid();
-
-	return 0;
-}
-
 /*
  * The alm boards on our sparc center 1000 have a lousy driver.
  * We cannot generate long breaks unless we use the most ugly form

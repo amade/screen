@@ -1018,8 +1018,6 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 			close(slave);
 		if (newfd >= 0) {
 			struct mode fakemode, *modep;
-			if (fgtty(newfd))
-				Msg(errno, "fgtty");
 			if (display) {
 				modep = &D_OldMode;
 			} else {

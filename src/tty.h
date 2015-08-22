@@ -10,7 +10,6 @@ void  SetFlow (int);
 void  SendBreak (Window *, int, int);
 int   TtyGrabConsole (int, int, char *);
 char *TtyGetModemStatus (int, char *);
-int   fgtty (int);
 void  brktty (int);
 struct baud_values *lookup_baud (int bps);
 int   SetBaud (struct mode *, int, int);
