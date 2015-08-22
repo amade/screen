@@ -434,8 +434,6 @@ void Attacher()
 /* ADDED by Rainer Pruy 10/15/87 */
 /* POLISHED by mls. 03/10/91 */
 
-static char LockEnd[] = "Welcome back to screen !!\n";
-
 static void LockHup(int sigsig)
 {
 	int ppid = getppid();
@@ -453,7 +451,7 @@ static void LockHup(int sigsig)
 
 static void LockTerminal()
 {
-	int sig, pid;
+	int sig;
 	void (*sigs[_NSIG - 1]) (int);
 
 	for (sig = 1; sig < _NSIG - 1; sig++)
