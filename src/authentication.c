@@ -10,9 +10,12 @@
 #if USE_PAM
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
+#else
+#include <shadow.h>
 #endif
 
 bool CheckPassword() {
+	bool ret = false;
 #if USE_PAM
 	pam_handle_t *pamh = 0;
 	struct pam_conv pamc;
@@ -41,21 +44,34 @@ bool CheckPassword() {
 	pam_error = pam_authenticate(pamh, 0);
 	pam_end(pamh, pam_error);
 	if (pam_error == PAM_SUCCESS) {
-		return true;
+		ret = true;
 	}
-	return false;
 #else
-	return true;
+	struct spwd *p;
+	char *passwd = 0;
+
+	p = getspnam(ppp->pw_name);
+
+	printf("\aScreen used by %s%s<%s> on %s.\n",
+		ppp->pw_gecos, ppp->pw_gecos[0] ? " " : "", ppp->pw_name, HostName);
+	passwd = crypt(getpass("Password:"), p->sp_pwdp);
+
+	ret = (strcmp(provided, p->sp_pwdp) == 0);
+
 #endif
+	return ret;
 }
 
 void Authenticate() {
+	uint8_t tries = 0;
 	while (1) {
-		errno = 0;
-
 		if(CheckPassword()) {
 			break;
 		}
+		if (tries < 3)
+			tries++;
+		else
+			sleep(1); /* after 3 failures limit tries per minute */
 
 	}
 }
