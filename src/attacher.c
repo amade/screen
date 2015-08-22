@@ -626,7 +626,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 	int i, s;
 	struct msg m;
 	char *p;
-	int len, n;
+	int n;
 
 	if (sty == 0) {
 		i = FindSocket(&s, (int *)0, (int *)0, match);
@@ -652,6 +652,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 	p = m.m.command.cmd;
 	n = 0;
 	for (; *av && n < MAXARGS - 1; ++av, ++n) {
+		size_t len;
 		len = strlen(*av) + 1;
 		if (p + len >= m.m.command.cmd + sizeof(m.m.command.cmd) - 1)
 			break;

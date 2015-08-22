@@ -409,7 +409,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	int s;
 	struct msg m;
 	char *p;
-	int len, n;
+	size_t len, n;
 	char **av;
 
 	if (strlen(sty) > FILENAME_MAX)
@@ -828,7 +828,7 @@ void ReceiveMsg()
 void ReceiveRaw(int s)
 {
 	char rd[256];
-	int len = 0;
+	ssize_t len = 0;
 	struct sockaddr_un a;
 	len = sizeof(a);
 	if ((s = accept(s, (struct sockaddr *)&a, (socklen_t *) & len)) < 0) {
@@ -1166,7 +1166,7 @@ static void DoCommandMsg(struct msg *mp)
 	if (n > MAXARGS - 1)
 		n = MAXARGS - 1;
 	for (fc = fullcmd; n > 0; n--) {
-		int len = strlen(p);
+		size_t len = strlen(p);
 		*fc++ = '"';
 		if (!(fc = strncpy_escape_quote(fc, p, fullcmd + sizeof(fullcmd) - 2))) {	/* '"' ' ' */
 			Msg(0, "Remote command too long.");
