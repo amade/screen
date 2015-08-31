@@ -2035,7 +2035,7 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 		if (ye - ys + 1 < n)
 			n = ye - ys + 1;
 		if (n > 256) {
-			MScrollV(p, n - 256, ys, ye, bce);
+			MScrollV(win, n - 256, ys, ye, bce);
 			n = 256;
 		}
 		if (compacthist) {
@@ -2079,7 +2079,7 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 		if (ye - ys + 1 < n)
 			n = ye - ys + 1;
 		if (n > 256) {
-			MScrollV(p, - (n - 256), ys, ye, bce);
+			MScrollV(win, - (n - 256), ys, ye, bce);
 			n = 256;
 		}
 
