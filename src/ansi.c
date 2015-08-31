@@ -2032,12 +2032,12 @@ static void MScrollV(Window *p, int n, int ys, int ye, int bce)
 	if (n == 0)
 		return;
 	if (n > 0) {
+		if (ye - ys + 1 < n)
+			n = ye - ys + 1;
 		if (n > 256) {
 			MScrollV(p, n - 256, ys, ye, bce);
 			n = 256;
 		}
-		if (ye - ys + 1 < n)
-			n = ye - ys + 1;
 		if (compacthist) {
 			ye = MFindUsedLine(p, ye, ys);
 			if (ye - ys + 1 < n)
@@ -2075,13 +2075,13 @@ static void MScrollV(Window *p, int n, int ys, int ye, int bce)
 		if (cnt1 && cnt2)
 			Scroll((char *)(p->w_mlines + ys), cnt1, cnt2, (char *)tmp);
 	} else {
-		if (n < -256) {
-			MScrollV(p, n + 256, ys, ye, bce);
-			n = -256;
-		}
 		n = -n;
 		if (ye - ys + 1 < n)
 			n = ye - ys + 1;
+		if (n > 256) {
+			MScrollV(p, - (n - 256), ys, ye, bce);
+			n = 256;
+		}
 
 		ml = p->w_mlines + ye;
 		/* Clear lines */
