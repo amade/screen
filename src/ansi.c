@@ -136,7 +136,7 @@ static void FindAKA(void);
 static void Report(char *, int, int);
 static void ScrollRegion(int);
 static void WAddLineToHist(Window *, struct mline *);
-static void WLogString(Window *, char *, int);
+static void WLogString(Window *, char *, size_t);
 static void WReverseVideo(Window *, int);
 static int WindowChangedCheck(char *, int, int *);
 static void MFixLine(Window *, int, struct mchar *);
@@ -242,13 +242,13 @@ void SetCharsets(Window *win, char *s)
  *  - translate program output for the display and put it into the obuf.
  *
  */
-void WriteString(Window *win, char *buf, int len)
+void WriteString(Window *win, char *buf, size_t len)
 {
 	int c;
 	int font;
 	Canvas *cv;
 
-	if (!len)
+	if (len == 0)
 		return;
 	if (win->w_log)
 		WLogString(win, buf, len);
@@ -692,7 +692,7 @@ void WriteString(Window *win, char *buf, int len)
 		PrintFlush();
 }
 
-static void WLogString(Window *win, char *buf, int len)
+static void WLogString(Window *win, char *buf, size_t len)
 {
 	if (!win->w_log)
 		return;

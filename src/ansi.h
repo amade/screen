@@ -150,7 +150,7 @@ typedef struct Window Window;
 void  ResetAnsiState (Window *);
 void  ResetWindow (Window *);
 void  ResetCharsets (Window *);
-void  WriteString (Window *, char *, int);
+void  WriteString (Window *, char *, size_t);
 void  ChangeAKA (Window *, char *, size_t);
 void  SetCharsets (Window *, char *);
 int   GetAnsiStatus (Window *, char *);

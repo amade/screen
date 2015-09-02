@@ -198,7 +198,7 @@ int logfclose(struct logfile *l)
  * write and flush both *should* check the file's stat, if it disappeared
  * or changed, re-open it.
  */
-int logfwrite(struct logfile *l, char *buf, int n)
+int logfwrite(struct logfile *l, char *buf, size_t n)
 {
 	int r;
 

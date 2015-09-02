@@ -59,7 +59,7 @@ int islogfile (char *name);
  * logfclose does free()
  */
 int logfclose (struct logfile *);
-int logfwrite (struct logfile *, char *, int);
+int logfwrite (struct logfile *, char *, size_t);
 
 /*
  * logfflush should be called periodically. If no argument is passed,
