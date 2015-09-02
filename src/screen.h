@@ -101,7 +101,7 @@ struct mode {
 #define MSG_QUERY       9
 
 /*
- * versions of struct msg:
+ * versions of struct Message:
  * 0:	screen version 3.6.6 (version count introduced)
  * 1:	screen version 4.1.0devel	(revisions e3fc19a upto 8147d08)
  * 					 A few revisions after 8147d08 incorrectly
@@ -113,7 +113,8 @@ struct mode {
 #define MSG_VERSION	4
 
 #define MSG_REVISION	(('m'<<24) | ('s'<<16) | ('g'<<8) | MSG_VERSION)
-struct msg {
+typedef struct Message Message;
+struct Message {
 	int protocol_revision;	/* reduce harm done by incompatible messages */
 	int type;
 	char m_tty[MAXPATHLEN];	/* ttyname */

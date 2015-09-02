@@ -46,7 +46,7 @@
 #include "socket.h"
 #include "tty.h"
 
-static int WriteMessage(int, struct msg *);
+static int WriteMessage(int, Message *);
 static void AttacherSigInt(int);
 static void AttacherWinch(int);
 static void DoLock(int);
@@ -87,7 +87,7 @@ static void QueryResultFail(int sigsig)
  *  tty filedescriptor.
  */
 
-static int WriteMessage(int s, struct msg *m)
+static int WriteMessage(int s, Message *m)
 {
 	int r, l = sizeof(*m);
 
@@ -108,7 +108,7 @@ static int WriteMessage(int s, struct msg *m)
 int Attach(int how)
 {
 	int n, lasts;
-	struct msg m;
+	Message m;
 	struct stat st;
 	char *s;
 
@@ -312,7 +312,7 @@ static void AttacherSigInt(int sigsig)
 void AttacherFinit(int sigsig)
 {
 	struct stat statb;
-	struct msg m;
+	Message m;
 	int s;
 
 	(void)sigsig; /* unused */
@@ -622,7 +622,7 @@ static void screen_builtin_lck()
 void SendCmdMessage(char *sty, char *match, char **av, int query)
 {
 	int i, s;
-	struct msg m;
+	Message m;
 	char *p;
 	int n;
 

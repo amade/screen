@@ -9,7 +9,7 @@ int   chsock (void);
 void  ReceiveMsg (void);
 void  SendCreateMsg (char *, struct NewWindow *);
 int   SendErrorMsg (char *, char *);
-int   SendAttachMsg (int, struct msg *, int);
+int   SendAttachMsg (int, Message *, int);
 void  ReceiveRaw (int);
 
 #endif /* SCREEN_SOCKET_H */

@@ -61,11 +61,11 @@
 #include "utmp.h"
 
 static int CheckPid(int);
-static void ExecCreate(struct msg *);
-static void DoCommandMsg(struct msg *);
-static void FinishAttach(struct msg *);
-static void FinishDetach(struct msg *);
-static void AskPassword(struct msg *);
+static void ExecCreate(Message *);
+static void DoCommandMsg(Message *);
+static void FinishAttach(Message *);
+static void FinishDetach(Message *);
+static void AskPassword(Message *);
 
 #define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0) | (multi ? 1 : 0))
 
@@ -407,7 +407,7 @@ int MakeClientSocket(int err)
 void SendCreateMsg(char *sty, struct NewWindow *nwin)
 {
 	int s;
-	struct msg m;
+	Message m;
 	char *p;
 	size_t len, n;
 	char **av;
@@ -458,7 +458,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 int SendErrorMsg(char *tty, char *buf)
 {
 	int s;
-	struct msg m;
+	Message m;
 
 	strncpy(m.m.message, buf, sizeof(m.m.message) - 1);
 	m.m.message[sizeof(m.m.message) - 1] = 0;
@@ -474,7 +474,7 @@ int SendErrorMsg(char *tty, char *buf)
 	return 0;
 }
 
-static void ExecCreate(struct msg *mp)
+static void ExecCreate(Message *mp)
 {
 	struct NewWindow nwin;
 	char *args[MAXARGS];
@@ -533,7 +533,7 @@ static int CheckPid(int pid)
 	return UserStatus();
 }
 
-static int CreateTempDisplay(struct msg *m, int recvfd, Window *win)
+static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 {
 	int pid;
 	int attach;
@@ -637,7 +637,7 @@ static int CreateTempDisplay(struct msg *m, int recvfd, Window *win)
 void ReceiveMsg()
 {
 	int left, len;
-	static struct msg m;
+	static Message m;
 	char *p;
 	int ns = ServerSocket;
 	Window *wi;
@@ -887,7 +887,7 @@ int RecoverSocket()
 	return 1;
 }
 
-static void FinishAttach(struct msg *m)
+static void FinishAttach(Message *m)
 {
 	char *p;
 	int pid;
@@ -1008,7 +1008,7 @@ static void FinishAttach(struct msg *m)
 	}
 }
 
-static void FinishDetach(struct msg *m)
+static void FinishDetach(Message *m)
 {
 	Display *next, **d, *det;
 	int pid;
@@ -1054,10 +1054,10 @@ static void PasswordProcessInput(char *, int);
 struct pwdata {
 	int l;
 	char buf[MAXLOGINLEN + 1];
-	struct msg m;
+	Message m;
 };
 
-static void AskPassword(struct msg *m)
+static void AskPassword(Message *m)
 {
 	struct pwdata *pwdata;
 	pwdata = malloc(sizeof(struct pwdata));
@@ -1152,7 +1152,7 @@ static char *strncpy_escape_quote(char *dst, const char *src, const char *end)
 	return dst;
 }
 
-static void DoCommandMsg(struct msg *mp)
+static void DoCommandMsg(Message *mp)
 {
 	char *args[MAXARGS];
 	int argl[MAXARGS];
@@ -1248,7 +1248,7 @@ static void DoCommandMsg(struct msg *mp)
 	EffectiveAclUser = 0;
 }
 
-int SendAttachMsg(int s, struct msg *m, int fd)
+int SendAttachMsg(int s, Message *m, int fd)
 {
 	int r;
 	struct msghdr msg;
