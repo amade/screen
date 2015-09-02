@@ -73,6 +73,6 @@ extern int compacthist;
 extern int join_with_cr;
 extern int pastefont;
 
-extern struct LayFuncs MarkLf;
+extern const struct LayFuncs MarkLf;
 
 #endif /* SCREEN_MARK_H */

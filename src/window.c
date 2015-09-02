@@ -173,7 +173,7 @@ void nwin_compose(struct NewWindow *def, struct NewWindow *new, struct NewWindow
  *  The window layer functions
  */
 
-struct LayFuncs WinLf = {
+const struct LayFuncs WinLf = {
 	WinProcess,
 	0,
 	WinRedisplayLine,

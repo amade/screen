@@ -117,7 +117,7 @@ struct helpdata {
 
 #define MAXKLEN 256
 
-static struct LayFuncs HelpLf = {
+static const struct LayFuncs HelpLf = {
 	HelpProcess,
 	HelpAbort,
 	HelpRedisplayLine,
@@ -419,7 +419,7 @@ struct copydata {
 	char *refcps, *refsavedcps;	/* backup for redisplaying */
 };
 
-static struct LayFuncs CopyrightLf = {
+static const struct LayFuncs CopyrightLf = {
 	CopyrightProcess,
 	CopyrightAbort,
 	CopyrightRedisplayLine,
@@ -613,7 +613,7 @@ struct bindkeydata {
 	int pages;
 };
 
-static struct LayFuncs BindkeyLf = {
+static const struct LayFuncs BindkeyLf = {
 	BindkeyProcess,
 	BindkeyAbort,
 	BindkeyRedisplayLine,
@@ -781,7 +781,7 @@ static void BindkeyRedisplayLine(int y, int xs, int xe, int isblank)
 static void ZmodemRedisplayLine(int, int, int, int);
 static int ZmodemResize(int, int);
 
-static struct LayFuncs ZmodemLf = {
+static const struct LayFuncs ZmodemLf = {
 	DefProcess,
 	0,
 	ZmodemRedisplayLine,

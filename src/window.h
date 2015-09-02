@@ -328,7 +328,7 @@ extern char DefaultShell[];
 
 extern int VerboseCreate;
 
-extern struct LayFuncs WinLf;
+extern const struct LayFuncs WinLf;
 extern struct NewWindow nwin_undef, nwin_default, nwin_options;
 
 extern Window **wtab;

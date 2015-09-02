@@ -647,7 +647,7 @@ void KillLayerChain(Layer *lay)
 	flayer = oldflayer;
 }
 
-int InitOverlayPage(int datasize, struct LayFuncs *lf, int block)
+int InitOverlayPage(int datasize, const struct LayFuncs *lf, int block)
 {
 	char *data;
 	Layer *newlay;

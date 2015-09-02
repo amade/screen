@@ -73,6 +73,6 @@ void display_windows (int onblank, int order, Window *group);
 
 /* global variables */
 
-extern struct LayFuncs ListLf;
+extern const struct LayFuncs ListLf;
 
 #endif /* SCREEN_LIST_GENERIC_H */

@@ -65,7 +65,7 @@ static void MarkRedisplayLine(int, int, int, int);
 
 int pastefont = 1;
 
-struct LayFuncs MarkLf = {
+const struct LayFuncs MarkLf = {
 	MarkProcess,
 	MarkAbort,
 	MarkRedisplayLine,

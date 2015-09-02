@@ -59,7 +59,7 @@ struct Layer {
 	int	l_x;		/* cursor position */
 	int	l_y;
 	int	l_encoding;
-	struct LayFuncs *l_layfn;
+	const struct LayFuncs *l_layfn;
 	void	*l_data;
 
 	Layer	*l_next;	/* layer stack, should be in data? */
@@ -182,7 +182,7 @@ void  LBracketedPasteMode (Layer *, int);
 void  LCursorStyle (Layer *, int);
 void  LMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 void  KillLayerChain (Layer *);
-int   InitOverlayPage (int, struct LayFuncs *, int);
+int   InitOverlayPage (int, const struct LayFuncs *, int);
 void  ExitOverlayPage (void);
 int   LayProcessMouse (Layer *, unsigned char);
 void  LayProcessMouseSwitch (Layer *, int);

@@ -137,7 +137,7 @@ void DefRestore()
  *  Blank layer management
  */
 
-struct LayFuncs BlankLf = {
+const struct LayFuncs BlankLf = {
 	DefProcess,
 	0,
 	DefRedisplayLine,

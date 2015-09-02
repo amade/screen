@@ -41,7 +41,7 @@ static int ListResize(int, int);
 static void ListRestore(void);
 static void ListFree(void *);
 
-struct LayFuncs ListLf = {
+const struct LayFuncs ListLf = {
 	ListProcess,
 	ListAbort,
 	ListRedisplayLine,

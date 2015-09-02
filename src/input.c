@@ -66,7 +66,7 @@ struct inpdata {
 	char *search;		/* the search string */
 };
 
-static struct LayFuncs InpLf = {
+static const struct LayFuncs InpLf = {
 	InpProcess,
 	InpAbort,
 	InpRedisplayLine,

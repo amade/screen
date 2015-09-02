@@ -378,7 +378,7 @@ extern int hardstatusemu;
 
 extern Display *display, *displays;
 
-extern struct LayFuncs BlankLf;
+extern const struct LayFuncs BlankLf;
 
 extern struct statusposstr statuspos;
 
