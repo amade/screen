@@ -811,11 +811,11 @@ int UsersAcl(struct acluser *uu, int argc, char **argv)
 /*
  * Preprocess argments, so that umask can be set with UsersAcl
  * 
- * all current users		umask ±rwxn
- * one specific user		umask user1±rwxn
- * several users		umask user1,user2,...±rwxn
- * default_w_bits		umask ?±rwxn
- * default_c_bits		umask ??±rwxn
+ * all current users		umask Â±rwxn
+ * one specific user		umask user1Â±rwxn
+ * several users		umask user1,user2,...Â±rwxn
+ * default_w_bits		umask ?Â±rwxn
+ * default_c_bits		umask ??Â±rwxn
  */
 int AclUmask(struct acluser *u, char *str, char **errp)
 {
