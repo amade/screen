@@ -1830,11 +1830,11 @@ static void FillWithEs()
  *    FindAKA() searches for an autoaka match
  */
 
-void ChangeAKA(Window *win, char *s, size_t l)
+void ChangeAKA(Window *win, char *s, size_t len)
 {
 	int i, c;
 
-	for (i = 0; l > 0; l--) {
+	for (i = 0; len > 0; len--) {
 		if (win->w_akachange + i == win->w_akabuf + sizeof(win->w_akabuf) - 1)
 			break;
 		c = (unsigned char)*s++;
