@@ -41,7 +41,7 @@ struct mline;
 typedef struct Canvas Canvas;
 
 struct LayFuncs {
-	void	(*lf_LayProcess) (char **, int *);
+	void	(*lf_LayProcess) (char **, size_t *);
 	void	(*lf_LayAbort) (void);
 	void	(*lf_LayRedisplayLine) (int, int, int, int);
 	void	(*lf_LayClearLine) (int, int, int, int);

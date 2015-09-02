@@ -59,7 +59,7 @@ static bool eq(int, int);
 static int MarkScrollDownDisplay(int);
 static int MarkScrollUpDisplay(int);
 
-static void MarkProcess(char **, int *);
+static void MarkProcess(char **, size_t *);
 static void MarkAbort(void);
 static void MarkRedisplayLine(int, int, int, int);
 
@@ -446,7 +446,7 @@ void MarkRoutine()
 	flayer->l_y = W2D(y);
 }
 
-static void MarkProcess(char **inbufp, int *inlenp)
+static void MarkProcess(char **inbufp, size_t *inlenp)
 {
 	char *inbuf, *pt;
 	int inlen;

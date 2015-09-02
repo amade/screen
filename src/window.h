@@ -122,9 +122,9 @@ struct pseudowin {
 struct paster {
 	char	*pa_pastebuf;		/* this gets pasted in the window */
 	char	*pa_pasteptr;		/* pointer in pastebuf */
-	int	 pa_pastelen;		/* bytes left to paste */
-	Layer	*pa_pastelayer;	/* layer to paste into */
-	Event	pa_slowev;	/* slowpaste event */
+	size_t	 pa_pastelen;		/* bytes left to paste */
+	Layer	*pa_pastelayer;		/* layer to paste into */
+	Event	 pa_slowev;		/* slowpaste event */
 };
 
 typedef struct Window Window;

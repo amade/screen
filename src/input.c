@@ -37,7 +37,7 @@
 
 #define INPUTLINE (flayer->l_height - 1)
 
-static void InpProcess(char **, int *);
+static void InpProcess(char **, size_t *);
 static void InpAbort(void);
 static void InpRedisplayLine(int, int, int, int);
 
@@ -172,7 +172,7 @@ static void erase_chars(struct inpdata *inpdata, char *from, char *to, int x, in
 	}
 }
 
-static void InpProcess(char **ppbuf, int *plen)
+static void InpProcess(char **ppbuf, size_t *plen)
 {
 	int len, x;
 	char *pbuf;

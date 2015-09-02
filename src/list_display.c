@@ -135,7 +135,7 @@ static void gl_Display_rebuild(ListData *ldata)
 	glist_display_all(ldata);
 }
 
-static int gl_Display_input(ListData *ldata, char **inp, int *len)
+static int gl_Display_input(ListData *ldata, char **inp, size_t *len)
 {
 	Display *cd = display;
 	unsigned char ch;

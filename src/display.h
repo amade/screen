@@ -308,7 +308,7 @@ while (0)
 
 Display *MakeDisplay (char *, char *, char *, int, int, struct mode *);
 void  FreeDisplay (void);
-void  DefProcess (char **, int *);
+void  DefProcess (char **, size_t *);
 void  DefRedisplayLine (int, int, int, int);
 void  DefClearLine (int, int, int, int);
 int   DefResize (int, int);

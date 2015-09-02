@@ -33,7 +33,7 @@
 
 /* Deals with a generic list display */
 
-static void ListProcess(char **, int *);
+static void ListProcess(char **, size_t *);
 static void ListAbort(void);
 static void ListRedisplayLine(int, int, int, int);
 static void ListClearLine(int, int, int, int);
@@ -132,7 +132,7 @@ static void glist_search(char *buf, size_t len, void *data)
 	glist_display_all(ldata);
 }
 
-static void ListProcess(char **ppbuf, int *plen)
+static void ListProcess(char **ppbuf, size_t *plen)
 {
 	ListData *ldata = flayer->l_data;
 	int count = 0;
@@ -234,7 +234,7 @@ static void ListProcess(char **ppbuf, int *plen)
 				if ((s = ldata->search)) {
 					for (; *s; s++) {
 						char *ss = s;
-						int n = 1;
+						size_t n = 1;
 						LayProcess(&ss, &n);
 					}
 				}

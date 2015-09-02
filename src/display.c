@@ -95,7 +95,7 @@ int focusminwidth, focusminheight;
  *  Default layer management
  */
 
-void DefProcess(char **bufp, int *lenp)
+void DefProcess(char **bufp, size_t *lenp)
 {
 	*bufp += *lenp;
 	*lenp = 0;
@@ -2502,7 +2502,7 @@ static void disp_writeev_fn(Event *event, void *data)
 
 static void disp_readev_fn(Event *event, void *data)
 {
-	int size;
+	size_t size;
 	char buf[IOSIZE];
 	Canvas *cv;
 

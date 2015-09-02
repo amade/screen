@@ -704,7 +704,8 @@ void ProcessInput(char *ibuf, int ilen)
 void ProcessInput2(char *ibuf, int ilen)
 {
 	char *s;
-	int ch, slen;
+	int ch;
+	size_t slen;
 	struct action *ktabp;
 
 	while (ilen && display) {
@@ -753,7 +754,7 @@ void ProcessInput2(char *ibuf, int ilen)
 	}
 }
 
-void DoProcess(Window *window, char **bufp, int *lenp, struct paster *pa)
+void DoProcess(Window *window, char **bufp, size_t *lenp, struct paster *pa)
 {
 	int oldlen;
 	Display *d = display;
@@ -905,6 +906,7 @@ void DoAction(struct action *act, int key)
 	char ch;
 	Display *odisplay = display;
 	struct acluser *user;
+	size_t len;
 
 	user = display ? D_user : users;
 	if (nr == RC_ILLEGAL) {
@@ -1420,7 +1422,7 @@ void DoAction(struct action *act, int key)
 			Input("Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
 			break;
 		}
-		n = *argl;
+		len = *argl;
 		if (args[1]) {
 			if (strcmp(s, "-k")) {
 				OutputMsg(0, "%s: stuff: invalid option %s", rc_name, s);
@@ -1439,10 +1441,10 @@ void DoAction(struct action *act, int key)
 			s = display ? D_tcs[i].str : 0;
 			if (s == 0)
 				break;
-			n = strlen(s);
+			len = strlen(s);
 		}
-		while (n)
-			LayProcess(&s, &n);
+		while (len)
+			LayProcess(&s, &len);
 		break;
 	case RC_REDISPLAY:
 		Activate(-1);
@@ -1501,20 +1503,20 @@ void DoAction(struct action *act, int key)
 			break;
 		ch = user->u_Esc;
 		s = &ch;
-		n = 1;
-		LayProcess(&s, &n);
+		len = 1;
+		LayProcess(&s, &len);
 		break;
 	case RC_XON:
 		ch = Ctrl('q');
 		s = &ch;
-		n = 1;
-		LayProcess(&s, &n);
+		len = 1;
+		LayProcess(&s, &len);
 		break;
 	case RC_XOFF:
 		ch = Ctrl('s');
 		s = &ch;
-		n = 1;
-		LayProcess(&s, &n);
+		len = 1;
+		LayProcess(&s, &len);
 		break;
 	case RC_DEFBREAKTYPE:
 	case RC_BREAKTYPE:
@@ -1682,8 +1684,8 @@ void DoAction(struct action *act, int key)
 		Input(":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
 		if (*args && **args) {
 			s = *args;
-			n = strlen(s);
-			LayProcess(&s, &n);
+			len = strlen(s);
+			LayProcess(&s, &len);
 		}
 		break;
 	case RC_LASTMSG:
@@ -3182,8 +3184,8 @@ void DoAction(struct action *act, int key)
 		Input("Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL, 0);
 		if (*args && **args) {
 			s = *args;
-			n = strlen(s);
-			LayProcess(&s, &n);
+			len = strlen(s);
+			LayProcess(&s, &len);
 		}
 		break;
 
@@ -4792,7 +4794,7 @@ static void AKAFin(char *buf, size_t len, void *data)
 static void InputAKA()
 {
 	char *s, *ss;
-	int n;
+	size_t len;
 
 	if (enter_window_name_mode == 1)
 		return;
@@ -4807,8 +4809,8 @@ static void InputAKA()
 		if ((*(unsigned char *)s & 0x7f) < 0x20 || *s == 0x7f)
 			continue;
 		ss = s;
-		n = 1;
-		LayProcess(&ss, &n);
+		len = 1;
+		LayProcess(&ss, &len);
 	}
 }
 
@@ -5335,6 +5337,7 @@ static int digraph_find(const char *buf)
 static void digraph_fn(char *buf, size_t len, void *data)
 {
 	int ch, i, x;
+	size_t l;
 
 	(void)data; /* unused */
 
@@ -5382,12 +5385,12 @@ static void digraph_fn(char *buf, size_t len, void *data)
 			return;
 		}
 	}
-	i = 1;
+	l = 1;
 	*buf = x;
 	if (flayer->l_encoding == UTF8)
-		i = ToUtf8(buf, x);	/* buf is big enough for all UTF-8 codes */
-	while (i)
-		LayProcess(&buf, &i);
+		l = ToUtf8(buf, x);	/* buf is big enough for all UTF-8 codes */
+	while (l)
+		LayProcess(&buf, &l);
 }
 
 int StuffKey(int i)

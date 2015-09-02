@@ -54,13 +54,13 @@
 #include "tty.h"
 #include "utmp.h"
 
-static void WinProcess(char **, int *);
+static void WinProcess(char **, size_t *);
 static void WinRedisplayLine(int, int, int, int);
 static void WinClearLine(int, int, int, int);
 static int WinResize(int, int);
 static void WinRestore(void);
 static int DoAutolf(char *, int *, int);
-static void ZombieProcess(char **, int *);
+static void ZombieProcess(char **, size_t *);
 static void win_readev_fn(Event *, void *);
 static void win_writeev_fn(Event *, void *);
 static void win_resurrect_zombie_fn(Event *, void *);
@@ -205,7 +205,7 @@ static int DoAutolf(char *buf, int *lenp, int fr)
 	return trunc;
 }
 
-static void WinProcess(char **bufpp, int *lenp)
+static void WinProcess(char **bufpp, size_t *lenp)
 {
 	int l2 = 0, f, *ilen, l = *lenp, trunc;
 	char *ibuf;
@@ -281,7 +281,7 @@ static void WinProcess(char **bufpp, int *lenp)
 	}
 }
 
-static void ZombieProcess(char **bufpp, int *lenp)
+static void ZombieProcess(char **bufpp, size_t *lenp)
 {
 	int l = *lenp;
 	char *buf = *bufpp, b1[10], b2[10];
@@ -1318,15 +1318,15 @@ static void paste_slowev_fn(Event *event, void *data)
 
 	(void)event; /* unused */
 
-	int l = 1;
+	size_t len = 1;
 	flayer = pa->pa_pastelayer;
 	if (!flayer)
 		pa->pa_pastelen = 0;
 	if (!pa->pa_pastelen)
 		return;
 	p = Layer2Window(flayer);
-	DoProcess(p, &pa->pa_pasteptr, &l, pa);
-	pa->pa_pastelen -= 1 - l;
+	DoProcess(p, &pa->pa_pasteptr, &len, pa);
+	pa->pa_pastelen -= 1 - len;
 	if (pa->pa_pastelen > 0) {
 		SetTimeout(&pa->pa_slowev, p->w_slowpaste);
 		evenq(&pa->pa_slowev);
@@ -1643,7 +1643,7 @@ static int zmodem_parse(Window *p, char *bp, int len)
 static void zmodemFin(char *buf, size_t len, void *data)
 {
 	char *s;
-	int n;
+	size_t l;
 
 	(void)data; /* unused */
 
@@ -1651,15 +1651,16 @@ static void zmodemFin(char *buf, size_t len, void *data)
 		RcLine(buf, strlen(buf) + 1);
 	else {
 		s = "\030\030\030\030\030\030\030\030\030\030";
-		n = strlen(s);
-		LayProcess(&s, &n);
+		l = strlen(s);
+		LayProcess(&s, &l);
 	}
 }
 
 static void zmodem_found(Window *p, int send, char *bp, int len)
 {
 	char *s;
-	int i, n;
+	int i;
+	size_t n;
 
 	/* check for abort sequence */
 	n = 0;

@@ -243,7 +243,7 @@ static int gl_Window_row(ListData *ldata, ListRow *lrow)
 	return 1;
 }
 
-static int gl_Window_input(ListData *ldata, char **inp, int *len)
+static int gl_Window_input(ListData *ldata, char **inp, size_t *len)
 {
 	Window *win;
 	unsigned char ch;
