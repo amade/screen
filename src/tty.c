@@ -90,6 +90,7 @@ int OpenTTY(char *line, char *opt) {
 	struct mode Mode;
 	void (*sigalrm)(int);
 
+	sigalrm = xsignal(SIGALRM, SigAlrmDummy);
 	alarm(2);
 
 	/* this open only succeeds, if real uid is allowed */
