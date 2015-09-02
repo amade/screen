@@ -2374,7 +2374,6 @@ static void WReverseVideo(Window *win, int on)
 
 void WMsg(Window *win, int err, char *str)
 {
-	Layer *flayer;
 	Layer *oldflayer = flayer;
 	flayer = &win->w_layer;
 	LMsg(err, "%s", str);
