@@ -74,7 +74,7 @@ static void win_destroyev_fn(Event *, void *);
 static int OpenDevice(char **, int, int *, char **);
 static int ForkWindow(Window *, char **, char *);
 static void zmodem_found(Window *, int, char *, int);
-static void zmodem_fin(char *, int);
+static void zmodemFin(char *, size_t, void *);
 static int zmodem_parse(Window *, char *, int);
 
 Window **wtab;		/* window table */
@@ -1640,10 +1640,12 @@ static int zmodem_parse(Window *p, char *bp, int len)
 	return 0;
 }
 
-static void zmodem_fin(char *buf, int len)
+static void zmodemFin(char *buf, size_t len, void *data)
 {
 	char *s;
 	int n;
+
+	(void)data; /* unused */
 
 	if (len)
 		RcLine(buf, strlen(buf) + 1);
@@ -1702,7 +1704,7 @@ static void zmodem_found(Window *p, int send, char *bp, int len)
 		return;
 	}
 	flayer = &p->w_layer;
-	Input(":", MAXSTR, INP_COOKED, zmodem_fin, NULL, 0);
+	Input(":", MAXSTR, INP_COOKED, zmodemFin, NULL, 0);
 	s = send ? zmodem_sendcmd : zmodem_recvcmd;
 	n = strlen(s);
 	LayProcess(&s, &n);
