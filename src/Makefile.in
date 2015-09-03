@@ -51,7 +51,7 @@ CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
 	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
 	kmapdef.c acls.c logfile.c layer.c winmsg.c winmsgbuf.c winmsgcond.c \
 	backtick.c sched.c telnet.c encoding.c canvas.c layout.c viewport.c \
-	list_display.c list_generic.c list_window.c
+	list_display.c list_generic.c list_window.c authentication.c
 OFILES=$(CFILES:c=o)
 
 TESTCFILES := $(wildcard tests/test-*.c)
@@ -277,3 +277,4 @@ list_window.o: list_window.c config.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
  window.h logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h input.h \
  list_generic.h misc.h process.h
+authentication.o: authentication.h
