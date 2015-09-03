@@ -50,14 +50,24 @@ static bool CheckPassword() {
 #else
 	struct spwd *p;
 	char *passwd = 0;
+	gid_t gid;
+	uid_t uid;
 
+	uid = geteuid();
+	gid = getegid();
+	seteuid(0);
+	setegid(0);
 	p = getspnam(ppp->pw_name);
+	seteuid(uid);
+	setegid(gid);
+	if (p == NULL)
+		fprintf(stderr, "Can't open passwd file\n");
 
 	printf("\aScreen used by %s%s<%s> on %s.\n",
 		ppp->pw_gecos, ppp->pw_gecos[0] ? " " : "", ppp->pw_name, HostName);
 	passwd = crypt(getpass("Password:"), p->sp_pwdp);
 
-	ret = (strcmp(provided, p->sp_pwdp) == 0);
+	ret = (strcmp(passwd, p->sp_pwdp) == 0);
 
 	free(p);
 	free(passwd);

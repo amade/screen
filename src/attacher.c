@@ -45,6 +45,7 @@
 #include <security/pam_appl.h>
 #endif
 
+#include "authentication.h"
 #include "misc.h"
 #include "socket.h"
 #include "tty.h"
@@ -55,7 +56,6 @@ static void AttacherWinch(int);
 static void DoLock(int);
 static void LockTerminal(void);
 static void LockHup(int);
-static void screen_builtin_lck(void);
 static void AttachSigCont(int);
 
 static int ContinuePlease;
@@ -191,6 +191,8 @@ int Attach(int how)
 		Panic(errno, "setgid");
 	eff_uid = real_uid;
 	eff_gid = real_gid;
+
+	LockTerminal();
 
 	MasterPid = 0;
 	for (s = SocketName; *s; s++) {
@@ -424,7 +426,6 @@ void Attacher()
 		}
 		if (LockPlease) {
 			LockPlease = 0;
-			LockTerminal();
 			(void)Attach(MSG_CONT);
 		}
 		if (SigWinchPlease) {
@@ -462,164 +463,13 @@ static void LockTerminal()
 	xsignal(SIGHUP, LockHup);
 	printf("\n");
 
-	screen_builtin_lck();
+	Authenticate();
 
 	/* reset signals */
 	for (sig = 1; sig < NSIG - 1; sig++) {
 		if (sigs[sig] != (void (*)(int))-1)
 			xsignal(sig, sigs[sig]);
 	}
-}				/* LockTerminal */
-
-#ifdef USE_PAM
-
-static int PAM_conv(int, const struct pam_message **, struct pam_response **, void *);
-
-static int PAM_conv(int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr)
-{
-	int replies = 0;
-	struct pam_response *reply = NULL;
-
-	reply = malloc(sizeof(struct pam_response) * num_msg);
-	if (!reply)
-		return PAM_CONV_ERR;
-#define COPY_STRING(s) (s) ? strdup(s) : NULL
-
-	for (replies = 0; replies < num_msg; replies++) {
-		switch (msg[replies]->msg_style) {
-		case PAM_PROMPT_ECHO_OFF:
-			/* wants password */
-			reply[replies].resp_retcode = PAM_SUCCESS;
-			reply[replies].resp = appdata_ptr ? strdup((char *)appdata_ptr) : 0;
-			break;
-		case PAM_TEXT_INFO:
-			/* ignore the informational mesage */
-			/* but first clear out any drek left by malloc */
-			reply[replies].resp = NULL;
-			break;
-		case PAM_PROMPT_ECHO_ON:
-			/* user name given to PAM already */
-			/* fall through */
-		default:
-			/* unknown or PAM_ERROR_MSG */
-			free(reply);
-			return PAM_CONV_ERR;
-		}
-	}
-	*resp = reply;
-	return PAM_SUCCESS;
-}
-
-static struct pam_conv PAM_conversation = {
-	&PAM_conv,
-	NULL
-};
-
-#endif
-
-/* -- original copyright by Luigi Cannelloni 1985 (luigi@faui70.UUCP) -- */
-static void screen_builtin_lck()
-{
-	char fullname[100], *cp1, message[100 + 100];
-#ifdef USE_PAM
-	pam_handle_t *pamh = 0;
-	int pam_error;
-	char *tty_name;
-#endif
-	char *pass = 0, mypass[16 + 1], salt[3];
-	int using_pam = 1;
-
-#ifdef USE_PAM
-	if (!ppp->pw_uid) {
-#endif
-		using_pam = 0;
-		pass = ppp->pw_passwd;
-		if (pass == 0 || *pass == 0) {
-			if ((pass = getpass("Key:   "))) {
-				strncpy(mypass, pass, sizeof(mypass) - 1);
-				mypass[sizeof(mypass) - 1] = 0;
-				if (*mypass == 0)
-					return;
-				if ((pass = getpass("Again: "))) {
-					if (strcmp(mypass, pass)) {
-						fprintf(stderr, "Passwords don't match.\007\n");
-						sleep(2);
-						return;
-					}
-				}
-			}
-			if (pass == 0) {
-				fprintf(stderr, "Getpass error.\007\n");
-				sleep(2);
-				return;
-			}
-
-			salt[0] = 'A' + (int)(time(0) % 26);
-			salt[1] = 'A' + (int)((time(0) >> 6) % 26);
-			salt[2] = 0;
-			pass = crypt(mypass, salt);
-			if (!pass) {
-				fprintf(stderr, "crypt() error.\007\n");
-				sleep(2);
-				return;
-			}
-			pass = ppp->pw_passwd = SaveStr(pass);
-		}
-#ifdef USE_PAM
-	}
-#endif
-
-	strncpy(fullname, ppp->pw_gecos, sizeof(fullname) - 9);
-	fullname[sizeof(fullname) - 9] = 0;
-
-	if ((cp1 = strchr(fullname, ',')) != NULL)
-		*cp1 = '\0';
-	if ((cp1 = strchr(fullname, '&')) != NULL) {
-		strncpy(cp1, ppp->pw_name, 8);
-		cp1[8] = 0;
-		if (*cp1 >= 'a' && *cp1 <= 'z')
-			*cp1 -= 'a' - 'A';
-	}
-
-	sprintf(message, "Screen used by %s%s<%s> on %s.\nPassword:\007",
-		fullname, fullname[0] ? " " : "", ppp->pw_name, HostName);
-
-	/* loop here to wait for correct password */
-	for (;;) {
-		errno = 0;
-		if ((cp1 = getpass(message)) == NULL) {
-			AttacherFinit(0);
-			/* NOTREACHED */
-		}
-		if (using_pam) {
-#ifdef USE_PAM
-			PAM_conversation.appdata_ptr = cp1;
-			pam_error = pam_start("screen", ppp->pw_name, &PAM_conversation, &pamh);
-			if (pam_error != PAM_SUCCESS)
-				AttacherFinit(0);	/* goodbye */
-
-			if (strncmp(attach_tty, "/dev/", 5) == 0)
-				tty_name = attach_tty + 5;
-			else
-				tty_name = attach_tty;
-			pam_error = pam_set_item(pamh, PAM_TTY, tty_name);
-			if (pam_error != PAM_SUCCESS)
-				AttacherFinit(0);	/* goodbye */
-
-			pam_error = pam_authenticate(pamh, 0);
-			pam_end(pamh, pam_error);
-			PAM_conversation.appdata_ptr = 0;
-			if (pam_error == PAM_SUCCESS)
-				break;
-#endif
-		} else {
-			char *buf = crypt(cp1, pass);
-			if (buf && !strncmp(buf, pass, strlen(pass)))
-				break;
-		}
-		memset(cp1, 0, strlen(cp1));
-	}
-	memset(cp1, 0, strlen(cp1));
 }
 
 void SendCmdMessage(char *sty, char *match, char **av, int query)
