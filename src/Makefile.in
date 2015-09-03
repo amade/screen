@@ -51,7 +51,7 @@ CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
 	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
 	kmapdef.c acls.c logfile.c layer.c winmsg.c winmsgbuf.c winmsgcond.c \
 	backtick.c sched.c telnet.c encoding.c canvas.c layout.c viewport.c \
-	list_display.c list_generic.c list_window.c
+	list_display.c list_generic.c list_window.c authentication.c
 OFILES=$(CFILES:c=o)
 
 TESTCFILES := $(wildcard tests/test-*.c)
@@ -210,7 +210,7 @@ termcap.o: layout.h viewport.h canvas.h termcap.c config.h screen.h os.h ansi.h 
 input.o: layout.h viewport.h canvas.h input.c config.h screen.h os.h ansi.h \
  comm.h layer.h term.h image.h display.h window.h
 attacher.o: layout.h viewport.h canvas.h attacher.c config.h screen.h os.h ansi.h \
- acls.h comm.h layer.h term.h image.h display.h window.h
+ acls.h comm.h layer.h term.h image.h display.h window.h authentication.h
 pty.o: layout.h viewport.h canvas.h pty.c config.h screen.h os.h ansi.h acls.h comm.h \
  layer.h term.h image.h display.h window.h 
 process.o: layout.h viewport.h canvas.h process.c config.h screen.h os.h ansi.h acls.h \
@@ -240,3 +240,4 @@ viewport.o: layout.h viewport.h canvas.h viewport.c config.h screen.h os.h ansi.
 list_generic.o: list_generic.h list_generic.c layer.h screen.h comm.h
 list_display.o: list_generic.h list_display.c layer.h screen.h comm.h
 list_window.o: list_generic.h list_window.c window.h layer.h screen.h winmsg.h comm.h
+authentication.o: authentication.h
