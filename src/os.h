@@ -262,6 +262,7 @@ extern int errno;
 #  define pututline	pututxline
 #  define setutent	setutxent
 #  define endutent	endutxent
+#  define ut_time	ut_xtime
 # else /* SVR4 */
 #  include <utmp.h>
 # endif /* SVR4 */
