@@ -704,7 +704,7 @@ int msgok;
 	  else if (ParseNum(act, &n))
 	    break;
 	}
-      if (n < 0 && n > 3)
+      if (n < 0 || n > 3)
 	{
           Msg(0, "Out of range; 0 <= bd_info >= 3 ");
 	  break;
