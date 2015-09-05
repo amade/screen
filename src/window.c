@@ -50,6 +50,7 @@
 #include "process.h"
 #include "pty.h"
 #include "resize.h"
+#include "telnet.h"
 #include "termcap.h"
 #include "tty.h"
 #include "utmp.h"

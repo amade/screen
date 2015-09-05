@@ -60,6 +60,7 @@
 #include "resize.h"
 #include "search.h"
 #include "socket.h"
+#include "telnet.h"
 #include "termcap.h"
 #include "tty.h"
 #include "utmp.h"

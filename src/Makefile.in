@@ -50,7 +50,7 @@ CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
 	search.c tty.c term.c window.c utmp.c help.c \
 	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
 	kmapdef.c acls.c logfile.c layer.c winmsg.c winmsgbuf.c winmsgcond.c \
-	backtick.c sched.c teln.c encoding.c canvas.c layout.c viewport.c \
+	backtick.c sched.c telnet.c encoding.c canvas.c layout.c viewport.c \
 	list_display.c list_generic.c list_window.c
 OFILES=$(CFILES:c=o)
 
@@ -187,16 +187,16 @@ mark.o: layout.h viewport.h canvas.h mark.c config.h screen.h os.h ansi.h acls.h
 misc.o: layout.h viewport.h canvas.h misc.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h
 resize.o: layout.h viewport.h canvas.h resize.c config.h screen.h os.h ansi.h acls.h \
- comm.h layer.h term.h image.h display.h window.h
+ comm.h layer.h term.h image.h display.h window.h telnet.h
 socket.o: layout.h viewport.h canvas.h socket.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h
 search.o: layout.h viewport.h canvas.h search.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h mark.h
 tty.o: layout.h viewport.h canvas.h tty.c config.h screen.h os.h ansi.h acls.h comm.h \
- layer.h term.h image.h display.h window.h
+ layer.h term.h image.h display.h window.h telnet.h
 term.o: layout.h viewport.h canvas.h term.c term.h comm.h
 window.o: layout.h viewport.h canvas.h window.c config.h screen.h os.h ansi.h acls.h \
- comm.h layer.h term.h image.h display.h window.h logfile.h
+ comm.h layer.h term.h image.h display.h window.h logfile.h telnet.h
 winmsg.o: winmsgbuf.h winmsgcond.h backtick.h comm.h
 winmsgbuf.o: comm.h
 winmsgcond.o: comm.h
@@ -214,7 +214,7 @@ attacher.o: layout.h viewport.h canvas.h attacher.c config.h screen.h os.h ansi.
 pty.o: layout.h viewport.h canvas.h pty.c config.h screen.h os.h ansi.h acls.h comm.h \
  layer.h term.h image.h display.h window.h 
 process.o: layout.h viewport.h canvas.h process.c config.h screen.h os.h ansi.h acls.h \
- comm.h layer.h term.h image.h display.h window.h logfile.h winmsg.h
+ comm.h layer.h term.h image.h display.h window.h logfile.h winmsg.h telnet.h
 display.o: layout.h viewport.h canvas.h display.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h  winmsg.h
 canvas.o: layout.h viewport.h canvas.h canvas.c config.h screen.h os.h ansi.h acls.h \
@@ -229,8 +229,8 @@ layer.o: layout.h viewport.h canvas.h layer.c config.h screen.h os.h ansi.h acls
  comm.h layer.h term.h image.h display.h window.h 
 sched.o: layout.h viewport.h canvas.h sched.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h logfile.h
-teln.o: layout.h viewport.h canvas.h teln.c config.h screen.h os.h ansi.h acls.h \
- comm.h layer.h term.h image.h display.h window.h 
+telnet.o: layout.h viewport.h canvas.h telnet.c config.h screen.h os.h ansi.h acls.h \
+ comm.h layer.h term.h image.h display.h window.h telnet.h
 encoding.o: layout.h viewport.h canvas.h encoding.c config.h screen.h os.h ansi.h acls.h \
  comm.h layer.h term.h image.h display.h window.h 
 layout.o: layout.h viewport.h canvas.h layout.c config.h screen.h os.h ansi.h acls.h \

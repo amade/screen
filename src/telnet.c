@@ -37,6 +37,7 @@
 #ifdef BUILTIN_TELNET
 
 #include "screen.h"
+#include "telnet.h"
 
 extern Window *fore;
 extern Layer *flayer;
@@ -44,7 +45,7 @@ extern int visual_bell;
 extern char screenterm[];
 extern int af;
 
-static void TelReply(Window *, char *, int);
+static void TelReply(Window *, char *, size_t);
 static void TelDocmd(Window *, int, int);
 static void TelDosub(Window *);
 
@@ -84,31 +85,34 @@ static unsigned char tn_init[] = {
 	TC_IAC, TC_WILL, TO_LFLOW,
 };
 
-static void tel_connev_fn(Event *ev, char *data)
+static void tel_connev_fn(Event *ev, void *data)
 {
-	Window *p = (Window *)data;
-	if (connect(p->w_ptyfd, (struct sockaddr *)&p->w_telsa, sizeof(p->w_telsa)) && errno != EISCONN) {
+	Window *win = (Window *)data;
+
+	(void)ev; /* unused */
+
+	if (connect(win->w_ptyfd, (struct sockaddr *)&win->w_telsa, sizeof(win->w_telsa)) && errno != EISCONN) {
 		char buf[1024];
 		buf[0] = ' ';
 		strncpy(buf + 1, strerror(errno), sizeof(buf) - 2);
 		buf[sizeof(buf) - 1] = 0;
-		WriteString(p, buf, strlen(buf));
-		WindowDied(p, 0, 0);
+		WriteString(win, buf, strlen(buf));
+		WindowDied(win, 0, 0);
 		return;
 	}
-	WriteString(p, "connected.\r\n", 12);
-	evdeq(&p->w_telconnev);
-	p->w_telstate = 0;
+	WriteString(win, "connected.\r\n", 12);
+	evdeq(&win->w_telconnev);
+	win->w_telstate = 0;
 }
 
-int TelOpenAndConnect(Window *p)
+int TelOpenAndConnect(Window *win)
 {
 	int fd, on = 1;
 	char buf[256];
 
 	struct addrinfo hints, *res0, *res;
 
-	if (!(p->w_cmdargs[1])) {
+	if (!(win->w_cmdargs[1])) {
 		Msg(0, "Usage: screen //telnet host [port]");
 		return -1;
 	}
@@ -118,8 +122,8 @@ int TelOpenAndConnect(Window *p)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 
-	if (getaddrinfo(p->w_cmdargs[1], p->w_cmdargs[2] ? p->w_cmdargs[2] : TEL_DEFPORT, &hints, &res0)) {
-		Msg(0, "unknown host: %s", p->w_cmdargs[1]);
+	if (getaddrinfo(win->w_cmdargs[1], win->w_cmdargs[2] ? win->w_cmdargs[2] : TEL_DEFPORT, &hints, &res0)) {
+		Msg(0, "unknown host: %s", win->w_cmdargs[1]);
 		return -1;
 	}
 
@@ -137,21 +141,21 @@ int TelOpenAndConnect(Window *p)
 		if (setsockopt(fd, SOL_SOCKET, SO_OOBINLINE, (char *)&on, sizeof(on)))
 			Msg(errno, "TelOpenAndConnect: setsockopt SO_OOBINLINE");
 
-		if (p->w_cmdargs[2] && strcmp(p->w_cmdargs[2], TEL_DEFPORT))
-			snprintf(buf, 256, "Trying %s %s...", p->w_cmdargs[1], p->w_cmdargs[2]);
+		if (win->w_cmdargs[2] && strcmp(win->w_cmdargs[2], TEL_DEFPORT))
+			snprintf(buf, 256, "Trying %s %s...", win->w_cmdargs[1], win->w_cmdargs[2]);
 		else
-			snprintf(buf, 256, "Trying %s...", p->w_cmdargs[1]);
+			snprintf(buf, 256, "Trying %s...", win->w_cmdargs[1]);
 
-		WriteString(p, buf, strlen(buf));
+		WriteString(win, buf, strlen(buf));
 		if (connect(fd, res->ai_addr, res->ai_addrlen)) {
 			if (errno == EINPROGRESS) {
-				p->w_telstate = TEL_CONNECTING;
-				p->w_telconnev.fd = fd;
-				p->w_telconnev.handler = tel_connev_fn;
-				p->w_telconnev.data = (char *)p;
-				p->w_telconnev.type = EV_WRITE;
-				p->w_telconnev.priority = 1;
-				evenq(&p->w_telconnev);
+				win->w_telstate = TEL_CONNECTING;
+				win->w_telconnev.fd = fd;
+				win->w_telconnev.handler = tel_connev_fn;
+				win->w_telconnev.data = (void *)win;
+				win->w_telconnev.type = EV_WRITE;
+				win->w_telconnev.priority = 1;
+				evenq(&win->w_telconnev);
 			} else {
 				close(fd);
 				if (res->ai_next)
@@ -163,33 +167,34 @@ int TelOpenAndConnect(Window *p)
 				}
 			}
 		} else
-			WriteString(p, "connected.\r\n", 12);
+			WriteString(win, "connected.\r\n", 12);
 
-		if (!(p->w_cmdargs[2] && strcmp(p->w_cmdargs[2], TEL_DEFPORT)))
-			TelReply(p, (char *)tn_init, sizeof(tn_init));
+		if (!(win->w_cmdargs[2] && strcmp(win->w_cmdargs[2], TEL_DEFPORT)))
+			TelReply(win, (char *)tn_init, sizeof(tn_init));
 
-		p->w_ptyfd = fd;
-		memcpy(&p->w_telsa, &res->ai_addr, sizeof(res->ai_addr));
+		win->w_ptyfd = fd;
+		memcpy(&win->w_telsa, &res->ai_addr, sizeof(res->ai_addr));
 		freeaddrinfo(res0);
 		return 0;
 	}
 	return -1;
 }
 
-int TelIsline(Window *p)
+int TelIsline(Window *win)
 {
+	(void)win; /* unused */
 	return !fore->w_telropts[TO_SGA];
 }
 
-void TelProcessLine(char **bufpp, int *lenp)
+void TelProcessLine(char **bufpp, size_t *lenp)
 {
 	int echo = !fore->w_telropts[TO_ECHO];
 	unsigned char c;
 	char *tb;
-	int tl;
+	size_t tl;
 
 	char *buf = *bufpp;
-	int l = *lenp;
+	size_t l = *lenp;
 	while (l--) {
 		c = *(unsigned char *)buf++;
 		if (fore->w_telbufl + 2 >= IOSIZE) {
@@ -267,7 +272,7 @@ int DoTelnet(char *buf, int *lenp, int f)
 }
 
 /* modifies data in-place, returns new length */
-int TelIn(Window *p, char *buf, int len, int free)
+int TelIn(Window *win, char *buf, int len, int free)
 {
 	char *rp, *wp;
 	int c;
@@ -276,47 +281,47 @@ int TelIn(Window *p, char *buf, int len, int free)
 	while (len-- > 0) {
 		c = *(unsigned char *)rp++;
 
-		if (p->w_telstate >= TC_WILL && p->w_telstate <= TC_DONT) {
-			TelDocmd(p, p->w_telstate, c);
-			p->w_telstate = 0;
+		if (win->w_telstate >= TC_WILL && win->w_telstate <= TC_DONT) {
+			TelDocmd(win, win->w_telstate, c);
+			win->w_telstate = 0;
 			continue;
 		}
-		if (p->w_telstate == TC_SB || p->w_telstate == TC_SE) {
-			if (p->w_telstate == TC_SE && c == TC_IAC)
-				p->w_telsubidx--;
-			if (p->w_telstate == TC_SE && c == TC_SE) {
-				p->w_telsubidx--;
-				TelDosub(p);
-				p->w_telstate = 0;
+		if (win->w_telstate == TC_SB || win->w_telstate == TC_SE) {
+			if (win->w_telstate == TC_SE && c == TC_IAC)
+				win->w_telsubidx--;
+			if (win->w_telstate == TC_SE && c == TC_SE) {
+				win->w_telsubidx--;
+				TelDosub(win);
+				win->w_telstate = 0;
 				continue;
 			}
-			if (p->w_telstate == TC_SB && c == TC_IAC)
-				p->w_telstate = TC_SE;
+			if (win->w_telstate == TC_SB && c == TC_IAC)
+				win->w_telstate = TC_SE;
 			else
-				p->w_telstate = TC_SB;
-			p->w_telsubbuf[p->w_telsubidx] = c;
-			if (p->w_telsubidx < sizeof(p->w_telsubbuf) - 1)
-				p->w_telsubidx++;
+				win->w_telstate = TC_SB;
+			win->w_telsubbuf[win->w_telsubidx] = c;
+			if (win->w_telsubidx < sizeof(win->w_telsubbuf) - 1)
+				win->w_telsubidx++;
 			continue;
 		}
-		if (p->w_telstate == TC_IAC) {
+		if (win->w_telstate == TC_IAC) {
 			if ((c >= TC_WILL && c <= TC_DONT) || c == TC_SB) {
-				p->w_telsubidx = 0;
-				p->w_telstate = c;
+				win->w_telsubidx = 0;
+				win->w_telstate = c;
 				continue;
 			}
-			p->w_telstate = 0;
+			win->w_telstate = 0;
 			if (c != TC_IAC)
 				continue;
 		} else if (c == TC_IAC) {
-			p->w_telstate = c;
+			win->w_telstate = c;
 			continue;
 		}
-		if (p->w_telstate == '\r') {
-			p->w_telstate = 0;
+		if (win->w_telstate == '\r') {
+			win->w_telstate = 0;
 			if (c == 0)
 				continue;	/* suppress trailing \0 */
-		} else if (c == '\n' && !p->w_telropts[TO_SGA]) {
+		} else if (c == '\n' && !win->w_telropts[TO_SGA]) {
 			/* oops... simulate terminal line mode: insert \r */
 			if (wp + 1 == rp) {
 				if (free-- > 0) {
@@ -329,90 +334,90 @@ int TelIn(Window *p, char *buf, int len, int free)
 				*wp++ = '\r';
 		}
 		if (c == '\r')
-			p->w_telstate = c;
+			win->w_telstate = c;
 		*wp++ = c;
 	}
 	return wp - buf;
 }
 
-static void TelReply(Window *p, char *str, int len)
+static void TelReply(Window *win, char *str, size_t len)
 {
 	if (len <= 0)
 		return;
-	if (p->w_inlen + len > IOSIZE) {
+	if (win->w_inlen + len > IOSIZE) {
 		Msg(0, "Warning: telnet protocol overrun!");
 		return;
 	}
-	bcopy(str, p->w_inbuf + p->w_inlen, len);
-	p->w_inlen += len;
+	bcopy(str, win->w_inbuf + win->w_inlen, len);
+	win->w_inlen += len;
 }
 
-static void TelDocmd(Window *p, int cmd, int opt)
+static void TelDocmd(Window *win, int cmd, int opt)
 {
 	unsigned char b[3];
 	int repl = 0;
 
 	switch (cmd) {
 	case TC_WILL:
-		if (p->w_telropts[opt] || opt == TO_TM)
+		if (win->w_telropts[opt] || opt == TO_TM)
 			return;
 		repl = TC_DONT;
 		if (opt == TO_ECHO || opt == TO_SGA || opt == TO_BINARY) {
-			p->w_telropts[opt] = 1;
+			win->w_telropts[opt] = 1;
 			/* setcon(); */
 			repl = TC_DO;
 		}
 		break;
 	case TC_WONT:
-		if (!p->w_telropts[opt] || opt == TO_TM)
+		if (!win->w_telropts[opt] || opt == TO_TM)
 			return;
 		repl = TC_DONT;
-		p->w_telropts[opt] = 0;
+		win->w_telropts[opt] = 0;
 		break;
 	case TC_DO:
-		if (p->w_telmopts[opt])
+		if (win->w_telmopts[opt])
 			return;
 		repl = TC_WONT;
 		if (opt == TO_TTYPE || opt == TO_SGA || opt == TO_BINARY || opt == TO_NAWS || opt == TO_TM
 		    || opt == TO_LFLOW) {
 			repl = TC_WILL;
-			p->w_telmopts[opt] = 1;
+			win->w_telmopts[opt] = 1;
 		}
-		p->w_telmopts[TO_TM] = 0;
+		win->w_telmopts[TO_TM] = 0;
 		break;
 	case TC_DONT:
-		if (!p->w_telmopts[opt])
+		if (!win->w_telmopts[opt])
 			return;
 		repl = TC_WONT;
-		p->w_telmopts[opt] = 0;
+		win->w_telmopts[opt] = 0;
 		break;
 	}
 	b[0] = TC_IAC;
 	b[1] = repl;
 	b[2] = opt;
 
-	TelReply(p, (char *)b, 3);
+	TelReply(win, (char *)b, 3);
 	if (cmd == TC_DO && opt == TO_NAWS)
-		TelWindowSize(p);
+		TelWindowSize(win);
 }
 
-static void TelDosub(Window *p)
+static void TelDosub(Window *win)
 {
 	char trepl[20 + 6 + 1];
 	int l;
 
-	switch (p->w_telsubbuf[0]) {
+	switch (win->w_telsubbuf[0]) {
 	case TO_TTYPE:
-		if (p->w_telsubidx != 2 || p->w_telsubbuf[1] != 1)
+		if (win->w_telsubidx != 2 || win->w_telsubbuf[1] != 1)
 			return;
 		l = strlen(screenterm);
 		if (l >= 20)
 			break;
 		sprintf(trepl, "%c%c%c%c%s%c%c", TC_IAC, TC_SB, TO_TTYPE, 0, screenterm, TC_IAC, TC_SE);
-		TelReply(p, trepl, l + 6);
+		TelReply(win, trepl, l + 6);
 		break;
 	case TO_LFLOW:
-		if (p->w_telsubidx != 2)
+		if (win->w_telsubidx != 2)
 			return;
 		break;
 	default:
@@ -420,54 +425,56 @@ static void TelDosub(Window *p)
 	}
 }
 
-void TelBreak(Window *p)
+void TelBreak(Window *win)
 {
 	static unsigned char tel_break[] = { TC_IAC, TC_BREAK };
-	TelReply(p, (char *)tel_break, 2);
+	TelReply(win, (char *)tel_break, 2);
 }
 
-void TelWindowSize(Window *p)
+void TelWindowSize(Window *win)
 {
 	char s[20], trepl[20], *t;
 	int i;
 
-	if (p->w_width == 0 || p->w_height == 0 || !p->w_telmopts[TO_NAWS])
+	if (win->w_width == 0 || win->w_height == 0 || !win->w_telmopts[TO_NAWS])
 		return;
-	sprintf(s, "%c%c%c%c%c%c%c%c%c", TC_SB, TC_SB, TO_NAWS, p->w_width / 256, p->w_width & 255, p->w_height / 256,
-		p->w_height & 255, TC_SE, TC_SE);
+	sprintf(s, "%c%c%c%c%c%c%c%c%c", TC_SB, TC_SB, TO_NAWS, win->w_width / 256, win->w_width & 255, win->w_height / 256,
+		win->w_height & 255, TC_SE, TC_SE);
 	t = trepl;
 	for (i = 0; i < 9; i++)
 		if ((unsigned char)(*t++ = s[i]) == TC_IAC)
 			*t++ = TC_IAC;
 	trepl[0] = TC_IAC;
 	t[-2] = TC_IAC;
-	TelReply(p, trepl, t - trepl);
+	TelReply(win, trepl, t - trepl);
 }
 
 static char tc_s[] = TC_S;
 static char to_s[] = TO_S;
 
-void TelStatus(Window *p, char *buf, int l)
+void TelStatus(Window *win, char *buf, size_t len)
 {
 	int i;
 
+	(void)len; /* unused */
+
 	*buf++ = '[';
 	for (i = 0; to_s[i]; i++) {
-		if (to_s[i] == ' ' || p->w_telmopts[i] == 0)
+		if (to_s[i] == ' ' || win->w_telmopts[i] == 0)
 			continue;
 		*buf++ = to_s[i];
 	}
 	*buf++ = ':';
 	for (i = 0; to_s[i]; i++) {
-		if (to_s[i] == ' ' || p->w_telropts[i] == 0)
+		if (to_s[i] == ' ' || win->w_telropts[i] == 0)
 			continue;
 		*buf++ = to_s[i];
 	}
-	if (p->w_telstate == TEL_CONNECTING)
+	if (win->w_telstate == TEL_CONNECTING)
 		buf[-1] = 'C';
-	else if (p->w_telstate && p->w_telstate != '\r') {
+	else if (win->w_telstate && win->w_telstate != '\r') {
 		*buf++ = ':';
-		*buf++ = tc_s[p->w_telstate - TC_SE];
+		*buf++ = tc_s[win->w_telstate - TC_SE];
 	}
 	*buf++ = ']';
 	*buf = 0;

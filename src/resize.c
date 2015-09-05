@@ -37,6 +37,7 @@
 
 #include "process.h"
 #include "resize.h"
+#include "telnet.h"
 
 /* maximum window width */
 #define MAXWIDTH 1000
