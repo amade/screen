@@ -173,7 +173,7 @@ int TelOpenAndConnect(Window *win)
 			TelReply(win, (char *)tn_init, sizeof(tn_init));
 
 		win->w_ptyfd = fd;
-		memcpy(&win->w_telsa, &res->ai_addr, sizeof(res->ai_addr));
+		memmove(&win->w_telsa, &res->ai_addr, sizeof(res->ai_addr));
 		freeaddrinfo(res0);
 		return 0;
 	}

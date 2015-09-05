@@ -311,7 +311,7 @@ static void InpProcess(char **ppbuf, size_t *plen)
 
 			if ((prev || search) && !inpdata->inp.next)
 				inphist = inpdata->inp;
-			memcpy(&inpdata->inp, sel, sizeof(struct inpline));
+			memmove(&inpdata->inp, sel, sizeof(struct inpline));
 			if (pos != -1)
 				inpdata->inp.pos = pos;
 			if (inpdata->inp.len > inpdata->inpmaxlen)
@@ -354,7 +354,7 @@ static void InpProcess(char **ppbuf, size_t *plen)
 
 				if (!store) {
 					store = malloc(sizeof(struct inpline));
-					memcpy(store, &inpdata->inp, sizeof(struct inpline));
+					memmove(store, &inpdata->inp, sizeof(struct inpline));
 				}
 				store->next = &inphist;
 				store->prev = inphist.prev;
