@@ -14,7 +14,7 @@
 #include <shadow.h>
 #endif
 
-bool CheckPassword() {
+static bool CheckPassword() {
 	bool ret = false;
 #if USE_PAM
 	pam_handle_t *pamh = 0;
@@ -67,6 +67,9 @@ bool CheckPassword() {
 	passwd = crypt(getpass("Password:"), p->sp_pwdp);
 
 	ret = (strcmp(passwd, p->sp_pwdp) == 0);
+
+	free(p);
+	free(passwd);
 
 	printf(">%d<\n", ret);
 #endif
