@@ -422,10 +422,6 @@ void Attacher()
 			(void)Attach(MSG_CONT);
 		}
 		if (LockPlease) {
-			printf("\ncookies\n");
-			LockTerminal();
-			printf("\nzombies\n");
-			LockTerminal();
 			LockPlease = 0;
 			(void)Attach(MSG_CONT);
 		}
