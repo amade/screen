@@ -1334,8 +1334,7 @@ static int StringEnd()
 				if (curr->w_color.foreground == 0)
 					curr->w_color.foreground = calloc(1, sizeof(uint32_t));
 				*(curr->w_color.foreground) = color;
-			*(curr->w_color.background) = color;
-			} else { /* typ == 11 */
+			} else if (typ == 11) {
 				if (curr->w_color.background == 0)
 					curr->w_color.background = calloc(1, sizeof(uint32_t));
 				*(curr->w_color.background) = color;
@@ -1777,31 +1776,6 @@ static void SelectRendition()
 	do {
 		j = curr->w_args[i];
 
-		if (j == 39) {
-			if (curr->w_color.foreground != 0)
-				colorfg = *(curr->w_color.foreground);
-			else
-				colorfg = 0;
-		}
-		if (j == 49) {
-			if (curr->w_color.background != 0)
-				colorfg = *(curr->w_color.background);
-			else
-				colorbg = 0;
-		}
-		if (j == 0) {
-			attr = 0;
-			/* will be xored to 0 */
-			if (curr->w_color.foreground != 0)
-				colorfg = *(curr->w_color.foreground);
-			else
-				colorbg = 0;
-			if (curr->w_color.background != 0)
-				colorfg = *(curr->w_color.background);
-			else
-				colorfg = 0;
-		}
-
 		/* indexed colour space aka 256 colours; example escape \e[48;5;12m */
 		if ((j == 38 || j == 48) && i + 2 < curr->w_NumArgs && curr->w_args[i + 1] == 5) {
 			int jj;
@@ -1842,6 +1816,16 @@ static void SelectRendition()
 			colorfg = (j - 30) | 0x01000000;
 		if (j >= 40 && j < 48)
 			colorbg = (j - 40) | 0x01000000;
+		if (j == 39)
+			colorfg = 0;
+		if (j == 49)
+			colorbg = 0;
+		if (j == 0) {
+			attr = 0;
+			/* will be xored to 0 */
+			colorfg = 0;
+			colorbg = 0;
+		}
 
 		if (j < 0 || j >= (int)(sizeof(rendlist)/sizeof(*rendlist)))
 			continue;
