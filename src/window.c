@@ -109,7 +109,7 @@ struct NewWindow nwin_undef = {
 	.encoding            = -1,
 	.hstatus             = (char *)0,
 	.charset             = (char *)0,
-	.poll_zombie_timeout = 0
+	.poll_zombie_timeout = 0,
 };
 
 struct NewWindow nwin_default = {
@@ -133,7 +133,7 @@ struct NewWindow nwin_default = {
 	.bce        = 0,
 	.encoding   = 0,
 	.hstatus    = (char *)0,
-	.charset    = (char *)0
+	.charset    = (char *)0,
 };
 
 struct NewWindow nwin_options;
@@ -632,6 +632,9 @@ int MakeWindow(struct NewWindow *newwin)
 	p->w_destroyev.type = EV_TIMEOUT;
 	p->w_destroyev.data = 0;
 	p->w_destroyev.handler = win_destroyev_fn;
+
+	p->w_color.background = 0;
+	p->w_color.foreground = 0;
 
 	SetForeWindow(p);
 	Activate(p->w_norefresh);

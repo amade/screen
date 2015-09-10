@@ -27,6 +27,7 @@
  */
 
 #include <sys/types.h>
+#include <ctype.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -1309,6 +1310,39 @@ static int StringEnd()
 				}
 			}
 		}
+		if (typ == 10 || typ == 11) { /* set foreground, background color */
+			uint32_t color = 0;
+
+			if (strlen(p) != 7) /* #abcdef */
+				break;
+
+			p++; /* skip '#' */
+
+			while (*p) {
+				color = color << 4;
+				if (*p >= '0' && *p <= '9')
+					color |= (uint32_t)(*p - '0');
+				tolower(*p);
+				if (*p >= 'a' && *p <= 'f')
+					color |= (uint32_t)(*p - 'a' + 10);
+				p++;
+			}
+
+			color = color | 0x02000000; /* it's in truecolor */
+
+			if (typ == 10) {
+				if (curr->w_color.foreground == 0)
+					curr->w_color.foreground = calloc(1, sizeof(uint32_t));
+				*(curr->w_color.foreground) = color;
+			*(curr->w_color.background) = color;
+			} else { /* typ == 11 */
+				if (curr->w_color.background == 0)
+					curr->w_color.background = calloc(1, sizeof(uint32_t));
+				*(curr->w_color.background) = color;
+			}
+			Activate(-1);
+			break;
+		}
 		if (typ != 0 && typ != 2)
 			break;
 
@@ -1731,6 +1765,8 @@ static char rendlist[] = {
 	0, 0, ~(A_BD | A_SO | A_DI), ~A_SO, ~A_US, ~A_BL, 0, ~A_RV
 };
 
+/* This function is responsible for setting colors in which characters
+ * are drawn on screen */
 static void SelectRendition()
 {
 	int j, i = 0;
@@ -1740,7 +1776,33 @@ static void SelectRendition()
 
 	do {
 		j = curr->w_args[i];
-		/* indexed colour space aka 256 colours; example escape \e[48;2;12m */
+
+		if (j == 39) {
+			if (curr->w_color.foreground != 0)
+				colorfg = *(curr->w_color.foreground);
+			else
+				colorfg = 0;
+		}
+		if (j == 49) {
+			if (curr->w_color.background != 0)
+				colorfg = *(curr->w_color.background);
+			else
+				colorbg = 0;
+		}
+		if (j == 0) {
+			attr = 0;
+			/* will be xored to 0 */
+			if (curr->w_color.foreground != 0)
+				colorfg = *(curr->w_color.foreground);
+			else
+				colorbg = 0;
+			if (curr->w_color.background != 0)
+				colorfg = *(curr->w_color.background);
+			else
+				colorfg = 0;
+		}
+
+		/* indexed colour space aka 256 colours; example escape \e[48;5;12m */
 		if ((j == 38 || j == 48) && i + 2 < curr->w_NumArgs && curr->w_args[i + 1] == 5) {
 			int jj;
 
@@ -1755,7 +1817,7 @@ static void SelectRendition()
 			}
 			continue;
 		}
-		/* truecolor (24bit) colour space; example escape \e[48;5;12;13;14m 
+		/* truecolor (24bit) colour space; example escape \e[48;2;12;13;14m 
 		 * where 12;13;14 are rgb values */
 		if ((j == 38 || j == 48) && i + 4 < curr->w_NumArgs && curr->w_args[i + 1] == 2) {
 			uint8_t r, g, b;
@@ -1780,16 +1842,6 @@ static void SelectRendition()
 			colorfg = (j - 30) | 0x01000000;
 		if (j >= 40 && j < 48)
 			colorbg = (j - 40) | 0x01000000;
-		if (j == 39)
-			colorfg = 0;
-		if (j == 49)
-			colorbg = 0;
-		if (j == 0) {
-			attr = 0;
-			/* will be xored to 0 */
-			colorbg = 0;
-			colorfg = 0;
-		}
 
 		if (j < 0 || j >= (int)(sizeof(rendlist)/sizeof(*rendlist)))
 			continue;

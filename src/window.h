@@ -183,6 +183,14 @@ struct Window {
 		int	 CharsetR;
 		int	 Charsets[4];
 	} w_saved;
+
+	struct color {
+		uint32_t *background;
+		uint32_t *foreground;
+		/*uint32_t *16colors;
+		uint32_t *256colors;*/
+	} w_color;
+
 	int	 w_top, w_bot;		/* scrollregion */
 	int	 w_wrap;		/* autowrap */
 	int	 w_origin;		/* origin mode */
