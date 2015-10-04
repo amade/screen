@@ -80,7 +80,7 @@ int wmbc_printf(WinMsgBufContext *, const char *, ...)
                 __attribute__((format(printf,2,3)));
 size_t wmbc_offset(WinMsgBufContext *);
 size_t wmbc_bytesleft(WinMsgBufContext *);
-char *wmbc_mergewmb(WinMsgBufContext *, WinMsgBuf *);
+const char *wmbc_mergewmb(WinMsgBufContext *, WinMsgBuf *);
 const char *wmbc_finish(WinMsgBufContext *);
 void wmbc_free(WinMsgBufContext *);
 

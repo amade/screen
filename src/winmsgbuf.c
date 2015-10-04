@@ -276,9 +276,9 @@ size_t wmbc_bytesleft(WinMsgBufContext *wmbc)
 
 /* Merges the contents of another null-terminated buffer and its renditions. The
  * return value is a pointer to the first character of WMB's buffer. */
-char *wmbc_mergewmb(WinMsgBufContext *wmbc, WinMsgBuf *wmb)
+const char *wmbc_mergewmb(WinMsgBufContext *wmbc, WinMsgBuf *wmb)
 {
-	char *p;
+	const char *p;
 	size_t offset = wmbc_offset(wmbc);
 	int ri;
 
