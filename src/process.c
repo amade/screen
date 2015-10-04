@@ -757,7 +757,7 @@ void ProcessInput2(char *ibuf, int ilen)
 
 void DoProcess(Window *window, char **bufp, size_t *lenp, struct paster *pa)
 {
-	int oldlen;
+	size_t oldlen;
 	Display *d = display;
 
 	/* XXX -> PasteStart */
@@ -5226,7 +5226,7 @@ static void suFin(char *buf, size_t len, void *data)
 {
 	struct inputsu *i = (struct inputsu *)data;
 	char *p;
-	int l;
+	size_t l;
 
 	if (!*i->name) {
 		p = i->name;
