@@ -4610,8 +4610,7 @@ char *AddOtherUsers(char *buf, int len, Window *p)
  * current foreground window, if available. */
 void ShowWindows(int where)
 {
-	char *ss;
-	const char *buf, *s;
+	const char *buf, *s, *ss;
 
 	WinMsgBuf *wmb = wmb_create();
 	WinMsgBufContext *wmbc = wmbc_create(wmb);
