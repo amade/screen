@@ -1581,7 +1581,7 @@ static void RemoveStatusMinWait()
 	RemoveStatus();
 }
 
-static int strlen_onscreen(unsigned char *c, unsigned char *end)
+static int strlen_onscreen(char *c, char *end)
 {
 	int len = 0;
 	while (*c && (!end || c < end)) {
@@ -1608,7 +1608,7 @@ static int PrePutWinMsg(char *s, int start, int max)
 	   Ideally, this would not be necessary. But fixing it the Right Way will
 	   probably take way more time. So this will have to do for now. */
 	if (D_encoding == UTF8) {
-		int chars = strlen_onscreen((unsigned char *)(s + start), (unsigned char *)(s + max));
+		int chars = strlen_onscreen((s + start), (s + max));
 		D_encoding = 0;
 		PutWinMsg(s, start, max + ((max - start) - chars));	/* Multibyte count */
 		D_encoding = UTF8;
