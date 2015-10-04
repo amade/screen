@@ -4863,7 +4863,7 @@ static void ColonFin(char *buf, size_t len, void *data)
 			}
 		}
 		if (l > r && showmessage)
-			Msg(0, "No commands matching '%*s'", len, buf);
+			Msg(0, "No commands matching '%*s'", (int)len, buf);
 		return;
 	}
 
