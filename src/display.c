@@ -2502,7 +2502,7 @@ static void disp_writeev_fn(Event *event, void *data)
 
 static void disp_readev_fn(Event *event, void *data)
 {
-	size_t size;
+	ssize_t size;
 	char buf[IOSIZE];
 	Canvas *cv;
 
@@ -2566,7 +2566,7 @@ static void disp_readev_fn(Event *event, void *data)
 				flayer = &p->w_layer;
 				bufp = buf;
 				while (size > 0)
-					LayProcess(&bufp, &size);
+					LayProcess(&bufp, (size_t*)&size);
 				return;
 			}
 		zmodem_abort(0, display);
