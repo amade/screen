@@ -79,9 +79,12 @@ static void ShowInfo(void);
 static void ShowDInfo(void);
 static Window *WindowByName(char *);
 static int WindowByNumber(char *);
+static int ParseSwitch(struct action *, int *);
 static int ParseOnOff(struct action *, int *);
 static int ParseWinNum(struct action *, int *);
 static int ParseBase(struct action *, char *, int *, int, char *);
+static int ParseSaveStr(struct action *, char **);
+static int ParseNum(struct action *, int *);
 static int ParseNum1000(struct action *, int *);
 static char **SaveArgs(char **);
 static int IsNum(char *, int);
@@ -4038,7 +4041,7 @@ void SetEscape(struct acluser *u, int e, int me)
 	}
 }
 
-int ParseSwitch(struct action *act, int *var)
+static int ParseSwitch(struct action *act, int *var)
 {
 	if (*act->args == 0) {
 		*var ^= 1;
@@ -4066,7 +4069,7 @@ static int ParseOnOff(struct action *act, int *var)
 	return 0;
 }
 
-int ParseSaveStr(struct action *act, char **var)
+static int ParseSaveStr(struct action *act, char **var)
 {
 	char **args = act->args;
 	if (*args == 0 || args[1]) {
@@ -4079,7 +4082,7 @@ int ParseSaveStr(struct action *act, char **var)
 	return 0;
 }
 
-int ParseNum(struct action *act, int *var)
+static int ParseNum(struct action *act, int *var)
 {
 	int i;
 	char *p, **args = act->args;
