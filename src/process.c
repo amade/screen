@@ -3737,12 +3737,7 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_TRUECOLOR:
-		if (!strcmp(args[0], "on")) {
-			hastruecolor = true;
-		}
-		if (!strcmp(args[0], "off")) {
-			hastruecolor = false;
-		}
+		ParseOnOff(act, &hastruecolor);
 		Activate(-1); /* redisplay (check RC_REDISPLAY) */
 		break;
 	default:
