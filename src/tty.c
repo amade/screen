@@ -47,7 +47,7 @@
 
 static void consredir_readev_fn(Event *, void *);
 
-int separate_sids = 1;
+bool separate_sids = true;
 
 static void DoSendBreak(int, int, int);
 static void SigAlrmDummy(int);
@@ -765,7 +765,7 @@ static void consredir_readev_fn(Event * event, void *data)
 		WriteString(console_window, p, n - p);
 }
 
-int TtyGrabConsole(int fd, int on, char *rc_name)
+int TtyGrabConsole(int fd, bool on, char *rc_name)
 {
 	Display *d;
 #ifdef SRIOCSREDIR
@@ -777,7 +777,7 @@ int TtyGrabConsole(int fd, int on, char *rc_name)
 
 	(void)fd;		/* unused */
 
-	if (on > 0) {
+	if (on) {
 		if (displays == 0) {
 			Msg(0, "I need a display");
 			return -1;
@@ -796,7 +796,7 @@ int TtyGrabConsole(int fd, int on, char *rc_name)
 		close(consredirfd[1]);
 		consredirfd[0] = consredirfd[1] = -1;
 	}
-	if (on <= 0)
+	if (!on)
 		return 0;
 #ifdef SRIOCSREDIR
 	if ((cfd = secopen("/dev/console", O_RDWR | O_NOCTTY, 0)) == -1) {

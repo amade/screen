@@ -80,7 +80,7 @@ static int zmodem_parse(Window *, char *, int);
 
 Window **wtab;		/* window table */
 
-int VerboseCreate = 0;		/* XXX move this to user.h */
+bool VerboseCreate = false;		/* XXX move this to user.h */
 
 char DefaultShell[] = "/bin/sh";
 #ifndef HAVE_EXECVPE
@@ -100,11 +100,11 @@ struct NewWindow nwin_undef = {
 	.monitor             = -1,
 	.wlock               = -1,
 	.silence             = -1,
-	.wrap                = -1,
-	.Lflag               = -1,
+	.wrap                = false,
+	.Lflag               = false,
 	.slow                = -1,
 	.gr                  = -1,
-	.c1                  = -1,
+	.c1                  = false,
 	.bce                 = -1,
 	.encoding            = -1,
 	.hstatus             = (char *)0,
@@ -125,11 +125,11 @@ struct NewWindow nwin_default = {
 	.monitor    = MON_OFF,
 	.wlock      = WLOCK_OFF,
 	.silence    = 0,
-	.wrap       = 1,
-	.Lflag      = 0,
+	.wrap       = true,
+	.Lflag      = false,
 	.slow       = 0,
 	.gr         = 0,
-	.c1         = 1,
+	.c1         = true,
 	.bce        = 0,
 	.encoding   = 0,
 	.hstatus    = (char *)0,
@@ -745,7 +745,7 @@ void FreeWindow(Window *window)
 	CloseDevice(window);
 
 	if (window == console_window) {
-		TtyGrabConsole(-1, -1, "free");
+		TtyGrabConsole(-1, false, "free");
 		console_window = 0;
 	}
 	if (window->w_log != NULL)

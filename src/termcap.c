@@ -365,7 +365,7 @@ int InitTermcap(int width, int height)
 	D_EIcost = CalcCost(D_EI);
 
 	if (D_CAN) {
-		D_auto_nuke = 1;
+		D_auto_nuke = true;
 	}
 	if (D_COL > 0) {
 		D_obufmax = D_COL;

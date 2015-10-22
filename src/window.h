@@ -49,11 +49,11 @@ struct NewWindow {
 	int	monitor;
 	int	wlock;		/* default writelock setting */
 	int	silence;
-	int	wrap;
-	int	Lflag;		/* logging */
+	bool	wrap;
+	bool	Lflag;		/* logging */
 	int	slow;		/* inter character milliseconds */
 	int	gr;
-	int	c1;
+	bool	c1;
 	int	bce;
 	int	encoding;
 	char	*hstatus;
@@ -184,7 +184,7 @@ struct Window {
 		int	 Charsets[4];
 	} w_saved;
 	int	 w_top, w_bot;		/* scrollregion */
-	int	 w_wrap;		/* autowrap */
+	bool	 w_wrap;		/* autowrap */
 	int	 w_origin;		/* origin mode */
 	int	 w_insert;		/* window is in insert mode */
 	int	 w_keypad;		/* keypad mode */
@@ -195,7 +195,7 @@ struct Window {
 	int	 w_autolf;		/* automatic linefeed */
 	char	*w_hstatus;		/* hardstatus line */
 	int	 w_gr;			/* enable GR flag */
-	int	 w_c1;			/* enable C1 flag */
+	bool     w_c1;			/* enable C1 flag */
 	int	 w_decodestate;		/* state of our input decoder */
 	int	 w_mbcs;		/* saved char for multibytes charset */
 	char	 w_string[MAXSTR];
@@ -326,7 +326,7 @@ void  zmodem_abort(Window *, Display *);
 
 extern char DefaultShell[];
 
-extern int VerboseCreate;
+extern bool VerboseCreate;
 
 extern const struct LayFuncs WinLf;
 extern struct NewWindow nwin_undef, nwin_default, nwin_options;

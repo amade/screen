@@ -78,15 +78,17 @@ Display *display, *displays;
 /*
  *  The default values
  */
+bool defautonuke = false;
+
 int defobuflimit = OBUF_MAX;
 int defnonblock = -1;
 int defmousetrack = 0;
 int defbracketed = 0;
 int defcursorstyle = 0;
-int defautonuke = 0;
 int captionalways = 0;
 int captiontop = 0;
 int hardstatusemu = HSTATUS_IGNORE;
+
 struct statusposstr statuspos = { STATUS_BOTTOM, STATUS_LEFT };
 
 int focusminwidth, focusminheight;

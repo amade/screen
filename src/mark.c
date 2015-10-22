@@ -63,7 +63,9 @@ static void MarkProcess(char **, size_t *);
 static void MarkAbort(void);
 static void MarkRedisplayLine(int, int, int, int);
 
-int pastefont = 1;
+bool compacthist = false;
+bool join_with_cr = false;
+bool pastefont = true;
 
 const struct LayFuncs MarkLf = {
 	MarkProcess,
@@ -74,9 +76,6 @@ const struct LayFuncs MarkLf = {
 	DefRestore,
 	0
 };
-
-int join_with_cr = 0;
-int compacthist = 0;
 
 unsigned char mark_key_tab[256];	/* this array must be initialised first! */
 

@@ -269,21 +269,21 @@ extern char *VisualBellString;
 extern char **NewEnv;
 
 extern bool adaptflag;
+extern bool auto_detach;
+extern bool cjkwidth;
+extern bool default_startup;
 extern bool hastruecolor;
 extern bool iflag;
+extern bool logtstamp_on;
 extern bool lsflag;
 extern bool quietflag;
 extern bool wipeflag;
 extern bool xflag;
 
 extern int attach_fd;
-extern int auto_detach;
-extern int cjkwidth;
-extern int default_startup;
 extern int dflag;
 extern int force_vt;
 extern int log_flush;
-extern int logtstamp_on;
 extern int logtstamp_after;
 extern uint16_t maxwin;
 extern unsigned int multi_uid;

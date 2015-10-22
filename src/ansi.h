@@ -155,13 +155,17 @@ void  ChangeAKA (Window *, char *, size_t);
 void  SetCharsets (Window *, char *);
 int   GetAnsiStatus (Window *, char *);
 void  WNewAutoFlow (Window *, int);
-void  WBell (Window *, int);
+void  WBell (Window *, bool);
 void  WMsg (Window *, int, char *);
 void  WChangeSize (Window *, int, int);
 void  WindowChanged (Window *, int);
 int   MFindUsedLine (Window *, int, int);
 
 /* global variables */
+
+extern bool visual_bell;
+extern bool use_altscreen;
+extern bool use_hardstatus;
 
 extern char *printcmd;
 
@@ -170,9 +174,6 @@ extern uint32_t *null;
 
 extern uint64_t renditions[];
 
-extern int use_altscreen;
-extern int use_hardstatus;
-extern int visual_bell;
 extern int Z0width;
 extern int Z1width;
 

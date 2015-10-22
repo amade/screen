@@ -78,8 +78,8 @@ static int utmpfd = -1;
 /*
  * SlotToggle - modify the utmp slot of the fore window.
  *
- * how > 0	do try to set a utmp slot.
- * how = 0	try to withdraw a utmp slot.
+ * how == true  try to set a utmp slot.
+ * how == false try to withdraw a utmp slot.
  *
  * w_slot = -1  window not logged in.
  * w_slot = 0   window not logged in, but should be logged in.
@@ -87,7 +87,7 @@ static int utmpfd = -1;
  */
 
 #ifndef UTMPOK
-void SlotToggle(int how)
+void SlotToggle(bool how)
 {
 #ifdef UTMPFILE
 	Msg(0, "Unable to modify %s.\n", UTMPFILE);
@@ -99,7 +99,7 @@ void SlotToggle(int how)
 
 #ifdef UTMPOK
 
-void SlotToggle(int how)
+void SlotToggle(bool how)
 {
 	if (fore->w_type != W_TYPE_PTY) {
 		Msg(0, "Can only work with normal windows.\n");
