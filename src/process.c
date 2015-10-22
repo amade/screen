@@ -1708,20 +1708,20 @@ void DoAction(struct action *act, int key)
 		if (*args) {
 			if (args[0][0] == 'a') {
 				fore->w_flow =
-				    (fore->w_flow & FLOW_AUTO) ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_NOW : FLOW_AUTOFLAG;
+				    (fore->w_flow & FLOW_AUTO) ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_ON : FLOW_AUTOFLAG;
 			} else 	if (ParseOnOff(act, &b) == 0)
-				fore->w_flow = (fore->w_flow & FLOW_AUTO) | b ? FLOW_NOW : 0;
+				fore->w_flow = (fore->w_flow & FLOW_AUTO) | b ? FLOW_ON : FLOW_OFF;
 		} else {
 			if (fore->w_flow & FLOW_AUTOFLAG)
-				fore->w_flow = (fore->w_flow & FLOW_AUTO) | FLOW_NOW;
-			else if (fore->w_flow & FLOW_NOW)
-				fore->w_flow &= ~FLOW_NOW;
+				fore->w_flow = (fore->w_flow & FLOW_AUTO) | FLOW_ON;
+			else if (fore->w_flow & FLOW_ON)
+				fore->w_flow &= ~FLOW_ON;
 			else
-				fore->w_flow = fore->w_flow ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_NOW : FLOW_AUTOFLAG;
+				fore->w_flow = fore->w_flow ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_ON : FLOW_AUTOFLAG;
 		}
-		SetFlow(fore->w_flow & FLOW_NOW);
+		SetFlow(fore->w_flow & FLOW_ON);
 		if (msgok)
-			OutputMsg(0, "%cflow%s", (fore->w_flow & FLOW_NOW) ? '+' : '-',
+			OutputMsg(0, "%cflow%s", (fore->w_flow & FLOW_ON) ? '+' : '-',
 				  (fore->w_flow & FLOW_AUTOFLAG) ? "(auto)" : "");
 		break;
 	case RC_DEFWRITELOCK:
@@ -2263,7 +2263,7 @@ void DoAction(struct action *act, int key)
 		if (args[0] && args[0][0] == 'a')
 			nwin_default.flowflag = FLOW_AUTOFLAG;
 		else if (ParseOnOff(act, &b) == 0) 
-			nwin_default.flowflag = b ? FLOW_NOW : 0;
+			nwin_default.flowflag = b ? FLOW_ON : FLOW_OFF;
 		break;
 	case RC_DEFWRAP:
 		(void)ParseOnOff(act, &nwin_default.wrap);
@@ -4668,7 +4668,7 @@ static void ShowInfo()
 	sprintf(p, "(%d,%d)/(%d,%d)", wp->w_x + 1, wp->w_y + 1, wp->w_width, wp->w_height);
 	sprintf(p += strlen(p), "+%d", wp->w_histheight);
 	sprintf(p += strlen(p), " %c%sflow",
-		(wp->w_flow & FLOW_NOW) ? '+' : '-',
+		(wp->w_flow & FLOW_ON) ? '+' : '-',
 		(wp->w_flow & FLOW_AUTOFLAG) ? "" : ((wp->w_flow & FLOW_AUTO) ? "(+)" : "(-)"));
 	if (!wp->w_wrap)
 		sprintf(p += strlen(p), " -wrap");
@@ -4980,12 +4980,12 @@ void DoScreen(char *fn, char **av)
 			switch (av[0][2]) {
 			case 'n':
 			case '0':
-				nwin.flowflag = FLOW_NOW * 0;
+				nwin.flowflag = FLOW_OFF;
 				break;
 			case 'y':
 			case '1':
 			case '\0':
-				nwin.flowflag = FLOW_NOW * 1;
+				nwin.flowflag = FLOW_ON;
 				break;
 			case 'a':
 				nwin.flowflag = FLOW_AUTOFLAG;

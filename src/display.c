@@ -132,7 +132,7 @@ void DefRestore()
 	LBracketedPasteMode(flayer, 0);
 	LCursorStyle(flayer, 0);
 	LSetRendition(flayer, &mchar_null);
-	LSetFlow(flayer, nwin_default.flowflag & FLOW_NOW);
+	LSetFlow(flayer, nwin_default.flowflag & FLOW_ON);
 }
 
 /*
@@ -363,7 +363,7 @@ void FinitTerm()
 		BracketedPasteMode(0);
 		CursorStyle(0);
 		SetRendition(&mchar_null);
-		SetFlow(FLOW_NOW);
+		SetFlow(FLOW_ON);
 		AddCStr(D_KE);
 		AddCStr(D_CCE);
 		if (D_hstatus)
@@ -938,7 +938,7 @@ void Redisplay(int cur_only)
 	BracketedPasteMode(0);
 	CursorStyle(0);
 	SetRendition(&mchar_null);
-	SetFlow(FLOW_NOW);
+	SetFlow(FLOW_ON);
 
 	ClearAll();
 	RefreshXtermOSC();

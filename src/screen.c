@@ -345,14 +345,14 @@ int main(int argc, char **argv)
 					switch (*ap++) {
 					case 'n':
 					case '0':
-						nwin_options.flowflag = FLOW_NOW * 0;
+						nwin_options.flowflag = FLOW_ON;
 						break;
 					case '\0':
 						ap--;
 						/* FALLTHROUGH */
 					case 'y':
 					case '1':
-						nwin_options.flowflag = FLOW_NOW * 1;
+						nwin_options.flowflag = FLOW_OFF;
 						break;
 					case 'a':
 						nwin_options.flowflag = FLOW_AUTOFLAG;
