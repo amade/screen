@@ -493,7 +493,7 @@ void SetMode(struct mode *op, struct mode *np, int flow, int interrupt)
 }
 
 /* operates on display */
-void SetFlow(int on)
+void SetFlow(bool on)
 {
 	if (D_flow == on)
 		return;

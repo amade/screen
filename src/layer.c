@@ -493,7 +493,7 @@ void LCursorVisibility(Layer *l, int vis)
 	}
 }
 
-void LSetFlow(Layer *l, int flow)
+void LSetFlow(Layer *l, bool flow)
 {
 	Canvas *cv;
 	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
@@ -543,7 +543,7 @@ void LMouseMode(Layer *l, int on)
 	}
 }
 
-void LBracketedPasteMode(Layer *l, int on)
+void LBracketedPasteMode(Layer *l, bool on)
 {
 	Canvas *cv;
 	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {

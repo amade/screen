@@ -129,7 +129,7 @@ void DefRestore()
 	LCursorkeysMode(flayer, 0);
 	LCursorVisibility(flayer, 0);
 	LMouseMode(flayer, 0);
-	LBracketedPasteMode(flayer, 0);
+	LBracketedPasteMode(flayer, false);
 	LCursorStyle(flayer, 0);
 	LSetRendition(flayer, &mchar_null);
 	LSetFlow(flayer, nwin_default.flowflag & FLOW_ON);
@@ -360,7 +360,7 @@ void FinitTerm()
 		if (D_mousetrack)
 			D_mousetrack = 0;
 		MouseMode(0);
-		BracketedPasteMode(0);
+		BracketedPasteMode(false);
 		CursorStyle(0);
 		SetRendition(&mchar_null);
 		SetFlow(FLOW_ON);
@@ -608,7 +608,7 @@ void MouseMode(int mode)
 	}
 }
 
-void BracketedPasteMode(int mode)
+void BracketedPasteMode(bool mode)
 {
 	if (!display)
 		return;
@@ -935,7 +935,7 @@ void Redisplay(int cur_only)
 	CursorkeysMode(0);
 	CursorVisibility(0);
 	MouseMode(0);
-	BracketedPasteMode(0);
+	BracketedPasteMode(false);
 	CursorStyle(0);
 	SetRendition(&mchar_null);
 	SetFlow(FLOW_ON);
@@ -2356,7 +2356,7 @@ void NukePending()
 	int oldkeypad = D_keypad, oldcursorkeys = D_cursorkeys;
 	int oldcurvis = D_curvis;
 	int oldmouse = D_mouse;
-	int oldbracketed = D_bracketed;
+	bool oldbracketed = D_bracketed;
 	int oldcursorstyle = D_cursorstyle;
 
 	oldrend = D_rend;
