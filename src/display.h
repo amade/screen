@@ -344,7 +344,7 @@ void  CursorkeysMode (int);
 void  ReverseVideo (int);
 void  CursorVisibility (int);
 void  MouseMode (int);
-void  BracketedPasteMode (int);
+void  BracketedPasteMode (bool);
 void  CursorStyle (int);
 void  SetRendition (struct mchar *);
 void  SetRenditionMline (struct mline *, int);

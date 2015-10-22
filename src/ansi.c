@@ -164,7 +164,7 @@ void ResetWindow(Window *win)
 	win->w_insert = false;
 	win->w_revvid = 0;
 	win->w_mouse = 0;
-	win->w_bracketed = 0;
+	win->w_bracketed = false;
 	win->w_cursorstyle = 0;
 	win->w_curinv = 0;
 	win->w_curvvis = 0;
@@ -1216,7 +1216,7 @@ static void DoCSI(int c, int intermediate)
 				LMouseMode(&curr->w_layer, curr->w_mouse);
 				break;
 			case 2004:	/* bracketed paste mode */
-				curr->w_bracketed = i ? 1 : 0;
+				curr->w_bracketed = i ? true : false;
 				LBracketedPasteMode(&curr->w_layer, curr->w_bracketed);
 				break;
 			}
