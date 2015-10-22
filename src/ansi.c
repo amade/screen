@@ -129,7 +129,7 @@ static void CursorRight(int);
 static void CursorUp(int);
 static void CursorDown(int);
 static void CursorLeft(int);
-static void ASetMode(int);
+static void ASetMode(bool);
 static void SelectRendition(void);
 static void RestorePosRendition(void);
 static void FillWithEs(void);
@@ -146,7 +146,7 @@ static void MScrollV(Window *, int, int, int, int);
 static void MClearArea(Window *, int, int, int, int, int);
 static void MInsChar(Window *, struct mchar *, int, int);
 static void MPutChar(Window *, struct mchar *, int, int);
-static void MWrapChar(Window *, struct mchar *, int, int, int, int);
+static void MWrapChar(Window *, struct mchar *, int, int, int, bool);
 static void MBceLine(Window *, int, int, int, int);
 
 void ResetAnsiState(Window *win)
@@ -161,7 +161,7 @@ void ResetWindow(Window *win)
 
 	win->w_wrap = nwin_default.wrap;
 	win->w_origin = 0;
-	win->w_insert = 0;
+	win->w_insert = false;
 	win->w_revvid = 0;
 	win->w_mouse = 0;
 	win->w_bracketed = 0;
@@ -778,7 +778,7 @@ static void DoESC(int c, int intermediate)
 #endif
 			/* XXX
 			   SetRendition(&mchar_null);
-			   InsertMode(0);
+			   InsertMode(false);
 			   ChangeScrollRegion(0, rows - 1);
 			 */
 			LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
@@ -1060,10 +1060,10 @@ static void DoCSI(int c, int intermediate)
 			InsertChar(a1 ? a1 : 1);
 			break;
 		case 'h':
-			ASetMode(1);
+			ASetMode(true);
 			break;
 		case 'l':
-			ASetMode(0);
+			ASetMode(false);
 			break;
 		case 'i':	/* MC Media Control */
 			if (a1 == 5)
@@ -1701,7 +1701,7 @@ static void CursorLeft(int n)
 	LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
 }
 
-static void ASetMode(int on)
+static void ASetMode(bool on)
 {
 	int i;
 
@@ -2211,7 +2211,7 @@ static void MPutChar(Window *win, struct mchar *c, int x, int y)
 	}
 }
 
-static void MWrapChar(Window *win, struct mchar *c, int y, int top, int bot, int ins)
+static void MWrapChar(Window *win, struct mchar *c, int y, int top, int bot, bool ins)
 {
 	struct mline *ml;
 	int bce;

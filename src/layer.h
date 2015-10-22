@@ -172,7 +172,7 @@ void  LRefreshAll (Layer *, int);
 void  LCDisplayLine (Layer *, struct mline *, int, int, int, int);
 void  LCDisplayLineWrap (Layer *, struct mline *, int, int, int, int);
 void  LSetRendition (Layer *, struct mchar *);
-void  LWrapChar  (Layer *, struct mchar *, int, int, int, int);
+void  LWrapChar  (Layer *, struct mchar *, int, int, int, bool);
 void  LCursorVisibility (Layer *, int);
 void  LSetFlow (Layer *, int);
 void  LKeypadMode (Layer *, int);
