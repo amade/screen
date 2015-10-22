@@ -186,7 +186,7 @@ struct Window {
 	int	 w_top, w_bot;		/* scrollregion */
 	bool	 w_wrap;		/* autowrap */
 	int	 w_origin;		/* origin mode */
-	int	 w_insert;		/* window is in insert mode */
+	bool	 w_insert;		/* window is in insert mode */
 	int	 w_keypad;		/* keypad mode */
 	int	 w_cursorkeys;		/* appl. cursorkeys mode */
 	int	 w_revvid;		/* reverse video */

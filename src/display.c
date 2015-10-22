@@ -123,7 +123,7 @@ int DefResize(int width, int height)
 
 void DefRestore()
 {
-	LAY_DISPLAYS(flayer, InsertMode(0));
+	LAY_DISPLAYS(flayer, InsertMode(false));
 	/* ChangeScrollRegion(0, D_height - 1); */
 	LKeypadMode(flayer, 0);
 	LCursorkeysMode(flayer, 0);
@@ -352,7 +352,7 @@ void FinitTerm()
 	KillBlanker();
 	if (D_tcinited) {
 		ResizeDisplay(D_defwidth, D_defheight);
-		InsertMode(0);
+		InsertMode(false);
 		ChangeScrollRegion(0, D_height - 1);
 		KeypadMode(0);
 		CursorkeysMode(0);
@@ -389,7 +389,7 @@ static void INSERTCHAR(int c)
 			RAW_PUTCHAR(c);
 			return;
 		}
-		InsertMode(1);
+		InsertMode(true);
 		if (!D_insert) {
 			RefreshLine(D_y, D_x, D_width - 1, 0);
 			return;
@@ -401,7 +401,7 @@ static void INSERTCHAR(int c)
 void PUTCHAR(int c)
 {
 	if (D_insert && D_x < D_width - 1)
-		InsertMode(0);
+		InsertMode(false);
 	RAW_PUTCHAR(c);
 }
 
@@ -409,7 +409,7 @@ void PUTCHARLP(int c)
 {
 	if (D_x < D_width - 1) {
 		if (D_insert)
-			InsertMode(0);
+			InsertMode(false);
 		RAW_PUTCHAR(c);
 		return;
 	}
@@ -532,7 +532,7 @@ void AddCStr2(char *s, int c)
 
 /* Insert mode is a toggle on some terminals, so we need this hack:
  */
-void InsertMode(int on)
+void InsertMode(bool on)
 {
 	if (display && on != D_insert && D_IM) {
 		D_insert = on;
@@ -929,7 +929,7 @@ void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int usel
 void Redisplay(int cur_only)
 {
 	/* XXX do em all? */
-	InsertMode(0);
+	InsertMode(false);
 	ChangeScrollRegion(0, D_height - 1);
 	KeypadMode(0);
 	CursorkeysMode(0);
@@ -1001,7 +1001,7 @@ void ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
 				for (i = -n; i--;)
 					AddCStr(D_IC);
 			} else if (D_IM) {
-				InsertMode(1);
+				InsertMode(true);
 				SetRendition(&mchar_null);
 				SetBackColor(bce);
 				for (i = -n; i--;)
@@ -1491,7 +1491,7 @@ void MakeStatus(char *msg)
 		D_status = STATUS_ON_WIN;
 		GotoPos(STATCOL(D_width, D_status_len), STATLINE());
 		SetRendition(&mchar_so);
-		InsertMode(0);
+		InsertMode(false);
 		AddStr(msg);
 		if (D_status_len < max) {
 			/* Wayne Davison: add extra space for readability */
@@ -1638,7 +1638,7 @@ void ShowHStatus(char *str)
 		if (!D_hstatus && (str == 0 || *str == 0))
 			return;
 		SetRendition(&mchar_null);
-		InsertMode(0);
+		InsertMode(false);
 		if (D_hstatus)
 			AddCStr(D_DS);
 		D_hstatus = false;
@@ -2038,7 +2038,7 @@ void InsChar(struct mchar *c, int x, int xe, int y, struct mline *oml)
 		/* UpdateLine(oml, y, x, xe); */
 		return;
 	}
-	InsertMode(1);
+	InsertMode(true);
 	if (!D_insert) {
 		if (c->mbcs && D_IC)
 			AddCStr(D_IC);
@@ -2059,7 +2059,7 @@ void InsChar(struct mchar *c, int x, int xe, int y, struct mline *oml)
 	}
 }
 
-void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, int ins)
+void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, bool ins)
 {
 	int bce;
 

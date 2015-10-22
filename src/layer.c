@@ -373,7 +373,7 @@ void LCDisplayLineWrap(Layer *l, struct mline *ml, int y, int from, int to, int 
 		nc.mbcs = ml->image[1];
 		from++;
 	}
-	LWrapChar(l, &nc, y - 1, -1, -1, 0);
+	LWrapChar(l, &nc, y - 1, -1, -1, false);
 	from++;
 	if (from <= to)
 		LCDisplayLine(l, ml, y, from, to, isblank);
@@ -391,7 +391,7 @@ void LSetRendition(Layer *l, struct mchar *r)
 	}
 }
 
-void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, int ins)
+void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, bool ins)
 {
 	Canvas *cv, *cvlist, *cvlnext;
 	Viewport *vp, *evp, **vpp;

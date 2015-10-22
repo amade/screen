@@ -100,7 +100,7 @@ struct Display {
 	int   d_encoding;		/* what encoding type the display is */
 	int   d_decodestate;		/* state of our decoder */
 	int   d_realfont;		/* real font of terminal */
-	int	d_insert;		/* insert mode flag */
+	bool	d_insert;		/* insert mode flag */
 	int	d_keypad;		/* application keypad flag */
 	int	d_cursorkeys;		/* application cursorkeys flag */
 	int	d_revvid;		/* reverse video */
@@ -336,9 +336,9 @@ void  ScrollH (int, int, int, int, int, struct mline *);
 void  ScrollV (int, int, int, int, int, int);
 void  PutChar (struct mchar *, int, int);
 void  InsChar (struct mchar *, int, int, int, struct mline *);
-void  WrapChar (struct mchar *, int, int, int, int, int, int, int);
+void  WrapChar (struct mchar *, int, int, int, int, int, int, bool);
 void  ChangeScrollRegion (int, int);
-void  InsertMode (int);
+void  InsertMode (bool);
 void  KeypadMode (int);
 void  CursorkeysMode (int);
 void  ReverseVideo (int);
