@@ -119,7 +119,7 @@ struct NewWindow nwin_default = {
 	.dir        = 0,
 	.term       = screenterm,
 	.aflag      = 0,
-	.flowflag   = 1 * FLOW_NOW,
+	.flowflag   = FLOW_ON,
 	.lflag      = LOGINDEFAULT,
 	.histheight = DEFAULTHISTHEIGHT,
 	.monitor    = MON_OFF,
@@ -342,7 +342,7 @@ static void WinRestore()
 		/* ChangeScrollRegion(fore->w_top, fore->w_bot); */
 		KeypadMode(fore->w_keypad);
 		CursorkeysMode(fore->w_cursorkeys);
-		SetFlow(fore->w_flow & FLOW_NOW);
+		SetFlow(fore->w_flow & FLOW_ON);
 		InsertMode(fore->w_insert);
 		ReverseVideo(fore->w_revvid);
 		CursorVisibility(fore->w_curinv ? -1 : fore->w_curvvis);
@@ -483,7 +483,7 @@ int MakeWindow(struct NewWindow *newwin)
 	p->w_wlock = nwin.wlock;
 	p->w_ptyfd = f;
 	p->w_aflag = nwin.aflag;
-	p->w_flow = nwin.flowflag | ((nwin.flowflag & FLOW_AUTOFLAG) ? (FLOW_AUTO | FLOW_NOW) : FLOW_AUTO);
+	p->w_flow = nwin.flowflag | ((nwin.flowflag & FLOW_AUTOFLAG) ? (FLOW_AUTO | FLOW_ON) : FLOW_AUTO);
 	if (!nwin.aka)
 		nwin.aka = Filename(nwin.args[0]);
 	strncpy(p->w_akabuf, nwin.aka, sizeof(p->w_akabuf) - 1);

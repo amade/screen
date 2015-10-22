@@ -289,7 +289,8 @@ struct Window {
  * Application controls auto_flow via TIOCPKT, if available,
  * else via application keypad mode.
  */
-#define FLOW_NOW	(1<<0)
+#define FLOW_OFF	0
+#define FLOW_ON		(1<<0)
 #define FLOW_AUTO	(1<<1)
 #define FLOW_AUTOFLAG	(1<<2)
 

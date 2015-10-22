@@ -1422,10 +1422,10 @@ static void PrintFlush()
 void WNewAutoFlow(Window *win, int on)
 {
 	if (win->w_flow & FLOW_AUTOFLAG)
-		win->w_flow = FLOW_AUTOFLAG | (FLOW_AUTO | FLOW_NOW) * on;
+		win->w_flow = FLOW_AUTOFLAG | (FLOW_AUTO | FLOW_ON) * on;
 	else
 		win->w_flow = (win->w_flow & ~FLOW_AUTO) | FLOW_AUTO * on;
-	LSetFlow(&win->w_layer, win->w_flow & FLOW_NOW);
+	LSetFlow(&win->w_layer, win->w_flow & FLOW_ON);
 }
 
 static void DesignateCharset(int c, int n)
