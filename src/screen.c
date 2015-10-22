@@ -101,7 +101,7 @@ char *home;
 
 char *screenlogfile;		/* filename layout */
 int log_flush = 10;		/* flush interval in seconds */
-int logtstamp_on = 0;		/* tstamp disabled */
+bool logtstamp_on = false;	/* tstamp disabled */
 char *logtstamp_string;		/* stamp layout */
 int logtstamp_after = 120;	/* first tstamp after 120s */
 char *hardcopydir = NULL;
@@ -115,7 +115,7 @@ char *captionstring;
 char *timestring;
 char *wliststr;
 char *wlisttit;
-int auto_detach = 1;
+bool auto_detach = true;
 bool adaptflag, cmdflag, iflag, lsflag, quietflag, wipeflag, xflag;
 int rflag, dflag;
 int queryflag = -1;
@@ -133,13 +133,13 @@ char HostName[MAXSTR];
 int MasterPid, PanicPid;
 uid_t real_uid, eff_uid;
 gid_t real_gid, eff_gid;
-int default_startup;
+bool default_startup;
 int ZombieKey_destroy, ZombieKey_resurrect, ZombieKey_onerror;
 char *preselect = NULL;		/* only used in Attach() */
 
 char *screenencodings;
 
-int cjkwidth;
+bool cjkwidth;
 
 uint16_t maxwin;
 
@@ -251,7 +251,7 @@ int main(int argc, char **argv)
 	BufferFile = SaveStr(DEFAULT_BUFFERFILE);
 	ShellProg = NULL;
 	PowDetachString = 0;
-	default_startup = (argc > 1) ? 0 : 1;
+	default_startup = (argc > 1) ? false : true;
 	adaptflag = false;
 	VBellWait = VBELLWAIT * 1000;
 	MsgWait = MSGWAIT * 1000;
@@ -417,7 +417,7 @@ int main(int argc, char **argv)
 					}
 					break;
 				case 'L':
-					nwin_options.Lflag = 1;
+					nwin_options.Lflag = true;
 					break;
 				case 'm':
 					mflag = 1;
@@ -1385,7 +1385,7 @@ void Detach(int mode)
 		RestoreLoginSlot();
 #endif
 	if (displays->d_next == 0 && console_window) {
-		if (TtyGrabConsole(console_window->w_ptyfd, 0, "detach")) {
+		if (TtyGrabConsole(console_window->w_ptyfd, false, "detach")) {
 			KillWindow(console_window);
 			display = displays;	/* restore display */
 		}

@@ -8,7 +8,7 @@ void  SetTTY (int, struct mode *);
 void  SetMode (struct mode *, struct mode *, int, int);
 void  SetFlow (int);
 void  SendBreak (Window *, int, int);
-int   TtyGrabConsole (int, int, char *);
+int   TtyGrabConsole (int, bool, char *);
 char *TtyGetModemStatus (int, char *);
 void  brktty (int);
 struct baud_values *lookup_baud (int bps);
@@ -18,7 +18,8 @@ int   CheckTtyname (char *);
 
 /* global variables */
 
+extern bool separate_sids;
+
 extern int breaktype;
-extern int separate_sids;
 
 #endif /* SCREEN_TTY_H */

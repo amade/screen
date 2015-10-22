@@ -1071,7 +1071,7 @@ void ResetEncoding(Window *p)
 	} else
 		p->w_FontE = 0;
 	if (encodings[encoding].noc1)
-		p->w_c1 = 0;
+		p->w_c1 = false;
 }
 
 /* decoded char: 32-bit <fontx><font><c2><c>

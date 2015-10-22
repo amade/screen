@@ -32,15 +32,16 @@ int   StuffKey (int);
 
 /* global variables */
 
+extern bool hardcopy_append;
+
 extern char *noargs[];
 extern char NullStr[];
+extern char *zmodem_recvcmd;
+extern char *zmodem_sendcmd;
 
-extern int hardcopy_append;
 extern int idletimo;
 extern int kmap_extn;
 extern int zmodem_mode;
-extern char *zmodem_recvcmd;
-extern char *zmodem_sendcmd;
 extern int TtyMode;
 
 extern struct action idleaction;

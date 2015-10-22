@@ -6,6 +6,6 @@ void  ISearch (int);
 
 /* global variables */
 
-extern int search_ic;
+extern bool search_ic;
 
 #endif /* SCREEN_SEARCH_H */

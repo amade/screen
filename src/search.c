@@ -38,7 +38,7 @@
 
 #define INPUTLINE (flayer->l_height - 1)
 
-int search_ic;
+bool search_ic;
 
 /********************************************************************
  *  VI style Search

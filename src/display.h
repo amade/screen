@@ -146,7 +146,7 @@ struct Display {
 	int	d_obuflenmax;		/* len - max */
 	char *d_obufp;			/* pointer in buffer */
 	int   d_obuffree;		/* free bytes in buffer */
-	int	d_auto_nuke;		/* autonuke flag */
+	bool	d_auto_nuke;		/* autonuke flag */
 	int	d_nseqs;		/* number of valid mappings */
 	int	d_aseqs;		/* number of allocated mappings */
 	unsigned char  *d_kmaps;	/* keymaps */
@@ -366,9 +366,10 @@ void  ClearScrollbackBuffer (void);
 
 /* global variables */
 
+extern bool defautonuke;
+
 extern int captionalways;
 extern int captiontop;
-extern int defautonuke;
 extern int defmousetrack;
 extern int defnonblock;
 extern int defobuflimit;

@@ -67,11 +67,11 @@ void  FreePaster (struct paster *);
 
 /* global variables */
 
-extern unsigned char mark_key_tab[];
+extern bool compacthist;
+extern bool join_with_cr;
+extern bool pastefont;
 
-extern int compacthist;
-extern int join_with_cr;
-extern int pastefont;
+extern unsigned char mark_key_tab[];
 
 extern const struct LayFuncs MarkLf;
 

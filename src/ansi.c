@@ -51,10 +51,11 @@ int Z0width, Z1width;		/* widths for Z0/Z1 switching */
 static Window *curr;	/* window we are working on */
 static int rows, cols;		/* window size of the curr window */
 
-int visual_bell = 0;
-int use_hardstatus = 1;		/* display status line in hs */
+bool use_altscreen = false;	/* enable alternate screen support? */
+bool use_hardstatus = true;	/* display status line in hs */
+bool visual_bell = 0;
+
 char *printcmd = 0;
-int use_altscreen = 0;		/* enable alternate screen support? */
 
 uint32_t *blank;		/* line filled with spaces */
 uint32_t *null;			/* line filled with '\0' */
@@ -584,7 +585,7 @@ void WriteString(Window *win, char *buf, size_t len)
 						break;
 					}
 					if (curr->w_x == cols - 1) {
-						curr->w_x += curr->w_wrap ? 1 : -1;
+						curr->w_x += curr->w_wrap ? true : false;
 					}
 					if (curr->w_encoding != UTF8) {
 						c = curr->w_mbcs;
@@ -825,7 +826,7 @@ static void DoESC(int c, int intermediate)
 				curr->w_ss = 0;
 			break;
 		case 'g':	/* VBELL, private screen sequence */
-			WBell(curr, 1);
+			WBell(curr, true);
 			break;
 		}
 		break;
@@ -2330,7 +2331,7 @@ int MFindUsedLine(Window *win, int ye, int ys)
  * Tricky: send only one bell even if the window is displayed
  * more than once.
  */
-void WBell(Window *win, int visual)
+void WBell(Window *win, bool visual)
 {
 	Canvas *cv;
 	if (displays == NULL)

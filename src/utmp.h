@@ -8,7 +8,7 @@ void  RestoreLoginSlot (void);
 int   SetUtmp (Window *);
 int   RemoveUtmp (Window *);
 #endif /* UTMPOK */
-void  SlotToggle (int);
+void  SlotToggle (bool);
 #ifdef CAREFULUTMP
 void   CarefulUtmp (void);
 #else
