@@ -38,13 +38,13 @@
 #include "logfile.h"
 #include "misc.h"
 
-static void changed_logfile(struct logfile *);
-static struct logfile *lookup_logfile(char *);
-static int stolen_logfile(struct logfile *);
+static void changed_logfile(Log *);
+static Log *lookup_logfile(char *);
+static int stolen_logfile(Log *);
 
-static struct logfile *logroot = NULL;
+static Log *logroot = NULL;
 
-static void changed_logfile(struct logfile *l)
+static void changed_logfile(Log *l)
 {
 	struct stat o, *s = l->st;
 
@@ -76,7 +76,7 @@ int lf_move_fd(int fd, int need_fd)
 	return r;
 }
 
-static int logfile_reopen(char *name, int wantfd, struct logfile *l)
+static int logfile_reopen(char *name, int wantfd, Log *l)
 {
 	int got_fd;
 
@@ -96,7 +96,7 @@ static int logfile_reopen(char *name, int wantfd, struct logfile *l)
  * The l->st structure initialised by logfopen is updated
  * on every call.
  */
-static int stolen_logfile(struct logfile *l)
+static int stolen_logfile(Log *l)
 {
 	struct stat o, *s = l->st;
 
@@ -119,9 +119,9 @@ static int stolen_logfile(struct logfile *l)
 	return 0;
 }
 
-static struct logfile *lookup_logfile(char *name)
+static Log *lookup_logfile(char *name)
 {
-	struct logfile *l;
+	Log *l;
 
 	for (l = logroot; l; l = l->next)
 		if (!strcmp(name, l->name))
@@ -129,9 +129,9 @@ static struct logfile *lookup_logfile(char *name)
 	return NULL;
 }
 
-struct logfile *logfopen(char *name, FILE * fp)
+Log *logfopen(char *name, FILE * fp)
 {
-	struct logfile *l;
+	Log *l;
 
 	if (!fp) {
 		if (!(l = lookup_logfile(name)))
@@ -140,7 +140,7 @@ struct logfile *logfopen(char *name, FILE * fp)
 		return l;
 	}
 
-	if (!(l = malloc(sizeof(struct logfile))))
+	if (!(l = malloc(sizeof(Log))))
 		return NULL;
 	if (!(l->st = malloc(sizeof(struct stat)))) {
 		free((char *)l);
@@ -170,9 +170,9 @@ int islogfile(char *name)
 	return lookup_logfile(name) ? 1 : 0;
 }
 
-int logfclose(struct logfile *l)
+int logfclose(Log *l)
 {
-	struct logfile **lp;
+	Log **lp;
 
 	for (lp = &logroot; *lp; lp = &(*lp)->next)
 		if (*lp == l)
@@ -198,7 +198,7 @@ int logfclose(struct logfile *l)
  * write and flush both *should* check the file's stat, if it disappeared
  * or changed, re-open it.
  */
-int logfwrite(struct logfile *l, char *buf, size_t n)
+int logfwrite(Log *l, char *buf, size_t n)
 {
 	int r;
 
@@ -211,7 +211,7 @@ int logfwrite(struct logfile *l, char *buf, size_t n)
 	return r;
 }
 
-int logfflush(struct logfile *l)
+int logfflush(Log *l)
 {
 	int r = 0;
 

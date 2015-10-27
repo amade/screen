@@ -30,14 +30,15 @@
 #ifndef SCREEN_LOGFILE_H
 #define SCREEN_LOGFILE_H
 
-struct logfile {
-	struct logfile *next;
-	FILE *fp;		/* a hopefully uniq filepointer to the log file */
-	char *name;		/* the name. used to reopen, when stat fails. */
+typedef struct Log Log;
+struct Log {
+	Log *next;
+	FILE *fp;	/* a hopefully uniq filepointer to the log file */
+	char *name;	/* the name. used to reopen, when stat fails. */
 	int opencount;	/* synchronize logfopen() and logfclose() */
 	int writecount;	/* increments at logfwrite(), counts write() and fflush() */
 	int flushcount;	/* increments at logfflush(), zeroed at logfwrite() */
-	struct stat *st;	/* how the file looks like */
+	struct stat *st;/* how the file looks like */
 };
 
 /*
@@ -46,7 +47,7 @@ struct logfile {
  * otherwise.
  * example: l = logfopen(name, islogfile(name) : NULL ? fopen(name, "a"));
  */
-struct logfile *logfopen (char *name, FILE *fp);
+Log *logfopen (char *name, FILE *fp);
 
 /*
  * lookup a logfile by name. This is useful, so that we can provide
@@ -58,15 +59,15 @@ int islogfile (char *name);
 /*
  * logfclose does free()
  */
-int logfclose (struct logfile *);
-int logfwrite (struct logfile *, char *, size_t);
+int logfclose (Log *);
+int logfwrite (Log *, char *, size_t);
 
 /*
  * logfflush should be called periodically. If no argument is passed,
  * all logfiles are flushed, else the specified file
  * the number of flushed filepointers is returned
  */
-int logfflush (struct logfile *ifany);
+int logfflush (Log *ifany);
 
 /*
  * Your custom reopen function is required to reuse the exact
