@@ -34,6 +34,7 @@
 #define SCREEN_WINDOW_H
 
 #include "sched.h"
+#include "logfile.h"
 #include "screen.h"
 
 struct NewWindow {
@@ -203,7 +204,7 @@ struct Window {
 	char	*w_tabs;		/* line with tabs */
 	int	 w_bell;		/* bell status of this window */
 	int	 w_flow;		/* flow flags */
-	struct	 logfile *w_log;	/* log to file */
+	Log	 *w_log;	/* log to file */
 	int	 w_logsilence;		/* silence in secs */
 	int	 w_monitor;		/* monitor status */
 	int	 w_silencewait;		/* wait for silencewait secs */
