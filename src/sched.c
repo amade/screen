@@ -57,7 +57,7 @@ void evenq(Event *ev)
 			break;
 	ev->next = evp;
 	*evpp = ev;
-	ev->queued = 1;
+	ev->queued = true;
 }
 
 void evdeq(Event *ev)
@@ -74,7 +74,7 @@ void evdeq(Event *ev)
 		if (evp == ev)
 			break;
 	*evpp = ev->next;
-	ev->queued = 0;
+	ev->queued = false;
 	if (ev == nextev)
 		nextev = nextev->next;
 }
