@@ -458,7 +458,7 @@ char *ReadFile(char *filename, int *lenp)
 	int l, size;
 	char *buf = NULL;
 
-	if ((file = secfopen(filename, "r")) != NULL) {
+	if ((file = secfopen(filename, "r")) == NULL) {
 		Msg(errno, "no %s -- no slurp", filename);
 		return NULL;
 	}
@@ -469,6 +469,7 @@ char *ReadFile(char *filename, int *lenp)
 		Msg(0, "%s", strnomem);
 		return NULL;
 	}
+	fseek(file, 0L, SEEK_SET);
 	errno = 0;
 
 	if ((l = fread(buf, sizeof(char), size, file)) != size) {

@@ -2051,6 +2051,8 @@ void DoAction(struct action *act, int key)
 			user->u_plop.len = n;
 			user->u_plop.buf = s;
 			user->u_plop.enc = i;
+			OutputMsg(0, "Read contents of %s into copybuffer",
+                                  args[0] ? args[0] : BufferFile);
 		}
 		break;
 	case RC_REMOVEBUF:
