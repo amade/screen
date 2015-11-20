@@ -64,7 +64,6 @@ static struct mline *mlineoffset(const struct mline *ml, const int offset)
 #define RECODE_MCHAR(mc) ((l->l_encoding == UTF8) != (D_encoding == UTF8) ? recode_mchar(mc, l->l_encoding, D_encoding) : (mc))
 #define RECODE_MLINE(ml) ((l->l_encoding == UTF8) != (D_encoding == UTF8) ? recode_mline(ml, l->l_width, l->l_encoding, D_encoding) : (ml))
 
-
 void LGotoPos(Layer *l, int x, int y)
 {
 	Canvas *cv;
@@ -74,22 +73,33 @@ void LGotoPos(Layer *l, int x, int y)
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, x, x, y, y);
 
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-				 display = cv->c_display; if (D_blocked)
-				 continue; if (cv != D_forecv)
-				 continue;
-				 x2 = x + cv->c_xoff;
-				 y2 = y + cv->c_yoff; if (x2 < cv->c_xs)
-				 x2 = cv->c_xs; if (y2 < cv->c_ys)
-				 y2 = cv->c_ys; if (x2 > cv->c_xe)
-				 x2 = cv->c_xe; if (y2 > cv->c_ye)
-				 y2 = cv->c_ye; for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-				 if (x2 < vp->v_xs || x2 > vp->v_xe)
-				 continue; if (y2 < vp->v_ys || y2 > vp->v_ye)
-				 continue; GotoPos(x2, y2); break;}
-				 }
+	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		if (l->l_pause.d && cv->c_slorient)
+			continue;
+		display = cv->c_display;
+		if (D_blocked)
+			continue;
+		if (cv != D_forecv)
+			continue;
+		x2 = x + cv->c_xoff;
+		y2 = y + cv->c_yoff;
+		if (x2 < cv->c_xs)
+			x2 = cv->c_xs;
+		if (y2 < cv->c_ys)
+			y2 = cv->c_ys;
+		if (x2 > cv->c_xe)
+			x2 = cv->c_xe;
+		if (y2 > cv->c_ye)
+			y2 = cv->c_ye;
+		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+			if (x2 < vp->v_xs || x2 > vp->v_xe)
+				continue;
+			if (y2 < vp->v_ys || y2 > vp->v_ye)
+				continue;
+			GotoPos(x2, y2);
+			break;
+		}
+	}
 }
 
 void LScrollH(Layer *l, int n, int y, int xs, int xe, int bce, struct mline *ol)
@@ -102,27 +112,41 @@ void LScrollH(Layer *l, int n, int y, int xs, int xe, int bce, struct mline *ol)
 		return;
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, xs, xe, y, y);
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-	for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-				 y2 = y + vp->v_yoff; if (y2 < vp->v_ys || y2 > vp->v_ye)
-				 continue; xs2 = xs + vp->v_xoff; xe2 = xe + vp->v_xoff; if (xs2 < vp->v_xs)
-				 xs2 = vp->v_xs; if (xe2 > vp->v_xe)
-				 xe2 = vp->v_xe; if (xs2 > xe2)
-				 continue; display = cv->c_display; if (D_blocked)
-				 continue;
-				 ScrollH(y2, xs2, xe2, n, bce, ol ? mlineoffset(ol, -vp->v_xoff) : 0);
-				 if (xe2 - xs2 == xe - xs)
-				 continue; if (n > 0) {
-				 xs2 = xe2 + 1 - n; xe2 = xe + vp->v_xoff - n;}
-				 else
-				 {
-				 xe2 = xs2 - 1 - n; xs2 = xs + vp->v_xoff - n;}
-				 if (xs2 < vp->v_xs)
-				 xs2 = vp->v_xs; if (xe2 > vp->v_xe)
-				 xe2 = vp->v_xe; if (xs2 <= xe2)
-				 RefreshArea(xs2, y2, xe2, y2, 1);}
+	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		if (l->l_pause.d && cv->c_slorient)
+			continue;
+		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+			y2 = y + vp->v_yoff;
+			if (y2 < vp->v_ys || y2 > vp->v_ye)
+				continue;
+			xs2 = xs + vp->v_xoff;
+			xe2 = xe + vp->v_xoff;
+			if (xs2 < vp->v_xs)
+				xs2 = vp->v_xs;
+			if (xe2 > vp->v_xe)
+				xe2 = vp->v_xe;
+			if (xs2 > xe2)
+				continue;
+			display = cv->c_display;
+			if (D_blocked)
+				continue;
+			ScrollH(y2, xs2, xe2, n, bce, ol ? mlineoffset(ol, -vp->v_xoff) : 0);
+			if (xe2 - xs2 == xe - xs)
+				continue;
+			if (n > 0) {
+				xs2 = xe2 + 1 - n;
+				xe2 = xe + vp->v_xoff - n;
+			} else {
+				xe2 = xs2 - 1 - n;
+				xs2 = xs + vp->v_xoff - n;
+			}
+			if (xs2 < vp->v_xs)
+				xs2 = vp->v_xs;
+			if (xe2 > vp->v_xe)
+				xe2 = vp->v_xe;
+			if (xs2 <= xe2)
+				RefreshArea(xs2, y2, xe2, y2, 1);
+		}
 	}
 }
 
@@ -135,31 +159,45 @@ void LScrollV(Layer *l, int n, int ys, int ye, int bce)
 		return;
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, 0, l->l_width - 1, ys, ye);
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-	for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-				 xs2 = vp->v_xoff;
-				 xe2 = l->l_width - 1 + vp->v_xoff;
-				 ys2 = ys + vp->v_yoff; ye2 = ye + vp->v_yoff; if (xs2 < vp->v_xs)
-				 xs2 = vp->v_xs; if (xe2 > vp->v_xe)
-				 xe2 = vp->v_xe; if (ys2 < vp->v_ys)
-				 ys2 = vp->v_ys; if (ye2 > vp->v_ye)
-				 ye2 = vp->v_ye; if (ys2 > ye2 || xs2 > xe2)
-				 continue; display = cv->c_display; if (D_blocked)
-				 continue;
-				 ScrollV(vp->v_xs, ys2, vp->v_xe, ye2, n, bce);
-				 if (ye2 - ys2 == ye - ys)
-				 continue; if (n > 0) {
-				 ys2 = ye2 + 1 - n; ye2 = ye + vp->v_yoff - n;}
-				 else
-				 {
-				 ye2 = ys2 - 1 - n; ys2 = ys + vp->v_yoff - n;}
-				 if (ys2 < vp->v_ys)
-				 ys2 = vp->v_ys; if (ye2 > vp->v_ye)
-				 ye2 = vp->v_ye; if (ys2 <= ye2)
-				 RefreshArea(xs2, ys2, xe2, ye2, 1);}
-}
+	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		if (l->l_pause.d && cv->c_slorient)
+			continue;
+		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+			xs2 = vp->v_xoff;
+			xe2 = l->l_width - 1 + vp->v_xoff;
+			ys2 = ys + vp->v_yoff;
+			ye2 = ye + vp->v_yoff;
+			if (xs2 < vp->v_xs)
+				xs2 = vp->v_xs;
+			if (xe2 > vp->v_xe)
+				xe2 = vp->v_xe;
+			if (ys2 < vp->v_ys)
+				ys2 = vp->v_ys;
+			if (ye2 > vp->v_ye)
+				ye2 = vp->v_ye;
+			if (ys2 > ye2 || xs2 > xe2)
+				continue;
+			display = cv->c_display;
+			if (D_blocked)
+				continue;
+			ScrollV(vp->v_xs, ys2, vp->v_xe, ye2, n, bce);
+			if (ye2 - ys2 == ye - ys)
+				continue;
+			if (n > 0) {
+				ys2 = ye2 + 1 - n;
+				ye2 = ye + vp->v_yoff - n;
+			} else {
+				ye2 = ys2 - 1 - n;
+				ys2 = ys + vp->v_yoff - n;
+			}
+			if (ys2 < vp->v_ys)
+				ys2 = vp->v_ys;
+			if (ye2 > vp->v_ye)
+				ye2 = vp->v_ye;
+			if (ys2 <= ye2)
+				RefreshArea(xs2, ys2, xe2, ye2, 1);
+		}
+	}
 }
 
 void LInsChar(Layer *l, struct mchar *c, int x, int y, struct mline *ol)
@@ -172,27 +210,42 @@ void LInsChar(Layer *l, struct mchar *c, int x, int y, struct mline *ol)
 
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, x, l->l_width - 1, y, y);
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-	 for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-				 y2 = y + vp->v_yoff; if (y2 < vp->v_ys || y2 > vp->v_ye)
-				 continue;
-				 xs2 = x + vp->v_xoff;
-				 xe2 = l->l_width - 1 + vp->v_xoff; c2 = c; f = 0; if (xs2 < vp->v_xs) {
-				 xs2 = vp->v_xs; c2 = &mchar_blank; if (ol) {
-				 int i; i = xs2 - vp->v_xoff - 1; if (i >= 0 && i < l->l_width) {
-				 copy_mline2mchar(&cc, ol, i); c2 = &cc;}
-				 }
-				 else
-				 f = 1;}
-				 if (xe2 > vp->v_xe)
-				 xe2 = vp->v_xe; if (xs2 > xe2)
-				 continue; display = cv->c_display; if (D_blocked)
-				 continue;
-				 rol = RECODE_MLINE(ol);
-				 InsChar(RECODE_MCHAR(c2), xs2, xe2, y2, mlineoffset(rol, -vp->v_xoff)); if (f)
-				 RefreshArea(xs2, y2, xs2, y2, 1);}
+	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		if (l->l_pause.d && cv->c_slorient)
+			continue;
+		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+			y2 = y + vp->v_yoff;
+			if (y2 < vp->v_ys || y2 > vp->v_ye)
+				continue;
+			xs2 = x + vp->v_xoff;
+			xe2 = l->l_width - 1 + vp->v_xoff;
+			c2 = c;
+			f = 0;
+			if (xs2 < vp->v_xs) {
+				xs2 = vp->v_xs;
+				c2 = &mchar_blank;
+				if (ol) {
+					int i;
+					i = xs2 - vp->v_xoff - 1;
+					if (i >= 0 && i < l->l_width) {
+						copy_mline2mchar(&cc, ol, i);
+						c2 = &cc;
+					}
+				} else
+					f = 1;
+			}
+			if (xe2 > vp->v_xe)
+				xe2 = vp->v_xe;
+			if (xs2 > xe2)
+				continue;
+			display = cv->c_display;
+			if (D_blocked)
+				continue;
+			rol = RECODE_MLINE(ol);
+			InsChar(RECODE_MCHAR(c2), xs2, xe2, y2, mlineoffset(rol, -vp->v_xoff));
+			if (f)
+				RefreshArea(xs2, y2, xs2, y2, 1);
+		}
 	}
 }
 
@@ -206,15 +259,23 @@ void LPutChar(Layer *l, struct mchar *c, int x, int y)
 		LayPauseUpdateRegion(l, x, x + (c->mbcs ? 1 : 0)
 				     , y, y);
 
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-				 display = cv->c_display; if (D_blocked)
-				 continue; for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-				 y2 = y + vp->v_yoff; if (y2 < vp->v_ys || y2 > vp->v_ye)
-				 continue; x2 = x + vp->v_xoff; if (x2 < vp->v_xs || x2 > vp->v_xe)
-				 continue; PutChar(RECODE_MCHAR(c), x2, y2); break;}
-				 }
+	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		if (l->l_pause.d && cv->c_slorient)
+			continue;
+		display = cv->c_display;
+		if (D_blocked)
+			continue;
+		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+			y2 = y + vp->v_yoff;
+			if (y2 < vp->v_ys || y2 > vp->v_ye)
+				continue;
+			x2 = x + vp->v_xoff;
+			if (x2 < vp->v_xs || x2 > vp->v_xe)
+				continue;
+			PutChar(RECODE_MCHAR(c), x2, y2);
+			break;
+		}
+	}
 }
 
 void LPutStr(Layer *l, char *s, int n, struct mchar *r, int x, int y)
@@ -229,26 +290,39 @@ void LPutStr(Layer *l, char *s, int n, struct mchar *r, int x, int y)
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, x, x + n - 1, y, y);
 
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-	for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-				 y2 = y + vp->v_yoff; if (y2 < vp->v_ys || y2 > vp->v_ye)
-				 continue; xs2 = x + vp->v_xoff; xe2 = xs2 + n - 1; if (xs2 < vp->v_xs)
-				 xs2 = vp->v_xs; if (xe2 > vp->v_xe)
-				 xe2 = vp->v_xe; if (xs2 > xe2)
-				 continue; display = cv->c_display; if (D_blocked)
-				 continue;
-				 GotoPos(xs2, y2);
-				 SetRendition(r);
-				 s2 = s + xs2 - x - vp->v_xoff;
-				 if (D_encoding == UTF8 && l->l_encoding != UTF8
-				     && (r->font || r->fontx || l->l_encoding)) {
-				 struct mchar mc; mc = *r; while (xs2 <= xe2) {
-				 mc.image = *s2++; PutChar(RECODE_MCHAR(&mc), xs2++, y2);}
-				 continue;}
-				 while (xs2++ <= xe2)
-				 PUTCHARLP(*s2++);}
+	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		if (l->l_pause.d && cv->c_slorient)
+			continue;
+		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+			y2 = y + vp->v_yoff;
+			if (y2 < vp->v_ys || y2 > vp->v_ye)
+				continue;
+			xs2 = x + vp->v_xoff;
+			xe2 = xs2 + n - 1;
+			if (xs2 < vp->v_xs)
+				xs2 = vp->v_xs;
+			if (xe2 > vp->v_xe)
+				xe2 = vp->v_xe;
+			if (xs2 > xe2)
+				continue;
+			display = cv->c_display;
+			if (D_blocked)
+				continue;
+			GotoPos(xs2, y2);
+			SetRendition(r);
+			s2 = s + xs2 - x - vp->v_xoff;
+			if (D_encoding == UTF8 && l->l_encoding != UTF8 && (r->font || r->fontx || l->l_encoding)) {
+				struct mchar mc;
+				mc = *r;
+				while (xs2 <= xe2) {
+					mc.image = *s2++;
+					PutChar(RECODE_MCHAR(&mc), xs2++, y2);
+				}
+				continue;
+			}
+			while (xs2++ <= xe2)
+				PUTCHARLP(*s2++);
+		}
 	}
 }
 
@@ -266,22 +340,39 @@ void LPutWinMsg(Layer *l, char *s, int n, struct mchar *r, int x, int y)
 	len = strlen(s);
 	if (len > n)
 		len = n;
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-	for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-				 y2 = y + vp->v_yoff; if (y2 < vp->v_ys || y2 > vp->v_ye)
-				 continue; xs2 = x + vp->v_xoff; xe2 = xs2 + n - 1; if (xs2 < vp->v_xs)
-				 xs2 = vp->v_xs; if (xe2 > vp->v_xe)
-				 xe2 = vp->v_xe; if (xs2 > xe2)
-				 continue; display = cv->c_display; if (D_blocked)
-				 continue;
-				 GotoPos(xs2, y2); SetRendition(r); len2 = xe2 - (x + vp->v_xoff) + 1; if (len2 > len)
-				 len2 = len;
-				 PutWinMsg(s, xs2 - x - vp->v_xoff, len2);
-				 xs2 = x + vp->v_xoff + len2; if (xs2 < vp->v_xs)
-				 xs2 = vp->v_xs; or = D_rend; GotoPos(xs2, y2); SetRendition(&or); while (xs2++ <= xe2)
-				 PUTCHARLP(' ');}
+	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		if (l->l_pause.d && cv->c_slorient)
+			continue;
+		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+			y2 = y + vp->v_yoff;
+			if (y2 < vp->v_ys || y2 > vp->v_ye)
+				continue;
+			xs2 = x + vp->v_xoff;
+			xe2 = xs2 + n - 1;
+			if (xs2 < vp->v_xs)
+				xs2 = vp->v_xs;
+			if (xe2 > vp->v_xe)
+				xe2 = vp->v_xe;
+			if (xs2 > xe2)
+				continue;
+			display = cv->c_display;
+			if (D_blocked)
+				continue;
+			GotoPos(xs2, y2);
+			SetRendition(r);
+			len2 = xe2 - (x + vp->v_xoff) + 1;
+			if (len2 > len)
+				len2 = len;
+			PutWinMsg(s, xs2 - x - vp->v_xoff, len2);
+			xs2 = x + vp->v_xoff + len2;
+			if (xs2 < vp->v_xs)
+				xs2 = vp->v_xs;
+			or = D_rend;
+			GotoPos(xs2, y2);
+			SetRendition(&or);
+			while (xs2++ <= xe2)
+				PUTCHARLP(' ');
+		}
 	}
 }
 
@@ -298,19 +389,27 @@ void LClearLine(Layer *l, int y, int xs, int xe, int bce, struct mline *ol)
 		xe = l->l_width - 1;
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, xs, xe, y, y);
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-	for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-				 xs2 = xs + vp->v_xoff;
-				 xe2 = xe + vp->v_xoff; y2 = y + vp->v_yoff; if (y2 < vp->v_ys || y2 > vp->v_ye)
-				 continue; if (xs2 < vp->v_xs)
-				 xs2 = vp->v_xs; if (xe2 > vp->v_xe)
-				 xe2 = vp->v_xe; if (xs2 > xe2)
-				 continue; display = cv->c_display; if (D_blocked)
-				 continue;
-				 ClearLine(ol ? mlineoffset(RECODE_MLINE(ol), -vp->v_xoff) : (struct mline *)0, y2, xs2, xe2,
-					   bce);}
+	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		if (l->l_pause.d && cv->c_slorient)
+			continue;
+		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+			xs2 = xs + vp->v_xoff;
+			xe2 = xe + vp->v_xoff;
+			y2 = y + vp->v_yoff;
+			if (y2 < vp->v_ys || y2 > vp->v_ye)
+				continue;
+			if (xs2 < vp->v_xs)
+				xs2 = vp->v_xs;
+			if (xe2 > vp->v_xe)
+				xe2 = vp->v_xe;
+			if (xs2 > xe2)
+				continue;
+			display = cv->c_display;
+			if (D_blocked)
+				continue;
+			ClearLine(ol ? mlineoffset(RECODE_MLINE(ol), -vp->v_xoff) : (struct mline *)0, y2, xs2, xe2,
+				  bce);
+		}
 	}
 }
 
@@ -330,31 +429,47 @@ void LClearArea(Layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
 		xe = l->l_width - 1;
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, xs, xe, ys, ye);
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-				 display = cv->c_display; if (D_blocked)
-				 continue; for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-				 xs2 = xs + vp->v_xoff;
-				 xe2 = xe + vp->v_xoff;
-				 ys2 = ys + vp->v_yoff; ye2 = ye + vp->v_yoff; if (xs2 < vp->v_xs)
-				 xs2 = vp->v_xs; if (xe2 > vp->v_xe)
-				 xe2 = vp->v_xe; if (xs2 > vp->v_xe)
-				 ys2++; if (xe2 < vp->v_xs)
-				 ye2--; if (ys2 < vp->v_ys)
-				 ys2 = vp->v_ys; if (ye2 > vp->v_ye)
-				 ye2 = vp->v_ye; if (ys2 > ye2)
-				 continue; if (xs == 0 || ys2 != ys + vp->v_yoff)
-				 xs2 = vp->v_xs; if (xe == l->l_width - 1 || ye2 != ye + vp->v_yoff)
-				 xe2 = vp->v_xe;
-				 display = cv->c_display;
-				 ClearArea(xs2, ys2, vp->v_xs, vp->v_xe, xe2, ye2, bce, uself);
-				 if (xe == l->l_width - 1 && xe2 > vp->v_xoff + xe) {
-				 int y; SetRendition(&mchar_blank); for (y = ys2; y <= ye2; y++) {
-				 GotoPos(xe + vp->v_xoff + 1, y); PUTCHARLP('|');}
-				 }
-				 }
-				 }
+	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		if (l->l_pause.d && cv->c_slorient)
+			continue;
+		display = cv->c_display;
+		if (D_blocked)
+			continue;
+		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+			xs2 = xs + vp->v_xoff;
+			xe2 = xe + vp->v_xoff;
+			ys2 = ys + vp->v_yoff;
+			ye2 = ye + vp->v_yoff;
+			if (xs2 < vp->v_xs)
+				xs2 = vp->v_xs;
+			if (xe2 > vp->v_xe)
+				xe2 = vp->v_xe;
+			if (xs2 > vp->v_xe)
+				ys2++;
+			if (xe2 < vp->v_xs)
+				ye2--;
+			if (ys2 < vp->v_ys)
+				ys2 = vp->v_ys;
+			if (ye2 > vp->v_ye)
+				ye2 = vp->v_ye;
+			if (ys2 > ye2)
+				continue;
+			if (xs == 0 || ys2 != ys + vp->v_yoff)
+				xs2 = vp->v_xs;
+			if (xe == l->l_width - 1 || ye2 != ye + vp->v_yoff)
+				xe2 = vp->v_xe;
+			display = cv->c_display;
+			ClearArea(xs2, ys2, vp->v_xs, vp->v_xe, xe2, ye2, bce, uself);
+			if (xe == l->l_width - 1 && xe2 > vp->v_xoff + xe) {
+				int y;
+				SetRendition(&mchar_blank);
+				for (y = ys2; y <= ye2; y++) {
+					GotoPos(xe + vp->v_xoff + 1, y);
+					PUTCHARLP('|');
+				}
+			}
+		}
+	}
 }
 
 void LCDisplayLine(Layer *l, struct mline *ml, int y, int xs, int xe, int isblank)
@@ -364,21 +479,29 @@ void LCDisplayLine(Layer *l, struct mline *ml, int y, int xs, int xe, int isblan
 	int xs2, xe2, y2;
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, xs, xe, y, y);
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-				 display = cv->c_display; if (D_blocked)
-				 continue; for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-				 xs2 = xs + vp->v_xoff;
-				 xe2 = xe + vp->v_xoff; y2 = y + vp->v_yoff; if (y2 < vp->v_ys || y2 > vp->v_ye)
-				 continue; if (xs2 < vp->v_xs)
-				 xs2 = vp->v_xs; if (xe2 > vp->v_xe)
-				 xe2 = vp->v_xe; if (xs2 > xe2)
-				 continue;
-				 display = cv->c_display;
-				 DisplayLine(isblank ? &mline_blank : &mline_null, mlineoffset(RECODE_MLINE(ml), -vp->v_xoff),
-					     y2, xs2, xe2);}
-				 }
+	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		if (l->l_pause.d && cv->c_slorient)
+			continue;
+		display = cv->c_display;
+		if (D_blocked)
+			continue;
+		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+			xs2 = xs + vp->v_xoff;
+			xe2 = xe + vp->v_xoff;
+			y2 = y + vp->v_yoff;
+			if (y2 < vp->v_ys || y2 > vp->v_ye)
+				continue;
+			if (xs2 < vp->v_xs)
+				xs2 = vp->v_xs;
+			if (xe2 > vp->v_xe)
+				xe2 = vp->v_xe;
+			if (xs2 > xe2)
+				continue;
+			display = cv->c_display;
+			DisplayLine(isblank ? &mline_blank : &mline_null, mlineoffset(RECODE_MLINE(ml), -vp->v_xoff),
+				    y2, xs2, xe2);
+		}
+	}
 }
 
 void LCDisplayLineWrap(Layer *l, struct mline *ml, int y, int from, int to, int isblank)
@@ -425,76 +548,95 @@ void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, bool ins)
 		/* cursor after wrapping */
 		yy = y == l->l_height - 1 ? y : y + 1;
 
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-					 y2 = 0;	/* gcc -Wall */
-					 display = cv->c_display; if (D_blocked)
-					 continue;
-					 /* find the viewport of the wrapped character */
-					 for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-					 y2 = y + vp->v_yoff;
-					 yy2 = yy + vp->v_yoff;
-					 if (yy2 >= vp->v_ys && yy2 <= vp->v_ye && vp->v_xoff >= vp->v_xs
-					     && vp->v_xoff <= vp->v_xe)
-					 break;}
-					 if (vp == 0)
-					 continue;	/* nothing to do, character not visible */
-					 /* find the viewport of the character at the end of the line */
-					 for (evp = cv->c_vplist; evp; evp = evp->v_next)
-					 if (y2 >= evp->v_ys && y2 <= evp->v_ye
-					     && evp->v_xoff + l->l_width - 1 >= evp->v_xs
-					     && evp->v_xoff + l->l_width - 1 <= evp->v_xe)
-					 break;	/* gotcha! */
-					 if (evp == 0 || (ins && vp->v_xoff + l->l_width - 1 > vp->v_ye)) {
-					 /* no wrapping possible */
-					 cvlist = l->l_cvlist;
-					 cvlnext = cv->c_lnext; l->l_cvlist = cv; cv->c_lnext = 0; if (ins)
-					 LInsChar(l, c, 0, yy, 0);
-					 else
-					 LPutChar(l, c, 0, yy); l->l_cvlist = cvlist; cv->c_lnext = cvlnext;}
-					 else
-					 {
-					 WrapChar(RECODE_MCHAR(c), vp->v_xoff + l->l_width, y2, vp->v_xoff, -1,
-						  vp->v_xoff + l->l_width - 1, -1, ins);}
-					 }
+		for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+			if (l->l_pause.d && cv->c_slorient)
+				continue;
+			y2 = 0;	/* gcc -Wall */
+			display = cv->c_display;
+			if (D_blocked)
+				continue;
+			/* find the viewport of the wrapped character */
+			for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+				y2 = y + vp->v_yoff;
+				yy2 = yy + vp->v_yoff;
+				if (yy2 >= vp->v_ys && yy2 <= vp->v_ye && vp->v_xoff >= vp->v_xs
+				    && vp->v_xoff <= vp->v_xe)
+					break;
+			}
+			if (vp == 0)
+				continue;	/* nothing to do, character not visible */
+			/* find the viewport of the character at the end of the line */
+			for (evp = cv->c_vplist; evp; evp = evp->v_next)
+				if (y2 >= evp->v_ys && y2 <= evp->v_ye
+				    && evp->v_xoff + l->l_width - 1 >= evp->v_xs
+				    && evp->v_xoff + l->l_width - 1 <= evp->v_xe)
+					break;	/* gotcha! */
+			if (evp == 0 || (ins && vp->v_xoff + l->l_width - 1 > vp->v_ye)) {
+				/* no wrapping possible */
+				cvlist = l->l_cvlist;
+				cvlnext = cv->c_lnext;
+				l->l_cvlist = cv;
+				cv->c_lnext = 0;
+				if (ins)
+					LInsChar(l, c, 0, yy, 0);
+				else
+					LPutChar(l, c, 0, yy);
+				l->l_cvlist = cvlist;
+				cv->c_lnext = cvlnext;
+			} else {
+				WrapChar(RECODE_MCHAR(c), vp->v_xoff + l->l_width, y2, vp->v_xoff, -1,
+					 vp->v_xoff + l->l_width - 1, -1, ins);
+			}
+		}
 	} else {
 		/* hard case: scroll up */
 
-for ( cv = l->l_cvlist; cv; cv = cv->c_lnext) {
-	if (l->l_pause.d && cv->c_slorient)
-		continue;
-					 display = cv->c_display; if (D_blocked)
-					 continue;
-					 /* search for wrap viewport */
-					 for (vpp = &cv->c_vplist; (vp = *vpp); vpp = &vp->v_next) {
-					 yy2 = bot + vp->v_yoff;
-					 if (yy2 >= vp->v_ys && yy2 <= vp->v_ye && vp->v_xoff >= vp->v_xs
-					     && vp->v_xoff + l->l_width - 1 <= vp->v_xe)
-					 break;}
+		for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+			if (l->l_pause.d && cv->c_slorient)
+				continue;
+			display = cv->c_display;
+			if (D_blocked)
+				continue;
+			/* search for wrap viewport */
+			for (vpp = &cv->c_vplist; (vp = *vpp); vpp = &vp->v_next) {
+				yy2 = bot + vp->v_yoff;
+				if (yy2 >= vp->v_ys && yy2 <= vp->v_ye && vp->v_xoff >= vp->v_xs
+				    && vp->v_xoff + l->l_width - 1 <= vp->v_xe)
+					break;
+			}
 
-					 if (vp) {
-					 /* great, can use Wrap on the vp */
-					 /* temporarily remove vp from cvlist */
-					 *vpp = vp->v_next;}
-					 if (cv->c_vplist) {
-					 /* scroll all viewports != vp */
-					 cvlist = l->l_cvlist;
-					 cvlnext = cv->c_lnext;
-					 l->l_cvlist = cv; cv->c_lnext = 0; LScrollV(l, 1, top, bot, bce); if (!vp) {
-					 if (ins)
-					 LInsChar(l, c, 0, bot, 0);
-					 else
-					 LPutChar(l, c, 0, bot);}
-					 l->l_cvlist = cvlist; cv->c_lnext = cvlnext;}
-					 if (vp) {
-					 /* add vp back to cvlist */
-					 *vpp = vp;
-					 top2 = top + vp->v_yoff; bot2 = bot + vp->v_yoff; if (top2 < vp->v_ys)
-					 top2 = vp->v_ys;
-					 WrapChar(RECODE_MCHAR(c), vp->v_xoff + l->l_width, bot2, vp->v_xoff, top2,
-						  vp->v_xoff + l->l_width - 1, bot2, ins);}
-					 }
+			if (vp) {
+				/* great, can use Wrap on the vp */
+				/* temporarily remove vp from cvlist */
+				*vpp = vp->v_next;
+			}
+			if (cv->c_vplist) {
+				/* scroll all viewports != vp */
+				cvlist = l->l_cvlist;
+				cvlnext = cv->c_lnext;
+				l->l_cvlist = cv;
+				cv->c_lnext = 0;
+				LScrollV(l, 1, top, bot, bce);
+				if (!vp) {
+					if (ins)
+						LInsChar(l, c, 0, bot, 0);
+					else
+						LPutChar(l, c, 0, bot);
+				}
+				l->l_cvlist = cvlist;
+				cv->c_lnext = cvlnext;
+			}
+			if (vp) {
+				/* add vp back to cvlist */
+				*vpp = vp;
+				top2 = top + vp->v_yoff;
+				bot2 = bot + vp->v_yoff;
+				if (top2 < vp->v_ys)
+					top2 = vp->v_ys;
+				WrapChar(RECODE_MCHAR(c), vp->v_xoff + l->l_width, bot2, vp->v_xoff, top2,
+					 vp->v_xoff + l->l_width - 1, bot2, ins);
+			}
+		}
 	}
 }
 
