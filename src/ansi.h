@@ -174,8 +174,8 @@ extern uint32_t *null;
 
 extern uint64_t renditions[];
 
-extern int Z0width;
-extern int Z1width;
+extern const int Z0width;
+extern const int Z1width;
 
 extern struct mline mline_blank;
 extern struct mline mline_null;

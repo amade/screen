@@ -45,7 +45,9 @@
 #include "process.h"
 #include "resize.h"
 
-int Z0width, Z1width;		/* widths for Z0/Z1 switching */
+/* widths for Z0/Z1 switching */
+const int Z0width = 132;
+const int Z1width = 80;
 
 /* globals set in WriteString */
 static Window *curr;	/* window we are working on */
