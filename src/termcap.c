@@ -330,8 +330,6 @@ int InitTermcap(int width, int height)
 	/* Termcap fields Z0 & Z1 contain width-changing sequences. */
 	if (D_CZ1 == 0)
 		D_CZ0 = 0;
-	Z0width = 132;
-	Z1width = 80;
 
 	CheckScreenSize(0);
 
