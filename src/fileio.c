@@ -320,10 +320,8 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 	char fnbuf[1024];
 	char *mode = "w";
 	int public = 0;
-#ifdef HAVE_LSTAT
 	struct stat stb, stb2;
 	int fd, exists = 0;
-#endif
 
 	switch (dump) {
 	case DUMP_TERMCAP:
@@ -357,19 +355,16 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 			fn = fnbuf;
 		}
 		public = !strcmp(fn, DEFAULT_BUFFERFILE);
-#ifdef HAVE_LSTAT
 		exists = !lstat(fn, &stb);
 		if (public && exists && (S_ISLNK(stb.st_mode) || stb.st_nlink > 1)) {
 			Msg(0, "No write to links, please.");
 			return;
 		}
-#endif
 		break;
 	}
 
 	if (UserContext() > 0) {
 		if (dump == DUMP_EXCHANGE && public) {
-#ifdef HAVE_LSTAT
 			if (exists) {
 				if ((fd = open(fn, O_WRONLY, 0666)) >= 0) {
 					if (fstat(fd, &stb2) == 0 && stb.st_dev == stb2.st_dev
@@ -383,9 +378,6 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 			} else
 				fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0666);
 			f = fd >= 0 ? fdopen(fd, mode) : 0;
-#else
-			f = fopen(fn, mode);
-#endif
 		} else
 			f = fopen(fn, mode);
 		if (f == NULL) {
