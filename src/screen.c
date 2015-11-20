@@ -226,7 +226,7 @@ int main(int argc, char **argv)
 	struct stat st;
 	mode_t oumask;
 	struct NewWindow nwin;
-	int detached = 0;	/* start up detached */
+	bool detached = false;	/* start up detached */
 	char *sockp;
 	char *sty = 0;
 
@@ -550,7 +550,7 @@ int main(int argc, char **argv)
 	if (cmdflag && !rflag && !dflag && !xflag)
 		xflag = true;
 	if (!cmdflag && dflag && mflag && !(rflag || xflag))
-		detached = 1;
+		detached = true;
 	nwin = nwin_options;
 	nwin.encoding = nwin_undef.encoding;	/* let screenrc overwrite it */
 	if (argc)
@@ -587,7 +587,7 @@ int main(int argc, char **argv)
 			/* always fake multi attach mode */
 			if (rflag || lsflag)
 				xflag = 1;
-			detached = 0;
+			detached = false;
 			multiattach = 1;
 		}
 		/* Special case: effective user is multiuser. */
