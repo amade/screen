@@ -53,12 +53,12 @@ static void SwapAltScreen(Window *);
 struct winsize glwz;
 
 static struct mline mline_zero = {
-	(uint32_t *)0,
-	(uint32_t *)0,
-	(uint32_t *)0,
-	(uint32_t *)0,
-	(uint32_t *)0,
-	(uint32_t *)0
+	.image   = (uint32_t *)0,
+	.attr    = (uint32_t *)0,
+	.font    = (uint32_t *)0,
+	.fontx   = (uint32_t *)0,
+	.colorbg = (uint32_t *)0,
+	.colorfg = (uint32_t *)0
 };
 
 /*
