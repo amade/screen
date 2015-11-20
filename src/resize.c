@@ -58,7 +58,7 @@ extern struct display *display, *displays;
 extern unsigned char *blank, *null;
 extern struct mline mline_blank, mline_null, mline_old;
 extern struct win *windows;
-extern int Z0width, Z1width;
+extern const int Z0width, Z1width;
 extern int captionalways;
 
 #if defined(TIOCGWINSZ) || defined(TIOCSWINSZ)

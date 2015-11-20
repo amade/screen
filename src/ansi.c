@@ -56,7 +56,9 @@ extern int compacthist;
 extern struct acluser *EffectiveAclUser;
 #endif
 
-int Z0width, Z1width;		/* widths for Z0/Z1 switching */
+/* widths for Z0/Z1 switching */
+const int Z0width = 132;
+const int Z1width = 80;
 
 /* globals set in WriteString */
 static struct win *curr;	/* window we are working on */

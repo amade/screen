@@ -36,7 +36,6 @@ extern int real_uid, real_gid, eff_uid, eff_gid;
 extern struct term term[];	/* terminal capabilities */
 extern struct NewWindow nwin_undef, nwin_default, nwin_options;
 extern int force_vt;
-extern int Z0width, Z1width;
 extern int hardstatusemu;
 #ifdef MAPKEYS
 extern struct action umtab[];
@@ -410,8 +409,6 @@ int he;
   /* Termcap fields Z0 & Z1 contain width-changing sequences. */
   if (D_CZ1 == 0)
     D_CZ0 = 0;
-  Z0width = 132;
-  Z1width = 80;
 
   CheckScreenSize(0);
 

@@ -185,7 +185,7 @@ extern char screenterm[], HostName[], version[];
 extern struct NewWindow nwin_undef, nwin_default;
 extern struct LayFuncs WinLf, MarkLf;
 
-extern int Z0width, Z1width;
+extern const int Z0width, Z1width;
 extern int real_uid, real_gid;
 
 #ifdef NETHACK

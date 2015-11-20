@@ -73,7 +73,7 @@ extern struct LayFuncs WinLf;
 
 extern int  use_hardstatus;
 extern int  MsgWait, MsgMinWait;
-extern int  Z0width, Z1width;
+extern const int  Z0width, Z1width;
 extern unsigned char *blank, *null;
 extern struct mline mline_blank, mline_null, mline_old;
 extern struct mchar mchar_null, mchar_blank, mchar_so;
