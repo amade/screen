@@ -507,7 +507,8 @@ char **av;
 #endif
   nwin = nwin_undef;
   nwin_options = nwin_undef;
-  strcpy(screenterm, "screen");
+  strncpy(screenterm, "screen", MAXTERMLEN);
+  screenterm[MAXTERMLEN] = '\0';
 #ifdef BUILTIN_TELNET
   af = AF_UNSPEC;
 #endif
@@ -689,9 +690,10 @@ char **av;
 		case 'T':
 		  if (--ac == 0)
 		    exit_with_usage(myname, "Specify terminal-type with -T", NULL);
-		  if (strlen(*++av) < 20)
-		    strcpy(screenterm, *av);
-		  else
+		  if (strlen(*++av) < MAXTERMLEN) {
+		    strncpy(screenterm, *av, MAXTERMLEN);
+		    screenterm[MAXTERMLEN] = '\0';
+		  } else
 		    Panic(0, "-T: terminal name too long. (max. 20 char)");
 		  nwin_options.term = screenterm;
 		  break;
@@ -1034,7 +1036,7 @@ char **av;
 
       if ((attach_term = getenv("TERM")) == 0 || *attach_term == 0)
 	Panic(0, "Please set a terminal type.");
-      if (strlen(attach_term) > sizeof(D_termname) - 1)
+      if (strlen(attach_term) > MAXTERMLEN)
 	Panic(0, "$TERM too long - sorry.");
       GetTTY(0, &attach_Mode);
 #ifdef DEBUGGGGGGGGGGGGGGG

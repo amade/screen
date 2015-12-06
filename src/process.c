@@ -2678,13 +2678,14 @@ int key;
       s = NULL;
       if (ParseSaveStr(act, &s))
 	break;
-      if (strlen(s) >= MAXTERMLEN)
+      if (strlen(s) > MAXTERMLEN)
 	{
 	  OutputMsg(0, "%s: term: argument too long ( < %d)", rc_name, MAXTERMLEN);
 	  free(s);
 	  break;
 	}
-      strcpy(screenterm, s);
+      strncpy(screenterm, s, MAXTERMLEN);
+      screenterm[MAXTERMLEN] = '\0';
       free(s);
       debug1("screenterm set to %s\n", screenterm);
       MakeTermcap((display == 0));

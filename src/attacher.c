@@ -364,8 +364,8 @@ int how;
     }
 #endif
   ASSERT(how == MSG_ATTACH || how == MSG_CONT);
-  strncpy(m.m.attach.envterm, attach_term, sizeof(m.m.attach.envterm) - 1);
-  m.m.attach.envterm[sizeof(m.m.attach.envterm) - 1] = 0;
+  strncpy(m.m.attach.envterm, attach_term, MAXTERMLEN);
+  m.m.attach.envterm[MAXTERMLEN] = 0;
   debug1("attach: sending %d bytes... ", (int)sizeof(m));
 
   strncpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1); 

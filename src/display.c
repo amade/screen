@@ -309,8 +309,8 @@ struct mode *Mode;
 
   strncpy(D_usertty, utty, sizeof(D_usertty) - 1);
   D_usertty[sizeof(D_usertty) - 1] = 0;
-  strncpy(D_termname, term, sizeof(D_termname) - 1);
-  D_termname[sizeof(D_termname) - 1] = 0;
+  strncpy(D_termname, term, MAXTERMLEN);
+  D_termname[MAXTERMLEN] = 0;
   D_user = *u;
   D_processinput = ProcessInput;
   D_mousetrack = defmousetrack;
@@ -3725,14 +3725,14 @@ char **cmdv;
   char *m;
   int pid;
   int slave = -1;
-  char termname[30];
+  char termname[MAXTERMLEN + 6];
 #ifndef TIOCSWINSZ
   char libuf[20], cobuf[20];
 #endif
   char **np;
 
   strcpy(termname, "TERM=");
-  strncpy(termname + 5, D_termname, sizeof(termname) - 6);
+  strncpy(termname + 5, D_termname, MAXTERMLEN - 6);
   termname[sizeof(termname) - 1] = 0;
   KillBlanker();
   D_blankerpid = -1;

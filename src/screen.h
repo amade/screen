@@ -184,8 +184,9 @@ struct mode
  * 2:	screen version 4.1.0devel	(revisions 8b46d8a upto YYYYYYY)
  * 3:	screen version 4.2.0		(was incorrectly originally. Patched here)
  * 4:	screen version 4.2.1		(bumped once again due to changed terminal and login length)
+ * 5: 	screen version 4.4.0		(fix screenterm size)
  */
-#define MSG_VERSION	4
+#define MSG_VERSION	5
 
 #define MSG_REVISION	(('m'<<24) | ('s'<<16) | ('g'<<8) | MSG_VERSION)
 struct msg
@@ -204,7 +205,7 @@ struct msg
 	  int nargs;
 	  char line[MAXPATHLEN];
 	  char dir[MAXPATHLEN];
-	  char screenterm[MAXTERMLEN];	/* is screen really "screen" ? */
+	  char screenterm[MAXTERMLEN + 1];	/* is screen really "screen" ? */
 	}
       create;
       struct

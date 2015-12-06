@@ -1438,7 +1438,7 @@ char **args, *ttyn;
       NewEnv[4] = shellbuf;
       debug1("ForkWindow: NewEnv[4] = '%s'\n", shellbuf);
       if (win->w_term && *win->w_term && strcmp(screenterm, win->w_term) &&
-	  (strlen(win->w_term) < 20))
+	  (strlen(win->w_term) < MAXTERMLEN))
 	{
 	  char *s1, *s2, tl;
 
