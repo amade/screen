@@ -454,8 +454,8 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 		return;
 	}
 	if (nwin->term != nwin_undef.term)
-		strncpy(m.m.create.screenterm, nwin->term, 19);
-	m.m.create.screenterm[19] = '\0';
+		strncpy(m.m.create.screenterm, nwin->term, MAXTERMLEN);
+	m.m.create.screenterm[MAXTERMLEN] = '\0';
 	m.protocol_revision = MSG_REVISION;
 	if (write(s, (char *)&m, sizeof m) != sizeof m)
 		Msg(errno, "write");

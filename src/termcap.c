@@ -56,7 +56,7 @@ char Termcap[TERMCAP_BUFSIZE + 8];	/* new termcap +8:"TERMCAP=" */
 static int Termcaplen;
 static int tcLineLen;
 char Term[MAXSTR + 5];		/* +5: "TERM=" */
-char screenterm[20];		/* new $TERM, usually "screen" */
+char screenterm[MAXTERMLEN + 1];	/* new $TERM, usually "screen" */
 
 char *extra_incap, *extra_outcap;
 
@@ -673,7 +673,8 @@ char *MakeTermcap(int aflag)
 	}
 	Termcaplen = 0;
 	if (*screenterm == '\0' || strlen(screenterm) > MAXSTR - 3) {
-		strncpy(screenterm, "screen", 20);
+		strncpy(screenterm, "screen", MAXTERMLEN);
+		screenterm[MAXTERMLEN] = '\0';
 	}
 	do {
 		strcpy(Term, "TERM=");

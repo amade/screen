@@ -127,7 +127,7 @@ struct Message {
 			int nargs;
 			char line[MAXPATHLEN];
 			char dir[MAXPATHLEN];
-			char screenterm[MAXTERMLEN];	/* is screen really "screen" ? */
+			char screenterm[MAXTERMLEN + 1];/* is screen really "screen" ? */
 		} create;
 		struct {
 			char auser[MAXLOGINLEN + 1];	/* username */

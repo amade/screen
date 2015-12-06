@@ -237,8 +237,8 @@ int Attach(int how)
 			Panic(0, "Cannot contact screen again. Sigh.");
 		m.type = how;
 	}
-	strncpy(m.m.attach.envterm, attach_term, sizeof(m.m.attach.envterm) - 1);
-	m.m.attach.envterm[sizeof(m.m.attach.envterm) - 1] = 0;
+	strncpy(m.m.attach.envterm, attach_term, MAXTERMLEN);
+	m.m.attach.envterm[MAXTERMLEN] = 0;
 
 	strncpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1);
 	m.m.attach.auser[sizeof(m.m.attach.auser) - 1] = 0;

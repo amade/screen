@@ -2153,12 +2153,13 @@ void DoAction(struct action *act, int key)
 		s = NULL;
 		if (ParseSaveStr(act, &s))
 			break;
-		if (strlen(s) >= MAXTERMLEN) {
+		if (strlen(s) > MAXTERMLEN) {
 			OutputMsg(0, "%s: term: argument too long ( < %d)", rc_name, MAXTERMLEN);
 			free(s);
 			break;
 		}
-		strncpy(screenterm, s, 20);
+		strncpy(screenterm, s, MAXTERMLEN);
+		screenterm[MAXTERMLEN] = '\0';
 		free(s);
 		MakeTermcap((display == 0));
 		break;

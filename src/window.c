@@ -1048,7 +1048,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 		strncpy(shellbuf + 6, ShellProg + (*ShellProg == '-'), sizeof(shellbuf) - 7);
 		shellbuf[sizeof(shellbuf) - 1] = 0;
 		NewEnv[4] = shellbuf;
-		if (win->w_term && *win->w_term && strcmp(screenterm, win->w_term) && (strlen(win->w_term) < 20)) {
+		if (win->w_term && *win->w_term && strcmp(screenterm, win->w_term) && (strlen(win->w_term) < MAXTERMLEN)) {
 			char *s1, *s2, tl;
 
 			sprintf(tebuf, "TERM=%s", win->w_term);
