@@ -317,7 +317,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 	int i, j, k;
 	char *p;
 	FILE *f;
-	char fnbuf[1024];
+	char fnbuf[FILENAME_MAX];
 	char *mode = "w";
 	int public = 0;
 	struct stat stb, stb2;
