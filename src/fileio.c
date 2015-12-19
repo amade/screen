@@ -315,7 +315,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 	 * dump==1:   scrollback,
 	 */
 	int i, j, k;
-	char *p;
+	uint32_t *p;
 	FILE *f;
 	char fnbuf[FILENAME_MAX];
 	char *mode = "w";
