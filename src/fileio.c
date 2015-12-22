@@ -316,6 +316,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 	 */
 	int i, j, k;
 	uint32_t *p;
+	char *c;
 	FILE *f;
 	char fnbuf[FILENAME_MAX];
 	char *mode = "w";
@@ -396,7 +397,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 				}
 				if (dump == DUMP_SCROLLBACK) {
 					for (i = 0; i < fore->w_histheight; i++) {
-						p = (char *)(WIN(i)->image);
+						p = (WIN(i)->image);
 						for (k = fore->w_width - 1; k >= 0 && p[k] == ' '; k--) ;
 						for (j = 0; j <= k; j++)
 							putc(p[j], f);
@@ -404,7 +405,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 					}
 				}
 				for (i = 0; i < fore->w_height; i++) {
-					p = (char *)fore->w_mlines[i].image;
+					p = fore->w_mlines[i].image;
 					for (k = fore->w_width - 1; k >= 0 && p[k] == ' '; k--) ;
 					for (j = 0; j <= k; j++)
 						putc(p[j], f);
@@ -412,18 +413,18 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 				}
 				break;
 			case DUMP_TERMCAP:
-				if ((p = strchr(MakeTermcap(fore->w_aflag), '=')) != NULL) {
-					fputs(++p, f);
+				if ((c = strchr(MakeTermcap(fore->w_aflag), '=')) != NULL) {
+					fputs(++c, f);
 					putc('\n', f);
 				}
 				break;
 			case DUMP_EXCHANGE:
-				p = user->u_plop.buf;
-				for (i = user->u_plop.len; i-- > 0; p++)
-					if (*p == '\r' && (i == 0 || p[1] != '\n'))
+				c = user->u_plop.buf;
+				for (i = user->u_plop.len; i-- > 0; c++)
+					if (*c == '\r' && (i == 0 || c[1] != '\n'))
 						putc('\n', f);
 					else
-						putc(*p, f);
+						putc(*c, f);
 				break;
 			}
 			(void)fclose(f);
