@@ -302,7 +302,7 @@ int main(int argc, char **argv)
 					break;
 #endif
 				case 'a':
-					nwin_options.aflag = 1;
+					nwin_options.aflag = true;
 					break;
 				case 'A':
 					adaptflag = true;

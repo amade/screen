@@ -2,7 +2,7 @@
 #define SCREEN_TERMCAP_H
 
 int   InitTermcap (int, int);
-char *MakeTermcap (int);
+char *MakeTermcap (bool);
 char *gettermcapstring (char *);
 int   remap (int, int);
 void  CheckEscape (void);

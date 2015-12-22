@@ -651,7 +651,7 @@ static void AddCap(char *s)
  * Reads a displays capabilities and reconstructs a termcap entry in the
  * global buffer "Termcap". A pointer to this buffer is returned.
  */
-char *MakeTermcap(int aflag)
+char *MakeTermcap(bool aflag)
 {
 	char buf[TERMCAP_BUFSIZE];
 	char *p, *cp, *s, ch, *tname;

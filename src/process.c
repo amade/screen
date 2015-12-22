@@ -5042,7 +5042,7 @@ void DoScreen(char *fn, char **av)
 			break;
 #endif
 		case 'a':
-			nwin.aflag = 1;
+			nwin.aflag = true;
 			break;
 		case 'M':
 			nwin.monitor = MON_ON;

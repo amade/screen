@@ -121,7 +121,7 @@ struct Message {
 	union {
 		struct {
 			int lflag;
-			int aflag;
+			bool aflag;
 			int flowflag;
 			int hheight;			/* size of scrollback buffer */
 			int nargs;
