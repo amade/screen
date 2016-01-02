@@ -142,8 +142,7 @@ void xseteuid(int euid)
 {
 	if (seteuid(euid) == 0)
 		return;
-	seteuid(0);
-	if (seteuid(euid))
+	if (seteuid(0) || seteuid(euid))
 		Panic(errno, "seteuid");
 }
 
