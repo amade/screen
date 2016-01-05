@@ -5693,7 +5693,7 @@ ShowWindowsX(str)
 char *str;
 {
 	int i;
-	debug1("ShowWindowsX: string [%s]", string);
+	debug1("ShowWindowsX: string [%s]", str);
 	for (i = 0; i < maxwin ; i++) {
 		if (!wtab[i])
 			continue;
