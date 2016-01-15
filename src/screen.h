@@ -233,7 +233,6 @@ void  Dummy (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 void  Finit (int);
 void  MakeNewEnv (void);
 void  PutWinMsg (char *, int, int);
-void  WindowDied (Window *, int, int);
 void  setbacktick (int, int, int, char **);
 
 /* global variables */

@@ -1773,3 +1773,75 @@ int SwapWindows(int old, int dest)
 	WindowChanged((Window *)0, 0);
 	return 1;
 }
+
+void WindowDied(Window *p, int wstat, int wstat_valid)
+{
+	int killit = 0;
+
+	if (p->w_destroyev.data == (char *)p) {
+		wstat = p->w_exitstatus;
+		wstat_valid = 1;
+		evdeq(&p->w_destroyev);
+		p->w_destroyev.data = 0;
+	}
+	if (!wstat_valid && p->w_pid > 0) {
+		/* EOF on file descriptor. The process is probably also dead.
+		 * try a waitpid */
+		if (waitpid(p->w_pid, &wstat, WNOHANG | WUNTRACED) == p->w_pid) {
+			p->w_pid = 0;
+			wstat_valid = 1;
+		}
+	}
+	if (ZombieKey_destroy && ZombieKey_onerror && wstat_valid && WIFEXITED(wstat) && WEXITSTATUS(wstat) == 0)
+		killit = 1;
+
+	if (ZombieKey_destroy && !killit) {
+		char buf[100], *s, reason[100];
+		time_t now;
+
+		if (wstat_valid) {
+			if (WIFEXITED(wstat))
+				if (WEXITSTATUS(wstat))
+					sprintf(reason, "terminated with exit status %d", WEXITSTATUS(wstat));
+				else
+					sprintf(reason, "terminated normally");
+			else if (WIFSIGNALED(wstat))
+				sprintf(reason, "terminated with signal %d%s", WTERMSIG(wstat),
+#ifdef WCOREDUMP
+					WCOREDUMP(wstat) ? " (core file generated)" : "");
+#else
+					"");
+#endif
+		} else
+			sprintf(reason, "detached from window");
+
+		(void)time(&now);
+		s = ctime(&now);
+		if (s && *s)
+			s[strlen(s) - 1] = '\0';
+#ifdef UTMPOK
+		if (p->w_slot != (slot_t) 0 && p->w_slot != (slot_t) - 1) {
+			RemoveUtmp(p);
+			p->w_slot = 0;	/* "detached" */
+		}
+#endif
+		CloseDevice(p);
+
+		p->w_deadpid = p->w_pid;
+		p->w_pid = 0;
+		ResetWindow(p);
+		/* p->w_y = p->w_bot; */
+		p->w_y = MFindUsedLine(p, p->w_bot, 1);
+		sprintf(buf, "\n\r=== Command %s (%s) ===", reason, s ? s : "?");
+		WriteString(p, buf, strlen(buf));
+		if (p->w_poll_zombie_timeout) {
+			SetTimeout(&p->w_zombieev, p->w_poll_zombie_timeout * 1000);
+			evenq(&p->w_zombieev);
+		}
+		WindowChanged(p, 'f');
+	} else
+		KillWindow(p);
+#ifdef UTMPOK
+	CarefulUtmp();
+#endif
+}
