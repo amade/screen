@@ -34,7 +34,7 @@
 
 /* structure representing single cell of terminal */
 struct mchar {
-	uint32_t image;		/* actual letter like a, b, c ... */
+	uint32_t image;		/* actual letter like a, b, c ... as Unicode code point */
 	uint32_t attr;		/* attributes - bold, standout etc. */
 	uint32_t font;		/* font :) */
 	uint32_t fontx; 	/* extended font; TODO: remove - merge with font */

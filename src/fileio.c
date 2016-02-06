@@ -43,6 +43,7 @@
 #include "misc.h"
 #include "process.h"
 #include "termcap.h"
+#include "encoding.h"
 
 static char *CatExtra(char *, char *);
 static char *findrcfile(char *);
@@ -305,6 +306,21 @@ void RcLine(char *ubuf, int ubufl)
 	EffectiveAclUser = 0;
 }
 
+
+static void putc_encoded(FILE *f, uint32_t c, uint32_t font, int encoding) {
+	/* Filler character which is used for double-width characters. */
+	if (c == 0xff && font == 0xff)
+		return;
+
+	char buf[10];
+	int length = EncodeChar(buf, c, encoding, NULL);
+	if (length < 0) {
+		return;
+	}
+	buf[length] = 0;
+	fputs(buf, f);
+}
+
 /*
  * needs display for copybuffer access and termcap dumping
  */
@@ -316,7 +332,6 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 	 * dump==1:   scrollback,
 	 */
 	int i, j, k;
-	uint32_t *p;
 	char *c;
 	FILE *f;
 	char fnbuf[FILENAME_MAX];
@@ -385,6 +400,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 		if (f == NULL) {
 			UserReturn(0);
 		} else {
+			uint32_t *p, *pf;
 			switch (dump) {
 			case DUMP_HARDCOPY:
 			case DUMP_SCROLLBACK:
@@ -399,17 +415,19 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 				if (dump == DUMP_SCROLLBACK) {
 					for (i = 0; i < fore->w_histheight; i++) {
 						p = (WIN(i)->image);
+						pf = WIN(i)->font;
 						for (k = fore->w_width - 1; k >= 0 && p[k] == ' '; k--) ;
 						for (j = 0; j <= k; j++)
-							putc(p[j], f);
+							putc_encoded(f, p[j], pf[j], fore->w_encoding);
 						putc('\n', f);
 					}
 				}
 				for (i = 0; i < fore->w_height; i++) {
 					p = fore->w_mlines[i].image;
+					pf = fore->w_mlines[i].font;
 					for (k = fore->w_width - 1; k >= 0 && p[k] == ' '; k--) ;
 					for (j = 0; j <= k; j++)
-						putc(p[j], f);
+						putc_encoded(f, p[j], pf[j], fore->w_encoding);
 					putc('\n', f);
 				}
 				break;
