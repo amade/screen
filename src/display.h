@@ -160,7 +160,6 @@ struct Display {
 	char *d_attrtab[NATTR];		/* attrib emulation table */
 	char  d_attrtyp[NATTR];		/* attrib group table */
 	int   d_hascolor;		/* do we support color */
-	short	d_dospeed;		/* baudrate of tty */
 	char	d_c0_tab[256];		/* conversion for C0 */
 	char ***d_xtable;		/* char translation table */
 	int	d_UPcost, d_DOcost, d_LEcost, d_NDcost;
@@ -265,7 +264,6 @@ struct Display {
 #define D_attrtab	DISPLAY(d_attrtab)
 #define D_attrtyp	DISPLAY(d_attrtyp)
 #define D_hascolor	DISPLAY(d_hascolor)
-#define D_dospeed	DISPLAY(d_dospeed)
 #define D_c0_tab	DISPLAY(d_c0_tab)
 #define D_xtable	DISPLAY(d_xtable)
 #define D_UPcost	DISPLAY(d_UPcost)

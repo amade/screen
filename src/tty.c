@@ -1038,8 +1038,6 @@ char *TtyGetModemStatus(int fd, char *buf)
 
 /*
  * On hpux, idx and sym will be different.
- * Rumor has it that, we need idx in D_dospeed to make tputs
- * padding correct.
  */
 static struct baud_values btable[] = {
 #if defined(B4000000)

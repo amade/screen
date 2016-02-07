@@ -65,14 +65,6 @@ static void RAW_PUTCHAR(int);
 static void SetBackColor(int);
 static void RemoveStatusMinWait(void);
 
-/*
- * tputs needs this to calculate the padding
- */
-#ifndef NEED_OSPEED
-extern
-#endif				/* NEED_OSPEED */
-short ospeed;
-
 Display *display, *displays;
 
 /*
@@ -218,10 +210,6 @@ Display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struc
 	D_obufp = D_obuf;
 	D_printfd = -1;
 	D_userpid = pid;
-
-	if ((b = lookup_baud((int)cfgetospeed(&D_OldMode.tio))))
-		D_dospeed = b->idx;
-
 	strncpy(D_usertty, utty, sizeof(D_usertty) - 1);
 	D_usertty[sizeof(D_usertty) - 1] = 0;
 	strncpy(D_termname, term, MAXTERMLEN);
@@ -508,7 +496,6 @@ static int DoAddChar(int c)
 void AddCStr(char *s)
 {
 	if (display && s && *s) {
-		ospeed = D_dospeed;
 		tputs(s, 1, DoAddChar);
 	}
 }
@@ -516,7 +503,6 @@ void AddCStr(char *s)
 void AddCStr2(char *s, int c)
 {
 	if (display && s && *s) {
-		ospeed = D_dospeed;
 		tputs(tgoto(s, 0, c), 1, DoAddChar);
 	}
 }
@@ -647,7 +633,6 @@ int CalcCost(char *s)
 {
 	if (s) {
 		StrCost = 0;
-		ospeed = D_dospeed;
 		tputs(s, 1, CountChars);
 		return StrCost;
 	} else
@@ -1149,7 +1134,6 @@ void SetAttr(int new)
 #if defined(USE_SGR)
 	if (D_SA) {
 		SetFont(ASCII);
-		ospeed = D_dospeed;
 		tputs(tparm(D_SA, new & A_SO, new & A_US, new & A_RV, new & A_BL,
 			    new & A_DI, new & A_BD, 0, 0, 0), 1, DoAddChar);
 		D_rend.attr = new;
@@ -1341,7 +1325,6 @@ void SetColor(uint32_t foreground, uint32_t background)
 		_g = (f & 0x0000ff00) >> 8;
 		_b = (f & 0x000000ff);
 
-		ospeed = D_dospeed;
 		/* TODO - properly get escape code */
 		tputs(tparm("\033[38;2;%d;%d;%dm", _r, _g, _b), 1, DoAddChar);
 	}
@@ -1376,7 +1359,6 @@ void SetColor(uint32_t foreground, uint32_t background)
 		_g = (b & 0x0000ff00) >> 8;
 		_b = (b & 0x000000ff);
 
-		ospeed = D_dospeed;
 		/* TODO - properly get escape code */
 		tputs(tparm("\033[48;2;%d;%d;%dm", _r, _g, _b), 1, DoAddChar);
 	}
