@@ -1074,8 +1074,6 @@ static void CoreDump(int sigsig)
 	Display *disp;
 	char buf[80];
 
-	int running_w_s_bit = (getuid() != geteuid());
-
 	(void)sigsig; /* unused */
 
 	setgid(getgid());
@@ -1093,10 +1091,7 @@ static void CoreDump(int sigsig)
 		Kill(disp->d_userpid, SIG_BYE);
 	}
 
-	if (running_w_s_bit) {
-		abort();
-	} else
-		abort();
+	abort();
 }
 
 static void DoWait()
