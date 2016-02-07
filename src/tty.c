@@ -1040,84 +1040,116 @@ char *TtyGetModemStatus(int fd, char *buf)
  * On hpux, idx and sym will be different.
  * Rumor has it that, we need idx in D_dospeed to make tputs
  * padding correct.
- * Frequently used entries come first.
  */
 static struct baud_values btable[] = {
-#if defined(B9600)
-	{13, 9600, B9600},
-#endif				/* B9600 */
-#if defined(B19200)
-	{14, 19200, B19200},
-#endif				/* B19200 */
-#if defined(EXTA)
-	{14, 19200, EXTA},
-#endif				/* EXTA */
-#if defined(B38400)
-	{15, 38400, B38400},
-#endif				/* B38400 */
-#if defined(EXTB)
-	{15, 38400, EXTB},
-#endif				/* EXTB */
-#if defined(B57600)
-	{16, 57600, B57600},
-#endif				/* B57600 */
-#if defined(B115200)
-	{17, 115200, B115200},
-#endif				/* B115200 */
-#if defined(B230400)
-	{18, 230400, B230400},
-#endif				/* B230400 */
+#if defined(B4000000)
+	{32, 4000000, B4000000},
+#endif
+#if defined(B3500000)
+	{31, 3500000, B3500000},
+#endif
+#if defined(B3000000)
+	{30, 3000000, B3000000},
+#endif
+#if defined(B2500000)
+	{29, 2500000, B2500000},
+#endif
+#if defined(B2000000)
+	{28, 2000000, B2000000},
+#endif
+#if defined(B1500000)
+	{27, 1500000, B1500000},
+#endif
+#if defined(B1152000)
+	{26, 1152000, B1152000},
+#endif
+#if defined(B1000000)
+	{25, 1000000, B1000000},
+#endif
+#if defined(B921600)
+	{24, 921600, B921600},
+#endif
+#if defined(B576000)
+	{23, 576000, B576000},
+#endif
+#if defined(B500000)
+	{22, 500000, B500000},
+#endif
 #if defined(B460800)
-	{19, 460800, B460800},
-#endif				/* B460800 */
+	{22, 460800, B460800},
+#endif
+#if defined(B230400)
+	{21, 230400, B230400},
+#endif
+#if defined(B115200)
+	{20, 115200, B115200},
+#endif
+#if defined(B57600)
+	{19, 57600, B57600},
+#endif
+#if defined(EXTB)
+	{18, 38400, EXTB},
+#endif
+#if defined(B38400)
+	{18, 38400, B38400},
+#endif
+#if defined(EXTA)
+	{17, 19200, EXTA},
+#endif
+#if defined(B19200)
+	{17, 19200, B19200},
+#endif
+#if defined(B9600)
+	{16, 9600, B9600},
+#endif
 #if defined(B7200)
-	{13, 7200, B7200},
-#endif				/* B7200 */
+	{15, 7200, B7200},
+#endif
 #if defined(B4800)
-	{12, 4800, B4800},
-#endif				/* B4800 */
+	{14, 4800, B4800},
+#endif
 #if defined(B3600)
-	{12, 3600, B3600},
-#endif				/* B3600 */
+	{13, 3600, B3600},
+#endif
 #if defined(B2400)
-	{11, 2400, B2400},
-#endif				/* B2400 */
+	{12, 2400, B2400},
+#endif
 #if defined(B1800)
-	{10, 1800, B1800},
-#endif				/* B1800 */
+	{11, 1800, B1800},
+#endif
 #if defined(B1200)
-	{9, 1200, B1200},
-#endif				/* B1200 */
+	{10, 1200, B1200},
+#endif
 #if defined(B900)
 	{9, 900, B900},
-#endif				/* B900 */
+#endif
 #if defined(B600)
 	{8, 600, B600},
-#endif				/* B600 */
+#endif
 #if defined(B300)
 	{7, 300, B300},
-#endif				/* B300 */
+#endif
 #if defined(B200)
 	{6, 200, B200},
-#endif				/* B200 */
+#endif
 #if defined(B150)
 	{5, 150, B150},
-#endif				/* B150 */
+#endif
 #if defined(B134)
 	{4, 134, B134},
-#endif				/* B134 */
+#endif
 #if defined(B110)
 	{3, 110, B110},
-#endif				/* B110 */
+#endif
 #if defined(B75)
 	{2, 75, B75},
-#endif				/* B75 */
+#endif
 #if defined(B50)
 	{1, 50, B50},
-#endif				/* B50 */
+#endif
 #if defined(B0)
 	{0, 0, B0},
-#endif				/* B0 */
+#endif
 	{-1, -1, -1}
 };
 
