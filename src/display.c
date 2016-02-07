@@ -40,7 +40,6 @@
 #include "screen.h"
 
 #include "canvas.h"
-#include "encoding.h"
 #include "mark.h"
 #include "misc.h"
 #include "process.h"
@@ -227,7 +226,6 @@ void FreeDisplay()
 {
 	Display *d, **dp;
 
-	FreeTransTable();
 	KillBlanker();
 	if (D_userfd >= 0) {
 		Flush(3);
@@ -402,13 +400,6 @@ void PUTCHARLP(int c)
 	D_lp_missing = 1;
 	D_rend.image = c;
 	D_lpchar = D_rend;
-	/* XXX -> PutChar ? */
-	if (D_mbcs) {
-		D_lpchar.mbcs = c;
-		D_lpchar.image = D_mbcs;
-		D_mbcs = 0;
-		D_x--;
-	}
 }
 
 /*
@@ -418,58 +409,7 @@ void PUTCHARLP(int c)
 
 static void RAW_PUTCHAR(int c)
 {
-
-	if (D_encoding == UTF8) {
-		c = (c & 255) | (unsigned char)D_rend.font << 8 | (unsigned char)D_rend.fontx << 16;
-		if (D_mbcs) {
-			c = D_mbcs;
-			if (D_x == D_width)
-				D_x += D_AM ? 1 : -1;
-			D_mbcs = 0;
-		} else if (utf8_isdouble(c)) {
-			D_mbcs = c;
-			D_x++;
-			return;
-		}
-		if (c < 32) {
-			AddCStr2(D_CS0, '0');
-			AddChar(c + 0x5f);
-			AddCStr(D_CE0);
-			goto addedutf8;
-		}
-		if (c < 0x80) {
-			if (D_xtable && D_xtable[(int)(unsigned char)D_rend.font]
-			    && D_xtable[(int)(unsigned char)D_rend.font][(int)(unsigned char)c])
-				AddStr(D_xtable[(int)(unsigned char)D_rend.font][(int)(unsigned char)c]);
-			else
-				AddChar(c);
-		} else
-			AddUtf8(c);
-		goto addedutf8;
-	}
-	if (is_dw_font(D_rend.font)) {
-		int t = c;
-		if (D_mbcs == 0) {
-			D_mbcs = c;
-			D_x++;
-			return;
-		}
-		D_x--;
-		if (D_x == D_width - 1)
-			D_x += D_AM ? 1 : -1;
-		c = D_mbcs;
-		D_mbcs = t;
-	}
-	if (D_encoding)
-		c = PrepareEncodedChar(c);
- kanjiloop:
-	if (D_xtable && D_xtable[(int)(unsigned char)D_rend.font]
-	    && D_xtable[(int)(unsigned char)D_rend.font][(int)(unsigned char)c])
-		AddStr(D_xtable[(int)(unsigned char)D_rend.font][(int)(unsigned char)c]);
-	else
-		AddChar(D_rend.font != '0' ? c : D_c0_tab[(int)(unsigned char)c]);
-
- addedutf8:
+	AddChar(c);
 	if (++D_x >= D_width) {
 		if (D_AM == 0)
 			D_x = D_width - 1;
@@ -478,11 +418,6 @@ static void RAW_PUTCHAR(int c)
 			if (D_y < D_height - 1 && D_y != D_bot)
 				D_y++;
 		}
-	}
-	if (D_mbcs) {
-		c = D_mbcs;
-		D_mbcs = 0;
-		goto kanjiloop;
 	}
 }
 
@@ -1155,11 +1090,6 @@ void SetAttr(int new)
 			/* ansi attrib handling: \E[m resets color, too */
 			if (D_hascolor)
 				D_rend.colorbg = D_rend.colorfg = 0;
-			if (!D_CG0) {
-				/* D_ME may also reset the alternate charset */
-				D_rend.font = 0;
-				D_realfont = 0;
-			}
 		}
 		old = 0;
 		typ = 0;
@@ -1175,39 +1105,6 @@ void SetAttr(int new)
 		}
 	}
 	D_atyp = typ;
-}
-
-void SetFont(int new)
-{
-	int old = D_rend.font;
-	if (!display || old == new)
-		return;
-	D_rend.font = new;
-	if (D_encoding && CanEncodeFont(D_encoding, new))
-		return;
-	if (new == D_realfont)
-		return;
-	D_realfont = new;
-	if (D_xtable && D_xtable[(int)(unsigned char)new] && D_xtable[(int)(unsigned char)new][256]) {
-		AddCStr(D_xtable[(int)(unsigned char)new][256]);
-		return;
-	}
-
-	if (!D_CG0 && new != '0') {
-		new = ASCII;
-		if (old == new)
-			return;
-	}
-
-	if (new == ASCII)
-		AddCStr(D_CE0);
-	else if (new < ' ') {
-		AddStr("\033$");
-		if (new > 2)
-			AddChar('(');
-		AddChar(new + '@');
-	} else
-		AddCStr2(D_CS0, new);
 }
 
 int color256to16(int color)
@@ -1281,11 +1178,6 @@ void SetColor(uint32_t foreground, uint32_t background)
 			int oattr;
 			oattr = D_rend.attr;
 			AddCStr(D_ME ? D_ME : "\033[m");
-			if (D_ME && !D_CG0) {
-				/* D_ME may also reset the alternate charset */
-				D_rend.font = 0;
-				D_realfont = 0;
-			}
 			D_atyp = 0;
 			D_rend.attr = 0;
 			SetAttr(oattr);
@@ -1379,10 +1271,6 @@ void SetRendition(struct mchar *mc)
 		SetAttr(mc->attr);
 	if (D_rend.colorbg != mc->colorbg || D_rend.colorfg != mc->colorfg)
 		SetColor(mc->colorfg, mc->colorbg);
-	if (D_rend.font != mc->font)
-		SetFont(mc->font);
-	if (D_encoding == UTF8)
-		D_rend.fontx = mc->fontx;
 }
 
 void SetRenditionMline(struct mline *ml, int x)
@@ -1397,10 +1285,6 @@ void SetRenditionMline(struct mline *ml, int x)
 		copy_mline2mchar(&mc, ml, x);
 		SetColor(mc.colorfg, mc.colorbg);
 	}
-	if (D_rend.font != ml->font[x])
-		SetFont(ml->font[x]);
-	if (D_encoding == UTF8)
-		D_rend.fontx = ml->fontx[x];
 }
 
 void MakeStatus(char *msg)
@@ -1556,45 +1440,10 @@ static void RemoveStatusMinWait()
 	RemoveStatus();
 }
 
-static int strlen_onscreen(char *c, char *end)
-{
-	int len = 0;
-	while (*c && (!end || c < end)) {
-		int v, dec = 0;
-		do {
-			v = FromUtf8(*c++, &dec);
-			if (v == -2)
-				c--;
-		}
-		while (v < 0 && (!end || c < end));
-		if (!utf8_iscomb(v)) {
-			if (utf8_isdouble(v))
-				len++;
-			len++;
-		}
-	}
-
-	return len;
-}
-
 static int PrePutWinMsg(char *s, int start, int max)
 {
-	/* Avoid double-encoding problem for a UTF-8 message on a UTF-8 locale.
-	   Ideally, this would not be necessary. But fixing it the Right Way will
-	   probably take way more time. So this will have to do for now. */
-	if (D_encoding == UTF8) {
-		int chars = strlen_onscreen((s + start), (s + max));
-		D_encoding = 0;
-		PutWinMsg(s, start, max + ((max - start) - chars));	/* Multibyte count */
-		D_encoding = UTF8;
-		D_x -= (max - chars);	/* Yak! But this is necessary to count for
-					   the fact that not every byte represents a
-					   character. */
-		return start + chars;
-	} else {
-		PutWinMsg(s, start, max);
-		return max;
-	}
+	PutWinMsg(s, start, max);
+	return max;
 }
 
 /* refresh the display's hstatus line */
@@ -1674,11 +1523,7 @@ void ShowHStatus(char *str)
 void RefreshHStatus()
 {
 	char *buf;
-#ifdef UTF8
-	int extrabytes = strlen(hstatusstring) - strlen_onscreen(hstatusstring, NULL);
-#else
 	int extrabytes = 0;
-#endif
 	evdeq(&D_hstatusev);
 	if (D_status == STATUS_ON_HS)
 		return;
@@ -1753,11 +1598,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 		lvp = 0;
 		for (cv = display->d_cvlist; cv; cv = cv->c_next) {
 			if (y == (captiontop ? cv->c_ys - 1 : cv->c_ye + 1) && from >= cv->c_xs && from <= cv->c_xe) {
-#ifdef UTF8
-				int extrabytes = strlen(captionstring) - strlen_onscreen(captionstring, NULL);
-#else
 				int extrabytes = 0;
-#endif
 				p = Layer2Window(cv->c_layer);
 				buf =
 				    MakeWinMsgEv(NULL, captionstring, p, '%',
@@ -1861,18 +1702,10 @@ static void WriteLP(int x2, int y2)
 	struct mchar oldrend;
 
 	oldrend = D_rend;
-	if (D_lpchar.mbcs) {
-		if (x2 > 0)
-			x2--;
-		else
-			D_lpchar = mchar_blank;
-	}
 	/* Can't use PutChar */
 	GotoPos(x2, y2);
 	SetRendition(&D_lpchar);
 	PUTCHAR(D_lpchar.image);
-	if (D_lpchar.mbcs)
-		PUTCHAR(D_lpchar.mbcs);
 	D_lp_missing = 0;
 	SetRendition(&oldrend);
 }
@@ -1916,7 +1749,7 @@ void DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 
 	if (!D_CLP && y == D_bot && to == D_width - 1) {
 		if (D_lp_missing || !cmp_mline(oml, ml, to)) {
-			if ((D_IC || D_IM) && from < to && !dw_left(ml, to, D_encoding)) {
+			if ((D_IC || D_IM) && from < to) {
 				last2flag = 1;
 				D_lp_missing = 0;
 				to--;
@@ -1928,32 +1761,14 @@ void DisplayLine(struct mline *oml, struct mline *ml, int y, int from, int to)
 		}
 		to--;
 	}
-	if (D_mbcs) {
-		/* finish dw-char (can happen after a wrap) */
-		SetRenditionMline(ml, from);
-		PUTCHAR(ml->image[from]);
-		from++;
-	}
 	for (x = from; x <= to; x++) {
 		if (ml != NULL) {
 			if ((x < to || x != D_width - 1 || ml->image[x + 1]))
 				if (cmp_mline(oml, ml, x))
 					continue;
 			GotoPos(x, y);
-			if (dw_right(ml, x, D_encoding)) {
-				if (x > 0) {
-					x--;
-				} else {
-					x++;
-				}
-				GotoPos(x, y);
-			}
-			if (x == to && dw_left(ml, x, D_encoding))
-				break;	/* don't start new kanji */
 			SetRenditionMline(ml, x);
 			PUTCHAR(ml->image[x]);
-			if (dw_left(ml, x, D_encoding))
-				PUTCHAR(ml->image[++x]);
 		}
 	}
 	if (last2flag) {
@@ -1980,11 +1795,6 @@ void PutChar(struct mchar *c, int x, int y)
 	GotoPos(x, y);
 	SetRendition(c);
 	PUTCHARLP(c->image);
-	if (c->mbcs) {
-		if (D_encoding == UTF8)
-			D_rend.font = 0;
-		PUTCHARLP(c->mbcs);
-	}
 }
 
 void InsChar(struct mchar *c, int x, int xe, int y, struct mline *oml)
@@ -2013,23 +1823,13 @@ void InsChar(struct mchar *c, int x, int xe, int y, struct mline *oml)
 	}
 	InsertMode(true);
 	if (!D_insert) {
-		if (c->mbcs && D_IC)
-			AddCStr(D_IC);
 		if (D_IC)
 			AddCStr(D_IC);
 		else
-			AddCStr2(D_CIC, c->mbcs ? 2 : 1);
+			AddCStr2(D_CIC, 1);
 	}
 	SetRendition(c);
 	RAW_PUTCHAR(c->image);
-	if (c->mbcs) {
-		if (D_encoding == UTF8)
-			D_rend.font = 0;
-		if (D_x == D_width - 1)
-			PUTCHARLP(c->mbcs);
-		else
-			RAW_PUTCHAR(c->mbcs);
-	}
 }
 
 void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, bool ins)
@@ -2077,11 +1877,6 @@ void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, boo
 	D_x = 0;
 	SetRendition(c);
 	RAW_PUTCHAR(c->image);
-	if (c->mbcs) {
-		if (D_encoding == UTF8)
-			D_rend.font = 0;
-		RAW_PUTCHAR(c->mbcs);
-	}
 }
 
 int ResizeDisplay(int wi, int he)
@@ -2172,11 +1967,6 @@ void AddStr(char *str)
 {
 	char c;
 
-	if (D_encoding == UTF8) {
-		while ((c = *str++))
-			AddUtf8((unsigned char)c);
-		return;
-	}
 	while ((c = *str++))
 		AddChar(c);
 }
@@ -2185,12 +1975,8 @@ void AddStrn(char *str, int n)
 {
 	char c;
 
-	if (D_encoding == UTF8) {
-		while ((c = *str++) && n-- > 0)
-			AddUtf8((unsigned char)c);
-	} else
-		while ((c = *str++) && n-- > 0)
-			AddChar(c);
+	while ((c = *str++) && n-- > 0)
+		AddChar(c);
 	while (n-- > 0)
 		AddChar(' ');
 }
@@ -2590,29 +2376,6 @@ static void disp_readev_fn(Event *event, void *data)
 			i -= 4;
 			size -= 5;
 		}
-	}
-	if (D_encoding != (D_forecv ? D_forecv->c_layer->l_encoding : 0)) {
-		int i, j, c, enc;
-		char buf2[IOSIZE * 2 + 10];
-		enc = D_forecv ? D_forecv->c_layer->l_encoding : 0;
-		for (i = j = 0; i < size; i++) {
-			c = ((unsigned char *)buf)[i];
-			c = DecodeChar(c, D_encoding, &D_decodestate);
-			if (c == -2)
-				i--;	/* try char again */
-			if (c < 0)
-				continue;
-			if (pastefont) {
-				int font = 0;
-				j += EncodeChar(buf2 + j, c, enc, &font);
-				j += EncodeChar(buf2 + j, -1, enc, &font);
-			} else
-				j += EncodeChar(buf2 + j, c, enc, 0);
-			if (j > (int)sizeof(buf2) - 10)	/* just in case... */
-				break;
-		}
-		(*D_processinput) (buf2, j);
-		return;
 	}
 	(*D_processinput) (buf, size);
 }
