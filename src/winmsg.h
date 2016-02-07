@@ -36,7 +36,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <assert.h>
 
 #include "window.h"
 #include "winmsgbuf.h"

@@ -1,6 +1,8 @@
 #ifndef SCREEN_SEARCH_H
 #define SCREEN_SEARCH_H
 
+#include <stdbool.h>
+
 void  Search (int);
 void  ISearch (int);
 

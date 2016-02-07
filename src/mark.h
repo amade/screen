@@ -30,6 +30,8 @@
 #ifndef SCREEN_MARK_H
 #define SCREEN_MARK_H
 
+#include "window.h"
+
 struct markdata {
 	Window *md_window;/* pointer to window we are working on */
 	struct acluser *md_user;	/* The user who brought us up */

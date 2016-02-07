@@ -1,6 +1,8 @@
 #ifndef SCREEN_TELNET_H
 #define SCREEN_TELNET_H
 
+#include "config.h"
+
 #ifdef BUILTIN_TELNET
 int TelOpenAndConnect(Window *);
 int TelIsline(Window *);

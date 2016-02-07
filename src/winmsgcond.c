@@ -20,8 +20,10 @@
  ****************************************************************
  */
 
-#include <assert.h>
 #include "winmsgcond.h"
+
+#include <assert.h>
+#include <stdlib.h>
 
 
 /* Initialize new condition and set to false; can be used to re-initialize a

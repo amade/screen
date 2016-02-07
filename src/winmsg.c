@@ -31,10 +31,11 @@
  ****************************************************************
  */
 
+#include "winmsg.h"
+
 #include "config.h"
 #include "screen.h"
 
-#include "winmsg.h"
 #include "fileio.h"
 #include "logfile.h"
 #include "process.h"

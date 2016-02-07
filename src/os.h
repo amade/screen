@@ -27,9 +27,12 @@
  * $Id$ GNU
  */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <errno.h>
 #include <sys/param.h>
+#include <fcntl.h>
 
 #include <limits.h>
 

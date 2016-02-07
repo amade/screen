@@ -1,6 +1,8 @@
 #ifndef SCREEN_SOCKET_H
 #define SCREEN_SOCKET_H
 
+#include "window.h"
+
 int   FindSocket (int *, int *, int *, char *);
 int   MakeClientSocket (int);
 int   MakeServerSocket (void);

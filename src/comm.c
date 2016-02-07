@@ -27,13 +27,9 @@
  ****************************************************************
  */
 
-#include <stdbool.h>
-#include <stdint.h>
+#include "comm.h"
 
 #include "config.h"
-#include "os.h"
-
-#include "screen.h"
 
 /* Must be in alpha order ! */
 

@@ -30,16 +30,11 @@
 #ifndef SCREEN_SCREEN_H
 #define SCREEN_SCREEN_H
 
+#include "config.h"
+
 #include <stdbool.h>
 
 #include "os.h"
-
-#include "ansi.h"
-#include "sched.h"
-#include "acls.h"
-#include "comm.h"
-#include "layer.h"
-#include "term.h"
 
 /* here comes my own Free: jw. */
 #define Free(a) {if ((a) == 0) abort(); else free((void *)(a)); (a)=0;}
@@ -69,7 +64,13 @@ struct mode {
 };
 
 
-/* #include "logfile.h" */	/* (requires stat.h) struct logfile */
+#include "ansi.h"
+#include "sched.h"
+#include "acls.h"
+#include "comm.h"
+#include "layer.h"
+#include "term.h"
+
 #include "image.h"
 #include "canvas.h"
 #include "display.h"

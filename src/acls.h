@@ -29,6 +29,8 @@
 #ifndef SCREEN_ACLS_H
 #define SCREEN_ACLS_H
 
+#include "os.h"
+
 /* three known bits: */
 #define ACL_EXEC 0		
 #define ACL_WRITE 1
@@ -41,6 +43,8 @@
 
 #define ACLBYTE(data, w)   ((data)[(w) >> 3])
 #define ACLBIT(w)   (0x80 >> ((w) & 7))
+
+typedef struct Window Window;
 
 typedef unsigned char * AclBits;
 

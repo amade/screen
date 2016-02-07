@@ -29,6 +29,8 @@
  ****************************************************************
  */
 
+#include "window.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <signal.h>
@@ -37,14 +39,10 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-#include "config.h"
-
-#include "screen.h"
 #include "winmsg.h"
 #include "fileio.h"
 #include "help.h"
 #include "input.h"
-#include "logfile.h"		/* logfopen() */
 #include "mark.h"
 #include "misc.h"
 #include "process.h"

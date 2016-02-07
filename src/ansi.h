@@ -30,7 +30,9 @@
 #ifndef SCREEN_ANSI_H
 #define SCREEN_ANSI_H
 
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #define NATTR		6
 

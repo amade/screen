@@ -26,13 +26,11 @@
  ****************************************************************
  */
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "canvas.h"
 
 #include "config.h"
-#include "screen.h"
 
-#include "canvas.h"
+#include "screen.h"
 #include "help.h"
 #include "list_generic.h"
 #include "resize.h"

@@ -33,6 +33,9 @@
 #include "layout.h"
 #include "canvas.h"
 #include "viewport.h"
+#include "comm.h"
+#include "image.h"
+#include "screen.h"
 
 #define KMAP_KEYS (T_OCAPS-T_CAPS)
 #define KMAP_AKEYS (T_OCAPS-T_CURSOR)

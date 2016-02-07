@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "fileio.h"
+
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdint.h>
@@ -38,7 +40,6 @@
 #include "config.h"
 #include "screen.h"
 
-#include "fileio.h"
 #include "misc.h"
 #include "process.h"
 #include "termcap.h"

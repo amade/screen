@@ -26,13 +26,11 @@
  ****************************************************************
  */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <sys/types.h>
+#include "layer.h"
 
 #include "config.h"
-#include "screen.h"
 
+#include "screen.h"
 #include "encoding.h"
 #include "mark.h"
 #include "tty.h"

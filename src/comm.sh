@@ -19,6 +19,11 @@ cat << EOF > comm.h
  * This file is automagically created from comm.c -- DO NOT EDIT
  */
 
+#ifndef SCREEN_COMM_H
+#define SCREEN_COMM_H
+
+#include "acls.h"
+
 struct comm
 {
   char *name;
@@ -70,6 +75,8 @@ struct action
 };
 
 #define RC_ILLEGAL -1
+
+#endif /* SCREEN_COMM_H */
 
 EOF
 $AWK < ${srcdir}/comm.c >> comm.h '

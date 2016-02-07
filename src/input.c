@@ -26,9 +26,7 @@
  ****************************************************************
  */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <sys/types.h>
+#include "input.h"
 
 #include "config.h"
 #include "screen.h"

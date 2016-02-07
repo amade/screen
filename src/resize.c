@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "resize.h"
+
 #include <sys/types.h>
 #include <signal.h>
 #include <stdint.h>
@@ -36,7 +38,6 @@
 #include "screen.h"
 
 #include "process.h"
-#include "resize.h"
 #include "telnet.h"
 
 /* maximum window width */

@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "socket.h"
+
 #include "config.h"
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -62,7 +64,6 @@
 #include "misc.h"
 #include "process.h"
 #include "resize.h"
-#include "socket.h"
 #include "termcap.h"
 #include "tty.h"
 #include "utmp.h"

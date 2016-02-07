@@ -30,6 +30,9 @@
 #ifndef SCREEN_LAYER_H
 #define SCREEN_LAYER_H
 
+#include <stdbool.h>
+#include <stdlib.h>
+
 /*
  * This is the overlay structure. It is used to create a seperate
  * layer over the current windows.

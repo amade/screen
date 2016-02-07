@@ -31,6 +31,8 @@
  ****************************************************************
  */
 
+#include "process.h"
+
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/ioctl.h>
@@ -56,7 +58,6 @@
 #include "logfile.h"
 #include "mark.h"
 #include "misc.h"
-#include "process.h"
 #include "resize.h"
 #include "search.h"
 #include "socket.h"

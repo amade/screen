@@ -1,6 +1,8 @@
 #ifndef SCREEN_ENCODING_H
 #define SCREEN_ENCODING_H
 
+#include "window.h"
+
 void  InitBuiltinTabs (void);
 struct mchar *recode_mchar (struct mchar *, int, int);
 struct mline *recode_mline (struct mline *, int, int, int);

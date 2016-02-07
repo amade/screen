@@ -21,13 +21,13 @@
  ****************************************************************
  */
 
+#include "encoding.h"
+
 #include <sys/types.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 #include "config.h"
 #include "screen.h"
-#include "encoding.h"
 #include "fileio.h"
 
 static int encmatch(char *, char *);

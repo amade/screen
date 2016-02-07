@@ -103,7 +103,7 @@ cat << EOF > kmapdef.c
  * This file is automagically created from term.c -- DO NOT EDIT
  */
 
-#include "config.h"
+#include "kmapdef.h"
 
 
 EOF

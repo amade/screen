@@ -30,6 +30,8 @@
 #ifndef SCREEN_LOGFILE_H
 #define SCREEN_LOGFILE_H
 
+#include <stdio.h>
+
 typedef struct Log Log;
 struct Log {
 	Log *next;

@@ -1,6 +1,8 @@
 #ifndef SCREEN_TERMCAP_H
 #define SCREEN_TERMCAP_H
 
+#include <stdbool.h>
+
 int   InitTermcap (int, int);
 char *MakeTermcap (bool);
 char *gettermcapstring (char *);

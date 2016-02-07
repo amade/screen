@@ -1,6 +1,8 @@
 #ifndef SCREEN_RESIZE_H
 #define SCREEN_RESIZE_H
 
+#include "window.h"
+
 int   ChangeWindowSize (Window *, int, int, int);
 void  ChangeScreenSize (int, int, int);
 void  CheckScreenSize (int);

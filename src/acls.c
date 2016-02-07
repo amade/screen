@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "acls.h"
+
 #include "config.h"
 
 #include <stdbool.h>

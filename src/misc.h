@@ -1,6 +1,10 @@
 #ifndef SCREEN_MISC_H
 #define SCREEN_MISC_H
 
+#include "config.h"
+
+#include "image.h"
+
 char *SaveStr (const char *);
 char *SaveStrn (const char *, int);
 char *InStr (char *, const char *);

@@ -1,6 +1,8 @@
 #ifndef SCREEN_TTY_H
 #define SCREEN_TTY_H
 
+#include "screen.h"
+
 int   OpenTTY (char *, char *);
 void  InitTTY (struct mode *, int);
 void  GetTTY (int, struct mode *);

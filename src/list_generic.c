@@ -20,16 +20,13 @@
  ****************************************************************
  */
 
+#include "list_generic.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "config.h"
-#include "screen.h"
-
-#include "input.h"
-#include "layer.h"
-#include "list_generic.h"
 #include "misc.h"
+#include "input.h"
 
 /* Deals with a generic list display */
 

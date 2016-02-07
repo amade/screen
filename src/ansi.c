@@ -26,10 +26,10 @@
  ****************************************************************
  */
 
+#include "ansi.h"
+
 #include <sys/types.h>
 #include <fcntl.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <sys/ioctl.h>
 
 #include "config.h"

@@ -26,12 +26,12 @@
  ****************************************************************
  */
 
+#include "search.h"
+
 #include <stdint.h>
-#include <stdbool.h>
 #include <sys/types.h>
 
 #include "config.h"
-#include "screen.h"
 #include "mark.h"
 #include "mark.h"
 #include "input.h"

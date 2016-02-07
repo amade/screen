@@ -30,6 +30,8 @@
 #ifndef SCREEN_VIEWPORT_H
 #define SCREEN_VIEWPORT_H
 
+#include "canvas.h"
+
 typedef struct Viewport Viewport;
 struct Viewport {
 	Viewport *v_next;	/* next vp on canvas */

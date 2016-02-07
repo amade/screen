@@ -30,6 +30,7 @@
 #ifndef SCREEN_SCHED_H
 #define SCREEN_SCHED_H
 
+#include <stdbool.h>
 #include <sys/time.h>
 
 typedef enum {

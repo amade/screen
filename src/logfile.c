@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "logfile.h"
+
 #include <sys/types.h>		/* dev_t, ino_t, off_t, ... */
 #include <sys/stat.h>		/* struct stat */
 #include <fcntl.h>		/* O_WRONLY for logfile_reopen */
@@ -35,7 +37,6 @@
 #include "config.h"
 #include "screen.h"
 
-#include "logfile.h"
 #include "misc.h"
 
 static void changed_logfile(Log *);

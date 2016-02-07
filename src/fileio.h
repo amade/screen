@@ -1,6 +1,8 @@
 #ifndef SCREEN_FILEIO_H
 #define SCREEN_FILEIO_H
 
+#include "window.h"
+
 int   StartRc (char *, int);
 void  FinishRc (char *);
 void  RcLine (char *, int);

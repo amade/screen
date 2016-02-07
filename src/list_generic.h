@@ -23,6 +23,10 @@
 #ifndef SCREEN_LIST_GENERIC_H
 #define SCREEN_LIST_GENERIC_H
 
+#include <stdlib.h>
+
+#include "window.h"
+
 typedef struct ListData ListData;
 typedef struct ListRow ListRow;
 typedef struct GenericList GenericList;

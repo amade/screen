@@ -26,23 +26,22 @@
  ****************************************************************
  */
 
+#include "utmp.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "config.h"
 #include "screen.h"
 
-/* needs config.h */
 #ifdef HAVE_UTEMPTER
 #include <utempter.h>
 #endif
 
 #include "misc.h"
 #include "tty.h"
-#include "utmp.h"
 
 /*
  *  we have a suid-root helper app that changes the utmp for us

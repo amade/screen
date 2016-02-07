@@ -28,6 +28,8 @@
  ****************************************************************
  */
 
+#include "screen.h"
+
 #include <ctype.h>
 #include <fcntl.h>
 #include <pwd.h>
@@ -37,20 +39,18 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "config.h"
-
 #include <locale.h>
 #if defined(HAVE_NL_LANGINFO)
 #include <langinfo.h>
 #endif
 
-#include "screen.h"
 #include "winmsg.h"
 
 #include "version.h"
 #include "logfile.h"		/* islogfile, logfflush */
 #include "fileio.h"
 #include "mark.h"
+#include "utmp.h"
 
 extern char **environ;
 
@@ -163,7 +163,6 @@ int af;
 #include "socket.h"
 #include "termcap.h"
 #include "tty.h"
-#include "utmp.h"
 
 char strnomem[] = "Out of memory.";
 

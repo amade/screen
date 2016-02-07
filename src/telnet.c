@@ -26,18 +26,17 @@
  ****************************************************************
  */
 
+#include "telnet.h"
+
+#ifdef BUILTIN_TELNET
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <stdio.h>
 
-#include "config.h"
-
-#ifdef BUILTIN_TELNET
-
 #include "screen.h"
-#include "telnet.h"
 
 extern Window *fore;
 extern Layer *flayer;

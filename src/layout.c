@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "layout.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -33,7 +35,6 @@
 #include "screen.h"
 
 #include "fileio.h"
-#include "layout.h"
 #include "misc.h"
 #include "process.h"
 #include "resize.h"

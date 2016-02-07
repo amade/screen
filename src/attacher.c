@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "attacher.h"
+
 #include <fcntl.h>
 #include <pwd.h>
 #include <signal.h>

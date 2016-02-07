@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "mark.h"
+
 #include <sys/types.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -37,7 +39,6 @@
 
 #include "encoding.h"
 #include "fileio.h"
-#include "mark.h"
 #include "process.h"
 #include "search.h"
 

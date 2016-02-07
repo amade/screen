@@ -27,6 +27,8 @@
  * verify that the window does exist (by looking at wtab[]).
  */
 
+#include "list_generic.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -36,7 +38,6 @@
 
 #include "input.h"
 #include "layer.h"
-#include "list_generic.h"
 #include "misc.h"
 #include "process.h"
 
