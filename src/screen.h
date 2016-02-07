@@ -209,9 +209,8 @@ struct acl
 #define MAX_PLOP_DEFS 256
 
 struct baud_values {
-	int idx;	/* the index in the bsd-is padding lookup table */
 	int bps;	/* bits per seconds */
-	int sym;	/* symbol defined in ttydev.h */
+	int sym;	/* symbol defined in bits/termios.h */
 };
 
 /*

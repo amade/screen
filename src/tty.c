@@ -1036,119 +1036,116 @@ char *TtyGetModemStatus(int fd, char *buf)
 	return buf;
 }
 
-/*
- * On hpux, idx and sym will be different.
- */
 static struct baud_values btable[] = {
 #if defined(B4000000)
-	{32, 4000000, B4000000},
+	{4000000, B4000000},
 #endif
 #if defined(B3500000)
-	{31, 3500000, B3500000},
+	{3500000, B3500000},
 #endif
 #if defined(B3000000)
-	{30, 3000000, B3000000},
+	{3000000, B3000000},
 #endif
 #if defined(B2500000)
-	{29, 2500000, B2500000},
+	{2500000, B2500000},
 #endif
 #if defined(B2000000)
-	{28, 2000000, B2000000},
+	{2000000, B2000000},
 #endif
 #if defined(B1500000)
-	{27, 1500000, B1500000},
+	{1500000, B1500000},
 #endif
 #if defined(B1152000)
-	{26, 1152000, B1152000},
+	{1152000, B1152000},
 #endif
 #if defined(B1000000)
-	{25, 1000000, B1000000},
+	{1000000, B1000000},
 #endif
 #if defined(B921600)
-	{24, 921600, B921600},
+	{921600, B921600},
 #endif
 #if defined(B576000)
-	{23, 576000, B576000},
+	{576000, B576000},
 #endif
 #if defined(B500000)
-	{22, 500000, B500000},
+	{500000, B500000},
 #endif
 #if defined(B460800)
-	{22, 460800, B460800},
+	{460800, B460800},
 #endif
 #if defined(B230400)
-	{21, 230400, B230400},
+	{230400, B230400},
 #endif
 #if defined(B115200)
-	{20, 115200, B115200},
+	{115200, B115200},
 #endif
 #if defined(B57600)
-	{19, 57600, B57600},
+	{57600, B57600},
 #endif
 #if defined(EXTB)
-	{18, 38400, EXTB},
+	{38400, EXTB},
 #endif
 #if defined(B38400)
-	{18, 38400, B38400},
+	{38400, B38400},
 #endif
 #if defined(EXTA)
-	{17, 19200, EXTA},
+	{19200, EXTA},
 #endif
 #if defined(B19200)
-	{17, 19200, B19200},
+	{19200, B19200},
 #endif
 #if defined(B9600)
-	{16, 9600, B9600},
+	{9600, B9600},
 #endif
 #if defined(B7200)
-	{15, 7200, B7200},
+	{7200, B7200},
 #endif
 #if defined(B4800)
-	{14, 4800, B4800},
+	{4800, B4800},
 #endif
 #if defined(B3600)
-	{13, 3600, B3600},
+	{3600, B3600},
 #endif
 #if defined(B2400)
-	{12, 2400, B2400},
+	{2400, B2400},
 #endif
 #if defined(B1800)
-	{11, 1800, B1800},
+	{1800, B1800},
 #endif
 #if defined(B1200)
-	{10, 1200, B1200},
+	{1200, B1200},
 #endif
 #if defined(B900)
-	{9, 900, B900},
+	{900, B900},
 #endif
 #if defined(B600)
-	{8, 600, B600},
+	{600, B600},
 #endif
 #if defined(B300)
-	{7, 300, B300},
+	{300, B300},
 #endif
 #if defined(B200)
-	{6, 200, B200},
+	{200, B200},
 #endif
 #if defined(B150)
-	{5, 150, B150},
+	{150, B150},
 #endif
 #if defined(B134)
-	{4, 134, B134},
+	{134, B134},
 #endif
 #if defined(B110)
-	{3, 110, B110},
+	{110, B110},
 #endif
 #if defined(B75)
-	{2, 75, B75},
+	{75, B75},
 #endif
 #if defined(B50)
-	{1, 50, B50},
+	{50, B50},
 #endif
 #if defined(B0)
-	{0, 0, B0},
+	{0, B0},
 #endif
-	{-1, -1, -1}
+	{-1, -1}
 };
 
 /*
@@ -1159,7 +1156,7 @@ struct baud_values *lookup_baud(int baud)
 {
 	struct baud_values *p;
 
-	for (p = btable; p->idx >= 0; p++)
+	for (p = btable; p->bps >= 0; p++)
 		if (baud == p->bps || baud == p->sym)
 			return p;
 	return NULL;
