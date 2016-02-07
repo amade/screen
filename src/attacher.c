@@ -262,7 +262,6 @@ int Attach(int how)
 		m.m.attach.lines = atoi(s);
 	if ((s = getenv("COLUMNS")))
 		m.m.attach.columns = atoi(s);
-	m.m.attach.encoding = nwin_options.encoding > 0 ? nwin_options.encoding + 1 : 0;
 
 	if (dflag == 2)
 		m.m.attach.detachfirst = MSG_POW_DETACH;

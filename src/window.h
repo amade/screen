@@ -61,7 +61,6 @@ struct NewWindow {
 	int	gr;
 	bool	c1;
 	int	bce;
-	int	encoding;
 	char	*hstatus;
 	char	*charset;
 	int	poll_zombie_timeout;
@@ -175,20 +174,11 @@ struct Window {
 	enum string_t w_StringType;
 	struct mline *w_mlines;
 	struct mchar w_rend;		/* current rendition */
-	char	 w_FontL;		/* character font GL */
-	char	 w_FontR;		/* character font GR */
-	char	 w_FontE;		/* character font GR locked */
-	int	 w_Charset;		/* charset number GL */
-	int	 w_CharsetR;		/* charset number GR */
-	int	 w_charsets[4];		/* Font = charsets[Charset] */
 	int	 w_ss;
 	struct cursor {
 		int	 on;
 		int	 x, y;
 		struct mchar Rend;
-		int	 Charset;
-		int	 CharsetR;
-		int	 Charsets[4];
 	} w_saved;
 	int	 w_top, w_bot;		/* scrollregion */
 	bool	 w_wrap;		/* autowrap */
@@ -204,7 +194,6 @@ struct Window {
 	int	 w_gr;			/* enable GR flag */
 	bool     w_c1;			/* enable C1 flag */
 	int	 w_decodestate;		/* state of our input decoder */
-	int	 w_mbcs;		/* saved char for multibytes charset */
 	char	 w_string[MAXSTR];
 	char	*w_stringp;
 	char	*w_tabs;		/* line with tabs */
@@ -271,7 +260,6 @@ struct Window {
 };
 
 
-#define w_encoding   w_layer.l_encoding
 #define w_width  w_layer.l_width
 #define w_height w_layer.l_height
 #define w_x      w_layer.l_x
