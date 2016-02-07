@@ -31,7 +31,6 @@
 #include "layer.h"
 
 #include "screen.h"
-#include "encoding.h"
 #include "mark.h"
 #include "tty.h"
 
@@ -52,15 +51,10 @@ static struct mline *mlineoffset(const struct mline *ml, const int offset)
 		return 0;
 	mml.image = ml->image + offset;
 	mml.attr = ml->attr + offset;
-	mml.font = ml->font + offset;
-	mml.fontx = ml->fontx + offset;
 	mml.colorbg = ml->colorbg + offset;
 	mml.colorfg = ml->colorfg + offset;
 	return &mml;
 }
-
-#define RECODE_MCHAR(mc) ((l->l_encoding == UTF8) != (D_encoding == UTF8) ? recode_mchar(mc, l->l_encoding, D_encoding) : (mc))
-#define RECODE_MLINE(ml) ((l->l_encoding == UTF8) != (D_encoding == UTF8) ? recode_mline(ml, l->l_width, l->l_encoding, D_encoding) : (ml))
 
 void LGotoPos(Layer *l, int x, int y)
 {
@@ -231,8 +225,8 @@ void LInsChar(Layer *l, struct mchar *c, int x, int y, struct mline *ol)
 			display = cv->c_display;
 			if (D_blocked)
 				continue;
-			rol = RECODE_MLINE(ol);
-			InsChar(RECODE_MCHAR(c2), xs2, xe2, y2, mlineoffset(rol, -vp->v_xoff));
+			rol = ol;
+			InsChar(c2, xs2, xe2, y2, mlineoffset(rol, -vp->v_xoff));
 			if (f)
 				RefreshArea(xs2, y2, xs2, y2, 1);
 		}
@@ -244,8 +238,7 @@ void LPutChar(Layer *l, struct mchar *c, int x, int y)
 	int x2, y2;
 
 	if (l->l_pause.d)
-		LayPauseUpdateRegion(l, x, x + (c->mbcs ? 1 : 0)
-				     , y, y);
+		LayPauseUpdateRegion(l, x, x, y, y);
 
 	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		if (l->l_pause.d && cv->c_slorient)
@@ -260,7 +253,7 @@ void LPutChar(Layer *l, struct mchar *c, int x, int y)
 			x2 = x + vp->v_xoff;
 			if (x2 < vp->v_xs || x2 > vp->v_xe)
 				continue;
-			PutChar(RECODE_MCHAR(c), x2, y2);
+			PutChar(c, x2, y2);
 			break;
 		}
 	}
@@ -297,15 +290,6 @@ void LPutStr(Layer *l, char *s, int n, struct mchar *r, int x, int y)
 			GotoPos(xs2, y2);
 			SetRendition(r);
 			s2 = s + xs2 - x - vp->v_xoff;
-			if (D_encoding == UTF8 && l->l_encoding != UTF8 && (r->font || r->fontx || l->l_encoding)) {
-				struct mchar mc;
-				mc = *r;
-				while (xs2 <= xe2) {
-					mc.image = *s2++;
-					PutChar(RECODE_MCHAR(&mc), xs2++, y2);
-				}
-				continue;
-			}
 			while (xs2++ <= xe2)
 				PUTCHARLP(*s2++);
 		}
@@ -389,7 +373,7 @@ void LClearLine(Layer *l, int y, int xs, int xe, int bce, struct mline *ol)
 			display = cv->c_display;
 			if (D_blocked)
 				continue;
-			ClearLine(ol ? mlineoffset(RECODE_MLINE(ol), -vp->v_xoff) : (struct mline *)0, y2, xs2, xe2,
+			ClearLine(ol ? mlineoffset(ol, -vp->v_xoff) : (struct mline *)0, y2, xs2, xe2,
 				  bce);
 		}
 	}
@@ -475,7 +459,7 @@ void LCDisplayLine(Layer *l, struct mline *ml, int y, int xs, int xe, int isblan
 			if (xs2 > xe2)
 				continue;
 			display = cv->c_display;
-			DisplayLine(isblank ? &mline_blank : &mline_null, mlineoffset(RECODE_MLINE(ml), -vp->v_xoff),
+			DisplayLine(isblank ? &mline_blank : &mline_null, mlineoffset(ml, -vp->v_xoff),
 				    y2, xs2, xe2);
 		}
 	}
@@ -485,10 +469,6 @@ void LCDisplayLineWrap(Layer *l, struct mline *ml, int y, int from, int to, int 
 {
 	struct mchar nc;
 	copy_mline2mchar(&nc, ml, 0);
-	if (dw_left(ml, 0, l->l_encoding)) {
-		nc.mbcs = ml->image[1];
-		from++;
-	}
 	LWrapChar(l, &nc, y - 1, -1, -1, false);
 	from++;
 	if (from <= to)
@@ -559,7 +539,7 @@ void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, bool ins)
 				l->l_cvlist = cvlist;
 				cv->c_lnext = cvlnext;
 			} else {
-				WrapChar(RECODE_MCHAR(c), vp->v_xoff + l->l_width, y2, vp->v_xoff, -1,
+				WrapChar(c, vp->v_xoff + l->l_width, y2, vp->v_xoff, -1,
 					 vp->v_xoff + l->l_width - 1, -1, ins);
 			}
 		}
@@ -608,7 +588,7 @@ void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, bool ins)
 				bot2 = bot + vp->v_yoff;
 				if (top2 < vp->v_ys)
 					top2 = vp->v_ys;
-				WrapChar(RECODE_MCHAR(c), vp->v_xoff + l->l_width, bot2, vp->v_xoff, top2,
+				WrapChar(c, vp->v_xoff + l->l_width, bot2, vp->v_xoff, top2,
 					 vp->v_xoff + l->l_width - 1, bot2, ins);
 			}
 		}
@@ -835,7 +815,6 @@ int InitOverlayPage(int datasize, const struct LayFuncs *lf, int block)
 	}
 	newlay->l_width = flayer->l_width;
 	newlay->l_height = flayer->l_height;
-	newlay->l_encoding = 0;
 	newlay->l_layfn = lf;
 	newlay->l_data = data;
 	newlay->l_next = flayer;
@@ -948,6 +927,7 @@ void LayPause(Layer *layer, bool pause)
 		win = NULL;
 
 	for (Canvas *cv = layer->l_cvlist; cv; cv = cv->c_lnext) {
+
 		if (!cv->c_slorient)
 			continue;	/* Wasn't split, so already updated. */
 
@@ -967,12 +947,6 @@ void LayPause(Layer *layer, bool pause)
 						xs = vp->v_xs;
 					if (xe > vp->v_xe)
 						xe = vp->v_xe;
-
-					if (layer->l_encoding == UTF8 && xe < vp->v_xe && win) {
-						struct mline *ml = win->w_mlines + line;
-						if (dw_left(ml, xe, UTF8))
-							xe++;
-					}
 
 					if (xs <= xe)
 						RefreshLine(line + vp->v_yoff, xs, xe, 0);

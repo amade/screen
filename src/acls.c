@@ -155,7 +155,6 @@ int UserAdd(char *name, struct acluser **up)
 		return -1;
 	(*up)->u_plop.buf = NULL;
 	(*up)->u_plop.len = 0;
-	(*up)->u_plop.enc = 0;
 	(*up)->u_Esc = DefaultEsc;
 	(*up)->u_MetaEsc = DefaultMetaEsc;
 	strncpy((*up)->u_name, name, MAXLOGINLEN);
