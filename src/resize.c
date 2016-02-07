@@ -57,8 +57,6 @@ struct winsize glwz;
 static struct mline mline_zero = {
 	.image   = (uint32_t *)0,
 	.attr    = (uint32_t *)0,
-	.font    = (uint32_t *)0,
-	.fontx   = (uint32_t *)0,
 	.colorbg = (uint32_t *)0,
 	.colorfg = (uint32_t *)0
 };
@@ -313,10 +311,6 @@ static void FreeMline(struct mline *ml)
 		free(ml->image);
 	if (ml->attr && ml->attr != null)
 		free(ml->attr);
-	if (ml->font && ml->font != null)
-		free(ml->font);
-	if (ml->fontx && ml->fontx != null)
-		free(ml->fontx);
 	if (ml->colorbg && ml->colorbg != null)
 		free(ml->colorbg);
 	if (ml->colorfg && ml->colorfg != null)
@@ -328,8 +322,6 @@ static int AllocMline(struct mline *ml, int w)
 {
 	ml->image = malloc(w * 4);
 	ml->attr = null;
-	ml->font = null;
-	ml->fontx = null;
 	ml->colorbg = null;
 	ml->colorfg = null;
 	if (ml->image == 0)
@@ -348,18 +340,6 @@ static int BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int 
 	}
 	if (mlt->attr != null)
 		memmove(mlt->attr + xt, mlf->attr + xf, l * 4);
-	if (mlf->font != null && mlt->font == null) {
-		if ((mlt->font = calloc(w, 4)) == 0)
-			mlt->font = null, r = -1;
-	}
-	if (mlt->font != null)
-		memmove(mlt->font + xt, mlf->font + xf, l * 4);
-	if (mlf->fontx != null && mlt->fontx == null) {
-		if ((mlt->fontx = calloc(w, 4)) == 0)
-			mlt->fontx = null, r = -1;
-	}
-	if (mlt->fontx != null)
-		memmove(mlt->fontx + xt, mlf->fontx + xf, l * 4);
 	if (mlf->colorbg != null && mlt->colorbg == null) {
 		if ((mlt->colorbg = calloc(w, 4)) == 0)
 			mlt->colorbg = null, r = -1;
@@ -394,11 +374,9 @@ static void CheckMaxSize(int wi)
 	null = xrealloc(null, maxwidth * 4);
 	mline_old.image = xrealloc(mline_old.image, maxwidth * 4);
 	mline_old.attr = xrealloc(mline_old.attr, maxwidth * 4);
-	mline_old.font = xrealloc(mline_old.font, maxwidth * 4);
-	mline_old.fontx = xrealloc(mline_old.fontx, maxwidth * 4);
 	mline_old.colorbg = xrealloc(mline_old.colorbg, maxwidth * 4);
 	mline_old.colorfg = xrealloc(mline_old.colorfg, maxwidth * 4);
-	if (!(blank && null && mline_old.image && mline_old.attr && mline_old.font && mline_old.fontx && mline_old.colorbg && mline_old.colorfg))
+	if (!(blank && null && mline_old.image && mline_old.attr && mline_old.colorbg && mline_old.colorfg))
 		Panic(0, "%s", strnomem);
 
 	MakeBlankLine(blank, maxwidth);
@@ -408,10 +386,6 @@ static void CheckMaxSize(int wi)
 	mline_blank.attr = null;
 	mline_null.image = null;
 	mline_null.attr = null;
-	mline_blank.font = null;
-	mline_null.font = null;
-	mline_blank.fontx = null;
-	mline_null.fontx = null;
 	mline_blank.colorbg = null;
 	mline_null.colorbg = null;
 	mline_blank.colorfg = null;
@@ -426,8 +400,6 @@ static void CheckMaxSize(int wi)
       { \
 	RESET_AFC(ml->image, blank); \
 	RESET_AFC(ml->attr, null); \
-	RESET_AFC(ml->font, null); \
-	RESET_AFC(ml->fontx, null); \
 	RESET_AFC(ml->colorbg, null); \
 	RESET_AFC(ml->colorfg, null); \
       } \
