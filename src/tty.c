@@ -565,11 +565,11 @@ int SttyMode(struct mode *m, char *opt)
 		} else if (!strncmp("-ixoff", opt, 6)) {
 			m->tio.c_iflag &= ~IXOFF;
 		} else if (!strncmp("crtscts", opt, 7)) {
-#if (defined(POSIX) || defined(TERMIO)) && defined(CRTSCTS)
+#if defined(CRTSCTS)
 			m->tio.c_cflag |= CRTSCTS;
 #endif
 		} else if (!strncmp("-crtscts", opt, 8)) {
-#if (defined(POSIX) || defined(TERMIO)) && defined(CRTSCTS)
+#if defined(CRTSCTS)
 			m->tio.c_cflag &= ~CRTSCTS;
 #endif
 		} else {

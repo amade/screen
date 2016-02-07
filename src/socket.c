@@ -626,12 +626,8 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 
 	if (iflag && olddisplays) {
 		iflag = false;
-#if defined(TERMIO) || defined(POSIX)
 		olddisplays->d_NewMode.tio.c_cc[VINTR] = VDISABLE;
 		olddisplays->d_NewMode.tio.c_lflag &= ~ISIG;
-#else				/* TERMIO || POSIX */
-		olddisplays->d_NewMode.m_tchars.t_intrc = -1;
-#endif				/* TERMIO || POSIX */
 		SetTTY(olddisplays->d_userfd, &olddisplays->d_NewMode);
 	}
 	SetMode(&D_OldMode, &D_NewMode, D_flow, iflag);

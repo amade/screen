@@ -1588,11 +1588,7 @@ static void serv_select_fn(Event *event, void *data)
 		/* This approach is rather questionable in a multi-display
 		 * environment */
 		if (fore && displays) {
-#if defined(TERMIO) || defined(POSIX)
 			char ibuf = displays->d_OldMode.tio.c_cc[VINTR];
-#else
-			char ibuf = displays->d_OldMode.m_tchars.t_intrc;
-#endif
 			write(W_UWP(fore) ? fore->w_pwin->p_ptyfd : fore->w_ptyfd, &ibuf, 1);
 		}
 		InterruptPlease = 0;

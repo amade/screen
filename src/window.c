@@ -1029,12 +1029,8 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 			 * and the pseudo's stdout is not send to the window.
 			 */
 			if (pwin && (!(pat & F_UWP) || (pat & F_PBACK << F_PSHIFT))) {
-#if defined(POSIX) || defined(TERMIO)
 				modep->tio.c_lflag &= ~ECHO;
 				modep->tio.c_iflag &= ~ICRNL;
-#else
-				modep->m_ttyb.sg_flags &= ~ECHO;
-#endif
 			}
 			SetTTY(newfd, modep);
 			glwz.ws_col = w;

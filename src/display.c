@@ -219,17 +219,8 @@ Display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struc
 	D_printfd = -1;
 	D_userpid = pid;
 
-#ifdef POSIX
 	if ((b = lookup_baud((int)cfgetospeed(&D_OldMode.tio))))
 		D_dospeed = b->idx;
-#else
-#ifdef TERMIO
-	if ((b = lookup_baud(D_OldMode.tio.c_cflag & CBAUD)))
-		D_dospeed = b->idx;
-#else
-	D_dospeed = (short)D_OldMode.m_ttyb.sg_ospeed;
-#endif
-#endif
 
 	strncpy(D_usertty, utty, sizeof(D_usertty) - 1);
 	D_usertty[sizeof(D_usertty) - 1] = 0;
@@ -2363,13 +2354,7 @@ void NukePending()
 	len = D_obufp - D_obuf;
 
 	/* Throw away any output that we can... */
-#ifdef POSIX
 	tcflush(D_userfd, TCOFLUSH);
-#else
-#ifdef TCFLSH
-	(void)ioctl(D_userfd, TCFLSH, (char *)1);
-#endif
-#endif
 
 	D_obufp = D_obuf;
 	D_obuffree += len;

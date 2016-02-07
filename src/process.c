@@ -2254,12 +2254,8 @@ void DoAction(struct action *act, int key)
 			for (display = displays; display; display = display->d_next) {
 				if (!D_flow)
 					continue;
-#if defined(TERMIO) || defined(POSIX)
 				D_NewMode.tio.c_cc[VINTR] = D_OldMode.tio.c_cc[VINTR];
 				D_NewMode.tio.c_lflag |= ISIG;
-#else				/* TERMIO || POSIX */
-				D_NewMode.m_tchars.t_intrc = D_OldMode.m_tchars.t_intrc;
-#endif				/* TERMIO || POSIX */
 				SetTTY(D_userfd, &D_NewMode);
 			}
 		}
