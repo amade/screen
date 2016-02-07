@@ -34,7 +34,6 @@
 #include "config.h"
 #include "screen.h"
 
-#include "encoding.h"
 #include "misc.h"
 #include "process.h"
 #include "resize.h"
@@ -343,11 +342,6 @@ int InitTermcap(int width, int height)
 	if (D_HS && !(hardstatusemu & HSTATUS_ALWAYS))
 		D_has_hstatus = HSTATUS_HS;
 
-	if (D_CKJ) {
-		int enc = FindEncoding(D_CKJ);
-		if (enc != -1)
-			D_encoding = enc;
-	}
 	if (!D_tcs[T_NAVIGATE].str && D_tcs[T_NAVIGATE + 1].str)
 		D_tcs[T_NAVIGATE].str = D_tcs[T_NAVIGATE + 1].str;	/* kh = @1 */
 	if (!D_tcs[T_NAVIGATE + 2].str && D_tcs[T_NAVIGATE + 3].str)

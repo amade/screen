@@ -139,7 +139,6 @@ struct Message {
 			int esc;			/* his new escape character unless -1 */
 			int meta_esc;			/* his new meta esc character unless -1 */
 			char envterm[MAXTERMLEN + 1];	/* terminal type */
-			int encoding;			/* encoding of display */
 			int detachfirst;		/* whether to detach remote sessions first */
 		} attach;
 		struct {
@@ -249,7 +248,6 @@ extern char *hstatusstring;
 extern char *logtstamp_string;
 extern char *multi;
 extern char *preselect;
-extern char *screenencodings;
 extern char *screenlogfile;
 extern char *timestring;
 extern char *wliststr;
@@ -269,7 +267,6 @@ extern char **NewEnv;
 
 extern bool adaptflag;
 extern bool auto_detach;
-extern bool cjkwidth;
 extern bool default_startup;
 extern bool hastruecolor;
 extern bool iflag;

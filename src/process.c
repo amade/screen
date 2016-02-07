@@ -48,7 +48,6 @@
 #include "winmsg.h"
 
 #include "display.h"
-#include "encoding.h"
 #include "fileio.h"
 #include "help.h"
 #include "input.h"
@@ -1323,15 +1322,6 @@ void DoAction(struct action *act, int key)
 		break;
 
 	case RC_READREG:
-		i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
-		if (args[0] && args[1] && !strcmp(args[0], "-e")) {
-			i = FindEncoding(args[1]);
-			if (i == -1) {
-				OutputMsg(0, "%s: readreg: unknown encoding", rc_name);
-				break;
-			}
-			args += 2;
-		}
 		/*
 		 * Without arguments we prompt for a destination register.
 		 * It will receive the copybuffer contents.
@@ -1362,7 +1352,6 @@ void DoAction(struct action *act, int key)
 					free(pp->buf);
 				pp->buf = s;
 				pp->len = n;
-				pp->enc = i;
 			}
 		} else
 			/*
@@ -1373,16 +1362,6 @@ void DoAction(struct action *act, int key)
 			copy_reg_fn(&ch, 0, NULL);
 		break;
 	case RC_REGISTER:
-		i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
-		if (args[0] && args[1] && !strcmp(args[0], "-e")) {
-			i = FindEncoding(args[1]);
-			if (i == -1) {
-				OutputMsg(0, "%s: register: unknown encoding", rc_name);
-				break;
-			}
-			args += 2;
-			argc -= 2;
-		}
 		if (argc != 2) {
 			OutputMsg(0, "%s: register: illegal number of arguments.", rc_name);
 			break;
@@ -1407,7 +1386,6 @@ void DoAction(struct action *act, int key)
 				free(plp->buf);
 			plp->buf = SaveStrn(args[1], argl[1]);
 			plp->len = argl[1];
-			plp->enc = i;
 		}
 		break;
 	case RC_PROCESS:
@@ -1877,7 +1855,6 @@ void DoAction(struct action *act, int key)
 		{
 			char *ss, *dbuf, dch;
 			int l = 0;
-			int enc = -1;
 
 			/*
 			 * without args we prompt for one(!) register to be pasted in the window
@@ -1896,31 +1873,16 @@ void DoAction(struct action *act, int key)
 				OutputMsg(0, "%s: paste destination: character, ^x, or (octal) \\032 expected.",
 					  rc_name);
 				break;
-			} else if (fore)
-				enc = fore->w_encoding;
+			}
 
 			/*
 			 * measure length of needed buffer
 			 */
 			for (ss = s = *args; (ch = *ss); ss++) {
 				if (ch == '.') {
-					if (enc == -1)
-						enc = user->u_plop.enc;
-					if (enc != user->u_plop.enc)
-						l += RecodeBuf((unsigned char *)user->u_plop.buf, user->u_plop.len,
-							       user->u_plop.enc, enc, (unsigned char *)0);
-					else
-						l += user->u_plop.len;
+					l += user->u_plop.len;
 				} else {
-					if (enc == -1)
-						enc = plop_tab[(int)(unsigned char)ch].enc;
-					if (enc != plop_tab[(int)(unsigned char)ch].enc)
-						l += RecodeBuf((unsigned char *)plop_tab[(int)(unsigned char)ch].buf,
-							       plop_tab[(int)(unsigned char)ch].len,
-							       plop_tab[(int)(unsigned char)ch].enc, enc,
-							       (unsigned char *)0);
-					else
-						l += plop_tab[(int)(unsigned char)ch].len;
+					l += plop_tab[(int)(unsigned char)ch].len;
 				}
 			}
 			if (l == 0) {
@@ -1932,13 +1894,11 @@ void DoAction(struct action *act, int key)
 			 * if there is only one source and the destination is a window, then
 			 * pass a pointer rather than duplicating the buffer.
 			 */
-			if (s[1] == 0 && args[1] == 0)
-				if (enc == (*s == '.' ? user->u_plop.enc : plop_tab[(int)(unsigned char)*s].enc)) {
-					MakePaster(&fore->w_paster,
-						   *s == '.' ? user->u_plop.buf : plop_tab[(int)(unsigned char)*s].buf,
-						   l, 0);
-					break;
-				}
+			if (s[1] == 0 && args[1] == 0) {
+				MakePaster(&fore->w_paster,
+					   *s == '.' ? user->u_plop.buf : plop_tab[(int)(unsigned char)*s].buf, l, 0);
+				break;
+			}
 			/*
 			 * if no shortcut, we construct a buffer
 			 */
@@ -1953,11 +1913,6 @@ void DoAction(struct action *act, int key)
 			 */
 			for (ss = s; (ch = *ss); ss++) {
 				struct plop *pp = (ch == '.' ? &user->u_plop : &plop_tab[(int)(unsigned char)ch]);
-				if (pp->enc != enc) {
-					l += RecodeBuf((unsigned char *)pp->buf, pp->len, pp->enc, enc,
-						       (unsigned char *)dbuf + l);
-					continue;
-				}
 				memmove(dbuf + l, pp->buf, pp->len);
 				l += pp->len;
 			}
@@ -1977,14 +1932,12 @@ void DoAction(struct action *act, int key)
 						UserFreeCopyBuffer(user);
 					user->u_plop.buf = dbuf;
 					user->u_plop.len = l;
-					user->u_plop.enc = enc;
 				} else {
 					struct plop *pp = plop_tab + (int)(unsigned char)dch;
 					if (pp->buf)
 						free(pp->buf);
 					pp->buf = dbuf;
 					pp->len = l;
-					pp->enc = enc;
 				}
 			}
 			break;
@@ -1994,54 +1947,12 @@ void DoAction(struct action *act, int key)
 			OutputMsg(0, "empty buffer");
 			break;
 		}
-		{
-			struct plop oldplop;
-
-			oldplop = user->u_plop;
-			if (args[0] && args[1] && !strcmp(args[0], "-e")) {
-				int enc, l;
-				char *newbuf;
-
-				enc = FindEncoding(args[1]);
-				if (enc == -1) {
-					OutputMsg(0, "%s: writebuf: unknown encoding", rc_name);
-					break;
-				}
-				if (enc != oldplop.enc) {
-					l = RecodeBuf((unsigned char *)oldplop.buf, oldplop.len, oldplop.enc, enc,
-						      (unsigned char *)0);
-					newbuf = malloc(l + 1);
-					if (!newbuf) {
-						OutputMsg(0, "%s", strnomem);
-						break;
-					}
-					user->u_plop.len =
-					    RecodeBuf((unsigned char *)oldplop.buf, oldplop.len, oldplop.enc, enc,
-						      (unsigned char *)newbuf);
-					user->u_plop.buf = newbuf;
-					user->u_plop.enc = enc;
-				}
-				args += 2;
-			}
-			if (args[0] && args[1])
-				OutputMsg(0, "%s: writebuf: too many arguments", rc_name);
-			else
-				WriteFile(user, args[0], DUMP_EXCHANGE);
-			if (user->u_plop.buf != oldplop.buf)
-				free(user->u_plop.buf);
-			user->u_plop = oldplop;
-		}
+		if (args[0] && args[1])
+			OutputMsg(0, "%s: writebuf: too many arguments", rc_name);
+		else
+			WriteFile(user, args[0], DUMP_EXCHANGE);
 		break;
 	case RC_READBUF:
-		i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
-		if (args[0] && args[1] && !strcmp(args[0], "-e")) {
-			i = FindEncoding(args[1]);
-			if (i == -1) {
-				OutputMsg(0, "%s: readbuf: unknown encoding", rc_name);
-				break;
-			}
-			args += 2;
-		}
 		if (args[0] && args[1]) {
 			OutputMsg(0, "%s: readbuf: too many arguments", rc_name);
 			break;
@@ -2051,7 +1962,6 @@ void DoAction(struct action *act, int key)
 				UserFreeCopyBuffer(user);
 			user->u_plop.len = n;
 			user->u_plop.buf = s;
-			user->u_plop.enc = i;
 			OutputMsg(0, "Read contents of %s into copybuffer",
                                   args[0] ? args[0] : BufferFile);
 		}
@@ -2670,10 +2580,6 @@ void DoAction(struct action *act, int key)
 			break;
 		}
 		break;
-	case RC_PASTEFONT:
-		if (ParseSwitch(act, &pastefont) == 0 && msgok)
-			OutputMsg(0, "Will %spaste font settings", pastefont ? "" : "not ");
-		break;
 	case RC_CRLF:
 		(void)ParseSwitch(act, &join_with_cr);
 		break;
@@ -3043,97 +2949,14 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_GR:
-		if (fore->w_gr == 2)
-			fore->w_gr = 0;
 		if (ParseSwitch(act, &b) == 0 && msgok) {
 			fore->w_gr = b ? 1 : 0;
 			OutputMsg(0, "Will %suse GR", fore->w_gr ? "" : "not ");
 		}
-		if (fore->w_gr == 0 && fore->w_FontE)
-			fore->w_gr = 2;
 		break;
 	case RC_C1:
 		if (ParseSwitch(act, &fore->w_c1) == 0 && msgok)
 			OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
-		break;
-	case RC_KANJI:
-	case RC_ENCODING:
-		if (*args && !strcmp(args[0], "-d")) {
-			if (!args[1])
-				OutputMsg(0, "encodings directory is %s",
-					  screenencodings ? screenencodings : "<unset>");
-			else {
-				free(screenencodings);
-				screenencodings = SaveStr(args[1]);
-			}
-			break;
-		}
-		if (*args && !strcmp(args[0], "-l")) {
-			if (!args[1])
-				OutputMsg(0, "encoding: -l: argument required");
-			else if (LoadFontTranslation(-1, args[1]))
-				OutputMsg(0, "encoding: could not load utf8 encoding file");
-			else if (msgok)
-				OutputMsg(0, "encoding: utf8 encoding file loaded");
-			break;
-		}
-		for (i = 0; i < 2; i++) {
-			if (args[i] == 0)
-				break;
-			if (!strcmp(args[i], "."))
-				continue;
-			n = FindEncoding(args[i]);
-			if (n == -1) {
-				OutputMsg(0, "encoding: unknown encoding '%s'", args[i]);
-				break;
-			}
-			if (i == 0 && fore) {
-				WinSwitchEncoding(fore, n);
-				ResetCharsets(fore);
-			} else if (i && display)
-				D_encoding = n;
-		}
-		break;
-	case RC_DEFKANJI:
-	case RC_DEFENCODING:
-		n = FindEncoding(*args);
-		if (n == -1) {
-			OutputMsg(0, "defencoding: unknown encoding '%s'", *args);
-			break;
-		}
-		nwin_default.encoding = n;
-		break;
-	case RC_DEFUTF8:
-		b = nwin_default.encoding == UTF8;
-		if (ParseSwitch(act, &b) == 0) {
-			nwin_default.encoding = b ? UTF8 : 0;
-			if (msgok)
-				OutputMsg(0, "Will %suse UTF-8 encoding for new windows", b ? "" : "not ");
-		}
-		break;
-	case RC_UTF8:
-		for (i = 0; i < 2; i++) {
-			if (i && args[i] == 0)
-				break;
-			if (args[i] == 0)
-				n = fore->w_encoding != UTF8;
-			else if (strcmp(args[i], "off") == 0)
-				n = 0;
-			else if (strcmp(args[i], "on") == 0)
-				n = 1;
-			else {
-				OutputMsg(0, "utf8: illegal argument (%s)", args[i]);
-				break;
-			}
-			if (i == 0) {
-				WinSwitchEncoding(fore, n ? UTF8 : 0);
-				if (msgok)
-					OutputMsg(0, "Will %suse UTF-8 encoding", n ? "" : "not ");
-			} else if (display)
-				D_encoding = n ? UTF8 : 0;
-			if (args[i] == 0)
-				break;
-		}
 		break;
 	case RC_PRINTCMD:
 		if (*args) {
@@ -3165,21 +2988,6 @@ void DoAction(struct action *act, int key)
 				if (!(digraphs[i].value = atoi(args[1]))) {
 					if (!args[1][1])
 						digraphs[i].value = (int)args[1][0];
-					else {
-						int t;
-						unsigned char *s = (unsigned char *)args[1];
-						digraphs[i].value = 0;
-						while (*s) {
-							t = FromUtf8(*s++, &digraphs[i].value);
-							if (t == -1)
-								continue;
-							if (t == -2)
-								digraphs[i].value = 0;
-							else
-								digraphs[i].value = t;
-							break;
-						}
-					}
 				}
 			}
 			break;
@@ -3214,35 +3022,6 @@ void DoAction(struct action *act, int key)
 			fore->w_hstatus = 0;
 		}
 		WindowChanged(fore, 'h');
-		break;
-
-	case RC_DEFCHARSET:
-	case RC_CHARSET:
-		if (*args == 0) {
-			char buf[256];
-			*buf = 0;
-			if (nwin_default.charset)
-				AddXChars(buf, sizeof(buf), nwin_default.charset);
-			OutputMsg(0, "default charset is '%s'", buf);
-			break;
-		}
-		n = strlen(*args);
-		if (n == 0 || n > 6) {
-			OutputMsg(0, "%s: %s: string has illegal size.", rc_name, comms[nr].name);
-			break;
-		}
-		if (n > 4 && (((args[0][4] < '0' || args[0][4] > '3') && args[0][4] != '.') ||
-			      ((args[0][5] < '0' || args[0][5] > '3') && args[0][5] && args[0][5] != '.'))) {
-			OutputMsg(0, "%s: %s: illegal mapping number.", rc_name, comms[nr].name);
-			break;
-		}
-		if (nr == RC_CHARSET) {
-			SetCharsets(fore, *args);
-			break;
-		}
-		if (nwin_default.charset)
-			free(nwin_default.charset);
-		nwin_default.charset = SaveStr(*args);
 		break;
 	case RC_RENDITION:
 		i = -1;
@@ -3730,13 +3509,6 @@ void DoAction(struct action *act, int key)
 				OutputMsg(0, "Layout dumped to \"%s\"", args[1] ? args[1] : "layout-dump");
 		} else
 			OutputMsg(0, "unknown layout subcommand");
-		break;
-	case RC_CJKWIDTH:
-		if (ParseSwitch(act, &cjkwidth) == 0) {
-			if (msgok)
-				OutputMsg(0, "Treat ambiguous width characters as %s width",
-					  cjkwidth ? "full" : "half");
-		}
 		break;
 	case RC_TRUECOLOR:
 		ParseOnOff(act, &hastruecolor);
@@ -4691,42 +4463,6 @@ static void ShowInfo()
 		sprintf(p += strlen(p), " nored");
 
 	p += strlen(p);
-	if (wp->w_encoding && (display == 0 || D_encoding != wp->w_encoding || EncodingDefFont(wp->w_encoding) <= 0)) {
-		*p++ = ' ';
-		strcpy(p, EncodingName(wp->w_encoding));
-		p += strlen(p);
-	}
-	if (wp->w_encoding != UTF8)
-		if (D_CC0 || (D_CS0 && *D_CS0)) {
-			if (wp->w_gr == 2) {
-				sprintf(p, " G%c", wp->w_Charset + '0');
-				if (wp->w_FontE >= ' ')
-					p[3] = wp->w_FontE;
-				else {
-					p[3] = '^';
-					p[4] = wp->w_FontE ^ 0x40;
-					p++;
-				}
-				p[4] = '[';
-				p++;
-			} else if (wp->w_gr)
-				sprintf(p++, " G%c%c[", wp->w_Charset + '0', wp->w_CharsetR + '0');
-			else
-				sprintf(p, " G%c[", wp->w_Charset + '0');
-			p += 4;
-			for (i = 0; i < 4; i++) {
-				if (wp->w_charsets[i] == ASCII)
-					*p++ = 'B';
-				else if (wp->w_charsets[i] >= ' ')
-					*p++ = wp->w_charsets[i];
-				else {
-					*p++ = '^';
-					*p++ = wp->w_charsets[i] ^ 0x40;
-				}
-			}
-			*p++ = ']';
-			*p = 0;
-		}
 
 	if (wp->w_type == W_TYPE_PLAIN) {
 		/* add info about modem control lines */
@@ -4752,12 +4488,6 @@ static void ShowDInfo()
 	l = 512;
 	sprintf(p, "(%d,%d)", D_width, D_height), l -= strlen(p);
 	p += l;
-	if (D_encoding) {
-		*p++ = ' ';
-		strncpy(p, EncodingName(D_encoding), l);
-		l -= strlen(p);
-		p += l;
-	}
 	if (D_CXT) {
 		strncpy(p, " xterm", l);
 		l -= strlen(p);
@@ -4767,13 +4497,6 @@ static void ShowDInfo()
 		strncpy(p, " color", l);
 		l -= strlen(p);
 		p += l;
-	}
-	if (D_CG0) {
-		strncpy(p, " iso2022", l);
-		l -= strlen(p);
-	} else if (D_CS0 && *D_CS0) {
-		strncpy(p, " altchar", l);
-		l -= strlen(p);
 	}
 	Msg(0, "%s", buf);
 }
@@ -5384,8 +5107,6 @@ static void digraph_fn(char *buf, size_t len, void *data)
 	}
 	l = 1;
 	*buf = x;
-	if (flayer->l_encoding == UTF8)
-		l = ToUtf8(buf, x);	/* buf is big enough for all UTF-8 codes */
 	while (l)
 		LayProcess(&buf, &l);
 }

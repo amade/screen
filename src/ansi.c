@@ -36,7 +36,6 @@
 #include "screen.h"
 #include "winmsg.h"
 
-#include "encoding.h"
 #include "fileio.h"
 #include "help.h"
 #include "logfile.h"
@@ -67,8 +66,8 @@ struct mline mline_blank;
 struct mline mline_null;
 
 struct mchar mchar_null;
-struct mchar mchar_blank = { ' ', 0, 0, 0, 0, 0, 0 };
-struct mchar mchar_so = { ' ', A_SO, 0, 0, 0, 0, 0};
+struct mchar mchar_blank = { ' ', 0, 0, 0 };
+struct mchar mchar_so = { ' ', A_SO, 0, 0 };
 
 uint64_t renditions[NUM_RENDS] = { 65529 /* =ub */ , 65531 /* =b */ , 65533 /* =u */  };
 
@@ -107,9 +106,6 @@ static int StringEnd(void);
 static void PrintStart(void);
 static void PrintChar(int);
 static void PrintFlush(void);
-static void DesignateCharset(int, int);
-static void MapCharset(int);
-static void MapCharsetR(int);
 static void SaveCursor(struct cursor *);
 static void RestoreCursor(struct cursor *);
 static void BackSpace(void);
@@ -183,7 +179,6 @@ void ResetWindow(Window *win)
 	for (i = 8; i < win->w_width; i += 8)
 		win->w_tabs[i] = 1;
 	win->w_rend = mchar_null;
-	ResetCharsets(win);
 }
 
 /* adds max 22 bytes */
@@ -209,32 +204,6 @@ int GetAnsiStatus(Window *win, char *buf)
 	return p - buf;
 }
 
-void ResetCharsets(Window *win)
-{
-	win->w_gr = nwin_default.gr;
-	win->w_c1 = nwin_default.c1;
-	SetCharsets(win, "BBBB02");
-	if (nwin_default.charset)
-		SetCharsets(win, nwin_default.charset);
-	ResetEncoding(win);
-}
-
-void SetCharsets(Window *win, char *s)
-{
-	int i;
-
-	for (i = 0; i < 4 && *s; i++, s++)
-		if (*s != '.')
-			win->w_charsets[i] = ((*s == 'B') ? ASCII : *s);
-	if (*s && *s++ != '.')
-		win->w_Charset = s[-1] - '0';
-	if (*s && *s != '.')
-		win->w_CharsetR = *s - '0';
-	win->w_ss = 0;
-	win->w_FontL = win->w_charsets[win->w_Charset];
-	win->w_FontR = win->w_charsets[win->w_CharsetR];
-}
-
 /*****************************************************************/
 
 /*
@@ -248,7 +217,6 @@ void SetCharsets(Window *win, char *s)
 void WriteString(Window *win, char *buf, size_t len)
 {
 	int c;
-	int font;
 	Canvas *cv;
 
 	if (len == 0)
@@ -271,20 +239,7 @@ void WriteString(Window *win, char *buf, size_t len)
 	if (cols > 0 && rows > 0) {
 		do {
 			c = (unsigned char)*buf++;
-			if (!curr->w_mbcs)
-				curr->w_rend.font = curr->w_FontL;	/* Default: GL */
 
-			if (curr->w_encoding == UTF8) {
-				c = FromUtf8(c, &curr->w_decodestate);
-				if (c == -1)
-					continue;
-				if (c == -2) {
-					c = UCS_REPL;
-					/* try char again */
-					buf--;
-					len++;
-				}
-			}
 
  tryagain:
 			switch (curr->w_state) {
@@ -475,9 +430,6 @@ void WriteString(Window *win, char *buf, size_t len)
 				break;
 			case LIT:
 			default:
-				if (curr->w_mbcs)
-					if (c <= ' ' || c == 0x7f || (c >= 0x80 && c < 0xa0 && curr->w_c1))
-						curr->w_mbcs = 0;
 				if (c < ' ') {
 					if (c == '\033') {
 						curr->w_intermediate = 0;
@@ -488,167 +440,34 @@ void WriteString(Window *win, char *buf, size_t len)
 						Special(c);
 					break;
 				}
-				if (c >= 0x80 && c < 0xa0 && curr->w_c1)
-					if ((curr->w_FontR & 0xf0) != 0x20 || curr->w_encoding == UTF8) {
-						switch (c) {
-						case 0xc0 ^ 'D':
-						case 0xc0 ^ 'E':
-						case 0xc0 ^ 'H':
-						case 0xc0 ^ 'M':
-						case 0xc0 ^ 'N':	/* SS2 */
-						case 0xc0 ^ 'O':	/* SS3 */
-							DoESC(c ^ 0xc0, 0);
-							break;
-						case 0xc0 ^ '[':
-							if (curr->w_autoaka < 0)
-								curr->w_autoaka = 0;
-							curr->w_NumArgs = 0;
-							curr->w_intermediate = 0;
-							memset((char *)curr->w_args, 0, MAXARGS * sizeof(int));
-							curr->w_state = CSI;
-							break;
-						case 0xc0 ^ 'P':
-							StringStart(DCS);
-							break;
-						default:
-							break;
-						}
+				if (c >= 0x80 && c < 0xa0 && curr->w_c1) {
+					switch (c) {
+					case 0xc0 ^ 'D':
+					case 0xc0 ^ 'E':
+					case 0xc0 ^ 'H':
+					case 0xc0 ^ 'M':
+					case 0xc0 ^ 'N':	/* SS2 */
+					case 0xc0 ^ 'O':	/* SS3 */
+						DoESC(c ^ 0xc0, 0);
+						break;
+					case 0xc0 ^ '[':
+						if (curr->w_autoaka < 0)
+							curr->w_autoaka = 0;
+						curr->w_NumArgs = 0;
+						curr->w_intermediate = 0;
+						memset((char *)curr->w_args, 0, MAXARGS * sizeof(int));
+						curr->w_state = CSI;
+						break;
+					case 0xc0 ^ 'P':
+						StringStart(DCS);
+						break;
+					default:
 						break;
 					}
-
-				if (!curr->w_mbcs) {
-					if (c < 0x80 || curr->w_gr == 0)
-						curr->w_rend.font = curr->w_FontL;
-					else if (curr->w_gr == 2 && !curr->w_ss)
-						curr->w_rend.font = curr->w_FontE;
-					else
-						curr->w_rend.font = curr->w_FontR;
-				}
-				if (curr->w_encoding == UTF8) {
-					if (curr->w_rend.font == '0') {
-						struct mchar mc, *mcp;
-
-						mc.image = c;
-						mc.mbcs = 0;
-						mc.font = '0';
-						mc.fontx = 0;
-						mcp = recode_mchar(&mc, 0, UTF8);
-						c = mcp->image | mcp->font << 8;
-					}
-					curr->w_rend.font = 0;
-				}
-				if (curr->w_encoding == UTF8 && utf8_isdouble(c))
-					curr->w_mbcs = 0xff;
-				if (curr->w_encoding == UTF8 && c >= 0x0300 && utf8_iscomb(c)) {
-					int ox, oy;
-					struct mchar omc;
-
-					ox = curr->w_x - 1;
-					oy = curr->w_y;
-					if (ox < 0) {
-						ox = curr->w_width - 1;
-						oy--;
-					}
-					if (oy < 0)
-						oy = 0;
-					copy_mline2mchar(&omc, &curr->w_mlines[oy], ox);
-					if (omc.image == 0xff && omc.font == 0xff && omc.fontx == 0) {
-						ox--;
-						if (ox >= 0) {
-							copy_mline2mchar(&omc, &curr->w_mlines[oy], ox);
-							omc.mbcs = 0xff;
-						}
-					}
-					if (ox >= 0) {
-						utf8_handle_comb(c, &omc);
-						MFixLine(curr, oy, &omc);
-						copy_mchar2mline(&omc, &curr->w_mlines[oy], ox);
-						LPutChar(&curr->w_layer, &omc, ox, oy);
-						LGotoPos(&curr->w_layer, curr->w_x, curr->w_y);
-					}
-					break;
-				}
-				font = curr->w_rend.font;
-				if (font == KANA && curr->w_encoding == SJIS && curr->w_mbcs == 0) {
-					/* Lets see if it is the first byte of a kanji */
-					if ((0x81 <= c && c <= 0x9f) || (0xe0 <= c && c <= 0xef)) {
-						curr->w_mbcs = c;
-						break;
-					}
-				}
-				if (font == 031 && c == 0x80 && !curr->w_mbcs)
-					font = curr->w_rend.font = 0;
-				if (is_dw_font(font) && c == ' ')
-					font = curr->w_rend.font = 0;
-				if (is_dw_font(font) || curr->w_mbcs) {
-					int t = c;
-					if (curr->w_mbcs == 0) {
-						curr->w_mbcs = c;
-						break;
-					}
-					if (curr->w_x == cols - 1) {
-						curr->w_x += curr->w_wrap ? true : false;
-					}
-					if (curr->w_encoding != UTF8) {
-						c = curr->w_mbcs;
-						if (font == KANA && curr->w_encoding == SJIS) {
-							/*
-							 * SJIS -> EUC mapping:
-							 *   First byte:
-							 *     81,82...9f -> 21,23...5d
-							 *     e0,e1...ef -> 5f,61...7d
-							 *   Second byte:
-							 *     40-7e -> 21-5f
-							 *     80-9e -> 60-7e
-							 *     9f-fc -> 21-7e (increment first byte!)
-							 */
-							if (0x40 <= t && t <= 0xfc && t != 0x7f) {
-								if (c <= 0x9f)
-									c = (c - 0x81) * 2 + 0x21;
-								else
-									c = (c - 0xc1) * 2 + 0x21;
-								if (t <= 0x7e)
-									t -= 0x1f;
-								else if (t <= 0x9e)
-									t -= 0x20;
-								else
-									t -= 0x7e, c++;
-								curr->w_rend.font = KANJI;
-							} else {
-								/* Incomplete shift-jis - skip first byte */
-								c = t;
-								t = 0;
-							}
-						}
-						if (t && curr->w_gr && font != 030 && font != 031) {
-							t &= 0x7f;
-							if (t < ' ')
-								goto tryagain;
-						}
-						if (t == '\177')
-							break;
-						curr->w_mbcs = t;
-					}
-				}
-				if (font == '<' && c >= ' ') {
-					curr->w_rend.font = 0;
-					c |= 0x80;
-				} else if (curr->w_gr && curr->w_encoding != UTF8) {
-					if (c == 0x80 && font == 0 && curr->w_encoding == GBK)
-						c = 0xa4;
-					else
-						c &= 0x7f;
-					if (c < ' ' && font != 031)
-						goto tryagain;
 				}
 				if (c == '\177')
 					break;
 				curr->w_rend.image = c;
-				if (curr->w_encoding == UTF8) {
-					curr->w_rend.font = c >> 8;
-					curr->w_rend.fontx = c >> 16;
-				}
-				curr->w_rend.mbcs = curr->w_mbcs;
 				if (curr->w_x < cols - 1) {
 					if (curr->w_insert) {
 						save_mline(&curr->w_mlines[curr->w_y], cols);
@@ -674,17 +493,6 @@ void WriteString(Window *win, char *buf, size_t len)
 					if (curr->w_y != curr->w_bot && curr->w_y != curr->w_height - 1)
 						curr->w_y++;
 					curr->w_x = 1;
-				}
-				if (curr->w_mbcs) {
-					curr->w_rend.mbcs = curr->w_mbcs = 0;
-					curr->w_x++;
-				}
-				if (curr->w_ss) {
-					curr->w_FontL = curr->w_charsets[curr->w_Charset];
-					curr->w_FontR = curr->w_charsets[curr->w_CharsetR];
-					curr->w_rend.font = curr->w_FontL;
-					LSetRendition(&curr->w_layer, &curr->w_rend);
-					curr->w_ss = 0;
 				}
 				break;
 			}
@@ -735,10 +543,10 @@ static int Special(int c)
 		ForwardTab();
 		return 1;
 	case '\017':		/* SI */
-		MapCharset(G0);
+		//MapCharset(G0);
 		return 1;
 	case '\016':		/* SO */
-		MapCharset(G1);
+		//MapCharset(G1);
 		return 1;
 	}
 	return 0;
@@ -797,36 +605,6 @@ static void DoESC(int c, int intermediate)
 			WNewAutoFlow(curr, 1);
 #endif				/* !TIOCPKT */
 			break;
-		case 'n':	/* LS2 */
-			MapCharset(G2);
-			break;
-		case 'o':	/* LS3 */
-			MapCharset(G3);
-			break;
-		case '~':
-			MapCharsetR(G1);	/* LS1R */
-			break;
-			/* { */
-		case '}':
-			MapCharsetR(G2);	/* LS2R */
-			break;
-		case '|':
-			MapCharsetR(G3);	/* LS3R */
-			break;
-		case 'N':	/* SS2 */
-			if (curr->w_charsets[curr->w_Charset] != curr->w_charsets[G2]
-			    || curr->w_charsets[curr->w_CharsetR] != curr->w_charsets[G2])
-				curr->w_FontR = curr->w_FontL = curr->w_charsets[curr->w_ss = G2];
-			else
-				curr->w_ss = 0;
-			break;
-		case 'O':	/* SS3 */
-			if (curr->w_charsets[curr->w_Charset] != curr->w_charsets[G3]
-			    || curr->w_charsets[curr->w_CharsetR] != curr->w_charsets[G3])
-				curr->w_FontR = curr->w_FontL = curr->w_charsets[curr->w_ss = G3];
-			else
-				curr->w_ss = 0;
-			break;
 		case 'g':	/* VBELL, private screen sequence */
 			WBell(curr, true);
 			break;
@@ -838,38 +616,6 @@ static void DoESC(int c, int intermediate)
 			FillWithEs();
 			break;
 		}
-		break;
-	case '(':
-		DesignateCharset(c, G0);
-		break;
-	case ')':
-		DesignateCharset(c, G1);
-		break;
-	case '*':
-		DesignateCharset(c, G2);
-		break;
-	case '+':
-		DesignateCharset(c, G3);
-		break;
-/*
- * ESC $ ( Fn: invoke multi-byte charset, Fn, to G0
- * ESC $ Fn: same as above.  (old sequence)
- * ESC $ ) Fn: invoke multi-byte charset, Fn, to G1
- * ESC $ * Fn: invoke multi-byte charset, Fn, to G2
- * ESC $ + Fn: invoke multi-byte charset, Fn, to G3
- */
-	case '$':
-	case '$' << 8 | '(':
-		DesignateCharset(c & 037, G0);
-		break;
-	case '$' << 8 | ')':
-		DesignateCharset(c & 037, G1);
-		break;
-	case '$' << 8 | '*':
-		DesignateCharset(c & 037, G2);
-		break;
-	case '$' << 8 | '+':
-		DesignateCharset(c & 037, G3);
 		break;
 	}
 }
@@ -1120,16 +866,6 @@ static void DoCSI(int c, int intermediate)
 #endif				/* !TIOCPKT */
 				break;
 			case 2:	/* ANM:  ansi/vt52 mode */
-				if (i) {
-					if (curr->w_encoding)
-						break;
-					curr->w_charsets[0] = curr->w_charsets[1] =
-					    curr->w_charsets[2] = curr->w_charsets[3] =
-					    curr->w_FontL = curr->w_FontR = ASCII;
-					curr->w_Charset = 0;
-					curr->w_CharsetR = 2;
-					curr->w_ss = 0;
-				}
 				break;
 			case 3:	/* COLM: column mode */
 				i = (i ? Z0width : Z1width);
@@ -1430,55 +1166,12 @@ void WNewAutoFlow(Window *win, int on)
 	LSetFlow(&win->w_layer, win->w_flow & FLOW_ON);
 }
 
-static void DesignateCharset(int c, int n)
-{
-	curr->w_ss = 0;
-	if (c == ('@' & 037))	/* map JIS 6226 to 0208 */
-		c = KANJI;
-	if (c == 'B')
-		c = ASCII;
-	if (curr->w_charsets[n] != c) {
-		curr->w_charsets[n] = c;
-		if (curr->w_Charset == n) {
-			curr->w_FontL = c;
-			curr->w_rend.font = curr->w_FontL;
-			LSetRendition(&curr->w_layer, &curr->w_rend);
-		}
-		if (curr->w_CharsetR == n)
-			curr->w_FontR = c;
-	}
-}
-
-static void MapCharset(int n)
-{
-	curr->w_ss = 0;
-	if (curr->w_Charset != n) {
-		curr->w_Charset = n;
-		curr->w_FontL = curr->w_charsets[n];
-		curr->w_rend.font = curr->w_FontL;
-		LSetRendition(&curr->w_layer, &curr->w_rend);
-	}
-}
-
-static void MapCharsetR(int n)
-{
-	curr->w_ss = 0;
-	if (curr->w_CharsetR != n) {
-		curr->w_CharsetR = n;
-		curr->w_FontR = curr->w_charsets[n];
-	}
-	curr->w_gr = 1;
-}
-
 static void SaveCursor(struct cursor *cursor)
 {
 	cursor->on = 1;
 	cursor->x = curr->w_x;
 	cursor->y = curr->w_y;
 	cursor->Rend = curr->w_rend;
-	cursor->Charset = curr->w_Charset;
-	cursor->CharsetR = curr->w_CharsetR;
-	memmove((char *)cursor->Charsets, (char *)curr->w_charsets, 4 * sizeof(int));
 }
 
 static void RestoreCursor(struct cursor *cursor)
@@ -1489,12 +1182,6 @@ static void RestoreCursor(struct cursor *cursor)
 	curr->w_x = cursor->x;
 	curr->w_y = cursor->y;
 	curr->w_rend = cursor->Rend;
-	memmove((char *)curr->w_charsets, (char *)cursor->Charsets, 4 * sizeof(int));
-	curr->w_Charset = cursor->Charset;
-	curr->w_CharsetR = cursor->CharsetR;
-	curr->w_ss = 0;
-	curr->w_FontL = curr->w_charsets[curr->w_Charset];
-	curr->w_FontR = curr->w_charsets[curr->w_CharsetR];
 	LSetRendition(&curr->w_layer, &curr->w_rend);
 }
 
@@ -1947,21 +1634,6 @@ static void MFixLine(Window *win, int y, struct mchar *mc)
 			WMsg(win, 0, "Warning: no space for attr - turned off");
 		}
 	}
-	if (mc->font && ml->font == null) {
-		if ((ml->font = calloc(win->w_width + 1, 4)) == 0) {
-			ml->font = null;
-			win->w_FontL = win->w_charsets[win->w_ss ? win->w_ss : win->w_Charset] = 0;
-			win->w_FontR = win->w_charsets[win->w_ss ? win->w_ss : win->w_CharsetR] = 0;
-			mc->font = mc->fontx = win->w_rend.font = 0;
-			WMsg(win, 0, "Warning: no space for font - turned off");
-		}
-	}
-	if (mc->fontx && ml->fontx == null) {
-		if ((ml->fontx = calloc(win->w_width + 1, 4)) == 0) {
-			ml->fontx = null;
-			mc->fontx = 0;
-		}
-	}
 	if (mc->colorbg && ml->colorbg == null) {
 		if ((ml->colorbg = calloc(win->w_width + 1, 4)) == 0) {
 			ml->colorbg = null;
@@ -1980,21 +1652,6 @@ static void MFixLine(Window *win, int y, struct mchar *mc)
 
 /*****************************************************************/
 
-#define MKillDwRight(p, ml, x)					\
-  if (dw_right(ml, x, p->w_encoding))				\
-    {								\
-      if (x > 0)						\
-	copy_mchar2mline(&mchar_blank, ml, x - 1);		\
-      copy_mchar2mline(&mchar_blank, ml, x);			\
-    }
-
-#define MKillDwLeft(p, ml, x)					\
-  if (dw_left(ml, x, p->w_encoding))				\
-    {								\
-      copy_mchar2mline(&mchar_blank, ml, x);			\
-      copy_mchar2mline(&mchar_blank, ml, x + 1);		\
-    }
-
 static void MScrollH(Window *win, int n, int y, int xs, int xe, int bce)
 {
 	struct mline *ml;
@@ -2002,11 +1659,8 @@ static void MScrollH(Window *win, int n, int y, int xs, int xe, int bce)
 	if (n == 0)
 		return;
 	ml = &win->w_mlines[y];
-	MKillDwRight(win, ml, xs);
-	MKillDwLeft(win, ml, xe);
 	if (n > 0) {
 		if (xe - xs + 1 > n) {
-			MKillDwRight(win, ml, xs + n);
 			copy_mline(ml, xs + n, xs, xe + 1 - xs - n);
 		} else
 			n = xe - xs + 1;
@@ -2016,7 +1670,6 @@ static void MScrollH(Window *win, int n, int y, int xs, int xe, int bce)
 	} else {
 		n = -n;
 		if (xe - xs + 1 > n) {
-			MKillDwLeft(win, ml, xe - n);
 			copy_mline(ml, xs, xs + n, xe + 1 - xs - n);
 		} else
 			n = xe - xs + 1;
@@ -2056,12 +1709,6 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 			if (ml->attr != null)
 				free(ml->attr);
 			ml->attr = null;
-			if (ml->font != null)
-				free(ml->font);
-			ml->font = null;
-			if (ml->fontx != null)
-				free(ml->fontx);
-			ml->fontx = null;
 			if (ml->colorbg != null)
 				free(ml->colorbg);
 			ml->colorbg = null;
@@ -2092,12 +1739,6 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 			if (ml->attr != null)
 				free(ml->attr);
 			ml->attr = null;
-			if (ml->font != null)
-				free(ml->font);
-			ml->font = null;
-			if (ml->fontx != null)
-				free(ml->fontx);
-			ml->fontx = null;
 			if (ml->colorbg != null)
 				free(ml->colorbg);
 			ml->colorbg = null;
@@ -2146,9 +1787,6 @@ static void MClearArea(Window *win, int xs, int ys, int xe, int ye, int bce)
 	if (xe >= win->w_width)
 		xe = win->w_width - 1;
 
-	MKillDwRight(win, win->w_mlines + ys, xs);
-	MKillDwLeft(win, win->w_mlines + ye, xe);
-
 	ml = win->w_mlines + ys;
 	for (y = ys; y <= ye; y++, ml++) {
 		xxe = (y == ye) ? xe : win->w_width - 1;
@@ -2169,26 +1807,10 @@ static void MInsChar(Window *win, struct mchar *c, int x, int y)
 	MFixLine(win, y, c);
 	ml = win->w_mlines + y;
 	n = win->w_width - x - 1;
-	MKillDwRight(win, ml, x);
 	if (n > 0) {
-		MKillDwRight(win, ml, win->w_width - 1);
 		copy_mline(ml, x, x + 1, n);
 	}
 	copy_mchar2mline(c, ml, x);
-	if (c->mbcs) {
-		if (--n > 0) {
-			MKillDwRight(win, ml, win->w_width - 1);
-			copy_mline(ml, x + 1, x + 2, n);
-		}
-		copy_mchar2mline(c, ml, x + 1);
-		ml->image[x + 1] = c->mbcs;
-		if (win->w_encoding != UTF8)
-			ml->font[x + 1] |= 0x80;
-		else if (win->w_encoding == UTF8 && c->mbcs) {
-			ml->font[x + 1] = c->mbcs;
-			ml->fontx[x + 1] = 0;
-		}
-	}
 }
 
 static void MPutChar(Window *win, struct mchar *c, int x, int y)
@@ -2197,20 +1819,7 @@ static void MPutChar(Window *win, struct mchar *c, int x, int y)
 
 	MFixLine(win, y, c);
 	ml = &win->w_mlines[y];
-	MKillDwRight(win, ml, x);
-	MKillDwLeft(win, ml, x);
 	copy_mchar2mline(c, ml, x);
-	if (c->mbcs) {
-		MKillDwLeft(win, ml, x + 1);
-		copy_mchar2mline(c, ml, x + 1);
-		ml->image[x + 1] = c->mbcs;
-		if (win->w_encoding != UTF8)
-			ml->font[x + 1] |= 0x80;
-		else if (win->w_encoding == UTF8 && c->mbcs) {
-			ml->font[x + 1] = c->mbcs;
-			ml->fontx[x + 1] = 0;
-		}
-	}
 }
 
 static void MWrapChar(Window *win, struct mchar *c, int y, int top, int bot, bool ins)
@@ -2271,18 +1880,6 @@ static void WAddLineToHist(Window *win, struct mline *ml)
 	ml->attr = null;
 	if (o != null)
 		free(o);
-	q = ml->font;
-	o = hml->font;
-	hml->font = q;
-	ml->font = null;
-	if (o != null)
-		free(o);
-	q = ml->fontx;
-	o = hml->fontx;
-	hml->fontx = q;
-	ml->fontx = null;
-	if (o != null)
-		free(o);
 	q = ml->colorbg;
 	o = hml->colorbg;
 	hml->colorbg = q;
@@ -2314,12 +1911,6 @@ int MFindUsedLine(Window *win, int ye, int ys)
 			break;
 		if (ml->colorfg != null && memcmp(ml->colorfg, null, win->w_width * 4))
 			break;
-		if (win->w_encoding == UTF8) {
-			if (ml->font != null && bcmp((char *)ml->font, null, win->w_width))
-				break;
-			if (ml->fontx != null && bcmp((char *)ml->fontx, null, win->w_width))
-				break;
-		}
 	}
 	return y;
 }

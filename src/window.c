@@ -104,9 +104,7 @@ struct NewWindow nwin_undef = {
 	.gr                  = -1,
 	.c1                  = false,
 	.bce                 = -1,
-	.encoding            = -1,
 	.hstatus             = (char *)0,
-	.charset             = (char *)0,
 	.poll_zombie_timeout = 0
 };
 
@@ -129,9 +127,7 @@ struct NewWindow nwin_default = {
 	.gr         = 0,
 	.c1         = true,
 	.bce        = 0,
-	.encoding   = 0,
 	.hstatus    = (char *)0,
-	.charset    = (char *)0
 };
 
 struct NewWindow nwin_options;
@@ -160,9 +156,7 @@ void nwin_compose(struct NewWindow *def, struct NewWindow *new, struct NewWindow
 	COMPOSE(gr);
 	COMPOSE(c1);
 	COMPOSE(bce);
-	COMPOSE(encoding);
 	COMPOSE(hstatus);
-	COMPOSE(charset);
 	COMPOSE(poll_zombie_timeout);
 #undef COMPOSE
 }
@@ -521,11 +515,7 @@ int MakeWindow(struct NewWindow *newwin)
 		return -1;
 	}
 
-	p->w_encoding = nwin.encoding;
 	ResetWindow(p);		/* sets w_wrap, w_c1, w_gr */
-
-	if (nwin.charset)
-		SetCharsets(p, nwin.charset);
 
 	if (VerboseCreate && type != W_TYPE_GROUP) {
 		Display *d = display;	/* WriteString zaps display */

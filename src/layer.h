@@ -61,7 +61,6 @@ struct Layer {
 	int	l_height;
 	int	l_x;		/* cursor position */
 	int	l_y;
-	int	l_encoding;
 	const struct LayFuncs *l_layfn;
 	void	*l_data;
 

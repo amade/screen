@@ -137,10 +137,6 @@ bool default_startup;
 int ZombieKey_destroy, ZombieKey_resurrect, ZombieKey_onerror;
 char *preselect = NULL;		/* only used in Attach() */
 
-char *screenencodings;
-
-bool cjkwidth;
-
 uint16_t maxwin;
 
 Layer *flayer;
@@ -156,7 +152,6 @@ int af;
  * Do this last
  */
 #include "attacher.h"
-#include "encoding.h"
 #include "help.h"
 #include "misc.h"
 #include "process.h"
@@ -260,9 +255,6 @@ int main(int argc, char **argv)
 	zmodem_recvcmd = SaveStr("!!! rz -vv -b -E");
 
 	CompileKeys((char *)0, 0, mark_key_tab);
-	InitBuiltinTabs();
-	screenencodings = SaveStr(SCREENENCODINGS);
-	cjkwidth = 0;
 	nwin = nwin_undef;
 	nwin_options = nwin_undef;
 	strncpy(screenterm, "screen", MAXTERMLEN);
@@ -490,9 +482,6 @@ int main(int argc, char **argv)
 				case 'v':
 					Panic(0, "Screen version %s", version);
 					/* NOTREACHED */
-				case 'U':
-					nwin_options.encoding = nwin_options.encoding == -1 ? UTF8 : 0;
-					break;
 				default:
 					exit_with_usage(myname, "Unknown option %s", --ap);
 				}
@@ -509,41 +498,12 @@ int main(int argc, char **argv)
 	xsignal(SIGSEGV, CoreDump);
 
 	setlocale(LC_ALL, "");
-	if (nwin_options.encoding == -1) {
-		/* ask locale if we should start in UTF-8 mode */
-#ifdef HAVE_NL_LANGINFO
-		nwin_options.encoding = FindEncoding(nl_langinfo(CODESET));
-#else
-		char *s;
-		if ((s = locale_name()) && InStr(s, "UTF-8"))
-			nwin_options.encoding = UTF8;
-#endif
-	}
-	{
-		char *s;
-		if ((s = locale_name())) {
-			if (!strncmp(s, "zh_", 3) || !strncmp(s, "ja_", 3) || !strncmp(s, "ko_", 3)) {
-				cjkwidth = 1;
-			}
-		}
-	}
+
 	if (nwin_options.aka) {
-		if (nwin_options.encoding > 0) {
-			size_t len = strlen(nwin_options.aka);
-			size_t newsz;
-			char *newbuf = malloc(3 * len);
-			if (!newbuf)
-				Panic(0, "%s", strnomem);
-			newsz = RecodeBuf((unsigned char *)nwin_options.aka, len,
-					  nwin_options.encoding, 0, (unsigned char *)newbuf);
-			newbuf[newsz] = '\0';
-			nwin_options.aka = newbuf;
-		} else {
-			/* If we just use the original value from av,
-			   subsequent shelltitle invocations will attempt to free
-			   space we don't own... */
-			nwin_options.aka = SaveStr(nwin_options.aka);
-		}
+		/* If we just use the original value from av,
+		   subsequent shelltitle invocations will attempt to free
+		   space we don't own... */
+		nwin_options.aka = SaveStr(nwin_options.aka);
 	}
 
 	if (SocketMatch && strlen(SocketMatch) >= MAXSTR)
@@ -553,7 +513,6 @@ int main(int argc, char **argv)
 	if (!cmdflag && dflag && mflag && !(rflag || xflag))
 		detached = true;
 	nwin = nwin_options;
-	nwin.encoding = nwin_undef.encoding;	/* let screenrc overwrite it */
 	if (argc)
 		nwin.args = argv;
 
@@ -905,7 +864,6 @@ int main(int argc, char **argv)
 		if (MakeDisplay(LoginName, attach_tty, attach_term, n, getppid(), &attach_Mode) == 0)
 			Panic(0, "Could not alloc display");
 		PanicPid = 0;
-		D_encoding = nwin_options.encoding > 0 ? nwin_options.encoding : 0;
 	}
 
 	if (SocketMatch) {

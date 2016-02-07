@@ -58,7 +58,6 @@
 #define CMSG_SPACE(length) ((_CMSG_DATA_ALIGN(sizeof(struct cmsghdr))) + (_CMSG_DATA_ALIGN(length)))
 #endif
 
-#include "encoding.h"
 #include "fileio.h"
 #include "list_generic.h"
 #include "misc.h"
@@ -618,11 +617,6 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 		Msg(0, "Attach: could not make display for user %s", user);
 		Kill(pid, SIG_BYE);
 		return -1;
-	}
-	if (attach) {
-		D_encoding = m->m.attach.encoding == 1 ? UTF8 : m->m.attach.encoding ? m->m.attach.encoding - 1 : 0;
-		if (D_encoding < 0 || !EncodingName(D_encoding))
-			D_encoding = 0;
 	}
 
 	if (iflag && olddisplays) {
