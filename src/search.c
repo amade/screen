@@ -132,23 +132,29 @@ char *data;	/* dummy */
     revto(x, y);
 }
 
+
+/*
+ * Search for a string that matches pattern.  The first character of the
+ * match must be on line y, between columns sx and ex (inclusive), but
+ * the rest of the match can extend beyond column ex and even onto the
+ * following line.  Returns the starting column of the first match found,
+ * or -1 if there's no match.
+ */
 static int
 matchword(pattern, y, sx, ex)
 char *pattern;
 int y, sx, ex;
 {
-  unsigned char *ip, *ipe, *cp, *pp;
-  struct mline *ml;
+  unsigned char *ip, *cp, *pp, *cpe;
+  int cy;
 
-  /* *sigh* to make WIN work */
   fore = ((struct markdata *)flayer->l_data)->md_window;
 
-  ml = WIN(y);
-  ip = ml->image + sx;
-  ipe = ml->image + flayer->l_width;
   for (;sx <= ex; sx++)
     {
-      cp = ip++;
+			cy = y;
+			cp = WIN(cy)->image + sx;
+			cpe = WIN(cy)->image + flayer->l_width;
       pp = (unsigned char *)pattern;
       for (;;)
 	{
@@ -159,8 +165,23 @@ int y, sx, ex;
 	  pp++;
 	  if (*pp == 0)
 	    return sx;
-	  if (cp == ipe)
-	    break;
+		if (cp == cpe) {
+		/*
+		* We have a partial match, but we've hit
+		* the end of this line.  Does it wrap onto
+		* the following line?  If not, we're done.
+		*/
+		if (*cp == ' ' || cy >= fore->w_histheight + flayer->l_height - 1)
+			break;
+
+		/*
+		* This line does wrap, so look on the next
+		* line for the rest of our match.
+		*/
+		cy++;
+		cp = WIN(cy)->image;
+		cpe = WIN(cy)->image + flayer->l_width;
+		}
 	}
     }
   return -1;
