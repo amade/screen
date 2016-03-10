@@ -1840,3 +1840,32 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 	CarefulUtmp();
 #endif
 }
+
+void ResetWindow(Window *win)
+{
+	int i;
+
+	win->w_wrap = nwin_default.wrap;
+	win->w_origin = 0;
+	win->w_insert = false;
+	win->w_revvid = 0;
+	win->w_mouse = 0;
+	win->w_bracketed = false;
+	win->w_cursorstyle = 0;
+	win->w_curinv = 0;
+	win->w_curvvis = 0;
+	win->w_autolf = 0;
+	win->w_keypad = 0;
+	win->w_cursorkeys = 0;
+	win->w_top = 0;
+	win->w_bot = win->w_height - 1;
+	win->w_saved.on = 0;
+	win->w_x = win->w_y = 0;
+	win->w_state = LIT;
+	win->w_StringType = NONE;
+	memset(win->w_tabs, 0, win->w_width);
+	for (i = 8; i < win->w_width; i += 8)
+		win->w_tabs[i] = 1;
+	win->w_rend = mchar_null;
+	ResetCharsets(win);
+}
