@@ -82,6 +82,7 @@ bool VerboseCreate = false;		/* XXX move this to user.h */
 
 char DefaultShell[] = "/bin/sh";
 #ifndef HAVE_EXECVPE
+void execvpe(char *, char **, char **);
 static char DefaultPath[] = ":/usr/ucb:/bin:/usr/bin";
 #endif
 
