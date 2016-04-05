@@ -114,6 +114,20 @@
 # define LOGINDEFAULT 1
 #endif
 
+/*****************************************************************
+ *    signal stuff
+ */
+
+/* apparently NSIG is not part of standart, but it's present some form in most
+ * libc headers, if not define sane default
+ */
+#if !defined(NSIG)
+# if defined(_NSIG)
+#  define NSIG _NSIG
+# else
+#  define NSIG 32
+# endif
+#endif
 
 /*****************************************************************
  *    file stuff

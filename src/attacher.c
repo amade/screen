@@ -454,9 +454,9 @@ static void LockHup(int sigsig)
 static void LockTerminal()
 {
 	int sig;
-	void (*sigs[_NSIG - 1]) (int);
+	void (*sigs[NSIG - 1]) (int);
 
-	for (sig = 1; sig < _NSIG - 1; sig++)
+	for (sig = 1; sig < NSIG - 1; sig++)
 		sigs[sig] = xsignal(sig, sig == SIGCHLD ? SIG_DFL : SIG_IGN);
 	xsignal(SIGHUP, LockHup);
 	printf("\n");
@@ -464,7 +464,7 @@ static void LockTerminal()
 	screen_builtin_lck();
 
 	/* reset signals */
-	for (sig = 1; sig < _NSIG - 1; sig++) {
+	for (sig = 1; sig < NSIG - 1; sig++) {
 		if (sigs[sig] != (void (*)(int))-1)
 			xsignal(sig, sigs[sig]);
 	}
