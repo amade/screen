@@ -60,7 +60,7 @@ static int pututslot(slot_t, struct utmpx *, char *, Window *);
 static struct utmpx *getutslot(slot_t);
 
 static int utmpok;
-static char UtmpName[] = UTMPFILE;
+static char UtmpName[] = UTMPXFILE;
 #ifndef UTMP_HELPER
 static int utmpfd = -1;
 #endif
@@ -88,8 +88,8 @@ static int utmpfd = -1;
 #ifndef UTMPOK
 void SlotToggle(bool how)
 {
-#ifdef UTMPFILE
-	Msg(0, "Unable to modify %s.\n", UTMPFILE);
+#ifdef UTMPXFILE
+	Msg(0, "Unable to modify %s.\n", UTMPXFILE);
 #else
 	Msg(0, "Unable to modify utmp-database.\n");
 #endif

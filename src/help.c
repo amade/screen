@@ -66,7 +66,7 @@ void exit_with_usage(char *myname, char *message, char *arg)
 	printf("-h lines      Set the size of the scrollback history buffer.\n");
 	printf("-i            Interrupt output sooner when flow control is on.\n");
 #if defined(LOGOUTOK) && defined(UTMPOK)
-	printf("-l            Login mode on (update %s), -ln = off.\n", UTMPFILE);
+	printf("-l            Login mode on (update %s), -ln = off.\n", UTMPXFILE);
 #endif
 	printf("-ls [match]   or\n");
 	printf("-list         Do nothing, just list our SocketDir [on possible matches].\n");

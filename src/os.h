@@ -90,14 +90,14 @@
 # include <utmpx.h>
 
 # ifndef UTMPFILE
-#  ifdef UTMP_FILE
-#   define UTMPFILE	UTMP_FILE
+#  ifdef UTMPX_FILE
+#   define UTMPXFILE	UTMPX_FILE
 #  else
-#   ifdef _PATH_UTMP
-#    define UTMPFILE	_PATH_UTMP
+#   ifdef _PATH_UTMPX
+#    define UTMPXFILE	_PATH_UTMPX
 #   else
-#    define UTMPFILE	"/etc/utmp"
-#   endif /* _PATH_UTMP */
+#    define UTMPXFILE	"/etc/utmpx"
+#   endif /* _PATH_UTMPX */
 #  endif
 # endif
 
