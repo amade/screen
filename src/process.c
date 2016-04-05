@@ -2108,13 +2108,19 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_LOGFILE:
 		if (*args) {
+			char buf[1024];
 			if (args[1] && !(strcmp(*args, "flush"))) {
 				log_flush = atoi(args[1]);
 				if (msgok)
 					OutputMsg(0, "log flush timeout set to %ds\n", log_flush);
 				break;
 			}
-			if (ParseSaveStr(act, &screenlogfile) || !msgok)
+			if (ParseSaveStr(act, &screenlogfile))
+				break;
+			if (fore->w_log)
+				if (DoStartLog(fore, buf, sizeof(buf)))
+					OutputMsg(0, "Error opening logfile \"%s\"", buf);
+			if (!msgok)
 				break;
 		}
 		OutputMsg(0, "logfile is '%s'", screenlogfile);
