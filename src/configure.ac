@@ -374,6 +374,10 @@ if test "$have_utempter" = yes; then
   AC_DEFINE(HAVE_UTEMPTER)
   LIBS="$LIBS -lutempter"
 fi
+AC_CHECKING(ut_exit)
+AC_TRY_COMPILE([
+#include <utmpx.h>
+],[struct utmpx u; u.ut_exit.e_exit;], AC_DEFINE(HAVE_UT_EXIT))
 
 dnl
 dnl    ****  signal handling  ****

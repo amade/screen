@@ -381,8 +381,10 @@ static int pututslot(slot_t slot, struct utmpx *u, char *host, Window *win)
 static void makedead(struct utmpx *u)
 {
 	u->ut_type = DEAD_PROCESS;
+#if defined(HAVE_UT_EXIT)
 	u->ut_exit.e_termination = 0;
 	u->ut_exit.e_exit = 0;
+#endif
 	u->ut_user[0] = 0;	/* for Digital UNIX, kilbi@rad.rwth-aachen.de */
 }
 

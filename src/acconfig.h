@@ -215,6 +215,11 @@
 #undef HAVE_UTEMPTER
 
 /*
+ * Define if your utmpx has ut_exit struct
+ */
+#undef HAVE_UT_EXIT
+
+/*
  * If your system has the calls setreuid() and setregid(),
  * define HAVE_SETREUID. Otherwise screen will use a forked process to
  * safely create output files without retaining any special privileges.
