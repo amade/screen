@@ -51,7 +51,7 @@
 #define UTMP_HELPER
 #endif
 
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 
 static slot_t TtyNameSlot(char *);
 static void makeuser(struct utmpx *, char *, char *, int);
@@ -72,7 +72,7 @@ static int utmpfd = -1;
 #define D_loginhost ((char *)0)
 #endif
 
-#endif				/* UTMPOK */
+#endif				/* ENABLE_UTMP */
 
 /*
  * SlotToggle - modify the utmp slot of the fore window.
@@ -85,7 +85,7 @@ static int utmpfd = -1;
  *              (unable to write utmp, or detached).
  */
 
-#ifndef UTMPOK
+#ifndef ENABLE_UTMP
 void SlotToggle(bool how)
 {
 #ifdef UTMPXFILE
@@ -96,7 +96,7 @@ void SlotToggle(bool how)
 }
 #endif
 
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 
 void SlotToggle(bool how)
 {
@@ -408,5 +408,5 @@ static slot_t TtyNameSlot(char *nam)
 	return stripdev(nam);
 }
 
-#endif				/* UTMPOK */
+#endif				/* ENABLE_UTMP */
 

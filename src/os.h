@@ -86,7 +86,7 @@
   typedef int slot_t;
 #endif
 
-#if defined(UTMPOK)
+#if defined(ENABLE_UTMP)
 # include <utmpx.h>
 
 # ifndef UTMPFILE
@@ -101,7 +101,7 @@
 #  endif
 # endif
 
-#endif /* UTMPOK */
+#endif /* ENABLE_UTMP */
 
 #ifdef LOGOUTOK
 # ifndef LOGINDEFAULT

@@ -199,10 +199,10 @@ A:   Talk  and several  other programs  rely on entries  in the  Utmp-
      which do not belong to any screen window. 
      When screen can update utmp, it is not guaranteed that it does as
      you  expect.  First this depends  on  the config.h  file defining 
-     UTMPOK, LOGINDEFAULT, and perhaps CAREFULUTMP.  Second it depends
-     on the screenrc files (system wide and per user), if utmp entries
-     are done.  Third, you can control  whether windows are logged  in
-     with screens ``login'' command.
+     ENABLE_UTMP, LOGINDEFAULT, and  perhaps  CAREFULUTMP.  Second  it
+     depends on the screenrc files (system wide and per user), if utmp
+     entries  are done.  Third, you can  control whether  windows  are
+     logged in with screens ``login'' command.
 
 Q:   Seteuid()  does not work as expected in AIX.  Attempting a multi-
      user-attach results in a screen-panic: "seteuid: not owner".

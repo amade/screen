@@ -97,9 +97,9 @@
 
 /*
  * If screen is installed with permissions to update /etc/utmp (such
- * as if it is installed set-uid root), define UTMPOK.
+ * as if it is installed set-uid root), define ENABLE_UTMP.
  */
-#define UTMPOK
+#define ENABLE_UTMP
 
 /* Set LOGINDEFAULT to one (1)
  * if you want entries added to /etc/utmp by default, else set it to
@@ -116,7 +116,7 @@
  * Negative examples: suns usually have a world writable utmp file,
  * xterm will run perfectly without s-bit.
  *
- * If LOGOUTOK is undefined and UTMPOK is defined, all windows are
+ * If LOGOUTOK is undefined and ENABLE_UTMP is defined, all windows are
  * initially and permanently logged in.
  *
  * Set CAREFULUTMP to one (1) if you want that users have at least one

@@ -5,13 +5,13 @@
 
 #include "window.h"
 
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 void  InitUtmp (void);
 void  RemoveLoginSlot (void);
 void  RestoreLoginSlot (void);
 int   SetUtmp (Window *);
 int   RemoveUtmp (Window *);
-#endif /* UTMPOK */
+#endif /* ENABLE_UTMP */
 void  SlotToggle (bool);
 #ifdef CAREFULUTMP
 void   CarefulUtmp (void);

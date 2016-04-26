@@ -450,7 +450,7 @@ void InitKeytab()
 	ktab['i'].nr = ktab[Ctrl('i')].nr = RC_INFO;
 	ktab['m'].nr = ktab[Ctrl('m')].nr = RC_LASTMSG;
 	ktab['A'].nr = RC_TITLE;
-#if defined(UTMPOK) && defined(LOGOUTOK)
+#if defined(ENABLE_UTMP) && defined(LOGOUTOK)
 	ktab['L'].nr = RC_LOGIN;
 #endif
 	ktab[','].nr = RC_LICENSE;
@@ -2228,7 +2228,7 @@ void DoAction(struct action *act, int key)
 		}
 		(void)ParseSaveStr(act, &PowDetachString);
 		break;
-#if defined(UTMPOK) && defined(LOGOUTOK)
+#if defined(ENABLE_UTMP) && defined(LOGOUTOK)
 	case RC_LOGIN:
 		b = fore->w_slot != (slot_t)(-1);
 		if (*args && !strcmp(*args, "always")) {
@@ -4554,7 +4554,7 @@ char *AddWindowFlags(char *buf, int len, Window *p)
 		*s++ = '@';
 	if (p->w_bell == BELL_DONE)
 		*s++ = '!';
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	if (p->w_slot != (slot_t) 0 && p->w_slot != (slot_t) - 1)
 		*s++ = '$';
 #endif
