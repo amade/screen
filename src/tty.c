@@ -705,7 +705,7 @@ void SendBreak(Window * wp, int n, int closeopen)
 {
 	void (*sigalrm) (int);
 
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	if (wp->w_type == W_TYPE_TELNET) {
 		TelBreak(wp);
 		return;
