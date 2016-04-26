@@ -436,7 +436,7 @@ int MakeWindow(struct NewWindow *newwin)
 		Msg(0, "%s", strnomem);
 		return -1;
 	}
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	if (type != W_TYPE_PTY)
 		nwin.lflag = 0;
 #endif
@@ -581,7 +581,7 @@ int MakeWindow(struct NewWindow *newwin)
 	}
 
 	p->w_lflag = nwin.lflag;
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	p->w_slot = (slot_t) - 1;
 #ifdef LOGOUTOK
 	if (nwin.lflag & 1)
@@ -594,7 +594,7 @@ int MakeWindow(struct NewWindow *newwin)
 #ifdef CAREFULUTMP
 	CarefulUtmp();		/* If all 've been zombies, we've had no slot */
 #endif
-#endif				/* UTMPOK */
+#endif				/* ENABLE_UTMP */
 
 	if (nwin.Lflag) {
 		char buf[1024];
@@ -698,7 +698,7 @@ int RemakeWindow(Window *window)
 		if (window->w_pid < 0)
 			return -1;
 	}
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	if (window->w_slot == (slot_t) 0 && (display || (window->w_lflag & 2)))
 		SetUtmp(window);
 #ifdef CAREFULUTMP
@@ -738,7 +738,7 @@ void FreeWindow(Window *window)
 
 	if (window->w_pwin)
 		FreePseudowin(window);
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	RemoveUtmp(window);
 #endif
 	CloseDevice(window);
@@ -888,7 +888,7 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 		close(fd);
 		return -1;
 	}
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	if (chmod(*namep, lflag ? TtyMode : (TtyMode & ~022)) && !eff_uid)
 #else
 	if (chmod(*namep, TtyMode) && !eff_uid)
@@ -1749,7 +1749,7 @@ int SwapWindows(int old, int dest)
 	if (p)
 		p->w_number = old;
 	/* exchange the acls for these windows. */
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	/* exchange the utmp-slots for these windows */
 	if ((win_old->w_slot != (slot_t) - 1) && (win_old->w_slot != (slot_t) 0)) {
 		RemoveUtmp(win_old);
@@ -1814,7 +1814,7 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 		s = ctime(&now);
 		if (s && *s)
 			s[strlen(s) - 1] = '\0';
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 		if (p->w_slot != (slot_t) 0 && p->w_slot != (slot_t) - 1) {
 			RemoveUtmp(p);
 			p->w_slot = 0;	/* "detached" */
@@ -1836,7 +1836,7 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 		WindowChanged(p, 'f');
 	} else
 		KillWindow(p);
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	CarefulUtmp();
 #endif
 }
