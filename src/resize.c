@@ -756,7 +756,7 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 	p->w_histidx = 0;
 	p->w_histheight = hi;
 
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	if (p->w_type == W_TYPE_TELNET)
 		TelWindowSize(p);
 #endif

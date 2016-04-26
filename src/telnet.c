@@ -28,7 +28,7 @@
 
 #include "telnet.h"
 
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -480,4 +480,4 @@ void TelStatus(Window *win, char *buf, size_t len)
 	return;
 }
 
-#endif				/* BUILTIN_TELNET */
+#endif				/* ENABLE_TELNET */

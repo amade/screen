@@ -483,7 +483,7 @@ fi
 
 AC_ARG_ENABLE(telnet, [  --enable-telnet         enable builtin telnet])
 if test "$enable_telnet" = "yes"; then
-  AC_DEFINE(BUILTIN_TELNET)
+  AC_DEFINE(ENABLE_TELNET)
 fi
 
 dnl

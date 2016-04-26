@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 int TelOpenAndConnect(Window *);
 int TelIsline(Window *);
 void TelProcessLine(char **, size_t *);
