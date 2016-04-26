@@ -4739,7 +4739,7 @@ static void ShowInfo()
 		*p++ = ' ';
 		TtyGetModemStatus(wp->w_ptyfd, p);
 	}
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	else if (wp->w_type == W_TYPE_TELNET) {
 		*p++ = ' ';
 		TelStatus(wp, p, sizeof(buf) - 1 - (p - buf));

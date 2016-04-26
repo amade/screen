@@ -236,7 +236,7 @@ static void WinProcess(char **bufpp, size_t *lenp)
 		*lenp = 0;
 		return;
 	}
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	if (fore->w_type == W_TYPE_TELNET && TelIsline(fore) && *bufpp != fore->w_telbuf) {
 		TelProcessLine(bufpp, lenp);
 		return;
@@ -257,7 +257,7 @@ static void WinProcess(char **bufpp, size_t *lenp)
 
 	if (l > f)
 		l = f;
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	while (l > 0)
 #else
 	if (l > 0)
@@ -267,7 +267,7 @@ static void WinProcess(char **bufpp, size_t *lenp)
 		memmove(ibuf + *ilen, *bufpp, l2);
 		if (fore->w_autolf && (trunc = DoAutolf(ibuf + *ilen, &l2, f - l2)))
 			l -= trunc;
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 		if (fore->w_type == W_TYPE_TELNET && (trunc = DoTelnet(ibuf + *ilen, &l2, f - l2))) {
 			l -= trunc;
 			if (fore->w_autolf)
@@ -420,7 +420,7 @@ int MakeWindow(struct NewWindow *newwin)
 	}
 	n = pp - wtab;
 
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	if (!strcmp(nwin.args[0], "//telnet")) {
 		type = W_TYPE_TELNET;
 		TtyName = "telnet";
@@ -546,7 +546,7 @@ int MakeWindow(struct NewWindow *newwin)
 	p->w_pid = 0;
 	p->w_pwin = 0;
 
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	if (type == W_TYPE_TELNET) {
 		if (TelOpenAndConnect(p)) {
 			FreeWindow(p);
@@ -652,7 +652,7 @@ int RemakeWindow(Window *window)
 	int lflag, fd, i;
 
 	lflag = nwin_default.lflag;
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	if (!strcmp(window->w_cmdargs[0], "//telnet")) {
 		window->w_type = W_TYPE_TELNET;
 		TtyName = "telnet";
@@ -687,7 +687,7 @@ int RemakeWindow(Window *window)
 
 	window->w_deadpid = 0;
 	window->w_pid = 0;
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	if (window->w_type == W_TYPE_TELNET) {
 		if (TelOpenAndConnect(window))
 			return -1;
@@ -723,7 +723,7 @@ void CloseDevice(Window *window)
 	window->w_tty[0] = 0;
 	evdeq(&window->w_readev);
 	evdeq(&window->w_writeev);
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	evdeq(&window->w_telconnev);
 #endif
 	window->w_readev.fd = window->w_writeev.fd = -1;
@@ -1421,7 +1421,7 @@ static void win_readev_fn(Event *event, void *data)
 		len--;
 	}
 #endif
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	if (p->w_type == W_TYPE_TELNET)
 		len = TelIn(p, bp, len, buf + sizeof(buf) - (bp + len));
 #endif

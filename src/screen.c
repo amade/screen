@@ -148,7 +148,7 @@ Window *fore;
 Window *windows;
 Window *console_window;
 
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 int af;
 #endif
 
@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 	nwin_options = nwin_undef;
 	strncpy(screenterm, "screen", MAXTERMLEN);
 	screenterm[MAXTERMLEN] = '\0';
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	af = AF_UNSPEC;
 #endif
 
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
 				exit_with_usage(myname, NULL, NULL);
 			while (ap && *ap && *++ap) {
 				switch (*ap) {
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 				case '4':
 					af = AF_INET;
 					break;

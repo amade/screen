@@ -242,7 +242,7 @@ struct Window {
 
 	int    w_zauto;
 	Display *w_zdisplay;
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	struct sockaddr_in w_telsa;
 	char   w_telbuf[IOSIZE];
 	int    w_telbufl;
