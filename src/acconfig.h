@@ -91,9 +91,9 @@
 #undef LOCKPTY
 
 /*
- * define BUILTIN_TELNET to enable built in telnte support
+ * define ENABLE_TELNET to enable built in telnte support
  */
-#undef BUILTIN_TELNET
+#undef ENABLE_TELNET
 
 /*
  * If screen is installed with permissions to update /etc/utmp (such

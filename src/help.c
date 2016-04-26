@@ -50,7 +50,7 @@ void exit_with_usage(char *myname, char *message, char *arg)
 {
 	printf("Use: %s [-opts] [cmd [args]]\n", myname);
 	printf(" or: %s -r [host.tty]\n\nOptions:\n", myname);
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 	printf("-4            Resolve hostnames only to IPv4 addresses.\n");
 	printf("-6            Resolve hostnames only to IPv6 addresses.\n");
 #endif
@@ -457,7 +457,7 @@ http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc., \
 \n\
 Send bugreports, fixes, enhancements, t-shirts, money, beer & pizza to \
 screen-devel@gnu.org\n\n\n"
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
     "+builtin-telnet "
 #else
     "-builtin-telnet "

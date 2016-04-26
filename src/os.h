@@ -52,7 +52,7 @@
 # define utimes utime
 #endif
 
-#ifdef BUILTIN_TELNET
+#ifdef ENABLE_TELNET
 # include <netinet/in.h>
 # include <arpa/inet.h>
 #endif
