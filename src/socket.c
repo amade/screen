@@ -938,7 +938,7 @@ static void FinishAttach(Message *m)
 		D_user->u_Esc = m->m.attach.esc;
 		D_user->u_MetaEsc = m->m.attach.meta_esc;
 	}
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	/*
 	 * we set the Utmp slots again, if we were detached normally
 	 * and if we were detached by ^Z.
