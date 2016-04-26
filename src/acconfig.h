@@ -165,11 +165,6 @@
  */
 
 /*
- * Define POSIX if your system supports IEEE Std 1003.1-1988 (POSIX).
- */
-#undef POSIX
-
-/*
  * Define TERMIO if you have struct termio instead of struct sgttyb.
  * This is usually the case for SVID systems, where BSD uses sgttyb.
  * POSIX systems should define this anyway, even though they use
