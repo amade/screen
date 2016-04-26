@@ -689,13 +689,6 @@ char *MakeTermcap(bool aflag)
 			if (e_tgetent(buf, p) == 1)
 				break;
 		}
-#ifdef CHECK_SCREEN_W
-		if (width >= 132) {
-			sprintf(p, "%s-w", screenterm);
-			if (e_tgetent(buf, p) == 1)
-				break;
-		}
-#endif
 		strcpy(p, screenterm);
 		if (e_tgetent(buf, p) == 1)
 			break;
