@@ -192,7 +192,6 @@ Display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struc
 	D_blockedev.handler = disp_blocked_fn;
 	D_blockedev.condpos = &D_obuffree;
 	D_blockedev.condneg = &D_obuflenmax;
-	D_hstatusev.handler = disp_hstatus_fn;
 	D_mapev.type = EV_TIMEOUT;
 	D_mapev.data = (char *)display;
 	D_mapev.handler = disp_map_fn;
