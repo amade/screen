@@ -40,9 +40,7 @@
 #include <pwd.h>
 #endif				/* CHECKLOGIN */
 
-#ifndef NOSYSLOG
 #include <syslog.h>
-#endif
 
 #include "screen.h"		/* includes acls.h */
 
@@ -476,16 +474,9 @@ char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 			sorry++;
 	}
 
-#ifndef NOSYSLOG
-#ifdef BSD_42
-	openlog("screen", LOG_PID);
-#else
-	openlog("screen", LOG_PID, LOG_AUTH);
-#endif				/* BSD_42 */
+	openlog("screen", LOG_PID, LOG_AUTHPRIV);
 	syslog(LOG_NOTICE, "%s: \"su %s\" %s for \"%s\"", SocketPath, name, sorry ? "failed" : "succeded", (*up)->u_name);
 	closelog();
-#else
-#endif				/* NOSYSLOG */
 
 	if (sorry)
 		return "Sorry.";
