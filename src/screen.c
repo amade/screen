@@ -933,9 +933,9 @@ int main(int argc, char **argv)
 		(void)StartRc(ETCSCREENRC, 0);
 #endif
 	(void)StartRc(RcFileName, 0);
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	InitUtmp();
-#endif				/* UTMPOK */
+#endif				/* ENABLE_UTMP */
 	if (display) {
 		if (InitTermcap(0, 0)) {
 			fcntl(D_userfd, F_SETFL, 0);	/* Flush sets FNBLOCK */
@@ -946,7 +946,7 @@ int main(int argc, char **argv)
 		}
 		MakeDefaultCanvas();
 		InitTerm(0);
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 		RemoveLoginSlot();
 #endif
 	} else
@@ -1174,7 +1174,7 @@ void Finit(int i)
 		if (D_status)
 			RemoveStatus();
 		FinitTerm();
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 		RestoreLoginSlot();
 #endif
 		AddStr("[screen is terminating]\r\n");
@@ -1292,7 +1292,7 @@ void Detach(int mode)
 		/* tell attacher to lock terminal with a lockprg. */
 		break;
 	}
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	if (displays->d_next == 0) {
 		for (p = windows; p; p = p->w_next) {
 			if (p->w_slot != (slot_t) - 1 && !(p->w_lflag & 2)) {
@@ -1448,7 +1448,7 @@ void Panic(int err, const char *fmt, ...)
 				RemoveStatus();
 			FinitTerm();
 			Flush(3);
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 			RestoreLoginSlot();
 #endif
 			SetTTY(D_userfd, &D_OldMode);

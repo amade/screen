@@ -168,7 +168,7 @@ struct Display {
 	int	d_UPcost, d_DOcost, d_LEcost, d_NDcost;
 	int	d_CRcost, d_IMcost, d_EIcost, d_NLcost;
 	int   d_printfd;		/* fd for vt100 print sequence */
-#ifdef UTMPOK
+#ifdef ENABLE_UTMP
 	slot_t d_loginslot;		/* offset, where utmp_logintty belongs */
 	struct utmpx d_utmp_logintty;	/* here the original utmp structure is stored */
 	int   d_loginttymode;
