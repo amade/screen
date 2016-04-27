@@ -3,6 +3,8 @@
 
 #include "config.h"
 
+#include "window.h"
+
 #ifdef ENABLE_TELNET
 int TelOpenAndConnect(Window *);
 int TelIsline(Window *);
