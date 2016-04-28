@@ -28,6 +28,7 @@
 
 #include "pty.h"
 
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdint.h>
@@ -38,8 +39,15 @@
 #include "config.h"
 #include "screen.h"
 
-#include <sys/ioctl.h>
-#include <pty.h>
+#if defined(HAVE_PTY_H)
+# include <pty.h>
+#endif
+#if defined(HAVE_UTIL_H)
+# include <util.h>
+#endif
+#if defined(HAVE_LIBUTIL_H)
+# include <libutil.h>
+#endif
 
 /*
  * if no PTYRANGE[01] is in the config file, we pick a default
