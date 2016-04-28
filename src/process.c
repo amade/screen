@@ -3420,7 +3420,7 @@ void DoAction(struct action *act, int key)
 		else {
 			if (!windows) {
 				wtab = realloc(wtab, n * sizeof(Window *));
-				bzero(wtab, n * sizeof(Window *));
+				memset(wtab, 0, n * sizeof(Window *));
 			}
 			maxwin = n;
 		}
