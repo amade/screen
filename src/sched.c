@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "sched.h"
 
 #include <stdint.h>
@@ -33,7 +35,6 @@
 #include <time.h>
 #include <sys/time.h>
 
-#include "config.h"
 #include "screen.h"
 
 static Event *evs;

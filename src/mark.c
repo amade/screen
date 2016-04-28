@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "mark.h"
 
 #include <sys/types.h>
@@ -34,7 +36,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "config.h"
 #include "screen.h"
 
 #include "encoding.h"

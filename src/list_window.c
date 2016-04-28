@@ -27,12 +27,13 @@
  * verify that the window does exist (by looking at wtab[]).
  */
 
+#include "config.h"
+
 #include "list_generic.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "config.h"
 #include "screen.h"
 #include "winmsg.h"
 

@@ -26,9 +26,9 @@
  ****************************************************************
  */
 
-#include "canvas.h"
-
 #include "config.h"
+
+#include "canvas.h"
 
 #include "screen.h"
 #include "help.h"

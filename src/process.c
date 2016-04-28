@@ -31,6 +31,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "process.h"
 
 #include <fcntl.h>
@@ -43,7 +45,6 @@
 #include <sys/types.h>
 #include <time.h>
 
-#include "config.h"
 #include "screen.h"
 #include "winmsg.h"
 

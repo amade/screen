@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "telnet.h"
 
 #ifdef ENABLE_TELNET

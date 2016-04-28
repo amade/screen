@@ -20,6 +20,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "winmsgcond.h"
 
 #include <assert.h>

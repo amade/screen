@@ -26,9 +26,9 @@
  ****************************************************************
  */
 
-#include "layer.h"
-
 #include "config.h"
+
+#include "layer.h"
 
 #include "screen.h"
 #include "encoding.h"

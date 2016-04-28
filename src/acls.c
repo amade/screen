@@ -26,9 +26,9 @@
  ****************************************************************
  */
 
-#include "acls.h"
-
 #include "config.h"
+
+#include "acls.h"
 
 #include <stdbool.h>
 #include <stdint.h>

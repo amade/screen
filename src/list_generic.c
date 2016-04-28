@@ -20,6 +20,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "list_generic.h"
 
 #include <stdbool.h>
