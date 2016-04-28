@@ -29,6 +29,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "window.h"
 
 #include <sys/types.h>

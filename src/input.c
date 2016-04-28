@@ -26,9 +26,10 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "input.h"
 
-#include "config.h"
 #include "screen.h"
 
 #include "misc.h"

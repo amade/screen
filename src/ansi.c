@@ -26,13 +26,14 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "ansi.h"
 
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-#include "config.h"
 #include "screen.h"
 #include "winmsg.h"
 
