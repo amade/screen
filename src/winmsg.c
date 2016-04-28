@@ -514,7 +514,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 	int lastpad = 0;
 	WinMsgBufContext *wmbc;
 	WinMsgEsc esc;
-	WinMsgCond *cond = alloca(sizeof(WinMsgCond));
+	WinMsgCond *cond;
 
 	/* TODO: temporary to work into existing code */
 	if (winmsg == NULL) {
@@ -525,11 +525,12 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 		winmsg = g_winmsg;
 	}
 
-	if (cond == NULL)
-		Panic(0, "%s", strnomem);
-
 	if (rec > WINMSG_RECLIMIT)
 		return winmsg->buf;
+
+	cond = calloc(1, sizeof(WinMsgCond));
+	if (cond == NULL)
+		Panic(0, "%s", strnomem);
 
 	/* set to sane state (clear garbage) */
 	wmc_deinit(cond);
@@ -665,6 +666,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 		ev->timeout = now;
 	}
 
+	free(cond);
 	wmbc_free(wmbc);
 	return winmsg->buf;
 }
