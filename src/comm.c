@@ -27,9 +27,9 @@
  ****************************************************************
  */
 
-#include "comm.h"
-
 #include "config.h"
+
+#include "comm.h"
 
 /* Must be in alpha order ! */
 

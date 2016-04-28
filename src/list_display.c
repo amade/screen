@@ -31,12 +31,13 @@
 
 /* Deals with the list of displays */
 
+#include "config.h"
+
 #include "list_generic.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "config.h"
 #include "screen.h"
 
 #include "misc.h"

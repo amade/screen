@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "attacher.h"
 
 #include <fcntl.h>
@@ -37,7 +39,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "config.h"
 #include "screen.h"
 
 #ifdef USE_PAM

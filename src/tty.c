@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "tty.h"
 
 #include <sys/types.h>
@@ -37,8 +39,6 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
-
-#include "config.h"
 
 #include "screen.h"
 #include "fileio.h"

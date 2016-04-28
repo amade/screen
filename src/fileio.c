@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "fileio.h"
 
 #include <sys/types.h>
@@ -37,7 +39,6 @@
 
 #include <signal.h>
 
-#include "config.h"
 #include "screen.h"
 
 #include "misc.h"

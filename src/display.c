@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "display.h"
 
 #include <sys/types.h>
@@ -35,7 +37,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "config.h"
 #include "screen.h"
 #include "winmsg.h"
 

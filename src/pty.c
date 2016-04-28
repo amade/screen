@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "pty.h"
 
 #include <sys/ioctl.h>
@@ -36,7 +38,6 @@
 #include <fcntl.h>
 #include <signal.h>
 
-#include "config.h"
 #include "screen.h"
 
 #if defined(HAVE_PTY_H)
