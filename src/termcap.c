@@ -26,12 +26,13 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "termcap.h"
 
 #include <sys/types.h>
 #include <stdint.h>
 
-#include "config.h"
 #include "screen.h"
 
 #include "encoding.h"

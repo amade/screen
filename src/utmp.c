@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "utmp.h"
 
 #include <sys/types.h>

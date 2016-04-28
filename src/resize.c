@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "resize.h"
 
 #include <sys/types.h>
@@ -34,7 +36,6 @@
 #include <stdbool.h>
 #include <sys/ioctl.h>
 
-#include "config.h"
 #include "screen.h"
 
 #include "process.h"

@@ -28,6 +28,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "screen.h"
 
 #include <ctype.h>

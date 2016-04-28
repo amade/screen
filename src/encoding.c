@@ -21,12 +21,13 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "encoding.h"
 
 #include <sys/types.h>
 #include <stdint.h>
 
-#include "config.h"
 #include "screen.h"
 #include "fileio.h"
 

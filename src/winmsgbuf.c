@@ -20,6 +20,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "winmsgbuf.h"
 
 #include <stdarg.h>

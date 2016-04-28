@@ -26,6 +26,8 @@
  ****************************************************************
  */
 
+#include "config.h"
+
 #include "logfile.h"
 
 #include <sys/types.h>		/* dev_t, ino_t, off_t, ... */
@@ -34,7 +36,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "config.h"
 #include "screen.h"
 
 #include "misc.h"
