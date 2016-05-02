@@ -2625,7 +2625,7 @@ int key;
 	    }
 	  if (ParseSaveStr(act, &screenlogfile))
 	    break;
-	  if (fore->w_log)
+	  if (fore && fore->w_log)
 	    if (DoStartLog(fore, buf, sizeof(buf)))
 	      OutputMsg(0, "Error opening logfile \"%s\"", buf);
 	  if (!msgok)
