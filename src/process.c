@@ -451,7 +451,7 @@ void InitKeytab()
 	ktab['i'].nr = ktab[Ctrl('i')].nr = RC_INFO;
 	ktab['m'].nr = ktab[Ctrl('m')].nr = RC_LASTMSG;
 	ktab['A'].nr = RC_TITLE;
-#if defined(ENABLE_UTMP) && defined(LOGOUTOK)
+#if defined(ENABLE_UTMP)
 	ktab['L'].nr = RC_LOGIN;
 #endif
 	ktab[','].nr = RC_LICENSE;
@@ -5025,7 +5025,7 @@ void DoScreen(char *fn, char **av)
 			else
 				--av;
 			break;
-#ifdef LOGOUTOK
+#if defined(ENABLE_UTMP)
 		case 'l':
 			switch (av[0][2]) {
 			case 'n':

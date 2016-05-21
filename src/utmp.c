@@ -69,7 +69,7 @@ static int utmpfd = -1;
 
 #undef  D_loginhost
 #define D_loginhost D_utmp_logintty.ut_host
-#ifndef UTHOST
+#if !defined(HAVE_UT_HOST)
 #undef  D_loginhost
 #define D_loginhost ((char *)0)
 #endif
@@ -147,7 +147,7 @@ void CarefulUtmp()
 	if (!windows)		/* hopeless */
 		return;
 	for (p = windows; p; p = p->w_next)
-		if (p->w_ptyfd >= 0 && p->w_slot != (slot_t) - 1)
+		if (p->w_ptyfd >= 0 && p->w_slot != (slot_t)-1)
 			return;	/* found one, nothing to do */
 
 	for (p = windows; p; p = p->w_next)
@@ -247,12 +247,12 @@ int SetUtmp(Window *win)
 	slot_t slot;
 	struct utmpx u;
 	int saved_ut;
-#ifdef UTHOST
+#if defined(HAVE_UT_HOST)
 	char *p;
 	char host[sizeof(D_loginhost) + 15];
 #else
 	char *host = 0;
-#endif				/* UTHOST */
+#endif/* HAVE_UT_HOST */
 
 	win->w_slot = (slot_t) 0;
 	if (!utmpok || win->w_type != W_TYPE_PTY)
@@ -269,7 +269,7 @@ int SetUtmp(Window *win)
 	if (!saved_ut)
 		makeuser(&u, stripdev(win->w_tty), LoginName, win->w_pid);
 
-#ifdef UTHOST
+#if defined(HAVE_UT_HOST)
 	host[sizeof(host) - 15] = '\0';
 	if (display) {
 		strncpy(host, D_loginhost, sizeof(host) - 15);
@@ -314,7 +314,7 @@ int SetUtmp(Window *win)
 }
 
 /*
- * if slot could be removed or was 0,  wi->w_slot = -1;
+ * if slot could be removed or was 0,  win->w_slot = -1;
  * else not changed.
  */
 
@@ -326,8 +326,8 @@ int RemoveUtmp(Window *win)
 	slot = win->w_slot;
 	if (!utmpok)
 		return -1;
-	if (slot == (slot_t) 0 || slot == (slot_t) - 1) {
-		win->w_slot = (slot_t) - 1;
+	if (slot == (slot_t)0 || slot == (slot_t)-1) {
+		win->w_slot = (slot_t)-1;
 		return 0;
 	}
 	memset((char *)&u, 0, sizeof(u));
@@ -342,7 +342,7 @@ int RemoveUtmp(Window *win)
 		Msg(errno, "Could not write %s", UtmpName);
 		return -1;
 	}
-	win->w_slot = (slot_t) - 1;
+	win->w_slot = (slot_t)-1;
 	return 0;
 }
 
@@ -357,7 +357,7 @@ static struct utmpx *getutslot(slot_t slot)
 {
 	struct utmpx u;
 	memset((char *)&u, 0, sizeof(u));
-	strncpy(u.ut_line, slot, sizeof(u.ut_line));
+	strncpy(u.ut_line, (char *)slot, sizeof(u.ut_line));
 	setutxent();
 	return getutxline(&u);
 }
