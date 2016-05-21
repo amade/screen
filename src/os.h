@@ -80,14 +80,10 @@
  *   utmp handling
  */
 
-#ifdef GETUTENT
-  typedef char *slot_t;
-#else
-  typedef int slot_t;
-#endif
-
 #if defined(ENABLE_UTMP)
 # include <utmpx.h>
+
+typedef char* slot_t;	/* used internally in utmp.c */
 
 # ifndef UTMPFILE
 #  ifdef UTMPX_FILE
@@ -102,17 +98,6 @@
 # endif
 
 #endif /* ENABLE_UTMP */
-
-#ifdef LOGOUTOK
-# ifndef LOGINDEFAULT
-#  define LOGINDEFAULT 0
-# endif
-#else
-# ifdef LOGINDEFAULT
-#  undef LOGINDEFAULT
-# endif
-# define LOGINDEFAULT 1
-#endif
 
 /*****************************************************************
  *    signal stuff

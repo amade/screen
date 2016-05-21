@@ -121,7 +121,7 @@ struct NewWindow nwin_default = {
 	.term       = screenterm,
 	.aflag      = false,
 	.flowflag   = FLOW_ON,
-	.lflag      = LOGINDEFAULT,
+	.lflag      = 1,
 	.histheight = DEFAULTHISTHEIGHT,
 	.monitor    = MON_OFF,
 	.wlock      = WLOCK_OFF,
@@ -582,13 +582,10 @@ int MakeWindow(struct NewWindow *newwin)
 		return n;
 	}
 
-	p->w_lflag = nwin.lflag;
 #ifdef ENABLE_UTMP
+	p->w_lflag = nwin.lflag;
 	p->w_slot = (slot_t) - 1;
-#ifdef LOGOUTOK
-	if (nwin.lflag & 1)
-#endif				/* LOGOUTOK */
-	{
+	if (nwin.lflag & 1) {
 		p->w_slot = (slot_t) 0;
 		if (display || (p->w_lflag & 2))
 			SetUtmp(p);
