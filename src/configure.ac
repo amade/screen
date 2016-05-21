@@ -1,7 +1,19 @@
-AC_INIT([screen], [4.99.0-devel], [https://savannah.gnu.org/bugs/?group=screen], [screen], [https://www.gnu.org/software/screen/])
+AC_INIT([GNU Screen], [4.99.0], [https://savannah.gnu.org/bugs/?group=screen], [screen], [https://www.gnu.org/software/screen/])
 AC_PREREQ(2.60)
 
 AC_CONFIG_HEADERS([config.h])
+
+
+AC_DEFINE_UNQUOTED([VERSION_MAJOR], 
+	[`echo $PACKAGE_VERSION | cut -d . -f 1`],
+	[Major version of GNU screen])
+AC_DEFINE_UNQUOTED([VERSION_MINOR],
+	[`echo $PACKAGE_VERSION | cut -d . -f 2 | cut -d - -f 1`],
+	[Minor version of GNU screen])
+AC_DEFINE_UNQUOTED([VERSION_REVISION],
+	[`echo $PACKAGE_VERSION | cut -d . -f 3 | cut -d - -f 1`],
+	[Micro revision of GNU screen])
+
 
 AH_TEMPLATE([HAVE_EXECVPE], [system has execvpe() defined])
 AH_TEMPLATE([HAVE_OPENPTY], [system has openpty() defined])
