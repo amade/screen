@@ -48,7 +48,6 @@
 
 #include "winmsg.h"
 
-#include "version.h"
 #include "logfile.h"		/* islogfile, logfflush */
 #include "fileio.h"
 #include "mark.h"
@@ -236,8 +235,8 @@ int main(int argc, char **argv)
 	 *  (otherwise, we might have problems with the select() call)
 	 */
 	closeallfiles(0);
-	snprintf(version, 59, "%d.%d.%d-%s (build on %s %s) ", REV, VERS, PATCHLEVEL, STATE, __DATE__, __TIME__);
-	nversion = REV * 10000 + VERS * 100 + PATCHLEVEL;
+	snprintf(version, 59, "%d.%d.%d (build on %s %s) ", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, __DATE__, __TIME__);
+	nversion = VERSION_MAJOR * 10000 + VERSION_MINOR * 100 + VERSION_REVISION;
 
 	BellString = SaveStr("Bell in window %n");
 	VisualBellString = SaveStr("   Wuff,  Wuff!!  ");
