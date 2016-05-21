@@ -102,7 +102,7 @@ AS_IF([test "$enable_utmp" = "yes"], [
 
 	AC_MSG_CHECKING(if utmpx struct has ut_host field)
 	AC_TRY_COMPILE([#include <utmpx.h>], [
-		struct utmp u;
+		struct utmpx u;
 		u.ut_host[0] = 0;
 	], AC_MSG_RESULT(yes)
 	AC_DEFINE(HAVE_UT_HOST),

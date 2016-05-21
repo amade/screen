@@ -232,9 +232,9 @@ struct Window {
 	char	*w_dir;			/* directory for chdir */
 	char	*w_term;		/* TERM to be set instead of "screen" */
 
+#if defined (ENABLE_UTMP)
 	int	 w_lflag;		/* login flag */
 	slot_t	 w_slot;		/* utmp slot */
-#if defined (ENABLE_UTMP)
 	struct	 utmpx w_savut;		/* utmp entry of this window */
 #endif
 
