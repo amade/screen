@@ -7,7 +7,7 @@
 
 #include "attacher.h"
 
-#if USE_PAM
+#if ENABLE_PAM
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
 #else
@@ -16,7 +16,7 @@
 
 static bool CheckPassword() {
 	bool ret = false;
-#if USE_PAM
+#if ENABLE_PAM
 	pam_handle_t *pamh = 0;
 	struct pam_conv pamc;
 	int pam_error;
