@@ -41,7 +41,7 @@
 
 #include "screen.h"
 
-#ifdef USE_PAM
+#ifdef ENABLE_PAM
 #include <security/pam_appl.h>
 #endif
 
