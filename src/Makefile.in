@@ -188,7 +188,7 @@ resize.o: resize.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
 socket.o: socket.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
  layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h encoding.h fileio.h list_generic.h misc.h process.h \
- winmsgbuf.h resize.h socket.h termcap.h tty.h utmp.h
+ winmsgbuf.h resize.h socket.h termcap.h tty.h utmp.h authentication.h
 search.o: search.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
  layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h mark.h input.h
@@ -215,7 +215,7 @@ input.o: input.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
  logfile.h misc.h
 attacher.o: attacher.c config.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
- window.h logfile.h misc.h socket.h tty.h
+ window.h logfile.h misc.h socket.h tty.h authentication.h
 pty.o: pty.c config.h screen.h os.h ansi.h sched.h acls.h comm.h layer.h \
  term.h image.h canvas.h display.h layout.h viewport.h window.h logfile.h
 process.o: process.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \

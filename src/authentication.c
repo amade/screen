@@ -1,8 +1,9 @@
+#include "config.h"
+
 #include <pwd.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "config.h"
 #include "screen.h"
 
 #include "attacher.h"
