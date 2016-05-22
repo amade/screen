@@ -160,7 +160,6 @@ static int BlankResize(int wi, int he)
 Display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struct mode *Mode)
 {
 	struct acluser **u;
-	struct baud_values *b;
 
 	if (!*(u = FindUserPtr(uname)) && UserAdd(uname, (char *)0, u))
 		return 0;	/* could not find or add user */
