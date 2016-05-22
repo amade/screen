@@ -45,7 +45,7 @@ dnl check for execvpe()
 AC_CHECK_FUNCS([execvpe])
 
 dnl
-AC_CHECK_FUNCS([seteuid setegid setresuid])
+AC_CHECK_FUNCS([seteuid setegid setreuid setresuid])
 
 dnl curses compatible lib, we do forward declaration ourselves, only need to link to proper library
 AC_SEARCH_LIBS([tgetent], [curses termcap termlib ncursesw tinfow ncurses tinfo], [], [
@@ -74,7 +74,7 @@ AC_ARG_ENABLE(pam, AS_HELP_STRING([--enable-pam], [enable PAM support (default: 
 AC_ARG_ENABLE(utmp, AS_HELP_STRING([--enable-utmp], [enable utmp support (default: disabled)]), [enable_utmp=$enableval], [enable_utmp=no])
 AC_ARG_ENABLE(telnet, AS_HELP_STRING([--enable-telnet], [enable telnet support (default: disabled)]), [enable_telnet=$enableval], [enable_telnet=no])
 
-
+dnl -- enable_pam
 
 AS_IF([test "$enable_pam" = "yes"], [
 	AC_MSG_CHECKING(for PAM support)
@@ -88,6 +88,8 @@ AS_IF([test "$enable_pam" = "yes"], [
 	AC_DEFINE(ENABLE_PAM),
 	AC_MSG_RESULT(no);LIBS="$oldlibs")
 ])
+
+dnl -- enable_utmp
 
 AS_IF([test "$enable_utmp" = "yes"], [
 	AC_CHECK_HEADERS(utmpx.h, have_utmpx=yes, have_utmpx=no)
@@ -118,6 +120,8 @@ AS_IF([test "$enable_utmp" = "yes"], [
 
 	AC_DEFINE(ENABLE_UTMP)
 ])
+
+dnl -- enable_telnet
 
 AS_IF([test "$enable_telnet" = "yes"]], [
 	AC_DEFINE(ENABLE_TELNET)
