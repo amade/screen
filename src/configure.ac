@@ -89,7 +89,7 @@ AS_IF([test "$enable_pam" = "yes"], [
 		pam_end(0,0);
 	], AC_MSG_RESULT(yes);
 	AC_DEFINE(ENABLE_PAM),
-	AC_MSG_RESULT(no);LIBS="$oldlibs")
+	AC_MSG_ERROR(no);LIBS="$oldlibs")
 ])
 
 dnl -- enable_utmp
