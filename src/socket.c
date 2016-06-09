@@ -74,7 +74,6 @@ static void ExecCreate(Message *);
 static void DoCommandMsg(Message *);
 static void FinishAttach(Message *);
 static void FinishDetach(Message *);
-static void AskPassword(Message *);
 
 #define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0) | (multi ? 1 : 0))
 
@@ -782,10 +781,7 @@ void ReceiveMsg()
 	case MSG_ATTACH:
 		if (CreateTempDisplay(&m, recvfd, wi))
 			break;
-		if (D_user->u_password && *D_user->u_password)
-			AskPassword(&m);
-		else
-			FinishAttach(&m);
+		FinishAttach(&m);
 		break;
 	case MSG_ERROR:
 		Msg(0, "%s", m.m.message);
@@ -797,12 +793,9 @@ void ReceiveMsg()
 	case MSG_DETACH:
 	case MSG_POW_DETACH:
 		user = *FindUserPtr(m.m.detach.duser);
-		if (user && user->u_password && *user->u_password) {
-			if (CreateTempDisplay(&m, recvfd, 0))
-				break;
-			AskPassword(&m);
-		} else
-			FinishDetach(&m);
+		if (CreateTempDisplay(&m, recvfd, 0))
+			break;
+		FinishDetach(&m);
 		break;
 	case MSG_QUERY:
 		{
@@ -1054,90 +1047,6 @@ static void FinishDetach(Message *m)
 	}
 }
 
-static void PasswordProcessInput(char *, int);
-
-struct pwdata {
-	int l;
-	char buf[MAXLOGINLEN + 1];
-	Message m;
-};
-
-static void AskPassword(Message *m)
-{
-	struct pwdata *pwdata;
-	pwdata = malloc(sizeof(struct pwdata));
-	if (!pwdata)
-		Panic(0, "%s", strnomem);
-	pwdata->l = 0;
-	pwdata->m = *m;
-	D_processinputdata = (char *)pwdata;
-	D_processinput = PasswordProcessInput;
-	AddStr("Screen password: ");
-}
-
-static void PasswordProcessInput(char *ibuf, int ilen)
-{
-	struct pwdata *pwdata;
-	int c, l;
-	char *up;
-	int pid = D_userpid;
-
-	pwdata = (struct pwdata *)D_processinputdata;
-	l = pwdata->l;
-	while (ilen-- > 0) {
-		c = *(unsigned char *)ibuf++;
-		if (c == '\r' || c == '\n') {
-			char *buf = NULL;
-			up = D_user->u_password;
-			pwdata->buf[l] = 0;
-			buf = crypt(pwdata->buf, up);
-			if (!buf || strncmp(buf, up, strlen(up))) {
-				/* uh oh, user failed */
-				memset(pwdata->buf, 0, sizeof(pwdata->buf));
-				if (!buf)
-					AddStr("\r\ncrypt() failed.\r\n");
-				else
-					AddStr("\r\nPassword incorrect.\r\n");
-				D_processinputdata = 0;	/* otherwise freed by FreeDis */
-				FreeDisplay();
-				Msg(0, "Illegal reattach attempt from terminal %s.", pwdata->m.m_tty);
-				free(pwdata);
-				Kill(pid, SIG_BYE);
-				return;
-			}
-			/* great, pw matched, all is fine */
-			memset(pwdata->buf, 0, sizeof(pwdata->buf));
-			AddStr("\r\n");
-			D_processinputdata = 0;
-			D_processinput = ProcessInput;
-			if (pwdata->m.type == MSG_DETACH || pwdata->m.type == MSG_POW_DETACH)
-				FinishDetach(&pwdata->m);
-			else
-				FinishAttach(&pwdata->m);
-			free(pwdata);
-			return;
-		}
-		if (c == Ctrl('c')) {
-			AddStr("\r\n");
-			FreeDisplay();
-			Kill(pid, SIG_BYE);
-			return;
-		}
-		if (c == '\b' || c == 0177) {
-			if (l > 0)
-				l--;
-			continue;
-		}
-		if (c == Ctrl('u')) {
-			l = 0;
-			continue;
-		}
-		if (l < (int)sizeof(pwdata->buf) - 1)
-			pwdata->buf[l++] = c;
-	}
-	pwdata->l = l;
-}
-
 /* 'end' is exclusive, i.e. you should *not* write in *end */
 static char *strncpy_escape_quote(char *dst, const char *src, const char *end)
 {
@@ -1194,12 +1103,12 @@ static void DoCommandMsg(Message *mp)
 		queryflag = -1;
 		return;
 	}
-	if (user->u_password && *user->u_password) {
+	/*if (user->u_password && *user->u_password) {
 		Msg(0, "User %s has a password, cannot use remote commands (using -Q or -X option).",
 		    mp->m.attach.auser);
 		queryflag = -1;
 		return;
-	}
+	}*/
 	if (!display)
 		for (display = displays; display; display = display->d_next)
 			if (D_user == user)
