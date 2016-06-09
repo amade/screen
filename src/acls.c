@@ -139,15 +139,13 @@ int DefaultMetaEsc = -1;
  *      -1 - he still does not exist (didn't get memory)
  * =====================================================================
  */
-int UserAdd(char *name, char *pass, struct acluser **up)
+int UserAdd(char *name, struct acluser **up)
 {
 	int j;
 
 	if (!up)
 		up = FindUserPtr(name);
 	if (*up) {
-		if (pass)
-			(*up)->u_password = SaveStr(pass);
 		return 1;
 	}
 	if (strcmp("none", name))	/* "none" is a reserved word */
@@ -160,11 +158,6 @@ int UserAdd(char *name, char *pass, struct acluser **up)
 	(*up)->u_Esc = DefaultEsc;
 	(*up)->u_MetaEsc = DefaultMetaEsc;
 	strncpy((*up)->u_name, name, MAXLOGINLEN);
-	(*up)->u_password = NULL;
-	if (pass)
-		(*up)->u_password = SaveStr(pass);
-	if (!(*up)->u_password)
-		(*up)->u_password = NullStr;
 	(*up)->u_detachwin = -1;
 	(*up)->u_detachotherwin = -1;
 
@@ -381,15 +374,6 @@ static struct aclusergroup **FindGroupPtr(struct aclusergroup **gp, struct aclus
 	return gp;		/* *gp is NULL */
 }
 
-static int PasswordMatches(pw, password)
-const char *pw, *password;
-{
-	if (!*password)
-		return 0;
-	char *buf = crypt((char *)pw, (char *)password);
-	return (buf && !strcmp(buf, password));
-}
-
 /* 
  * Returns nonzero if failed or already linked.
  * Both users are created on demand. 
@@ -400,9 +384,9 @@ int AclLinkUser(char *from, char *to)
 	struct acluser **u1, **u2;
 	struct aclusergroup **g;
 
-	if (!*(u1 = FindUserPtr(from)) && UserAdd(from, NULL, u1))
+	if (!*(u1 = FindUserPtr(from)) && UserAdd(from, u1))
 		return -1;
-	if (!*(u2 = FindUserPtr(to)) && UserAdd(to, NULL, u2))
+	if (!*(u2 = FindUserPtr(to)) && UserAdd(to, u2))
 		return -1;	/* hmm, could not find both users. */
 
 	if (*FindGroupPtr(&(*u2)->u_group, *u1, 1))
@@ -427,6 +411,7 @@ char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 	struct acluser *u;
 	int sorry = 0;
 
+#if 0
 	if (!(u = *FindUserPtr(name)))
 		sorry++;
 	else {
@@ -482,6 +467,7 @@ char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 		return "Sorry.";
 	else
 		*up = u;	/* substitute user now */
+#endif
 	return NULL;
 }
 
@@ -693,8 +679,7 @@ int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
  * Generic ACL Manager:
  *
  * This handles acladd and aclchg identical.
- * With 2 or 4 parameters, the second parameter is a password.
- * With 3 or 4 parameters the last two parameters specify the permissions
+ * With 3 parameters the last two parameters specify the permissions
  *   else user is added with full permissions.
  * With 1 parameter the users permissions are copied from user *argv.
  *   Unlike the other cases, u->u_name should not match *argv here.
@@ -706,14 +691,10 @@ static int UserAcl(struct acluser *uu, struct acluser **u, int argc, char **argv
 		return -1;	/* do not change nobody! */
 
 	switch (argc) {
-	case 1 + 1 + 2:
-		return (UserAdd(argv[0], argv[1], u) < 0) || AclSetPerm(uu, *u, argv[2], argv[3]);
 	case 1 + 2:
-		return (UserAdd(argv[0], NULL, u) < 0) || AclSetPerm(uu, *u, argv[1], argv[2]);
-	case 1 + 1:
-		return UserAdd(argv[0], argv[1], u) < 0;
+		return (UserAdd(argv[0], u) < 0) || AclSetPerm(uu, *u, argv[1], argv[2]);
 	case 1:
-		return (UserAdd(argv[0], NULL, u) < 0) || AclSetPerm(uu, *u, "+a", "#?");
+		return (UserAdd(argv[0], u) < 0) || AclSetPerm(uu, *u, "+a", "#?");
 	default:
 		return -1;
 	}
