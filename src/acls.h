@@ -77,8 +77,6 @@ typedef struct acluser
 {
   struct acluser *u_next;		/* continue the main user list */
   char u_name[MAXLOGINLEN + 1];		/* login name how he showed up */
-  char *u_password;		/* his password (may be NullStr). */
-  int  u_checkpassword;		/* nonzero if this u_password is valid */
   int  u_detachwin;		/* the window where he last detached */
   int  u_detachotherwin;	/* window that was "other" when he detached */
   int  u_Esc, u_MetaEsc;	/* the users screen escape character */
@@ -100,7 +98,7 @@ char *DoSu (struct acluser **, char *, char *, char *);
 int AclLinkUser (char *, char *);
 int UserFreeCopyBuffer (struct acluser *);
 struct acluser **FindUserPtr (char *);
-int UserAdd (char *, char *, struct acluser **);
+int UserAdd (char *, struct acluser **);
 int UserDel (char *, struct acluser **);
 int AclCheckPermWin(struct acluser *, int, Window *);
 int NewWindowAcl(Window *, struct acluser *);
