@@ -161,7 +161,7 @@ Display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struc
 {
 	struct acluser **u;
 
-	if (!*(u = FindUserPtr(uname)) && UserAdd(uname, (char *)0, u))
+	if (!*(u = FindUserPtr(uname)) && UserAdd(uname, u))
 		return 0;	/* could not find or add user */
 
 	if ((display = calloc(1, sizeof(*display))) == 0)
