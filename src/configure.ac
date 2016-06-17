@@ -79,11 +79,8 @@ dnl -- enable_pam
 AS_IF([test "$enable_pam" = "yes"], [
 	AC_MSG_CHECKING(for PAM support)
 	oldlibs="$LIBS"
-	LIBS="$LIBS -lpam -lpam_misc"
-	AC_TRY_LINK([#include <security/pam_appl.h>
-		     #include <security/pam_misc.h>], [
-		struct pam_conv pamc;
-		pamc.conv = &misc_conv; 
+	LIBS="$LIBS -lpam"
+	AC_TRY_LINK([#include <security/pam_appl.h>], [
 		pam_start(0, 0, 0, 0);
 		pam_authenticate(0, 0);
 		pam_end(0,0);

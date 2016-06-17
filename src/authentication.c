@@ -10,20 +10,69 @@
 
 #if ENABLE_PAM
 #include <security/pam_appl.h>
-#include <security/pam_misc.h>
 #else
 #include <shadow.h>
 #endif
 
+
+#if ENABLE_PAM
+int screen_conv(int num_msg, const struct pam_message **msg,
+		struct pam_response **resp, void *data)
+{
+	struct pam_response *reply;
+	char buf[PAM_MAX_RESP_SIZE];
+	int i;
+
+	if (num_msg <= 0 || num_msg > PAM_MAX_NUM_MSG)
+		return PAM_CONV_ERR;
+
+	if ((reply = calloc(num_msg, sizeof(*reply))) == NULL)
+		return PAM_BUF_ERR;
+
+	for (i = 0; i < num_msg; ++i) {
+		reply[i].resp_retcode = 0;
+		reply[i].resp = NULL;
+		switch (msg[i]->msg_style) {
+		case PAM_PROMPT_ECHO_OFF:
+			reply[i].resp = strdup(getpass(msg[i]->msg));
+			if (reply[i].resp == NULL)
+				goto fail;
+			break;
+		case PAM_TEXT_INFO:
+			/* ignore */
+			break;
+		case PAM_PROMPT_ECHO_ON:
+			/* user name given to PAM already */
+			/* fall through */
+		case PAM_ERROR_MSG:
+		default:
+			goto fail;
+		}
+	}
+	*resp = reply;
+	return PAM_SUCCESS;
+ fail:
+        for (i = 0; i < num_msg; ++i) {
+                if (reply[i].resp != NULL) {
+                        memset(reply[i].resp, 0, strlen(reply[i].resp));
+                        free(reply[i].resp);
+                }
+        }
+        memset(reply, 0, num_msg * sizeof *reply);
+	free(reply);
+	*resp = NULL;
+	return PAM_CONV_ERR;
+}
+
 static bool CheckPassword() {
 	bool ret = false;
-#if ENABLE_PAM
+
 	pam_handle_t *pamh = 0;
 	struct pam_conv pamc;
 	int pam_error;
 	char *tty_name;
 
-	pamc.conv = &misc_conv; 
+	pamc.conv = &screen_conv; 
 	pamc.appdata_ptr = NULL;
 	pam_error = pam_start("screen", ppp->pw_name, &pamc, &pamh);
 	if (pam_error != PAM_SUCCESS) {
@@ -47,7 +96,12 @@ static bool CheckPassword() {
 	if (pam_error == PAM_SUCCESS) {
 		ret = true;
 	}
+
+	return ret;
+}
 #else
+static bool CheckPassword() {
+	bool ret = false;
 	struct spwd *p;
 	char *passwd = 0;
 	gid_t gid;
@@ -71,9 +125,10 @@ static bool CheckPassword() {
 
 	free(p);
 	free(passwd);
-#endif
+
 	return ret;
 }
+#endif
 
 void Authenticate() {
 	uint8_t tries = 0;
