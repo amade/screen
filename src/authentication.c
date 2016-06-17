@@ -69,13 +69,13 @@ static bool CheckPassword() {
 
 	pam_handle_t *pamh = 0;
 	struct pam_conv pamc;
-	int pam_error;
+	int pam_ret;
 	char *tty_name;
 
 	pamc.conv = &screen_conv; 
 	pamc.appdata_ptr = NULL;
-	pam_error = pam_start("screen", ppp->pw_name, &pamc, &pamh);
-	if (pam_error != PAM_SUCCESS) {
+	pam_ret= pam_start("screen", ppp->pw_name, &pamc, &pamh);
+	if (pam_ret!= PAM_SUCCESS) {
 		AttacherFinit(0);  /* goodbye */
 	}
 
@@ -84,22 +84,31 @@ static bool CheckPassword() {
 	} else {
 		tty_name = attach_tty;
 	}
-	pam_error = pam_set_item(pamh, PAM_TTY, tty_name);
-	if (pam_error != PAM_SUCCESS) {
+	pam_ret = pam_set_item(pamh, PAM_TTY, tty_name);
+	if (pam_ret != PAM_SUCCESS) {
 		AttacherFinit(0);  /* goodbye */
 	}
 
-	printf("\aScreen used by %s%s<%s> on %s.\n",
+	printf("\ascreen used by %s%s<%s> on %s.\n",
      		ppp->pw_gecos, ppp->pw_gecos[0] ? " " : "", ppp->pw_name, HostName);
-	pam_error = pam_authenticate(pamh, 0);
-	pam_end(pamh, pam_error);
-	if (pam_error == PAM_SUCCESS) {
+	pam_ret = pam_authenticate(pamh, 0);
+	pam_end(pamh, pam_ret);
+
+	if (pam_ret == PAM_MAXTRIES) {
+		fprintf(stderr, "maximum number of tries exceeded\n");
+		AttacherFinit(0);  /* goodbye */
+	} else if (pam_ret == PAM_ABORT) {
+		fprintf(stderr, "abort requested by PAM\n");
+		AttacherFinit(0);  /* goodbye */
+	} else if (pam_ret == PAM_SUCCESS) {
 		ret = true;
 	}
 
 	return ret;
 }
-#else
+
+#else /* ENABLE_PAM */
+
 static bool CheckPassword() {
 	bool ret = false;
 	struct spwd *p;
@@ -115,9 +124,9 @@ static bool CheckPassword() {
 	seteuid(uid);
 	setegid(gid);
 	if (p == NULL)
-		fprintf(stderr, "Can't open passwd file\n");
+		fprintf(stderr, "can't open passwd file\n");
 
-	printf("\aScreen used by %s%s<%s> on %s.\n",
+	printf("\ascreen used by %s%s<%s> on %s.\n",
 		ppp->pw_gecos, ppp->pw_gecos[0] ? " " : "", ppp->pw_name, HostName);
 	passwd = crypt(getpass("Password:"), p->sp_pwdp);
 
@@ -128,18 +137,17 @@ static bool CheckPassword() {
 
 	return ret;
 }
-#endif
+#endif /* ENABLE_PAM */
 
 void Authenticate() {
 	uint8_t tries = 0;
 	while (1) {
-		if(CheckPassword()) {
+		if (CheckPassword()) {
 			break;
 		}
 		if (tries < 3)
 			tries++;
 		else
-			sleep(1); /* after 3 failures limit tries per minute */
-
+			AttacherFinit(0);  /* goodbye */
 	}
 }
