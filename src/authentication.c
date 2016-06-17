@@ -99,7 +99,14 @@ static bool CheckPassword() {
 
 	return ret;
 }
-#else
+
+void Authenticate() {
+	while (!CheckPassword())
+		;
+}
+
+#else /* ENABLE_PAM */
+
 static bool CheckPassword() {
 	bool ret = false;
 	struct spwd *p;
@@ -128,7 +135,6 @@ static bool CheckPassword() {
 
 	return ret;
 }
-#endif
 
 void Authenticate() {
 	uint8_t tries = 0;
@@ -139,7 +145,8 @@ void Authenticate() {
 		if (tries < 3)
 			tries++;
 		else
-			sleep(1); /* after 3 failures limit tries per minute */
+			sleep(60); /* after 3 failures limit tries to one per minute */
 
 	}
 }
+#endif /* ENABLE_PAM */
