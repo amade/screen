@@ -67,6 +67,9 @@ AC_SEARCH_LIBS([openpty], [util openpty], [
 ])
 
 dnl
+AC_CHECK_HEADERS(langinfo.h)
+
+dnl
 dnl Check user changeable stuff
 dnl
 

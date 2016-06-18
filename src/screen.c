@@ -42,7 +42,7 @@
 #include <sys/types.h>
 
 #include <locale.h>
-#if defined(HAVE_NL_LANGINFO)
+#if defined(HAVE_LANGINFO_H)
 #include <langinfo.h>
 #endif
 
@@ -512,7 +512,7 @@ int main(int argc, char **argv)
 	setlocale(LC_ALL, "");
 	if (nwin_options.encoding == -1) {
 		/* ask locale if we should start in UTF-8 mode */
-#ifdef HAVE_NL_LANGINFO
+#ifdef HAVE_LANGINFO_H
 		nwin_options.encoding = FindEncoding(nl_langinfo(CODESET));
 #else
 		char *s;
