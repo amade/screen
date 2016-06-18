@@ -141,13 +141,10 @@ static bool CheckPassword() {
 
 void Authenticate() {
 	uint8_t tries = 0;
-	while (1) {
-		if (CheckPassword()) {
-			break;
-		}
-		if (tries < 3)
-			tries++;
-		else
-			AttacherFinit(0);  /* goodbye */
+	while (tries < 3) {
+		if (CheckPassword())
+			return;
+		tries++;
 	}
+	AttacherFinit(0);  /* goodbye */
 }
