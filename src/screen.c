@@ -1096,17 +1096,16 @@ static void CoreDump(int sigsig)
 
 static void DoWait()
 {
-	int pid;
-	Window *p, *next;
+	pid_t pid;
+	Window *win;
 	int wstat;
 
 	while ((pid = waitpid(-1, &wstat, WNOHANG | WUNTRACED)) > 0)
 	{
-		for (p = windows; p; p = next) {
-			next = p->w_next;
-			if ((p->w_pid && pid == p->w_pid) || (p->w_deadpid && pid == p->w_deadpid)) {
+		for (win = windows; win; win = win->w_next) {
+			if ((win->w_pid && pid == win->w_pid) || (win->w_deadpid && pid == win->w_deadpid)) {
 				/* child has ceased to exist */
-				p->w_pid = 0;
+				win->w_pid = 0;
 
 				if (WIFSTOPPED(wstat)) {
 #ifdef SIGTTIN
@@ -1132,15 +1131,15 @@ static void DoWait()
 					 * (not doing this at all might also work)
 					 * See #27061 for more details.
 					 */
-					p->w_destroyev.data = (char *)p;
-					p->w_exitstatus = wstat;
-					SetTimeout(&p->w_destroyev, 10 * 1000);
-					evenq(&p->w_destroyev);
+					win->w_destroyev.data = (char *)win;
+					win->w_exitstatus = wstat;
+					SetTimeout(&win->w_destroyev, 10 * 1000);
+					evenq(&win->w_destroyev);
 				}
 				break;
 			}
-			if (p->w_pwin && pid == p->w_pwin->p_pid) {
-				FreePseudowin(p);
+			if (win->w_pwin && pid == win->w_pwin->p_pid) {
+				FreePseudowin(win);
 				break;
 			}
 		}
