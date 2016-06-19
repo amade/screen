@@ -1461,7 +1461,7 @@ void Panic(int err, const char *fmt, ...)
 				Kill(D_userpid, SIG_BYE);
 		}
 	if (tty_oldmode >= 0) {
-#ifdef USE_SETEUID
+#if defined(HAVE_SETEUID)
 		if (setuid(own_uid))
 			xseteuid(own_uid);	/* may be a loop. sigh. */
 #else
