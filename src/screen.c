@@ -131,7 +131,7 @@ int tty_mode;
 int tty_oldmode = -1;
 
 char HostName[MAXSTR];
-int MasterPid, PanicPid;
+pid_t MasterPid, PanicPid;
 uid_t real_uid, eff_uid;
 gid_t real_gid, eff_gid;
 bool default_startup;
@@ -1230,7 +1230,8 @@ void Hangup()
  */
 void Detach(int mode)
 {
-	int sign = 0, pid;
+	int sign = 0;
+	pid_t pid;
 	Canvas *cv;
 	Window *p;
 

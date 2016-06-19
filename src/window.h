@@ -69,7 +69,7 @@ struct NewWindow {
 
 struct pseudowin {
 	int	p_fdpat;
-	int	p_pid;
+	pid_t	p_pid;
 	int	p_ptyfd;
 	Event	p_readev;
 	Event	p_writeev;
@@ -225,8 +225,8 @@ struct Window {
 	int	 w_histidx;		/* 0 <= histidx < histheight; where we insert lines */
 	struct	 mline *w_hlines;	/* history buffer */
 	struct	 paster w_paster;	/* paste info */
-	int	 w_pid;			/* process at the other end of ptyfd */
-	int	 w_deadpid;		/* saved w_pid of a process that closed the ptyfd to us */
+	pid_t	 w_pid;			/* process at the other end of ptyfd */
+	pid_t	 w_deadpid;		/* saved w_pid of a process that closed the ptyfd to us */
 
 	char	*w_cmdargs[MAXARGS];	/* command line argument vector */
 	char	*w_dir;			/* directory for chdir */

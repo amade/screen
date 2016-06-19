@@ -346,7 +346,7 @@ void AttacherFinit(int sigsig)
 
 static void AttacherFinitBye(int sigsig)
 {
-	int ppid;
+	pid_t ppid;
 
 	(void)sigsig; /* unused */
 
@@ -440,7 +440,7 @@ void Attacher()
 
 static void LockHup(int sigsig)
 {
-	int ppid = getppid();
+	pid_t ppid = getppid();
 
 	(void)sigsig; /* unused */
 

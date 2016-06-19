@@ -155,7 +155,7 @@ void xsetegid(int egid)
 		Panic(errno, "setegid");
 }
 
-void Kill(int pid, int sig)
+void Kill(pid_t pid, int sig)
 {
 	if (pid < 2)
 		return;

@@ -69,7 +69,7 @@
 #include "tty.h"
 #include "utmp.h"
 
-static int CheckPid(int);
+static int CheckPid(pid_t);
 static void ExecCreate(Message *);
 static void DoCommandMsg(Message *);
 static void FinishAttach(Message *);
@@ -530,7 +530,7 @@ static void ExecCreate(Message *mp)
 	MakeWindow(&nwin);
 }
 
-static int CheckPid(int pid)
+static int CheckPid(pid_t pid)
 {
 	if (pid < 2)
 		return -1;
@@ -543,7 +543,7 @@ static int CheckPid(int pid)
 
 static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 {
-	int pid;
+	pid_t pid;
 	int attach;
 	char *user;
 	int i;
@@ -888,7 +888,7 @@ int RecoverSocket()
 static void FinishAttach(Message *m)
 {
 	char *p;
-	int pid;
+	pid_t pid;
 	int noshowwin;
 	Window *wi;
 
@@ -1009,7 +1009,7 @@ static void FinishAttach(Message *m)
 static void FinishDetach(Message *m)
 {
 	Display *next, **d, *det;
-	int pid;
+	pid_t pid;
 
 	if (m->type == MSG_ATTACH)
 		pid = D_userpid;

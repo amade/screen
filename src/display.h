@@ -133,7 +133,7 @@ struct Display {
 	Event d_hstatusev;	/* hstatus changed event */
 	int	d_kaablamm;		/* display kaablamm msg */
 	struct action *d_ESCseen;	/* Was the last char an ESC (^a) */
-	int	d_userpid;		/* pid of attacher */
+	pid_t	d_userpid;		/* pid of attacher */
 	char	d_usertty[MAXPATHLEN];	/* tty we are attached to */
 	int	d_userfd;		/* fd of the tty */
 	Event d_readev;		/* userfd read event */
@@ -176,7 +176,7 @@ struct Display {
 	int   d_blocked;
 	int   d_blocked_fuzz;
 	Event d_idleev;		/* screen blanker */
-	int   d_blankerpid;
+	pid_t   d_blankerpid;
 	Event d_blankerev;
 };
 

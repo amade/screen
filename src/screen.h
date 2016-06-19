@@ -133,7 +133,7 @@ struct Message {
 		} create;
 		struct {
 			char auser[MAXLOGINLEN + 1];	/* username */
-			int apid;			/* pid of frontend */
+			pid_t apid;			/* pid of frontend */
 			int adaptflag;			/* adapt window size? */
 			int lines, columns;		/* display size */
 			char preselect[20];
@@ -145,13 +145,13 @@ struct Message {
 		} attach;
 		struct {
 			char duser[MAXLOGINLEN + 1];	/* username */
-			int dpid;			/* pid of frontend */
+			pid_t dpid;			/* pid of frontend */
 		} detach;
 		struct {
 			char auser[MAXLOGINLEN + 1];	/* username */
 			int nargs;
 			char cmd[MAXPATHLEN + 1];	/* command */
-			int apid;		/* pid of frontend */
+			pid_t apid;		/* pid of frontend */
 			char preselect[20];
 			char writeback[MAXPATHLEN];	/* The socket to write the result.
 							   Only used for MSG_QUERY */
@@ -294,7 +294,7 @@ extern int queryflag;
 extern int rflag;
 extern int tty_mode;
 extern int tty_oldmode;
-extern int MasterPid;
+extern pid_t MasterPid;
 extern int MsgMinWait;
 extern int MsgWait;
 extern int ServerSocket;

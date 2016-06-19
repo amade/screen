@@ -390,7 +390,7 @@ static void makedead(struct utmpx *u)
 	u->ut_user[0] = 0;	/* for Digital UNIX, kilbi@rad.rwth-aachen.de */
 }
 
-static void makeuser(struct utmpx *u, char *line, char *user, int pid)
+static void makeuser(struct utmpx *u, char *line, char *user, pid_t pid)
 {
 	time_t now;
 	u->ut_type = USER_PROCESS;

@@ -910,7 +910,7 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
  */
 static int ForkWindow(Window *win, char **args, char *ttyn)
 {
-	int pid;
+	pid_t pid;
 	char tebuf[25];
 	char ebuf[20];
 	char shellbuf[7 + MAXPATHLEN];

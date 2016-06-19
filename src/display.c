@@ -157,7 +157,7 @@ static int BlankResize(int wi, int he)
  *  The new display is placed in the displays list.
  */
 
-Display *MakeDisplay(char *uname, char *utty, char *term, int fd, int pid, struct mode *Mode)
+Display *MakeDisplay(char *uname, char *utty, char *term, int fd, pid_t pid, struct mode *Mode)
 {
 	struct acluser **u;
 
@@ -2773,7 +2773,7 @@ void KillBlanker()
 void RunBlanker(char **cmdv)
 {
 	char *m;
-	int pid;
+	pid_t pid;
 	int slave = -1;
 	char termname[MAXTERMLEN + 6];
 	char **np;
@@ -2797,7 +2797,7 @@ void RunBlanker(char **cmdv)
 		}
 	}
 #endif
-	switch (pid = (int)fork()) {
+	switch (pid = fork()) {
 	case -1:
 		Msg(errno, "fork");
 		close(D_blankerev.fd);
