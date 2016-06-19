@@ -55,7 +55,8 @@ int rc_recursion = 0;
 static char *CatExtra(char *str1, char *str2)
 {
 	char *cp;
-	int len1, len2, add_colon;
+	size_t len1, len2;
+	bool add_colon;
 
 	len1 = strlen(str1);
 	if (len1 == 0)
@@ -63,11 +64,11 @@ static char *CatExtra(char *str1, char *str2)
 	add_colon = (str1[len1 - 1] != ':');
 	if (str2) {
 		len2 = strlen(str2);
-		if ((cp = realloc(str2, (unsigned)len1 + len2 + add_colon + 1)) == NULL)
+		if ((cp = realloc(str2, len1 + len2 + add_colon + 1)) == NULL)
 			Panic(0, "%s", strnomem);
 		memmove(cp + len1 + add_colon, cp, len2 + 1);
 	} else {
-		if ((cp = malloc((unsigned)len1 + add_colon + 1)) == NULL)
+		if ((cp = malloc(len1 + add_colon + 1)) == NULL)
 			Panic(0, "%s", strnomem);
 		cp[len1 + add_colon] = '\0';
 	}
