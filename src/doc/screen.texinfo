@@ -438,8 +438,8 @@ This option is equivalent to the @code{shelltitle} command
 (@pxref{Shell}).
 
 @item -T @var{term}
-Set the $TERM enviroment varible using the spcified @emph{term} as 
-opposed to the defualt setting of @code{screen}.
+Set the $TERM enviroment variable using the specified @emph{term} as
+opposed to the default setting of @code{screen}.
 
 @item -U
 Run screen in UTF-8 mode. This option tells screen that your terminal
