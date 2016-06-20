@@ -124,8 +124,6 @@ bool hastruecolor = false;
 
 char *multi;
 char *multi_home;
-unsigned int multi_uid;
-int own_uid;
 int multiattach;
 int tty_mode;
 int tty_oldmode = -1;
@@ -133,6 +131,8 @@ int tty_oldmode = -1;
 char HostName[MAXSTR];
 pid_t MasterPid, PanicPid;
 uid_t real_uid, eff_uid;
+uid_t multi_uid;
+uid_t own_uid;
 gid_t real_gid, eff_gid;
 bool default_startup;
 int ZombieKey_destroy, ZombieKey_resurrect, ZombieKey_onerror;
