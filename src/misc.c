@@ -49,7 +49,7 @@ char *SaveStr(const char *str)
 	return cp;
 }
 
-char *SaveStrn(const char *str, int n)
+char *SaveStrn(const char *str, size_t n)
 {
 	char *cp;
 

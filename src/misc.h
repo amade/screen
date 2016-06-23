@@ -3,10 +3,12 @@
 
 #include "config.h"
 
+#include <sys/types.h>
+
 #include "image.h"
 
 char *SaveStr (const char *);
-char *SaveStrn (const char *, int);
+char *SaveStrn (const char *, size_t);
 char *InStr (char *, const char *);
 #ifndef HAVE_STRERROR
 char *strerror (int);
