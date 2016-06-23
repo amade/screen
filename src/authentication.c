@@ -20,8 +20,9 @@ int screen_conv(int num_msg, const struct pam_message **msg,
 		struct pam_response **resp, void *data)
 {
 	struct pam_response *reply;
-	char buf[PAM_MAX_RESP_SIZE];
 	int i;
+
+	(void)data; /* unused */
 
 	if (num_msg <= 0 || num_msg > PAM_MAX_NUM_MSG)
 		return PAM_CONV_ERR;
