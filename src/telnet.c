@@ -435,14 +435,13 @@ void TelBreak(Window *win)
 void TelWindowSize(Window *win)
 {
 	char s[20], trepl[20], *t;
-	int i;
 
 	if (win->w_width == 0 || win->w_height == 0 || !win->w_telmopts[TO_NAWS])
 		return;
 	sprintf(s, "%c%c%c%c%c%c%c%c%c", TC_SB, TC_SB, TO_NAWS, win->w_width / 256, win->w_width & 255, win->w_height / 256,
 		win->w_height & 255, TC_SE, TC_SE);
 	t = trepl;
-	for (i = 0; i < 9; i++)
+	for (int i = 0; i < 9; i++)
 		if ((unsigned char)(*t++ = s[i]) == TC_IAC)
 			*t++ = TC_IAC;
 	trepl[0] = TC_IAC;
@@ -455,18 +454,16 @@ static char to_s[] = TO_S;
 
 void TelStatus(Window *win, char *buf, size_t len)
 {
-	int i;
-
 	(void)len; /* unused */
 
 	*buf++ = '[';
-	for (i = 0; to_s[i]; i++) {
+	for (int i = 0; to_s[i]; i++) {
 		if (to_s[i] == ' ' || win->w_telmopts[i] == 0)
 			continue;
 		*buf++ = to_s[i];
 	}
 	*buf++ = ':';
-	for (i = 0; to_s[i]; i++) {
+	for (int i = 0; to_s[i]; i++) {
 		if (to_s[i] == ' ' || win->w_telropts[i] == 0)
 			continue;
 		*buf++ = to_s[i];

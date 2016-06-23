@@ -31,11 +31,10 @@
 #include "screen.h"
 
 int RethinkDisplayViewports() {
-	Canvas *canvas;
 	Viewport *viewport, *viewport_next;
 
 	/* free old viewports */
-	for (canvas = display->d_cvlist; canvas; canvas = canvas->c_next) {
+	for (Canvas *canvas = display->d_cvlist; canvas; canvas = canvas->c_next) {
 		for (viewport = canvas->c_vplist; viewport; viewport = viewport_next) {
 			viewport_next = viewport->v_next;
 			memset((char *)viewport, 0, sizeof(*viewport));
@@ -46,7 +45,7 @@ int RethinkDisplayViewports() {
 	display->d_vpxmin = -1;
 	display->d_vpxmax = -1;
 
-	for (canvas = display->d_cvlist; canvas; canvas = canvas->c_next) {
+	for (Canvas *canvas = display->d_cvlist; canvas; canvas = canvas->c_next) {
 		if ((viewport = malloc(sizeof *viewport)) == 0) {
 			return -1;
 		}
@@ -71,9 +70,7 @@ int RethinkDisplayViewports() {
 }
 
 void RethinkViewportOffsets(Canvas *canvas) {
-	Viewport *viewport;
-
-	for (viewport = canvas->c_vplist; viewport; viewport = viewport->v_next) {
+	for (Viewport *viewport = canvas->c_vplist; viewport; viewport = viewport->v_next) {
 		viewport->v_xoff = canvas->c_xoff;
 		viewport->v_yoff = canvas->c_yoff;
 	}

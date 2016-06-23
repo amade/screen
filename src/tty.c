@@ -635,17 +635,13 @@ static void DoSendBreak(int fd, int n, int type)
 		 * - mot88: duration in milliseconds
 		 * - aix: duration in milliseconds, but 0 is 25 milliseconds.
 		 */
-		{
-			int i;
-
-			if (!n)
-				n++;
-			for (i = 0; i < n; i++)
-				if (tcsendbreak(fd, 0) < 0) {
-					Msg(errno, "cannot send BREAK (tcsendbreak SVR4)");
-					return;
-				}
-		}
+		if (!n)
+			n++;
+		for (int i = 0; i < n; i++)
+			if (tcsendbreak(fd, 0) < 0) {
+				Msg(errno, "cannot send BREAK (tcsendbreak SVR4)");
+				return;
+			}
 #endif
 		break;
 
@@ -657,15 +653,11 @@ static void DoSendBreak(int fd, int n, int type)
 		 * Here too, we assume that short breaks can be concatenated to
 		 * perform long breaks. But for SOLARIS, this is not true, of course.
 		 */
-		{
-			int i;
-
-			for (i = 0; i < n; i++)
-				if (ioctl(fd, TCSBRK, (char *)0) < 0) {
-					Msg(errno, "Cannot send BREAK (TCSBRK)");
-					return;
-				}
-		}
+		for (int i = 0; i < n; i++)
+			if (ioctl(fd, TCSBRK, (char *)0) < 0) {
+				Msg(errno, "Cannot send BREAK (TCSBRK)");
+				return;
+			}
 #else				/* TCSBRK */
 		Msg(0, "TCSBRK not available, change breaktype");
 #endif				/* TCSBRK */
@@ -1156,9 +1148,7 @@ static struct baud_values btable[] = {
  */
 struct baud_values *lookup_baud(int baud)
 {
-	struct baud_values *p;
-
-	for (p = btable; p->bps >= 0; p++)
+	for (struct baud_values *p = btable; p->bps >= 0; p++)
 		if (baud == p->bps || baud == p->sym)
 			return p;
 	return NULL;

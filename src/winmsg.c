@@ -401,8 +401,7 @@ winmsg_esc_ex(WinArgv, Window *win)
 	wmbc_fastfw0(wmbc);
 
 	if (**src == WINESC_CMD_ARGS) {
-		int i;
-		for (i = 1; win->w_cmdargs[i]; i++) {
+		for (int i = 1; win->w_cmdargs[i]; i++) {
 			wmbc_printf(wmbc, " %s", win->w_cmdargs[i]);
 			wmbc_fastfw0(wmbc);
 		}
@@ -508,7 +507,6 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
                    int chesc, int padlen, Event *ev, int rec)
 {
 	static int tick;
-	char *s = str;
 	struct timeval now;
 	int qmnumrend = 0;
 	int numpad = 0;
@@ -548,7 +546,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 
 	tick = 0;
 	gettimeofday(&now, NULL);
-	for (s = str; *s; s++) {
+	for (char *s = str; *s; s++) {
 		if (*s != chesc) {
 			if ((chesc == '%') && (*s == '^')) {
 				s++;

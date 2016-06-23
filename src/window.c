@@ -334,9 +334,8 @@ static int WinResize(int wi, int he)
 
 static void WinRestore()
 {
-	Canvas *cv;
 	fore = (Window *)flayer->l_data;
-	for (cv = flayer->l_cvlist; cv; cv = cv->c_next) {
+	for (Canvas *cv = flayer->l_cvlist; cv; cv = cv->c_next) {
 		display = cv->c_display;
 		if (cv != D_forecv)
 			continue;
@@ -648,7 +647,7 @@ int MakeWindow(struct NewWindow *newwin)
 int RemakeWindow(Window *window)
 {
 	char *TtyName;
-	int lflag, fd, i;
+	int lflag, fd;
 
 	lflag = nwin_default.lflag;
 #ifdef ENABLE_TELNET
@@ -676,7 +675,7 @@ int RemakeWindow(Window *window)
 		WriteString(window, ":screen (", 9);
 		WriteString(window, window->w_title, strlen(window->w_title));
 		WriteString(window, "):", 2);
-		for (i = 0; window->w_cmdargs[i]; i++) {
+		for (int i = 0; window->w_cmdargs[i]; i++) {
 			WriteString(window, " ", 1);
 			WriteString(window, window->w_cmdargs[i], strlen(window->w_cmdargs[i]));
 		}
@@ -730,11 +729,6 @@ void CloseDevice(Window *window)
 
 void FreeWindow(Window *window)
 {
-	Display *display;
-	Canvas *canvas, *canvas_next;
-	Layer *layer;
-	int i;
-
 	if (window->w_pwin)
 		FreePseudowin(window);
 #ifdef ENABLE_UTMP
@@ -751,26 +745,26 @@ void FreeWindow(Window *window)
 	ChangeWindowSize(window, 0, 0, 0);
 
 	if (window->w_type == W_TYPE_GROUP) {
-		Window *win;
-		for (win = windows; win; win = win->w_next)
+		for (Window *win = windows; win; win = win->w_next)
 			if (win->w_group == window)
 				win->w_group = window->w_group;
 	}
 
 	if (window->w_hstatus)
 		free(window->w_hstatus);
-	for (i = 0; window->w_cmdargs[i]; i++)
+	for (int i = 0; window->w_cmdargs[i]; i++)
 		free(window->w_cmdargs[i]);
 	if (window->w_dir)
 		free(window->w_dir);
 	if (window->w_term)
 		free(window->w_term);
-	for (display = displays; display; display = display->d_next) {
+	for (Display *display = displays; display; display = display->d_next) {
 		if (display->d_other == window)
 			display->d_other = display->d_fore && display->d_fore->w_next != window ? display->d_fore->w_next : window->w_next;
 		if (display->d_fore == window)
 			display->d_fore = NULL;
-		for (canvas = display->d_cvlist; canvas; canvas = canvas->c_next) {
+		for (Canvas *canvas = display->d_cvlist; canvas; canvas = canvas->c_next) {
+			Layer *layer;
 			for (layer = canvas->c_layer; layer; layer = layer->l_next)
 				if (layer->l_layfn == &WinLf)
 					break;
@@ -785,8 +779,7 @@ void FreeWindow(Window *window)
 	}
 	if (window->w_savelayer)
 		KillLayerChain(window->w_savelayer);
-	for (canvas = window->w_layer.l_cvlist; canvas; canvas = canvas_next) {
-		canvas_next = canvas->c_lnext;
+	for (Canvas *canvas = window->w_layer.l_cvlist; canvas; canvas = canvas->c_lnext) {
 		canvas->c_layer = &canvas->c_blank;
 		canvas->c_blank.l_cvlist = canvas;
 		canvas->c_lnext = 0;
@@ -918,7 +911,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 	int newfd;
 	int w = win->w_width;
 	int h = win->w_height;
-	int i, pat, wfdused;
+	int pat, wfdused;
 	struct pseudowin *pwin = win->w_pwin;
 	int slave = -1;
 
@@ -984,7 +977,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 		 */
 		pat = pwin ? pwin->p_fdpat : ((F_PFRONT << (F_PSHIFT * 2)) | (F_PFRONT << F_PSHIFT) | F_PFRONT);
 		wfdused = 0;
-		for (i = 0; i < 3; i++) {
+		for (int i = 0; i < 3; i++) {
 			if (pat & F_PFRONT << F_PSHIFT * i) {
 				if (newfd < 0) {
 #ifdef O_NOCTTY
@@ -1077,17 +1070,17 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 #ifndef HAVE_EXECVPE
 void execvpe(char *prog, char **args, char **env)
 {
-	char *path = NULL, *p;
+	char *path = NULL;
 	char buf[1024];
 	char *shargs[MAXARGS + 1];
-	int i, eaccess = 0;
+	int eaccess = 0;
 
 	if (strrchr(prog, '/'))
 		path = "";
 	if (!path && !(path = getenv("PATH")))
 		path = DefaultPath;
 	do {
-		for (p = buf; *path && *path != ':'; path++)
+		for (char *p = buf; *path && *path != ':'; path++)
 			if (p - buf < (int)sizeof(buf) - 2)
 				*p++ = *path;
 		if (p > buf)
@@ -1100,7 +1093,7 @@ void execvpe(char *prog, char **args, char **env)
 		case ENOEXEC:
 			shargs[0] = DefaultShell;
 			shargs[1] = buf;
-			for (i = 1; (shargs[i + 1] = args[i]) != NULL; ++i) ;
+			for (int i = 1; (shargs[i + 1] = args[i]) != NULL; ++i) ;
 			execve(DefaultShell, shargs, env);
 			return;
 		case EACCES:
@@ -1119,9 +1112,8 @@ void execvpe(char *prog, char **args, char **env)
 
 int winexec(char **av)
 {
-	char **pp;
 	char *p, *s, *t;
-	int i, r = 0, l = 0;
+	int r = 0, l = 0;
 	Window *w;
 	struct pseudowin *pwin;
 	int type;
@@ -1157,7 +1149,7 @@ int winexec(char **av)
 		av++;
 
 	t = pwin->p_cmd;
-	for (i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++) {
 		*t = (s < p) ? *s++ : '.';
 		switch (*t++) {
 		case '.':
@@ -1186,7 +1178,7 @@ int winexec(char **av)
 	pwin->p_fdpat = l;
 
 	l = MAXSTR - 4;
-	for (pp = av; *pp; pp++) {
+	for (char **pp = av; *pp; pp++) {
 		p = *pp;
 		while (*p && l-- > 0)
 			*t++ = *p++;
@@ -1276,11 +1268,9 @@ void FreePseudowin(Window *w)
  */
 int ReleaseAutoWritelock(Display *dis, Window *w)
 {
-
 	/* release auto writelock when user has no other display here */
 	if (w->w_wlock == WLOCK_AUTO && w->w_wlockuser == dis->d_user) {
 		Display *d;
-
 		for (d = displays; d; d = d->d_next)
 			if ((d != dis) && (d->d_fore == w) && (d->d_user == dis->d_user))
 				break;
@@ -1330,8 +1320,7 @@ static void paste_slowev_fn(Event *event, void *data)
 
 static int muchpending(Window *p, Event *event)
 {
-	Canvas *cv;
-	for (cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = p->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_status == STATUS_ON_WIN && !D_status_bell) {
 			/* wait 'til status is gone */
@@ -1456,14 +1445,13 @@ static void win_resurrect_zombie_fn(Event *event, void *data)
 static void win_writeev_fn(Event *event, void *data)
 {
 	Window *p = (Window *)data;
-	Window *win;
 	int len;
 	if (p->w_inlen) {
 		if ((len = write(event->fd, p->w_inbuf, p->w_inlen)) <= 0)
 			len = p->w_inlen;	/* dead window */
 
 		if (p->w_miflag) { /* don't loop if not needed */
-			for (win = windows; win; win = win->w_next) {
+			for (Window *win = windows; win; win = win->w_next) {
 				if (win != p && win->w_miflag)
 					write(win->w_ptyfd, p->w_inbuf, p->w_inlen);
 			}
@@ -1579,9 +1567,8 @@ static void win_destroyev_fn(Event *event, void *data)
 
 static int zmodem_parse(Window *p, char *bp, int len)
 {
-	int i;
 	char *b2 = bp;
-	for (i = 0; i < len; i++, b2++) {
+	for (int i = 0; i < len; i++, b2++) {
 		if (p->w_zauto == 0) {
 			for (; i < len; i++, b2++)
 				if (*b2 == 030)
@@ -1654,12 +1641,11 @@ static void zmodemFin(char *buf, size_t len, void *data)
 static void zmodem_found(Window *p, int send, char *bp, int len)
 {
 	char *s;
-	int i;
 	size_t n;
 
 	/* check for abort sequence */
 	n = 0;
-	for (i = 0; i < len; i++)
+	for (int i = 0; i < len; i++)
 		if (bp[i] != 030)
 			n = 0;
 		else if (++n > 4)
@@ -1842,8 +1828,6 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 
 void ResetWindow(Window *win)
 {
-	int i;
-
 	win->w_wrap = nwin_default.wrap;
 	win->w_origin = 0;
 	win->w_insert = false;
@@ -1863,7 +1847,7 @@ void ResetWindow(Window *win)
 	win->w_state = LIT;
 	win->w_StringType = NONE;
 	memset(win->w_tabs, 0, win->w_width);
-	for (i = 8; i < win->w_width; i += 8)
+	for (int i = 8; i < win->w_width; i += 8)
 		win->w_tabs[i] = 1;
 	win->w_rend = mchar_null;
 	ResetCharsets(win);

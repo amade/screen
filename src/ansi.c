@@ -193,9 +193,7 @@ void ResetCharsets(Window *win)
 
 void SetCharsets(Window *win, char *s)
 {
-	int i;
-
-	for (i = 0; i < 4 && *s; i++, s++)
+	for (int i = 0; i < 4 && *s; i++, s++)
 		if (*s != '.')
 			win->w_charsets[i] = ((*s == 'B') ? ASCII : *s);
 	if (*s && *s++ != '.')
@@ -1677,9 +1675,7 @@ static void CursorLeft(int n)
 
 static void ASetMode(bool on)
 {
-	int i;
-
-	for (i = 0; i < curr->w_NumArgs; ++i) {
+	for (int i = 0; i < curr->w_NumArgs; ++i) {
 		switch (curr->w_args[i]) {
 			/* case 2:            KAM: Lock keyboard */
 		case 4:	/* IRM: Insert mode */
@@ -1784,12 +1780,11 @@ static void SelectRendition()
 
 static void FillWithEs()
 {
-	int i;
 	uint32_t *p, *ep;
 
 	LClearAll(&curr->w_layer, 1);
 	curr->w_y = curr->w_x = 0;
-	for (i = 0; i < rows; ++i) {
+	for (int i = 0; i < rows; ++i) {
 		clear_mline(&curr->w_mlines[i], 0, cols + 1);
 		p = curr->w_mlines[i].image;
 		ep = p + cols;
@@ -2000,7 +1995,7 @@ static void MScrollH(Window *win, int n, int y, int xs, int xe, int bce)
 
 static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 {
-	int i, cnt1, cnt2;
+	int cnt1, cnt2;
 	struct mline tmp[256];
 	struct mline *ml;
 
@@ -2022,7 +2017,7 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 		}
 		/* Clear lines */
 		ml = win->w_mlines + ys;
-		for (i = ys; i < ys + n; i++, ml++) {
+		for (int i = ys; i < ys + n; i++, ml++) {
 			if (ys == win->w_top)
 				WAddLineToHist(win, ml);
 			if (ml->attr != null)
@@ -2060,7 +2055,7 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 
 		ml = win->w_mlines + ye;
 		/* Clear lines */
-		for (i = ye; i > ye - n; i--, ml--) {
+		for (int i = ye; i > ye - n; i--, ml--) {
 			if (ml->attr != null)
 				free(ml->attr);
 			ml->attr = null;
@@ -2104,7 +2099,7 @@ static void Scroll(char *cp, int cnt1, int cnt2, char *tmp)
 
 static void MClearArea(Window *win, int xs, int ys, int xe, int ye, int bce)
 {
-	int n, y;
+	int n;
 	int xxe;
 	struct mline *ml;
 
@@ -2122,7 +2117,7 @@ static void MClearArea(Window *win, int xs, int ys, int xe, int ye, int bce)
 	MKillDwLeft(win, win->w_mlines + ye, xe);
 
 	ml = win->w_mlines + ys;
-	for (y = ys; y <= ye; y++, ml++) {
+	for (int y = ys; y <= ye; y++, ml++) {
 		xxe = (y == ye) ? xe : win->w_width - 1;
 		n = xxe - xs + 1;
 		if (n > 0)
@@ -2208,20 +2203,19 @@ static void MBceLine(Window *win, int y, int xs, int xe, int bce)
 {
 	struct mchar mc;
 	struct mline *ml;
-	int x;
 
 	mc = mchar_null;
 	mc.colorbg = bce;
 	MFixLine(win, y, &mc);
 	ml = win->w_mlines + y;
 	if (mc.attr)
-		for (x = xs; x <= xe; x++)
+		for (int x = xs; x <= xe; x++)
 			ml->attr[x] = mc.attr;
 	if (mc.colorbg)
-		for (x = xs; x <= xe; x++)
+		for (int x = xs; x <= xe; x++)
 			ml->colorbg[x] = mc.colorbg;
 	if (mc.colorfg)
-		for (x = xs; x <= xe; x++)
+		for (int x = xs; x <= xe; x++)
 			ml->colorfg[x] = mc.colorfg;
 }
 
@@ -2332,8 +2326,7 @@ void WBell(Window *win, bool visual)
  */
 static void WReverseVideo(Window *win, int on)
 {
-	Canvas *cv;
-	for (cv = win->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = win->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (cv != D_forecv)
 			continue;

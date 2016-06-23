@@ -64,14 +64,12 @@ static struct mline *mlineoffset(const struct mline *ml, const int offset)
 
 void LGotoPos(Layer *l, int x, int y)
 {
-	Canvas *cv;
-	Viewport *vp;
 	int x2, y2;
 
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, x, x, y, y);
 
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		if (l->l_pause.d && cv->c_slorient)
 			continue;
 		display = cv->c_display;
@@ -89,7 +87,7 @@ void LGotoPos(Layer *l, int x, int y)
 			x2 = cv->c_xe;
 		if (y2 > cv->c_ye)
 			y2 = cv->c_ye;
-		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+		for (Viewport *vp = cv->c_vplist; vp; vp = vp->v_next) {
 			if (x2 < vp->v_xs || x2 > vp->v_xe)
 				continue;
 			if (y2 < vp->v_ys || y2 > vp->v_ye)
@@ -102,18 +100,16 @@ void LGotoPos(Layer *l, int x, int y)
 
 void LScrollH(Layer *l, int n, int y, int xs, int xe, int bce, struct mline *ol)
 {
-	Canvas *cv;
-	Viewport *vp;
 	int y2, xs2, xe2;
 
 	if (n == 0)
 		return;
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, xs, xe, y, y);
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		if (l->l_pause.d && cv->c_slorient)
 			continue;
-		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+		for (Viewport *vp = cv->c_vplist; vp; vp = vp->v_next) {
 			y2 = y + vp->v_yoff;
 			if (y2 < vp->v_ys || y2 > vp->v_ye)
 				continue;
@@ -150,17 +146,15 @@ void LScrollH(Layer *l, int n, int y, int xs, int xe, int bce, struct mline *ol)
 
 void LScrollV(Layer *l, int n, int ys, int ye, int bce)
 {
-	Canvas *cv;
-	Viewport *vp;
 	int ys2, ye2, xs2, xe2;
 	if (n == 0)
 		return;
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, 0, l->l_width - 1, ys, ye);
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		if (l->l_pause.d && cv->c_slorient)
 			continue;
-		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+		for (Viewport *vp = cv->c_vplist; vp; vp = vp->v_next) {
 			xs2 = vp->v_xoff;
 			xe2 = l->l_width - 1 + vp->v_xoff;
 			ys2 = ys + vp->v_yoff;
@@ -200,18 +194,16 @@ void LScrollV(Layer *l, int n, int ys, int ye, int bce)
 
 void LInsChar(Layer *l, struct mchar *c, int x, int y, struct mline *ol)
 {
-	Canvas *cv;
-	Viewport *vp;
 	int xs2, xe2, y2, f;
 	struct mchar *c2, cc;
 	struct mline *rol;
 
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, x, l->l_width - 1, y, y);
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		if (l->l_pause.d && cv->c_slorient)
 			continue;
-		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+		for (Viewport *vp = cv->c_vplist; vp; vp = vp->v_next) {
 			y2 = y + vp->v_yoff;
 			if (y2 < vp->v_ys || y2 > vp->v_ye)
 				continue;
@@ -249,21 +241,19 @@ void LInsChar(Layer *l, struct mchar *c, int x, int y, struct mline *ol)
 
 void LPutChar(Layer *l, struct mchar *c, int x, int y)
 {
-	Canvas *cv;
-	Viewport *vp;
 	int x2, y2;
 
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, x, x + (c->mbcs ? 1 : 0)
 				     , y, y);
 
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		if (l->l_pause.d && cv->c_slorient)
 			continue;
 		display = cv->c_display;
 		if (D_blocked)
 			continue;
-		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+		for (Viewport *vp = cv->c_vplist; vp; vp = vp->v_next) {
 			y2 = y + vp->v_yoff;
 			if (y2 < vp->v_ys || y2 > vp->v_ye)
 				continue;
@@ -278,8 +268,6 @@ void LPutChar(Layer *l, struct mchar *c, int x, int y)
 
 void LPutStr(Layer *l, char *s, int n, struct mchar *r, int x, int y)
 {
-	Canvas *cv;
-	Viewport *vp;
 	char *s2;
 	int xs2, xe2, y2;
 
@@ -288,10 +276,10 @@ void LPutStr(Layer *l, char *s, int n, struct mchar *r, int x, int y)
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, x, x + n - 1, y, y);
 
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		if (l->l_pause.d && cv->c_slorient)
 			continue;
-		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+		for (Viewport *vp = cv->c_vplist; vp; vp = vp->v_next) {
 			y2 = y + vp->v_yoff;
 			if (y2 < vp->v_ys || y2 > vp->v_ye)
 				continue;
@@ -326,8 +314,6 @@ void LPutStr(Layer *l, char *s, int n, struct mchar *r, int x, int y)
 
 void LPutWinMsg(Layer *l, char *s, int n, struct mchar *r, int x, int y)
 {
-	Canvas *cv;
-	Viewport *vp;
 	int xs2, xe2, y2, len, len2;
 	struct mchar or;
 
@@ -338,10 +324,10 @@ void LPutWinMsg(Layer *l, char *s, int n, struct mchar *r, int x, int y)
 	len = strlen(s);
 	if (len > n)
 		len = n;
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		if (l->l_pause.d && cv->c_slorient)
 			continue;
-		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+		for (Viewport *vp = cv->c_vplist; vp; vp = vp->v_next) {
 			y2 = y + vp->v_yoff;
 			if (y2 < vp->v_ys || y2 > vp->v_ye)
 				continue;
@@ -376,8 +362,6 @@ void LPutWinMsg(Layer *l, char *s, int n, struct mchar *r, int x, int y)
 
 void LClearLine(Layer *l, int y, int xs, int xe, int bce, struct mline *ol)
 {
-	Canvas *cv;
-	Viewport *vp;
 	int y2, xs2, xe2;
 
 	/* check for magic margin condition */
@@ -387,10 +371,10 @@ void LClearLine(Layer *l, int y, int xs, int xe, int bce, struct mline *ol)
 		xe = l->l_width - 1;
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, xs, xe, y, y);
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		if (l->l_pause.d && cv->c_slorient)
 			continue;
-		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+		for (Viewport *vp = cv->c_vplist; vp; vp = vp->v_next) {
 			xs2 = xs + vp->v_xoff;
 			xe2 = xe + vp->v_xoff;
 			y2 = y + vp->v_yoff;
@@ -413,8 +397,6 @@ void LClearLine(Layer *l, int y, int xs, int xe, int bce, struct mline *ol)
 
 void LClearArea(Layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
 {
-	Canvas *cv;
-	Viewport *vp;
 	int xs2, ys2, xe2, ye2;
 	/* Check for zero-height window */
 	if (ys < 0 || ye < ys)
@@ -427,13 +409,13 @@ void LClearArea(Layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
 		xe = l->l_width - 1;
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, xs, xe, ys, ye);
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		if (l->l_pause.d && cv->c_slorient)
 			continue;
 		display = cv->c_display;
 		if (D_blocked)
 			continue;
-		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+		for (Viewport *vp = cv->c_vplist; vp; vp = vp->v_next) {
 			xs2 = xs + vp->v_xoff;
 			xe2 = xe + vp->v_xoff;
 			ys2 = ys + vp->v_yoff;
@@ -459,9 +441,8 @@ void LClearArea(Layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
 			display = cv->c_display;
 			ClearArea(xs2, ys2, vp->v_xs, vp->v_xe, xe2, ye2, bce, uself);
 			if (xe == l->l_width - 1 && xe2 > vp->v_xoff + xe) {
-				int y;
 				SetRendition(&mchar_blank);
-				for (y = ys2; y <= ye2; y++) {
+				for (int y = ys2; y <= ye2; y++) {
 					GotoPos(xe + vp->v_xoff + 1, y);
 					PUTCHARLP('|');
 				}
@@ -472,18 +453,16 @@ void LClearArea(Layer *l, int xs, int ys, int xe, int ye, int bce, int uself)
 
 void LCDisplayLine(Layer *l, struct mline *ml, int y, int xs, int xe, int isblank)
 {
-	Canvas *cv;
-	Viewport *vp;
 	int xs2, xe2, y2;
 	if (l->l_pause.d)
 		LayPauseUpdateRegion(l, xs, xe, y, y);
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		if (l->l_pause.d && cv->c_slorient)
 			continue;
 		display = cv->c_display;
 		if (D_blocked)
 			continue;
-		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
+		for (Viewport *vp = cv->c_vplist; vp; vp = vp->v_next) {
 			xs2 = xs + vp->v_xoff;
 			xe2 = xe + vp->v_xoff;
 			y2 = y + vp->v_yoff;
@@ -518,9 +497,7 @@ void LCDisplayLineWrap(Layer *l, struct mline *ml, int y, int from, int to, int 
 
 void LSetRendition(Layer *l, struct mchar *r)
 {
-	Canvas *cv;
-
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
 			continue;
@@ -530,7 +507,7 @@ void LSetRendition(Layer *l, struct mchar *r)
 
 void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, bool ins)
 {
-	Canvas *cv, *cvlist, *cvlnext;
+	Canvas *cvlist, *cvlnext;
 	Viewport *vp, *evp, **vpp;
 	int yy, y2, yy2, top2, bot2;
 	int bce;
@@ -546,7 +523,7 @@ void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, bool ins)
 		/* cursor after wrapping */
 		yy = y == l->l_height - 1 ? y : y + 1;
 
-		for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 			if (l->l_pause.d && cv->c_slorient)
 				continue;
 			y2 = 0;	/* gcc -Wall */
@@ -589,7 +566,7 @@ void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, bool ins)
 	} else {
 		/* hard case: scroll up */
 
-		for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 			if (l->l_pause.d && cv->c_slorient)
 				continue;
 			display = cv->c_display;
@@ -640,8 +617,7 @@ void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, bool ins)
 
 void LCursorVisibility(Layer *l, int vis)
 {
-	Canvas *cv;
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
 			continue;
@@ -653,8 +629,7 @@ void LCursorVisibility(Layer *l, int vis)
 
 void LSetFlow(Layer *l, bool flow)
 {
-	Canvas *cv;
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (cv != D_forecv)
 			continue;
@@ -664,8 +639,7 @@ void LSetFlow(Layer *l, bool flow)
 
 void LKeypadMode(Layer *l, int on)
 {
-	Canvas *cv;
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
 			continue;
@@ -677,8 +651,7 @@ void LKeypadMode(Layer *l, int on)
 
 void LCursorkeysMode(Layer *l, int on)
 {
-	Canvas *cv;
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
 			continue;
@@ -690,8 +663,7 @@ void LCursorkeysMode(Layer *l, int on)
 
 void LMouseMode(Layer *l, int on)
 {
-	Canvas *cv;
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
 			continue;
@@ -703,8 +675,7 @@ void LMouseMode(Layer *l, int on)
 
 void LBracketedPasteMode(Layer *l, bool on)
 {
-	Canvas *cv;
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
 			continue;
@@ -716,8 +687,7 @@ void LBracketedPasteMode(Layer *l, bool on)
 
 void LCursorStyle(Layer *l, int style)
 {
-	Canvas *cv;
-	for (cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;
 		if (D_blocked)
 			continue;
@@ -735,7 +705,6 @@ void LClearAll(Layer *l, int uself)
 void LRefreshAll(Layer *l, int isblank)
 {
 	Layer *oldflayer;
-	int y;
 
 	oldflayer = flayer;
 	flayer = l;
@@ -743,7 +712,7 @@ void LRefreshAll(Layer *l, int isblank)
 		LClearArea(l, 0, 0, l->l_width - 1, l->l_height - 1, 0, 0);
 	/* signal full refresh */
 	LayRedisplayLine(-1, -1, -1, 1);
-	for (y = 0; y < l->l_height; y++)
+	for (int y = 0; y < l->l_height; y++)
 		LayRedisplayLine(y, 0, l->l_width - 1, 1);
 	flayer = oldflayer;
 }
@@ -958,8 +927,6 @@ void LayProcessMouseSwitch(Layer *l, int s)
 
 void LayPause(Layer *layer, int pause)
 {
-	Canvas *cv;
-	int line;
 	Window *win;
 
 	pause = ! !pause;
@@ -982,16 +949,14 @@ void LayPause(Layer *layer, int pause)
 	else
 		win = NULL;
 
-	for (cv = layer->l_cvlist; cv; cv = cv->c_lnext) {
-		Viewport *vp;
-
+	for (Canvas *cv = layer->l_cvlist; cv; cv = cv->c_lnext) {
 		if (!cv->c_slorient)
 			continue;	/* Wasn't split, so already updated. */
 
 		display = cv->c_display;
 
-		for (vp = cv->c_vplist; vp; vp = vp->v_next) {
-			for (line = layer->l_pause.top; line <= layer->l_pause.bottom; line++) {
+		for (Viewport *vp = cv->c_vplist; vp; vp = vp->v_next) {
+			for (int line = layer->l_pause.top; line <= layer->l_pause.bottom; line++) {
 				int xs, xe;
 
 				if (line + vp->v_yoff >= vp->v_ys && line + vp->v_yoff <= vp->v_ye &&
@@ -1034,7 +999,7 @@ void LayPause(Layer *layer, int pause)
 		}
 	}
 
-	for (line = layer->l_pause.top; line <= layer->l_pause.bottom; line++)
+	for (int line = layer->l_pause.top; line <= layer->l_pause.bottom; line++)
 		layer->l_pause.left[line] = layer->l_pause.right[line] = -1;
 }
 

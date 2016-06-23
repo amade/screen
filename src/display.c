@@ -225,7 +225,6 @@ Display *MakeDisplay(char *uname, char *utty, char *term, int fd, pid_t pid, str
 
 void FreeDisplay()
 {
-	Window *p;
 	Display *d, **dp;
 
 	FreeTransTable();
@@ -276,7 +275,7 @@ void FreeDisplay()
 		FreeCanvas(D_canvas.c_slperp);
 	D_cvlist = 0;
 
-	for (p = windows; p; p = p->w_next) {
+	for (Window *p = windows; p; p = p->w_next) {
 		if (p->w_pdisplay == display)
 			p->w_pdisplay = 0;
 		if (p->w_lastdisp == display)
@@ -284,7 +283,7 @@ void FreeDisplay()
 		if (p->w_readev.condneg == (int *)&D_status || p->w_readev.condneg == &D_obuflenmax)
 			p->w_readev.condpos = p->w_readev.condneg = 0;
 	}
-	for (p = windows; p; p = p->w_next)
+	for (Window *p = windows; p; p = p->w_next)
 		if (p->w_zdisplay == display)
 			zmodem_abort(p, 0);
 	if (D_mousetrack) {
@@ -810,7 +809,7 @@ void ClearAll()
 
 void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int uselayfn)
 {
-	int y, xxe;
+	int xxe;
 	Canvas *cv;
 	Viewport *vp;
 
@@ -854,7 +853,7 @@ void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int usel
 		return;
 	}
 	xxe = xe;
-	for (y = y1; y <= y2; y++, x1 = xs) {
+	for (int y = y1; y <= y2; y++, x1 = xs) {
 		if (y == y2)
 			xxe = x2;
 		if (x1 == 0 && D_CB && (xxe != D_width - 1 || (D_x == xxe && D_y == y)) && (!bce || D_BE)) {

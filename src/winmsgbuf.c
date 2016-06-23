@@ -283,15 +283,14 @@ const char *wmbc_mergewmb(WinMsgBufContext *wmbc, WinMsgBuf *wmb)
 {
 	const char *p;
 	size_t offset = wmbc_offset(wmbc);
-	int ri;
 
 	/* import buffer contents into our own at our current position */
 	assert(wmb);
 	p = wmbc_strcpy(wmbc, wmb->buf);
 
 	/* merge renditions, adjusting them to reflect their new offset */
-	for (ri = 0; ri < wmb->numrend; ri++) {
-		wmb_rendadd(wmbc->buf, wmb->rend[ri], offset + wmb->rendpos[ri]);
+	for (int i = 0; i < wmb->numrend; i++) {
+		wmb_rendadd(wmbc->buf, wmb->rend[i], offset + wmb->rendpos[i]);
 	}
 
 	return p;
