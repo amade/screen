@@ -110,13 +110,13 @@ char *Filename(char *s)
 	return s;
 }
 
-char *stripdev(char *nam)
+char *stripdev(char *name)
 {
-	if (nam == NULL)
+	if (name == NULL)
 		return NULL;
-	if (strncmp(nam, "/dev/", 5) == 0)
-		return nam + 5;
-	return nam;
+	if (strncmp(name, "/dev/", 5) == 0)
+		return name + 5;
+	return name;
 }
 
 /*

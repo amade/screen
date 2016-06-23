@@ -405,9 +405,9 @@ static void makeuser(struct utmpx *u, char *line, char *user, pid_t pid)
 	u->ut_tv.tv_sec = now;
 }
 
-static slot_t TtyNameSlot(char *nam)
+static slot_t TtyNameSlot(char *name)
 {
-	return stripdev(nam);
+	return stripdev(name);
 }
 
 #endif				/* ENABLE_UTMP */
