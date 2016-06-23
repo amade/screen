@@ -56,7 +56,7 @@
 #ifdef ENABLE_UTMP
 
 static slot_t TtyNameSlot(char *);
-static void makeuser(struct utmpx *, char *, char *, int);
+static void makeuser(struct utmpx *, char *, char *, pid_t);
 static void makedead(struct utmpx *);
 static int pututslot(slot_t, struct utmpx *, char *, Window *);
 static struct utmpx *getutslot(slot_t);
