@@ -297,9 +297,7 @@ void SetCanvasWindow(Canvas *cv, Window *window)
 	}
 }
 
-static void cv_winid_fn(ev, data)
-Event *ev;
-char *data;
+static void cv_winid_fn(Event *ev, void *data)
 {
 	int ox, oy;
 	Canvas *cv = (Canvas *)data;
