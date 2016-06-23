@@ -375,7 +375,7 @@ void RecreateCanvasChain()
 	*cvp = 0;
 }
 
-void EqualizeCanvas(Canvas *cv, int gflag)
+void EqualizeCanvas(Canvas *cv, bool gflag)
 {
 	Canvas *cv2;
 	for (; cv; cv = cv->c_slnext) {

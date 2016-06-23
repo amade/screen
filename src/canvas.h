@@ -82,7 +82,7 @@ void  ResizeCanvas (Canvas *);
 void  RecreateCanvasChain (void);
 void  RethinkViewportOffsets (Canvas *);
 int   CountCanvasPerp (Canvas *);
-void  EqualizeCanvas (Canvas *, int);
+void  EqualizeCanvas (Canvas *, bool);
 void  DupLayoutCv (Canvas *, Canvas *, int);
 void  PutWindowCv (Canvas *);
 

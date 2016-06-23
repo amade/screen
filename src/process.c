@@ -5435,11 +5435,11 @@ static int CalcSlicePercent(Canvas *cv, int percent)
 	return (up * w) / wsum;
 }
 
-static int ChangeCanvasSize(Canvas *fcv, int abs, int diff, int gflag, int percent)
+static int ChangeCanvasSize(Canvas *fcv, int abs, int diff, bool gflag, int percent)
 /* Canvas *fcv;	 make this canvas bigger
    int abs;		 mode: 0:rel 1:abs 2:max
    int diff;		 change this much
-   int gflag;		 go up if neccessary
+   bool gflag;		 go up if neccessary
    int percent; */
 {
 	Canvas *cv;
@@ -5545,7 +5545,8 @@ static void ResizeRegions(char *arg, int flags)
 {
 	Canvas *cv;
 	int diff, l;
-	int gflag = 0, abs = 0, percent = 0;
+	bool gflag = 0;
+	int abs = 0, percent = 0;
 	int orient = 0;
 
 	if (!*arg)
