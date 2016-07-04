@@ -282,17 +282,17 @@ void InitTTY(struct mode *m, int ttyflag)
 #endif				/* VEOF */
 #if defined(VEOL)
 #if (VEOL < MAXCC)
-	m->tio.c_cc[VEOL] = 0000;
+	m->tio.c_cc[VEOL] = VDISABLE;
 #endif
 #endif				/* VEOL */
 #if defined(VEOL2)
 #if (VEOL2 < MAXCC)
-	m->tio.c_cc[VEOL2] = 0000;
+	m->tio.c_cc[VEOL2] = VDISABLE;
 #endif
 #endif				/* VEOL2 */
 #if defined(VSWTCH)
 #if (VSWTCH < MAXCC)
-	m->tio.c_cc[VSWTCH] = 0000;
+	m->tio.c_cc[VSWTCH] = VDISABLE;
 #endif
 #endif				/* VSWTCH */
 #if defined(VSTART)
