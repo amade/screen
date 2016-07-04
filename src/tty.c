@@ -272,7 +272,7 @@ void InitTTY(struct mode *m, int ttyflag)
 #endif				/* VERASE */
 #if defined(VKILL)
 #if (VKILL < MAXCC)
-	m->tio.c_cc[VKILL] = Ctrl('H');
+	m->tio.c_cc[VKILL] = Ctrl('U');
 #endif
 #endif				/* VKILL */
 #if defined(VEOF)
