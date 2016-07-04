@@ -292,9 +292,9 @@ XIF{VQUIT}	m->tio.c_cc[VQUIT]    = Ctrl('\\');
 XIF{VERASE}	m->tio.c_cc[VERASE]   = 0x7f; /* DEL */
 XIF{VKILL}	m->tio.c_cc[VKILL]    = Ctrl('U');
 XIF{VEOF}	m->tio.c_cc[VEOF]     = Ctrl('D');
-XIF{VEOL}	m->tio.c_cc[VEOL]     = 0000;
-XIF{VEOL2}	m->tio.c_cc[VEOL2]    = 0000;
-XIF{VSWTCH}	m->tio.c_cc[VSWTCH]   = 0000;
+XIF{VEOL}	m->tio.c_cc[VEOL]     = VDISABLE;
+XIF{VEOL2}	m->tio.c_cc[VEOL2]    = VDISABLE;
+XIF{VSWTCH}	m->tio.c_cc[VSWTCH]   = VDISABLE;
 XIF{VSTART}	m->tio.c_cc[VSTART]   = Ctrl('Q');
 XIF{VSTOP}	m->tio.c_cc[VSTOP]    = Ctrl('S');
 XIF{VSUSP}	m->tio.c_cc[VSUSP]    = Ctrl('Z');
@@ -364,9 +364,9 @@ XIF{VQUIT}	m->tio.c_cc[VQUIT]  = Ctrl('\\');
 XIF{VERASE}	m->tio.c_cc[VERASE] = 0177; /* DEL */
 XIF{VKILL}	m->tio.c_cc[VKILL]  = Ctrl('U');
 XIF{VEOF}	m->tio.c_cc[VEOF]   = Ctrl('D');
-XIF{VEOL}	m->tio.c_cc[VEOL]   = 0377;
-XIF{VEOL2}	m->tio.c_cc[VEOL2]  = 0377;
-XIF{VSWTCH}	m->tio.c_cc[VSWTCH] = 0000;
+XIF{VEOL}	m->tio.c_cc[VEOL]   = VDISABLE;
+XIF{VEOL2}	m->tio.c_cc[VEOL2]  = VDISABLE;
+XIF{VSWTCH}	m->tio.c_cc[VSWTCH] = VDISABLE;
 
   if (ttyflag)
    {
