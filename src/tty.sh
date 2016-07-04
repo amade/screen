@@ -290,7 +290,7 @@ IF{IEXTEN}	m->tio.c_lflag |= IEXTEN;
 XIF{VINTR}	m->tio.c_cc[VINTR]    = Ctrl('C');
 XIF{VQUIT}	m->tio.c_cc[VQUIT]    = Ctrl('\\');
 XIF{VERASE}	m->tio.c_cc[VERASE]   = 0x7f; /* DEL */
-XIF{VKILL}	m->tio.c_cc[VKILL]    = Ctrl('H');
+XIF{VKILL}	m->tio.c_cc[VKILL]    = Ctrl('U');
 XIF{VEOF}	m->tio.c_cc[VEOF]     = Ctrl('D');
 XIF{VEOL}	m->tio.c_cc[VEOL]     = 0000;
 XIF{VEOL2}	m->tio.c_cc[VEOL2]    = 0000;
@@ -362,7 +362,7 @@ IF{ECHOK}	m->tio.c_lflag |= ECHOK;
 XIF{VINTR}	m->tio.c_cc[VINTR]  = Ctrl('C');
 XIF{VQUIT}	m->tio.c_cc[VQUIT]  = Ctrl('\\');
 XIF{VERASE}	m->tio.c_cc[VERASE] = 0177; /* DEL */
-XIF{VKILL}	m->tio.c_cc[VKILL]  = Ctrl('H');
+XIF{VKILL}	m->tio.c_cc[VKILL]  = Ctrl('U');
 XIF{VEOF}	m->tio.c_cc[VEOF]   = Ctrl('D');
 XIF{VEOL}	m->tio.c_cc[VEOL]   = 0377;
 XIF{VEOL2}	m->tio.c_cc[VEOL2]  = 0377;
@@ -379,7 +379,7 @@ XIF{VSWTCH}	m->tio.c_cc[VSWTCH] = 0000;
   m->m_ttyb.sg_ispeed = B9600;
   m->m_ttyb.sg_ospeed = B9600;
   m->m_ttyb.sg_erase  = 0177; /*DEL */
-  m->m_ttyb.sg_kill   = Ctrl('H');
+  m->m_ttyb.sg_kill   = Ctrl('U');
   if (!ttyflag)
     m->m_ttyb.sg_flags = CRMOD | ECHO
 IF{ANYP}	| ANYP
