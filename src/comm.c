@@ -111,8 +111,8 @@ struct comm comms[RC_LAST + 1] =
 #ifdef COPY_PASTE
   { "bufferfile",	ARGS_01 },
 #endif
-  { "bumpleft",		ARGS_0 },
-  { "bumpright",	ARGS_0 },
+  { "bumpleft",		NEED_FORE|ARGS_0 },
+  { "bumpright",	NEED_FORE|ARGS_0 },
   { "c1",		NEED_FORE|ARGS_01 },
   { "caption",		ARGS_12 },
 #ifdef MULTIUSER
