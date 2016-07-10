@@ -40,6 +40,7 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <unistr.h>
 
 #include "fileio.h"
 #include "help.h"
@@ -55,13 +56,13 @@
 #include "utmp.h"
 #include "winmsg.h"
 
-static void WinProcess(char **, size_t *);
+static void WinProcess(uint32_t **, size_t *);
 static void WinRedisplayLine(int, int, int, int);
 static void WinClearLine(int, int, int, int);
 static int WinResize(int, int);
 static void WinRestore(void);
 static int DoAutolf(char *, size_t *, int);
-static void ZombieProcess(char **, size_t *);
+static void ZombieProcess(uint32_t **, size_t *);
 static void win_readev_fn(Event *, void *);
 static void win_writeev_fn(Event *, void *);
 static void win_resurrect_zombie_fn(Event *, void *);
@@ -75,7 +76,7 @@ static void win_destroyev_fn(Event *, void *);
 static int OpenDevice(char **, int, int *, char **);
 static int ForkWindow(Window *, char **, char *);
 static void zmodem_found(Window *, int, char *, size_t);
-static void zmodemFin(char *, size_t, void *);
+static void zmodemFin(uint32_t *, size_t, void *);
 static int zmodem_parse(Window *, char *, size_t);
 
 Window **wtab;		/* window table */
@@ -203,10 +204,10 @@ static int DoAutolf(char *buf, size_t *lenp, int fr)
 	return trunc;
 }
 
-static void WinProcess(char **bufpp, size_t *lenp)
+static void WinProcess(uint32_t **bufpp, size_t *lenp)
 {
 	size_t l2 = 0, f, *ilen, l = *lenp, trunc;
-	char *ibuf;
+	uint32_t *ibuf;
 
 	fore = (Window *)flayer->l_data;
 
@@ -279,21 +280,21 @@ static void WinProcess(char **bufpp, size_t *lenp)
 	}
 }
 
-static void ZombieProcess(char **bufpp, size_t *lenp)
+static void ZombieProcess(uint32_t **bufpp, size_t *lenp)
 {
 	size_t l = *lenp;
-	char *buf = *bufpp, b1[10], b2[10];
+	uint32_t *buf = *bufpp, b1[10], b2[10];
 
 	fore = (Window *)flayer->l_data;
 
 	*bufpp += *lenp;
 	*lenp = 0;
 	for (; l-- > 0; buf++) {
-		if (*(unsigned char *)buf == ZombieKey_destroy) {
+		if (*(uint32_t *)buf == ZombieKey_destroy) {
 			KillWindow(fore);
 			return;
 		}
-		if (*(unsigned char *)buf == ZombieKey_resurrect) {
+		if (*(uint32_t *)buf == ZombieKey_resurrect) {
 			WriteString(fore, "\r\n", 2);
 			RemakeWindow(fore);
 			return;
@@ -1619,25 +1620,25 @@ static int zmodem_parse(Window *p, char *bp, size_t len)
 	return 0;
 }
 
-static void zmodemFin(char *buf, size_t len, void *data)
+static void zmodemFin(uint32_t *buf, size_t len, void *data)
 {
-	char *s;
+	uint32_t *s;
 	size_t l;
 
 	(void)data; /* unused */
 
 	if (len)
-		RcLine(buf, strlen(buf) + 1);
+		RcLine(buf, u32_strlen(buf) + 1);
 	else {
-		s = "\030\030\030\030\030\030\030\030\030\030";
-		l = strlen(s);
+		s = U"\030\030\030\030\030\030\030\030\030\030";
+		l = u32_strlen(s);
 		LayProcess(&s, &l);
 	}
 }
 
 static void zmodem_found(Window *p, int send, char *bp, size_t len)
 {
-	char *s;
+	uint32_t *s;
 	size_t n;
 
 	/* check for abort sequence */
@@ -1683,9 +1684,9 @@ static void zmodem_found(Window *p, int send, char *bp, size_t len)
 		return;
 	}
 	flayer = &p->w_layer;
-	Input(":", MAXSTR, INP_COOKED, zmodemFin, NULL, 0);
+	Input(U":", MAXSTR, INP_COOKED, zmodemFin, NULL, 0);
 	s = send ? zmodem_sendcmd : zmodem_recvcmd;
-	n = strlen(s);
+	n = u32_strlen(s);
 	LayProcess(&s, &n);
 }
 

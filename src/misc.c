@@ -35,28 +35,29 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <unistr.h>
 
 #include "screen.h"
 
-char *SaveStr(const char *str)
+uint32_t *SaveStr(const uint32_t *str)
 {
-	char *cp;
+	uint32_t *cp;
 
-	if ((cp = malloc(strlen(str) + 1)) == NULL)
+	if ((cp = malloc((strlen(str) + 1) * sizeof(uint32_t))) == NULL)
 		Panic(0, "%s", strnomem);
 	else
-		strncpy(cp, str, strlen(str) + 1);
+		u32_strncpy(cp, str, strlen(str) + 1);
 	return cp;
 }
 
-char *SaveStrn(const char *str, size_t n)
+uint32_t *SaveStrn(const uint32_t *str, size_t n)
 {
-	char *cp;
+	uint32_t *cp;
 
-	if ((cp = malloc(n + 1)) == NULL)
+	if ((cp = malloc((n + 1) * sizeof(uint32_t))) == NULL)
 		Panic(0, "%s", strnomem);
 	else {
-		memmove(cp, (char *)str, n);
+		memmove(cp, str, n * sizeof(uint32_t));
 		cp[n] = 0;
 	}
 	return cp;

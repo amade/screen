@@ -137,15 +137,15 @@ static void gl_Display_rebuild(ListData *ldata)
 	glist_display_all(ldata);
 }
 
-static int gl_Display_input(ListData *ldata, char **inp, size_t *len)
+static int gl_Display_input(ListData *ldata, uint32_t **inp, size_t *len)
 {
 	Display *cd = display;
-	unsigned char ch;
+	uint32_t ch;
 
 	if (!ldata->selected)
 		return 0;
 
-	ch = (unsigned char)**inp;
+	ch = **inp;
 	++*inp;
 	--*len;
 

@@ -72,6 +72,9 @@ AC_SEARCH_LIBS([crypt], [crypt], [], [
 	AC_MSG_ERROR([unable to find crypt() function])
 ])
 
+dnl check for libunistring
+LIBS="$LIBS -lunistring"
+
 dnl
 AC_CHECK_HEADERS(pty.h util.h libutil.h)
 AC_SEARCH_LIBS([openpty], [util openpty], [

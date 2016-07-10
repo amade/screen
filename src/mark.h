@@ -64,7 +64,7 @@ void  MarkRoutine (void);
 void  revto_line (int, int, int);
 void  revto (int, int);
 int   InMark (void);
-void  MakePaster (struct paster *, char *, int, int);
+void  MakePaster (struct paster *, uint32_t *, size_t, int);
 void  FreePaster (struct paster *);
 
 /* global variables */

@@ -406,7 +406,7 @@ int AclLinkUser(char *from, char *to)
  * to the named user's structure, if passwords match.
  * returns NULL if successfull, an static error string otherwise
  */
-char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
+char *DoSu(struct acluser **up, uint32_t *name, uint32_t *pw1, uint32_t *pw2)
 {
 	struct acluser *u;
 	int sorry = 0;

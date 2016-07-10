@@ -28,6 +28,9 @@
 
 #include "config.h"
 
+#include <uniconv.h>
+#include <unistr.h>
+
 #include "input.h"
 
 #include <stddef.h>
@@ -38,14 +41,14 @@
 
 #define INPUTLINE (flayer->l_height - 1)
 
-static void InpProcess(char **, size_t *);
+static void InpProcess(uint32_t **, size_t *);
 static void InpAbort(void);
 static void InpRedisplayLine(int, int, int, int);
 
 struct inpline {
-	char buf[MAXSTR + 1];	/* text buffer */
-	size_t len;		/* length of the editible string */
-	size_t pos;		/* cursor position in editable string */
+	uint32_t buf[MAXSTR + 1];	/* text buffer */
+	size_t len;			/* length of the editible string */
+	size_t pos;			/* cursor position in editable string */
 	struct inpline *next, *prev;
 };
 
@@ -58,13 +61,13 @@ static struct inpline inphist;
 struct inpdata {
 	struct inpline inp;
 	size_t inpmaxlen;		/* MAXSTR, or less, if caller has shorter buffer */
-	char *inpstring;	/* the prompt */
+	uint32_t *inpstring;	/* the prompt */
 	size_t inpstringlen;	/* length of the prompt */
 	int inpmode;		/* INP_NOECHO, INP_RAW, INP_EVERY */
-	void (*inpfinfunc) (char *buf, size_t len, void *priv);
+	void (*inpfinfunc) (uint32_t *buf, size_t len, void *priv);
 	char *priv;		/* private data for finfunc */
 	int privdata;		/* private data space */
-	char *search;		/* the search string */
+	uint32_t *search;	/* the search string */
 };
 
 static const struct LayFuncs InpLf = {
@@ -82,20 +85,20 @@ static const struct LayFuncs InpLf = {
 */
 
 /* called once, after InitOverlayPage in Input() or Isearch() */
-void inp_setprompt(char *p, char *s)
+void inp_setprompt(uint32_t *p, uint32_t *s)
 {
 	struct inpdata *inpdata;
 
 	inpdata = (struct inpdata *)flayer->l_data;
 	if (p) {
-		inpdata->inpstringlen = strlen(p);
+		inpdata->inpstringlen = u32_strlen(p);
 		inpdata->inpstring = p;
 	}
 	if (s) {
 		if (s != inpdata->inp.buf)
-			strncpy(inpdata->inp.buf, s, sizeof(inpdata->inp.buf) - 1);
+			u32_strncpy(inpdata->inp.buf, s, sizeof(inpdata->inp.buf) - 1);
 		inpdata->inp.buf[sizeof(inpdata->inp.buf) - 1] = 0;
-		inpdata->inp.pos = inpdata->inp.len = strlen(inpdata->inp.buf);
+		inpdata->inp.pos = inpdata->inp.len = u32_strlen(inpdata->inp.buf);
 	}
 	InpRedisplayLine(INPUTLINE, 0, flayer->l_width - 1, 0);
 	flayer->l_x = inpdata->inpstringlen + (inpdata->inpmode & INP_NOECHO ? 0 : inpdata->inp.pos);
@@ -112,7 +115,7 @@ void inp_setprompt(char *p, char *s)
  * INP_RAW    == raw mode. call finfunc after each character typed.
  * INP_EVERY  == digraph mode.
  */
-void Input(char *istr, size_t len, int mode, void (*finfunc) (char *buf, size_t len, void *priv), char *priv, int data)
+void Input(uint32_t *istr, size_t len, int mode, void (*finfunc) (uint32_t *buf, size_t len, void *priv), char *priv, int data)
 {
 	size_t maxlen;
 	struct inpdata *inpdata;
@@ -123,7 +126,7 @@ void Input(char *istr, size_t len, int mode, void (*finfunc) (char *buf, size_t 
 	if (len > MAXSTR)
 		len = MAXSTR;
 	if (!(mode & INP_NOECHO)) {
-		maxlen = flayer->l_width - 1 - strlen(istr);
+		maxlen = flayer->l_width - 1 - u32_strlen(istr);
 		if (len > maxlen)
 			len = maxlen;
 	}
@@ -144,10 +147,10 @@ void Input(char *istr, size_t len, int mode, void (*finfunc) (char *buf, size_t 
 	inpdata->inpstring = NULL;
 	inpdata->search = NULL;
 	if (istr)
-		inp_setprompt(istr, (char *)NULL);
+		inp_setprompt(istr, NULL);
 }
 
-static void erase_chars(struct inpdata *inpdata, char *from, char *to, int x, int mv)
+static void erase_chars(struct inpdata *inpdata, uint32_t *from, uint32_t *to, int x, int mv)
 {
 	int chng;
 	if ((ptrdiff_t)inpdata->inp.len > to - inpdata->inp.buf)
@@ -160,7 +163,7 @@ static void erase_chars(struct inpdata *inpdata, char *from, char *to, int x, in
 	inpdata->inp.len -= chng;
 	if (!(inpdata->inpmode & INP_NOECHO)) {
 		struct mchar mc;
-		char *s = from < to ? from : to;
+		int32_t *s = from < to ? from : to;
 		mc = mchar_so;
 		while (s < inpdata->inp.buf + inpdata->inp.len) {
 			mc.image = *s++;
@@ -173,11 +176,11 @@ static void erase_chars(struct inpdata *inpdata, char *from, char *to, int x, in
 	}
 }
 
-static void InpProcess(char **ppbuf, size_t *plen)
+static void InpProcess(uint32_t **ppbuf, size_t *plen)
 {
 	int len, x;
-	char *pbuf;
-	char ch;
+	uint32_t *pbuf;
+	uint32_t ch;
 	struct inpdata *inpdata;
 	Display *inpdisplay;
 	int prev, next, search = 0;
@@ -196,7 +199,7 @@ static void InpProcess(char **ppbuf, size_t *plen)
 	len = *plen;
 	pbuf = *ppbuf;
 	while (len) {
-		char *p = inpdata->inp.buf + inpdata->inp.pos;
+		uint32_t *p = inpdata->inp.buf + inpdata->inp.pos;
 
 		ch = *pbuf++;
 		len--;
@@ -254,7 +257,7 @@ static void InpProcess(char **ppbuf, size_t *plen)
 			}
 			inpdata->inp.len = inpdata->inp.pos;
 		} else if (ch == '\027' && inpdata->inp.pos > 0) {	/* CTRL-W */
-			char *oldp = p--;
+			uint32_t *oldp = p--;
 			while (p > inpdata->inp.buf && *p == ' ')
 				p--;
 			while (p > inpdata->inp.buf && *(p - 1) != ' ')
@@ -296,8 +299,8 @@ static void InpProcess(char **ppbuf, size_t *plen)
 				if (!inpdata->search)
 					inpdata->search = SaveStr(inpdata->inp.buf);
 				for (sel = inpdata->inp.prev; sel; sel = sel->prev) {
-					char *f;
-					if ((f = strstr(sel->buf, inpdata->search))) {
+					uint32_t *f;
+					if ((f = u32_strstr(sel->buf, inpdata->search))) {
 						pos = f - sel->buf;
 						break;
 					}
@@ -343,7 +346,7 @@ static void InpProcess(char **ppbuf, size_t *plen)
 
 				/* Look for a duplicate first */
 				for (store = inphist.prev; store; store = store->prev) {
-					if (strcmp(store->buf, inpdata->inp.buf) == 0) {
+					if (u32_strcmp(store->buf, inpdata->inp.buf) == 0) {
 						if (store->next)
 							store->next->prev = store->prev;
 						if (store->prev)
