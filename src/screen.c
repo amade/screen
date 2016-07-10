@@ -194,7 +194,7 @@ static struct passwd *getpwbyname(char *name, struct passwd *ppp)
 	return ppp;
 }
 
-static char *locale_name(void)
+/*static char *locale_name(void)
 {
 	static char *s;
 
@@ -206,7 +206,7 @@ static char *locale_name(void)
 	if (s == NULL)
 		s = "C";
 	return s;
-}
+}*/
 
 int main(int argc, char **argv)
 {
@@ -232,16 +232,16 @@ int main(int argc, char **argv)
 	snprintf(version, 59, "%d.%d.%d (build on %s %s) ", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, __DATE__, __TIME__);
 	nversion = VERSION_MAJOR * 10000 + VERSION_MINOR * 100 + VERSION_REVISION;
 
-	BellString = SaveStr("Bell in window %n");
-	VisualBellString = SaveStr("   Wuff,  Wuff!!  ");
-	ActivityString = SaveStr("Activity in window %n");
-	screenlogfile = SaveStr("screenlog.%n");
-	logtstamp_string = SaveStr("-- %n:%t -- time-stamp -- %M/%d/%y %c:%s --\n");
-	hstatusstring = SaveStr("%h");
-	captionstring = SaveStr("%4n %t");
-	timestring = SaveStr("%c:%s %M %d %H%? %l%?");
-	wlisttit = SaveStr(" Num Name%=Flags");
-	wliststr = SaveStr("%4n %t%=%f");
+	BellString = SaveStr(U"Bell in window %n");
+	VisualBellString = SaveStr(U"   Wuff,  Wuff!!  ");
+	ActivityString = SaveStr(U"Activity in window %n");
+	screenlogfile = SaveStr(U"screenlog.%n");
+	logtstamp_string = SaveStr(U"-- %n:%t -- time-stamp -- %M/%d/%y %c:%s --\n");
+	hstatusstring = SaveStr(U"%h");
+	captionstring = SaveStr(U"%4n %t");
+	timestring = SaveStr(U"%c:%s %M %d %H%? %l%?");
+	wlisttit = SaveStr(U" Num Name%=Flags");
+	wliststr = SaveStr(U"%4n %t%=%f");
 	BufferFile = SaveStr(DEFAULT_BUFFERFILE);
 	ShellProg = NULL;
 	PowDetachString = 0;
@@ -251,8 +251,8 @@ int main(int argc, char **argv)
 	MsgWait = MSGWAIT * 1000;
 	MsgMinWait = MSGMINWAIT * 1000;
 	SilenceWait = SILENCEWAIT;
-	zmodem_sendcmd = SaveStr("!!! sz -vv -b ");
-	zmodem_recvcmd = SaveStr("!!! rz -vv -b -E");
+	zmodem_sendcmd = SaveStr(U"!!! sz -vv -b ");
+	zmodem_recvcmd = SaveStr(U"!!! rz -vv -b -E");
 
 	CompileKeys((char *)0, 0, mark_key_tab);
 	nwin = nwin_undef;

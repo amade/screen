@@ -44,6 +44,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <time.h>
+#include <unistr.h>
 
 #include "screen.h"
 
@@ -94,14 +95,14 @@ static void InputSelect(void);
 static void InputSetenv(char *);
 static void InputAKA(void);
 static int InputSu(struct acluser **, char *);
-static void suFin(char *, size_t, void *);
+static void suFin(uint32_t *, size_t, void *);
 static void AKAFin(char *, size_t, void *);
 static void copy_reg_fn(char *, size_t, void *);
 static void ins_reg_fn(char *, size_t, void *);
 static void process_fn(char *, size_t, void *);
 static void pow_detach_fn(char *, size_t, void *);
-static void digraph_fn(char *, size_t, void *);
-static int digraph_find(const char *buf);
+static void digraph_fn(uint32_t *, size_t, void *);
+static int digraph_find(const uint32_t *);
 static void confirm_fn(char *, size_t, void *);
 static int IsOnDisplay(Window *);
 static void ResizeRegions(char *, int);
@@ -123,9 +124,9 @@ int TtyMode = PTY_MODE;
 bool hardcopy_append = false;
 bool all_norefresh = 0;
 int zmodem_mode = 0;
-char *zmodem_sendcmd;
-char *zmodem_recvcmd;
-static char *zmodes[4] = { "off", "auto", "catch", "pass" };
+uint32_t *zmodem_sendcmd;
+uint32_t *zmodem_recvcmd;
+static uint32_t *zmodes[4] = { "off", "auto", "catch", "pass" };
 
 int idletimo;
 struct action idleaction;
@@ -334,23 +335,23 @@ static struct digraph digraphs[MAX_DIGRAPH + 1] = {
 #define RESIZE_FLAG_V 2
 #define RESIZE_FLAG_L 4
 
-static char *resizeprompts[] = {
-	"resize # lines: ",
-	"resize -h # columns: ",
-	"resize -v # lines: ",
-	"resize -b # columns: ",
-	"resize -l # lines: ",
-	"resize -l -h # columns: ",
-	"resize -l -v # lines: ",
-	"resize -l -b # columns: ",
+static uint32_t *resizeprompts[] = {
+	U"resize # lines: ",
+	U"resize -h # columns: ",
+	U"resize -v # lines: ",
+	U"resize -b # columns: ",
+	U"resize -l # lines: ",
+	U"resize -l -h # columns: ",
+	U"resize -l -v # lines: ",
+	U"resize -l -b # columns: ",
 };
 
-static int parse_input_int(const char *buf, int len, int *val)
+static int parse_input_int(const uint32_t *buf, size_t len, int *val)
 {
-	int x = 0, i;
+	uint32_t x = 0;
 	if (len >= 1 && ((*buf == 'U' && buf[1] == '+') || (*buf == '0' && (buf[1] == 'x' || buf[1] == 'X')))) {
 		x = 0;
-		for (i = 2; i < len; i++) {
+		for (int i = 2; i < len; i++) {
 			if (buf[i] >= '0' && buf[i] <= '9')
 				x = x * 16 | (buf[i] - '0');
 			else if (buf[i] >= 'a' && buf[i] <= 'f')
@@ -362,7 +363,7 @@ static int parse_input_int(const char *buf, int len, int *val)
 		}
 	} else if (buf[0] == '0') {
 		x = 0;
-		for (i = 1; i < len; i++) {
+		for (int i = 1; i < len; i++) {
 			if (buf[i] < '0' || buf[i] > '7')
 				return 0;
 			x = x * 8 | (buf[i] - '0');
@@ -598,10 +599,11 @@ static void ClearAction(struct action *act)
  *  everything else on to ProcessInput2.
  */
 
-void ProcessInput(char *ibuf, int ilen)
+void ProcessInput(uint32_t *ibuf, size_t ilen)
 {
-	int ch, slen;
-	unsigned char *s, *q;
+	size_t slen;
+	uint32_t ch;
+	uint32_t *s, *q;
 	int i, l;
 	char *p;
 
@@ -610,7 +612,7 @@ void ProcessInput(char *ibuf, int ilen)
 	if (D_seql)
 		evdeq(&D_mapev);
 	slen = ilen;
-	s = (unsigned char *)ibuf;
+	s = ibuf;
 	while (ilen-- > 0) {
 		ch = *s++;
 		if (D_dontmap || !D_nseqs) {
@@ -636,14 +638,14 @@ void ProcessInput(char *ibuf, int ilen)
 					i = q[0] << 8 | q[1];
 					i &= ~KMAP_NOTIMEOUT;
 					if (StuffKey(i))
-						ProcessInput2((char *)q + 3, q[2]);
+						ProcessInput2((uint32_t *)q + 3, q[2]);
 					if (display == 0)
 						return;
 					l -= q[2];
 					p += q[2];
 				} else
 					D_dontmap = 1;
-				ProcessInput(p, l);
+				ProcessInput((uint32_t *)p, l);
 				if (display == 0)
 					return;
 				evdeq(&D_mapev);
@@ -658,7 +660,7 @@ void ProcessInput(char *ibuf, int ilen)
 					return;
 				D_seqh = 0;
 			}
-			ibuf = (char *)s;
+			ibuf = (uint32_t *)s;
 			slen = ilen;
 			D_seqp++;
 			l = D_seql;
@@ -678,7 +680,7 @@ void ProcessInput(char *ibuf, int ilen)
 				D_seqp = D_kmaps + 3;
 				D_seqh = 0;
 				if (StuffKey(i))
-					ProcessInput2(p, l);
+					ProcessInput2((uint32_t *)p, l);
 				if (display == 0)
 					return;
 			}
@@ -704,27 +706,29 @@ void ProcessInput(char *ibuf, int ilen)
  *  Here only the screen escape commands are handled.
  */
 
-void ProcessInput2(char *ibuf, int ilen)
+void ProcessInput2(uint32_t *ibuf, size_t ilen)
 {
-	char *s;
+	uint32_t *s;
 	int ch;
 	size_t slen;
 	struct action *ktabp;
 
-	while (ilen && display) {
+	if (display == 0)
+		return;
+	while (ilen) {
 		flayer = D_forecv->c_layer;
 		fore = D_fore;
 		slen = ilen;
 		s = ibuf;
 		if (!D_ESCseen) {
 			while (ilen > 0) {
-				if ((unsigned char)*s++ == D_user->u_Esc)
+				if (*s++ == D_user->u_Esc)
 					break;
 				ilen--;
 			}
 			slen -= ilen;
 			if (slen)
-				DoProcess(fore, &ibuf, &slen, 0);
+				DoProcess(fore, (char **)&ibuf, &slen, 0);
 			if (--ilen == 0) {
 				D_ESCseen = ktab;
 				WindowChanged(fore, WINESC_ESC_SEEN);
@@ -752,12 +756,12 @@ void ProcessInput2(char *ibuf, int ilen)
 
 		if (ch >= 0)
 			DoAction(&ktabp[ch], ch);
-		ibuf = (char *)(s + 1);
+		ibuf = (uint32_t*)(s + 1);
 		ilen--;
 	}
 }
 
-void DoProcess(Window *window, char **bufp, size_t *lenp, struct paster *pa)
+void DoProcess(Window *window, uint32_t **bufp, size_t *lenp, struct paster *pa)
 {
 	size_t oldlen;
 	Display *d = display;
@@ -1068,7 +1072,7 @@ void DoAction(struct action *act, int key)
 			char *name;
 
 			if (key >= 0) {
-				Input(fore->w_pwin ? "Really kill this filter [y/n]" : "Really kill this window [y/n]",
+				Input(fore->w_pwin ? U"Really kill this filter [y/n]" : U"Really kill this window [y/n]",
 				      1, INP_RAW, confirm_fn, NULL, RC_KILL);
 				break;
 			}
@@ -1087,7 +1091,7 @@ void DoAction(struct action *act, int key)
 		}
 	case RC_QUIT:
 		if (key >= 0) {
-			Input("Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
+			Input(U"Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
 			break;
 		}
 		Finit(0);
@@ -1328,7 +1332,7 @@ void DoAction(struct action *act, int key)
 		 * (not dest) there.
 		 */
 		if ((s = *args) == NULL) {
-			Input("Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
+			Input(U"Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
 			break;
 		}
 		if (*argl != 1) {
@@ -1388,7 +1392,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_PROCESS:
 		if ((s = *args) == NULL) {
-			Input("Process register:", 1, INP_RAW, process_fn, NULL, 0);
+			Input(U"Process register:", 1, INP_RAW, process_fn, NULL, 0);
 			break;
 		}
 		if (*argl != 1) {
@@ -1401,7 +1405,7 @@ void DoAction(struct action *act, int key)
 	case RC_STUFF:
 		s = *args;
 		if (!args[0]) {
-			Input("Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
+			Input(U"Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
 			break;
 		}
 		len = *argl;
@@ -1669,7 +1673,7 @@ void DoAction(struct action *act, int key)
 			ChangeAKA(fore, *args, strlen(*args));
 		break;
 	case RC_COLON:
-		Input(":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
+		Input(U":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
 		if (*args && **args) {
 			s = *args;
 			len = strlen(s);
@@ -1864,7 +1868,7 @@ void DoAction(struct action *act, int key)
 			 * without args we prompt for one(!) register to be pasted in the window
 			 */
 			if ((s = *args) == NULL) {
-				Input("Paste from register:", 1, INP_RAW, ins_reg_fn, NULL, 0);
+				Input(U"Paste from register:", 1, INP_RAW, ins_reg_fn, NULL, 0);
 				break;
 			}
 			if (args[1] == 0 && !fore)	/* no window? */
@@ -2981,7 +2985,7 @@ void DoAction(struct action *act, int key)
 			}
 			break;
 		}
-		Input("Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL, 0);
+		Input(U"Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL, 0);
 		if (*args && **args) {
 			s = *args;
 			len = strlen(s);
@@ -3063,7 +3067,7 @@ void DoAction(struct action *act, int key)
 		} else if (!args[1])
 			InputSu(&D_user, args[0]);
 		else if (!args[2])
-			s = DoSu(&D_user, args[0], args[1], "\377");
+			s = DoSu(&D_user, args[0], args[1], U"\377");
 		else
 			s = DoSu(&D_user, args[0], args[1], args[2]);
 		if (s)
@@ -3408,7 +3412,7 @@ void DoAction(struct action *act, int key)
 				break;
 			}
 			if (!args[1]) {
-				Input("Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
+				Input(U"Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
 				break;
 			}
 			SelectLayoutFin(args[1], strlen(args[1]), (char *)0);
@@ -4514,7 +4518,7 @@ static void InputAKA()
 
 	enter_window_name_mode = 1;
 
-	Input("Set window's title to: ", sizeof(fore->w_akabuf) - 1, INP_COOKED, AKAFin, NULL, 0);
+	Input(U"Set window's title to: ", sizeof(fore->w_akabuf) - 1, INP_COOKED, AKAFin, NULL, 0);
 	s = fore->w_title;
 	if (!s)
 		return;
@@ -4636,7 +4640,7 @@ static void SelectLayoutFin(char *buf, size_t len, void *data)
 
 static void InputSelect()
 {
-	Input("Switch to window: ", 20, INP_COOKED, SelectFin, NULL, 0);
+	Input(U"Switch to window: ", 20, INP_COOKED, SelectFin, NULL, 0);
 }
 
 static char setenv_var[31];
@@ -4669,7 +4673,7 @@ static void InputSetenv(char *arg)
 		sprintf(setenv_buf, "Enter value for %s: ", setenv_var);
 		Input(setenv_buf, 30, INP_COOKED, SetenvFin2, NULL, 0);
 	} else
-		Input("Setenv: Enter variable name: ", 30, INP_COOKED, SetenvFin1, NULL, 0);
+		Input(U"Setenv: Enter variable name: ", 30, INP_COOKED, SetenvFin1, NULL, 0);
 }
 
 /*
@@ -4905,7 +4909,7 @@ static void process_fn(char *buf, size_t len, void *data)
 		return;
 	}
 	if (pp->buf) {
-		ProcessInput(pp->buf, pp->len);
+		ProcessInput((uint32_t *)pp->buf, pp->len);
 		return;
 	}
 	Msg(0, "Empty register.");
@@ -4928,35 +4932,35 @@ static void confirm_fn(char *buf, size_t len, void *data)
 
 struct inputsu {
 	struct acluser **up;
-	char name[24];
-	char pw1[130];		/* FreeBSD crypts to 128 bytes */
-	char pw2[130];
+	uint32_t name[24];
+	uint32_t pw1[130];		/* FreeBSD crypts to 128 bytes */
+	uint32_t pw2[130];
 };
 
-static void suFin(char *buf, size_t len, void *data)
+static void suFin(uint32_t *buf, size_t len, void *data)
 {
 	struct inputsu *i = (struct inputsu *)data;
-	char *p;
+	uint32_t *p;
 	size_t l;
 
 	if (!*i->name) {
 		p = i->name;
 		l = sizeof(i->name) - 1;
 	} else if (!*i->pw1) {
-		strcpy(p = i->pw1, "\377");
+		u32_strcpy(p = i->pw1, U"\377");
 		l = sizeof(i->pw1) - 1;
 	} else {
-		strcpy(p = i->pw2, "\377");
+		u32_strcpy(p = i->pw2, U"\377");
 		l = sizeof(i->pw2) - 1;
 	}
 	if (buf && len)
-		strncpy(p, buf, 1 + ((l < len) ? l : len));
+		u32_strncpy(p, buf, 1 + ((l < len) ? l : len));
 	if (!*i->name)
-		Input("Screen User: ", sizeof(i->name) - 1, INP_COOKED, suFin, (char *)i, 0);
+		Input(U"Screen User: ", sizeof(i->name) - 1, INP_COOKED, suFin, (char *)i, 0);
 	else if (!*i->pw1)
-		Input("User's UNIX Password: ", sizeof(i->pw1) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
+		Input(U"User's UNIX Password: ", sizeof(i->pw1) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
 	else if (!*i->pw2)
-		Input("User's Screen Password: ", sizeof(i->pw2) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
+		Input(U"User's Screen Password: ", sizeof(i->pw2) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
 	else {
 		if ((p = DoSu(i->up, i->name, i->pw2, i->pw1)))
 			Msg(0, "%s", p);
@@ -4979,18 +4983,18 @@ static int InputSu(struct acluser **up, char *name)
 	return 0;
 }
 
-static int digraph_find(const char *buf)
+static int digraph_find(const uint32_t *buf)
 {
-	uint32_t i;
+	int i;
 	for (i = 0; i < sizeof(digraphs) && digraphs[i].d[0]; i++)
-		if ((digraphs[i].d[0] == (unsigned char)buf[0] && digraphs[i].d[1] == (unsigned char)buf[1]))
+		if ((digraphs[i].d[0] == buf[0] && digraphs[i].d[1] == buf[1]))
 			break;
 	return i;
 }
 
-static void digraph_fn(char *buf, size_t len, void *data)
+static void digraph_fn(uint32_t *buf, size_t len, void *data)
 {
-	int ch, i, x;
+	uint32_t ch, x;
 	size_t l;
 
 	(void)data; /* unused */
@@ -5033,7 +5037,7 @@ static void digraph_fn(char *buf, size_t len, void *data)
 	if (len < 2)
 		return;
 	if (!parse_input_int(buf, len, &x)) {
-		i = digraph_find(buf);
+		int i = digraph_find(buf);
 		if ((x = digraphs[i].value) <= 0) {
 			Msg(0, "Unknown digraph");
 			return;

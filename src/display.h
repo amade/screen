@@ -83,7 +83,7 @@ struct Display {
 	Canvas *d_cvlist;		/* the canvases of this display */
 	Canvas *d_forecv;		/* current input focus */
 	Layout *d_layout;	/* layout we're using */
-	void (*d_processinput) (char *, int);
+	void (*d_processinput) (uint32_t *, size_t);
 	char *d_processinputdata;	/* data for processinput */
 	int d_vpxmin, d_vpxmax;		/* min/max used position on display */
 	Window *d_fore;		/* pointer to fore window */
@@ -303,7 +303,7 @@ while (0)
 
 Display *MakeDisplay (char *, char *, char *, int, int, struct mode *);
 void  FreeDisplay (void);
-void  DefProcess (char **, size_t *);
+void  DefProcess (uint32_t **, size_t *);
 void  DefRedisplayLine (int, int, int, int);
 void  DefClearLine (int, int, int, int);
 int   DefResize (int, int);

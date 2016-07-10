@@ -4,9 +4,9 @@
 #include "winmsgbuf.h"
 
 void  InitKeytab (void);
-void  ProcessInput (char *, int);
-void  ProcessInput2 (char *, int);
-void  DoProcess (Window *, char **, size_t *, struct paster *);
+void  ProcessInput (uint32_t *, size_t);
+void  ProcessInput2 (uint32_t *, size_t);
+void  DoProcess (Window *, uint32_t **, size_t *, struct paster *);
 void  DoAction  (struct action *, int);
 int   FindCommnr (const char *);
 void  DoCommand (char **, int *);
@@ -36,8 +36,8 @@ extern bool hardcopy_append;
 
 extern char *noargs[];
 extern char NullStr[];
-extern char *zmodem_recvcmd;
-extern char *zmodem_sendcmd;
+extern uint32_t *zmodem_recvcmd;
+extern uint32_t *zmodem_sendcmd;
 
 extern int idletimo;
 extern int kmap_extn;

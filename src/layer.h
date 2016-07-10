@@ -32,6 +32,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 /*
  * This is the overlay structure. It is used to create a seperate
@@ -44,7 +45,7 @@ struct mline;
 typedef struct Canvas Canvas;
 
 struct LayFuncs {
-	void	(*lf_LayProcess) (char **, size_t *);
+	void	(*lf_LayProcess) (uint32_t **, size_t *);
 	void	(*lf_LayAbort) (void);
 	void	(*lf_LayRedisplayLine) (int, int, int, int);
 	void	(*lf_LayClearLine) (int, int, int, int);

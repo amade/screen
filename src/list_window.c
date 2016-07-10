@@ -245,17 +245,17 @@ static int gl_Window_row(ListData *ldata, ListRow *lrow)
 	return 1;
 }
 
-static int gl_Window_input(ListData *ldata, char **inp, size_t *len)
+static int gl_Window_input(ListData *ldata, uint32_t **inp, size_t *len)
 {
 	Window *win;
-	unsigned char ch;
+	uint32_t ch;
 	Display *cd = display;
 	struct gl_Window_Data *wdata = ldata->data;
 
 	if (!ldata->selected)
 		return 0;
 
-	ch = (unsigned char)**inp;
+	ch = **inp;
 	++*inp;
 	--*len;
 

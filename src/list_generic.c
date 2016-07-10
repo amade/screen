@@ -32,7 +32,7 @@
 
 /* Deals with a generic list display */
 
-static void ListProcess(char **, size_t *);
+static void ListProcess(uint32_t **, size_t *);
 static void ListAbort(void);
 static void ListRedisplayLine(int, int, int, int);
 static void ListClearLine(int, int, int, int);
@@ -131,14 +131,14 @@ static void glist_search(char *buf, size_t len, void *data)
 	glist_display_all(ldata);
 }
 
-static void ListProcess(char **ppbuf, size_t *plen)
+static void ListProcess(uint32_t **ppbuf, size_t *plen)
 {
 	ListData *ldata = flayer->l_data;
 	int count = 0;
 
 	while (*plen > 0) {
 		ListRow *old;
-		unsigned char ch;
+		uint32_t ch;
 
 		if (!flayer->l_mouseevent.start && ldata->list_fn->gl_pinput &&
 		    ldata->list_fn->gl_pinput(ldata, ppbuf, plen))

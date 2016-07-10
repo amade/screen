@@ -1164,7 +1164,7 @@ static int MarkScrollDownDisplay(int n)
 	return n;
 }
 
-void MakePaster(struct paster *pa, char *buf, int len, int bufiscopy)
+void MakePaster(struct paster *pa, uint32_t *buf, size_t len, int bufiscopy)
 {
 	FreePaster(pa);
 	pa->pa_pasteptr = buf;
