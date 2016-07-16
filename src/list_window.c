@@ -435,7 +435,7 @@ static int gl_Window_match(ListData *ldata, ListRow *row, const char *needle)
 	
 	(void)ldata; /* unused */
 
-	if (InStr(w->w_title, needle))
+	if (strstr(w->w_title, needle))
 		return 1;
 	return 0;
 }

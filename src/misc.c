@@ -62,16 +62,6 @@ char *SaveStrn(const char *str, size_t n)
 	return cp;
 }
 
-/* cheap strstr replacement */
-char *InStr(char *str, const char *pat)
-{
-	int npat = strlen(pat);
-	for (; *str; str++)
-		if (!strncmp(str, pat, npat))
-			return str;
-	return 0;
-}
-
 void centerline(char *str, int y)
 {
 	int l, n;

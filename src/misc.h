@@ -9,7 +9,6 @@
 
 char *SaveStr (const char *);
 char *SaveStrn (const char *, size_t);
-char *InStr (char *, const char *);
 #ifndef HAVE_STRERROR
 char *strerror (int);
 #endif

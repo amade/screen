@@ -163,18 +163,18 @@ int InitTermcap(int width, int height)
 	if (D_CTF) {
 		/* standard fixes for xterms etc */
 		/* assume color for everything that looks ansi-compatible */
-		if (!D_CAF && D_ME && (InStr(D_ME, "\033[m") || InStr(D_ME, "\033[0m"))) {
+		if (!D_CAF && D_ME && (strstr(D_ME, "\033[m") || strstr(D_ME, "\033[0m"))) {
 			D_CAF = "\033[3%p1%dm";
 			D_CAB = "\033[4%p1%dm";
 		}
-		if (D_OP && InStr(D_OP, "\033[39;49m"))
+		if (D_OP && strstr(D_OP, "\033[39;49m"))
 			D_CAX = 1;
-		if (D_OP && (InStr(D_OP, "\033[m") || InStr(D_OP, "\033[0m")))
+		if (D_OP && (strstr(D_OP, "\033[m") || strstr(D_OP, "\033[0m")))
 			D_OP = 0;
 		/* ISO2022 */
-		if ((D_EA && InStr(D_EA, "\033(B")) || (D_AS && InStr(D_AS, "\033(0")))
+		if ((D_EA && strstr(D_EA, "\033(B")) || (D_AS && strstr(D_AS, "\033(0")))
 			D_CG0 = 1;
-		if (InStr(D_termname, "xterm") || InStr(D_termname, "rxvt") || (D_CKM && InStr(D_CKM, "\033[M")))
+		if (strstr(D_termname, "xterm") || strstr(D_termname, "rxvt") || (D_CKM && strstr(D_CKM, "\033[M")))
 			D_CXT = 1;
 		/* "be" seems to be standard for xterms... */
 		if (D_CXT)

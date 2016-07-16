@@ -516,7 +516,7 @@ int main(int argc, char **argv)
 		nwin_options.encoding = FindEncoding(nl_langinfo(CODESET));
 #else
 		char *s;
-		if ((s = locale_name()) && InStr(s, "UTF-8"))
+		if ((s = locale_name()) && strstr(s, "UTF-8"))
 			nwin_options.encoding = UTF8;
 #endif
 	}
