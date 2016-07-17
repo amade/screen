@@ -242,7 +242,6 @@ int wmbc_printf(WinMsgBufContext *wmbc, const char *fmt, ...)
 		if (!_wmbc_expand(wmbc, wmb_size(wmbc->buf) + n - max)) {
 			/* failed to allocate additional memory; this will simply have to do */
 			wmbc_fastfw_end(wmbc);
-			va_end(ap);
 			return max;
 		}
 
