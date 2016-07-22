@@ -159,7 +159,6 @@ void  WNewAutoFlow (Window *, int);
 void  WBell (Window *, bool);
 void  WMsg (Window *, int, char *);
 void  WChangeSize (Window *, int, int);
-void  WindowChanged (Window *, int);
 int   MFindUsedLine (Window *, int, int);
 
 /* global variables */

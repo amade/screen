@@ -674,3 +674,123 @@ char *MakeWinMsg(char *s, Window *win, int esc)
 {
 	return MakeWinMsgEv(NULL, s, win, esc, 0, (Event *)0, 0);
 }
+
+static int WindowChangedCheck(char *s, int what, int *hp)
+{
+	int h = 0;
+	int l;
+	while (*s) {
+		if (*s++ != (hp ? '%' : '\005'))
+			continue;
+		l = 0;
+		s += (*s == '+');
+		s += (*s == '-');
+		while (*s >= '0' && *s <= '9')
+			s++;
+		if (*s == 'L') {
+			s++;
+			l = 0x100;
+		}
+		if (*s == 'h')
+			h = 1;
+		if (*s == what || ((*s | l) == what) || what == 'd')
+			break;
+		if (*s)
+			s++;
+	}
+	if (hp)
+		*hp = h;
+	return *s ? 1 : 0;
+}
+
+void WindowChanged(Window *win, int what)
+{
+	int inwstr, inhstr, inlstr;
+	int inwstrh = 0, inhstrh = 0, inlstrh = 0;
+	int got, ox, oy;
+	Display *olddisplay = display;
+	Canvas *cv;
+
+	if (what == 'f') {
+		WindowChanged((Window *)0, 'w' | 0x100);
+		WindowChanged((Window *)0, 'W' | 0x100);
+	}
+
+	if (what) {
+		inwstr = WindowChangedCheck(captionstring, what, &inwstrh);
+		inhstr = WindowChangedCheck(hstatusstring, what, &inhstrh);
+		inlstr = WindowChangedCheck(wliststr, what, &inlstrh);
+	} else {
+		inwstr = inhstr = 0;
+		inlstr = 1;
+	}
+
+	if (win == 0) {
+		for (display = displays; display; display = display->d_next) {
+			ox = D_x;
+			oy = D_y;
+			for (cv = D_cvlist; cv; cv = cv->c_next) {
+				if (inlstr
+				    || (inlstrh && win && win->w_hstatus && *win->w_hstatus
+					&& WindowChangedCheck(win->w_hstatus, what, (int *)0)))
+					WListUpdatecv(cv, (Window *)0);
+				win = Layer2Window(cv->c_layer);
+				if (inwstr
+				    || (inwstrh && win && win->w_hstatus && *win->w_hstatus
+					&& WindowChangedCheck(win->w_hstatus, what, (int *)0))) {
+					if (captiontop) {
+						if (cv->c_ys - 1 >= 0)
+							RefreshLine(cv->c_ys - 1, 0, D_width -1 , 0);
+					} else {
+						if (cv->c_ye + 1 < D_height)
+							RefreshLine(cv->c_ye + 1, 0, D_width - 1, 0);
+					}
+				}
+			}
+			win = D_fore;
+			if (inhstr
+			    || (inhstrh && win && win->w_hstatus && *win->w_hstatus
+				&& WindowChangedCheck(win->w_hstatus, what, (int *)0)))
+				RefreshHStatus();
+			if (ox != -1 && oy != -1)
+				GotoPos(ox, oy);
+		}
+		display = olddisplay;
+		return;
+	}
+
+	if (win->w_hstatus && *win->w_hstatus && (inwstrh || inhstrh || inlstrh)
+	    && WindowChangedCheck(win->w_hstatus, what, (int *)0)) {
+		inwstr |= inwstrh;
+		inhstr |= inhstrh;
+		inlstr |= inlstrh;
+	}
+	if (!inwstr && !inhstr && !inlstr)
+		return;
+	for (display = displays; display; display = display->d_next) {
+		got = 0;
+		ox = D_x;
+		oy = D_y;
+		for (cv = D_cvlist; cv; cv = cv->c_next) {
+			if (inlstr)
+				WListUpdatecv(cv, win);
+			if (Layer2Window(cv->c_layer) != win)
+				continue;
+			got = 1;
+			if (inwstr) {
+				if (captiontop) {
+					if (cv->c_ys -1 >= 0)
+						RefreshLine(cv->c_ys - 1, 0, D_width - 1, 0);
+				} else {
+					if (cv->c_ye + 1 < D_height)
+						RefreshLine(cv->c_ye + 1, 0, D_width - 1, 0);
+				}
+			}
+		}
+		if (got && inhstr && win == D_fore)
+			RefreshHStatus();
+		if (ox != -1 && oy != -1)
+			GotoPos(ox, oy);
+	}
+	display = olddisplay;
+}
