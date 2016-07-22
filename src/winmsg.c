@@ -42,6 +42,7 @@
 #include "process.h"
 #include "sched.h"
 #include "mark.h"
+#include "help.h"
 
 /* TODO: rid global variable (has been renamed to point this out; see commit
  * history) */
@@ -675,7 +676,7 @@ char *MakeWinMsg(char *s, Window *win, int esc)
 	return MakeWinMsgEv(NULL, s, win, esc, 0, (Event *)0, 0);
 }
 
-static int WindowChangedCheck(char *s, int what, int *hp)
+static int WindowChangedCheck(char *s, WinMsgEscapeChar what, int *hp)
 {
 	int h = 0;
 	int l;
@@ -691,9 +692,9 @@ static int WindowChangedCheck(char *s, int what, int *hp)
 			s++;
 			l = 0x100;
 		}
-		if (*s == 'h')
+		if (*s == WINESC_HSTATUS)
 			h = 1;
-		if (*s == what || ((*s | l) == what) || what == 'd')
+		if (*s == what || ((*s | l) == what))
 			break;
 		if (*s)
 			s++;
@@ -703,7 +704,7 @@ static int WindowChangedCheck(char *s, int what, int *hp)
 	return *s ? 1 : 0;
 }
 
-void WindowChanged(Window *win, int what)
+void WindowChanged(Window *win, WinMsgEscapeChar what)
 {
 	int inwstr, inhstr, inlstr;
 	int inwstrh = 0, inhstrh = 0, inlstrh = 0;
@@ -711,9 +712,9 @@ void WindowChanged(Window *win, int what)
 	Display *olddisplay = display;
 	Canvas *cv;
 
-	if (what == 'f') {
-		WindowChanged((Window *)0, 'w' | 0x100);
-		WindowChanged((Window *)0, 'W' | 0x100);
+	if (what == WINESC_WFLAGS) {
+		WindowChanged((Window *)0, WINESC_WIN_NAMES | 0x100);
+		WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR | 0x100);
 	}
 
 	if (what) {

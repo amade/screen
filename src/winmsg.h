@@ -87,7 +87,7 @@ typedef struct {
 char *MakeWinMsg(char *, Window *, int);
 char *MakeWinMsgEv(WinMsgBuf *, char *, Window *, int, int, Event *, int);
 int   AddWinMsgRend(WinMsgBuf *, const char *, uint64_t);
-void  WindowChanged (Window *, int);
+void  WindowChanged (Window *, WinMsgEscapeChar);
 
 extern WinMsgBuf *g_winmsg;
 
