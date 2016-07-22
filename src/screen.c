@@ -1612,7 +1612,7 @@ static void serv_select_fn(Event *event, void *data)
 			/* don't annoy the user with two messages */
 			if (p->w_monitor == MON_FOUND)
 				p->w_monitor = MON_DONE;
-			WindowChanged(p, 'f');
+			WindowChanged(p, WINESC_WFLAGS);
 		}
 		if (p->w_monitor == MON_FOUND) {
 			Canvas *cv;
@@ -1628,13 +1628,13 @@ static void serv_select_fn(Event *event, void *data)
 				Msg(0, "%s", MakeWinMsg(ActivityString, p, '%'));
 				p->w_monitor = MON_DONE;
 			}
-			WindowChanged(p, 'f');
+			WindowChanged(p, WINESC_WFLAGS);
 		}
 		if (p->w_silence == SILENCE_FOUND) {
 			/* Unset the flag if the user switched to this window. */
 			if (p->w_layer.l_cvlist) {
 				p->w_silence = SILENCE_ON;
-				WindowChanged(p, 'f');
+				WindowChanged(p, WINESC_WFLAGS);
 			}
 		}
 	}

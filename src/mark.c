@@ -42,6 +42,7 @@
 #include "fileio.h"
 #include "process.h"
 #include "search.h"
+#include "winmsg.h"
 
 /*
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -922,7 +923,7 @@ static void MarkProcess(char **inbufp, size_t *inlenp)
 					LAY_CALL_UP(LRefreshAll(flayer, 0));
 				}
 				ExitOverlayPage();
-				WindowChanged(fore, 'P');
+				WindowChanged(fore, WINESC_COPY_MODE);
 				if (append_mode)
 					LMsg(0, "Appended %d characters to buffer", newcopylen);
 				else
@@ -1134,7 +1135,7 @@ static void MarkAbort()
 		rem(markdata->x1, markdata->y1, markdata->cx, markdata->cy, redisp, (char *)0, yend);
 	}
 	ExitOverlayPage();
-	WindowChanged(fore, 'P');
+	WindowChanged(fore, WINESC_COPY_MODE);
 }
 
 static void MarkRedisplayLine(int y, int xs, int xe, int isblank)

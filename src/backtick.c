@@ -34,6 +34,7 @@
 #include "backtick.h"
 
 #include "fileio.h"
+#include "winmsg.h"
 
 /* TODO: get rid of global var */
 Backtick *backticks;
@@ -78,7 +79,7 @@ static void backtick_fn(Event *ev, void *data)
 		memmove(bt->result, bt->buf + k, i - j - k);
 		bt->result[i - j - k - 1] = 0;
 		backtick_filter(bt);
-		WindowChanged(0, '`');
+		WindowChanged(0, WINESC_BACKTICK);
 	}
 	if (j == l && i == MAXSTR) {
 		j = MAXSTR / 2;

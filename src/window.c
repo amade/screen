@@ -575,8 +575,8 @@ int MakeWindow(struct NewWindow *newwin)
 	if (type == W_TYPE_GROUP) {
 		SetForeWindow(p);
 		Activate(p->w_norefresh);
-		WindowChanged((Window *)0, 'w');
-		WindowChanged((Window *)0, 'W');
+		WindowChanged((Window *)0, WINESC_WIN_NAMES);
+		WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
 		WindowChanged((Window *)0, 0);
 		return n;
 	}
@@ -632,8 +632,8 @@ int MakeWindow(struct NewWindow *newwin)
 
 	SetForeWindow(p);
 	Activate(p->w_norefresh);
-	WindowChanged((Window *)0, 'w');
-	WindowChanged((Window *)0, 'W');
+	WindowChanged((Window *)0, WINESC_WIN_NAMES);
+	WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
 	WindowChanged((Window *)0, 0);
 	return n;
 }
@@ -703,7 +703,7 @@ int RemakeWindow(Window *window)
 	CarefulUtmp();		/* If all 've been zombies, we've had no slot */
 #endif
 #endif
-	WindowChanged(window, 'f');
+	WindowChanged(window, WINESC_WFLAGS);
 	return window->w_number;
 }
 
@@ -1552,7 +1552,7 @@ static void win_silenceev_fn(Event *event, void *data)
 			continue;
 		Msg(0, "Window %d: silence for %d seconds", p->w_number, p->w_silencewait);
 		p->w_silence = SILENCE_FOUND;
-		WindowChanged(p, 'f');
+		WindowChanged(p, WINESC_WFLAGS);
 	}
 }
 
@@ -1747,9 +1747,9 @@ int SwapWindows(int old, int dest)
 	}
 #endif
 
-	WindowChanged(win_old, 'n');
-	WindowChanged((Window *)0, 'w');
-	WindowChanged((Window *)0, 'W');
+	WindowChanged(win_old, WINESC_WIN_NUM);
+	WindowChanged((Window *)0, WINESC_WIN_NAMES);
+	WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
 	WindowChanged((Window *)0, 0);
 	return 1;
 }
@@ -1818,7 +1818,7 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 			SetTimeout(&p->w_zombieev, p->w_poll_zombie_timeout * 1000);
 			evenq(&p->w_zombieev);
 		}
-		WindowChanged(p, 'f');
+		WindowChanged(p, WINESC_WFLAGS);
 	} else
 		KillWindow(p);
 #ifdef ENABLE_UTMP

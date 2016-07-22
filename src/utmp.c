@@ -43,6 +43,7 @@
 #endif
 
 #include "misc.h"
+#include "winmsg.h"
 #include "tty.h"
 
 /*
@@ -112,7 +113,7 @@ void SlotToggle(bool how)
 				Msg(0, "This window is now logged in.");
 			else
 				Msg(0, "This window should now be logged in.");
-			WindowChanged(fore, 'f');
+			WindowChanged(fore, WINESC_WFLAGS);
 		} else
 			Msg(0, "This window is already logged in.");
 	} else {
@@ -130,7 +131,7 @@ void SlotToggle(bool how)
 #ifdef CAREFULUTMP
 			CarefulUtmp();
 #endif
-			WindowChanged(fore, 'f');
+			WindowChanged(fore, WINESC_WFLAGS);
 		}
 	}
 }

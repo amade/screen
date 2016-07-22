@@ -1298,7 +1298,7 @@ static int StringEnd()
 		}
 		if (curr->w_string != curr->w_stringp)
 			curr->w_hstatus = SaveStr(curr->w_string);
-		WindowChanged(curr, 'h');
+		WindowChanged(curr, WINESC_HSTATUS);
 		break;
 	case PM:
 	case GM:
@@ -1818,9 +1818,9 @@ void ChangeAKA(Window *win, char *s, size_t len)
 	if (win->w_akachange != win->w_akabuf)
 		if (win->w_akachange[0] == 0 || win->w_akachange[-1] == ':')
 			win->w_title = win->w_akabuf + strlen(win->w_akabuf) + 1;
-	WindowChanged(win, 't');
-	WindowChanged((Window *)0, 'w');
-	WindowChanged((Window *)0, 'W');
+	WindowChanged(win, WINESC_WIN_TITLE);
+	WindowChanged((Window *)0, WINESC_WIN_NAMES);
+	WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
 }
 
 static void FindAKA()

@@ -728,7 +728,7 @@ void ProcessInput2(char *ibuf, int ilen)
 				DoProcess(fore, &ibuf, &slen, 0);
 			if (--ilen == 0) {
 				D_ESCseen = ktab;
-				WindowChanged(fore, 'E');
+				WindowChanged(fore, WINESC_ESC_SEEN);
 			}
 		}
 		if (ilen <= 0)
@@ -736,7 +736,7 @@ void ProcessInput2(char *ibuf, int ilen)
 		ktabp = D_ESCseen ? D_ESCseen : ktab;
 		if (D_ESCseen) {
 			D_ESCseen = 0;
-			WindowChanged(fore, 'E');
+			WindowChanged(fore, WINESC_ESC_SEEN);
 		}
 		ch = (unsigned char)*s;
 
@@ -1489,13 +1489,13 @@ void DoAction(struct action *act, int key)
 			if (D_ESCseen != ktab || ktabp != ktab) {
 				if (D_ESCseen != ktabp) {
 					D_ESCseen = ktabp;
-					WindowChanged(fore, 'E');
+					WindowChanged(fore, WINESC_ESC_SEEN);
 				}
 				break;
 			}
 			if (D_ESCseen) {
 				D_ESCseen = 0;
-				WindowChanged(fore, 'E');
+				WindowChanged(fore, WINESC_ESC_SEEN);
 			}
 		}
 		/* FALLTHROUGH */
@@ -1854,7 +1854,7 @@ void DoAction(struct action *act, int key)
 			break;
 		}
 		MarkRoutine();
-		WindowChanged(fore, 'P');
+		WindowChanged(fore, WINESC_COPY_MODE);
 		break;
 	case RC_HISTORY:
 		{
@@ -2641,7 +2641,7 @@ void DoAction(struct action *act, int key)
 			}
 			strncpy(SocketPath, buf, MAXPATHLEN + 2 * MAXSTR);
 			MakeNewEnv();
-			WindowChanged((Window *)0, 'S');
+			WindowChanged((Window *)0, WINESC_SESS_NAME);
 		}
 		break;
 	case RC_SETENV:
@@ -3197,7 +3197,7 @@ void DoAction(struct action *act, int key)
 			free(fore->w_hstatus);
 			fore->w_hstatus = 0;
 		}
-		WindowChanged(fore, 'h');
+		WindowChanged(fore, WINESC_HSTATUS);
 		break;
 
 	case RC_DEFCHARSET:
@@ -3246,8 +3246,8 @@ void DoAction(struct action *act, int key)
 
 		if (i != -1) {
 			renditions[i] = ParseAttrColor(args[0], 1);
-			WindowChanged((Window *)0, 'w');
-			WindowChanged((Window *)0, 'W');
+			WindowChanged((Window *)0, WINESC_WIN_NAMES);
+			WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
 			WindowChanged((Window *)0, 0);
 			break;
 		}
@@ -3420,7 +3420,7 @@ void DoAction(struct action *act, int key)
 				break;
 			setbacktick(n, lifespan, tick, SaveArgs(args + 3));
 		}
-		WindowChanged(0, '`');
+		WindowChanged(0, WINESC_BACKTICK);
 		break;
 	case RC_BLANKER:
 		if (blankerprg) {
@@ -3513,8 +3513,8 @@ void DoAction(struct action *act, int key)
 				if (fore->w_group == fore || (fore->w_group && fore->w_group->w_type != W_TYPE_GROUP))
 					fore->w_group = 0;
 			}
-			WindowChanged((Window *)0, 'w');
-			WindowChanged((Window *)0, 'W');
+			WindowChanged((Window *)0, WINESC_WIN_NAMES);
+			WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
 			WindowChanged((Window *)0, 0);
 		}
 		if (msgok) {
@@ -4311,7 +4311,7 @@ void Activate(int norefresh)
 		if (fore->w_monitor != MON_OFF)
 			fore->w_monitor = MON_ON;
 		fore->w_bell = BELL_ON;
-		WindowChanged(fore, 'f');
+		WindowChanged(fore, WINESC_WFLAGS);
 	}
 	Redisplay(norefresh + all_norefresh);
 }
@@ -4415,8 +4415,8 @@ void KillWindow(Window *window)
 		UpdateLayoutCanvas(&lay->lay_canvas, window);
 
 	FreeWindow(window);
-	WindowChanged((Window *)0, 'w');
-	WindowChanged((Window *)0, 'W');
+	WindowChanged((Window *)0, WINESC_WIN_NAMES);
+	WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
 	WindowChanged((Window *)0, 0);
 }
 
@@ -4433,7 +4433,7 @@ static void LogToggle(bool on)
 		Msg(0, "Logfile \"%s\" closed.", fore->w_log->name);
 		logfclose(fore->w_log);
 		fore->w_log = 0;
-		WindowChanged(fore, 'f');
+		WindowChanged(fore, WINESC_WFLAGS);
 		return;
 	}
 	if (DoStartLog(fore, buf, sizeof(buf))) {
@@ -4444,7 +4444,7 @@ static void LogToggle(bool on)
 		Msg(0, "Creating logfile \"%s\".", fore->w_log->name);
 	else
 		Msg(0, "Appending to logfile \"%s\".", fore->w_log->name);
-	WindowChanged(fore, 'f');
+	WindowChanged(fore, WINESC_WFLAGS);
 }
 
 /* TODO: wmb encapsulation; flags enum; update all callers */
@@ -5326,7 +5326,7 @@ int StuffKey(int i)
 		struct action *act = &D_ESCseen[i + 256];
 		if (act->nr != RC_ILLEGAL) {
 			D_ESCseen = 0;
-			WindowChanged(fore, 'E');
+			WindowChanged(fore, WINESC_ESC_SEEN);
 			DoAction(act, i + 256);
 			return 0;
 		}
@@ -5353,7 +5353,7 @@ int StuffKey(int i)
 			return -1;
 		if (D_ESCseen) {
 			D_ESCseen = 0;
-			WindowChanged(fore, 'E');
+			WindowChanged(fore, WINESC_ESC_SEEN);
 		}
 		return 0;
 	}
@@ -5670,7 +5670,7 @@ void SetForeCanvas(Display *d, Canvas *cv)
 		flayer = D_forecv->c_layer;
 		CV_CALL(D_forecv, LayRestore();
 			LaySetCursor());
-		WindowChanged(0, 'F');
+		WindowChanged(0, WINESC_FOCUS);
 	}
 
 	display = odisplay;
