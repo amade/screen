@@ -3137,7 +3137,7 @@ void DoAction(struct action *act, int key)
 		break;
 
 	case RC_DIGRAPH:
-		if (argl && argl[0] > 0 && argl[1] > 0) {
+		if (argl && argl[0] > 0 && args[1] && argl[1] > 0) {
 			if (argl[0] != 2) {
 				OutputMsg(0, "Two characters expected to define a digraph");
 				break;
