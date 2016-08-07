@@ -3854,7 +3854,7 @@ int key;
       break;
 
     case RC_DIGRAPH:
-      if (argl && argl[0] > 0 && argl[1] > 0)
+      if (argl && argl[0] > 0 && args[1] && argl[1] > 0)
 	{
 	  if (argl[0] != 2)
 	    {
@@ -4690,9 +4690,9 @@ int *argl;
       act->argl = 0;
       return;
     }
-  if ((pp = (char **)malloc((unsigned)(argc + 1) * sizeof(char **))) == 0)
+  if ((pp = (char **)malloc((unsigned)(argc + 1) * sizeof(char *))) == 0)
     Panic(0, "%s", strnomem);
-  if ((lp = (int *)malloc((unsigned)(argc) * sizeof(int *))) == 0)
+  if ((lp = (int *)malloc((unsigned)(argc) * sizeof(int))) == 0)
     Panic(0, "%s", strnomem);
   act->nr = nr;
   act->args = pp;
