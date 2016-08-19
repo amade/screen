@@ -241,6 +241,7 @@ int main(int argc, char **argv)
 	BellString = SaveStr("Bell in window %n");
 	VisualBellString = SaveStr("   Wuff,  Wuff!!  ");
 	ActivityString = SaveStr("Activity in window %n");
+	screenlogfile = SaveStr("screenlog.%n");
 	logtstamp_string = SaveStr("-- %n:%t -- time-stamp -- %M/%d/%y %c:%s --\n");
 	hstatusstring = SaveStr("%h");
 	captionstring = SaveStr("%4n %t");
@@ -417,9 +418,7 @@ int main(int argc, char **argv)
 					}
 					break;
 				case 'L':
-					if (--argc == 0)
-						screenlogfile = SaveStr("screenlog.%n");
-					else {
+					if (--argc != 0) {
 						screenlogfile = SaveStr(*++argv);
 						if (screenlogfile[0] == '-')
 							Panic(0, "-L: logfile name can not start with \"-\" symbol");
