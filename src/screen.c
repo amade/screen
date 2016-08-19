@@ -53,8 +53,6 @@
 #include "mark.h"
 #include "utmp.h"
 
-#define MAXLOGFILELEN 30
-
 extern char **environ;
 
 int force_vt = 1;
@@ -425,8 +423,8 @@ int main(int argc, char **argv)
 						screenlogfile = SaveStr(*++argv);
 						if (screenlogfile[0] == '-')
 							Panic(0, "-L: logfile name can not start with \"-\" symbol");
-						if (strlen(screenlogfile) > MAXLOGFILELEN)
-							Panic(0, "-L: logfile name too long. (max. %d char)", MAXLOGFILELEN);
+						if (strlen(screenlogfile) > PATH_MAX)
+							Panic(0, "-L: logfile name too long. (max. %d char)", PATH_MAX);
 					}
 					nwin_options.Lflag = true;
 					break;
