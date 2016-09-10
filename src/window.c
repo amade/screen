@@ -1206,7 +1206,7 @@ struct win *win;
 char **args, *ttyn;
 {
   int pid;
-  char tebuf[25];
+  char tebuf[MAXTERMLEN + 5 + 1]; /* MAXTERMLEN + strlen("TERM=") + '\0' */
   char ebuf[20];
   char shellbuf[7 + MAXPATHLEN];
   char *proc;
@@ -1442,7 +1442,7 @@ char **args, *ttyn;
 	{
 	  char *s1, *s2, tl;
 
-	  sprintf(tebuf, "TERM=%s", win->w_term);
+	  snprintf(tebuf, sizeof(tebuf), "TERM=%s", win->w_term);
 	  debug2("Makewindow %d with %s\n", win->w_number, tebuf);
 	  tl = strlen(win->w_term);
 	  NewEnv[1] = tebuf;
@@ -1458,7 +1458,7 @@ char **args, *ttyn;
 		}
 	    }
 	}
-      sprintf(ebuf, "WINDOW=%d", win->w_number);
+      snprintf(ebuf, sizeof(ebuf), "WINDOW=%d", win->w_number);
       NewEnv[3] = ebuf;
 
       if (*proc == '-')
