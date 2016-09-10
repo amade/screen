@@ -905,6 +905,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 {
 	pid_t pid;
 	char tebuf[25];
+	char tebuf[MAXTERMLEN + 5 + 1]; /* MAXTERMLEN + strlen("TERM=") + '\0' */
 	char ebuf[20];
 	char shellbuf[7 + MAXPATHLEN];
 	char *proc;
@@ -1038,7 +1039,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 		if (win->w_term && *win->w_term && strcmp(screenterm, win->w_term) && (strlen(win->w_term) < MAXTERMLEN)) {
 			char *s1, *s2, tl;
 
-			sprintf(tebuf, "TERM=%s", win->w_term);
+			snprintf(tebuf, sizeof(tebuf), "TERM=%s", win->w_term);
 			tl = strlen(win->w_term);
 			NewEnv[1] = tebuf;
 			if ((s1 = strchr(NewEnv[2], '|'))) {
@@ -1050,7 +1051,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 				}
 			}
 		}
-		sprintf(ebuf, "WINDOW=%d", win->w_number);
+		snprintf(ebuf, sizeof(ebuf), "WINDOW=%d", win->w_number);
 		NewEnv[3] = ebuf;
 
 		if (*proc == '-')
