@@ -904,7 +904,6 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 static int ForkWindow(Window *win, char **args, char *ttyn)
 {
 	pid_t pid;
-	char tebuf[25];
 	char tebuf[MAXTERMLEN + 5 + 1]; /* MAXTERMLEN + strlen("TERM=") + '\0' */
 	char ebuf[20];
 	char shellbuf[7 + MAXPATHLEN];
