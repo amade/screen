@@ -18,14 +18,29 @@ AC_DEFINE_UNQUOTED([VERSION_REVISION],
 AH_TEMPLATE([HAVE_EXECVPE], [system has execvpe() defined])
 AH_TEMPLATE([HAVE_OPENPTY], [system has openpty() defined])
 
+dnl -
 AH_TEMPLATE([ENABLE_UTMP], [Enable utmp support])
 AH_TEMPLATE([HAVE_UTEMPTER], [system has utempter helper binary])
 AH_TEMPLATE([HAVE_UT_EXIT], [utmpx struct has ut_exit field])
 AH_TEMPLATE([HAVE_UT_HOST], [utmpx struct has ut_host field])
 
-
+dnl -
 AH_TEMPLATE([ENABLE_PAM], [Enable Pluggable Authenticaion Modules support])
+
+dnl -
 AH_TEMPLATE([ENABLE_TELNET], [Enable built in telnet client])
+
+dnl -
+AH_TEMPLATE([SOCKET_DIR], [Path to socket dir])
+
+dnl -
+AH_TEMPLATE([SYSTEM_SCREENRC], [Path to system screenrc])
+
+dnl - pty settings
+AH_TEMPLATE([PTY_MODE], [Default mode for pty devices])
+AH_TEMPLATE([PTY_GROUP], [Default group for pty devices])
+AH_TEMPLATE([PTY_ROFS], [pty devices are on read only filesystem])
+
 
 dnl
 dnl Check for sane compiler
@@ -73,13 +88,43 @@ dnl
 dnl Check user changeable stuff
 dnl
 
-AC_ARG_ENABLE(pam, AS_HELP_STRING([--enable-pam], [enable PAM support (default: disabled)]), [enable_pam=$enableval], [enable_pam=no])
-AC_ARG_ENABLE(utmp, AS_HELP_STRING([--enable-utmp], [enable utmp support (default: disabled)]), [enable_utmp=$enableval], [enable_utmp=no])
-AC_ARG_ENABLE(telnet, AS_HELP_STRING([--enable-telnet], [enable telnet support (default: disabled)]), [enable_telnet=$enableval], [enable_telnet=no])
+AC_ARG_ENABLE(pam, AS_HELP_STRING([--enable-pam],
+	      [enable PAM support (default: disabled)]),
+	      [enable_pam=$enableval],
+	      [enable_pam=no])
+AC_ARG_ENABLE(utmp, AS_HELP_STRING([--enable-utmp],
+	      [enable utmp support (default: disabled)]),
+	      [enable_utmp=$enableval],
+	      [enable_utmp=no])
+AC_ARG_ENABLE(telnet, AS_HELP_STRING([--enable-telnet],
+	      [enable telnet support (default: disabled)]),
+	      [enable_telnet=$enableval],
+	      [enable_telnet=no])
+AC_ARG_ENABLE(socket-dir, AS_HELP_STRING([--enable-socket-dir],
+	      [enable global socket directory (default: disabled)]),
+	      [enable_socket_dir=$enableval],
+	      [enable_socket_dir=no])
+
+AC_ARG_WITH(system_screenrc, AS_HELP_STRING([--with-system_screenrc],
+	    [set location of system screenrc (default: /etc/screenrc)]),
+	    [with_system_screenrc=$withval],
+	    [with_system_screenrc=/etc/screenrc])
+AC_ARG_WITH(pty-mode, AS_HELP_STRING([--with-pty-mode],
+	    [set pty mode (default: 0622)]),
+	    [with_pty_mode=$withval],
+	    [with_pty_mode=0622])
+AC_ARG_WITH(pty-group, AS_HELP_STRING([--with-pty-group],
+	    [set pty group (default: 5)]),
+	    [with_pty_group=$withval],
+	    [with_pty_group=5])
+AC_ARG_WITH(pty-rofs, AS_HELP_STRING([--with-pty-rofs],
+	    [set rofs handling (default: no)]),
+	    [with_pty_rofs=$withval],
+	    [with_pty_rofs=no])
 
 dnl -- enable_pam
 
-AS_IF([test "$enable_pam" = "yes"], [
+AS_IF([test "x$enable_pam" = "xyes"], [
 	AC_MSG_CHECKING(for PAM support)
 	oldlibs="$LIBS"
 	LIBS="$LIBS -lpam"
@@ -94,13 +139,13 @@ AS_IF([test "$enable_pam" = "yes"], [
 
 dnl -- enable_utmp
 
-AS_IF([test "$enable_utmp" = "yes"], [
+AS_IF([test "x$enable_utmp" = "xyes"], [
 	AC_CHECK_HEADERS(utmpx.h, have_utmpx=yes, have_utmpx=no)
-	AS_IF([test "$have_utmpx" != "yes"],
+	AS_IF([test "x$have_utmpx" != "xyes"],
 	      AC_ERROR(Missing utmpx.h))
 
 	AC_CHECK_HEADER(utempter.h, have_utempter=yes, have_utempter=no)
-	AS_IF([test "$have_utempter" = "yes"], [
+	AS_IF([test "x$have_utempter" = "xyes"], [
 		AC_DEFINE(HAVE_UTEMPTER)
 		LIBS="$LIBS -lutempter"
 	])
@@ -126,8 +171,31 @@ AS_IF([test "$enable_utmp" = "yes"], [
 
 dnl -- enable_telnet
 
-AS_IF([test "$enable_telnet" = "yes"]], [
+AS_IF([test "x$enable_telnet" = "xyes"], [
 	AC_DEFINE(ENABLE_TELNET)
+])
+
+dnl -- enable_socket_dir
+
+AS_IF([test "x$enable_socket_dir" != "xno"], [
+	AS_IF([test "x$enable_socket_dir" == "xyes"],
+	      [enable_socket_dir="/run/screen"]
+	)
+	AC_DEFINE_UNQUOTED(SOCKET_DIR, "$enable_socket_dir")
+])
+
+dnl -- with_sysscreenrc
+AC_DEFINE_UNQUOTED(SYSTEM_SCREENRC, "$with_system_screenrc")
+
+dnl -- with_pty_mode
+AC_DEFINE_UNQUOTED(PTY_MODE, $with_pty_mode)
+
+dnl -- with_pty_group
+AC_DEFINE_UNQUOTED(PTY_GROUP, $with_pty_group)
+
+dnl -- with_pty_rofs
+AS_IF([test "x$with_pty_rofs" == "xyes"], [
+	AC_DEFINE(PTY_ROFS)
 ])
 
 dnl

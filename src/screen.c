@@ -622,7 +622,7 @@ int main(int argc, char **argv)
 
 	ppp = getpwbyname(LoginName, ppp);
 
-#if !defined(SOCKDIR)
+#if !defined(SOCKET_DIR)
 	if (multi && !multiattach) {
 		if (home && strcmp(home, ppp->pw_dir))
 			Panic(0, "$HOME must match passwd entry for multiuser screens.");
@@ -702,15 +702,15 @@ int main(int argc, char **argv)
 			Panic(0, "No $SCREENDIR with multi screens, please.");
 	}
 	if (multiattach) {
-#ifndef SOCKDIR
+#ifndef SOCKET_DIR
 		sprintf(SocketPath, "%s/.screen", multi_home);
 		SocketDir = SocketPath;
 #else
-		SocketDir = SOCKDIR;
+		SocketDir = SOCKET_DIR;
 		sprintf(SocketPath, "%s/S-%s", SocketDir, multi);
 #endif
 	} else {
-#ifndef SOCKDIR
+#ifndef SOCKET_DIR
 		if (SocketDir == 0) {
 			sprintf(SocketPath, "%s/.screen", home);
 			SocketDir = SocketPath;
@@ -729,9 +729,9 @@ int main(int argc, char **argv)
 			if (SocketDir != SocketPath)
 				strncpy(SocketPath, SocketDir, MAXPATHLEN + 2 * MAXSTR);
 		}
-#ifdef SOCKDIR
+#ifdef SOCKET_DIR
 		else {
-			SocketDir = SOCKDIR;
+			SocketDir = SOCKET_DIR;
 			if (stat(SocketDir, &st)) {
 				n = (eff_uid == 0 && (real_uid || eff_gid == real_gid)) ? 0755 :
 				    (eff_gid != real_gid) ? 0775 :
@@ -770,8 +770,8 @@ int main(int argc, char **argv)
 		if (st.st_uid != multi_uid)
 			Panic(0, "%s is not the owner of %s.", multi, SocketPath);
 	} else {
-#ifdef SOCKDIR			/* if SOCKDIR is not defined, the socket is in $HOME.
-				   in that case it does not make sense to compare uids. */
+#ifdef SOCKET_DIR	/* if SOCKETDIR is not defined, the socket is in $HOME.
+			   in that case it does not make sense to compare uids. */
 		if (st.st_uid != real_uid)
 			Panic(0, "You are not the owner of %s.", SocketPath);
 #endif
@@ -932,13 +932,8 @@ int main(int argc, char **argv)
 
 	ServerSocket = MakeServerSocket();
 	InitKeytab();
-#ifdef ETCSCREENRC
-#ifdef ALLOW_SYSSCREENRC
-	if ((ap = getenv("SYSSCREENRC")))
-		(void)StartRc(ap, 0);
-	else
-#endif
-		(void)StartRc(ETCSCREENRC, 0);
+#ifdef SYSTEM_SCREENRC
+	(void)StartRc(SYSTEM_SCREENRC, 0);
 #endif
 	(void)StartRc(RcFileName, 0);
 #ifdef ENABLE_UTMP
@@ -977,13 +972,8 @@ int main(int argc, char **argv)
 	} else
 		brktty(-1);	/* just try */
 	xsignal(SIGCHLD, SigChld);
-#ifdef ETCSCREENRC
-#ifdef ALLOW_SYSSCREENRC
-	if ((ap = getenv("SYSSCREENRC")))
-		FinishRc(ap);
-	else
-#endif
-		FinishRc(ETCSCREENRC);
+#ifdef SYSTEM_SCREENRC
+	FinishRc(SYSTEM_SCREENRC);
 #endif
 	FinishRc(RcFileName);
 

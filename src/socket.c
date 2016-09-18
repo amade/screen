@@ -174,8 +174,8 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 			continue;
 		}
 
-#ifdef SOCKDIR			/* if SOCKDIR is not defined, the socket is in $HOME.
-				   in that case it does not make sense to compare uids. */
+#ifdef SOCKET_DIR	/* if SOCKET_DIR is not defined, the socket is in $HOME.
+			   in that case it does not make sense to compare uids. */
 		if (st.st_uid != real_uid)
 			continue;
 #endif
@@ -357,8 +357,8 @@ int MakeServerSocket()
 		Msg(0, "There is already a screen running on %s.", Filename(SocketPath));
 		if (stat(SocketPath, &st) == -1)
 			Panic(errno, "stat");
-#ifdef SOCKDIR			/* if SOCKDIR is not defined, the socket is in $HOME.
-				   in that case it does not make sense to compare uids. */
+#ifdef SOCKET_DIR	/* if SOCKET_DIR is not defined, the socket is in $HOME.
+			   in that case it does not make sense to compare uids. */
 		if (st.st_uid != real_uid)
 			Panic(0, "Unfortunately you are not its owner.");
 #endif

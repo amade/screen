@@ -116,11 +116,11 @@ char NullStr[] = "";
 
 struct plop plop_tab[MAX_PLOP_DEFS];
 
-#ifndef PTYMODE
-#define PTYMODE 0622
+#ifndef PTY_MODE
+#define PTY_MODE 0622
 #endif
 
-int TtyMode = PTYMODE;
+int TtyMode = PTY_MODE;
 bool hardcopy_append = false;
 bool all_norefresh = 0;
 int zmodem_mode = 0;

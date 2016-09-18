@@ -869,9 +869,9 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 	if (*typep != W_TYPE_PTY)
 		return fd;
 
-#ifndef PTYROFS
-#ifdef PTYGROUP
-	if (chown(*namep, real_uid, PTYGROUP) && !eff_uid)
+#ifndef PTY_ROFS
+#ifdef PTY_GROUP
+	if (chown(*namep, real_uid, PTY_GROUP) && !eff_uid)
 #else
 	if (chown(*namep, real_uid, real_gid) && !eff_uid)
 #endif
