@@ -679,6 +679,13 @@ char **av;
 		    }
 		  break;
 		case 'L':
+          if (--ac != 0) {
+            screenlogfile = SaveStr(*++av);
+            if (screenlogfile[0] == '-')
+              Panic(0, "-L: logfile name can not start with \"-\" symbol");
+            if (strlen(screenlogfile) > PATH_MAX)
+              Panic(0, "-L: logfile name too long. (max. %d char)", PATH_MAX);
+          }
 		  nwin_options.Lflag = 1;
 		  break;
 		case 'm':

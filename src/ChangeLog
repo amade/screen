@@ -1,3 +1,6 @@
+Version 4.5.0 ():
+  * Allow specifying logfile's name via command line parameter 
+
 Version 4.4.0 (19/06/2016):
   * Support up to 24 function keys
   * Fix runtime issues
