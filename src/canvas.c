@@ -744,7 +744,7 @@ void OneCanvas()
 	ResizeLayersToCanvases();
 }
 
-void DupLayoutCv(Canvas *cvf, Canvas *cvt, int save)
+void DupLayoutCv(Canvas *cvf, Canvas *cvt, bool save)
 {
 	while (cvf) {
 		cvt->c_slorient = cvf->c_slorient;

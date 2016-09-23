@@ -106,7 +106,7 @@ void SaveLayout(char *name, Canvas *cv)
 	if (!lay)
 		return;
 	fcv = D_forecv;
-	DupLayoutCv(cv, &lay->lay_canvas, 1);
+	DupLayoutCv(cv, &lay->lay_canvas, true);
 	lay->lay_forecv = D_forecv;
 	D_forecv = fcv;
 	D_layout = lay;
@@ -119,7 +119,7 @@ void AutosaveLayout(Layout *lay)
 		return;
 	FreeLayoutCv(&lay->lay_canvas);
 	fcv = D_forecv;
-	DupLayoutCv(&D_canvas, &lay->lay_canvas, 1);
+	DupLayoutCv(&D_canvas, &lay->lay_canvas, true);
 	lay->lay_forecv = D_forecv;
 	D_forecv = fcv;
 }
@@ -159,7 +159,7 @@ void LoadLayout(Layout *lay)
 	D_forecv = lay->lay_forecv;
 	if (!D_forecv)
 		MakeDefaultCanvas();
-	DupLayoutCv(&lay->lay_canvas, &D_canvas, 0);
+	DupLayoutCv(&lay->lay_canvas, &D_canvas, false);
 	D_canvas.c_ys = (D_has_hstatus == HSTATUS_FIRSTLINE);
 	D_canvas.c_ye = D_height - 1 - ((D_canvas.c_slperp && D_canvas.c_slperp->c_slnext)
 					|| captionalways) - (D_has_hstatus == HSTATUS_LASTLINE);
@@ -183,7 +183,7 @@ void NewLayout(char *title, int startat)
 	if (display) {
 		LoadLayout(0);
 		fcv = D_forecv;
-		DupLayoutCv(&D_canvas, &lay->lay_canvas, 1);
+		DupLayoutCv(&D_canvas, &lay->lay_canvas, true);
 		lay->lay_forecv = D_forecv;
 		D_forecv = fcv;
 		D_layout = lay;

@@ -83,7 +83,7 @@ void  RecreateCanvasChain (void);
 void  RethinkViewportOffsets (Canvas *);
 int   CountCanvasPerp (Canvas *);
 void  EqualizeCanvas (Canvas *, bool);
-void  DupLayoutCv (Canvas *, Canvas *, int);
+void  DupLayoutCv (Canvas *, Canvas *, bool);
 void  PutWindowCv (Canvas *);
 
 #define CV_CALL(cv, cmd)		\
