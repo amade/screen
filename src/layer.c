@@ -925,11 +925,9 @@ void LayProcessMouseSwitch(Layer *l, int s)
 	}
 }
 
-void LayPause(Layer *layer, int pause)
+void LayPause(Layer *layer, bool pause)
 {
 	Window *win;
-
-	pause = ! !pause;
 
 	if (layer->l_pause.d == pause)
 		return;

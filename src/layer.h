@@ -80,7 +80,7 @@ struct Layer {
 	} l_mouseevent;
 
 	struct {
-		int d : 1;		/* Is the output for the layer blocked? */
+		bool d;		/* Is the output for the layer blocked? */
 
 		/* After unpausing, what region should we refresh? */
 		int *left, *right;
@@ -141,7 +141,7 @@ struct Layer {
  * @param layer The layer that should be (un)paused.
  * @param pause Should we pause the layer?
  */
-void LayPause (Layer *layer, int pause);
+void LayPause (Layer *layer, bool pause);
 
 /**
  * Update the region to refresh after a layer is unpaused.
