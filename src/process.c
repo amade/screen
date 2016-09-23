@@ -89,7 +89,7 @@ static int ParseSaveStr(struct action *, char **);
 static int ParseNum(struct action *, int *);
 static int ParseNum1000(struct action *, int *);
 static char **SaveArgs(char **);
-static int IsNum(char *, int);
+static bool IsNum(char *);
 static void ColonFin(char *, size_t, void *);
 static void InputSelect(void);
 static void InputSetenv(char *);
@@ -4216,15 +4216,15 @@ static int ParseBase(struct action *act, char *p, int *var, int base, char *bnam
 	return 0;
 }
 
-static int IsNum(char *s, int base)
+static bool IsNum(char *s)
 {
-	for (base += '0'; *s; ++s)
-		if (*s < '0' || *s > base)
-			return 0;
-	return 1;
+	for (; *s; ++s)
+		if (*s < '0' || *s > '9')
+			return false;
+	return true;
 }
 
-int IsNumColon(char *s, int base, char *p, int psize)
+int IsNumColon(char *s, char *p, int psize)
 {
 	char *q;
 	if ((q = strrchr(s, ':')) != 0) {
@@ -4233,7 +4233,7 @@ int IsNumColon(char *s, int base, char *p, int psize)
 		*q = '\0';
 	} else
 		*p = '\0';
-	return IsNum(s, base);
+	return IsNum(s);
 }
 
 void SwitchWindow(int n)
@@ -5037,7 +5037,7 @@ void DoScreen(char *fn, char **av)
 		}
 		++av;
 	}
-	if (av && *av && IsNumColon(*av, 10, buf, sizeof(buf))) {
+	if (av && *av && IsNumColon(*av, buf, sizeof(buf))) {
 		if (*buf != '\0')
 			nwin.aka = buf;
 		num = atoi(*av);

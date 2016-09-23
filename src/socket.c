@@ -499,7 +499,7 @@ static void ExecCreate(Message *mp)
 		int l, num;
 
 		l = strlen(p);
-		if (IsNumColon(p, 10, buf, sizeof(buf))) {
+		if (IsNumColon(p, buf, sizeof(buf))) {
 			if (*buf)
 				nwin.aka = buf;
 			num = atoi(p);
