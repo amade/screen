@@ -257,7 +257,7 @@ int DoTelnet(char *buf, int *lenp, int f)
 				break;
 			}
 			if (l)
-				bcopy(p, p + 1, l);
+				memmove(p + 1, p, l);
 			if (c == TC_IAC)
 				*p++ = c;
 			else if (c == '\r')
@@ -327,7 +327,7 @@ int TelIn(Window *win, char *buf, int len, int free)
 			if (wp + 1 == rp) {
 				if (free-- > 0) {
 					if (len)
-						bcopy(rp, rp + 1, len);
+						memmove(rp + 1, rp, len);
 					rp++;
 					*wp++ = '\r';
 				}
@@ -349,7 +349,7 @@ static void TelReply(Window *win, char *str, size_t len)
 		Msg(0, "Warning: telnet protocol overrun!");
 		return;
 	}
-	bcopy(str, win->w_inbuf + win->w_inlen, len);
+	memmove(win->w_inbuf + win->w_inlen, str, len);
 	win->w_inlen += len;
 }
 
