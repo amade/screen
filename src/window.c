@@ -1080,7 +1080,8 @@ void execvpe(char *prog, char **args, char **env)
 	if (!path && !(path = getenv("PATH")))
 		path = DefaultPath;
 	do {
-		for (char *p = buf; *path && *path != ':'; path++)
+		char *p;
+		for (p = buf; *path && *path != ':'; path++)
 			if (p - buf < (int)sizeof(buf) - 2)
 				*p++ = *path;
 		if (p > buf)
