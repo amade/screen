@@ -328,6 +328,7 @@ void  WindowDied (Window *, int, int);
 void  ResetWindow (Window *);
 #ifndef HAVE_EXECVPE
 #include <unistd.h>
+void execvpe(char *, char **, char **);
 #endif
 
 /* global variables */
