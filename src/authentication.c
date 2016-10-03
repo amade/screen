@@ -124,8 +124,10 @@ static bool CheckPassword() {
 	p = getspnam(ppp->pw_name);
 	seteuid(uid);
 	setegid(gid);
-	if (p == NULL)
+	if (p == NULL) {
 		fprintf(stderr, "can't open passwd file\n");
+		return false;
+	}
 
 	printf("\ascreen used by %s%s<%s> on %s.\n",
 		ppp->pw_gecos, ppp->pw_gecos[0] ? " " : "", ppp->pw_name, HostName);
