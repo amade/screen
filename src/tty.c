@@ -737,7 +737,7 @@ static int consredirfd[2] = { -1, -1 };
 static void consredir_readev_fn(Event * event, void *data)
 {
 	char *p, *n, buf[256];
-	int l;
+	size_t l;
 
 	(void)data;		/* unused */
 
