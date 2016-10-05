@@ -22,16 +22,11 @@ bindir  = $(exec_prefix)/bin
 VERSION = @PACKAGE_VERSION@
 SCREEN = screen-$(VERSION)
 
-ETCSCREENRC = @ETCSCREENRC@
-ifeq (${ETCSCREENRC}, )
-ETCSCREENRC=$(prefix)/etc/screenrc
-endif
 SCREENENCODINGS = $(datadir)/screen/utf8encodings
 
 CC = @CC@
 CFLAGS = @CFLAGS@ -Wall -Wextra -std=c11
-CPPFLAGS = @CPPFLAGS@ -iquote. -DETCSCREENRC='"$(ETCSCREENRC)"' \
-           -DSCREENENCODINGS='"$(SCREENENCODINGS)"'
+CPPFLAGS = @CPPFLAGS@ -iquote. -DSCREENENCODINGS='"$(SCREENENCODINGS)"'
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 
