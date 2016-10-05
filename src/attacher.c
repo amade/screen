@@ -58,15 +58,19 @@ static void LockTerminal(void);
 static void LockHup(int);
 static void AttachSigCont(int);
 
-static int ContinuePlease;
+static bool AttacherPanic = false;
+static bool ContinuePlease = false;
+static bool LockPlease = false;
+static bool SigWinchPlease = false;
+static bool SuspendPlease = false;
+
+static int QueryResult;
 
 static void AttachSigCont(int sigsig)
 {
 	(void)sigsig; /* unused */
-	ContinuePlease = 1;
+	ContinuePlease = true;
 }
-
-static int QueryResult;
 
 static void QueryResultSuccess(int sigsig)
 {
@@ -234,7 +238,7 @@ int Attach(int how)
 		while (!ContinuePlease)
 			pause();	/* wait for SIGCONT */
 		xsignal(SIGCONT, SIG_DFL);
-		ContinuePlease = 0;
+		ContinuePlease = false;
 		if (how != MSG_ATTACH)
 			return 0;	/* we detached it. jw. */
 		sleep(1);	/* we dont want to overrun our poor backend. jw. */
@@ -278,7 +282,7 @@ int Attach(int how)
 		while (!ContinuePlease)
 			pause();	/* wait for SIGCONT */
 		xsignal(SIGCONT, SIG_DFL);
-		ContinuePlease = 0;
+		ContinuePlease = false;
 		xseteuid(own_uid);
 		if (tty_oldmode >= 0)
 			if (chmod(attach_tty, tty_oldmode))
@@ -289,8 +293,6 @@ int Attach(int how)
 	rflag = 0;
 	return 1;
 }
-
-static int AttacherPanic = 0;
 
 static void AttacherSigAlarm(int sigsig)
 {
@@ -361,31 +363,25 @@ static void AttacherFinitBye(int sigsig)
 	exit(0);
 }
 
-static int SuspendPlease;
-
 static void SigStop(int sigsig)
 {
 	(void)sigsig; /* unused */
 
-	SuspendPlease = 1;
+	SuspendPlease = true;
 }
-
-static int LockPlease;
 
 static void DoLock(int sigsig)
 {
 	(void)sigsig; /* unused */
 
-	LockPlease = 1;
+	LockPlease = true;
 }
-
-static int SigWinchPlease;
 
 static void AttacherWinch(int sigsig)
 {
 	(void)sigsig; /* unused */
 
-	SigWinchPlease = 1;
+	SigWinchPlease = true;
 }
 
 /*
@@ -409,7 +405,7 @@ void Attacher()
 		pause();
 		alarm(0);
 		if (kill(MasterPid, 0) < 0 && errno != EPERM) {
-			AttacherPanic++;
+			AttacherPanic = true;
 		}
 		if (AttacherPanic) {
 			fcntl(0, F_SETFL, 0);
@@ -418,18 +414,18 @@ void Attacher()
 			eexit(1);
 		}
 		if (SuspendPlease) {
-			SuspendPlease = 0;
+			SuspendPlease = false;
 			xsignal(SIGTSTP, SIG_DFL);
 			kill(getpid(), SIGTSTP);
 			xsignal(SIG_STOP, SigStop);
 			(void)Attach(MSG_CONT);
 		}
 		if (LockPlease) {
-			LockPlease = 0;
+			LockPlease = false;
 			(void)Attach(MSG_CONT);
 		}
 		if (SigWinchPlease) {
-			SigWinchPlease = 0;
+			SigWinchPlease = false;
 			(void)Attach(MSG_WINCH);
 		}
 	}
