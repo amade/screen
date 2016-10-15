@@ -76,7 +76,7 @@ struct pseudowin {
 	char	p_cmd[MAXSTR];
 	char	p_tty[MAXSTR];
 	char	p_inbuf[IOSIZE];	/* buffered writing to p_ptyfd */
-	int	p_inlen;
+	size_t	p_inlen;
 };
 
 /* bits for fdpat: */
@@ -150,7 +150,7 @@ struct Window {
 	int	 w_poll_zombie_timeout;
 	int	 w_ptyfd;		/* fd of the master pty */
 	char	 w_inbuf[IOSIZE];
-	int	 w_inlen;
+	size_t	 w_inlen;
 	char	 w_outbuf[IOSIZE];
 	int	 w_outlen;
 	bool	 w_aflag;		/* (-a option) */

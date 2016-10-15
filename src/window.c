@@ -60,7 +60,7 @@ static void WinRedisplayLine(int, int, int, int);
 static void WinClearLine(int, int, int, int);
 static int WinResize(int, int);
 static void WinRestore(void);
-static int DoAutolf(char *, int *, int);
+static int DoAutolf(char *, size_t *, int);
 static void ZombieProcess(char **, size_t *);
 static void win_readev_fn(Event *, void *);
 static void win_writeev_fn(Event *, void *);
@@ -74,9 +74,9 @@ static void win_destroyev_fn(Event *, void *);
 
 static int OpenDevice(char **, int, int *, char **);
 static int ForkWindow(Window *, char **, char *);
-static void zmodem_found(Window *, int, char *, int);
+static void zmodem_found(Window *, int, char *, size_t);
 static void zmodemFin(char *, size_t, void *);
-static int zmodem_parse(Window *, char *, int);
+static int zmodem_parse(Window *, char *, size_t);
 
 Window **wtab;		/* window table */
 
@@ -184,10 +184,10 @@ const struct LayFuncs WinLf = {
 	0
 };
 
-static int DoAutolf(char *buf, int *lenp, int fr)
+static int DoAutolf(char *buf, size_t *lenp, int fr)
 {
 	char *p;
-	int len = *lenp;
+	size_t len = *lenp;
 	int trunc = 0;
 
 	for (p = buf; len > 0; p++, len--) {
@@ -208,7 +208,7 @@ static int DoAutolf(char *buf, int *lenp, int fr)
 
 static void WinProcess(char **bufpp, size_t *lenp)
 {
-	int l2 = 0, f, *ilen, l = *lenp, trunc;
+	size_t l2 = 0, f, *ilen, l = *lenp, trunc;
 	char *ibuf;
 
 	fore = (Window *)flayer->l_data;
@@ -284,7 +284,7 @@ static void WinProcess(char **bufpp, size_t *lenp)
 
 static void ZombieProcess(char **bufpp, size_t *lenp)
 {
-	int l = *lenp;
+	size_t l = *lenp;
 	char *buf = *bufpp, b1[10], b2[10];
 
 	fore = (Window *)flayer->l_data;
@@ -612,7 +612,7 @@ int MakeWindow(struct NewWindow *newwin)
 	p->w_readev.data = p->w_writeev.data = (char *)p;
 	p->w_readev.handler = win_readev_fn;
 	p->w_writeev.handler = win_writeev_fn;
-	p->w_writeev.condpos = &p->w_inlen;
+	p->w_writeev.condpos = (int *)&p->w_inlen;
 	evenq(&p->w_readev);
 	evenq(&p->w_writeev);
 	p->w_paster.pa_slowev.type = EV_TIMEOUT;
@@ -1226,7 +1226,7 @@ int winexec(char **av)
 	pwin->p_readev.data = pwin->p_writeev.data = (char *)w;
 	pwin->p_readev.handler = pseu_readev_fn;
 	pwin->p_writeev.handler = pseu_writeev_fn;
-	pwin->p_writeev.condpos = &pwin->p_inlen;
+	pwin->p_writeev.condpos = (int *)&pwin->p_inlen;
 	if (pwin->p_fdpat & (F_PFRONT << F_PSHIFT * 2 | F_PFRONT << F_PSHIFT))
 		evenq(&pwin->p_readev);
 	evenq(&pwin->p_writeev);
@@ -1256,7 +1256,7 @@ void FreePseudowin(Window *w)
 		close(pwin->p_ptyfd);
 	evdeq(&pwin->p_readev);
 	evdeq(&pwin->p_writeev);
-	if (w->w_readev.condneg == &pwin->p_inlen)
+	if (w->w_readev.condneg == (int *)&pwin->p_inlen)
 		w->w_readev.condpos = w->w_readev.condneg = 0;
 	evenq(&w->w_readev);
 	free((char *)pwin);
@@ -1362,7 +1362,7 @@ static void win_readev_fn(Event *event, void *data)
 		size = IOSIZE - p->w_pwin->p_inlen;
 		if (size <= 0) {
 			event->condpos = &const_IOSIZE;
-			event->condneg = &p->w_pwin->p_inlen;
+			event->condneg = (int *)&p->w_pwin->p_inlen;
 			return;
 		}
 	}
@@ -1445,7 +1445,7 @@ static void win_resurrect_zombie_fn(Event *event, void *data)
 static void win_writeev_fn(Event *event, void *data)
 {
 	Window *p = (Window *)data;
-	int len;
+	size_t len;
 	if (p->w_inlen) {
 		if ((len = write(event->fd, p->w_inbuf, p->w_inlen)) <= 0)
 			len = p->w_inlen;	/* dead window */
@@ -1482,7 +1482,7 @@ static void pseu_readev_fn(Event *event, void *data)
 		size = IOSIZE - p->w_inlen;
 		if (size <= 0) {
 			event->condpos = &const_IOSIZE;
-			event->condneg = &p->w_inlen;
+			event->condneg = (int *)&p->w_inlen;
 			return;
 		}
 	}
@@ -1525,7 +1525,7 @@ static void pseu_writeev_fn(Event *event, void *data)
 {
 	Window *p = (Window *)data;
 	struct pseudowin *pw = p->w_pwin;
-	int len;
+	size_t len;
 
 	if (pw->p_inlen == 0)
 		return;
@@ -1565,10 +1565,10 @@ static void win_destroyev_fn(Event *event, void *data)
 	WindowDied(p, p->w_exitstatus, 1);
 }
 
-static int zmodem_parse(Window *p, char *bp, int len)
+static int zmodem_parse(Window *p, char *bp, size_t len)
 {
 	char *b2 = bp;
-	for (int i = 0; i < len; i++, b2++) {
+	for (size_t i = 0; i < len; i++, b2++) {
 		if (p->w_zauto == 0) {
 			for (; i < len; i++, b2++)
 				if (*b2 == 030)
@@ -1638,14 +1638,14 @@ static void zmodemFin(char *buf, size_t len, void *data)
 	}
 }
 
-static void zmodem_found(Window *p, int send, char *bp, int len)
+static void zmodem_found(Window *p, int send, char *bp, size_t len)
 {
 	char *s;
 	size_t n;
 
 	/* check for abort sequence */
 	n = 0;
-	for (int i = 0; i < len; i++)
+	for (size_t i = 0; i < len; i++)
 		if (bp[i] != 030)
 			n = 0;
 		else if (++n > 4)
@@ -1674,7 +1674,7 @@ static void zmodem_found(Window *p, int send, char *bp, int len)
 		display = d;
 		evdeq(&D_blockedev);
 		D_readev.condpos = &const_IOSIZE;
-		D_readev.condneg = &p->w_inlen;
+		D_readev.condneg = (int *)&p->w_inlen;
 		ClearAll();
 		GotoPos(0, 0);
 		SetRendition(&mchar_blank);
