@@ -777,7 +777,6 @@ processchar:
 	  /* it may be useful to have a key that does nothing */
 	  break;
 	case '%':
-	  rep_cnt--;
 	  /* rep_cnt is a percentage for the history buffer */
 	  if (rep_cnt < 0)
 	    rep_cnt = 0;
