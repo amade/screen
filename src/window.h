@@ -48,6 +48,7 @@ struct NewWindow {
 	char	*dir;		/* directory for chdir */
 	char	*term;		/* TERM to be set instead of "screen" */
 	bool	aflag;
+	bool	dynamicaka;
 	int	flowflag;
 	int	lflag;
 	int	histheight;
@@ -154,8 +155,9 @@ struct Window {
 	char	 w_outbuf[IOSIZE];
 	int	 w_outlen;
 	bool	 w_aflag;		/* (-a option) */
-	char  *w_title;		/* name of the window */
-	char  *w_akachange;		/* autoaka hack */
+	bool	 w_dynamicaka;		/* should we change name */
+	char	*w_title;		/* name of the window */
+	char	*w_akachange;		/* autoaka hack */
 	char	 w_akabuf[MAXSTR];	/* aka buffer */
 	int	 w_autoaka;		/* autoaka hack */
 	Window  *w_group;		/* window group we belong to */

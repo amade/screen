@@ -1672,6 +1672,12 @@ void DoAction(struct action *act, int key)
 			}
 		}
 		break;
+	case RC_DEFDYNAMICTITLE:
+		(void)ParseOnOff(act, &nwin_default.dynamicaka);
+		break;
+	case RC_DYNAMICTITLE:
+		(void)ParseOnOff(act, &fore->w_dynamicaka);
+		break;
 	case RC_TITLE:
 		if (queryflag >= 0) {
 			if (fore)

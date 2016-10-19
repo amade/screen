@@ -94,6 +94,7 @@ struct NewWindow nwin_undef = {
 	.dir                 = (char *)0,
 	.term                = (char *)0,
 	.aflag               = false,
+	.dynamicaka          = false,
 	.flowflag            = -1,
 	.lflag               = -1,
 	.histheight          = -1,
@@ -119,6 +120,7 @@ struct NewWindow nwin_default = {
 	.dir        = 0,
 	.term       = screenterm,
 	.aflag      = false,
+	.dynamicaka = true,
 	.flowflag   = FLOW_ON,
 	.lflag      = 1,
 	.histheight = DEFAULTHISTHEIGHT,
@@ -150,6 +152,7 @@ void nwin_compose(struct NewWindow *def, struct NewWindow *new, struct NewWindow
 	COMPOSE(dir);
 	COMPOSE(term);
 	COMPOSE(aflag);
+	COMPOSE(dynamicaka);
 	COMPOSE(flowflag);
 	COMPOSE(lflag);
 	COMPOSE(histheight);
@@ -482,6 +485,7 @@ int MakeWindow(struct NewWindow *newwin)
 	p->w_wlock = nwin.wlock;
 	p->w_ptyfd = f;
 	p->w_aflag = nwin.aflag;
+	p->w_dynamicaka = nwin.dynamicaka;
 	p->w_flow = nwin.flowflag | ((nwin.flowflag & FLOW_AUTOFLAG) ? (FLOW_AUTO | FLOW_ON) : FLOW_AUTO);
 	if (!nwin.aka)
 		nwin.aka = Filename(nwin.args[0]);
