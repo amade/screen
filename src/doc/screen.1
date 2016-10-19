@@ -1629,6 +1629,14 @@ new windows is changed. Shows current default if called without
 argument.
 .RE
 .TP
+.BR "defdynamictitle on" | off
+.RS 0
+.PP
+Set default behaviour for new windows regarding if screen should change window
+title when seeing proper escape sequence. See also "TITLES (naming windows)"
+section.
+.RE
+.TP
 .BI "defescape " xy
 .RS 0
 .PP
@@ -1933,6 +1941,13 @@ like
 .IR captoinfo
 and then compile the entry with 
 .IR tic .
+.RE
+.TP
+.BR "dynamictitle on" | off
+.RS 0
+.PP
+Change behaviour for windows regarding if screen should change window title
+when seeing proper escape sequence. See also "TITLES (naming windows)" section.
 .RE
 .TP
 .BR "echo " [ \-n ] " \fImessage\fP"
@@ -4106,7 +4121,8 @@ Interactively, there is the title-string escape-sequence
 The former can be output from an application to control the window's name
 under software control, and the latter will prompt for a name when typed.
 You can also bind pre-defined names to keys with the \*Qtitle\*U command
-to set things quickly without prompting.
+to set things quickly without prompting. Changing title bythis escape sequence
+can be controlled by \fBdefdynamictitle\fp and \fBdynamictitle\fP commands. 
 .PP
 Finally,
 .I screen
