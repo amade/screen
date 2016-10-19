@@ -126,6 +126,7 @@ struct NewWindow nwin_undef   =
   (char *)0,	/* dir */
   (char *)0,	/* term */
   -1,		/* aflag */
+  -1,		/* dynamicaka */
   -1,		/* flowflag */
   -1,		/* lflag */
   -1,		/* histheight */
@@ -152,6 +153,7 @@ struct NewWindow nwin_default =
   0, 		/* dir */
   screenterm, 	/* term */
   0, 		/* aflag */
+  1,		/* dynamicaka */
   1*FLOW_NOW,	/* flowflag */
   LOGINDEFAULT, /* lflag */
   DEFAULTHISTHEIGHT, 	/* histheight */
@@ -185,6 +187,7 @@ struct NewWindow *def, *new, *res;
   COMPOSE(dir);
   COMPOSE(term);
   COMPOSE(aflag);
+  COMPOSE(dynamicaka);
   COMPOSE(flowflag);
   COMPOSE(lflag);
   COMPOSE(histheight);
@@ -684,6 +687,7 @@ struct NewWindow *newwin;
 #endif
   p->w_ptyfd = f;
   p->w_aflag = nwin.aflag;
+  p->w_dynamicaka = nwin.dynamicaka;
   p->w_flow = nwin.flowflag | ((nwin.flowflag & FLOW_AUTOFLAG) ? (FLOW_AUTO|FLOW_NOW) : FLOW_AUTO);
   if (!nwin.aka)
     nwin.aka = Filename(nwin.args[0]);

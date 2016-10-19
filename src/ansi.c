@@ -1617,7 +1617,8 @@ StringEnd()
     case AKA:
       if (curr->w_title == curr->w_akabuf && !*curr->w_string)
 	break;
-      ChangeAKA(curr, curr->w_string, strlen(curr->w_string));
+      if (curr->w_dynamicaka)
+	ChangeAKA(curr, curr->w_string, strlen(curr->w_string));
       if (!*curr->w_string)
 	curr->w_autoaka = curr->w_y + 1;
       break;

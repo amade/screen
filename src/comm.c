@@ -145,6 +145,7 @@ struct comm comms[RC_LAST + 1] =
   { "defbreaktype",	ARGS_01 },
   { "defc1",		ARGS_1 },
   { "defcharset",       ARGS_01 },
+  { "defdynamictitle",	ARGS_1 },
 #ifdef ENCODINGS
   { "defencoding",	ARGS_1 },
 #endif
@@ -184,6 +185,7 @@ struct comm comms[RC_LAST + 1] =
   { "dinfo",		NEED_DISPLAY|ARGS_0 },
   { "displays",		NEED_LAYER|ARGS_0 },
   { "dumptermcap",	NEED_FORE|ARGS_0 },
+  { "dynamictitle",	ARGS_1 },
   { "echo",		CAN_QUERY|ARGS_12 },
 #ifdef ENCODINGS
   { "encoding",		ARGS_12 },
