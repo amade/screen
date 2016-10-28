@@ -404,7 +404,7 @@ static void TelDocmd(Window *win, int cmd, int opt)
 
 static void TelDosub(Window *win)
 {
-	char trepl[20 + 6 + 1];
+	char trepl[MAXTERMLEN + 6 + 1];
 	int l;
 
 	switch (win->w_telsubbuf[0]) {
@@ -412,7 +412,7 @@ static void TelDosub(Window *win)
 		if (win->w_telsubidx != 2 || win->w_telsubbuf[1] != 1)
 			return;
 		l = strlen(screenterm);
-		if (l >= 20)
+		if (l >= MAXTERMLEN)
 			break;
 		sprintf(trepl, "%c%c%c%c%s%c%c", TC_IAC, TC_SB, TO_TTYPE, 0, screenterm, TC_IAC, TC_SE);
 		TelReply(win, trepl, l + 6);
