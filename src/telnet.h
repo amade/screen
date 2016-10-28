@@ -9,8 +9,8 @@
 int TelOpenAndConnect(Window *);
 int TelIsline(Window *);
 void TelProcessLine(char **, size_t *);
-int DoTelnet(char *, int *, int);
-int TelIn(Window *, char *, int, int);
+int DoTelnet(char *, size_t *, int);
+int TelIn(Window *, char *, size_t, int);
 void TelBreak(Window *);
 void TelWindowSize(Window *);
 void TelStatus(Window *, char *, size_t);

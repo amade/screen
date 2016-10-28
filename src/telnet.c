@@ -230,7 +230,7 @@ void TelProcessLine(char **bufpp, size_t *lenp)
 	*lenp = 0;
 }
 
-int DoTelnet(char *buf, int *lenp, int f)
+int DoTelnet(char *buf, size_t *lenp, int f)
 {
 	int echo = !fore->w_telropts[TO_ECHO];
 	int cmode = fore->w_telropts[TO_SGA];
@@ -238,7 +238,7 @@ int DoTelnet(char *buf, int *lenp, int f)
 	char *p = buf, *sbuf;
 	int trunc = 0;
 	int c;
-	int l = *lenp;
+	ssize_t l = *lenp;
 
 	sbuf = p;
 	while (l-- > 0) {
@@ -273,7 +273,7 @@ int DoTelnet(char *buf, int *lenp, int f)
 }
 
 /* modifies data in-place, returns new length */
-int TelIn(Window *win, char *buf, int len, int free)
+int TelIn(Window *win, char *buf, size_t len, int free)
 {
 	char *rp, *wp;
 	int c;
@@ -343,7 +343,7 @@ int TelIn(Window *win, char *buf, int len, int free)
 
 static void TelReply(Window *win, char *str, size_t len)
 {
-	if (len <= 0)
+	if (len == 0)
 		return;
 	if (win->w_inlen + len > IOSIZE) {
 		Msg(0, "Warning: telnet protocol overrun!");
@@ -405,17 +405,17 @@ static void TelDocmd(Window *win, int cmd, int opt)
 static void TelDosub(Window *win)
 {
 	char trepl[MAXTERMLEN + 6 + 1];
-	int l;
+	size_t len;
 
 	switch (win->w_telsubbuf[0]) {
 	case TO_TTYPE:
 		if (win->w_telsubidx != 2 || win->w_telsubbuf[1] != 1)
 			return;
-		l = strlen(screenterm);
-		if (l >= MAXTERMLEN)
+		len = strlen(screenterm);
+		if (len >= MAXTERMLEN)
 			break;
 		sprintf(trepl, "%c%c%c%c%s%c%c", TC_IAC, TC_SB, TO_TTYPE, 0, screenterm, TC_IAC, TC_SE);
-		TelReply(win, trepl, l + 6);
+		TelReply(win, trepl, len + 6);
 		break;
 	case TO_LFLOW:
 		if (win->w_telsubidx != 2)
@@ -441,7 +441,7 @@ void TelWindowSize(Window *win)
 	sprintf(s, "%c%c%c%c%c%c%c%c%c", TC_SB, TC_SB, TO_NAWS, win->w_width / 256, win->w_width & 255, win->w_height / 256,
 		win->w_height & 255, TC_SE, TC_SE);
 	t = trepl;
-	for (int i = 0; i < 9; i++)
+	for (size_t i = 0; i < 9; i++)
 		if ((unsigned char)(*t++ = s[i]) == TC_IAC)
 			*t++ = TC_IAC;
 	trepl[0] = TC_IAC;
@@ -457,13 +457,13 @@ void TelStatus(Window *win, char *buf, size_t len)
 	(void)len; /* unused */
 
 	*buf++ = '[';
-	for (int i = 0; to_s[i]; i++) {
+	for (size_t i = 0; to_s[i]; i++) {
 		if (to_s[i] == ' ' || win->w_telmopts[i] == 0)
 			continue;
 		*buf++ = to_s[i];
 	}
 	*buf++ = ':';
-	for (int i = 0; to_s[i]; i++) {
+	for (size_t i = 0; to_s[i]; i++) {
 		if (to_s[i] == ' ' || win->w_telropts[i] == 0)
 			continue;
 		*buf++ = to_s[i];
