@@ -48,9 +48,6 @@
  * history) */
 WinMsgBuf *g_winmsg;
 
-/* TODO: same with this guy */
-extern Backtick *backticks;
-
 #define CHRPAD 127
 
 /* maximum limit on MakeWinMsgEv recursion */
