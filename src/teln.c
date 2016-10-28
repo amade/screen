@@ -482,7 +482,7 @@ static void
 TelDosub(p)
 struct win *p;
 {
-  char trepl[20 + 6 + 1];
+  char trepl[MAXTERMLEN + 6 + 1];
   int l;
 
   switch(p->w_telsubbuf[0])
@@ -491,7 +491,7 @@ struct win *p;
       if (p->w_telsubidx != 2 || p->w_telsubbuf[1] != 1)
 	return;
       l = strlen(screenterm);
-      if (l >= 20)
+      if (l >= MAXTERMLEN)
 	break;
       sprintf(trepl, "%c%c%c%c%s%c%c", TC_IAC, TC_SB, TO_TTYPE, 0, screenterm, TC_IAC, TC_SE);
       TelReply(p, trepl, l + 6);
