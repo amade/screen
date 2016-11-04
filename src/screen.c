@@ -2642,7 +2642,7 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
         for (i = 0; win && win->w_cmdargs[i]; i++) {
           if (l < strlen(win->w_cmdargs[i]) + 1)
             break;
-          sprintf(p, i ? "%s" : " %s", win->w_cmdargs[i]);
+          sprintf(p, i ? " %s" : "%s", win->w_cmdargs[i]);
           l -= strlen(p);
           p += strlen(p);
           if (i == 0 && *s == 'X')
