@@ -424,6 +424,13 @@ int main(int argc, char **argv)
 							Panic(0, "-L: logfile name can not start with \"-\" symbol");
 						if (strlen(screenlogfile) > PATH_MAX)
 							Panic(0, "-L: logfile name too long. (max. %d char)", PATH_MAX);
+
+						FILE *w_check;
+						if ((w_check = fopen(screenlogfile, "w")) == NULL)
+							Panic(0, "-L: logfile name access problem");
+						else
+							fclose(w_check);
+
 					}
 					nwin_options.Lflag = true;
 					break;
