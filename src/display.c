@@ -1132,18 +1132,6 @@ void SetAttr(int new)
 		return;
 	if (old == new)
 		return;
-#if defined(USE_SGR)
-	if (D_SA) {
-		SetFont(ASCII);
-		tputs(tparm(D_SA, new & A_SO, new & A_US, new & A_RV, new & A_BL,
-			    new & A_DI, new & A_BD, 0, 0, 0), 1, DoAddChar);
-		D_rend.attr = new;
-		D_atyp = 0;
-		if (D_hascolor)
-			D_rend.colorbg = D_rend.colorfg = 0;
-		return;
-	}
-#endif
 	D_rend.attr = new;
 	typ = D_atyp;
 	if ((new & old) != old) {

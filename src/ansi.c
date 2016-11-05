@@ -65,7 +65,7 @@ struct mline mline_null;
 
 struct mchar mchar_null;
 struct mchar mchar_blank = { ' ', 0, 0, 0, 0, 0, 0 };
-struct mchar mchar_so = { ' ', A_SO, 0, 0, 0, 0, 0};
+struct mchar mchar_so = { ' ', A_RV, 0, 0, 0, 0, 0};
 
 uint64_t renditions[NUM_RENDS] = { 65529 /* =ub */ , 65531 /* =b */ , 65533 /* =u */  };
 
@@ -1685,9 +1685,9 @@ static void ASetMode(Window *win, bool on)
 }
 
 static char rendlist[] = {
-	~((1 << NATTR) - 1), A_BD, A_DI, A_SO, A_US, A_BL, 0, A_RV, 0, 0,
+	~((1 << NATTR) - 1), A_BD, A_DI, A_IT, A_US, A_BL, 0, A_RV, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, ~(A_BD | A_SO | A_DI), ~A_SO, ~A_US, ~A_BL, 0, ~A_RV
+	0, 0, ~(A_BD | A_DI), ~A_IT, ~A_US, ~A_BL, 0, ~A_RV
 };
 
 static void SelectRendition(Window *win)

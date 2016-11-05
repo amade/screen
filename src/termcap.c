@@ -759,9 +759,13 @@ char *MakeTermcap(bool aflag)
 			AddCap("us=\\E[4m:");
 			AddCap("ue=\\E[24m:");
 		}
-		if (D_SO) {
+		if (D_CZH) {
 			AddCap("so=\\E[3m:");
 			AddCap("se=\\E[23m:");
+		}
+		if (D_SO) {
+			AddCap("so=\\E[7m:");
+			AddCap("se=\\E[27m:");
 		}
 		if (D_MB)
 			AddCap("mb=\\E[5m:");

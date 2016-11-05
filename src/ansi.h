@@ -34,14 +34,16 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define NATTR		6
+#define NATTR		7
 
-#define ATTR_DI		0	/* Dim mode */
-#define ATTR_US		1	/* Underscore mode */
-#define ATTR_BD		2	/* Bold mode */
-#define ATTR_RV		3	/* Reverse mode */
-#define ATTR_SO		4	/* Standout mode */
-#define ATTR_BL		5	/* Blinking */
+				/*			Capname	TCapCode */
+#define ATTR_DI		0	/* Dim mode		dim	mh	*/
+#define ATTR_US		1	/* Underscore mode	smul	us	*/
+#define ATTR_BD		2	/* Bold mode		bold	md	*/
+#define ATTR_RV		3	/* Reverse mode		rev	mr	*/
+#define ATTR_SO		4	/* Standout mode	smso	so	*/
+#define ATTR_BL		5	/* Blinking		blink	mb	*/
+#define ATTR_IT		6	/* Italicized		simt	ZH	*/
 
 #define A_DI	(1<<ATTR_DI)
 #define A_US	(1<<ATTR_US)
@@ -49,7 +51,7 @@
 #define A_RV	(1<<ATTR_RV)
 #define A_SO	(1<<ATTR_SO)
 #define A_BL	(1<<ATTR_BL)
-#define A_MAX	(1<<(NATTR-1))
+#define A_IT	(1<<ATTR_IT)
 
 #define ATYP_M		(1<<0)
 #define ATYP_S		(1<<1)

@@ -5736,8 +5736,8 @@ uint64_t ParseAttrColor(char *str, int msgok)
 		case 'r':
 			attr |= A_RV;
 			break;
-		case 's':
-			attr |= A_SO;
+		case 'i':
+			attr |= A_IT;
 			break;
 		case 'l':
 			attr |= A_BL;
