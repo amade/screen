@@ -35,7 +35,6 @@
 #include <sys/ioctl.h>
 
 #include "screen.h"
-#include "winmsg.h"
 
 #include "encoding.h"
 #include "fileio.h"
@@ -45,6 +44,7 @@
 #include "misc.h"
 #include "process.h"
 #include "resize.h"
+#include "winmsg.h"
 
 /* widths for Z0/Z1 switching */
 const int Z0width = 132;

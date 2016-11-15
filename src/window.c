@@ -41,7 +41,6 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-#include "winmsg.h"
 #include "fileio.h"
 #include "help.h"
 #include "input.h"
@@ -54,6 +53,7 @@
 #include "termcap.h"
 #include "tty.h"
 #include "utmp.h"
+#include "winmsg.h"
 
 static void WinProcess(char **, size_t *);
 static void WinRedisplayLine(int, int, int, int);

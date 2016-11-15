@@ -38,11 +38,11 @@
 #include "screen.h"
 
 #include "fileio.h"
+#include "help.h"
 #include "logfile.h"
+#include "mark.h"
 #include "process.h"
 #include "sched.h"
-#include "mark.h"
-#include "help.h"
 
 /* TODO: rid global variable (has been renamed to point this out; see commit
  * history) */

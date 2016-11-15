@@ -43,8 +43,8 @@
 #endif
 
 #include "misc.h"
-#include "winmsg.h"
 #include "tty.h"
+#include "winmsg.h"
 
 /*
  *  we have a suid-root helper app that changes the utmp for us

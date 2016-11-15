@@ -66,15 +66,10 @@ struct mode {
 
 
 #include "ansi.h"
-#include "sched.h"
-#include "acls.h"
-#include "comm.h"
-#include "layer.h"
-#include "term.h"
-
 #include "image.h"
-#include "canvas.h"
-#include "display.h"
+#include "layer.h"
+#include "sched.h"
+#include "term.h"
 #include "window.h"
 
 /*

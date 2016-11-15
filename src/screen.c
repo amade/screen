@@ -46,12 +46,11 @@
 #include <langinfo.h>
 #endif
 
-#include "winmsg.h"
-
 #include "logfile.h"		/* islogfile, logfflush */
 #include "fileio.h"
 #include "mark.h"
 #include "utmp.h"
+#include "winmsg.h"
 
 extern char **environ;
 

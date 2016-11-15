@@ -38,7 +38,6 @@
 #include <stdint.h>
 
 #include "screen.h"
-#include "winmsg.h"
 
 #include "canvas.h"
 #include "encoding.h"
@@ -49,6 +48,7 @@
 #include "resize.h"
 #include "termcap.h"
 #include "tty.h"
+#include "winmsg.h"
 
 static int CountChars(int);
 static int DoAddChar(int);

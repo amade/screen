@@ -34,7 +34,6 @@
 #include <sys/types.h>
 
 #include "mark.h"
-#include "mark.h"
 #include "input.h"
 
 #define INPUTLINE (flayer->l_height - 1)

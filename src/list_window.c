@@ -35,12 +35,12 @@
 #include <stdint.h>
 
 #include "screen.h"
-#include "winmsg.h"
 
 #include "input.h"
 #include "layer.h"
 #include "misc.h"
 #include "process.h"
+#include "winmsg.h"
 
 static char ListID[] = "window";
 

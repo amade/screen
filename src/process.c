@@ -46,7 +46,6 @@
 #include <time.h>
 
 #include "screen.h"
-#include "winmsg.h"
 
 #include "display.h"
 #include "encoding.h"
@@ -67,6 +66,7 @@
 #include "tty.h"
 #include "utmp.h"
 #include "viewport.h"
+#include "winmsg.h"
 
 
 static int CheckArgNum(int, char **);
