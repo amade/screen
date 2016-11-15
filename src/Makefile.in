@@ -41,12 +41,13 @@ AWK = @AWK@
 
 SHELL=/bin/sh
 
-CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
-	search.c tty.c term.c window.c utmp.c help.c \
-	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
-	kmapdef.c acls.c logfile.c layer.c winmsg.c winmsgbuf.c winmsgcond.c \
-	backtick.c sched.c telnet.c encoding.c canvas.c layout.c viewport.c \
-	list_display.c list_generic.c list_window.c authentication.c
+CFILES=	screen.c \
+	acls.c ansi.c attacher.c authentication.c backtick.c canvas.c comm.c \
+	display.c encoding.c fileio.c help.c input.c kmapdef.c layer.c \
+	layout.c list_display.c list_generic.c list_window.c logfile.c mark.c \
+	misc.c process.c pty.c resize.c sched.c search.c socket.c telnet.c \
+	term.c termcap.c tty.c utmp.c viewport.c window.c winmsg.c \
+	winmsgbuf.c winmsgcond.c
 OFILES=$(CFILES:c=o)
 
 TESTCFILES := $(wildcard tests/test-*.c)
@@ -58,7 +59,7 @@ screen: $(OFILES)
 	$(CC) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
 .c.o:
-	$(CC) -c $(M_CFLAGS) $(CPPFLAGS) $(CFLAGS) $< -o $@
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
 check: $(TESTBIN)
 	for f in $(TESTBIN); do \
@@ -66,7 +67,7 @@ check: $(TESTBIN)
 		"$$f" || exit $$?; \
 	done
 tests/test-%: tests/test-%.c %.o tests/mallocmock.o tests/macros.h tests/signature.h
-	$(CC) $(M_CFLAGS) $(CPPFLAGS) $(CFLAGS) $< -o $@ $*.o tests/mallocmock.o
+	$(CC) $(CPPFLAGS) $(CFLAGS) $< -o $@ $*.o tests/mallocmock.o
 
 install_bin: screen
 	-if [ -f $(DESTDIR)$(bindir)/$(SCREEN) ] && [ ! -f $(DESTDIR)$(bindir)/$(SCREEN).old ]; \
