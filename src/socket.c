@@ -887,7 +887,6 @@ int RecoverSocket()
 
 static void FinishAttach(Message *m)
 {
-	char *p;
 	pid_t pid;
 	int noshowwin;
 	Window *wi;
@@ -909,11 +908,6 @@ static void FinishAttach(Message *m)
 	if (extra_incap)
 		free(extra_incap);
 	extra_incap = extra_outcap = 0;
-#ifdef ALLOW_SYSSCREENRC
-	if ((p = getenv("SYSSCREENRC")))
-		StartRc(p, 1);
-	else
-#endif
 	StartRc(SYSTEM_SCREENRC, 1);
 	StartRc(RcFileName, 1);
 	if (InitTermcap(m->m.attach.columns, m->m.attach.lines)) {
