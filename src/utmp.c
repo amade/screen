@@ -375,6 +375,9 @@ static int pututslot(slot_t slot, struct utmpx *u, char *host, Window *win)
 			utempter_remove_record(win->w_ptyfd);
 		return 1;	/* pray for success */
 	}
+#else
+	(void)host; /* unused */
+	(void)win; /* unused */
 #endif
 
 	setutxent();
