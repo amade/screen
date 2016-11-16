@@ -150,6 +150,7 @@ static void MInsChar(Window *, struct mchar *, int, int);
 static void MPutChar(Window *, struct mchar *, int, int);
 static void MWrapChar(Window *, struct mchar *, int, int, int, bool);
 static void MBceLine(Window *, int, int, int, int);
+static void WChangeSize(Window *, int, int);
 
 void ResetAnsiState(Window *win)
 {
@@ -2348,7 +2349,7 @@ void WMsg(Window *win, int err, char *str)
 	flayer = oldflayer;
 }
 
-void WChangeSize(Window *win, int w, int h)
+static void WChangeSize(Window *win, int w, int h)
 {
 	int wok = 0;
 	Canvas *cv;
