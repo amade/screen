@@ -650,7 +650,8 @@ int MakeWindow(struct NewWindow *newwin)
 int RemakeWindow(Window *window)
 {
 	char *TtyName;
-	int lflag, fd;
+	int lflag;
+	int fd = -1;
 
 	lflag = nwin_default.lflag;
 #ifdef ENABLE_TELNET
@@ -659,8 +660,10 @@ int RemakeWindow(Window *window)
 		TtyName = "telnet";
 	} else
 #endif
-	if ((fd = OpenDevice(window->w_cmdargs, lflag, &window->w_type, &TtyName)) < 0)
-		return -1;
+	{ /* see above #ifdef */
+		if ((fd = OpenDevice(window->w_cmdargs, lflag, &window->w_type, &TtyName)) < 0)
+			return -1;
+	}
 
 	evdeq(&window->w_destroyev);	/* no re-destroy of resurrected zombie */
 
