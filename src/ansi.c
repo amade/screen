@@ -50,9 +50,6 @@
 const int Z0width = 132;
 const int Z1width = 80;
 
-/* globals set in WriteString */
-static int rows, cols;		/* window size of the curr window */
-
 bool use_altscreen = false;	/* enable alternate screen support? */
 bool use_hardstatus = true;	/* display status line in hs */
 bool visual_bell = 0;
@@ -225,10 +222,6 @@ void WriteString(Window *win, char *buf, size_t len)
 	if (win->w_log)
 		WLogString(win, buf, len);
 
-	/* set global variables (yuck!) */
-	cols = win->w_width;
-	rows = win->w_height;
-
 	if (win->w_silence)
 		SetTimeout(&win->w_silenceev, win->w_silencewait * 1000);
 
@@ -236,7 +229,7 @@ void WriteString(Window *win, char *buf, size_t len)
 		win->w_monitor = MON_FOUND;
 	}
 
-	if (cols > 0 && rows > 0) {
+	if (win->w_width > 0 && win->w_height > 0) {
 		do {
 			c = (unsigned char)*buf++;
 			if (!win->w_mbcs)
@@ -554,7 +547,7 @@ void WriteString(Window *win, char *buf, size_t len)
 						win->w_mbcs = c;
 						break;
 					}
-					if (win->w_x == cols - 1) {
+					if (win->w_x == win->w_width - 1) {
 						win->w_x += win->w_wrap ? true : false;
 					}
 					if (win->w_encoding != UTF8) {
@@ -617,9 +610,9 @@ void WriteString(Window *win, char *buf, size_t len)
 					win->w_rend.fontx = c >> 16;
 				}
 				win->w_rend.mbcs = win->w_mbcs;
-				if (win->w_x < cols - 1) {
+				if (win->w_x < win->w_width - 1) {
 					if (win->w_insert) {
-						save_mline(&win->w_mlines[win->w_y], cols);
+						save_mline(&win->w_mlines[win->w_y], win->w_width);
 						MInsChar(win, &win->w_rend, win->w_x, win->w_y);
 						LInsChar(&win->w_layer, &win->w_rend, win->w_x, win->w_y,
 							 &mline_old);
@@ -629,7 +622,7 @@ void WriteString(Window *win, char *buf, size_t len)
 						LPutChar(&win->w_layer, &win->w_rend, win->w_x, win->w_y);
 						win->w_x++;
 					}
-				} else if (win->w_x == cols - 1) {
+				} else if (win->w_x == win->w_width - 1) {
 					MPutChar(win, &win->w_rend, win->w_x, win->w_y);
 					LPutChar(&win->w_layer, &win->w_rend, win->w_x, win->w_y);
 					if (win->w_wrap)
@@ -749,7 +742,7 @@ static void DoESC(Window *win, int c, int intermediate)
 			/* XXX
 			   SetRendition(&mchar_null);
 			   InsertMode(false);
-			   ChangeScrollRegion(0, rows - 1);
+			   ChangeScrollRegion(0, win->w_height - 1);
 			 */
 			LGotoPos(&win->w_layer, win->w_x, win->w_y);
 			break;
@@ -857,12 +850,12 @@ static void DoCSI(Window *win, int c, int intermediate)
 				a1 = 1;
 			if (win->w_origin)
 				a1 += win->w_top;
-			if (a1 > rows)
-				a1 = rows;
+			if (a1 > win->w_height)
+				a1 = win->w_height;
 			if (a2 < 1)
 				a2 = 1;
-			if (a2 > cols)
-				a2 = cols;
+			if (a2 > win->w_width)
+				a2 = win->w_width;
 			LGotoPos(&win->w_layer, --a2, --a1);
 			win->w_x = a2;
 			win->w_y = a1;
@@ -890,19 +883,19 @@ static void DoCSI(Window *win, int c, int intermediate)
 				a1 %= 3;
 			switch (a1) {
 			case 0:
-				ClearLineRegion(win, win->w_x, cols - 1);
+				ClearLineRegion(win, win->w_x, win->w_width - 1);
 				break;
 			case 1:
 				ClearLineRegion(win, 0, win->w_x);
 				break;
 			case 2:
-				ClearLineRegion(win, 0, cols - 1);
+				ClearLineRegion(win, 0, win->w_width - 1);
 				break;
 			}
 			break;
 		case 'X':
 			a1 = win->w_x + (a1 ? a1 - 1 : 0);
-			ClearLineRegion(win, win->w_x, a1 < cols ? a1 : cols - 1);
+			ClearLineRegion(win, win->w_x, a1 < win->w_width ? a1 : win->w_width - 1);
 			break;
 		case 'A':
 			CursorUp(win, a1 ? a1 : 1);
@@ -927,14 +920,14 @@ static void DoCSI(Window *win, int c, int intermediate)
 		case 'G':
 		case '`':	/* HPA */
 			win->w_x = a1 ? a1 - 1 : 0;
-			if (win->w_x >= cols)
-				win->w_x = cols - 1;
+			if (win->w_x >= win->w_width)
+				win->w_x = win->w_width - 1;
 			LGotoPos(&win->w_layer, win->w_x, win->w_y);
 			break;
 		case 'd':	/* VPA */
 			win->w_y = a1 ? a1 - 1 : 0;
-			if (win->w_y >= rows)
-				win->w_y = rows - 1;
+			if (win->w_y >= win->w_height)
+				win->w_y = win->w_height - 1;
 			LGotoPos(&win->w_layer, win->w_x, win->w_y);
 			break;
 		case 'm':
@@ -944,14 +937,14 @@ static void DoCSI(Window *win, int c, int intermediate)
 			if (a1 == 0)
 				win->w_tabs[win->w_x] = 0;
 			else if (a1 == 3)
-				memset(win->w_tabs, 0, cols);
+				memset(win->w_tabs, 0, win->w_width);
 			break;
 		case 'r':
 			if (!a1)
 				a1 = 1;
 			if (!a2)
-				a2 = rows;
-			if (a1 < 1 || a2 > rows || a1 >= a2)
+				a2 = win->w_height;
+			if (a1 < 1 || a2 > win->w_height || a1 >= a2)
 				break;
 			win->w_top = a1 - 1;
 			win->w_bot = a2 - 1;
@@ -995,8 +988,6 @@ static void DoCSI(Window *win, int c, int intermediate)
 				if (a1 > 10000 || a2 > 10000)
 					break;
 				WChangeSize(win, a1, a2);
-				cols = win->w_width;
-				rows = win->w_height;
 				break;
 			default:
 				break;
@@ -1105,8 +1096,6 @@ static void DoCSI(Window *win, int c, int intermediate)
 				win->w_x = 0;
 				win->w_y = 0;
 				WChangeSize(win, i, win->w_height);
-				cols = win->w_width;
-				rows = win->w_height;
 				break;
 				/* case 4:        SCLM: scrolling mode */
 			case 5:	/* SCNM: screen mode */
@@ -1472,7 +1461,7 @@ static void BackSpace(Window *win)
 	if (win->w_x > 0) {
 		win->w_x--;
 	} else if (win->w_wrap && win->w_y > 0) {
-		win->w_x = cols - 1;
+		win->w_x = win->w_width - 1;
 		win->w_y--;
 	}
 	LGotoPos(&win->w_layer, win->w_x, win->w_y);
@@ -1492,7 +1481,7 @@ static void LineFeed(Window *win, int out_mode)
 	if (out_mode)
 		win->w_x = 0;
 	if (win->w_y != win->w_bot) {	/* Don't scroll */
-		if (win->w_y < rows - 1)
+		if (win->w_y < win->w_height - 1)
 			win->w_y++;
 		LGotoPos(&win->w_layer, win->w_x, win->w_y);
 		return;
@@ -1520,9 +1509,9 @@ static void InsertChar(Window *win, int n)
 
 	if (n <= 0)
 		return;
-	if (x == cols)
+	if (x == win->w_width)
 		x--;
-	save_mline(&win->w_mlines[y], cols);
+	save_mline(&win->w_mlines[y], win->w_width);
 	MScrollH(win, -n, y, x, win->w_width - 1, win->w_rend.colorbg);
 	LScrollH(&win->w_layer, -n, y, x, win->w_width - 1, win->w_rend.colorbg, &mline_old);
 	LGotoPos(&win->w_layer, x, y);
@@ -1532,9 +1521,9 @@ static void DeleteChar(Window *win, int n)
 {
 	int y = win->w_y, x = win->w_x;
 
-	if (x == cols)
+	if (x == win->w_width)
 		x--;
-	save_mline(&win->w_mlines[y], cols);
+	save_mline(&win->w_mlines[y], win->w_width);
 	MScrollH(win, n, y, x, win->w_width - 1, win->w_rend.colorbg);
 	LScrollH(&win->w_layer, n, y, x, win->w_width - 1, win->w_rend.colorbg, &mline_old);
 	LGotoPos(&win->w_layer, x, y);
@@ -1573,13 +1562,13 @@ static void ForwardTab(Window *win)
 {
 	int x = win->w_x;
 
-	if (x == cols) {
+	if (x == win->w_width) {
 		LineFeed(win, 1);
 		x = 0;
 	}
-	if (win->w_tabs[x] && x < cols - 1)
+	if (win->w_tabs[x] && x < win->w_width - 1)
 		x++;
-	while (x < cols - 1 && !win->w_tabs[x])
+	while (x < win->w_width - 1 && !win->w_tabs[x])
 		x++;
 	win->w_x = x;
 	LGotoPos(&win->w_layer, win->w_x, win->w_y);
@@ -1621,8 +1610,8 @@ static void ClearToEOS(Window *win)
 		RestorePosRendition(win);
 		return;
 	}
-	LClearArea(&win->w_layer, x, y, cols - 1, rows - 1, win->w_rend.colorbg, 1);
-	MClearArea(win, x, y, cols - 1, rows - 1, win->w_rend.colorbg);
+	LClearArea(&win->w_layer, x, y, win->w_width - 1, win->w_height - 1, win->w_rend.colorbg, 1);
+	MClearArea(win, x, y, win->w_width - 1, win->w_height - 1, win->w_rend.colorbg);
 	RestorePosRendition(win);
 }
 
@@ -1638,10 +1627,10 @@ static void CursorRight(Window *win, int n)
 {
 	int x = win->w_x;
 
-	if (x == cols)
+	if (x == win->w_width)
 		LineFeed(win, 1);
-	if ((win->w_x += n) >= cols)
-		win->w_x = cols - 1;
+	if ((win->w_x += n) >= win->w_width)
+		win->w_x = win->w_width - 1;
 	LGotoPos(&win->w_layer, win->w_x, win->w_y);
 }
 
@@ -1658,8 +1647,8 @@ static void CursorUp(Window *win, int n)
 static void CursorDown(Window *win, int n)
 {
 	if (win->w_y > win->w_bot) {	/* if below scrolling rgn, */
-		if ((win->w_y += n) > rows - 1)	/* ignore its limits      */
-			win->w_y = rows - 1;
+		if ((win->w_y += n) > win->w_height - 1)	/* ignore its limits      */
+			win->w_y = win->w_height - 1;
 	} else if ((win->w_y += n) > win->w_bot)
 		win->w_y = win->w_bot;
 	LGotoPos(&win->w_layer, win->w_x, win->w_y);
@@ -1783,10 +1772,10 @@ static void FillWithEs(Window *win)
 
 	LClearAll(&win->w_layer, 1);
 	win->w_y = win->w_x = 0;
-	for (int i = 0; i < rows; ++i) {
-		clear_mline(&win->w_mlines[i], 0, cols + 1);
+	for (int i = 0; i < win->w_height; ++i) {
+		clear_mline(&win->w_mlines[i], 0, win->w_width + 1);
 		p = win->w_mlines[i].image;
-		ep = p + cols;
+		ep = p + win->w_width;
 		while (p < ep)
 			*p++ = 'E';
 	}
@@ -1830,13 +1819,12 @@ static void FindAKA(Window *win)
 	int y;
 
 	y = (win->w_autoaka > 0 && win->w_autoaka <= win->w_height) ? win->w_autoaka - 1 : win->w_y;
-	cols = win->w_width;
  try_line:
 	cp = line = win->w_mlines[y].image;
 	if (win->w_autoaka > 0 && *win->w_akabuf != '\0') {
 		for (;;) {
-			if (cp - line >= cols - len) {
-				if (++y == win->w_autoaka && y < rows)
+			if (cp - line >= win->w_width - len) {
+				if (++y == win->w_autoaka && y < win->w_height)
 					goto try_line;
 				return;
 			}
@@ -1846,7 +1834,7 @@ static void FindAKA(Window *win)
 		}
 		cp += len;
 	}
-	for (len = cols - (cp - line); len && *cp == ' '; len--, cp++) ;
+	for (len = win->w_width - (cp - line); len && *cp == ' '; len--, cp++) ;
 	if (len) {
 		if (win->w_autoaka > 0 && (*cp == '!' || *cp == '%' || *cp == '^'))
 			win->w_autoaka = -1;
