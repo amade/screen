@@ -301,7 +301,7 @@ int TelIn(Window *win, char *buf, size_t len, int free)
 			else
 				win->w_telstate = TC_SB;
 			win->w_telsubbuf[win->w_telsubidx] = c;
-			if (win->w_telsubidx < sizeof(win->w_telsubbuf) - 1)
+			if (win->w_telsubidx < (int)sizeof(win->w_telsubbuf) - 1)
 				win->w_telsubidx++;
 			continue;
 		}
