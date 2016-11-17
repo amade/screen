@@ -215,7 +215,6 @@ struct Window {
 	int	 w_monitor;		/* monitor status */
 	int	 w_silencewait;		/* wait for silencewait secs */
 	int	 w_silence;		/* silence status (Lloyd Zusman) */
-	char	 w_vbwait;
 	char	 w_norefresh;		/* dont redisplay when switching to that win */
 	char	 w_xtermosc[4][MAXSTR];	/* special xterm/rxvt escapes */
 	int	 w_mouse;		/* mouse mode 0,9,1000 */
