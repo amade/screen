@@ -196,7 +196,7 @@ struct Window {
 	bool	 w_insert;		/* window is in insert mode */
 	int	 w_keypad;		/* keypad mode */
 	int	 w_cursorkeys;		/* appl. cursorkeys mode */
-	int	 w_revvid;		/* reverse video */
+	bool	 w_revvid;		/* reverse video */
 	int	 w_curinv;		/* cursor invisible */
 	int	 w_curvvis;		/* cursor very visible */
 	int	 w_autolf;		/* automatic linefeed */

@@ -137,7 +137,7 @@ static void Report(Window *, char *, int, int);
 static void ScrollRegion(Window *win, int);
 static void WAddLineToHist(Window *, struct mline *);
 static void WLogString(Window *, char *, size_t);
-static void WReverseVideo(Window *, int);
+static void WReverseVideo(Window *, bool);
 static void MFixLine(Window *, int, struct mchar *);
 static void MScrollH(Window *, int, int, int, int, int);
 static void MScrollV(Window *, int, int, int, int);
@@ -2310,7 +2310,7 @@ void WBell(Window *win, bool visual)
  * a visual bell we do this hack here.
  * (screen uses \Eg as special vbell sequence)
  */
-static void WReverseVideo(Window *win, int on)
+static void WReverseVideo(Window *win, bool on)
 {
 	for (Canvas *cv = win->w_layer.l_cvlist; cv; cv = cv->c_lnext) {
 		display = cv->c_display;

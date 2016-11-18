@@ -534,7 +534,7 @@ void CursorkeysMode(int on)
 		D_cursorkeys = on;
 }
 
-void ReverseVideo(int on)
+void ReverseVideo(bool on)
 {
 	if (display && D_revvid != on && D_CVR) {
 		D_revvid = on;

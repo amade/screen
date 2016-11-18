@@ -106,7 +106,7 @@ struct Display {
 	bool	d_insert;		/* insert mode flag */
 	int	d_keypad;		/* application keypad flag */
 	int	d_cursorkeys;		/* application cursorkeys flag */
-	int	d_revvid;		/* reverse video */
+	bool	d_revvid;		/* reverse video */
 	int	d_curvis;		/* cursor visibility */
 	HardStatus	d_has_hstatus;		/* display has hardstatus line */
 	bool d_hstatus;		/* hardstatus used */
@@ -342,7 +342,7 @@ void  ChangeScrollRegion (int, int);
 void  InsertMode (bool);
 void  KeypadMode (int);
 void  CursorkeysMode (int);
-void  ReverseVideo (int);
+void  ReverseVideo (bool);
 void  CursorVisibility (int);
 void  MouseMode (int);
 void  BracketedPasteMode (bool);
