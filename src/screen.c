@@ -39,6 +39,9 @@
  */
 
 #include <sys/types.h>
+#ifdef _AIX
+#include <sys/socket.h>
+#endif
 #include <ctype.h>
 #include <fcntl.h>
 
