@@ -1,5 +1,12 @@
-Version 4.5.0 ():
-  * Allow specifying logfile's name via command line parameter 
+Version 4.5.0 (10/12/2016):
+  * Allow specifying logfile's name via command line parameter '-L'
+  * Fixes:
+	- broken handling of "bind u digraph U+" (bug #48691)
+	- crash with long $TERM (bug #48983)
+	- crash when bumping blank window
+	- build for AIX (bug #49149)
+	- %x improperly separating arguments
+	- install with custom DESTDIR (bug #48370)
 
 Version 4.4.0 (19/06/2016):
   * Support up to 24 function keys

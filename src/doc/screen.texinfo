@@ -7,7 +7,7 @@
 @finalout
 @setchapternewpage odd
 @c %**end of header
-@set version 4.4.0
+@set version 4.5.0
 
 @direntry
 * Screen: (screen).             Full-screen window manager.
@@ -52,7 +52,7 @@ by the Foundation.
 @title Screen
 @subtitle The virtual terminal manager
 @subtitle for Version @value{version}
-@subtitle May 2015
+@subtitle Dec 2016
 
 @page
 @vskip 0pt plus 1filll
@@ -5781,9 +5781,11 @@ Program for locking the terminal.
 Authors @*
 =======
 
-Originally created by Oliver Laumann, this latest version was
-produced by Juergen Weigert, Michael Schroeder, Micah Cowan and
-Sadrul Habib Chowdhury.
+Originally created by Oliver Laumann. For a long time maintained
+and developed by Juergen Weigert, Michael Schroeder, Micah Cowan
+and Sadrul Habib Chowdhury. This latest version was produced by
+Amadeusz Slawinski <amade@@asmblr.net>
+and Alexander Naumov <alexander_naumov@@opensuse.org>.
 
 @noindent
 Contributors @*
@@ -5936,7 +5938,7 @@ ftp from @samp{prep.ai.mit.edu}, @samp{nic.funet.fi} or any other
 @code{screen} is @samp{ftp.uni-erlangen.de
 (131.188.3.71)}, in the directory @file{pub/utilities/screen}.
 The subdirectory @samp{private} contains the latest beta testing release.
-If you want to help, send a note to screen@@uni-erlangen.de.
+If you want to help, send a note to screen-devel@@gnu.org.
 
 @node Installation, Concept Index, Bugs, Top
 @chapter Installation
