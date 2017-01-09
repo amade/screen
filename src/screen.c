@@ -710,7 +710,6 @@ int main(int argc, char **argv)
 	if (multiattach) {
 #ifndef SOCKET_DIR
 		sprintf(SocketPath, "%s/.screen", multi_home);
-		SocketDir = SocketPath;
 #else
 		SocketDir = SOCKET_DIR;
 		sprintf(SocketPath, "%s/S-%s", SocketDir, multi);
