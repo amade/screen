@@ -142,9 +142,9 @@ Log *logfopen(char *name, FILE * fp)
 		return l;
 	}
 
-	if (!(l = malloc(sizeof(Log))))
+	if (!(l = calloc(1, sizeof(Log))))
 		return NULL;
-	if (!(l->st = malloc(sizeof(struct stat)))) {
+	if (!(l->st = calloc(1, sizeof(struct stat)))) {
 		free((char *)l);
 		return NULL;
 	}
