@@ -646,7 +646,6 @@ void ReceiveMsg()
 	int ns = ServerSocket;
 	Window *wi;
 	int recvfd = -1;
-	struct acluser *user;
 
 	struct sockaddr_un a;
 	struct msghdr msg;
@@ -792,7 +791,6 @@ void ReceiveMsg()
 		break;
 	case MSG_DETACH:
 	case MSG_POW_DETACH:
-		user = *FindUserPtr(m.m.detach.duser);
 		if (CreateTempDisplay(&m, recvfd, 0))
 			break;
 		FinishDetach(&m);
