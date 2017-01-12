@@ -1149,8 +1149,8 @@ static void DoCSI(Window *win, int c, int intermediate)
 						}
 					} else {
 						if (win->w_alt.on) {
-							RestoreCursor(win, &win->w_alt.cursor);
 							LeaveAltScreen(win);
+							RestoreCursor(win, &win->w_alt.cursor);
 						}
 					}
 					if (a1 == 47 && !i)

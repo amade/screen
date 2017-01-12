@@ -798,6 +798,14 @@ static void SwapAltScreen(Window *p)
 	SWAP(width, t);
 	SWAP(height, t);
 
+	/* we need to swap cursor positions, but they are not swappable with macro */
+	t = p->w_alt.cursor.x;
+	p->w_alt.cursor.x = p->w_x;
+	p->w_x = t;
+	t = p->w_alt.cursor.y;
+	p->w_alt.cursor.y = p->w_y;
+	p->w_y = t;
+
 	SWAP(histheight, t);
 	SWAP(hlines, ml);
 	SWAP(histidx, t);
