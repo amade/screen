@@ -466,6 +466,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 int SendErrorMsg(char *tty, char *buf)
 {
 	int s;
+	int ret = 0;
 	Message m;
 
 	strncpy(m.m.message, buf, sizeof(m.m.message) - 1);
@@ -477,9 +478,10 @@ int SendErrorMsg(char *tty, char *buf)
 	strncpy(m.m_tty, tty, sizeof(m.m_tty) - 1);
 	m.m_tty[sizeof(m.m_tty) - 1] = 0;
 	m.protocol_revision = MSG_REVISION;
-	(void)write(s, (char *)&m, sizeof m);
+	if (write(s, (char *)&m, sizeof m))
+		ret = -2;
 	close(s);
-	return 0;
+	return ret;
 }
 
 static void ExecCreate(Message *mp)
