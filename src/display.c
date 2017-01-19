@@ -1391,7 +1391,7 @@ int xs, ys, xe, ye, n, bce;
 {
   int i;
   int up;
-  int oldtop, oldbot;
+  int oldbot;
   int alok, dlok, aldlfaster;
   int missy = 0;
 
@@ -1430,7 +1430,6 @@ int xs, ys, xe, ye, n, bce;
   if (n >= ye - ys + 1)
     n = ye - ys + 1;
 
-  oldtop = D_top;
   oldbot = D_bot;
   if (ys < D_top || D_bot != ye)
     ChangeScrollRegion(ys, ye);
