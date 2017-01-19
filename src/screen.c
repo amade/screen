@@ -302,7 +302,7 @@ struct passwd *ppp;
 pw_try_again:
 #endif
   n = 0;
-  if (ppp->pw_passwd[0] == '#' && ppp->pw_passwd[1] == '#' & strcmp(ppp->pw_passwd + 2, ppp->pw_name) == 0)
+  if (ppp->pw_passwd[0] == '#' && ppp->pw_passwd[1] == '#' && strcmp(ppp->pw_passwd + 2, ppp->pw_name) == 0)
     n = 13;
   for (; n < 13; n++) {
     char c = ppp->pw_passwd[n];
