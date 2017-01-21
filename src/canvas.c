@@ -586,7 +586,12 @@ struct canvas *cv;
 	}
       else
 	{
-	  int hx = need * (hh - m - 1) / got;
+	  int hx = 1;       //FIXME Division by zero (got) is posible. "hx = 1" is random number here!!!
+    if (got != 0)
+      hx = need * (hh - m - 1) / got;
+    else
+      debug("   got = 0\n");
+
 	  debug3(" -> %d - %d = %d\n", hh, hx, hh - hx);
 	  got -= (hh - m - 1);
 	  hh -= hx;
