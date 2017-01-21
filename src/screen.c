@@ -670,7 +670,7 @@ int main(int ac, char** av)
             if (--ac != 0) {
               screenlogfile = SaveStr(*++av);
               if (screenlogfile[0] == '-')
-                Panic(0, "-L: logfile name can not start with \"-\" symbol");
+                screenlogfile = SaveStr("screenlog.%n");
               if (strlen(screenlogfile) > PATH_MAX)
                 Panic(0, "-L: logfile name too long. (max. %d char)", PATH_MAX);
 

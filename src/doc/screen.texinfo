@@ -334,7 +334,9 @@ Remove sessions with the @samp{-wipe} option.
 
 @item -L
 Tell @code{screen} to turn on automatic output logging for the
-windows.
+windows. By default, logfile's name is screenlog.0. You can set new name:
+add it right after -L option e.g. "screen -L my_logfile". Keep in mind
+that name can not start with "-" symbol.
 
 @item -m
 Tell @code{screen} to ignore the @code{$STY} environment variable.  When
