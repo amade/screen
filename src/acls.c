@@ -31,6 +31,7 @@
 #include "acls.h"
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
 
@@ -345,7 +346,7 @@ int UserFreeCopyBuffer(struct acluser *u)
 		return -1;
 	for (w = windows; w; w = w->w_next) {
 		pa = &w->w_paster;
-		if (pa->pa_pasteptr >= u->u_plop.buf && pa->pa_pasteptr - u->u_plop.buf < u->u_plop.len)
+		if (pa->pa_pasteptr >= u->u_plop.buf && pa->pa_pasteptr - u->u_plop.buf < (ptrdiff_t)u->u_plop.len)
 			FreePaster(pa);
 	}
 	free((char *)u->u_plop.buf);

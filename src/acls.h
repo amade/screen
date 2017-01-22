@@ -64,7 +64,7 @@ struct aclusergroup
 
 struct plop {
 	char *buf;
-	int len;
+	size_t len;
 	int enc;
 };
 

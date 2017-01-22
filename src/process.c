@@ -5142,7 +5142,7 @@ static void copy_reg_fn(char *buf, size_t len, void *data)
 	}
 	pp->len = D_user->u_plop.len;
 	pp->enc = D_user->u_plop.enc;
-	Msg(0, "Copied %d characters into register %c", D_user->u_plop.len, *buf);
+	Msg(0, "Copied %zu characters into register %c", D_user->u_plop.len, *buf);
 }
 
 static void ins_reg_fn(char *buf, size_t len, void *data)

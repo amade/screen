@@ -926,7 +926,7 @@ static void MarkProcess(char **inbufp, size_t *inlenp)
 				if (append_mode)
 					LMsg(0, "Appended %d characters to buffer", newcopylen);
 				else
-					LMsg(0, "Copied %d characters into buffer", md_user->u_plop.len);
+					LMsg(0, "Copied %zu characters into buffer", md_user->u_plop.len);
 				if (write_buffer)
 					WriteFile(md_user, (char *)0, DUMP_EXCHANGE);
 				in_mark = 0;
