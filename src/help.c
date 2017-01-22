@@ -203,7 +203,7 @@ void display_help(char *class, struct action *ktabp)
 
 static void HelpProcess(char **ppbuf, size_t *plen)
 {
-	int done = 0;
+	bool done = false;
 
 	while (!done && *plen > 0) {
 		switch (**ppbuf) {
@@ -213,7 +213,7 @@ static void HelpProcess(char **ppbuf, size_t *plen)
 			/* FALLTHROUGH */
 		case '\r':
 		case '\n':
-			done = 1;
+			done = true;
 			break;
 		default:
 			break;
