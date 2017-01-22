@@ -30,6 +30,8 @@
 
 #include "input.h"
 
+#include <stddef.h>
+
 #include "screen.h"
 
 #include "misc.h"
@@ -42,8 +44,8 @@ static void InpRedisplayLine(int, int, int, int);
 
 struct inpline {
 	char buf[MAXSTR + 1];	/* text buffer */
-	int len;		/* length of the editible string */
-	int pos;		/* cursor position in editable string */
+	size_t len;		/* length of the editible string */
+	size_t pos;		/* cursor position in editable string */
 	struct inpline *next, *prev;
 };
 
@@ -55,9 +57,9 @@ static struct inpline inphist;
 
 struct inpdata {
 	struct inpline inp;
-	int inpmaxlen;		/* MAXSTR, or less, if caller has shorter buffer */
+	size_t inpmaxlen;		/* MAXSTR, or less, if caller has shorter buffer */
 	char *inpstring;	/* the prompt */
-	int inpstringlen;	/* length of the prompt */
+	size_t inpstringlen;	/* length of the prompt */
 	int inpmode;		/* INP_NOECHO, INP_RAW, INP_EVERY */
 	void (*inpfinfunc) (char *buf, size_t len, void *priv);
 	char *priv;		/* private data for finfunc */
@@ -148,7 +150,7 @@ void Input(char *istr, size_t len, int mode, void (*finfunc) (char *buf, size_t 
 static void erase_chars(struct inpdata *inpdata, char *from, char *to, int x, int mv)
 {
 	int chng;
-	if (inpdata->inp.len > to - inpdata->inp.buf)
+	if ((ptrdiff_t)inpdata->inp.len > to - inpdata->inp.buf)
 		memmove(from, to, inpdata->inp.len - (to - inpdata->inp.buf));
 	chng = to - from;
 	if (mv) {
