@@ -668,17 +668,18 @@ int main(int ac, char** av)
 
           case 'L':
             if (--ac != 0) {
-              screenlogfile = SaveStr(*++av);
-              if (screenlogfile[0] == '-')
-                screenlogfile = SaveStr("screenlog.%n");
-              if (strlen(screenlogfile) > PATH_MAX)
+              char *newlogfile = SaveStr(*++av);
+              if (strlen(newlogfile) > PATH_MAX)
                 Panic(0, "-L: logfile name too long. (max. %d char)", PATH_MAX);
 
               FILE *w_check;
-              if ((w_check = fopen(screenlogfile, "w")) == NULL)
+              if ((w_check = fopen(newlogfile, "w")) == NULL)
                 Panic(0, "-L: logfile name access problem");
               else
                 fclose(w_check);
+
+              if (newlogfile[0] != '-')
+                screenlogfile = newlogfile;
             }
             nwin_options.Lflag = 1;
             break;
