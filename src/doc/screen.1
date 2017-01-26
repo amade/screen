@@ -261,9 +261,12 @@ Ask your system administrator if you are not sure. Remove sessions with the
 .B \-L
 tells
 .I screen
-to turn on automatic output logging for the windows. By default, logfile's name
-is screenlog.0. You can set new name: add it right after -L option e.g. "screen
--L my_logfile". Keep in mind that name can not start with "-" symbol.
+to turn on automatic output logging for the windows.
+.TP 5
+.BI "\-L logfile " file
+By default logfile name is \*Qscreenlog.0\*Q. You can also set new logfile name
+with the \*Qlogfile\*Q option. Keep in mind that logfile name can not start with
+the "-" symbol.
 .TP 5
 .B \-m
 causes

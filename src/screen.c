@@ -667,19 +667,16 @@ int main(int ac, char** av)
             break;
 
           case 'L':
-            if (--ac != 0) {
-              char *newlogfile = SaveStr(*++av);
-              if (strlen(newlogfile) > PATH_MAX)
-                Panic(0, "-L: logfile name too long. (max. %d char)", PATH_MAX);
+            if (--ac > 0 && !strcmp(*++av, "logfile")) {
+              *++av; // Now '*av' is a logfile parameter
 
-              FILE *w_check;
-              if ((w_check = fopen(newlogfile, "w")) == NULL)
-                Panic(0, "-L: logfile name access problem");
-              else
-                fclose(w_check);
+              if (strlen(*av) > PATH_MAX)
+                Panic(1, "-L: logfile name too long. (max. %d char)", PATH_MAX);
 
-              if (newlogfile[0] != '-')
-                screenlogfile = newlogfile;
+              if (*av[0] == '-')
+                Panic(0, "-L: logfile name can not start with \"-\" symbol");
+
+              screenlogfile = SaveStr(*av);
             }
             nwin_options.Lflag = 1;
             break;
