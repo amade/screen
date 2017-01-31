@@ -34,6 +34,7 @@
 
 #include <ctype.h>
 #include <fcntl.h>
+#include <getopt.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdint.h>
@@ -276,7 +277,6 @@ int main(int argc, char **argv)
 {
 	int n;
 	char *ap;
-	char *av0;
 	char socknamebuf[FILENAME_MAX + 1];
 	int mflag = 0;
 	char *myname = (argc == 0) ? "screen" : argv[0];
@@ -335,6 +335,7 @@ int main(int argc, char **argv)
 	real_gid = getgid();
 	eff_uid = geteuid();
 	eff_gid = getegid();
+#if 0
 
 	av0 = *argv;
 	/* if this is a login screen, assume -RR */
@@ -579,6 +580,145 @@ int main(int argc, char **argv)
 		} else
 			break;
 	}
+#else
+
+	while (1) {
+		int c;
+		int option_index;
+		extern char *optarg;
+
+		static struct option command_line_options[] = {		/* TODO: make it const and move outside of main ? */
+			{ "version",		no_argument,		0, 'v' },
+			{ "help",		no_argument,		0, 'h' },
+			{ "UTF-8",		no_argument,		0, 'U' },
+			{ "command",		required_argument,	0, 'X' },
+			{ "adapt",		no_argument,		0, 'A' },
+			{ "attach",		optional_argument,	0, 0 }, /* 'r' or maybe 'x' ? */
+			{ "config",		required_argument,	0, 'c' },
+			{ "detach",		no_argument,		0, 'd' },
+			{ "escape",		required_argument,	0, 'e' },
+			{ "flow",		required_argument,	0, 'f' },
+			{ "force",		no_argument,		0, 0 },
+			{ "list",		optional_argument,	0, 0 },
+			{ "log",		required_argument,	0, 'L' },
+			{ "login",		required_argument,	0, 'l' },
+			{ "logfile",		required_argument,	0, 0 },
+			{ "query",		required_argument,	0, 'Q' },
+			{ "quiet",		required_argument,	0, 'q' },
+			{ "session",		required_argument,	0, 'S' },
+			{ "shell",		required_argument,	0, 's' },
+			{ "term",		required_argument,	0, 'T' },
+			{ "title",		required_argument,	0, 't' },
+			{ "wipe",		optional_argument,	0, 0 },
+			{ 0,         		0,			0, 0 }
+		};
+
+		c = getopt_long (argc, argv, "46vh?UXc:e:fL:l:Q:qS:s:T:t:", command_line_options, &option_index);
+		/*			      .....  . . .    . .. . . .      */
+
+		if (c == -1)
+			break;
+
+		switch(c) {
+		case 0:
+			if (!strcmp(command_line_options[option_index].name, "attach")) {
+				xflag = true;
+				if (optarg && !SocketMatch)
+					SocketMatch = optarg;
+			} else if (!strcmp(command_line_options[option_index].name, "list")) {
+				lsflag = true;
+				if (optarg && !SocketMatch)
+					SocketMatch = optarg;
+			} else if (!strcmp(command_line_options[option_index].name, "logfile")) {
+				if (strlen(optarg) > PATH_MAX)
+					Panic(1, "--logfile: path too long. (max. %d characters)", PATH_MAX);
+
+				free(screenlogfile); /* we already set it up while starting */
+				screenlogfile = SaveStr(optarg);
+			} else if (!strcmp(command_line_options[option_index].name, "wipe")) {
+				lsflag = true;
+				wipeflag = true;
+				if (optarg && !SocketMatch)
+					SocketMatch = optarg;
+			}
+			break;
+
+#ifdef ENABLE_TELNET
+		case '4':
+			af = AF_INET;
+			break;
+
+		case '6':
+			af = AF_INET6;
+			break;
+#endif
+
+		case 'c':
+			RcFileName = SaveStr(optarg);
+			break;
+
+		case 'e':
+			if (ParseEscape(optarg))
+				Panic(0, "--escape|-e: option requires two characters\n");
+			break;
+
+		case 'f':
+			if (!strcmp(optarg, "on"))
+				nwin_options.flowflag = FLOW_ON;
+			else if (!strcmp(optarg, "off"))
+				nwin_options.flowflag = FLOW_OFF;
+			else if (!strcmp(optarg, "auto"))
+				nwin_options.flowflag = FLOW_AUTOFLAG;
+			else
+				exit_with_usage(myname, "--flow: unknown option \"%s\"", optarg);
+			break;
+
+		case 'q':
+			quietflag = true;
+			break;
+
+		case 'Q':
+			queryflag = 1;
+			cmdflag = true;
+			break;
+
+		case 's':
+			if (ShellProg)
+				free(ShellProg);
+			ShellProg = SaveStr(optarg);
+			break;
+
+		case 'S':
+			if (!SocketMatch)
+				SocketMatch = optarg;
+			if (!*SocketMatch)
+				exit_with_usage(myname, "Empty session-name?", NULL);
+			break;
+
+		case 't':
+			nwin_options.aka = optarg;
+			break;
+
+		case 'T':
+			if (strlen(optarg) < MAXTERMLEN) {
+				strncpy(screenterm, optarg, MAXTERMLEN);
+				screenterm[MAXTERMLEN] = '\0';
+			} else
+				Panic(0, "--term|-T: terminal name too long. (max. %d characters)", MAXTERMLEN);
+			nwin_options.term = screenterm;
+			break;
+
+		case 'h':
+		case '?':
+			exit_with_usage(myname, NULL, NULL);
+			break; /* should not reach it anyway */
+
+		default:
+			exit_with_usage(myname, "Unknown option %s", optarg);
+		}
+	}
+
+#endif
 
 	xsignal(SIGSEGV, CoreDump);
 
@@ -628,8 +768,8 @@ int main(int argc, char **argv)
 		detached = true;
 	nwin = nwin_options;
 	nwin.encoding = nwin_undef.encoding;	/* let screenrc overwrite it */
-	if (argc)
-		nwin.args = argv;
+	//if (argc > 1)
+		//nwin.args = argv;
 
 
 	if (!ShellProg) {
@@ -890,7 +1030,7 @@ int main(int argc, char **argv)
 		/* attach_tty is not mandatory */
 		SetTtyname(false, &st);
 		SET_GUID();
-		nwin_options.args = argv;
+		//nwin_options.args = argv;
 		SendCreateMsg(sty, &nwin);
 		exit(0);
 		/* NOTREACHED */
@@ -934,16 +1074,16 @@ int main(int argc, char **argv)
 	if (DefaultMetaEsc == -1)
 		DefaultMetaEsc = 'a';
 
-	ap = av0 + strlen(av0) - 1;
-	while (ap >= av0) {
+	ap = argv[0] + strlen(argv[0]) - 1;
+	while (ap >= argv[0]) {
 		if (!strncmp("screen", ap, 6)) {
 			memcpy(ap, "SCREEN", 6);	/* name this process "SCREEN-BACKEND" */
 			break;
 		}
 		ap--;
 	}
-	if (ap < av0)
-		*av0 = 'S';
+	if (ap < argv[0])
+		argv[0][0] = 'S';
 
 	if (!detached) {
 		if (attach_fd == -1) {
@@ -1047,7 +1187,7 @@ int main(int argc, char **argv)
 			Finit(0);
 			/* NOTREACHED */
 		}
-	} else if (argc) {	/* Screen was invoked with a command */
+	} else if (argc > 1) {	/* Screen was invoked with a command */
 		MakeWindow(&nwin);
 	}
 
