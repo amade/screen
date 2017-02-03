@@ -578,7 +578,7 @@ char *name, *pw1, *pw2;
     }
   
   debug2("syslog(LOG_NOTICE, \"screen %s: \"su %s\" ", SockPath, name);
-  debug2("%s for \"%s\"\n", sorry ? "failed" : "succeded", (*up)->u_name);
+  debug2("%s for \"%s\"\n", sorry ? "failed" : "succeeded", (*up)->u_name);
 #ifndef NOSYSLOG
 # ifdef BSD_42
   openlog("screen", LOG_PID);
@@ -586,7 +586,7 @@ char *name, *pw1, *pw2;
   openlog("screen", LOG_PID, LOG_AUTH);
 # endif /* BSD_42 */
   syslog(LOG_NOTICE, "%s: \"su %s\" %s for \"%s\"", SockPath, name, 
-         sorry ? "failed" : "succeded", (*up)->u_name);
+         sorry ? "failed" : "succeeded", (*up)->u_name);
   closelog();
 #else
   debug("NOT LOGGED.\n");
