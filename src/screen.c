@@ -46,7 +46,7 @@
 #include <langinfo.h>
 #endif
 
-#include "logfile.h"		/* islogfile, logfflush */
+#include "logfile.h"		/* islogfile, logfflush, logfopen/logfclose */
 #include "fileio.h"
 #include "mark.h"
 #include "utmp.h"
@@ -271,6 +271,8 @@ int main(int argc, char **argv)
 	af = AF_UNSPEC;
 #endif
 
+
+
 	av0 = *argv;
 	/* if this is a login screen, assume -RR */
 	if (*av0 == '-') {
@@ -278,6 +280,11 @@ int main(int argc, char **argv)
 		xflag = true;
 		ShellProg = SaveStr(DefaultShell);	/* to prevent nasty circles */
 	}
+  real_uid = getuid();
+  real_gid = getgid();
+  eff_uid = geteuid();
+  eff_gid = getegid();
+
 	while (argc > 0) {
 		ap = *++argv;
 		if (--argc > 0 && *ap == '-') {
@@ -416,23 +423,29 @@ int main(int argc, char **argv)
 						argc--;
 					}
 					break;
+
 				case 'L':
-					if (--argc != 0) {
-						screenlogfile = SaveStr(*++argv);
-						if (screenlogfile[0] == '-')
-							Panic(0, "-L: logfile name can not start with \"-\" symbol");
-						if (strlen(screenlogfile) > PATH_MAX)
-							Panic(0, "-L: logfile name too long. (max. %d char)", PATH_MAX);
+          if (--argc > 1 && !strcmp(*++argv, "logfile")) {
+            *++argv; // Now '*argv' is a logfile parameter
 
-						FILE *w_check;
-						if ((w_check = fopen(screenlogfile, "w")) == NULL)
-							Panic(0, "-L: logfile name access problem");
-						else
-							fclose(w_check);
+            if (strlen(*argv) > PATH_MAX)
+              Panic(1, "-L: logfile name too long. (max. %d char)", PATH_MAX);
+            if (*argv[0] == '-')
+              Panic(0, "-L: logfile name can not start with \"-\" symbol");
 
-					}
-					nwin_options.Lflag = true;
-					break;
+            screenlogfile = SaveStr(*argv);
+          }
+
+          struct Log *w_check;
+          if ((w_check = logfopen(screenlogfile, islogfile(screenlogfile) ? NULL : secfopen(screenlogfile, "a"))) == NULL)
+            Panic(0, "-L: logfile name access problem");
+          else
+            if (logfclose (w_check))   //logfclose does free()
+              Panic(0, "-L: logfile is broken...");
+
+          nwin_options.Lflag = 1;
+          break;
+
 				case 'm':
 					mflag = 1;
 					break;
@@ -514,11 +527,6 @@ int main(int argc, char **argv)
 		} else
 			break;
 	}
-
-	real_uid = getuid();
-	real_gid = getgid();
-	eff_uid = geteuid();
-	eff_gid = getegid();
 
 	xsignal(SIGSEGV, CoreDump);
 
