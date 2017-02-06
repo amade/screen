@@ -1,3 +1,7 @@
+Version 4.5.1 (XX/02/2017):
+  *Fixes:
+  - logfile permissions problem (CVE-2017-5618)
+
 Version 4.5.0 (10/12/2016):
   * Allow specifying logfile's name via command line parameter '-L'
   * Fixes:

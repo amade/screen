@@ -109,7 +109,7 @@
 # include <shadow.h>
 #endif /* SHADOWPW */
 
-#include "logfile.h"	/* islogfile, logfflush */
+#include "logfile.h" /* islogfile, logfflush, logfopen/logfclose */
 
 #ifdef DEBUG
 FILE *dfp;
@@ -497,6 +497,11 @@ int main(int ac, char** av)
   af = AF_UNSPEC;
 #endif
 
+  real_uid = getuid();
+  real_gid = getgid();
+  eff_uid = geteuid();
+  eff_gid = getegid();
+
   logreopen_register(lf_secreopen);
 
   av0 = *av;   /* if this is a login screen, assume -RR */
@@ -667,17 +672,25 @@ int main(int ac, char** av)
             break;
 
           case 'L':
-            if (--ac > 0 && !strcmp(*++av, "logfile")) {
+            if (--ac > 1 && !strcmp(*++av, "logfile")) {
               *++av; // Now '*av' is a logfile parameter
+              --ac;
 
               if (strlen(*av) > PATH_MAX)
                 Panic(1, "-L: logfile name too long. (max. %d char)", PATH_MAX);
-
               if (*av[0] == '-')
                 Panic(0, "-L: logfile name can not start with \"-\" symbol");
 
               screenlogfile = SaveStr(*av);
             }
+
+            struct Log *w_check;
+            if ((w_check = logfopen(screenlogfile, islogfile(screenlogfile) ? NULL : secfopen(screenlogfile, "a"))) == NULL)
+              Panic(0, "-L: logfile name access problem");
+            else
+              if (logfclose (w_check))   //logfclose does free()
+                Panic(0, "-L: logfile is broken...");
+
             nwin_options.Lflag = 1;
             break;
 
@@ -787,10 +800,6 @@ int main(int ac, char** av)
     else
       break;
   }
-  real_uid = getuid();
-  real_gid = getgid();
-  eff_uid = geteuid();
-  eff_gid = getegid();
 
 #ifdef SIGBUS /* OOPS, linux has no bus errors! */
   signal(SIGBUS, CoreDump);
