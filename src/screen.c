@@ -672,26 +672,20 @@ int main(int ac, char** av)
             break;
 
           case 'L':
-            if (--ac > 1 && !strcmp(*++av, "logfile")) {
-              *++av; // Now '*av' is a logfile parameter
-              --ac;
+	    if (!strcmp(ap + 1, "ogfile")) {
+              if (--ac == 0)
+                exit_with_usage(myname, "Specify logfile path with -Logfile", NULL);
 
-              if (strlen(*av) > PATH_MAX)
-                Panic(1, "-L: logfile name too long. (max. %d char)", PATH_MAX);
-              if (*av[0] == '-')
-                Panic(0, "-L: logfile name can not start with \"-\" symbol");
+              if (strlen(*++av) > PATH_MAX)
+                Panic(1, "-Logfile name too long. (max. %d char)", PATH_MAX);
 
+              free(screenlogfile); /* we already set it up while starting */
               screenlogfile = SaveStr(*av);
-            }
 
-            struct Log *w_check;
-            if ((w_check = logfopen(screenlogfile, islogfile(screenlogfile) ? NULL : secfopen(screenlogfile, "a"))) == NULL)
-              Panic(0, "-L: logfile name access problem");
-            else
-              if (logfclose (w_check))   //logfclose does free()
-                Panic(0, "-L: logfile is broken...");
+              ap = NULL;
+            } else if (!strcmp(ap, "L"))
+              nwin_options.Lflag = 1;
 
-            nwin_options.Lflag = 1;
             break;
 
           case 'm':
