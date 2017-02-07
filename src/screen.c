@@ -271,7 +271,10 @@ int main(int argc, char **argv)
 	af = AF_UNSPEC;
 #endif
 
-
+	real_uid = getuid();
+	real_gid = getgid();
+	eff_uid = geteuid();
+	eff_gid = getegid();
 
 	av0 = *argv;
 	/* if this is a login screen, assume -RR */
@@ -280,10 +283,6 @@ int main(int argc, char **argv)
 		xflag = true;
 		ShellProg = SaveStr(DefaultShell);	/* to prevent nasty circles */
 	}
-  real_uid = getuid();
-  real_gid = getgid();
-  eff_uid = geteuid();
-  eff_gid = getegid();
 
 	while (argc > 0) {
 		ap = *++argv;
@@ -423,29 +422,22 @@ int main(int argc, char **argv)
 						argc--;
 					}
 					break;
-
 				case 'L':
-          if (--argc > 1 && !strcmp(*++argv, "logfile")) {
-            *++argv; // Now '*argv' is a logfile parameter
+					if (!strcmp(ap + 1, "ogfile")) {
+						if (--argc == 0)
+							exit_with_usage(myname, "Specify logfile path with -Logfile", NULL);
 
-            if (strlen(*argv) > PATH_MAX)
-              Panic(1, "-L: logfile name too long. (max. %d char)", PATH_MAX);
-            if (*argv[0] == '-')
-              Panic(0, "-L: logfile name can not start with \"-\" symbol");
+						if (strlen(*++argv) > PATH_MAX)
+							Panic(1, "-Logfile name too long. (max. %d char)", PATH_MAX);
 
-            screenlogfile = SaveStr(*argv);
-          }
+						free(screenlogfile); /* we already set it up while starting */
+						screenlogfile = SaveStr(*argv);
 
-          struct Log *w_check;
-          if ((w_check = logfopen(screenlogfile, islogfile(screenlogfile) ? NULL : secfopen(screenlogfile, "a"))) == NULL)
-            Panic(0, "-L: logfile name access problem");
-          else
-            if (logfclose (w_check))   //logfclose does free()
-              Panic(0, "-L: logfile is broken...");
+						ap = NULL;
+					} else if (!strcmp(ap, "L"))
+						nwin_options.Lflag = 1;
 
-          nwin_options.Lflag = 1;
-          break;
-
+					break;
 				case 'm':
 					mflag = 1;
 					break;
