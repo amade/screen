@@ -84,7 +84,8 @@ void exit_with_usage(char *myname, char *message, char *arg)
 #endif
   printf("-ls [match]   or\n");
   printf("-list         Do nothing, just list our SockDir [on possible matches].\n");
-  printf("-L [file]     Turn on output logging. Set logfile name.\n");
+  printf("-L            Turn on output logging.\n");
+  printf("-Logile file  Turn on output logging and set logfile name.\n");
   printf("-m            ignore $STY variable, do create a new screen session.\n");
   printf("-O            Choose optimal output rather than exact vt100 emulation.\n");
   printf("-p window     Preselect the named window if it exists.\n");
