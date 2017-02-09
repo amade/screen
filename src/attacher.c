@@ -94,15 +94,15 @@ static void QueryResultFail(int sigsig)
  *  tty filedescriptor.
  */
 
-static int WriteMessage(int s, Message *m)
+static int WriteMessage(int sock, Message *msg)
 {
-	int r, l = sizeof(*m);
+	ssize_t r, l = sizeof(*msg);
 
-	if (m->type == MSG_ATTACH)
-		return SendAttachMsg(s, m, attach_fd);
+	if (msg->type == MSG_ATTACH)
+		return SendAttachMsg(sock, msg, attach_fd);
 
 	while (l > 0) {
-		r = write(s, (char *)m + (sizeof(*m) - l), l);
+		r = write(sock, (char *)msg + (sizeof(*msg) - l), l);
 		if (r == -1 && errno == EINTR)
 			continue;
 		if (r == -1 || r == 0)
