@@ -52,6 +52,7 @@
 #include <sys/stat.h>
 #ifndef sun
 # include <sys/ioctl.h>
+# include <limits.h>
 #endif
 
 #ifndef SIGINT
