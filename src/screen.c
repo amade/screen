@@ -40,6 +40,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <limits.h>
 
 #include <locale.h>
 #if defined(HAVE_LANGINFO_H)
