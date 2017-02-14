@@ -346,9 +346,10 @@ static char *resizeprompts[] = {
 	"resize -l -b # columns: ",
 };
 
-static int parse_input_int(const char *buf, int len, int *val)
+static int parse_input_int(const char *buf, size_t len, int *val)
 {
-	int x = 0, i;
+	int x = 0;
+	size_t i;
 	if (len >= 1 && ((*buf == 'U' && buf[1] == '+') || (*buf == '0' && (buf[1] == 'x' || buf[1] == 'X')))) {
 		x = 0;
 		for (i = 2; i < len; i++) {
