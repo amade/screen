@@ -496,7 +496,7 @@ static int findseq_ge(char *seq, int k, unsigned char **sp)
 	int j, l;
 
 	p = D_kmaps;
-	while (p - D_kmaps < D_nseqs) {
+	while (p - (int)D_kmaps < D_nseqs) {
 		l = p[2];
 		p += 3;
 		for (j = 0;; j++) {
@@ -551,7 +551,7 @@ static int addmapseq(char *seq, int k, int nr)
 		p[1] = nr;
 		return 0;
 	}
-	i = p - D_kmaps;
+	i = p - (int)D_kmaps;
 	if (D_nseqs + 2 * k + 4 >= D_aseqs) {
 		D_kmaps = xrealloc((char *)D_kmaps, D_aseqs + 256);
 		D_aseqs += 256;
@@ -613,7 +613,7 @@ static int remmapseq(char *seq, int k)
 		}
 	}
 	if (D_kmaps + D_nseqs > p + 2 * k + 4)
-		memmove((char *)p, (char *)p + 2 * k + 4, (D_kmaps + D_nseqs) - (p + 2 * k + 4));
+		memmove((char *)p, (char *)p + 2 * k + 4, (size_t)(D_kmaps + D_nseqs) - (size_t)(p + 2 * k + 4));
 	D_nseqs -= 2 * k + 4;
 	D_seqp = D_kmaps + 3;
 	D_seql = 0;

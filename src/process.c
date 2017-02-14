@@ -599,20 +599,20 @@ static void ClearAction(struct action *act)
  *  everything else on to ProcessInput2.
  */
 
-void ProcessInput(char *ibuf, size_t ilen)
+void ProcessInput(uint32_t *ibuf, size_t ilen)
 {
-	int ch;
+	uint32_t ch;
 	size_t slen;
-	unsigned char *s, *q;
+	uint32_t *s, *q;
 	int i, l;
-	char *p;
+	uint32_t *p;
 
 	if (display == 0 || ilen == 0)
 		return;
 	if (D_seql)
 		evdeq(&D_mapev);
 	slen = ilen;
-	s = (unsigned char *)ibuf;
+	s = ibuf;
 	while (ilen-- > 0) {
 		ch = *s++;
 		if (D_dontmap || !D_nseqs) {
@@ -628,7 +628,7 @@ void ProcessInput(char *ibuf, size_t ilen)
 				}
 				D_mapdefault = 0;
 				l = D_seql;
-				p = (char *)D_seqp - l;
+				p = D_seqp - l;
 				D_seql = 0;
 				D_seqp = D_kmaps + 3;
 				if (l == 0)
@@ -638,7 +638,7 @@ void ProcessInput(char *ibuf, size_t ilen)
 					i = q[0] << 8 | q[1];
 					i &= ~KMAP_NOTIMEOUT;
 					if (StuffKey(i))
-						ProcessInput2((char *)q + 3, q[2]);
+						ProcessInput2(q + 3, q[2]);
 					if (display == 0)
 						return;
 					l -= q[2];
@@ -660,14 +660,14 @@ void ProcessInput(char *ibuf, size_t ilen)
 					return;
 				D_seqh = 0;
 			}
-			ibuf = (char *)s;
+			ibuf = s;
 			slen = ilen;
 			D_seqp++;
 			l = D_seql;
-			if (l == D_seqp[-l - 1]) {
-				if (D_seqp[l] != l) {
+			if ((uint32_t)l == D_seqp[-l - 1]) {
+				if (D_seqp[l] != (uint32_t)l) {
 					q = D_seqp + 1 + l;
-					if (D_kmaps + D_nseqs > q && q[2] > l && !memcmp(D_seqp - l, q + 3, l)) {
+					if (D_kmaps + D_nseqs > q && q[2] > (uint32_t)l && !memcmp(D_seqp - l, q + 3, l)) {
 						D_seqh = D_seqp - 3 - l;
 						D_seqp = q + 3 + l;
 						break;
@@ -675,7 +675,7 @@ void ProcessInput(char *ibuf, size_t ilen)
 				}
 				i = D_seqp[-l - 3] << 8 | D_seqp[-l - 2];
 				i &= ~KMAP_NOTIMEOUT;
-				p = (char *)D_seqp - l;
+				p = D_seqp - l;
 				D_seql = 0;
 				D_seqp = D_kmaps + 3;
 				D_seqh = 0;
@@ -706,21 +706,23 @@ void ProcessInput(char *ibuf, size_t ilen)
  *  Here only the screen escape commands are handled.
  */
 
-void ProcessInput2(char *ibuf, size_t ilen)
+void ProcessInput2(uint32_t *ibuf, size_t ilen)
 {
-	char *s;
+	uint32_t *s;
 	int ch;
 	size_t slen;
 	struct action *ktabp;
 
-	while (ilen && display) {
+	if (!display)
+		return;
+	while (ilen) {
 		flayer = D_forecv->c_layer;
 		fore = D_fore;
 		slen = ilen;
 		s = ibuf;
 		if (!D_ESCseen) {
-			while (ilen > 0) {
-				if ((unsigned char)*s++ == D_user->u_Esc)
+			while (ilen) {
+				if (*s++ == D_user->u_Esc)
 					break;
 				ilen--;
 			}
@@ -740,7 +742,7 @@ void ProcessInput2(char *ibuf, size_t ilen)
 			D_ESCseen = 0;
 			WindowChanged(fore, WINESC_ESC_SEEN);
 		}
-		ch = (unsigned char)*s;
+		ch = *s;
 
 		/*
 		 * As users have different esc characters, but a common ktab[],
@@ -755,12 +757,12 @@ void ProcessInput2(char *ibuf, size_t ilen)
 
 		if (ch >= 0)
 			DoAction(&ktabp[ch], ch);
-		ibuf = (char *)(s + 1);
+		ibuf = s + 1;
 		ilen--;
 	}
 }
 
-void DoProcess(Window *window, char **bufp, size_t *lenp, struct paster *pa)
+void DoProcess(Window *window, uint32_t **bufp, size_t *lenp, struct paster *pa)
 {
 	size_t oldlen;
 	Display *d = display;
@@ -781,7 +783,7 @@ void DoProcess(Window *window, char **bufp, size_t *lenp, struct paster *pa)
 			return;
 		}
 		oldlen = *lenp;
-		LayProcess(bufp, lenp);
+		LayProcess((char*)bufp, lenp);
 		if (pa && !pa->pa_pastelayer)
 			break;	/* flush rest of paste */
 		if (*lenp == oldlen) {
