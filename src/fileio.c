@@ -287,7 +287,7 @@ void do_source(char *rcfilename)
  * The fore window is taken from the display as well as the user.
  * This is bad when we run detached.
  */
-void RcLine(char *ubuf, int ubufl)
+void RcLine(uint32_t *ubuf, int ubufl)
 {
 	char *args[MAXARGS];
 	int argl[MAXARGS];

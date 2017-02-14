@@ -43,9 +43,9 @@ struct markdata {
 	int	append_mode;	/* shall we overwrite or append to copybuffer */
 	int	write_buffer;	/* shall we do a KEY_WRITE_EXCHANGE right away? */
 	int	hist_offset;	/* how many lines are on top of the screen */
-	char	isstr[100];	/* string we are searching for */
+	uint32_t isstr[100];	/* string we are searching for */
 	int	isstrl;
-	char	isistr[200];	/* string of chars user has typed */
+	uint32_t isistr[200];	/* string of chars user has typed */
 	int	isistrl;
 	int	isdir;		/* current search direction */
 	int	isstartpos;	/* position where isearch was started */
@@ -64,7 +64,7 @@ void  MarkRoutine (void);
 void  revto_line (int, int, int);
 void  revto (int, int);
 int   InMark (void);
-void  MakePaster (struct paster *, char *, size_t, int);
+void  MakePaster (struct paster *, uint32_t *, size_t, int);
 void  FreePaster (struct paster *);
 
 /* global variables */

@@ -44,6 +44,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <time.h>
+#include <unistr.h>
 
 #include "screen.h"
 
@@ -89,26 +90,26 @@ static int ParseNum(struct action *, int *);
 static int ParseNum1000(struct action *, int *);
 static char **SaveArgs(char **);
 static bool IsNum(char *);
-static void ColonFin(char *, size_t, void *);
+static void ColonFin(uint32_t *, size_t, void *);
 static void InputSelect(void);
 static void InputSetenv(char *);
 static void InputAKA(void);
 static int InputSu(struct acluser **, char *);
-static void suFin(char *, size_t, void *);
-static void AKAFin(char *, size_t, void *);
-static void copy_reg_fn(char *, size_t, void *);
-static void ins_reg_fn(char *, size_t, void *);
-static void process_fn(char *, size_t, void *);
-static void pow_detach_fn(char *, size_t, void *);
-static void digraph_fn(char *, size_t, void *);
+static void suFin(uint32_t *, size_t, void *);
+static void AKAFin(uint32_t *, size_t, void *);
+static void copy_reg_fn(uint32_t *, size_t, void *);
+static void ins_reg_fn(uint32_t *, size_t, void *);
+static void process_fn(uint32_t *, size_t, void *);
+static void pow_detach_fn(uint32_t *, size_t, void *);
+static void digraph_fn(uint32_t *, size_t, void *);
 static int digraph_find(const char *buf);
-static void confirm_fn(char *, size_t, void *);
+static void confirm_fn(uint32_t *, size_t, void *);
 static int IsOnDisplay(Window *);
-static void ResizeRegions(char *, int);
-static void ResizeFin(char *, size_t, void *);
+static void ResizeRegions(uint32_t *, int);
+static void ResizeFin(uint32_t *, size_t, void *);
 static struct action *FindKtab(char *, int);
-static void SelectFin(char *, size_t, void *);
-static void SelectLayoutFin(char *, size_t, void *);
+static void SelectFin(uint32_t *, size_t, void *);
+static void SelectLayoutFin(uint32_t *, size_t, void *);
 static void ShowWindowsX(char *);
 
 char NullStr[] = "";
@@ -334,18 +335,18 @@ static struct digraph digraphs[MAX_DIGRAPH + 1] = {
 #define RESIZE_FLAG_V 2
 #define RESIZE_FLAG_L 4
 
-static char *resizeprompts[] = {
-	"resize # lines: ",
-	"resize -h # columns: ",
-	"resize -v # lines: ",
-	"resize -b # columns: ",
-	"resize -l # lines: ",
-	"resize -l -h # columns: ",
-	"resize -l -v # lines: ",
-	"resize -l -b # columns: ",
+static uint32_t *resizeprompts[] = {
+	U"resize # lines: ",
+	U"resize -h # columns: ",
+	U"resize -v # lines: ",
+	U"resize -b # columns: ",
+	U"resize -l # lines: ",
+	U"resize -l -h # columns: ",
+	U"resize -l -v # lines: ",
+	U"resize -l -b # columns: ",
 };
 
-static int parse_input_int(const char *buf, size_t len, int *val)
+static int parse_input_int(const uint32_t *buf, size_t len, int *val)
 {
 	int x = 0;
 	size_t i;
@@ -599,20 +600,20 @@ static void ClearAction(struct action *act)
  *  everything else on to ProcessInput2.
  */
 
-void ProcessInput(char *ibuf, size_t ilen)
+void ProcessInput(uint32_t *ibuf, size_t ilen)
 {
-	int ch;
+	uint32_t ch;
 	size_t slen;
-	unsigned char *s, *q;
+	uint32_t *s, *q;
 	int i, l;
-	char *p;
+	uint32_t *p;
 
 	if (display == 0 || ilen == 0)
 		return;
 	if (D_seql)
 		evdeq(&D_mapev);
 	slen = ilen;
-	s = (unsigned char *)ibuf;
+	s = ibuf;
 	while (ilen-- > 0) {
 		ch = *s++;
 		if (D_dontmap || !D_nseqs) {
@@ -628,7 +629,7 @@ void ProcessInput(char *ibuf, size_t ilen)
 				}
 				D_mapdefault = 0;
 				l = D_seql;
-				p = (char *)D_seqp - l;
+				p = D_seqp - l;
 				D_seql = 0;
 				D_seqp = D_kmaps + 3;
 				if (l == 0)
@@ -638,7 +639,7 @@ void ProcessInput(char *ibuf, size_t ilen)
 					i = q[0] << 8 | q[1];
 					i &= ~KMAP_NOTIMEOUT;
 					if (StuffKey(i))
-						ProcessInput2((char *)q + 3, q[2]);
+						ProcessInput2(q + 3, q[2]);
 					if (display == 0)
 						return;
 					l -= q[2];
@@ -660,14 +661,14 @@ void ProcessInput(char *ibuf, size_t ilen)
 					return;
 				D_seqh = 0;
 			}
-			ibuf = (char *)s;
+			ibuf = s;
 			slen = ilen;
 			D_seqp++;
 			l = D_seql;
-			if (l == D_seqp[-l - 1]) {
-				if (D_seqp[l] != l) {
+			if ((uint32_t)l == D_seqp[-l - 1]) {
+				if (D_seqp[l] != (uint32_t)l) {
 					q = D_seqp + 1 + l;
-					if (D_kmaps + D_nseqs > q && q[2] > l && !memcmp(D_seqp - l, q + 3, l)) {
+					if (D_kmaps + D_nseqs > q && q[2] > (uint32_t)l && !memcmp(D_seqp - l, q + 3, l)) {
 						D_seqh = D_seqp - 3 - l;
 						D_seqp = q + 3 + l;
 						break;
@@ -675,7 +676,7 @@ void ProcessInput(char *ibuf, size_t ilen)
 				}
 				i = D_seqp[-l - 3] << 8 | D_seqp[-l - 2];
 				i &= ~KMAP_NOTIMEOUT;
-				p = (char *)D_seqp - l;
+				p = D_seqp - l;
 				D_seql = 0;
 				D_seqp = D_kmaps + 3;
 				D_seqh = 0;
@@ -706,21 +707,23 @@ void ProcessInput(char *ibuf, size_t ilen)
  *  Here only the screen escape commands are handled.
  */
 
-void ProcessInput2(char *ibuf, size_t ilen)
+void ProcessInput2(uint32_t *ibuf, size_t ilen)
 {
-	char *s;
-	int ch;
+	uint32_t *s;
+	uint32_t ch;
 	size_t slen;
 	struct action *ktabp;
 
-	while (ilen && display) {
+	if (!display)
+		return;
+	while (ilen) {
 		flayer = D_forecv->c_layer;
 		fore = D_fore;
 		slen = ilen;
 		s = ibuf;
 		if (!D_ESCseen) {
-			while (ilen > 0) {
-				if ((unsigned char)*s++ == D_user->u_Esc)
+			while (ilen) {
+				if (*s++ == D_user->u_Esc)
 					break;
 				ilen--;
 			}
@@ -740,7 +743,7 @@ void ProcessInput2(char *ibuf, size_t ilen)
 			D_ESCseen = 0;
 			WindowChanged(fore, WINESC_ESC_SEEN);
 		}
-		ch = (unsigned char)*s;
+		ch = *s;
 
 		/*
 		 * As users have different esc characters, but a common ktab[],
@@ -753,14 +756,14 @@ void ProcessInput2(char *ibuf, size_t ilen)
 		else if (ch == D_user->u_MetaEsc)
 			ch = DefaultMetaEsc;
 
-		if (ch >= 0)
+		/*XXX if (ch >= 0) */
 			DoAction(&ktabp[ch], ch);
-		ibuf = (char *)(s + 1);
+		ibuf = s + 1;
 		ilen--;
 	}
 }
 
-void DoProcess(Window *window, char **bufp, size_t *lenp, struct paster *pa)
+void DoProcess(Window *window, uint32_t **bufp, size_t *lenp, struct paster *pa)
 {
 	size_t oldlen;
 	Display *d = display;
@@ -879,7 +882,7 @@ static int CheckArgNum(int nr, char **args)
 	return i;
 }
 
-static void StuffFin(char *buf, size_t len, void *data)
+static void StuffFin(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -1071,7 +1074,7 @@ void DoAction(struct action *act, int key)
 			char *name;
 
 			if (key >= 0) {
-				Input(fore->w_pwin ? "Really kill this filter [y/n]" : "Really kill this window [y/n]",
+				Input(fore->w_pwin ? U"Really kill this filter [y/n]" : U"Really kill this window [y/n]",
 				      1, INP_RAW, confirm_fn, NULL, RC_KILL);
 				break;
 			}
@@ -1090,7 +1093,7 @@ void DoAction(struct action *act, int key)
 		}
 	case RC_QUIT:
 		if (key >= 0) {
-			Input("Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
+			Input(U"Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
 			break;
 		}
 		Finit(0);
@@ -1103,7 +1106,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_POW_DETACH:
 		if (key >= 0) {
-			static char buf[2];
+			static uint32_t buf[2];
 
 			buf[0] = key;
 			Input(buf, 1, INP_RAW, pow_detach_fn, NULL, 0);
@@ -1331,7 +1334,7 @@ void DoAction(struct action *act, int key)
 		 * (not dest) there.
 		 */
 		if ((s = *args) == NULL) {
-			Input("Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
+			Input(U"Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
 			break;
 		}
 		if (*argl != 1) {
@@ -1391,7 +1394,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_PROCESS:
 		if ((s = *args) == NULL) {
-			Input("Process register:", 1, INP_RAW, process_fn, NULL, 0);
+			Input(U"Process register:", 1, INP_RAW, process_fn, NULL, 0);
 			break;
 		}
 		if (*argl != 1) {
@@ -1404,7 +1407,7 @@ void DoAction(struct action *act, int key)
 	case RC_STUFF:
 		s = *args;
 		if (!args[0]) {
-			Input("Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
+			Input(U"Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
 			break;
 		}
 		len = *argl;
@@ -1672,7 +1675,7 @@ void DoAction(struct action *act, int key)
 			ChangeAKA(fore, *args, strlen(*args));
 		break;
 	case RC_COLON:
-		Input(":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
+		Input(U":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
 		if (*args && **args) {
 			s = *args;
 			len = strlen(s);
@@ -1867,7 +1870,7 @@ void DoAction(struct action *act, int key)
 			 * without args we prompt for one(!) register to be pasted in the window
 			 */
 			if ((s = *args) == NULL) {
-				Input("Paste from register:", 1, INP_RAW, ins_reg_fn, NULL, 0);
+				Input(U"Paste from register:", 1, INP_RAW, ins_reg_fn, NULL, 0);
 				break;
 			}
 			if (args[1] == 0 && !fore)	/* no window? */
@@ -2984,7 +2987,7 @@ void DoAction(struct action *act, int key)
 			}
 			break;
 		}
-		Input("Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL, 0);
+		Input(U"Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL, 0);
 		if (*args && **args) {
 			s = *args;
 			len = strlen(s);
@@ -3411,7 +3414,7 @@ void DoAction(struct action *act, int key)
 				break;
 			}
 			if (!args[1]) {
-				Input("Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
+				Input(U"Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
 				break;
 			}
 			SelectLayoutFin(args[1], strlen(args[1]), (char *)0);
@@ -4497,12 +4500,12 @@ static void ShowDInfo()
 	Msg(0, "%s", buf);
 }
 
-static void AKAFin(char *buf, size_t len, void *data)
+static void AKAFin(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
 	if (len && fore)
-		ChangeAKA(fore, buf, strlen(buf));
+		ChangeAKA(fore, buf, u32_strlen(buf));
 
 	enter_window_name_mode = 0;
 }
@@ -4517,7 +4520,7 @@ static void InputAKA()
 
 	enter_window_name_mode = 1;
 
-	Input("Set window's title to: ", sizeof(fore->w_akabuf) - 1, INP_COOKED, AKAFin, NULL, 0);
+	Input(U"Set window's title to: ", sizeof(fore->w_akabuf) - 1, INP_COOKED, AKAFin, NULL, 0);
 	s = fore->w_title;
 	if (!s)
 		return;
@@ -4530,9 +4533,9 @@ static void InputAKA()
 	}
 }
 
-static void ColonFin(char *buf, size_t len, void *data)
+static void ColonFin(uint32_t *buf, size_t len, void *data)
 {
-	char mbuf[256];
+	uint32_t mbuf[256];
 
 	(void)data; /* unused */
 
@@ -4541,7 +4544,7 @@ static void ColonFin(char *buf, size_t len, void *data)
 		int m, x;
 		int l = 0, r = RC_LAST;
 		int showmessage = 0;
-		char *s = buf;
+		uint32_t *s = buf;
 
 		while (*s && (uintptr_t)(s - buf) < len)
 			if (*s++ == ' ')
@@ -4555,23 +4558,23 @@ static void ColonFin(char *buf, size_t len, void *data)
 
 		while (l <= r) {
 			m = (l + r) / 2;
-			x = strncmp(buf, comms[m].name, len);
+			x = u32_strncmp(buf, comms[m].name, len);
 			if (x > 0)
 				l = m + 1;
 			else if (x < 0)
 				r = m - 1;
 			else {
 				s = mbuf;
-				for (l = m - 1; l >= 0 && strncmp(buf, comms[l].name, len) == 0; l--) ;
+				for (l = m - 1; l >= 0 && u32_strncmp(buf, comms[l].name, len) == 0; l--) ;
 				for (m = ++l;
-				     m <= r && strncmp(buf, comms[m].name, len) == 0 && (uintptr_t)(s - mbuf) < sizeof(mbuf); m++)
-					s += snprintf(s, sizeof(mbuf) - (s - mbuf), " %s", comms[m].name);
+				     m <= r && u32_strncmp(buf, comms[m].name, len) == 0 && (uintptr_t)(s - mbuf) < sizeof(mbuf); m++)
+					s += u32_snprintf(s, sizeof(mbuf) - (s - mbuf), " %s", comms[m].name);
 				if (l < m - 1) {
 					if (showmessage)
 						Msg(0, "Possible commands:%s", mbuf);
 				} else {
 					s = mbuf;
-					len = snprintf(mbuf, sizeof(mbuf), "%s \t", comms[l].name + len);
+					len = u32_snprintf(mbuf, sizeof(mbuf), "%s \t", comms[l].name + len);
 					if (len > 0 && len < sizeof(mbuf))
 						LayProcess(&s, &len);
 				}
@@ -4586,16 +4589,16 @@ static void ColonFin(char *buf, size_t len, void *data)
 	if (!len || buf[len])
 		return;
 
-	len = strlen(buf) + 1;
+	len = u32_strlen(buf) + 1;
 	if (len > (int)sizeof(mbuf))
 		RcLine(buf, len);
 	else {
-		memmove(mbuf, buf, len);
+		u32_move(mbuf, buf, len);
 		RcLine(mbuf, sizeof mbuf);
 	}
 }
 
-static void SelectFin(char *buf, size_t len, void *data)
+static void SelectFin(uint32_t *buf, size_t len, void *data)
 {
 	int n;
 
@@ -4613,7 +4616,7 @@ static void SelectFin(char *buf, size_t len, void *data)
 	SwitchWindow(n);
 }
 
-static void SelectLayoutFin(char *buf, size_t len, void *data)
+static void SelectLayoutFin(uint32_t *buf, size_t len, void *data)
 {
 	Layout *lay;
 
@@ -4639,7 +4642,7 @@ static void SelectLayoutFin(char *buf, size_t len, void *data)
 
 static void InputSelect()
 {
-	Input("Switch to window: ", 20, INP_COOKED, SelectFin, NULL, 0);
+	Input(U"Switch to window: ", 20, INP_COOKED, SelectFin, NULL, 0);
 }
 
 static char setenv_var[31];
@@ -4665,14 +4668,14 @@ static void SetenvFin2(char *buf, size_t len, void *data)
 
 static void InputSetenv(char *arg)
 {
-	static char setenv_buf[50 + sizeof(setenv_var)];	/* need to be static here, cannot be freed */
+	static uint32_t setenv_buf[50 + sizeof(setenv_var)];	/* need to be static here, cannot be freed */
 
 	if (arg) {
-		strncpy(setenv_var, arg, sizeof(setenv_var) - 1);
-		sprintf(setenv_buf, "Enter value for %s: ", setenv_var);
+		u32_strncpy(setenv_var, arg, sizeof(setenv_var) - 1);
+		u32_sprintf(setenv_buf, "Enter value for %s: ", setenv_var);
 		Input(setenv_buf, 30, INP_COOKED, SetenvFin2, NULL, 0);
 	} else
-		Input("Setenv: Enter variable name: ", 30, INP_COOKED, SetenvFin1, NULL, 0);
+		Input(U"Setenv: Enter variable name: ", 30, INP_COOKED, SetenvFin1, NULL, 0);
 }
 
 /*
@@ -4835,7 +4838,7 @@ int CompileKeys(char *s, int sl, unsigned char *array)
  *  Asynchronous input functions
  */
 
-static void pow_detach_fn(char *buf, size_t len, void *data)
+static void pow_detach_fn(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -4843,7 +4846,7 @@ static void pow_detach_fn(char *buf, size_t len, void *data)
 		*buf = 0;
 		return;
 	}
-	if (ktab[(int)(unsigned char)*buf].nr != RC_POW_DETACH) {
+	if (ktab[(int)*buf].nr != RC_POW_DETACH) {
 		if (display)
 			write(D_userfd, "\007", 1);
 		Msg(0, "Detach aborted.");
@@ -4851,11 +4854,11 @@ static void pow_detach_fn(char *buf, size_t len, void *data)
 		Detach(D_POWER);
 }
 
-static void copy_reg_fn(char *buf, size_t len, void *data)
+static void copy_reg_fn(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
-	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
+	struct plop *pp = plop_tab + (int)*buf;
 
 	if (len) {
 		*buf = 0;
@@ -4866,21 +4869,21 @@ static void copy_reg_fn(char *buf, size_t len, void *data)
 	pp->buf = 0;
 	pp->len = 0;
 	if (D_user->u_plop.len) {
-		if ((pp->buf = malloc(D_user->u_plop.len)) == NULL) {
+		if ((pp->buf = malloc(D_user->u_plop.len * sizeof(uint32_t))) == NULL) {
 			Msg(0, "%s", strnomem);
 			return;
 		}
-		memmove(pp->buf, D_user->u_plop.buf, D_user->u_plop.len);
+		u32_move(pp->buf, D_user->u_plop.buf, D_user->u_plop.len);
 	}
 	pp->len = D_user->u_plop.len;
 	Msg(0, "Copied %zu characters into register %c", D_user->u_plop.len, *buf);
 }
 
-static void ins_reg_fn(char *buf, size_t len, void *data)
+static void ins_reg_fn(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
-	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
+	struct plop *pp = plop_tab + (int)*buf;
 
 	if (len) {
 		*buf = 0;
@@ -4897,9 +4900,9 @@ static void ins_reg_fn(char *buf, size_t len, void *data)
 	Msg(0, "Empty register.");
 }
 
-static void process_fn(char *buf, size_t len, void *data)
+static void process_fn(uint32_t *buf, size_t len, void *data)
 {
-	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
+	struct plop *pp = plop_tab + (int)*buf;
 
 	(void)data; /* unused */
 
@@ -4914,7 +4917,7 @@ static void process_fn(char *buf, size_t len, void *data)
 	Msg(0, "Empty register.");
 }
 
-static void confirm_fn(char *buf, size_t len, void *data)
+static void confirm_fn(uint32_t *buf, size_t len, void *data)
 {
 	struct action act;
 
@@ -4931,35 +4934,35 @@ static void confirm_fn(char *buf, size_t len, void *data)
 
 struct inputsu {
 	struct acluser **up;
-	char name[24];
-	char pw1[130];		/* FreeBSD crypts to 128 bytes */
-	char pw2[130];
+	uint32_t name[24];
+	uint32_t pw1[130];		/* FreeBSD crypts to 128 bytes */
+	uint32_t pw2[130];
 };
 
-static void suFin(char *buf, size_t len, void *data)
+static void suFin(uint32_t *buf, size_t len, void *data)
 {
 	struct inputsu *i = (struct inputsu *)data;
-	char *p;
+	uint32_t *p;
 	size_t l;
 
 	if (!*i->name) {
 		p = i->name;
 		l = sizeof(i->name) - 1;
 	} else if (!*i->pw1) {
-		strcpy(p = i->pw1, "\377");
+		u32_strcpy(p = i->pw1, U"\377");
 		l = sizeof(i->pw1) - 1;
 	} else {
-		strcpy(p = i->pw2, "\377");
+		u32_strcpy(p = i->pw2, U"\377");
 		l = sizeof(i->pw2) - 1;
 	}
 	if (buf && len)
-		strncpy(p, buf, 1 + ((l < len) ? l : len));
+		u32_strncpy(p, buf, 1 + ((l < len) ? l : len));
 	if (!*i->name)
-		Input("Screen User: ", sizeof(i->name) - 1, INP_COOKED, suFin, (char *)i, 0);
+		Input(U"Screen User: ", sizeof(i->name) - 1, INP_COOKED, suFin, (char *)i, 0);
 	else if (!*i->pw1)
-		Input("User's UNIX Password: ", sizeof(i->pw1) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
+		Input(U"User's UNIX Password: ", sizeof(i->pw1) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
 	else if (!*i->pw2)
-		Input("User's Screen Password: ", sizeof(i->pw2) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
+		Input(U"User's Screen Password: ", sizeof(i->pw2) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
 	else {
 		if ((p = DoSu(i->up, i->name, i->pw2, i->pw1)))
 			Msg(0, "%s", p);
@@ -4978,7 +4981,7 @@ static int InputSu(struct acluser **up, char *name)
 	if (name && *name)
 		suFin(name, (int)strlen(name), (char *)i);	/* can also initialise stuff */
 	else
-		suFin((char *)0, 0, (char *)i);
+		suFin((uint32_t *)0, 0, (char *)i);
 	return 0;
 }
 
@@ -4991,9 +4994,10 @@ static int digraph_find(const char *buf)
 	return i;
 }
 
-static void digraph_fn(char *buf, size_t len, void *data)
+static void digraph_fn(uint32_t *buf, size_t len, void *data)
 {
-	int ch, i, x;
+	int i;
+	uint32_t ch, x;
 	size_t l;
 
 	(void)data; /* unused */
@@ -5273,7 +5277,7 @@ static int ChangeCanvasSize(Canvas *fcv, int abs, int diff, bool gflag, int perc
 	return done;
 }
 
-static void ResizeRegions(char *arg, int flags)
+static void ResizeRegions(uint32_t *arg, int flags)
 {
 	Canvas *cv;
 	int diff, l;
@@ -5292,7 +5296,7 @@ static void ResizeRegions(char *arg, int flags)
 	orient |= flags & RESIZE_FLAG_V ? SLICE_VERT : 0;
 	if (orient == 0)
 		orient = D_forecv->c_slorient;
-	l = strlen(arg);
+	l = u32_strlen(arg);
 	if (*arg == '=') {
 		/* make all regions the same height */
 		Canvas *cv = gflag ? &D_canvas : D_forecv->c_slback;
@@ -5312,15 +5316,16 @@ static void ResizeRegions(char *arg, int flags)
 		ResizeLayersToCanvases();
 		return;
 	}
-	if (!strcmp(arg, "min") || !strcmp(arg, "0")) {
+	if (!u32_strcmp(arg, U"min") || !u32_strcmp(arg, U"0")) {
 		abs = 2;
 		diff = 0;
-	} else if (!strcmp(arg, "max") || !strcmp(arg, "_")) {
+	} else if (!u32_strcmp(arg, U"max") || !u32_strcmp(arg, U"_")) {
 		abs = 2;
 		diff = 1;
 	} else {
 		if (l > 0 && arg[l - 1] == '%')
 			percent = 1000;
+#if 0 /* FIXME: we need something like atoi but for UTF-32 string */
 		if (*arg == '+')
 			diff = atoi(arg + 1);
 		else if (*arg == '-')
@@ -5331,6 +5336,7 @@ static void ResizeRegions(char *arg, int flags)
 				diff = 0;
 			abs = diff == 0 ? 2 : 1;
 		}
+#endif
 	}
 	if (!abs && !diff)
 		return;
@@ -5349,11 +5355,11 @@ static void ResizeRegions(char *arg, int flags)
 	return;
 }
 
-static void ResizeFin(char *buf, size_t len, void *data)
+static void ResizeFin(uint32_t *buf, size_t len, void *data)
 {
-	int ch;
+	uint32_t ch;
 	int flags = *(int *)data;
-	ch = ((unsigned char *)buf)[len];
+	ch = buf[len];
 	if (ch == 0) {
 		ResizeRegions(buf, flags);
 		return;

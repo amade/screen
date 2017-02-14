@@ -101,7 +101,7 @@ void exit_with_usage(char *myname, char *message, char *arg)
 **   Here come the help page routines
 */
 
-static void HelpProcess(char **, size_t *);
+static void HelpProcess(uint32_t **, size_t *);
 static void HelpAbort(void);
 static void HelpRedisplayLine(int, int, int, int);
 static void add_key_to_buf(char *, int);
@@ -202,7 +202,7 @@ void display_help(char *class, struct action *ktabp)
 	helppage();
 }
 
-static void HelpProcess(char **ppbuf, size_t *plen)
+static void HelpProcess(uint32_t **ppbuf, size_t *plen)
 {
 	bool done = false;
 
@@ -413,7 +413,7 @@ static void HelpRedisplayLine(int y, int xs, int xe, int isblank)
 **
 */
 
-static void CopyrightProcess(char **, size_t *);
+static void CopyrightProcess(uint32_t **, size_t *);
 static void CopyrightRedisplayLine(int, int, int, int);
 static void CopyrightAbort(void);
 static void copypage(void);
@@ -466,7 +466,7 @@ screen-devel@gnu.org\n\n\n"
 #endif
     ;
 
-static void CopyrightProcess(char **ppbuf, size_t *plen)
+static void CopyrightProcess(uint32_t **ppbuf, size_t *plen)
 {
 	int done = 0;
 	struct copydata *copydata;
@@ -603,7 +603,7 @@ static void CopyrightRedisplayLine(int y, int xs, int xe, int isblank)
 **
 */
 
-static void BindkeyProcess(char **, size_t *);
+static void BindkeyProcess(uint32_t **, size_t *);
 static void BindkeyAbort(void);
 static void BindkeyRedisplayLine(int, int, int, int);
 static void bindkeypage(void);
@@ -734,7 +734,7 @@ static void bindkeypage()
 	LaySetCursor();
 }
 
-static void BindkeyProcess(char **ppbuf, size_t *plen)
+static void BindkeyProcess(uint32_t **ppbuf, size_t *plen)
 {
 	int done = 0;
 	struct bindkeydata *bindkeydata;

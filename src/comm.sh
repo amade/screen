@@ -66,7 +66,7 @@ extern struct comm comms[];
 struct action
 {
   int nr;
-  char **args;
+  uint32_t **args;
   int *argl;
   int quiet;	/* Suppress (currently unused)
 		   0x01 - Error message

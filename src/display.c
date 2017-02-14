@@ -36,6 +36,7 @@
 #include <sys/ioctl.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <uniconv.h>
 
 #include "screen.h"
 
@@ -91,7 +92,7 @@ int focusminwidth, focusminheight;
  *  Default layer management
  */
 
-void DefProcess(char **bufp, size_t *lenp)
+void DefProcess(uint32_t **bufp, size_t *lenp)
 {
 	*bufp += *lenp;
 	*lenp = 0;
@@ -2259,7 +2260,10 @@ static void disp_readev_fn(Event *event, void *data)
 {
 	ssize_t size;
 	char buf[IOSIZE];
+	uint32_t imgbuf[IOSIZE];
 	Canvas *cv;
+
+	const char *lc = locale_charset(); /* FIXME needs to be display encoding variable*/
 
 	(void)event; /* unused */
 
@@ -2312,16 +2316,16 @@ static void disp_readev_fn(Event *event, void *data)
 		return;
 	}
 	if (D_blocked > 1) {	/* 2, 3 */
-		char *bufp;
 		Window *p;
 
 		flayer = 0;
 		for (p = windows; p; p = p->w_next)
 			if (p->w_zdisplay == display) {
+				size_t sss = size;
 				flayer = &p->w_layer;
-				bufp = buf;
-				while (size > 0)
-					LayProcess(&bufp, (size_t*)&size);
+				u32_conv_from_encoding(lc, iconveh_question_mark, buf, sss, 0, imgbuf, &sss);
+				while (sss > 0)
+					LayProcess((uint32_t **)&imgbuf, &sss);
 				return;
 			}
 		zmodem_abort(0, display);
@@ -2377,7 +2381,18 @@ static void disp_readev_fn(Event *event, void *data)
 			size -= 5;
 		}
 	}
-	(*D_processinput) (buf, size);
+
+	size_t sss = size;
+	FILE *df = fopen("/tmp/debug", "a+");
+
+	u32_conv_from_encoding(lc, iconveh_question_mark, buf, sss, 0, imgbuf, &sss);
+
+	for (size_t is = 0; is < sss; is++)
+		fprintf(df, "%c - %x\n", imgbuf[is], imgbuf[is]);
+
+	fclose(df);
+
+	(*D_processinput) (imgbuf, sss);
 }
 
 static void disp_status_fn(Event *event, void *data)
@@ -2419,16 +2434,16 @@ static void disp_blocked_fn(Event *event, void *data)
 
 static void disp_map_fn(Event *event, void *data)
 {
-	char *p;
+	uint32_t *p;
 	int l, i;
-	unsigned char *q;
+	uint32_t *q;
 
 	(void)event; /* unused */
 
 	display = (Display *)data;
 	if (!(l = D_seql))
 		return;
-	p = (char *)D_seqp - l;
+	p = D_seqp - l;
 	D_seqp = D_kmaps + 3;
 	D_seql = 0;
 	if ((q = D_seqh) != 0) {
@@ -2436,7 +2451,7 @@ static void disp_map_fn(Event *event, void *data)
 		i = q[0] << 8 | q[1];
 		i &= ~KMAP_NOTIMEOUT;
 		if (StuffKey(i))
-			ProcessInput2((char *)q + 3, q[2]);
+			ProcessInput2(q + 3, q[2]);
 		if (display == 0)
 			return;
 		l -= q[2];
