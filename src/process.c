@@ -598,19 +598,20 @@ static void ClearAction(struct action *act)
  *  everything else on to ProcessInput2.
  */
 
-void ProcessInput(char *ibuf, int ilen)
+void ProcessInput(uint32_t *ibuf, size_t ilen)
 {
-	int ch, slen;
-	unsigned char *s, *q;
+	size_t slen;
+	uint32_t ch;
+	uint32_t *s, *q;
 	int i, l;
-	char *p;
+	uint32_t *p;
 
 	if (display == 0 || ilen == 0)
 		return;
 	if (D_seql)
 		evdeq(&D_mapev);
 	slen = ilen;
-	s = (unsigned char *)ibuf;
+	s = ibuf;
 	while (ilen-- > 0) {
 		ch = *s++;
 		if (D_dontmap || !D_nseqs) {
@@ -626,7 +627,7 @@ void ProcessInput(char *ibuf, int ilen)
 				}
 				D_mapdefault = 0;
 				l = D_seql;
-				p = (char *)D_seqp - l;
+				p = D_seqp - l;
 				D_seql = 0;
 				D_seqp = D_kmaps + 3;
 				if (l == 0)
@@ -636,7 +637,7 @@ void ProcessInput(char *ibuf, int ilen)
 					i = q[0] << 8 | q[1];
 					i &= ~KMAP_NOTIMEOUT;
 					if (StuffKey(i))
-						ProcessInput2((char *)q + 3, q[2]);
+						ProcessInput2(q + 3, q[2]);
 					if (display == 0)
 						return;
 					l -= q[2];
@@ -658,7 +659,7 @@ void ProcessInput(char *ibuf, int ilen)
 					return;
 				D_seqh = 0;
 			}
-			ibuf = (char *)s;
+			ibuf = s;
 			slen = ilen;
 			D_seqp++;
 			l = D_seql;
@@ -673,7 +674,7 @@ void ProcessInput(char *ibuf, int ilen)
 				}
 				i = D_seqp[-l - 3] << 8 | D_seqp[-l - 2];
 				i &= ~KMAP_NOTIMEOUT;
-				p = (char *)D_seqp - l;
+				p = D_seqp - l;
 				D_seql = 0;
 				D_seqp = D_kmaps + 3;
 				D_seqh = 0;
@@ -704,30 +705,33 @@ void ProcessInput(char *ibuf, int ilen)
  *  Here only the screen escape commands are handled.
  */
 
-void ProcessInput2(char *ibuf, int ilen)
+void ProcessInput2(uint32_t *ibuf, size_t ilen)
 {
-	char *s;
+	uint32_t *s;
 	int ch;
 	size_t slen;
 	struct action *ktabp;
 
-	while (ilen && display) {
+	if (!display)
+		return;
+	while (ilen) {
 		flayer = D_forecv->c_layer;
 		fore = D_fore;
 		slen = ilen;
 		s = ibuf;
 		if (!D_ESCseen) {
-			while (ilen > 0) {
-				if ((unsigned char)*s++ == D_user->u_Esc)
+			while (ilen) {
+				if (*s++ == D_user->u_Esc)
 					break;
 				ilen--;
 			}
 			slen -= ilen;
 			if (slen)
-				DoProcess(fore, &ibuf, &slen, 0);
-			if (--ilen == 0) {
+				DoProcess(fore, (char **)&ibuf, &slen, 0);
+			if (ilen == 1) {
 				D_ESCseen = ktab;
 				WindowChanged(fore, WINESC_ESC_SEEN);
+				ilen--;
 			}
 		}
 		if (ilen <= 0)
@@ -737,7 +741,7 @@ void ProcessInput2(char *ibuf, int ilen)
 			D_ESCseen = 0;
 			WindowChanged(fore, WINESC_ESC_SEEN);
 		}
-		ch = (unsigned char)*s;
+		ch = *s;
 
 		/*
 		 * As users have different esc characters, but a common ktab[],
@@ -752,7 +756,7 @@ void ProcessInput2(char *ibuf, int ilen)
 
 		if (ch >= 0)
 			DoAction(&ktabp[ch], ch);
-		ibuf = (char *)(s + 1);
+		ibuf = s + 1;
 		ilen--;
 	}
 }

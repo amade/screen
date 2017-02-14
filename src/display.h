@@ -83,7 +83,7 @@ struct Display {
 	Canvas *d_cvlist;		/* the canvases of this display */
 	Canvas *d_forecv;		/* current input focus */
 	Layout *d_layout;	/* layout we're using */
-	void (*d_processinput) (char *, int);
+	void (*d_processinput) (uint32_t *, size_t);
 	char *d_processinputdata;	/* data for processinput */
 	int d_vpxmin, d_vpxmax;		/* min/max used position on display */
 	Window *d_fore;		/* pointer to fore window */
@@ -147,12 +147,12 @@ struct Display {
 	char *d_obufp;			/* pointer in buffer */
 	int   d_obuffree;		/* free bytes in buffer */
 	bool	d_auto_nuke;		/* autonuke flag */
-	int	d_nseqs;		/* number of valid mappings */
-	int	d_aseqs;		/* number of allocated mappings */
-	unsigned char  *d_kmaps;	/* keymaps */
-	unsigned char *d_seqp;		/* pointer into keymap array */
-	int	d_seql;			/* number of parsed chars */
-	unsigned char *d_seqh;		/* last hit */
+	size_t	d_nseqs;		/* number of valid mappings */
+	size_t	d_aseqs;		/* number of allocated mappings */
+	uint32_t *d_kmaps;	/* keymaps */
+	uint32_t *d_seqp;		/* pointer into keymap array */
+	size_t	d_seql;			/* number of parsed chars */
+	uint32_t *d_seqh;		/* last hit */
 	Event d_mapev;		/* timeout event */
 	int	d_dontmap;		/* do not map next */
 	int	d_mapdefault;		/* do map next to default */
