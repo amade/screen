@@ -1883,7 +1883,7 @@ void DoAction(struct action *act, int key)
 	 /*FALLTHROUGH*/ case RC_PASTE:
 		{
 			char *ss, *dbuf, dch;
-			int l = 0;
+			size_t l = 0;
 			int enc = -1;
 
 			/*
