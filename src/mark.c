@@ -56,12 +56,12 @@ static int is_letter(int);
 static void nextword(int *, int *, int, int);
 static int linestart(int);
 static int lineend(int);
-static int rem(int, int, int, int, int, char *, int);
+static int rem(int, int, int, int, int, uint32_t *, int);
 static bool eq(int, int);
 static int MarkScrollDownDisplay(int);
 static int MarkScrollUpDisplay(int);
 
-static void MarkProcess(char **, size_t *);
+static void MarkProcess(uint32_t **, size_t *);
 static void MarkAbort(void);
 static void MarkRedisplayLine(int, int, int, int);
 
@@ -235,9 +235,10 @@ static void nextword(int *xp, int *yp, int flags, int num)
  *		2  -  count + copy, don't redisplay
  */
 
-static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend)
+static int rem(int x1, int y1, int x2, int y2, int redisplay, uint32_t *pt, int yend)
 {
-	int i, j, from, to, ry, c;
+	uint32_t c;
+	int i, j, from, to, ry;
 	int l = 0;
 	uint32_t *im;
 	struct mline *ml;
@@ -279,7 +280,7 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
 		j = from;
 		im = ml->image + j;
 		for (; j <= to; j++) {
-			c = (unsigned char)*im++;
+			c = *im++;
 			if (pt)
 				*pt++ = c;
 			l++;
@@ -406,9 +407,9 @@ void MarkRoutine()
 	flayer->l_y = W2D(y);
 }
 
-static void MarkProcess(char **inbufp, size_t *inlenp)
+static void MarkProcess(uint32_t **inbufp, size_t *inlenp)
 {
-	char *inbuf, *pt;
+	uint32_t *inbuf, *pt;
 	int inlen;
 	int cx, cy, x2, y2, j, yend;
 	int newcopylen = 0, od;
@@ -434,7 +435,7 @@ static void MarkProcess(char **inbufp, size_t *inlenp)
 	pt = inbuf;
 	in_mark = 1;
 	while (in_mark && (inlen /* || extrap */ )) {
-		unsigned char ch = (unsigned char)*pt++;
+		uint32_t ch = *pt++;
 		inlen--;
 		if (flayer->l_mouseevent.start) {
 			int r = LayProcessMouse(flayer, ch);
@@ -706,7 +707,7 @@ static void MarkProcess(char **inbufp, size_t *inlenp)
 		case 'C':
 			/* set start column (c) and end column (C) */
 			if (markdata->second) {
-				rem(markdata->x1, markdata->y1, cx, cy, 1, (char *)0, fore->w_height - 1);	/* Hack */
+				rem(markdata->x1, markdata->y1, cx, cy, 1, (uint32_t *)0, fore->w_height - 1);	/* Hack */
 				markdata->second = 1;	/* rem turns off second */
 			}
 			rep_cnt--;
@@ -820,7 +821,7 @@ static void MarkProcess(char **inbufp, size_t *inlenp)
 
 				x2 = cx;
 				y2 = cy;
-				newcopylen = rem(markdata->x1, markdata->y1, x2, y2, 2, (char *)0, 0);	/* count */
+				newcopylen = rem(markdata->x1, markdata->y1, x2, y2, 2, (uint32_t *)0, 0);	/* count */
 				if (md_user->u_plop.buf && !append_mode)
 					UserFreeCopyBuffer(md_user);
 				yend = fore->w_height - 1;
@@ -1064,7 +1065,7 @@ static void MarkAbort()
 	if (markdata->hist_offset != fore->w_histheight) {
 		LAY_CALL_UP(LRefreshAll(flayer, 0));
 	} else {
-		rem(markdata->x1, markdata->y1, markdata->cx, markdata->cy, redisp, (char *)0, yend);
+		rem(markdata->x1, markdata->y1, markdata->cx, markdata->cy, redisp, (uint32_t *)0, yend);
 	}
 	ExitOverlayPage();
 	WindowChanged(fore, WINESC_COPY_MODE);
@@ -1164,7 +1165,7 @@ static int MarkScrollDownDisplay(int n)
 	return n;
 }
 
-void MakePaster(struct paster *pa, char *buf, size_t len, int bufiscopy)
+void MakePaster(struct paster *pa, uint32_t *buf, size_t len, int bufiscopy)
 {
 	FreePaster(pa);
 	pa->pa_pasteptr = buf;

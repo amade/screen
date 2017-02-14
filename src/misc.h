@@ -3,18 +3,22 @@
 
 #include "config.h"
 
+#include <stdint.h>
 #include <sys/types.h>
 
 #include "image.h"
 
 char *SaveStr (const char *);
 char *SaveStrn (const char *, size_t);
+uint32_t *u32_SaveStr (const uint32_t *);
+uint32_t *u32_SaveStrn (const uint32_t *, size_t);
 #ifndef HAVE_STRERROR
 char *strerror (int);
 #endif
-void  centerline (char *, int);
-void  leftline (char *, int, struct mchar *);
-char *Filename (char *);
+int u32_atoi(const uint32_t *);
+void  centerline (uint32_t *, int);
+void  leftline (uint32_t *, int, struct mchar *);
+uint32_t *Filename (uint32_t *);
 char *stripdev (char *);
 void  closeallfiles (int);
 int   UserContext (void);
@@ -25,8 +29,8 @@ void (*xsignal (int, void (*)(int))) (int);
 void  xseteuid  (int);
 void  xsetegid  (int);
 #endif
-int   AddXChar (char *, int);
-int   AddXChars (char *, int, char *);
+uint32_t AddXChar (uint32_t *, uint32_t);
+uint32_t AddXChars (uint32_t *, int, uint32_t *);
 void  sleep1000 (int);
 
 #endif /* SCREEN_MISC_H */

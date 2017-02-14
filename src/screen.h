@@ -54,7 +54,7 @@
  */
 #define MAXHISTHEIGHT		3000
 #define DEFAULTHISTHEIGHT	100
-#define DEFAULT_BUFFERFILE	"/tmp/screen-exchange"
+#define DEFAULT_BUFFERFILE	U"/tmp/screen-exchange"
 
 struct mode {
 	struct termios tio;
@@ -150,7 +150,7 @@ struct Message {
 			char writeback[MAXPATHLEN];	/* The socket to write the result.
 							   Only used for MSG_QUERY */
 			} command;
-		char message[MAXPATHLEN * 2];
+		uint32_t  message[MAXPATHLEN * 2];
 	} m;
 };
 
@@ -221,13 +221,13 @@ void  eexit (int) __attribute__((__noreturn__));
 void  Detach (int);
 void  Hangup (void);
 void  Kill (int, int);
-void  Msg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
-void  Panic (int, const char *, ...) __attribute__((format(printf, 2, 3))) __attribute__((__noreturn__));
-void  QueryMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
-void  Dummy (int, const char *, ...) __attribute__((format(printf, 2, 3)));
+void  Msg (int, const uint32_t *, ...);
+void  Panic (int, const uint32_t *, ...) __attribute__((__noreturn__));
+void  QueryMsg (int, const uint32_t *, ...);
+void  Dummy (int, const uint32_t *, ...);
 void  Finit (int);
 void  MakeNewEnv (void);
-void  PutWinMsg (char *, int, int);
+void  PutWinMsg (uint32_t *, int, int);
 void  setbacktick (int, int, int, char **);
 
 /* global variables */
@@ -237,22 +237,22 @@ extern char HostName[];
 extern char SocketPath[];
 extern char *attach_tty;
 extern char *attach_term;
-extern char *captionstring;
+extern uint32_t *captionstring;
 extern char *hardcopydir;
 extern char *home;
-extern char *hstatusstring;
-extern char *logtstamp_string;
+extern uint32_t *hstatusstring;
+extern uint32_t *logtstamp_string;
 extern char *multi;
 extern char *preselect;
 extern char *screenlogfile;
 extern char *timestring;
-extern char *wliststr;
+extern uint32_t *wliststr;
 extern char *wlisttit;
-extern char *ActivityString;
-extern char *BellString;
+extern uint32_t *ActivityString;
+extern uint32_t *BellString;
 extern char *BufferFile;
 extern char *LoginName;
-extern char *PowDetachString;
+extern uint32_t *PowDetachString;
 extern char *RcFileName;
 extern char *ShellArgs[];
 extern char *ShellProg;

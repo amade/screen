@@ -10,7 +10,7 @@ int   RecoverSocket (void);
 int   chsock (void);
 void  ReceiveMsg (void);
 void  SendCreateMsg (char *, struct NewWindow *);
-int   SendErrorMsg (char *, char *);
+int   SendErrorMsg (char *, uint32_t *);
 int   SendAttachMsg (int, Message *, int);
 void  ReceiveRaw (int);
 

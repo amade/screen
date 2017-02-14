@@ -36,6 +36,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/types.h>
+#include <unistr.h>
+#include <unistdio.h>
 
 #include "screen.h"
 
@@ -43,9 +45,9 @@
 #include "list_generic.h"
 #include "process.h"
 
-char version[60];		/* initialised by main() */
+uint32_t *version;		/* initialised by main() */
 
-static void PadStr(char *, int, int, int);
+static void PadStr(uint32_t *str, int n, int x, int y);
 
 void exit_with_usage(char *myname, char *message, char *arg)
 {
@@ -85,7 +87,7 @@ void exit_with_usage(char *myname, char *message, char *arg)
 	printf("-t title      Set title. (window's name).\n");
 	printf("-T term       Use term as $TERM for windows, rather than \"screen\".\n");
 	printf("-U            Tell screen to use UTF-8 encoding.\n");
-	printf("-v            Print \"Screen version %s\".\n", version);
+	ulc_fprintf(stdout, "-v            Print \"Screen version %llU\".\n", version);
 	printf("-wipe [match] Do nothing, just clean up SocketDir [on possible matches].\n");
 	printf("-x            Attach to a not detached screen. (Multi display mode).\n");
 	printf("-X            Execute <cmd> as a screen command in the specified session.\n");
@@ -101,7 +103,7 @@ void exit_with_usage(char *myname, char *message, char *arg)
 **   Here come the help page routines
 */
 
-static void HelpProcess(char **, size_t *);
+static void HelpProcess(uint32_t **, size_t *);
 static void HelpAbort(void);
 static void HelpRedisplayLine(int, int, int, int);
 static void add_key_to_buf(char *, int);
@@ -164,7 +166,7 @@ void display_help(char *class, struct action *ktabp)
 	}
 	for (n = i = 0; n <= RC_LAST; n++)
 		if (used[n]) {
-			l = strlen(comms[n].name);
+			l = u32_strlen(comms[n].name);
 			if (l > mcom)
 				mcom = l;
 			if (used[n] > mkey)
@@ -202,7 +204,7 @@ void display_help(char *class, struct action *ktabp)
 	helppage();
 }
 
-static void HelpProcess(char **ppbuf, size_t *plen)
+static void HelpProcess(uint32_t **ppbuf, size_t *plen)
 {
 	bool done = false;
 
@@ -236,7 +238,8 @@ static int helppage()
 {
 	struct helpdata *helpdata;
 	int col, crow, n, key, x;
-	char buf[MAXKLEN], Esc_buf[5], cbuf[256];
+	char buf[MAXKLEN], Esc_buf[5];
+	uint32_t cbuf[256];
 	struct action *ktabp;
 
 	helpdata = (struct helpdata *)flayer->l_data;
@@ -250,7 +253,7 @@ static int helppage()
 	/* Clear the help screen */
 	LClearAll(flayer, 0);
 
-	sprintf(cbuf, "Screen key bindings, page %d of %d.", helpdata->grow / (flayer->l_height - 5) + 1,
+	u32_sprintf(cbuf, "Screen key bindings, page %d of %d.", helpdata->grow / (flayer->l_height - 5) + 1,
 		helpdata->numpages);
 	centerline(cbuf, 0);
 	crow = 2;
@@ -269,9 +272,9 @@ static int helppage()
 	for (; crow < flayer->l_height - 3; crow++) {
 		if (helpdata->grow < 1) {
 			if (ktabp == ktab)
-				sprintf(cbuf, "Command key:  %s   Literal %s:  %s", Esc_buf, Esc_buf, buf);
+				u32_sprintf(cbuf, "Command key:  %s   Literal %s:  %s", Esc_buf, Esc_buf, buf);
 			else
-				sprintf(cbuf, "Command class: '%.80s'", helpdata->class);
+				u32_sprintf(cbuf, "Command class: '%.80s'", helpdata->class);
 			centerline(cbuf, crow);
 			helpdata->grow++;
 		} else if (helpdata->grow >= 2 && helpdata->grow - 2 < helpdata->numrows) {
@@ -309,7 +312,7 @@ static int helppage()
 		} else
 			helpdata->grow++;
 	}
-	sprintf(cbuf, "[Press Space %s Return to end.]", helpdata->grow < helpdata->maxrow ? "for next page;" : "or");
+	u32_sprintf(cbuf, "[Press Space %s Return to end.]", helpdata->grow < helpdata->maxrow ? "for next page;" : "or");
 	centerline(cbuf, flayer->l_height - 2);
 	LaySetCursor();
 	return 0;
@@ -317,9 +320,9 @@ static int helppage()
 
 static void AddAction(struct action *act, int x, int y)
 {
-	char buf[256];
+	uint32_t buf[256];
 	int del, l;
-	char *bp, *cp, **pp;
+	uint32_t *bp, *cp, **pp;
 	int *lp, ll;
 	int fr;
 	struct mchar mchar_dol;
@@ -345,14 +348,14 @@ static void AddAction(struct action *act, int x, int y)
 		del = 0;
 		bp = buf;
 		ll = *lp++;
-		if (!ll || (strchr(cp, ' ') != NULL)) {
-			if (strchr(cp, '\'') != NULL)
+		if (!ll || (u32_strchr(cp, ' ') != NULL)) {
+			if (u32_strchr(cp, '\'') != NULL)
 				*bp++ = del = '"';
 			else
 				*bp++ = del = '\'';
 		}
 		while (ll-- && bp < buf + 250)
-			bp += AddXChar(bp, *(unsigned char *)cp++);
+			bp += AddXChar(bp, *cp++);
 		if (del)
 			*bp++ = del;
 		*bp = 0;
@@ -364,8 +367,8 @@ static void AddAction(struct action *act, int x, int y)
 				LPutChar(flayer, &mchar_dol, x, y);
 			return;
 		}
-		PadStr(buf, strlen(buf), x, y);
-		x += strlen(buf);
+		PadStr(buf, u32_strlen(buf), x, y);
+		x += u32_strlen(buf);
 		pp++;
 		if (*pp)
 			LPutChar(flayer, fr ? &mchar_blank : &mchar_dol, x++, y);
@@ -413,14 +416,14 @@ static void HelpRedisplayLine(int y, int xs, int xe, int isblank)
 **
 */
 
-static void CopyrightProcess(char **, size_t *);
+static void CopyrightProcess(uint32_t **, size_t *);
 static void CopyrightRedisplayLine(int, int, int, int);
 static void CopyrightAbort(void);
 static void copypage(void);
 
 struct copydata {
-	char *cps, *savedcps;	/* position in the message */
-	char *refcps, *refsavedcps;	/* backup for redisplaying */
+	uint32_t *cps, *savedcps;	/* position in the message */
+	uint32_t *refcps, *refsavedcps;	/* backup for redisplaying */
 };
 
 static const struct LayFuncs CopyrightLf = {
@@ -433,7 +436,7 @@ static const struct LayFuncs CopyrightLf = {
 	0
 };
 
-static const char cpmsg[] = "\
+static const uint32_t cpmsg[] = U"\
 \n\
 Screen version %v\n\
 \n\
@@ -460,13 +463,13 @@ http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc., \
 Send bugreports, fixes, enhancements, t-shirts, money, beer & pizza to \
 screen-devel@gnu.org\n\n\n"
 #ifdef ENABLE_TELNET
-    "+builtin-telnet "
+    U"+builtin-telnet "
 #else
-    "-builtin-telnet "
+    U"-builtin-telnet "
 #endif
     ;
 
-static void CopyrightProcess(char **ppbuf, size_t *plen)
+static void CopyrightProcess(uint32_t **ppbuf, size_t *plen)
 {
 	int done = 0;
 	struct copydata *copydata;
@@ -510,7 +513,7 @@ void display_copyright()
 	if (InitOverlayPage(sizeof(*copydata), &CopyrightLf, 0))
 		return;
 	copydata = (struct copydata *)flayer->l_data;
-	copydata->cps = (char *)cpmsg;
+	copydata->cps = cpmsg;
 	copydata->savedcps = 0;
 	flayer->l_x = 0;
 	flayer->l_y = flayer->l_height - 1;
@@ -519,10 +522,10 @@ void display_copyright()
 
 static void copypage()
 {
-	char *cps;
-	char *ws;
+	uint32_t *cps;
+	uint32_t *ws;
 	int x, y, l;
-	char cbuf[80];
+	uint32_t cbuf[80];
 	struct copydata *copydata;
 
 	copydata = (struct copydata *)flayer->l_data;
@@ -536,7 +539,7 @@ static void copypage()
 		ws = cps;
 		while (*cps == ' ')
 			cps++;
-		if (strncmp(cps, "%v", 2) == 0) {
+		if (u32_strncmp(cps, U"%v", 2) == 0) {
 			copydata->savedcps = cps + 2;
 			cps = version;
 			continue;
@@ -573,7 +576,7 @@ static void copypage()
 	}
 	while (*cps == '\n')
 		cps++;
-	sprintf(cbuf, "[Press Space %s Return to end.]", *cps ? "for next page;" : "or");
+	u32_sprintf(cbuf, "[Press Space %s Return to end.]", *cps ? "for next page;" : "or");
 	centerline(cbuf, flayer->l_height - 2);
 	copydata->cps = cps;
 	LaySetCursor();
@@ -603,7 +606,7 @@ static void CopyrightRedisplayLine(int y, int xs, int xe, int isblank)
 **
 */
 
-static void BindkeyProcess(char **, size_t *);
+static void BindkeyProcess(uint32_t **, size_t *);
 static void BindkeyAbort(void);
 static void BindkeyRedisplayLine(int, int, int, int);
 static void bindkeypage(void);
@@ -668,16 +671,17 @@ static void bindkeypage()
 {
 	struct bindkeydata *bindkeydata;
 	struct kmap_ext *kme;
-	char tbuf[256];
+	uint32_t tbuf[256];
 	int del, i, y, sl;
 	struct action *act;
-	char *xch, *s, *p;
+	uint32_t *s, *p;
+	char *xch;
 
 	bindkeydata = (struct bindkeydata *)flayer->l_data;
 
 	LClearAll(flayer, 0);
 
-	sprintf(tbuf, "%s key bindings, page %d of %d.", bindkeydata->title, bindkeydata->page, bindkeydata->pages);
+	u32_sprintf(tbuf, "%s key bindings, page %d of %d.", bindkeydata->title, bindkeydata->page, bindkeydata->pages);
 	centerline(tbuf, 0);
 	y = 2;
 	for (i = bindkeydata->pos; i < KMAP_KEYS + KMAP_AKEYS + kmap_extn && y < flayer->l_height - 3; i++) {
@@ -716,25 +720,25 @@ static void bindkeypage()
 		*p++ = ' ';
 		while (p < tbuf + 15)
 			*p++ = ' ';
-		sprintf(p, "%s -> ", xch);
+		u32_sprintf(p, "%s -> ", xch);
 		p += 7;
 		if (p - tbuf > flayer->l_width - 1) {
 			tbuf[flayer->l_width - 2] = '$';
 			tbuf[flayer->l_width - 1] = 0;
 		}
-		PadStr(tbuf, strlen(tbuf), 0, y);
-		AddAction(act, strlen(tbuf), y);
+		PadStr(tbuf, u32_strlen(tbuf), 0, y);
+		AddAction(act, u32_strlen(tbuf), y);
 		y++;
 	}
 	y++;
 	bindkeydata->last = i;
-	sprintf(tbuf, "[Press Space %s Return to end.]",
+	u32_sprintf(tbuf, "[Press Space %s Return to end.]",
 		bindkeydata->page < bindkeydata->pages ? "for next page;" : "or");
 	centerline(tbuf, flayer->l_height - 2);
 	LaySetCursor();
 }
 
-static void BindkeyProcess(char **ppbuf, size_t *plen)
+static void BindkeyProcess(uint32_t **ppbuf, size_t *plen)
 {
 	int done = 0;
 	struct bindkeydata *bindkeydata;
@@ -820,14 +824,14 @@ void ZmodemPage()
 	flayer->l_y = 0;
 }
 
-static void PadStr(char *str, int n, int x, int y)
+static void PadStr(uint32_t *str, int n, int x, int y)
 {
 	int l;
 
-	l = strlen(str);
+	l = u32_strlen(str);
 	if (l > n)
 		l = n;
 	LPutStr(flayer, str, l, &mchar_blank, x, y);
 	if (l < n)
-		LPutStr(flayer, (char *)blank, n - l, &mchar_blank, x + l, y);
+		LPutStr(flayer, blank, n - l, &mchar_blank, x + l, y);
 }

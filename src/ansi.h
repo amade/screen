@@ -109,9 +109,9 @@ enum move_t {
 typedef struct Window Window;
 
 void  ResetAnsiState (Window *);
-void  WriteString (Window *, char *, size_t);
-void  ChangeAKA (Window *, char *, size_t);
-int   GetAnsiStatus (Window *, char *);
+void  WriteString (Window *, uint32_t *, size_t);
+void  ChangeAKA (Window *, uint32_t *, size_t);
+int   GetAnsiStatus (Window *, uint32_t *);
 void  WNewAutoFlow (Window *, int);
 void  WBell (Window *, bool);
 void  WMsg (Window *, int, char *);

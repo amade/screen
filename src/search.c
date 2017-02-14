@@ -32,6 +32,7 @@
 
 #include <stdint.h>
 #include <sys/types.h>
+#include <unistr.h>
 
 #include "mark.h"
 #include "input.h"
@@ -44,9 +45,9 @@ bool search_ic;
  *  VI style Search
  */
 
-static int matchword(char *, int, int, int);
-static void searchend(char *, size_t, void *);
-static void backsearchend(char *, size_t, void *);
+static int matchword(uint32_t *, int, int, int);
+static void searchend(uint32_t *, size_t, void *);
+static void backsearchend(uint32_t *, size_t, void *);
 
 void Search(int dir)
 {
@@ -60,11 +61,11 @@ void Search(int dir)
 		else
 			LMsg(0, "No previous pattern");
 	} else
-		Input((dir > 0 ? "/" : "?"), sizeof(markdata->isstr) - 1, INP_COOKED,
+		Input((dir > 0 ? U"/" : U"?"), sizeof(markdata->isstr) - 1, INP_COOKED,
 		      (dir > 0 ? searchend : backsearchend), NULL, 0);
 }
 
-static void searchend(char *buf, size_t len, void *data)
+static void searchend(uint32_t *buf, size_t len, void *data)
 {
 	int x = 0, sx, ex, y;
 	struct markdata *markdata;
@@ -76,7 +77,7 @@ static void searchend(char *buf, size_t len, void *data)
 	p = markdata->md_window;
 	markdata->isdir = 1;
 	if (len)
-		strcpy(markdata->isstr, buf);
+		u32_strcpy(markdata->isstr, buf);
 	sx = markdata->cx + 1;
 	ex = flayer->l_width - 1;
 	for (y = markdata->cy; y < p->w_histheight + flayer->l_height; y++, sx = 0) {
@@ -90,7 +91,7 @@ static void searchend(char *buf, size_t len, void *data)
 		revto(x, y);
 }
 
-static void backsearchend(char *buf, size_t len, void *data)
+static void backsearchend(uint32_t *buf, size_t len, void *data)
 {
 	int sx, ex, x = -1, y;
 	struct markdata *markdata;
@@ -100,7 +101,7 @@ static void backsearchend(char *buf, size_t len, void *data)
 	markdata = (struct markdata *)flayer->l_data;
 	markdata->isdir = -1;
 	if (len)
-		strcpy(markdata->isstr, buf);
+		u32_strcpy(markdata->isstr, buf);
 	ex = markdata->cx - 1;
 	for (y = markdata->cy; y >= 0; y--, ex = flayer->l_width - 1) {
 		sx = 0;
@@ -123,10 +124,10 @@ static void backsearchend(char *buf, size_t len, void *data)
  * following line.  Returns the starting column of the first match found,
  * or -1 if there's no match.
  */
-static int matchword(char *pattern, int y, int sx, int ex)
+static int matchword(uint32_t *pattern, int y, int sx, int ex)
 {
 	uint32_t *cp, *cpe;
-	unsigned char *pp;
+	uint32_t *pp;
 	int cy;
 
 	fore = ((struct markdata *)flayer->l_data)->md_window;
@@ -135,9 +136,9 @@ static int matchword(char *pattern, int y, int sx, int ex)
 		cy = y;
 		cp = WIN(cy)->image + sx;
 		cpe = WIN(cy)->image + flayer->l_width;
-		pp = (unsigned char *)pattern;
+		pp = pattern;
 		for (;;) {
-			if ((char)*cp != *pp)
+			if (*cp != *pp)
 				if (!search_ic || ((*cp ^ *pp) & 0xdf) || (*cp | 0x20) < 'a' || (*cp | 0x20) > 'z')
 					break;
 			cp++;
@@ -170,20 +171,20 @@ static int matchword(char *pattern, int y, int sx, int ex)
  *  Emacs style ISearch
  */
 
-static char *isprompts[] = {
-	"I-search backward: ", "failing I-search backward: ",
-	"I-search: ", "failing I-search: "
+static uint32_t *isprompts[] = {
+	U"I-search backward: ", U"failing I-search backward: ",
+	U"I-search: ", U"failing I-search: "
 };
 
 static int is_redo(struct markdata *);
-static void is_process(char *, size_t, void *);
-static int is_bm(char *, int, int, int, int);
+static void is_process(uint32_t *, size_t, void *);
+static int is_bm(uint32_t *, int, int, int, int);
 
-static int is_bm(char *str, int l, int p, int end, int dir)
+static int is_bm(uint32_t *str, int l, int p, int end, int dir)
 {
 	int tab[256];
-	int i, q;
-	unsigned char *s, c;
+	int i;
+	uint32_t *s, c, q;
 	int w = flayer->l_width;
 
 	/* *sigh* to make WIN work */
@@ -197,7 +198,7 @@ static int is_bm(char *str, int l, int p, int end, int dir)
 	for (i = 0; i < 256; i++)
 		tab[i] = l * dir;
 	for (i = 0; i < l - 1; i++, str += dir) {
-		q = *(unsigned char *)str;
+		q = *str;
 		tab[q] = (l - 1 - i) * dir;
 		if (search_ic && (q | 0x20) >= 'a' && ((q | 0x20) <= 'z'))
 			tab[q ^ 0x20] = (l - 1 - i) * dir;
@@ -206,11 +207,11 @@ static int is_bm(char *str, int l, int p, int end, int dir)
 		p += l - 1;
 	while (p >= 0 && p < end) {
 		q = p;
-		s = (unsigned char *)str;
+		s = str;
 		for (i = 0;;) {
 			c = (WIN(q / w))->image[q % w];
 			if (i == 0)
-				p += tab[(int)(unsigned char)c];
+				p += tab[c];
 			if (c != *s)
 				if (!search_ic || ((c ^ *s) & 0xdf) || (c | 0x20) < 'a' || (c | 0x20) > 'z')
 					break;
@@ -223,7 +224,7 @@ static int is_bm(char *str, int l, int p, int end, int dir)
 	return -1;
 }
 
-static void is_process(char *p, size_t len, void *data)
+static void is_process(uint32_t *p, size_t len, void *data)
 {				/* i-search */
 	int pos, x, y, dir;
 	struct markdata *markdata;
@@ -261,8 +262,8 @@ static void is_process(char *p, size_t len, void *data)
 		dir = (*p == '\023') ? 1 : -1;
 		pos += dir;
 		if (markdata->isdir == dir && markdata->isistrl == 0) {
-			strcpy(markdata->isistr, markdata->isstr);
-			markdata->isistrl = markdata->isstrl = strlen(markdata->isstr);
+			u32_strcpy(markdata->isistr, markdata->isstr);
+			markdata->isistrl = markdata->isstrl = u32_strlen(markdata->isstr);
 			break;
 		}
 		markdata->isdir = dir;
@@ -289,7 +290,7 @@ static void is_process(char *p, size_t len, void *data)
 		     revto_line(markdata->cx, markdata->cy, INPUTLINE > 0 ? INPUTLINE - 1 : 1);) ;
 	}
 	if (*p)
-		inp_setprompt(isprompts[markdata->isdir + (pos < 0) + 1], markdata->isstrl ? markdata->isstr : "");
+		inp_setprompt(isprompts[markdata->isdir + (pos < 0) + 1], markdata->isstrl ? markdata->isstr : U"");
 	flayer->l_x = markdata->cx;
 	flayer->l_y = W2D(markdata->cy);
 	LGotoPos(flayer, flayer->l_x, flayer->l_y);

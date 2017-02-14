@@ -33,6 +33,9 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <stdint.h>
+#include <unistr.h>
+#include <unistdio.h>
 
 #include "screen.h"
 
@@ -82,26 +85,26 @@ static char *string_t_string[] = {
 };
 
 /* keep state_t and state_t_string in sync! */
-static char *state_t_string[] = {
-	"LIT",			/* Literal input */
-	"ESC",			/* Start of escape sequence */
-	"ASTR",			/* Start of control string */
-	"STRESC",		/* ESC seen in control string */
-	"CSI",			/* Reading arguments in "CSI Pn ;... */
-	"PRIN",			/* Printer mode */
-	"PRINESC",		/* ESC seen in printer mode */
-	"PRINCSI",		/* CSI seen in printer mode */
-	"PRIN4"			/* CSI 4 seen in printer mode */
+static uint32_t *state_t_string[] = {
+	U"LIT",			/* Literal input */
+	U"ESC",			/* Start of escape sequence */
+	U"ASTR",		/* Start of control string */
+	U"STRESC",		/* ESC seen in control string */
+	U"CSI",			/* Reading arguments in "CSI Pn ;... */
+	U"PRIN",		/* Printer mode */
+	U"PRINESC",		/* ESC seen in printer mode */
+	U"PRINCSI",		/* CSI seen in printer mode */
+	U"PRIN4"		/* CSI 4 seen in printer mode */
 };
 
-static int Special(Window *,int);
-static void DoESC(Window *, int, int);
-static void DoCSI(Window *, int, int);
+static int Special(Window *, uint32_t);
+static void DoESC(Window *, uint32_t, int);
+static void DoCSI(Window *, uint32_t, int);
 static void StringStart(Window *, enum string_t);
-static void StringChar(Window *, int);
+static void StringChar(Window *, uint32_t);
 static int StringEnd(Window *);
 static void PrintStart(Window *);
-static void PrintChar(Window *, int);
+static void PrintChar(Window *, uint32_t);
 static void PrintFlush(Window *);
 static void SaveCursor(Window *, struct cursor *);
 static void RestoreCursor(Window *, struct cursor *);
@@ -132,7 +135,7 @@ static void FindAKA(Window *);
 static void Report(Window *, char *, int, int);
 static void ScrollRegion(Window *win, int);
 static void WAddLineToHist(Window *, struct mline *);
-static void WLogString(Window *, char *, size_t);
+static void WLogString(Window *, uint32_t *, size_t);
 static void WReverseVideo(Window *, bool);
 static void MFixLine(Window *, int, struct mchar *);
 static void MScrollH(Window *, int, int, int, int, int);
@@ -151,15 +154,15 @@ void ResetAnsiState(Window *win)
 }
 
 /* adds max 22 bytes */
-int GetAnsiStatus(Window *win, char *buf)
+int GetAnsiStatus(Window *win, uint32_t *buf)
 {
-	char *p = buf;
+	uint32_t *p = buf;
 
 	if (win->w_state == LIT)
 		return 0;
 
-	strcpy(p, state_t_string[win->w_state]);
-	p += strlen(p);
+	u32_strcpy(p, state_t_string[win->w_state]);
+	p += u32_strlen(p);
 	if (win->w_intermediate) {
 		*p++ = '-';
 		if (win->w_intermediate > 0xff)
@@ -168,8 +171,8 @@ int GetAnsiStatus(Window *win, char *buf)
 		*p = 0;
 	}
 	if (win->w_state == ASTR || win->w_state == STRESC)
-		sprintf(p, "-%s", string_t_string[win->w_StringType]);
-	p += strlen(p);
+		u32_sprintf(p, "-%s", string_t_string[win->w_StringType]);
+	p += u32_strlen(p);
 	return p - buf;
 }
 
@@ -183,9 +186,9 @@ int GetAnsiStatus(Window *win, char *buf)
  *  - translate program output for the display and put it into the obuf.
  *
  */
-void WriteString(Window *win, char *buf, size_t len)
+void WriteString(Window *win, uint32_t *buf, size_t len)
 {
-	int c;
+	uint32_t c;
 	Canvas *cv;
 
 	if (len == 0)
@@ -202,8 +205,7 @@ void WriteString(Window *win, char *buf, size_t len)
 
 	if (win->w_width > 0 && win->w_height > 0) {
 		do {
-			c = (unsigned char)*buf++;
-
+			c = *buf++;
 
  tryagain:
 			switch (win->w_state) {
@@ -467,7 +469,7 @@ void WriteString(Window *win, char *buf, size_t len)
 		PrintFlush(win);
 }
 
-static void WLogString(Window *win, char *buf, size_t len)
+static void WLogString(Window *win, uint32_t *buf, size_t len)
 {
 	if (!win->w_log)
 		return;
@@ -485,7 +487,7 @@ static void WLogString(Window *win, char *buf, size_t len)
 		logfflush(win->w_log);
 }
 
-static int Special(Window *win, int c)
+static int Special(Window *win, uint32_t c)
 {
 	switch (c) {
 	case '\b':
@@ -516,7 +518,7 @@ static int Special(Window *win, int c)
 	return 0;
 }
 
-static void DoESC(Window *win, int c, int intermediate)
+static void DoESC(Window *win, uint32_t c, int intermediate)
 {
 	switch (intermediate) {
 	case 0:
@@ -584,7 +586,7 @@ static void DoESC(Window *win, int c, int intermediate)
 	}
 }
 
-static void DoCSI(Window *win, int c, int intermediate)
+static void DoCSI(Window *win, uint32_t c, int intermediate)
 {
 	int i, a1 = win->w_args[0], a2 = win->w_args[1];
 
@@ -720,11 +722,11 @@ static void DoCSI(Window *win, int c, int intermediate)
 				LRefreshAll(&win->w_layer, 0);
 				break;
 			case 21:
-				a1 = strlen(win->w_title);
-				if ((unsigned)(win->w_inlen + 5 + a1) <= sizeof(win->w_inbuf)) {
-					memmove(win->w_inbuf + win->w_inlen, "\033]l", 3);
-					memmove(win->w_inbuf + win->w_inlen + 3, win->w_title, a1);
-					memmove(win->w_inbuf + win->w_inlen + 3 + a1, "\033\\", 2);
+				a1 = u32_strlen(win->w_title);
+				if ((size_t)(win->w_inlen + 5 + a1) <= sizeof(win->w_inbuf)) {
+					u32_move(win->w_inbuf + win->w_inlen, U"\033]l", 3);
+					u32_move(win->w_inbuf + win->w_inlen + 3, win->w_title, a1);
+					u32_move(win->w_inbuf + win->w_inlen + 3 + a1, U"\033\\", 2);
 					win->w_inlen += 5 + a1;
 				}
 				break;
@@ -938,7 +940,7 @@ static void StringStart(Window *win, enum string_t type)
 	win->w_state = ASTR;
 }
 
-static void StringChar(Window *win, int c)
+static void StringChar(Window *win, uint32_t c)
 {
 	if (win->w_stringp >= win->w_string + MAXSTR - 1)
 		win->w_state = LIT;
@@ -953,20 +955,20 @@ static void StringChar(Window *win, int c)
 static int StringEnd(Window *win)
 {
 	Canvas *cv;
-	char *p;
+	uint32_t *p;
 	int typ;
 
 	win->w_state = LIT;
 	*win->w_stringp = '\0';
 	switch (win->w_StringType) {
 	case OSC:		/* special xterm compatibility hack */
-		if (win->w_string[0] == ';' || (p = strchr(win->w_string, ';')) == 0)
+		if (win->w_string[0] == ';' || (p = u32_strchr(win->w_string, ';')) == 0)
 			break;
-		typ = atoi(win->w_string);
+		typ = u32_atoi(win->w_string);
 		p++;
 		if (typ == 83) {	/* 83 = 'S' */
 			/* special execute commands sequence */
-			char *args[MAXARGS];
+			uint32_t *args[MAXARGS];
 			int argl[MAXARGS];
 			struct acluser *windowuser;
 
@@ -994,8 +996,8 @@ static int StringEnd(Window *win)
 			typ2 = typ / 10;
 			if (--typ2 < 0)
 				typ2 = 0;
-			if (strcmp(win->w_xtermosc[typ2], p)) {
-				strncpy(win->w_xtermosc[typ2], p, sizeof(win->w_xtermosc[typ2]) - 1);
+			if (u32_strcmp(win->w_xtermosc[typ2], p)) {
+				u32_strncpy(win->w_xtermosc[typ2], p, sizeof(win->w_xtermosc[typ2]) - 1);
 				win->w_xtermosc[typ2][sizeof(win->w_xtermosc[typ2]) - 1] = 0;
 
 				for (display = displays; display; display = display->d_next) {
@@ -1013,18 +1015,18 @@ static int StringEnd(Window *win)
 
 		win->w_stringp -= p - win->w_string;
 		if (win->w_stringp > win->w_string)
-			memmove(win->w_string, p, win->w_stringp - win->w_string);
+			u32_move(win->w_string, p, win->w_stringp - win->w_string);
 		*win->w_stringp = '\0';
 		/* FALLTHROUGH */
 	case APC:
 		if (win->w_hstatus) {
-			if (strcmp(win->w_hstatus, win->w_string) == 0)
+			if (u32_strcmp(win->w_hstatus, win->w_string) == 0)
 				break;	/* not changed */
 			free(win->w_hstatus);
 			win->w_hstatus = 0;
 		}
 		if (win->w_string != win->w_stringp)
-			win->w_hstatus = SaveStr(win->w_string);
+			win->w_hstatus = u32_strdup(win->w_string);
 		WindowChanged(win, WINESC_HSTATUS);
 		break;
 	case PM:
@@ -1044,7 +1046,7 @@ static int StringEnd(Window *win)
 		if (win->w_title == win->w_akabuf && !*win->w_string)
 			break;
 		if (win->w_dynamicaka)
-			ChangeAKA(win, win->w_string, strlen(win->w_string));
+			ChangeAKA(win, win->w_string, u32_strlen(win->w_string));
 		if (!*win->w_string)
 			win->w_autoaka = win->w_y + 1;
 		break;
@@ -1084,7 +1086,7 @@ static void PrintStart(Window *win)
 		win->w_pdisplay->d_printfd = printpipe(win, printcmd);
 }
 
-static void PrintChar(Window *win, int c)
+static void PrintChar(Window *win, uint32_t c)
 {
 	if (win->w_stringp >= win->w_string + MAXSTR - 1)
 		PrintFlush(win);
@@ -1095,7 +1097,7 @@ static void PrintFlush(Window *win)
 {
 	display = win->w_pdisplay;
 	if (display && printcmd) {
-		char *bp = win->w_string;
+		uint32_t *bp = win->w_string;
 		int len = win->w_stringp - win->w_string;
 		int r;
 		while (len && display->d_printfd >= 0) {
@@ -1478,14 +1480,15 @@ static void FillWithEs(Window *win)
  *    FindAKA() searches for an autoaka match
  */
 
-void ChangeAKA(Window *win, char *s, size_t len)
+void ChangeAKA(Window *win, uint32_t *s, size_t len)
 {
-	int i, c;
+	int i;
+	uint32_t c;
 
 	for (i = 0; len > 0; len--) {
 		if (win->w_akachange + i == win->w_akabuf + sizeof(win->w_akabuf) - 1)
 			break;
-		c = (unsigned char)*s++;
+		c = *s++;
 		if (c == 0)
 			break;
 		if (c < 32 || c == 127 || (c >= 128 && c < 160 && win->w_c1))
@@ -1496,7 +1499,7 @@ void ChangeAKA(Window *win, char *s, size_t len)
 	win->w_title = win->w_akachange;
 	if (win->w_akachange != win->w_akabuf)
 		if (win->w_akachange[0] == 0 || win->w_akachange[-1] == ':')
-			win->w_title = win->w_akabuf + strlen(win->w_akabuf) + 1;
+			win->w_title = win->w_akabuf + u32_strlen(win->w_akabuf) + 1;
 	WindowChanged(win, WINESC_WIN_TITLE);
 	WindowChanged((Window *)0, WINESC_WIN_NAMES);
 	WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
@@ -1505,7 +1508,7 @@ void ChangeAKA(Window *win, char *s, size_t len)
 static void FindAKA(Window *win)
 {
 	uint32_t *cp, *line;
-	int len = strlen(win->w_akabuf);
+	int len = u32_strlen(win->w_akabuf);
 	int y;
 
 	y = (win->w_autoaka > 0 && win->w_autoaka <= win->w_height) ? win->w_autoaka - 1 : win->w_y;
@@ -1518,7 +1521,7 @@ static void FindAKA(Window *win)
 					goto try_line;
 				return;
 			}
-			if (strncmp((char *)cp, win->w_akabuf, len) == 0)
+			if (u32_strncmp(cp, win->w_akabuf, len) == 0)
 				break;
 			cp++;
 		}
@@ -1536,7 +1539,7 @@ static void FindAKA(Window *win)
 				line = cp;
 			len--;
 		}
-		ChangeAKA(win, (char *)line, cp - line);
+		ChangeAKA(win, line, cp - line);
 	} else
 		win->w_autoaka = 0;
 }

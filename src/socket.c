@@ -42,6 +42,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <signal.h>
+#include <unistr.h>
 
 #include "screen.h"
 
@@ -132,7 +133,7 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	xsetegid(real_gid);
 
 	if ((dirp = opendir(SocketPath)) == 0)
-		Panic(errno, "Cannot opendir %s", SocketPath);
+		Panic(errno, U"Cannot opendir %s", SocketPath);
 
 	slist = 0;
 	slisttail = &slist;
@@ -180,7 +181,7 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 #endif
 		mode = (int)st.st_mode & 0777;
 		if (multi && ((mode & 0677) != 0601)) {
-			if (strcmp(multi, LoginName)) {
+			if (u32_strcmp(multi, LoginName)) {
 				mode = -4;
 			} else {
 			}
@@ -260,13 +261,13 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	if (nfound && (lsflag || ngood != 1) && !quietflag) {
 		switch (ngood) {
 		case 0:
-			Msg(0, nfound > 1 ? "There are screens on:" : "There is a screen on:");
+			Msg(0, nfound > 1 ? U"There are screens on:" : U"There is a screen on:");
 			break;
 		case 1:
-			Msg(0, nfound > 1 ? "There are several screens on:" : "There is a suitable screen on:");
+			Msg(0, nfound > 1 ? U"There are several screens on:" : U"There is a suitable screen on:");
 			break;
 		default:
-			Msg(0, "There are several suitable screens on:");
+			Msg(0, U"There are several suitable screens on:");
 			break;
 		}
 		for (sent = slist; sent; sent = sent->next) {
@@ -300,9 +301,10 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 		}
 	}
 	if (ndead && !quietflag) {
-		char *m = "Remove dead screens with 'screen -wipe'.";
+		/* TODO check what is going on here, leftover from some other refactoring? */
+		uint32_t  *m = U"Remove dead screens with 'screen -wipe'.";
 		if (wipeflag)
-			Msg(0, "%d socket%s wiped out.", nwipe, nwipe > 1 ? "s" : "");
+			Msg(0, U"%d socket%s wiped out.", nwipe, nwipe > 1 ? "s" : "");
 		else
 			Msg(0, m, ndead > 1 ? "s" : "", ndead > 1 ? "" : "es");
 	}
@@ -338,7 +340,7 @@ int MakeServerSocket()
 	struct stat st;
 
 	if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
-		Panic(errno, "socket");
+		Panic(errno, U"socket");
 	a.sun_family = AF_UNIX;
 	strncpy(a.sun_path, SocketPath, sizeof(a.sun_path));
 	a.sun_path[sizeof(a.sun_path) - 1] = 0;
@@ -353,27 +355,27 @@ int MakeServerSocket()
 			 */
 			eexit(11);
 		}
-		Msg(0, "There is already a screen running on %s.", Filename(SocketPath));
+		Msg(0, U"There is already a screen running on %s.", Filename(SocketPath));
 		if (stat(SocketPath, &st) == -1)
-			Panic(errno, "stat");
+			Panic(errno, U"stat");
 #ifdef SOCKET_DIR	/* if SOCKET_DIR is not defined, the socket is in $HOME.
 			   in that case it does not make sense to compare uids. */
 		if (st.st_uid != real_uid)
-			Panic(0, "Unfortunately you are not its owner.");
+			Panic(0, U"Unfortunately you are not its owner.");
 #endif
 		if ((st.st_mode & 0700) == 0600)
-			Panic(0, "To resume it, use \"screen -r\"");
+			Panic(0, U"To resume it, use \"screen -r\"");
 		else
-			Panic(0, "It is not detached.");
+			Panic(0, U"It is not detached.");
 		/* NOTREACHED */
 	}
 	(void)unlink(SocketPath);
 	if (bind(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) == -1)
-		Panic(errno, "bind (%s)", SocketPath);
+		Panic(errno, U"bind (%s)", SocketPath);
 	chmod(SocketPath, SOCKMODE);
 	chown(SocketPath, real_uid, real_gid);
 	if (listen(s, 5) == -1)
-		Panic(errno, "listen");
+		Panic(errno, U"listen");
 #ifdef F_SETOWN
 	fcntl(s, F_SETOWN, getpid());
 #endif				/* F_SETOWN */
@@ -388,7 +390,7 @@ int MakeClientSocket(int err)
 	struct sockaddr_un a;
 
 	if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
-		Panic(errno, "socket");
+		Panic(errno, U"socket");
 	a.sun_family = AF_UNIX;
 	strncpy(a.sun_path, SocketPath, sizeof(a.sun_path));
 	a.sun_path[sizeof(a.sun_path) - 1] = 0;
@@ -396,7 +398,7 @@ int MakeClientSocket(int err)
 	xsetegid(real_gid);
 	if (connect(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) == -1) {
 		if (err)
-			Msg(errno, "%s: connect", SocketPath);
+			Msg(errno, U"%s: connect", SocketPath);
 		close(s);
 		s = -1;
 	}
@@ -440,7 +442,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 			strcpy(p, *av);
 			p += len;
 		}
-	if (nwin->aka != nwin_undef.aka && p + strlen(nwin->aka) + 1 < m.m.create.line + sizeof(m.m.create.line))
+	if (nwin->aka != nwin_undef.aka && p + u32_strlen(nwin->aka) + 1 < m.m.create.line + sizeof(m.m.create.line))
 		strcpy(p, nwin->aka);
 	else
 		*p = '\0';
@@ -450,7 +452,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	m.m.create.lflag = nwin->lflag;
 	m.m.create.hheight = nwin->histheight;
 	if (getcwd(m.m.create.dir, sizeof(m.m.create.dir)) == 0) {
-		Msg(errno, "getcwd");
+		Msg(errno, U"getcwd");
 		return;
 	}
 	if (nwin->term != nwin_undef.term)
@@ -458,17 +460,17 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	m.m.create.screenterm[MAXTERMLEN] = '\0';
 	m.protocol_revision = MSG_REVISION;
 	if (write(s, (char *)&m, sizeof m) != sizeof m)
-		Msg(errno, "write");
+		Msg(errno, U"write");
 	close(s);
 }
 
-int SendErrorMsg(char *tty, char *buf)
+int SendErrorMsg(char *tty, uint32_t *buf)
 {
 	int s;
 	int ret = 0;
 	Message m;
 
-	strncpy(m.m.message, buf, sizeof(m.m.message) - 1);
+	u32_strncpy(m.m.message, buf, sizeof(m.m.message) - 1);
 	m.m.message[sizeof(m.m.message) - 1] = 0;
 	s = MakeClientSocket(0);
 	if (s < 0)
@@ -569,7 +571,7 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 	}
 
 	if (CheckPid(pid)) {
-		Msg(0, "Attach attempt with bad pid(%d)!", pid);
+		Msg(0, U"Attach attempt with bad pid(%d)!", pid);
 		return -1;
 	}
 	if (recvfd != -1) {
@@ -577,14 +579,14 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 		i = recvfd;
 		myttyname = ttyname(i);
 		if (myttyname == 0 || strcmp(myttyname, m->m_tty)) {
-			Msg(errno, "Attach: passed fd does not match tty: %s - %s!", m->m_tty,
+			Msg(errno, U"Attach: passed fd does not match tty: %s - %s!", m->m_tty,
 			    myttyname ? myttyname : "NULL");
 			close(i);
 			Kill(pid, SIG_BYE);
 			return -1;
 		}
 	} else if ((i = secopen(m->m_tty, O_RDWR | O_NONBLOCK, 0)) < 0) {
-		Msg(errno, "Attach: Could not open %s!", m->m_tty);
+		Msg(errno, U"Attach: Could not open %s!", m->m_tty);
 		Kill(pid, SIG_BYE);
 		return -1;
 	}
@@ -597,7 +599,7 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 			write(i, "Attaching from inside of screen?\n", 33);
 			close(i);
 			Kill(pid, SIG_BYE);
-			Msg(0, "Attach msg ignored: coming from inside.");
+			Msg(0, U"Attach msg ignored: coming from inside.");
 			return -1;
 		}
 
@@ -606,7 +608,7 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 				write(i, "Access to session denied.\n", 26);
 				close(i);
 				Kill(pid, SIG_BYE);
-				Msg(0, "Attach: access denied for user %s.", user);
+				Msg(0, U"Attach: access denied for user %s.", user);
 				return -1;
 			}
 	}
@@ -616,7 +618,7 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 	if (MakeDisplay(user, m->m_tty, attach ? m->m.attach.envterm : "", i, pid, &Mode) == 0) {
 		write(i, "Could not make display.\n", 24);
 		close(i);
-		Msg(0, "Attach: could not make display for user %s", user);
+		Msg(0, U"Attach: could not make display for user %s", user);
 		Kill(pid, SIG_BYE);
 		return -1;
 	}
@@ -630,7 +632,7 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 	SetMode(&D_OldMode, &D_NewMode, D_flow, iflag);
 	SetTTY(D_userfd, &D_NewMode);
 	if (fcntl(D_userfd, F_SETFL, FNBLOCK))
-		Msg(errno, "Warning: NBLOCK fcntl failed");
+		Msg(errno, U"Warning: NBLOCK fcntl failed");
 	return 0;
 }
 
@@ -650,7 +652,7 @@ void ReceiveMsg()
 
 	len = sizeof(a);
 	if ((ns = accept(ns, (struct sockaddr *)&a, (socklen_t *) & len)) < 0) {
-		Msg(errno, "accept");
+		Msg(errno, U"accept");
 		return;
 	}
 
@@ -669,7 +671,7 @@ void ReceiveMsg()
 			continue;
 		if (len < 0) {
 			close(ns);
-			Msg(errno, "read");
+			Msg(errno, U"read");
 			return;
 		}
 		if (msg.msg_controllen) {
@@ -709,21 +711,21 @@ void ReceiveMsg()
 	close(ns);
 
 	if (len < 0) {
-		Msg(errno, "read");
+		Msg(errno, U"read");
 		if (recvfd != -1)
 			close(recvfd);
 		return;
 	}
 	if (left > 0) {
 		if (left != sizeof(m))
-			Msg(0, "Message %d of %d bytes too small", left, (int)sizeof(m));
+			Msg(0, U"Message %d of %d bytes too small", left, (int)sizeof(m));
 		else
 		return;
 	}
 	if (m.protocol_revision != MSG_REVISION) {
 		if (recvfd != -1)
 			close(recvfd);
-		Msg(0, "Invalid message (magic 0x%08x).", m.protocol_revision);
+		Msg(0, U"Invalid message (magic 0x%08x).", m.protocol_revision);
 		return;
 	}
 
@@ -779,7 +781,7 @@ void ReceiveMsg()
 		FinishAttach(&m);
 		break;
 	case MSG_ERROR:
-		Msg(0, "%s", m.m.message);
+		Msg(0, U"%llU", m.m.message);
 		break;
 	case MSG_HANGUP:
 		if (!wi)	/* ignore hangups from inside */
@@ -813,7 +815,7 @@ void ReceiveMsg()
 		DoCommandMsg(&m);
 		break;
 	default:
-		Msg(0, "Invalid message (type %d).", m.type);
+		Msg(0, U"Invalid message (type %d).", m.type);
 	}
 }
 
@@ -824,7 +826,7 @@ void ReceiveRaw(int s)
 	struct sockaddr_un a;
 	len = sizeof(a);
 	if ((s = accept(s, (struct sockaddr *)&a, (socklen_t *) & len)) < 0) {
-		Msg(errno, "accept");
+		Msg(errno, U"accept");
 		return;
 	}
 	while ((len = read(s, rd, 255)) > 0) {
@@ -962,7 +964,7 @@ static void FinishAttach(Message *m)
 			noshowwin = 1;
 		} else if (!strcmp(m->m.attach.preselect, "+")) {
 			struct action newscreen;
-			char *na = 0;
+			uint32_t *na = 0;
 			newscreen.nr = RC_SCREEN;
 			newscreen.args = &na;
 			newscreen.quiet = 0;
@@ -988,7 +990,7 @@ static void FinishAttach(Message *m)
 		ShowWindows(-1);
 	if (displays->d_next == 0 && console_window) {
 		if (TtyGrabConsole(console_window->w_ptyfd, true, "reattach") == 0)
-			Msg(0, "console %s is on window %d", HostName, console_window->w_number);
+			Msg(0, U"console %s is on window %d", HostName, console_window->w_number);
 	}
 }
 
@@ -1054,9 +1056,9 @@ static char *strncpy_escape_quote(char *dst, const char *src, const char *end)
 
 static void DoCommandMsg(Message *mp)
 {
-	char *args[MAXARGS];
+	uint32_t *args[MAXARGS];
 	int argl[MAXARGS];
-	char fullcmd[MAXSTR];
+	uint32_t fullcmd[MAXSTR];
 	char *fc;
 	int n;
 	char *p = mp->m.command.cmd;
@@ -1069,7 +1071,7 @@ static void DoCommandMsg(Message *mp)
 		size_t len = strlen(p);
 		*fc++ = '"';
 		if (!(fc = strncpy_escape_quote(fc, p, fullcmd + sizeof(fullcmd) - 2))) {	/* '"' ' ' */
-			Msg(0, "Remote command too long.");
+			Msg(0, U"Remote command too long.");
 			queryflag = -1;
 			return;
 		}
@@ -1085,12 +1087,12 @@ static void DoCommandMsg(Message *mp)
 	}
 	user = *FindUserPtr(mp->m.attach.auser);
 	if (user == 0) {
-		Msg(0, "Unknown user %s tried to send a command!", mp->m.attach.auser);
+		Msg(0, U"Unknown user %s tried to send a command!", mp->m.attach.auser);
 		queryflag = -1;
 		return;
 	}
 	/*if (user->u_password && *user->u_password) {
-		Msg(0, "User %s has a password, cannot use remote commands (using -Q or -X option).",
+		Msg(0, U"User %s has a password, cannot use remote commands (using -Q or -X option).",
 		    mp->m.attach.auser);
 		queryflag = -1;
 		return;
@@ -1119,7 +1121,7 @@ static void DoCommandMsg(Message *mp)
 		if (strcmp(mp->m.command.preselect, "-")) {
 			i = WindowByNoN(mp->m.command.preselect);
 			if (i < 0 || !wtab[i]) {
-				Msg(0, "Could not find pre-select window.");
+				Msg(0, U"Could not find pre-select window.");
 				queryflag = -1;
 				return;
 			}

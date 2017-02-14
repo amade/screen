@@ -259,9 +259,9 @@ void LPutChar(Layer *l, struct mchar *c, int x, int y)
 	}
 }
 
-void LPutStr(Layer *l, char *s, int n, struct mchar *r, int x, int y)
+void LPutStr(Layer *l, uint32_t *s, int n, struct mchar *r, int x, int y)
 {
-	char *s2;
+	uint32_t *s2;
 	int xs2, xe2, y2;
 
 	if (x + n > l->l_width)
@@ -766,14 +766,14 @@ int InitOverlayPage(int datasize, const struct LayFuncs *lf, int block)
 		cv = D_forecv;	/* work only on this cv! */
 
 	if ((newlay = calloc(1, sizeof(Layer))) == 0) {
-		Msg(0, "No memory for layer struct");
+		Msg(0, U"No memory for layer struct");
 		return -1;
 	}
 	data = 0;
 	if (datasize) {
 		if ((data = calloc(1, datasize)) == 0) {
 			free((char *)newlay);
-			Msg(0, "No memory for layer data");
+			Msg(0, U"No memory for layer data");
 			return -1;
 		}
 	}
@@ -884,7 +884,7 @@ void ExitOverlayPage()
 	LaySetCursor();
 }
 
-int LayProcessMouse(Layer *l, unsigned char ch)
+int LayProcessMouse(Layer *l, uint32_t ch)
 {
 	/* XXX: Make sure the layer accepts mouse events */
 	size_t len;

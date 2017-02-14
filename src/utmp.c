@@ -92,9 +92,9 @@ static int utmpfd = -1;
 void SlotToggle(bool how)
 {
 #ifdef UTMPXFILE
-	Msg(0, "Unable to modify %s.\n", UTMPXFILE);
+	Msg(0, U"Unable to modify %s.\n", UTMPXFILE);
 #else
-	Msg(0, "Unable to modify utmp-database.\n");
+	Msg(0, U"Unable to modify utmp-database.\n");
 #endif
 }
 #endif
@@ -104,30 +104,30 @@ void SlotToggle(bool how)
 void SlotToggle(bool how)
 {
 	if (fore->w_type != W_TYPE_PTY) {
-		Msg(0, "Can only work with normal windows.\n");
+		Msg(0, U"Can only work with normal windows.\n");
 		return;
 	}
 	if (how) {
 		if ((fore->w_slot == (slot_t) - 1) || (fore->w_slot == (slot_t) 0)) {
 			if (SetUtmp(fore) == 0)
-				Msg(0, "This window is now logged in.");
+				Msg(0, U"This window is now logged in.");
 			else
-				Msg(0, "This window should now be logged in.");
+				Msg(0, U"This window should now be logged in.");
 			WindowChanged(fore, WINESC_WFLAGS);
 		} else
-			Msg(0, "This window is already logged in.");
+			Msg(0, U"This window is already logged in.");
 	} else {
 		if (fore->w_slot == (slot_t) - 1)
-			Msg(0, "This window is already logged out\n");
+			Msg(0, U"This window is already logged out\n");
 		else if (fore->w_slot == (slot_t) 0) {
-			Msg(0, "This window is not logged in.");
+			Msg(0, U"This window is not logged in.");
 			fore->w_slot = (slot_t) - 1;
 		} else {
 			RemoveUtmp(fore);
 			if (fore->w_slot != (slot_t) - 1)
-				Msg(0, "What? Cannot remove Utmp slot?");
+				Msg(0, U"What? Cannot remove Utmp slot?");
 			else
-				Msg(0, "This window is no longer logged in.");
+				Msg(0, U"This window is no longer logged in.");
 #ifdef CAREFULUTMP
 			CarefulUtmp();
 #endif
@@ -157,7 +157,7 @@ void CarefulUtmp()
 	if (!p)
 		return;		/* really hopeless */
 	SetUtmp(p);
-	Msg(0, "Window %d is now logged in.\n", p->w_number);
+	Msg(0, U"Window %d is now logged in.\n", p->w_number);
 }
 #endif				/* CAREFULUTMP */
 
@@ -166,7 +166,7 @@ void InitUtmp()
 #ifndef UTMP_HELPER
 	if ((utmpfd = open(UtmpName, O_RDWR)) == -1) {
 		if (errno != EACCES)
-			Msg(errno, "%s", UtmpName);
+			Msg(errno, U"%s", UtmpName);
 		utmpok = 0;
 		return;
 	}
@@ -227,7 +227,7 @@ void RestoreLoginSlot()
 
 	if (utmpok && D_loginslot != (slot_t) 0 && D_loginslot != (slot_t) - 1) {
 		if (pututslot(D_loginslot, &D_utmp_logintty, D_loginhost, (Window *)0) == 0)
-			Msg(errno, "Could not write %s", UtmpName);
+			Msg(errno, U"Could not write %s", UtmpName);
 	}
 	D_loginslot = (slot_t) 0;
 	if (D_loginttymode && (tty = ttyname(D_userfd)) && !CheckTtyname(tty))
@@ -306,7 +306,7 @@ int SetUtmp(Window *win)
 #endif				/* UTHOST */
 
 	if (pututslot(slot, &u, host, win) == 0) {
-		Msg(errno, "Could not write %s", UtmpName);
+		Msg(errno, U"Could not write %s", UtmpName);
 		return -1;
 	}
 	win->w_slot = slot;
@@ -333,14 +333,14 @@ int RemoveUtmp(Window *win)
 	}
 	memset((char *)&u, 0, sizeof(u));
 	if ((uu = getutslot(slot)) == 0) {
-		Msg(0, "Utmp slot not found -> not removed");
+		Msg(0, U"Utmp slot not found -> not removed");
 		return -1;
 	}
 	memmove((char *)&win->w_savut, (char *)uu, sizeof(win->w_savut));
 	u = *uu;
 	makedead(&u);
 	if (pututslot(slot, &u, (char *)0, win) == 0) {
-		Msg(errno, "Could not write %s", UtmpName);
+		Msg(errno, U"Could not write %s", UtmpName);
 		return -1;
 	}
 	win->w_slot = (slot_t)-1;

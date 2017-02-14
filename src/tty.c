@@ -99,15 +99,15 @@ int OpenTTY(char *line, char *opt)
 	/* this open only succeeds, if real uid is allowed */
 	if ((f = secopen(line, O_RDWR | O_NONBLOCK | O_NOCTTY, 0)) == -1) {
 		if (errno == EINTR)
-			Msg(0, "Cannot open line '%s' for R/W: open() blocked, aborted.", line);
+			Msg(0, U"Cannot open line '%s' for R/W: open() blocked, aborted.", line);
 		else
-			Msg(errno, "Cannot open line '%s' for R/W", line);
+			Msg(errno, U"Cannot open line '%s' for R/W", line);
 		alarm(0);
 		xsignal(SIGALRM, sigalrm);
 		return -1;
 	}
 	if (!isatty(f)) {
-		Msg(0, "'%s' is not a tty", line);
+		Msg(0, U"'%s' is not a tty", line);
 		alarm(0);
 		xsignal(SIGALRM, sigalrm);
 		close(f);
@@ -121,7 +121,7 @@ int OpenTTY(char *line, char *opt)
 #ifdef TIOCEXCL
 	errno = 0;
 	if (ioctl(f, TIOCEXCL, (char *)0) < 0)
-		Msg(errno, "%s: ioctl TIOCEXCL failed", line);
+		Msg(errno, U"%s: ioctl TIOCEXCL failed", line);
 #endif				/* TIOCEXCL */
 	/*
 	 * We create a sane tty mode. We do not copy things from the display tty
@@ -361,7 +361,7 @@ void SetTTY(int fd, struct mode *mp)
 	ioctl(fd, TIOCKSET, &mp->m_knjmode);
 #endif
 	if (errno)
-		Msg(errno, "SetTTY (fd %d): ioctl failed", fd);
+		Msg(errno, U"SetTTY (fd %d): ioctl failed", fd);
 }
 
 void GetTTY(int fd, struct mode *mp)
@@ -373,7 +373,7 @@ void GetTTY(int fd, struct mode *mp)
 	ioctl(fd, TIOCKGET, &mp->m_knjmode);
 #endif
 	if (errno)
-		Msg(errno, "GetTTY (fd %d): ioctl failed", fd);
+		Msg(errno, U"GetTTY (fd %d): ioctl failed", fd);
 }
 
 /*
@@ -622,7 +622,7 @@ static void DoSendBreak(int fd, int n, int type)
 		 * here we can use the second parameter to specify the duration.
 		 */
 		if (tcsendbreak(fd, n) < 0)
-			Msg(errno, "cannot send BREAK (tcsendbreak)");
+			Msg(errno, U"cannot send BREAK (tcsendbreak)");
 #else
 		/*
 		 * here we hope, that multiple calls to tcsendbreak() can
@@ -639,7 +639,7 @@ static void DoSendBreak(int fd, int n, int type)
 			n++;
 		for (int i = 0; i < n; i++)
 			if (tcsendbreak(fd, 0) < 0) {
-				Msg(errno, "cannot send BREAK (tcsendbreak SVR4)");
+				Msg(errno, U"cannot send BREAK (tcsendbreak SVR4)");
 				return;
 			}
 #endif
@@ -655,11 +655,11 @@ static void DoSendBreak(int fd, int n, int type)
 		 */
 		for (int i = 0; i < n; i++)
 			if (ioctl(fd, TCSBRK, (char *)0) < 0) {
-				Msg(errno, "Cannot send BREAK (TCSBRK)");
+				Msg(errno, U"Cannot send BREAK (TCSBRK)");
 				return;
 			}
 #else				/* TCSBRK */
-		Msg(0, "TCSBRK not available, change breaktype");
+		Msg(0, U"TCSBRK not available, change breaktype");
 #endif				/* TCSBRK */
 		break;
 
@@ -670,21 +670,21 @@ static void DoSendBreak(int fd, int n, int type)
 		 * But it may be the only save way to issue long breaks.
 		 */
 		if (ioctl(fd, TIOCSBRK, (char *)0) < 0) {
-			Msg(errno, "Can't send BREAK (TIOCSBRK)");
+			Msg(errno, U"Can't send BREAK (TIOCSBRK)");
 			return;
 		}
 		sleep1000(n ? n * 250 : 250);
 		if (ioctl(fd, TIOCCBRK, (char *)0) < 0) {
-			Msg(errno, "BREAK stuck!!! -- HELP! (TIOCCBRK)");
+			Msg(errno, U"BREAK stuck!!! -- HELP! (TIOCCBRK)");
 			return;
 		}
 #else				/* TIOCSBRK && TIOCCBRK */
-		Msg(0, "TIOCSBRK/CBRK not available, change breaktype");
+		Msg(0, U"TIOCSBRK/CBRK not available, change breaktype");
 #endif				/* TIOCSBRK && TIOCCBRK */
 		break;
 
 	default:		/* unknown ========================== */
-		Msg(0, "Internal SendBreak error: method %d unknown", type);
+		Msg(0, U"Internal SendBreak error: method %d unknown", type);
 	}
 }
 
@@ -712,7 +712,7 @@ void SendBreak(Window * wp, int n, int closeopen)
 		close(wp->w_ptyfd);
 		sleep1000(n ? n * 250 : 250);
 		if ((wp->w_ptyfd = OpenTTY(wp->w_tty, wp->w_cmdargs[1])) < 1) {
-			Msg(0, "Ouch, cannot reopen line %s, please try harder", wp->w_tty);
+			Msg(0, U"Ouch, cannot reopen line %s, please try harder", wp->w_tty);
 			return;
 		}
 		(void)fcntl(wp->w_ptyfd, F_SETFL, FNBLOCK);
@@ -752,7 +752,7 @@ static void consredir_readev_fn(Event * event, void *data)
 		if (*n == '\n') {
 			if (n > p)
 				WriteString(console_window, p, n - p);
-			WriteString(console_window, "\r\n", 2);
+			WriteString(console_window, U"\r\n", 2);
 			p = n + 1;
 		}
 	if (n > p)
@@ -773,14 +773,14 @@ int TtyGrabConsole(int fd, bool on, char *rc_name)
 
 	if (on) {
 		if (displays == 0) {
-			Msg(0, "I need a display");
+			Msg(0, U"I need a display");
 			return -1;
 		}
 		for (d = displays; d; d = d->d_next)
 			if (strcmp(d->d_usertty, "/dev/console") == 0)
 				break;
 		if (d) {
-			Msg(0, "too dangerous - screen is running on /dev/console");
+			Msg(0, U"too dangerous - screen is running on /dev/console");
 			return -1;
 		}
 	}
@@ -794,17 +794,17 @@ int TtyGrabConsole(int fd, bool on, char *rc_name)
 		return 0;
 #ifdef SRIOCSREDIR
 	if ((cfd = secopen("/dev/console", O_RDWR | O_NOCTTY, 0)) == -1) {
-		Msg(errno, "/dev/console");
+		Msg(errno, U"/dev/console");
 		return -1;
 	}
 	if (pipe(consredirfd)) {
-		Msg(errno, "pipe");
+		Msg(errno, U"pipe");
 		close(cfd);
 		consredirfd[0] = consredirfd[1] = -1;
 		return -1;
 	}
 	if (ioctl(cfd, SRIOCSREDIR, consredirfd[1])) {
-		Msg(errno, "SRIOCSREDIR ioctl");
+		Msg(errno, U"SRIOCSREDIR ioctl");
 		close(cfd);
 		close(consredirfd[0]);
 		close(consredirfd[1]);
@@ -815,11 +815,11 @@ int TtyGrabConsole(int fd, bool on, char *rc_name)
 #else
 	/* special linux workaround for a too restrictive kernel */
 	if ((consredirfd[0] = OpenPTY(&slave)) < 0) {
-		Msg(errno, "%s: could not open detach pty master", rc_name);
+		Msg(errno, U"%s: could not open detach pty master", rc_name);
 		return -1;
 	}
 	if ((consredirfd[1] = open(slave, O_RDWR | O_NOCTTY)) < 0) {
-		Msg(errno, "%s: could not open detach pty slave", rc_name);
+		Msg(errno, U"%s: could not open detach pty slave", rc_name);
 		close(consredirfd[0]);
 		return -1;
 	}
@@ -829,7 +829,7 @@ int TtyGrabConsole(int fd, bool on, char *rc_name)
 	if (UserContext() == 1)
 		UserReturn(ioctl(consredirfd[1], TIOCCONS, (char *)&on));
 	if (UserStatus()) {
-		Msg(errno, "%s: ioctl TIOCCONS failed", rc_name);
+		Msg(errno, U"%s: ioctl TIOCCONS failed", rc_name);
 		close(consredirfd[0]);
 		close(consredirfd[1]);
 		return -1;

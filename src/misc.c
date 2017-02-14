@@ -35,15 +35,18 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <unistr.h>
 
 #include "screen.h"
+
+/* FIXME just use strdup in *SaveStr* ? */
 
 char *SaveStr(const char *str)
 {
 	char *cp;
 
 	if ((cp = malloc(strlen(str) + 1)) == NULL)
-		Panic(0, "%s", strnomem);
+		Panic(0, U"%s", strnomem);
 	else
 		strncpy(cp, str, strlen(str) + 1);
 	return cp;
@@ -54,7 +57,7 @@ char *SaveStrn(const char *str, size_t n)
 	char *cp;
 
 	if ((cp = malloc(n + 1)) == NULL)
-		Panic(0, "%s", strnomem);
+		Panic(0, U"%s", strnomem);
 	else {
 		memmove(cp, (char *)str, n);
 		cp[n] = 0;
@@ -62,18 +65,49 @@ char *SaveStrn(const char *str, size_t n)
 	return cp;
 }
 
-void centerline(char *str, int y)
+uint32_t *u32_SaveStr(const uint32_t *str)
+{
+	uint32_t *cp;
+
+	if ((cp = malloc((u32_strlen(str) + 1) * sizeof(uint32_t))) == NULL)
+		Panic(0, U"%s", strnomem);
+	else
+		u32_strncpy(cp, str, u32_strlen(str) + 1);
+	return cp;
+}
+
+uint32_t *u32_SaveStrn(const uint32_t *str, size_t n)
+{
+	uint32_t *cp;
+
+	if ((cp = malloc((n + 1) * sizeof(uint32_t))) == NULL)
+		Panic(0, U"%s", strnomem);
+	else {
+		u32_move(cp, str, n);
+		cp[n] = 0;
+	}
+	return cp;
+}
+
+int u32_atoi(const uint32_t *ntpr) {
+	int ret = 0;
+	while (ntpr && *ntpr >= '0' && *ntpr <= '9')
+		ret = ret * 10 + (*ntpr - '0');
+	return ret;
+}
+
+void centerline(uint32_t *str, int y)
 {
 	int l, n;
 
-	n = strlen(str);
+	n = u32_strlen(str);
 	if (n > flayer->l_width - 1)
 		n = flayer->l_width - 1;
 	l = (flayer->l_width - 1 - n) / 2;
 	LPutStr(flayer, str, n, &mchar_blank, l, y);
 }
 
-void leftline(char *str, int y, struct mchar *rend)
+void leftline(uint32_t *str, int y, struct mchar *rend)
 {
 	int l, n;
 	struct mchar mchar_dol;
@@ -81,7 +115,7 @@ void leftline(char *str, int y, struct mchar *rend)
 	mchar_dol = mchar_blank;
 	mchar_dol.image = '$';
 
-	l = n = strlen(str);
+	l = n = u32_strlen(str);
 	if (n > flayer->l_width - 1)
 		n = flayer->l_width - 1;
 	LPutStr(flayer, str, n, rend ? rend : &mchar_blank, 0, y);
@@ -89,9 +123,9 @@ void leftline(char *str, int y, struct mchar *rend)
 		LPutChar(flayer, &mchar_dol, n, y);
 }
 
-char *Filename(char *s)
+uint32_t *Filename(uint32_t *s)
 {
-	char *p = s;
+	uint32_t *p = s;
 
 	if (p)
 		while (*p)
@@ -136,13 +170,13 @@ void xseteuid(int euid)
 	if (seteuid(euid) == 0)
 		return;
 	if (seteuid(0) || seteuid(euid))
-		Panic(errno, "seteuid");
+		Panic(errno, U"seteuid");
 }
 
 void xsetegid(int egid)
 {
 	if (setegid(egid))
-		Panic(errno, "setegid");
+		Panic(errno, U"setegid");
 }
 
 void Kill(pid_t pid, int sig)
@@ -186,9 +220,9 @@ int UserStatus()
 	return UserSTAT;
 }
 
-int AddXChar(char *buf, int ch)
+uint32_t AddXChar(uint32_t *buf, uint32_t ch)
 {
-	char *p = buf;
+	uint32_t *p = buf;
 
 	if (ch < ' ' || ch == 0x7f) {
 		*p++ = '^';
@@ -203,9 +237,9 @@ int AddXChar(char *buf, int ch)
 	return p - buf;
 }
 
-int AddXChars(char *buf, int len, char *str)
+uint32_t AddXChars(uint32_t *buf, int len, uint32_t *str)
 {
-	char *p;
+	uint32_t *p;
 
 	if (str == 0) {
 		*buf = 0;

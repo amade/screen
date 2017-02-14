@@ -141,7 +141,7 @@ void sched()
 		nsel = select(FD_SETSIZE, &r, &w, (fd_set *) 0, timeoutev ? &timeout : (struct timeval *)0);
 		if (nsel < 0) {
 			if (errno != EINTR) {
-				Panic(errno, "select");
+				Panic(errno, U"select");
 			}
 			nsel = 0;
 		} else if (nsel == 0) {	/* timeout */

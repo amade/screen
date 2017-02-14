@@ -32,6 +32,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 /*
  * This is the overlay structure. It is used to create a seperate
@@ -44,7 +45,7 @@ struct mline;
 typedef struct Canvas Canvas;
 
 struct LayFuncs {
-	void	(*lf_LayProcess) (char **, size_t *);
+	void	(*lf_LayProcess) (uint32_t **, size_t *);
 	void	(*lf_LayAbort) (void);
 	void	(*lf_LayRedisplayLine) (int, int, int, int);
 	void	(*lf_LayClearLine) (int, int, int, int);
@@ -70,7 +71,7 @@ struct Layer {
 	int	 l_mode;	/* non-zero == edit mode */
 
 	struct {
-		unsigned char buffer[3];	/* [0]: the button
+		uint32_t buffer[3];		/* [0]: the button
 						   [1]: x
 						   [2]: y
 						*/
@@ -163,7 +164,7 @@ void LayerCleanupMemory (Layer *layer);
 void  LGotoPos (Layer *, int, int);
 void  LPutChar (Layer *, struct mchar *, int, int);
 void  LInsChar (Layer *, struct mchar *, int, int, struct mline *);
-void  LPutStr (Layer *, char *, int, struct mchar *, int, int);
+void  LPutStr (Layer *, uint32_t *, int, struct mchar *, int, int);
 void  LPutWinMsg (Layer *, char *, int, struct mchar *, int, int);
 void  LScrollH (Layer *, int, int, int, int, int, struct mline *);
 void  LScrollV (Layer *, int, int, int, int);
@@ -186,7 +187,7 @@ void  LMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 void  KillLayerChain (Layer *);
 int   InitOverlayPage (int, const struct LayFuncs *, int);
 void  ExitOverlayPage (void);
-int   LayProcessMouse (Layer *, unsigned char);
+int   LayProcessMouse (Layer *, uint32_t);
 void  LayProcessMouseSwitch (Layer *, bool);
 
 #endif /* SCREEN_LAYER_H */

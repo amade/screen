@@ -84,9 +84,9 @@ typedef struct {
 	} flags;
 } WinMsgEsc;
 
-char *MakeWinMsg(char *, Window *, int);
-char *MakeWinMsgEv(WinMsgBuf *, char *, Window *, int, int, Event *, int);
-int   AddWinMsgRend(WinMsgBuf *, const char *, uint64_t);
+uint32_t *MakeWinMsg(uint32_t *, Window *, uint32_t);
+uint32_t *MakeWinMsgEv(WinMsgBuf *, uint32_t *, Window *, uint32_t, int, Event *, int);
+int   AddWinMsgRend(WinMsgBuf *, const uint32_t *, uint64_t);
 void  WindowChanged (Window *, WinMsgEscapeChar);
 
 extern WinMsgBuf *g_winmsg;

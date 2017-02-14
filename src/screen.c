@@ -41,6 +41,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <limits.h>
+#include <unistdio.h>
+#include <unistr.h>
+#include <uniconv.h>
 
 #include <locale.h>
 #if defined(HAVE_LANGINFO_H)
@@ -100,21 +103,21 @@ char **NewEnv = NULL;
 char *RcFileName = NULL;
 char *home;
 
-char *screenlogfile;		/* filename layout */
+char *screenlogfile;	/* filename layout */
 int log_flush = 10;		/* flush interval in seconds */
 bool logtstamp_on = false;	/* tstamp disabled */
-char *logtstamp_string;		/* stamp layout */
+uint32_t *logtstamp_string;		/* stamp layout */
 int logtstamp_after = 120;	/* first tstamp after 120s */
 char *hardcopydir = NULL;
-char *BellString;
+uint32_t *BellString;
 char *VisualBellString;
-char *ActivityString;
+uint32_t *ActivityString;
 char *BufferFile;
-char *PowDetachString;
-char *hstatusstring;
-char *captionstring;
+uint32_t *PowDetachString;
+uint32_t *hstatusstring;
+uint32_t *captionstring;
 char *timestring;
-char *wliststr;
+uint32_t *wliststr;
 char *wlisttit;
 bool auto_detach = true;
 bool adaptflag, cmdflag, iflag, lsflag, quietflag, wipeflag, xflag;
@@ -216,19 +219,19 @@ int main(int argc, char **argv)
 	 *  (otherwise, we might have problems with the select() call)
 	 */
 	closeallfiles(0);
-	snprintf(version, 59, "%d.%d.%d (build on %s %s) ", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, __DATE__, __TIME__);
+	u32_asprintf(&version, "%d.%d.%d (build on %s %s) ", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, __DATE__, __TIME__);
 	nversion = VERSION_MAJOR * 10000 + VERSION_MINOR * 100 + VERSION_REVISION;
 
-	BellString = SaveStr("Bell in window %n");
+	BellString = u32_SaveStr(U"Bell in window %n");
 	VisualBellString = SaveStr("   Wuff,  Wuff!!  ");
-	ActivityString = SaveStr("Activity in window %n");
+	ActivityString = u32_SaveStr(U"Activity in window %n");
 	screenlogfile = SaveStr("screenlog.%n");
-	logtstamp_string = SaveStr("-- %n:%t -- time-stamp -- %M/%d/%y %c:%s --\n");
-	hstatusstring = SaveStr("%h");
-	captionstring = SaveStr("%4n %t");
+	logtstamp_string = u32_SaveStr(U"-- %n:%t -- time-stamp -- %M/%d/%y %c:%s --\n");
+	hstatusstring = u32_SaveStr(U"%h");
+	captionstring = u32_SaveStr(U"%4n %t");
 	timestring = SaveStr("%c:%s %M %d %H%? %l%?");
 	wlisttit = SaveStr(" Num Name%=Flags");
-	wliststr = SaveStr("%4n %t%=%f");
+	wliststr = u32_SaveStr(U"%4n %t%=%f");
 	BufferFile = SaveStr(DEFAULT_BUFFERFILE);
 	ShellProg = NULL;
 	PowDetachString = 0;
@@ -238,8 +241,8 @@ int main(int argc, char **argv)
 	MsgWait = MSGWAIT * 1000;
 	MsgMinWait = MSGMINWAIT * 1000;
 	SilenceWait = SILENCEWAIT;
-	zmodem_sendcmd = SaveStr("!!! sz -vv -b ");
-	zmodem_recvcmd = SaveStr("!!! rz -vv -b -E");
+	zmodem_sendcmd = u32_SaveStr(U"!!! sz -vv -b ");
+	zmodem_recvcmd = u32_SaveStr(U"!!! rz -vv -b -E");
 
 	CompileKeys((char *)0, 0, mark_key_tab);
 	nwin = nwin_undef;
@@ -272,7 +275,7 @@ int main(int argc, char **argv)
 				break;
 			}
 			if (ap[1] == '-' && !strncmp(ap, "--version", 9))
-				Panic(0, "Screen version %s", version);
+				Panic(0, U"Screen version %s", version);
 			if (ap[1] == '-' && !strncmp(ap, "--help", 6))
 				exit_with_usage(myname, NULL, NULL);
 			while (ap && *ap && *++ap) {
@@ -322,7 +325,7 @@ int main(int argc, char **argv)
 						ap = *++argv;
 					}
 					if (ParseEscape(ap))
-						Panic(0, "Two characters are required with -e option, not '%s'.", ap);
+						Panic(0, U"Two characters are required with -e option, not '%s'.", ap);
 					ap = NULL;
 					break;
 				case 'f':
@@ -359,7 +362,8 @@ int main(int argc, char **argv)
 				case 't':	/* title, the former AkA == -k */
 					if (--argc == 0)
 						exit_with_usage(myname, "Specify a new window-name with -t", NULL);
-					nwin_options.aka = *++argv;
+					//nwin_options.aka = *++argv;
+					nwin_options.aka = U"FIXME";
 					break;
 				case 'l':
 					ap++;
@@ -407,7 +411,7 @@ int main(int argc, char **argv)
 							exit_with_usage(myname, "Specify logfile path with -Logfile", NULL);
 
 						if (strlen(*++argv) > PATH_MAX)
-							Panic(1, "-Logfile name too long. (max. %d char)", PATH_MAX);
+							Panic(1, U"-Logfile name too long. (max. %d char)", PATH_MAX);
 
 						free(screenlogfile); /* we already set it up while starting */
 						screenlogfile = SaveStr(*argv);
@@ -430,7 +434,7 @@ int main(int argc, char **argv)
 						strncpy(screenterm, *argv, MAXTERMLEN);
 						screenterm[MAXTERMLEN] = '\0';
 					} else
-						Panic(0, "-T: terminal name too long. (max. %d char)", MAXTERMLEN);
+						Panic(0, U"-T: terminal name too long. (max. %d char)", MAXTERMLEN);
 					nwin_options.term = screenterm;
 					break;
 				case 'q':
@@ -486,7 +490,7 @@ int main(int argc, char **argv)
 					cmdflag = true;
 					break;
 				case 'v':
-					Panic(0, "Screen version %s", version);
+					Panic(0, U"Screen version %s", version);
 					/* NOTREACHED */
 				default:
 					exit_with_usage(myname, "Unknown option %s", --ap);
@@ -504,11 +508,11 @@ int main(int argc, char **argv)
 		/* If we just use the original value from av,
 		   subsequent shelltitle invocations will attempt to free
 		   space we don't own... */
-		nwin_options.aka = SaveStr(nwin_options.aka);
+		nwin_options.aka = u32_SaveStr(nwin_options.aka);
 	}
 
 	if (SocketMatch && strlen(SocketMatch) >= MAXSTR)
-		Panic(0, "Ridiculously long socketname - try again.");
+		Panic(0, U"Ridiculously long socketname - try again.");
 	if (cmdflag && !rflag && !dflag && !xflag)
 		xflag = true;
 	if (!cmdflag && dflag && mflag && !(rflag || xflag))
@@ -520,9 +524,9 @@ int main(int argc, char **argv)
 
 	if (!ShellProg) {
 		char *sh;
-
-		sh = getenv("SHELL");
+		asprintf(&sh, "%s", getenv("SHELL"));
 		ShellProg = SaveStr(sh ? sh : DefaultShell);
+		free(sh);
 	}
 	ShellArgs[0] = ShellProg;
 	home = getenv("HOME");
@@ -540,11 +544,11 @@ int main(int argc, char **argv)
 		if (*multi) {
 			struct passwd *mppp;
 			if ((mppp = getpwnam(multi)) == (struct passwd *)0)
-				Panic(0, "Cannot identify account '%s'.", multi);
+				Panic(0, U"Cannot identify account '%s'.", multi);
 			multi_uid = mppp->pw_uid;
 			multi_home = SaveStr(mppp->pw_dir);
 			if (strlen(multi_home) > MAXPATHLEN - 10)
-				Panic(0, "home directory path too long");
+				Panic(0, U"home directory path too long");
 			/* always fake multi attach mode */
 			if (rflag || lsflag)
 				xflag = 1;
@@ -553,7 +557,7 @@ int main(int argc, char **argv)
 		}
 		/* Special case: effective user is multiuser. */
 		if (eff_uid && (multi_uid != eff_uid))
-			Panic(0, "Must run suid root for multiuser support.");
+			Panic(0, U"Must run suid root for multiuser support.");
 	}
 	if (SocketMatch && *SocketMatch == 0)
 		SocketMatch = 0;
@@ -565,7 +569,7 @@ int main(int argc, char **argv)
 	}
 	if (ppp == 0) {
 		if ((ppp = getpwuid(real_uid)) == 0) {
-			Panic(0, "getpwuid() can't identify your account!");
+			Panic(0, U"getpwuid() can't identify your account!");
 			exit(1);
 		}
 		LoginName = ppp->pw_name;
@@ -577,7 +581,7 @@ int main(int argc, char **argv)
 #if !defined(SOCKET_DIR)
 	if (multi && !multiattach) {
 		if (home && strcmp(home, ppp->pw_dir))
-			Panic(0, "$HOME must match passwd entry for multiuser screens.");
+			Panic(0, U"$HOME must match passwd entry for multiuser screens.");
 	}
 #endif
 
@@ -594,29 +598,29 @@ int main(int argc, char **argv)
     if (!(attach_tty = ttyname(0))) \
       { \
 	if (fatal) \
-	  Panic(0, "Must be connected to a terminal."); \
+	  Panic(0, U"Must be connected to a terminal."); \
 	else \
 	  attach_tty = ""; \
       } \
     else \
       { \
 	if (stat(attach_tty, &st)) \
-	  Panic(errno, "Cannot access '%s'", attach_tty); \
+	  Panic(errno, U"Cannot access '%s'", attach_tty); \
 	if (CheckTtyname(attach_tty)) \
-	  Panic(0, "Bad tty '%s'", attach_tty); \
+	  Panic(0, U"Bad tty '%s'", attach_tty); \
       } \
     if (strlen(attach_tty) >= MAXPATHLEN) \
-      Panic(0, "TtyName too long - sorry."); \
+      Panic(0, U"TtyName too long - sorry."); \
   } while (0)
 
 	if (home == 0 || *home == '\0')
 		home = ppp->pw_dir;
 	if (strlen(LoginName) > MAXLOGINLEN)
-		Panic(0, "LoginName too long - sorry.");
+		Panic(0, U"LoginName too long - sorry.");
 	if (multi && strlen(multi) > MAXLOGINLEN)
-		Panic(0, "Screen owner name too long - sorry.");
+		Panic(0, U"Screen owner name too long - sorry.");
 	if (strlen(home) > MAXPATHLEN)
-		Panic(0, "$HOME too long - sorry.");
+		Panic(0, U"$HOME too long - sorry.");
 
 	attach_tty = "";
 	if (!detached && !lsflag && !cmdflag && !(dflag && !mflag && !rflag && !xflag)
@@ -633,14 +637,14 @@ int main(int argc, char **argv)
 
 		if (attach_fd == -1) {
 			if ((n = secopen(attach_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
-				Panic(0, "Cannot open your terminal '%s' - please check.", attach_tty);
+				Panic(0, U"Cannot open your terminal '%s' - please check.", attach_tty);
 			close(n);
 		}
 
 		if ((attach_term = getenv("TERM")) == 0 || *attach_term == 0)
-			Panic(0, "Please set a terminal type.");
+			Panic(0, U"Please set a terminal type.");
 		if (strlen(attach_term) > MAXTERMLEN)
-			Panic(0, "$TERM too long - sorry.");
+			Panic(0, U"$TERM too long - sorry.");
 		GetTTY(0, &attach_Mode);
 	}
 
@@ -649,9 +653,9 @@ int main(int argc, char **argv)
 	SocketDir = getenv("SCREENDIR");
 	if (SocketDir) {
 		if (strlen(SocketDir) >= MAXPATHLEN - 1)
-			Panic(0, "Ridiculously long $SCREENDIR - try again.");
+			Panic(0, U"Ridiculously long $SCREENDIR - try again.");
 		if (multi)
-			Panic(0, "No $SCREENDIR with multi screens, please.");
+			Panic(0, U"No $SCREENDIR with multi screens, please.");
 	}
 	if (multiattach) {
 #ifndef SOCKET_DIR
@@ -675,7 +679,7 @@ int main(int argc, char **argv)
 					UserReturn(1);
 				}
 				if (UserStatus() <= 0)
-					Panic(0, "Cannot make directory '%s'.", SocketDir);
+					Panic(0, U"Cannot make directory '%s'.", SocketDir);
 			}
 			if (SocketDir != SocketPath)
 				strncpy(SocketPath, SocketDir, MAXPATHLEN + 2 * MAXSTR);
@@ -692,21 +696,21 @@ int main(int argc, char **argv)
 				    0777;
 #endif
 				if (mkdir(SocketDir, n) == -1)
-					Panic(errno, "Cannot make directory '%s'", SocketDir);
+					Panic(errno, U"Cannot make directory '%s'", SocketDir);
 			} else {
 				if (!S_ISDIR(st.st_mode))
-					Panic(0, "'%s' must be a directory.", SocketDir);
+					Panic(0, U"'%s' must be a directory.", SocketDir);
 				if (eff_uid == 0 && real_uid && st.st_uid != eff_uid)
-					Panic(0, "Directory '%s' must be owned by root.", SocketDir);
+					Panic(0, U"Directory '%s' must be owned by root.", SocketDir);
 				n = (eff_uid == 0 && (real_uid || (st.st_mode & 0775) != 0775)) ? 0755 :
 				    (eff_gid == st.st_gid && eff_gid != real_gid) ? 0775 : 0777;
 				if (((int)st.st_mode & 0777) != n)
-					Panic(0, "Directory '%s' must have mode %03o.", SocketDir, n);
+					Panic(0, U"Directory '%s' must have mode %03o.", SocketDir, n);
 			}
 			sprintf(SocketPath, "%s/S-%s", SocketDir, LoginName);
 			if (access(SocketPath, F_OK)) {
 				if (mkdir(SocketPath, 0700) == -1 && errno != EEXIST)
-					Panic(errno, "Cannot make directory '%s'", SocketPath);
+					Panic(errno, U"Cannot make directory '%s'", SocketPath);
 				(void)chown(SocketPath, real_uid, real_gid);
 			}
 		}
@@ -714,31 +718,35 @@ int main(int argc, char **argv)
 	}
 
 	if (stat(SocketPath, &st) == -1)
-		Panic(errno, "Cannot access %s", SocketPath);
+		Panic(errno, U"Cannot access %s", SocketPath);
 	else if (!S_ISDIR(st.st_mode))
-		Panic(0, "%s is not a directory.", SocketPath);
+		Panic(0, U"%s is not a directory.", SocketPath);
 	if (multi) {
 		if (st.st_uid != multi_uid)
-			Panic(0, "%s is not the owner of %s.", multi, SocketPath);
+			Panic(0, U"%s is not the owner of %s.", multi, SocketPath);
 	} else {
 #ifdef SOCKET_DIR	/* if SOCKETDIR is not defined, the socket is in $HOME.
 			   in that case it does not make sense to compare uids. */
 		if (st.st_uid != real_uid)
-			Panic(0, "You are not the owner of %s.", SocketPath);
+			Panic(0, U"You are not the owner of %s.", SocketPath);
 #endif
 	}
 	if ((st.st_mode & 0777) != 0700)
-		Panic(0, "Directory %s must have mode 700.", SocketPath);
+		Panic(0, U"Directory %s must have mode 700.", SocketPath);
 	if (SocketMatch && strchr(SocketMatch, '/'))
-		Panic(0, "Bad session name '%s'", SocketMatch);
+		Panic(0, U"Bad session name '%s'", SocketMatch);
 	SocketName = SocketPath + strlen(SocketPath) + 1;
 	*SocketName = 0;
 	(void)umask(oumask);
 
-	(void)gethostname(HostName, MAXSTR);
-	HostName[MAXSTR - 1] = '\0';
-	if ((ap = strchr(HostName, '.')) != NULL)
-		*ap = '\0';
+	{
+		char h[MAXSTR];
+		(void)gethostname(h, MAXSTR);
+		h[MAXSTR - 1] = '\0';
+		if ((ap = strchr(h, '.')) != NULL)
+			*ap = '\0';
+		u32_asprintf(&HostName, "%s\0", h);
+	}
 
 	if (lsflag) {
 		int i, fo, oth;
@@ -754,8 +762,8 @@ int main(int argc, char **argv)
 				exit(9 + (fo || oth ? 1 : 0) + fo);
 		}
 		if (fo == 0)
-			Panic(0, "No Sockets found in %s.\n", SocketPath);
-		Msg(0, "%d Socket%s in %s.", fo, fo > 1 ? "s" : "", SocketPath);
+			Panic(0, U"No Sockets found in %s.\n", SocketPath);
+		Msg(0, U"%d Socket%s in %s.", fo, fo > 1 ? "s" : "", SocketPath);
 		eexit(0);
 	}
 	xsignal(SIG_BYE, AttacherFinit);	/* prevent races */
@@ -763,7 +771,7 @@ int main(int argc, char **argv)
 		/* attach_tty is not mandatory */
 		SET_TTYNAME(0);
 		if (!*argv)
-			Panic(0, "Please specify a command.");
+			Panic(0, U"Please specify a command.");
 		SET_GUID();
 		SendCmdMessage(sty, SocketMatch, argv, queryflag >= 0);
 		exit(0);
@@ -773,11 +781,11 @@ int main(int argc, char **argv)
 			/* NOTREACHED */
 		}
 		if (multiattach)
-			Panic(0, "Can't create sessions of other users.");
+			Panic(0, U"Can't create sessions of other users.");
 	} else if (dflag && !mflag) {
 		SET_TTYNAME(0);
 		Attach(MSG_DETACH);
-		Msg(0, "[%s %sdetached.]\n", SocketName, (dflag > 1 ? "power " : ""));
+		Msg(0, U"[%s %sdetached.]\n", SocketName, (dflag > 1 ? "power " : ""));
 		eexit(0);
 		/* NOTREACHED */
 	}
@@ -799,7 +807,7 @@ int main(int argc, char **argv)
 
 	switch (MasterPid) {
 	case -1:
-		Panic(errno, "fork");
+		Panic(errno, U"fork");
 		/* NOTREACHED */
 	case 0:
 		break;
@@ -843,7 +851,7 @@ int main(int argc, char **argv)
 	if (!detached) {
 		if (attach_fd == -1) {
 			if ((n = secopen(attach_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
-				Panic(0, "Cannot reopen '%s' - please check.", attach_tty);
+				Panic(0, U"Cannot reopen '%s' - please check.", attach_tty);
 		} else
 			n = dup(attach_fd);
 	} else
@@ -859,10 +867,10 @@ int main(int argc, char **argv)
 	 * any more, use users->u_name instead.
 	 */
 	if (UserAdd(LoginName, (struct acluser **)0) < 0)
-		Panic(0, "Could not create user info");
+		Panic(0, U"Could not create user info");
 	if (!detached) {
 		if (MakeDisplay(LoginName, attach_tty, attach_term, n, getppid(), &attach_Mode) == 0)
-			Panic(0, "Could not alloc display");
+			Panic(0, U"Could not alloc display");
 		PanicPid = 0;
 	}
 
@@ -918,7 +926,7 @@ int main(int argc, char **argv)
 		/* Note: SetMode must be called _before_ FinishRc. */
 		SetTTY(D_userfd, &D_NewMode);
 		if (fcntl(D_userfd, F_SETFL, FNBLOCK))
-			Msg(errno, "Warning: NBLOCK fcntl failed");
+			Msg(errno, U"Warning: NBLOCK fcntl failed");
 	} else
 		brktty(-1);	/* just try */
 	xsignal(SIGCHLD, SigChld);
@@ -934,7 +942,7 @@ int main(int argc, char **argv)
 			struct timeval tv = { MsgWait / 1000, 1000 * (MsgWait % 1000) };
 			FD_SET(0, &rfd);
 
-			Msg(0, "Sorry, could not find a PTY or TTY.");
+			Msg(0, U"Sorry, could not find a PTY or TTY.");
 			/* allow user to exit early by pressing any key. */
 			select(1, &rfd, NULL, NULL, &tv);
 			Finit(0);
@@ -948,7 +956,7 @@ int main(int argc, char **argv)
 		display_copyright();
 	xsignal(SIGINT, SigInt);
 	if (rflag && (rflag & 1) == 0 && !quietflag) {
-		Msg(0, "New screen...");
+		Msg(0, U"New screen...");
 		rflag = 0;
 	}
 
@@ -1027,7 +1035,7 @@ static void CoreDump(int sigsig)
 	setuid(getuid());
 	unlink("core");
 
-	sprintf(buf, "\r\n[screen caught a fatal signal. (core dumped)]\r\n");
+	sprintf(buf, "\r\n[screen caught a fatal signal.]\r\n");
 
 	for (disp = displays; disp; disp = disp->d_next) {
 		if (disp->d_nonblock < -1 || disp->d_nonblock > 1000000)
@@ -1057,18 +1065,18 @@ static void DoWait()
 				if (WIFSTOPPED(wstat)) {
 #ifdef SIGTTIN
 					if (WSTOPSIG(wstat) == SIGTTIN) {
-						Msg(0, "Suspended (tty input)");
+						Msg(0, U"Suspended (tty input)");
 						continue;
 					}
 #endif
 #ifdef SIGTTOU
 					if (WSTOPSIG(wstat) == SIGTTOU) {
-						Msg(0, "Suspended (tty output)");
+						Msg(0, U"Suspended (tty output)");
 						continue;
 					}
 #endif
 					/* Try to restart process */
-					Msg(0, "Child has been stopped, restarting.");
+					Msg(0, U"Child has been stopped, restarting.");
 					if (killpg(pid, SIGCONT))
 						kill(pid, SIGCONT);
 				} else {
@@ -1124,7 +1132,7 @@ void Finit(int i)
 #ifdef ENABLE_UTMP
 		RestoreLoginSlot();
 #endif
-		AddStr("[screen is terminating]\r\n");
+		AddStr(U"[screen is terminating]\r\n");
 		Flush(3);
 		SetTTY(D_userfd, &D_OldMode);
 		fcntl(D_userfd, F_SETFL, 0);
@@ -1188,12 +1196,12 @@ void Detach(int mode)
 #define AddStrSocket(msg) do { \
     if (SocketName) \
       { \
-	AddStr("[" msg " from "); \
+	AddStr(U"[" msg U" from "); \
 	AddStr(SocketName); \
-	AddStr("]\r\n"); \
+	AddStr(U"]\r\n"); \
       } \
     else \
-      AddStr("[" msg "]\r\n"); \
+      AddStr(U"[" msg U"]\r\n"); \
   } while (0)
 
 	xsignal(SIGHUP, SIG_IGN);
@@ -1207,29 +1215,29 @@ void Detach(int mode)
 		sign = SIG_BYE;
 		break;
 	case D_DETACH:
-		AddStrSocket("detached");
+		AddStrSocket(U"detached");
 		sign = SIG_BYE;
 		break;
 	case D_STOP:
 		sign = SIG_STOP;
 		break;
 	case D_REMOTE:
-		AddStrSocket("remote detached");
+		AddStrSocket(U"remote detached");
 		sign = SIG_BYE;
 		break;
 	case D_POWER:
-		AddStrSocket("power detached");
+		AddStrSocket(U"power detached");
 		if (PowDetachString) {
 			AddStr(PowDetachString);
-			AddStr("\r\n");
+			AddStr(U"\r\n");
 		}
 		sign = SIG_POWER_BYE;
 		break;
 	case D_REMOTE_POWER:
-		AddStrSocket("remote power detached");
+		AddStrSocket(U"remote power detached");
 		if (PowDetachString) {
 			AddStr(PowDetachString);
-			AddStr("\r\n");
+			AddStr(U"\r\n");
 		}
 		sign = SIG_POWER_BYE;
 		break;
@@ -1309,7 +1317,7 @@ void MakeNewEnv()
 		free((char *)NewEnv);
 	NewEnv = np = malloc((unsigned)(op - environ + 7 + 1) * sizeof(char *));
 	if (!NewEnv)
-		Panic(0, "%s", strnomem);
+		Panic(0, U"%s", strnomem);
 	sprintf(stybuf, "STY=%s", strlen(SocketName) <= MAXSTR - 5 ? SocketName : "?");
 	*np++ = stybuf;		/* NewEnv[0] */
 	*np++ = Term;		/* NewEnv[1] */
@@ -1328,25 +1336,33 @@ void MakeNewEnv()
 }
 
 #define	PROCESS_MESSAGE(B) do { \
-    char *p = B;	\
+    uint32_t *p = B;	\
     va_list ap;	\
     va_start(ap, fmt);	\
-    (void)vsnprintf(p, sizeof(B) - 100, fmt, ap);	\
+    (void)u32_u32_vsnprintf(p, sizeof(B) - 100, fmt, ap);	\
     va_end(ap);	\
     if (err)	\
       {	\
-	p += strlen(p);	\
+	p += u32_strlen(p);	\
 	*p++ = ':';	\
 	*p++ = ' ';	\
-	strncpy(p, strerror(err), B + sizeof(B) - p - 1);	\
-	B[sizeof(B) - 1] = 0;	\
+	u32_snprintf(p, B + sizeof(B) - p - 1, "%s", strerror(err));	\
+	B[MAXPATHLEN * 2 - 1] = 0;	\
       }	\
   } while (0)
 
-void Msg(int err, const char *fmt, ...)
+void Msg(int err, const uint32_t *fmt, ...)
 {
-	char buf[MAXPATHLEN * 2];
+	uint32_t buf[MAXPATHLEN * 2];
+	char obuf[MAXPATHLEN * 2];
 	PROCESS_MESSAGE(buf);
+
+	const char *lc = locale_charset(); /* FIXME needs to be display encoding
+ variable*/
+	size_t sss = u32_strlen(buf);
+
+	u32_conv_to_encoding(lc, iconveh_question_mark,
+		buf, sss, 0, obuf, &sss);
 
 	if (display && displays)
 		MakeStatus(buf);
@@ -1363,22 +1379,30 @@ void Msg(int err, const char *fmt, ...)
 		SendErrorMsg(tty, buf);
 		display = olddisplay;
 	} else
-		printf("%s\r\n", buf);
+		printf("%s\r\n", obuf);
 
 	if (queryflag >= 0)
-		write(queryflag, buf, strlen(buf));
+		write(queryflag, obuf, sss);
 }
 
 /*
  * Call FinitTerm for all displays, write a message to each and call eexit();
  */
-void Panic(int err, const char *fmt, ...)
+void Panic(int err, const uint32_t *fmt, ...)
 {
-	char buf[MAXPATHLEN * 2];
+	uint32_t buf[MAXPATHLEN * 2];
+	char obuf[MAXPATHLEN * 2];
 	PROCESS_MESSAGE(buf);
 
+	const char *lc = locale_charset(); /* FIXME needs to be display encoding
+ variable*/
+	size_t sss = u32_strlen(buf);
+
+	u32_conv_to_encoding(lc, iconveh_question_mark,
+		buf, sss, 0, obuf, &sss);
+
 	if (displays == 0 && display == 0) {
-		printf("%s\r\n", buf);
+		printf("%s\r\n", obuf);
 		if (PanicPid)
 			Kill(PanicPid, SIG_BYE);
 	} else if (displays == 0) {
@@ -1401,7 +1425,7 @@ void Panic(int err, const char *fmt, ...)
 #endif
 			SetTTY(D_userfd, &D_OldMode);
 			fcntl(D_userfd, F_SETFL, 0);
-			write(D_userfd, buf, strlen(buf));
+			write(D_userfd, obuf, sss);
 			write(D_userfd, "\n", 1);
 			freetty();
 			if (D_userpid)
@@ -1419,18 +1443,26 @@ void Panic(int err, const char *fmt, ...)
 	eexit(1);
 }
 
-void QueryMsg(int err, const char *fmt, ...)
+void QueryMsg(int err, const uint32_t *fmt, ...)
 {
-	char buf[MAXPATHLEN * 2];
+	uint32_t buf[MAXPATHLEN * 2];
+	char obuf[MAXPATHLEN * 2];
+	PROCESS_MESSAGE(buf);
+
+	const char *lc = locale_charset(); /* FIXME needs to be display encoding
+ variable*/
+	size_t sss = u32_strlen(buf);
+
+	u32_conv_to_encoding(lc, iconveh_question_mark,
+		buf, sss, 0, obuf, &sss);
 
 	if (queryflag < 0)
 		return;
 
-	PROCESS_MESSAGE(buf);
-	write(queryflag, buf, strlen(buf));
+	write(queryflag, obuf, sss);
 }
 
-void Dummy(int err, const char *fmt, ...)
+void Dummy(int err, const uint32_t *fmt, ...)
 {
 	(void)err; /* unused */
 	(void)fmt; /* unused */
@@ -1446,7 +1478,7 @@ void Dummy(int err, const char *fmt, ...)
  *
  */
 
-void PutWinMsg(char *s, int start, int max)
+void PutWinMsg(uint32_t *s, int start, int max)
 {
 	int i, p, l, n;
 	uint64_t r;
@@ -1456,7 +1488,7 @@ void PutWinMsg(char *s, int start, int max)
 
 	if (s != g_winmsg->buf) {
 		/* sorry, no fancy coloring available */
-		l = strlen(s);
+		l = u32_strlen(s);
 		if (l > max)
 			l = max;
 		l -= start;
@@ -1467,7 +1499,7 @@ void PutWinMsg(char *s, int start, int max)
 	}
 	rend = D_rend;
 	p = 0;
-	l = strlen(s);
+	l = u32_strlen(s);
 	for (i = 0; i < g_winmsg->numrend && max > 0; i++) {
 		if (p > g_winmsg->rendpos[i] || g_winmsg->rendpos[i] > l)
 			break;
@@ -1547,9 +1579,9 @@ static void serv_select_fn(Event *event, void *data)
 						break;
 				if (cv == 0) {
 					p->w_bell = BELL_DONE;
-					Msg(0, "%s", MakeWinMsg(BellString, p, '%'));
+					Msg(0, U"%s", MakeWinMsg(BellString, p, '%'));
 				} else if (visual && !D_VB && (!D_status || !D_status_bell)) {
-					Msg(0, "%s", VisualBellString);
+					Msg(0, U"%s", VisualBellString);
 					if (D_status) {
 						D_status_bell = 1;
 						SetTimeout(&D_statusev, VBellWait);
@@ -1572,7 +1604,7 @@ static void serv_select_fn(Event *event, void *data)
 					continue;	/* user already sees window */
 				if (!(ACLBYTE(p->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id)))
 					continue;	/* user doesn't care */
-				Msg(0, "%s", MakeWinMsg(ActivityString, p, '%'));
+				Msg(0, U"%s", MakeWinMsg(ActivityString, p, '%'));
 				p->w_monitor = MON_DONE;
 			}
 			WindowChanged(p, WINESC_WFLAGS);

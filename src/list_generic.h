@@ -44,7 +44,7 @@ struct GenericList {
 	int (*gl_pinput) (ListData *, char **inp, size_t *len);	/* Process input */
 	int (*gl_freerow) (ListData *, ListRow *);		/* Free data for a row */
 	int (*gl_free) (ListData *);				/* Free data for the list */
-	int (*gl_matchrow) (ListData *, ListRow *, const char *);
+	int (*gl_matchrow) (ListData *, ListRow *, const uint32_t *);
 };
 
 struct ListData {
@@ -55,7 +55,7 @@ struct ListData {
 
 	GenericList *list_fn;		/* The functions that deal with the list */
 
-	char *search;			/* The search term, if any */
+	uint32_t *search;			/* The search term, if any */
 
 	void *data;			/* List specific data */
 };

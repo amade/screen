@@ -237,15 +237,15 @@ int UserAdd(char *name, struct acluser **up)
 
 	/* user id 0 is the session creator, he has all rights */
 	if ((*up)->u_id == 0)
-		AclSetPerm(NULL, *up, "+a", "#?");
+		AclSetPerm(NULL, *up, "+a", U"#?");
 
 	/* user nobody has a fixed set of rights: */
 	if (!strcmp((*up)->u_name, "nobody")) {
-		AclSetPerm(NULL, *up, "-rwx", "#?");
-		AclSetPerm(NULL, *up, "+x", "su");
-		AclSetPerm(NULL, *up, "+x", "detach");
-		AclSetPerm(NULL, *up, "+x", "displays");
-		AclSetPerm(NULL, *up, "+x", "version");
+		AclSetPerm(NULL, *up, "-rwx", U"#?");
+		AclSetPerm(NULL, *up, "+x", U"su");
+		AclSetPerm(NULL, *up, "+x", U"detach");
+		AclSetPerm(NULL, *up, "+x", U"displays");
+		AclSetPerm(NULL, *up, "+x", U"version");
 	}
 
 	/* 
@@ -312,10 +312,10 @@ int UserDel(char *name, struct acluser **up)
 	}
 	ACLBYTE(userbits, u->u_id) &= ~ACLBIT(u->u_id);
 	/* restore the bits in his slot to default: */
-	AclSetPerm(NULL, u, default_w_bit[ACL_READ] ? "+r" : "-r", "#");
-	AclSetPerm(NULL, u, default_w_bit[ACL_WRITE] ? "+w" : "-w", "#");
-	AclSetPerm(NULL, u, default_w_bit[ACL_EXEC] ? "+x" : "-x", "#");
-	AclSetPerm(NULL, u, default_c_bit[ACL_EXEC] ? "+x" : "-x", "?");
+	AclSetPerm(NULL, u, default_w_bit[ACL_READ] ? "+r" : "-r", U"#");
+	AclSetPerm(NULL, u, default_w_bit[ACL_WRITE] ? "+w" : "-w", U"#");
+	AclSetPerm(NULL, u, default_w_bit[ACL_EXEC] ? "+x" : "-x", U"#");
+	AclSetPerm(NULL, u, default_c_bit[ACL_EXEC] ? "+x" : "-x", U"?");
 	for (i = 0; i < ACL_BITS_PER_WIN; i++)
 		free((char *)u->u_umask_w_bits[i]);
 	UserFreeCopyBuffer(u);
@@ -348,7 +348,7 @@ int UserFreeCopyBuffer(struct acluser *u)
 		if (pa->pa_pasteptr >= u->u_plop.buf && pa->pa_pasteptr - u->u_plop.buf < (ptrdiff_t)u->u_plop.len)
 			FreePaster(pa);
 	}
-	free((char *)u->u_plop.buf);
+	free(u->u_plop.buf);
 	u->u_plop.len = 0;
 	u->u_plop.buf = 0;
 	return 0;
@@ -630,16 +630,16 @@ static int AclSetPermWin(struct acluser *uu, struct acluser *u, char *mode, Wind
  * A command name matches first, so do not use these as window names.
  * uu should be NULL, except if you want to change his umask.
  */
-int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
+int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, uint32_t *s)
 {
 	Window *w;
 	int i;
-	char *p, ch;
+	uint32_t *p, ch;
 
 	while (*s) {
 		switch (*s) {
 		case '*':	/* all windows and all commands */
-			return AclSetPerm(uu, u, mode, "#?");
+			return AclSetPerm(uu, u, mode, U"#?");
 		case '#':
 			if (uu)	/* window umask or .. */
 				AclSetPermWin(uu, u, mode, (Window *)1);
@@ -694,7 +694,7 @@ static int UserAcl(struct acluser *uu, struct acluser **u, int argc, char **argv
 	case 1 + 2:
 		return (UserAdd(argv[0], u) < 0) || AclSetPerm(uu, *u, argv[1], argv[2]);
 	case 1:
-		return (UserAdd(argv[0], u) < 0) || AclSetPerm(uu, *u, "+a", "#?");
+		return (UserAdd(argv[0], u) < 0) || AclSetPerm(uu, *u, "+a", U"#?");
 	default:
 		return -1;
 	}

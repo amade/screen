@@ -33,6 +33,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <unistr.h>
+#include <unistdio.h>
 
 #include "screen.h"
 
@@ -89,7 +91,7 @@ static int window_ancestor(Window *a, Window *d)
 	return 0;
 }
 
-static void window_kill_confirm(char *buf, size_t len, void *data)
+static void window_kill_confirm(uint32_t *buf, size_t len, void *data)
 {
 	Window *w = windows;
 	struct action act;
@@ -187,7 +189,7 @@ static int gl_Window_header(ListData *ldata)
 
 	if ((g = (wdata->group != NULL))) {
 		LPutWinMsg(flayer, "Group: ", 7, &mchar_blank, 0, 0);
-		LPutWinMsg(flayer, wdata->group->w_title, strlen(wdata->group->w_title), &mchar_blank, 7, 0);
+		LPutWinMsg(flayer, wdata->group->w_title, u32_strlen(wdata->group->w_title), &mchar_blank, 7, 0);
 	}
 
 	display = 0;
@@ -200,7 +202,7 @@ static int gl_Window_header(ListData *ldata)
 static int gl_Window_footer(ListData *ldata)
 {
 	(void)ldata; /* unused */
-	centerline("[Press ctrl-l to refresh; Return to end.]", flayer->l_height - 1);
+	centerline(U"[Press ctrl-l to refresh; Return to end.]", flayer->l_height - 1);
 	return 0;
 }
 
@@ -365,8 +367,8 @@ static int gl_Window_input(ListData *ldata, char **inp, size_t *len)
 
 	case 'K':		/* Kill a window */
 		{
-			char str[MAXSTR];
-			snprintf(str, sizeof(str) - 1, "Really kill window %d (%s) [y/n]", win->w_number, win->w_title);
+			uint32_t str[MAXSTR];
+			u32_snprintf(str, sizeof(str) - 1, "Really kill window %d (%s) [y/n]", win->w_number, win->w_title);
 			Input(str, 1, INP_RAW, window_kill_confirm, (char *)win, 0);
 		}
 		break;
@@ -429,13 +431,13 @@ static int gl_Window_free(ListData *ldata)
 	return 0;
 }
 
-static int gl_Window_match(ListData *ldata, ListRow *row, const char *needle)
+static int gl_Window_match(ListData *ldata, ListRow *row, const uint32_t *needle)
 {
 	Window *w = row->data;
 	
 	(void)ldata; /* unused */
 
-	if (strstr(w->w_title, needle))
+	if (u32_strstr(w->w_title, needle))
 		return 1;
 	return 0;
 }

@@ -43,7 +43,7 @@
 
 struct NewWindow {
 	int	StartAt;	/* where to start the search for the slot */
-	char	*aka;		/* aka string */
+	uint32_t	*aka;		/* aka string */
 	char	**args;		/* argv vector */
 	char	*dir;		/* directory for chdir */
 	char	*term;		/* TERM to be set instead of "screen" */
@@ -61,7 +61,7 @@ struct NewWindow {
 	int	gr;
 	bool	c1;
 	int	bce;
-	char	*hstatus;
+	uint32_t *hstatus;
 	char	*charset;
 	int	poll_zombie_timeout;
 };
@@ -75,7 +75,7 @@ struct pseudowin {
 	Event	p_writeev;
 	char	p_cmd[MAXSTR];
 	char	p_tty[MAXSTR];
-	char	p_inbuf[IOSIZE];	/* buffered writing to p_ptyfd */
+	uint32_t p_inbuf[IOSIZE];	/* buffered writing to p_ptyfd */
 	size_t	p_inlen;
 };
 
@@ -125,8 +125,8 @@ struct pseudowin {
 
 
 struct paster {
-	char	*pa_pastebuf;		/* this gets pasted in the window */
-	char	*pa_pasteptr;		/* pointer in pastebuf */
+	uint32_t	*pa_pastebuf;		/* this gets pasted in the window */
+	uint32_t	*pa_pasteptr;		/* pointer in pastebuf */
 	size_t	 pa_pastelen;		/* bytes left to paste */
 	Layer	*pa_pastelayer;		/* layer to paste into */
 	Event	 pa_slowev;		/* slowpaste event */
@@ -149,18 +149,18 @@ struct Window {
 	Event w_zombieev;		/* event to try to resurrect window */
 	int	 w_poll_zombie_timeout;
 	int	 w_ptyfd;		/* fd of the master pty */
-	char	 w_inbuf[IOSIZE];
+	uint32_t w_inbuf[IOSIZE];
 	size_t	 w_inlen;
-	char	 w_outbuf[IOSIZE];
+	uint32_t w_outbuf[IOSIZE];
 	int	 w_outlen;
 	bool	 w_aflag;		/* (-a option) */
 	bool	 w_dynamicaka;		/* should we change name */
-	char	*w_title;		/* name of the window */
-	char	*w_akachange;		/* autoaka hack */
-	char	 w_akabuf[MAXSTR];	/* aka buffer */
+	uint32_t *w_title;		/* name of the window */
+	uint32_t *w_akachange;		/* autoaka hack */
+	uint32_t w_akabuf[MAXSTR];	/* aka buffer */
 	int	 w_autoaka;		/* autoaka hack */
 	Window  *w_group;		/* window group we belong to */
-	int	 w_intermediate;	/* char used while parsing ESC-seq */
+	uint32_t	 w_intermediate;	/* char used while parsing ESC-seq */
 	int	 w_args[MAXARGS];	/* emulator args */
 	int	 w_NumArgs;
 
@@ -190,12 +190,12 @@ struct Window {
 	int	 w_curinv;		/* cursor invisible */
 	int	 w_curvvis;		/* cursor very visible */
 	int	 w_autolf;		/* automatic linefeed */
-	char	*w_hstatus;		/* hardstatus line */
+	uint32_t	*w_hstatus;		/* hardstatus line */
 	int	 w_gr;			/* enable GR flag */
 	bool     w_c1;			/* enable C1 flag */
 	int	 w_decodestate;		/* state of our input decoder */
-	char	 w_string[MAXSTR];
-	char	*w_stringp;
+	uint32_t w_string[MAXSTR];
+	uint32_t *w_stringp;
 	char	*w_tabs;		/* line with tabs */
 	int	 w_bell;		/* bell status of this window */
 	int	 w_flow;		/* flow flags */
@@ -205,7 +205,7 @@ struct Window {
 	int	 w_silencewait;		/* wait for silencewait secs */
 	int	 w_silence;		/* silence status (Lloyd Zusman) */
 	char	 w_norefresh;		/* dont redisplay when switching to that win */
-	char	 w_xtermosc[4][MAXSTR];	/* special xterm/rxvt escapes */
+	uint32_t w_xtermosc[4][MAXSTR];	/* special xterm/rxvt escapes */
 	int	 w_mouse;		/* mouse mode 0,9,1000 */
 	bool	 w_bracketed;		/* bracketed paste mode */
 	int	 w_cursorstyle;		/* cursor style */

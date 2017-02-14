@@ -38,6 +38,8 @@
 #include <pwd.h>
 
 #include <signal.h>
+#include <uniconv.h>
+#include <unistr.h>
 
 #include "screen.h"
 
@@ -64,11 +66,11 @@ static char *CatExtra(char *str1, char *str2)
 	if (str2) {
 		len2 = strlen(str2);
 		if ((cp = realloc(str2, len1 + len2 + add_colon + 1)) == NULL)
-			Panic(0, "%s", strnomem);
+			Panic(0, U"%s", strnomem);
 		memmove(cp + len1 + add_colon, cp, len2 + 1);
 	} else {
 		if ((cp = malloc(len1 + add_colon + 1)) == NULL)
-			Panic(0, "%s", strnomem);
+			Panic(0, U"%s", strnomem);
 		cp[len1 + add_colon] = '\0';
 	}
 	memmove(cp, str1, len1);
@@ -90,7 +92,7 @@ static char *findrcfile(char *rcfile)
 		char *slash_position = strchr(rcfile, '/');
 		if (slash_position == rcfile + 1) {
 			if (!home) {
-				Msg(0, "%s: source: tilde expansion failed", rc_name);
+				Msg(0, U"%s: source: tilde expansion failed", rc_name);
 				return NULL;
 			}
 			snprintf(rcfilename_tilde_exp, MAXPATHLEN, "%s/%s", home, rcfile + 2);
@@ -99,12 +101,12 @@ static char *findrcfile(char *rcfile)
 			*slash_position = 0;
 			p = getpwnam(rcfile + 1);
 			if (!p) {
-				Msg(0, "%s: source: tilde expansion failed for user %s", rc_name, rcfile + 1);
+				Msg(0, U"%s: source: tilde expansion failed for user %s", rc_name, rcfile + 1);
 				return NULL;
 			}
 			snprintf(rcfilename_tilde_exp, MAXPATHLEN, "%s/%s", p->pw_dir, slash_position + 1);
 		} else {
-			Msg(0, "%s: source: illegal tilde expression.", rc_name);
+			Msg(0, U"%s: source: illegal tilde expression.", rc_name);
 			return NULL;
 		}
 		rcfile = rcfilename_tilde_exp;
@@ -124,7 +126,7 @@ static char *findrcfile(char *rcfile)
 		return SaveStr(p);
 	} else {
 		if (strlen(home) > sizeof(buf) - 12)
-			Panic(0, "Rc: home too large");
+			Panic(0, U"Rc: home too large");
 		sprintf(buf, "%s/.screenrc", home);
 		return SaveStr(buf);
 	}
@@ -138,9 +140,9 @@ static char *findrcfile(char *rcfile)
 int StartRc(char *rcfilename, int nopanic)
 {
 	int argc, len;
-	char *p, *cp;
+	uint32_t *p, *cp;
 	char buf[2048];
-	char *args[MAXARGS];
+	uint32_t *args[MAXARGS];
 	int argl[MAXARGS];
 	FILE *fp;
 	char *oldrc_name = rc_name;
@@ -166,7 +168,7 @@ int StartRc(char *rcfilename, int nopanic)
 			 * the file.
 			 */
 			if (!nopanic)
-				Panic(0, "Unable to open \"%s\".", rc_nonnull);
+				Panic(0, U"Unable to open \"%s\".", rc_nonnull);
 			/* possibly NOTREACHED */
 		}
 		if (rc_name)
@@ -175,47 +177,56 @@ int StartRc(char *rcfilename, int nopanic)
 		return 1;
 	}
 	while (fgets(buf, sizeof buf, fp) != NULL) {
-		if ((p = strrchr(buf, '\n')) != NULL)
+
+		const char *lc = locale_charset(); /* FIXME needs to be display encoding variable*/
+
+		size_t sss = strlen(buf);
+		uint32_t ibuf[2048] = { 0 };
+
+		u32_conv_from_encoding(lc, iconveh_question_mark, buf, sss, 0, ibuf, &sss);
+
+		if ((p = u32_strrchr(ibuf, '\n')) != NULL)
 			*p = '\0';
-		if ((argc = Parse(buf, sizeof buf, args, argl)) == 0)
+
+		if ((argc = Parse(ibuf, sss, args, argl)) == 0)
 			continue;
-		if (strcmp(args[0], "echo") == 0) {
+		if (u32_strcmp(args[0], U"echo") == 0) {
 			if (!display)
 				continue;
-			if (argc < 2 || (argc == 3 && strcmp(args[1], "-n")) || argc > 3) {
-				Msg(0, "%s: 'echo [-n] \"string\"' expected.", rc_name);
+			if (argc < 2 || (argc == 3 && u32_strcmp(args[1], U"-n")) || argc > 3) {
+				Msg(0, U"%s: 'echo [-n] \"string\"' expected.", rc_name);
 				continue;
 			}
 			AddStr(args[argc - 1]);
 			if (argc != 3) {
-				AddStr("\r\n");
+				AddStr(U"\r\n");
 				Flush(0);
 			}
-		} else if (strcmp(args[0], "sleep") == 0) {
+		} else if (u32_strcmp(args[0], U"sleep") == 0) {
 			if (!display)
 				continue;
 			if (argc != 2) {
-				Msg(0, "%s: sleep: one numeric argument expected.", rc_name);
+				Msg(0, U"%s: sleep: one numeric argument expected.", rc_name);
 				continue;
 			}
-			DisplaySleep1000(1000 * atoi(args[1]), 1);
+			DisplaySleep1000(1000 * u32_atoi(args[1]), 1);
 		}
-		else if (!strcmp(args[0], "termcapinfo") || !strcmp(args[0], "terminfo"))
+		else if (!u32_strcmp(args[0], U"termcapinfo") || !u32_strcmp(args[0], U"terminfo"))
 		{
 			if (!display)
 				continue;
 			if (argc < 3 || argc > 4) {
-				Msg(0, "%s: %s: incorrect number of arguments.", rc_name, args[0]);
+				Msg(0, U"%s: %s: incorrect number of arguments.", rc_name, args[0]);
 				continue;
 			}
 			for (p = args[1]; p && *p; p = cp) {
-				if ((cp = strchr(p, '|')) != 0)
+				if ((cp = u32_strchr(p, '|')) != 0)
 					*cp++ = '\0';
-				len = strlen(p);
+				len = u32_strlen(p);
 				if (p[len - 1] == '*') {
-					if (!(len - 1) || !strncmp(p, D_termname, len - 1))
+					if (!(len - 1) || !u32_strncmp(p, D_termname, len - 1))
 						break;
-				} else if (!strcmp(p, D_termname))
+				} else if (!u32_strcmp(p, D_termname))
 					break;
 			}
 			if (!(p && *p))
@@ -223,7 +234,7 @@ int StartRc(char *rcfilename, int nopanic)
 			extra_incap = CatExtra(args[2], extra_incap);
 			if (argc == 4)
 				extra_outcap = CatExtra(args[3], extra_outcap);
-		} else if (!strcmp(args[0], "source")) {
+		} else if (!u32_strcmp(args[0], U"source")) {
 			if (rc_recursion <= 10) {
 				rc_recursion++;
 				(void)StartRc(args[1], 0);
@@ -248,14 +259,14 @@ void FinishRc(char *rcfilename)
 	if (rc_name == NULL || (fp = secfopen(rc_name, "r")) == NULL) {
 		const char *rc_nonnull = rc_name ? rc_name : rcfilename;
 		if (rc_recursion)
-			Msg(errno, "%s: source %s", oldrc_name, rc_nonnull);
+			Msg(errno, U"%s: source %s", oldrc_name, rc_nonnull);
 		else if (RcFileName && !strcmp(RcFileName, rc_nonnull)) {
 			/*
 			 * User explicitly gave us that name,
 			 * this is the only case, where we get angry, if we can't read
 			 * the file.
 			 */
-			Panic(0, "Unable to open \"%s\".", rc_nonnull);
+			Panic(0, U"Unable to open \"%s\".", rc_nonnull);
 			/* NOTREACHED */
 		}
 		if (rc_name)
@@ -264,8 +275,16 @@ void FinishRc(char *rcfilename)
 		return;
 	}
 
-	while (fgets(buf, sizeof buf, fp) != NULL)
-		RcLine(buf, sizeof buf);
+	while (fgets(buf, sizeof buf, fp) != NULL) {
+		const char *lc = locale_charset(); /* FIXME needs to be display encoding variable*/
+
+		size_t sss = strlen(buf); /* FIXME Uh... check this (+ 1 thing)? */
+		uint32_t ibuf[2048] = {0};
+
+		u32_conv_from_encoding(lc, iconveh_question_mark, buf, sss, 0, ibuf, &sss);
+
+		RcLine(ibuf, sss);
+	}
 	(void)fclose(fp);
 	Free(rc_name);
 	rc_name = oldrc_name;
@@ -274,7 +293,7 @@ void FinishRc(char *rcfilename)
 void do_source(char *rcfilename)
 {
 	if (rc_recursion > 10) {
-		Msg(0, "%s: source: recursion limit reached", rc_name);
+		Msg(0, U"%s: source: recursion limit reached", rc_name);
 		return;
 	}
 	rc_recursion++;
@@ -287,9 +306,9 @@ void do_source(char *rcfilename)
  * The fore window is taken from the display as well as the user.
  * This is bad when we run detached.
  */
-void RcLine(char *ubuf, int ubufl)
+void RcLine(uint32_t *ubuf, int ubufl)
 {
-	char *args[MAXARGS];
+	uint32_t *args[MAXARGS];
 	int argl[MAXARGS];
 
 	if (display) {
@@ -303,6 +322,7 @@ void RcLine(char *ubuf, int ubufl)
 		/* the session owner does it, when there is no display here */
 		EffectiveAclUser = users;
 	}
+	for (int i = 0; i < ubufl; i++)
 	DoCommand(args, argl);
 	EffectiveAclUser = 0;
 }
@@ -361,7 +381,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 		public = !strcmp(fn, DEFAULT_BUFFERFILE);
 		exists = !lstat(fn, &stb);
 		if (public && exists && (S_ISLNK(stb.st_mode) || stb.st_nlink > 1)) {
-			Msg(0, "No write to links, please.");
+			Msg(0, U"No write to links, please.");
 			return;
 		}
 		break;
@@ -435,18 +455,18 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 		}
 	}
 	if (UserStatus() <= 0)
-		Msg(0, "Cannot open \"%s\"", fn);
+		Msg(0, U"Cannot open \"%s\"", fn);
 	else if (display && !*rc_name) {
 		switch (dump) {
 		case DUMP_TERMCAP:
-			Msg(0, "Termcap entry written to \"%s\".", fn);
+			Msg(0, U"Termcap entry written to \"%s\".", fn);
 			break;
 		case DUMP_HARDCOPY:
 		case DUMP_SCROLLBACK:
-			Msg(0, "Screen image %s to \"%s\".", (*mode == 'a') ? "appended" : "written", fn);
+			Msg(0, U"Screen image %s to \"%s\".", (*mode == 'a') ? "appended" : "written", fn);
 			break;
 		case DUMP_EXCHANGE:
-			Msg(0, "Copybuffer written to \"%s\".", fn);
+			Msg(0, U"Copybuffer written to \"%s\".", fn);
 		}
 	}
 }
@@ -463,21 +483,21 @@ char *ReadFile(char *filename, int *lenp)
 	char *buf = NULL;
 
 	if ((file = secfopen(filename, "r")) == NULL) {
-		Msg(errno, "no %s -- no slurp", filename);
+		Msg(errno, U"no %s -- no slurp", filename);
 		return NULL;
 	}
 	fseek(file, 0L, SEEK_END);
 	size = ftell(file);
 	if ((buf = malloc(size)) == NULL) {
 		fclose(file);
-		Msg(0, "%s", strnomem);
+		Msg(0, U"%s", strnomem);
 		return NULL;
 	}
 	fseek(file, 0L, SEEK_SET);
 	errno = 0;
 
 	if ((l = fread(buf, sizeof(char), size, file)) != size) {
-		Msg(errno, "Got only %d bytes from %s", l, filename);
+		Msg(errno, U"Got only %d bytes from %s", l, filename);
 	}
 	fclose(file);
 	*lenp = l;
@@ -489,7 +509,7 @@ void KillBuffers()
 	if (UserContext() > 0)
 		UserReturn(unlink(BufferFile) ? errno : 0);
 	errno = UserStatus();
-	Msg(errno, "%s %sremoved", BufferFile, errno ? "not " : "");
+	Msg(errno, U"%s %sremoved", BufferFile, errno ? "not " : "");
 }
 
 /*
@@ -538,12 +558,12 @@ int printpipe(Window *p, char *cmd)
 		dup(pi[0]);
 		closeallfiles(0);
 		if (setgid(real_gid) || setuid(real_uid))
-			Panic(errno, "printpipe setuid");
+			Panic(errno, U"printpipe setuid");
 #ifdef SIGPIPE
 		xsignal(SIGPIPE, SIG_DFL);
 #endif
 		execl("/bin/sh", "sh", "-c", cmd, (char *)0);
-		Panic(errno, "/bin/sh");
+		Panic(errno, U"/bin/sh");
 	default:
 		break;
 	}
@@ -556,28 +576,28 @@ int readpipe(char **cmdv)
 	int pi[2];
 
 	if (pipe(pi)) {
-		Msg(errno, "pipe");
+		Msg(errno, U"pipe");
 		return -1;
 	}
 	switch (fork()) {
 	case -1:
-		Msg(errno, "fork");
+		Msg(errno, U"fork");
 		return -1;
 	case 0:
 		displays = 0;
 		close(1);
 		if (dup(pi[1]) != 1) {
 			close(pi[1]);
-			Panic(0, "dup");
+			Panic(0, U"dup");
 		}
 		closeallfiles(1);
 		if (setgid(real_gid) || setuid(real_uid)) {
 			close(1);
-			Panic(errno, "setuid/setgid");
+			Panic(errno, U"setuid/setgid");
 		}
 		execvp(*cmdv, cmdv);
 		close(1);
-		Panic(errno, "%s", *cmdv);
+		Panic(errno, U"%s", *cmdv);
 	default:
 		break;
 	}

@@ -40,6 +40,9 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <unistr.h>
+#include <uniconv.h>
+#include <unistdio.h>
 
 #include "fileio.h"
 #include "help.h"
@@ -55,13 +58,13 @@
 #include "utmp.h"
 #include "winmsg.h"
 
-static void WinProcess(char **, size_t *);
+static void WinProcess(uint32_t **, size_t *);
 static void WinRedisplayLine(int, int, int, int);
 static void WinClearLine(int, int, int, int);
 static int WinResize(int, int);
 static void WinRestore(void);
-static int DoAutolf(char *, size_t *, int);
-static void ZombieProcess(char **, size_t *);
+static int DoAutolf(uint32_t *, size_t *, int);
+static void ZombieProcess(uint32_t **, size_t *);
 static void win_readev_fn(Event *, void *);
 static void win_writeev_fn(Event *, void *);
 static void win_resurrect_zombie_fn(Event *, void *);
@@ -75,7 +78,7 @@ static void win_destroyev_fn(Event *, void *);
 static int OpenDevice(char **, int, int *, char **);
 static int ForkWindow(Window *, char **, char *);
 static void zmodem_found(Window *, int, char *, size_t);
-static void zmodemFin(char *, size_t, void *);
+static void zmodemFin(uint32_t *, size_t, void *);
 static int zmodem_parse(Window *, char *, size_t);
 
 Window **wtab;		/* window table */
@@ -89,7 +92,7 @@ static char DefaultPath[] = ":/usr/ucb:/bin:/usr/bin";
 
 struct NewWindow nwin_undef = {
 	.StartAt             = -1,
-	.aka                 = (char *)0,
+	.aka                 = 0,
 	.args                = (char **)0,
 	.dir                 = (char *)0,
 	.term                = (char *)0,
@@ -107,7 +110,7 @@ struct NewWindow nwin_undef = {
 	.gr                  = -1,
 	.c1                  = false,
 	.bce                 = -1,
-	.hstatus             = (char *)0,
+	.hstatus             = 0,
 	.poll_zombie_timeout = 0
 };
 
@@ -131,7 +134,7 @@ struct NewWindow nwin_default = {
 	.gr         = 0,
 	.c1         = true,
 	.bce        = 0,
-	.hstatus    = (char *)0,
+	.hstatus    = 0,
 };
 
 struct NewWindow nwin_options;
@@ -181,9 +184,9 @@ const struct LayFuncs WinLf = {
 	0
 };
 
-static int DoAutolf(char *buf, size_t *lenp, int fr)
+static int DoAutolf(uint32_t *buf, size_t *lenp, int fr)
 {
-	char *p;
+	uint32_t *p;
 	size_t len = *lenp;
 	int trunc = 0;
 
@@ -196,17 +199,17 @@ static int DoAutolf(char *buf, size_t *lenp, int fr)
 		}
 		if (len == 0)
 			break;
-		memmove(p + 1, p, len++);
+		u32_move(p + 1, p, len++);
 		p[1] = '\n';
 	}
 	*lenp = p - buf;
 	return trunc;
 }
 
-static void WinProcess(char **bufpp, size_t *lenp)
+static void WinProcess(uint32_t **bufpp, size_t *lenp)
 {
 	size_t l2 = 0, f, *ilen, l = *lenp, trunc;
-	char *ibuf;
+	uint32_t *ibuf;
 
 	fore = (Window *)flayer->l_data;
 
@@ -223,17 +226,19 @@ static void WinProcess(char **bufpp, size_t *lenp)
 	 * fore->w_wlock == WLOCK_AUTO, fore->w_wlockuse = NULL
 	 * The user who wants to use this window next, will get the lock, if he can.
 	 */
-	if (display && fore->w_wlock == WLOCK_AUTO && !fore->w_wlockuser && !AclCheckPermWin(D_user, ACL_WRITE, fore)) {
+	if (display && fore->w_wlock == WLOCK_AUTO/* && !fore->w_wlockuser && !AclCheckPermWin(D_user, ACL_WRITE, fore)*/) {
 		fore->w_wlockuser = D_user;
 	}
 	/* if w_wlock is set, only one user may write, else we check acls */
+#if 0
 	if (display && ((fore->w_wlock == WLOCK_OFF) ?
 			AclCheckPermWin(D_user, ACL_WRITE, fore) : (D_user != fore->w_wlockuser))) {
-		Msg(0, "write: permission denied (user %s)", D_user->u_name);
+		Msg(0, U"write: permission denied (user %s)", D_user->u_name);
 		*bufpp += *lenp;
 		*lenp = 0;
 		return;
 	}
+#endif
 #ifdef ENABLE_TELNET
 	if (fore->w_type == W_TYPE_TELNET && TelIsline(fore) && *bufpp != fore->w_telbuf) {
 		TelProcessLine(bufpp, lenp);
@@ -262,7 +267,7 @@ static void WinProcess(char **bufpp, size_t *lenp)
 #endif
 	{
 		l2 = l;
-		memmove(ibuf + *ilen, *bufpp, l2);
+		u32_move(ibuf + *ilen, *bufpp, l2);
 		if (fore->w_autolf && (trunc = DoAutolf(ibuf + *ilen, &l2, f - l2)))
 			l -= trunc;
 #ifdef ENABLE_TELNET
@@ -279,10 +284,10 @@ static void WinProcess(char **bufpp, size_t *lenp)
 	}
 }
 
-static void ZombieProcess(char **bufpp, size_t *lenp)
+static void ZombieProcess(uint32_t **bufpp, size_t *lenp)
 {
 	size_t l = *lenp;
-	char *buf = *bufpp, b1[10], b2[10];
+	uint32_t *buf = *bufpp, b1[10], b2[10];
 
 	fore = (Window *)flayer->l_data;
 
@@ -294,14 +299,14 @@ static void ZombieProcess(char **bufpp, size_t *lenp)
 			return;
 		}
 		if (*(unsigned char *)buf == ZombieKey_resurrect) {
-			WriteString(fore, "\r\n", 2);
+			WriteString(fore, U"\r\n", 2);
 			RemakeWindow(fore);
 			return;
 		}
 	}
 	b1[AddXChar(b1, ZombieKey_destroy)] = '\0';
 	b2[AddXChar(b2, ZombieKey_resurrect)] = '\0';
-	Msg(0, "Press %s to destroy or %s to resurrect window", b1, b2);
+	Msg(0, U"Press %s to destroy or %s to resurrect window", b1, b2);
 }
 
 static void WinRedisplayLine(int y, int from, int to, int isblank)
@@ -412,7 +417,7 @@ int MakeWindow(struct NewWindow *newwin)
 	}
 	while (pp != wtab + startat);
 	if (*pp) {
-		Msg(0, "No more windows.");
+		Msg(0, U"No more windows.");
 		return -1;
 	}
 	n = pp - wtab;
@@ -430,7 +435,7 @@ int MakeWindow(struct NewWindow *newwin)
 
 	if ((p = calloc(1, sizeof(Window))) == 0) {
 		close(f);
-		Msg(0, "%s", strnomem);
+		Msg(0, U"%s", strnomem);
 		return -1;
 	}
 #ifdef ENABLE_UTMP
@@ -463,7 +468,7 @@ int MakeWindow(struct NewWindow *newwin)
 	if (NewWindowAcl(p, display ? D_user : users)) {
 		free((char *)p);
 		close(f);
-		Msg(0, "%s", strnomem);
+		Msg(0, U"%s", strnomem);
 		return -1;
 	}
 	p->w_layer.l_next = 0;
@@ -483,16 +488,16 @@ int MakeWindow(struct NewWindow *newwin)
 	p->w_flow = nwin.flowflag | ((nwin.flowflag & FLOW_AUTOFLAG) ? (FLOW_AUTO | FLOW_ON) : FLOW_AUTO);
 	if (!nwin.aka)
 		nwin.aka = Filename(nwin.args[0]);
-	strncpy(p->w_akabuf, nwin.aka, sizeof(p->w_akabuf) - 1);
-	if ((nwin.aka = strrchr(p->w_akabuf, '|')) != NULL) {
+	u32_strncpy(p->w_akabuf, nwin.aka, sizeof(p->w_akabuf) - 1);
+	if ((nwin.aka = u32_strrchr(p->w_akabuf, '|')) != NULL) {
 		p->w_autoaka = 0;
 		*nwin.aka++ = 0;
 		p->w_title = nwin.aka;
-		p->w_akachange = nwin.aka + strlen(nwin.aka);
+		p->w_akachange = nwin.aka + u32_strlen(nwin.aka);
 	} else
 		p->w_title = p->w_akachange = p->w_akabuf;
 	if (nwin.hstatus)
-		p->w_hstatus = SaveStr(nwin.hstatus);
+		p->w_hstatus = u32_strdup(nwin.hstatus);
 	p->w_monitor = nwin.monitor;
 	if (p->w_monitor == MON_ON) {
 		/* always tell all users */
@@ -525,14 +530,14 @@ int MakeWindow(struct NewWindow *newwin)
 	if (VerboseCreate && type != W_TYPE_GROUP) {
 		Display *d = display;	/* WriteString zaps display */
 
-		WriteString(p, ":screen (", 9);
-		WriteString(p, p->w_title, strlen(p->w_title));
-		WriteString(p, "):", 2);
+		WriteString(p, U":screen (", 9);
+		WriteString(p, p->w_title, u32_strlen(p->w_title));
+		WriteString(p, U"):", 2);
 		for (f = 0; p->w_cmdargs[f]; f++) {
-			WriteString(p, " ", 1);
+			WriteString(p, U" ", 1);
 			WriteString(p, p->w_cmdargs[f], strlen(p->w_cmdargs[f]));
 		}
-		WriteString(p, "\r\n", 2);
+		WriteString(p, U"\r\n", 2);
 		display = d;
 	}
 
@@ -668,14 +673,14 @@ int RemakeWindow(Window *window)
 	if (VerboseCreate) {
 		Display *d = display;	/* WriteString zaps display */
 
-		WriteString(window, ":screen (", 9);
-		WriteString(window, window->w_title, strlen(window->w_title));
-		WriteString(window, "):", 2);
+		WriteString(window, U":screen (", 9);
+		WriteString(window, window->w_title, u32_strlen(window->w_title));
+		WriteString(window, U"):", 2);
 		for (int i = 0; window->w_cmdargs[i]; i++) {
-			WriteString(window, " ", 1);
+			WriteString(window, U" ", 1);
 			WriteString(window, window->w_cmdargs[i], strlen(window->w_cmdargs[i]));
 		}
-		WriteString(window, "\r\n", 2);
+		WriteString(window, U"\r\n", 2);
 		display = d;
 	}
 
@@ -812,11 +817,11 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 		return 0;
 	}
 	if (strncmp(arg, "//", 2) == 0) {
-		Msg(0, "Invalid argument '%s'", arg);
+		Msg(0, U"Invalid argument '%s'", arg);
 		return -1;
 	} else if ((stat(arg, &st)) == 0 && S_ISCHR(st.st_mode)) {
 		if (access(arg, R_OK | W_OK) == -1) {
-			Msg(errno, "Cannot access line '%s' for R/W", arg);
+			Msg(errno, U"Cannot access line '%s' for R/W", arg);
 			return -1;
 		}
 		if ((fd = OpenTTY(arg, args[1])) < 0)
@@ -828,14 +833,14 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 		*typep = W_TYPE_PTY;
 		fd = OpenPTY(namep);
 		if (fd == -1) {
-			Msg(0, "No more PTYs.");
+			Msg(0, U"No more PTYs.");
 			return -1;
 		}
 #ifdef TIOCPKT
 		{
 			int flag = 1;
 			if (ioctl(fd, TIOCPKT, (char *)&flag)) {
-				Msg(errno, "TIOCPKT ioctl");
+				Msg(errno, U"TIOCPKT ioctl");
 				close(fd);
 				return -1;
 			}
@@ -872,7 +877,7 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 	if (chown(*namep, real_uid, real_gid) && !eff_uid)
 #endif
 	{
-		Msg(errno, "chown tty");
+		Msg(errno, U"chown tty");
 		close(fd);
 		return -1;
 	}
@@ -882,7 +887,7 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 	if (chmod(*namep, TtyMode) && !eff_uid)
 #endif
 	{
-		Msg(errno, "chmod tty");
+		Msg(errno, U"chmod tty");
 		close(fd);
 		return -1;
 	}
@@ -914,7 +919,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 #ifdef O_NOCTTY
 	if (pty_preopen) {
 		if ((slave = open(ttyn, O_RDWR | O_NOCTTY)) == -1) {
-			Msg(errno, "ttyn");
+			Msg(errno, U"ttyn");
 			return -1;
 		}
 	}
@@ -928,7 +933,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 	fflush(stderr);
 	switch (pid = fork()) {
 	case -1:
-		Msg(errno, "fork");
+		Msg(errno, U"fork");
 		break;
 	case 0:
 		xsignal(SIGHUP, SIG_DFL);
@@ -943,12 +948,12 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 
 		displays = 0;	/* beware of Panic() */
 		if (setgid(real_gid) || setuid(real_uid))
-			Panic(errno, "Setuid/gid");
+			Panic(errno, U"Setuid/gid");
 		eff_uid = real_uid;
 		eff_gid = real_gid;
 		if (!pwin)	/* ignore directory if pseudo */
 			if (win->w_dir && *win->w_dir && chdir(win->w_dir))
-				Panic(errno, "Cannot chdir to %s", win->w_dir);
+				Panic(errno, U"Cannot chdir to %s", win->w_dir);
 
 		if (display) {
 			brktty(D_userfd);
@@ -985,7 +990,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 					newfd = open(ttyn, O_RDWR);
 #endif
 					if (newfd < 0)
-						Panic(errno, "Cannot open %s", ttyn);
+						Panic(errno, U"Cannot open %s", ttyn);
 				} else
 					dup(newfd);
 			} else {
@@ -999,7 +1004,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 			 * nonblocking filedescriptor. Poor Backend!
 			 */
 			if (fcntl(win->w_ptyfd, F_SETFL, 0))
-				Msg(errno, "Warning: clear NBLOCK fcntl failed");
+				Msg(errno, U"Warning: clear NBLOCK fcntl failed");
 		}
 		close(win->w_ptyfd);
 		if (slave != -1)
@@ -1054,7 +1059,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 		if (!*proc)
 			proc = DefaultShell;
 		execvpe(proc, args, NewEnv);
-		Panic(errno, "Cannot exec '%s'", proc);
+		Panic(errno, U"Cannot exec '%s'", proc);
 	default:
 		break;
 	}
@@ -1118,15 +1123,15 @@ int winexec(char **av)
 	if ((w = display ? fore : windows) == NULL)
 		return -1;
 	if (!*av || w->w_pwin) {
-		Msg(0, "Filter running: %s", w->w_pwin ? w->w_pwin->p_cmd : "(none)");
+		Msg(0, U"Filter running: %s", w->w_pwin ? w->w_pwin->p_cmd : "(none)");
 		return -1;
 	}
 	if (w->w_ptyfd < 0) {
-		Msg(0, "You feel dead inside.");
+		Msg(0, U"You feel dead inside.");
 		return -1;
 	}
 	if (!(pwin = calloc(1, sizeof(struct pseudowin)))) {
-		Msg(0, "%s", strnomem);
+		Msg(0, U"%s", strnomem);
 		return -1;
 	}
 
@@ -1193,7 +1198,7 @@ int winexec(char **av)
 	w->w_pwin = pwin;
 	if (type != W_TYPE_PTY) {
 		FreePseudowin(w);
-		Msg(0, "Cannot only use commands as pseudo win.");
+		Msg(0, U"Cannot only use commands as pseudo win.");
 		return -1;
 	}
 	if (!(pwin->p_fdpat & F_PFRONT))
@@ -1203,13 +1208,13 @@ int winexec(char **av)
 		int flag = 0;
 
 		if (ioctl(pwin->p_ptyfd, TIOCPKT, (char *)&flag)) {
-			Msg(errno, "TIOCPKT pwin ioctl");
+			Msg(errno, U"TIOCPKT pwin ioctl");
 			FreePseudowin(w);
 			return -1;
 		}
 		if (w->w_type == W_TYPE_PTY && !(pwin->p_fdpat & F_PFRONT)) {
 			if (ioctl(w->w_ptyfd, TIOCPKT, (char *)&flag)) {
-				Msg(errno, "TIOCPKT win ioctl");
+				Msg(errno, U"TIOCPKT win ioctl");
 				FreePseudowin(w);
 				return -1;
 			}
@@ -1238,12 +1243,12 @@ void FreePseudowin(Window *w)
 	struct pseudowin *pwin = w->w_pwin;
 
 	if (fcntl(w->w_ptyfd, F_SETFL, FNBLOCK))
-		Msg(errno, "Warning: FreePseudowin: NBLOCK fcntl failed");
+		Msg(errno, U"Warning: FreePseudowin: NBLOCK fcntl failed");
 #ifdef TIOCPKT
 	if (w->w_type == W_TYPE_PTY && !(pwin->p_fdpat & F_PFRONT)) {
 		int flag = 1;
 		if (ioctl(w->w_ptyfd, TIOCPKT, (char *)&flag))
-			Msg(errno, "Warning: FreePseudowin: TIOCPKT win ioctl");
+			Msg(errno, U"Warning: FreePseudowin: TIOCPKT win ioctl");
 	}
 #endif
 	/* should be able to use CloseDevice() here */
@@ -1347,9 +1352,13 @@ static int muchpending(Window *p, Event *event)
 static void win_readev_fn(Event *event, void *data)
 {
 	Window *p = (Window *)data;
-	char buf[IOSIZE], *bp;
-	int size, len;
+	char readbuf[IOSIZE];
+	ssize_t readlen;
+	uint32_t *buf, *bp;
+	size_t size, len;
 	int wtop;
+
+	buf = calloc(IOSIZE, sizeof(uint32_t));
 
 	bp = buf;
 	size = IOSIZE;
@@ -1380,7 +1389,7 @@ static void win_readev_fn(Event *event, void *data)
 		return;
 	}
 
-	if ((len = read(event->fd, buf, size)) <= 0) {
+	if ((readlen = read(event->fd, readbuf, size)) <= 0) {
 		if (errno == EINTR || errno == EAGAIN)
 			return;
 #if defined(EWOULDBLOCK) && (EWOULDBLOCK != EAGAIN)
@@ -1390,12 +1399,20 @@ static void win_readev_fn(Event *event, void *data)
 		WindowDied(p, 0, 0);
 		return;
 	}
+
+	const char *lc = locale_charset();
+	uint32_t *asdf;
+
+	asdf = u32_conv_from_encoding(lc, iconveh_question_mark, readbuf, readlen, 0, buf, &len);
+
+	bp = asdf;
+
 #ifdef TIOCPKT
 	if (p->w_type == W_TYPE_PTY) {
-		if (buf[0]) {
-			if (buf[0] & TIOCPKT_NOSTOP)
+		if (asdf[0]) {
+			if (asdf[0] & TIOCPKT_NOSTOP)
 				WNewAutoFlow(p, 0);
-			if (buf[0] & TIOCPKT_DOSTOP)
+			if (asdf[0] & TIOCPKT_DOSTOP)
 				WNewAutoFlow(p, 1);
 		}
 		bp++;
@@ -1404,14 +1421,14 @@ static void win_readev_fn(Event *event, void *data)
 #endif
 #ifdef ENABLE_TELNET
 	if (p->w_type == W_TYPE_TELNET)
-		len = TelIn(p, bp, len, buf + sizeof(buf) - (bp + len));
+		len = TelIn(p, bp, len, asdf + sizeof(buf) - (bp + len));
 #endif
 	if (len == 0)
 		return;
 	if (zmodem_mode && zmodem_parse(p, bp, len))
 		return;
 	if (wtop) {
-		memmove(p->w_pwin->p_inbuf + p->w_pwin->p_inlen, bp, len);
+		u32_move(p->w_pwin->p_inbuf + p->w_pwin->p_inlen, bp, len);
 		p->w_pwin->p_inlen += len;
 	}
 
@@ -1431,7 +1448,7 @@ static void win_resurrect_zombie_fn(Event *event, void *data)
 	/* Already reconnected? */
 	if (p->w_deadpid != p->w_pid)
 		return;
-	WriteString(p, "\r\n", 2);
+	WriteString(p, U"\r\n", 2);
 	RemakeWindow(p);
 }
 
@@ -1440,18 +1457,27 @@ static void win_writeev_fn(Event *event, void *data)
 	Window *p = (Window *)data;
 	size_t len;
 	if (p->w_inlen) {
-		if ((len = write(event->fd, p->w_inbuf, p->w_inlen)) <= 0)
-			len = p->w_inlen;	/* dead window */
+		const char *lc = locale_charset();
+		char inbuf[IOSIZE];
+		size_t inlen = IOSIZE;
 
-		if (p->w_miflag) { /* don't loop if not needed */
-			for (Window *win = windows; win; win = win->w_next) {
-				if (win != p && win->w_miflag)
-					write(win->w_ptyfd, p->w_inbuf, p->w_inlen);
+		u32_conv_to_encoding(lc, iconveh_question_mark,
+				p->w_inbuf, p->w_inlen, 0, inbuf, &inlen);
+
+		if (inbuf) {
+			if ((len = write(event->fd, inbuf, inlen)) <= 0)
+				len = p->w_inlen;	/* dead window */
+
+			if (p->w_miflag) { /* don't loop if not needed */
+				for (Window *win = windows; win; win = win->w_next) {
+					if (win != p && win->w_miflag)
+						write(win->w_ptyfd, inbuf, inlen);
+				}
 			}
-		}
 
-		if ((p->w_inlen -= len))
-			memmove(p->w_inbuf, p->w_inbuf + len, p->w_inlen);
+			if ((p->w_inlen -= len))
+				u32_move(p->w_inbuf, p->w_inbuf + len, p->w_inlen);
+		}
 	}
 	if (p->w_paster.pa_pastelen && !p->w_slowpaste) {
 		struct paster *pa = &p->w_paster;
@@ -1510,7 +1536,12 @@ static void pseu_readev_fn(Event *event, void *data)
 		memmove(p->w_inbuf + p->w_inlen, buf, len);
 		p->w_inlen += len;
 	}
-	WriteString(p, buf, len);
+	const char *lc = locale_charset();
+	uint32_t *asdf;
+	size_t asdflen;
+
+	asdf = u32_conv_from_encoding(lc, iconveh_question_mark, buf, len, 0, NULL, &asdflen); /* FIXME check may be broken, passing NULL */
+	WriteString(p, asdf, asdflen);
 	return;
 }
 
@@ -1543,7 +1574,7 @@ static void win_silenceev_fn(Event *event, void *data)
 			continue;	/* user already sees window */
 		if (!(ACLBYTE(p->w_lio_notify, D_user->u_id) & ACLBIT(D_user->u_id)))
 			continue;
-		Msg(0, "Window %d: silence for %d seconds", p->w_number, p->w_silencewait);
+		Msg(0, U"Window %d: silence for %d seconds", p->w_number, p->w_silencewait);
 		p->w_silence = SILENCE_FOUND;
 		WindowChanged(p, WINESC_WFLAGS);
 	}
@@ -1581,7 +1612,7 @@ static int zmodem_parse(Window *p, char *bp, size_t len)
 			if (!p->w_zdisplay) {
 				if (i > 6)
 					WriteString(p, bp, i + 1 - 6);
-				WriteString(p, "\r\n", 2);
+				WriteString(p, U"\r\n", 2);
 				zmodem_found(p, *b2 == '1', b2 + 1, len - i - 1);
 				return 1;
 			} else if (p->w_zauto == 7 || *b2 == '8') {
@@ -1615,25 +1646,25 @@ static int zmodem_parse(Window *p, char *bp, size_t len)
 	return 0;
 }
 
-static void zmodemFin(char *buf, size_t len, void *data)
+static void zmodemFin(uint32_t *buf, size_t len, void *data)
 {
-	char *s;
+	uint32_t *s;
 	size_t l;
 
 	(void)data; /* unused */
 
 	if (len)
-		RcLine(buf, strlen(buf) + 1);
+		RcLine(buf, u32_strlen(buf) + 1);
 	else {
-		s = "\030\030\030\030\030\030\030\030\030\030";
-		l = strlen(s);
+		s = U"\030\030\030\030\030\030\030\030\030\030";
+		l = u32_strlen(s);
 		LayProcess(&s, &l);
 	}
 }
 
 static void zmodem_found(Window *p, int send, char *bp, size_t len)
 {
-	char *s;
+	uint32_t *s;
 	size_t n;
 
 	/* check for abort sequence */
@@ -1671,17 +1702,17 @@ static void zmodem_found(Window *p, int send, char *bp, size_t len)
 		ClearAll();
 		GotoPos(0, 0);
 		SetRendition(&mchar_blank);
-		AddStr("Zmodem active\r\n\r\n");
-		AddStr(send ? "**\030B01" : "**\030B00");
+		AddStr(U"Zmodem active\r\n\r\n");
+		AddStr(send ? U"**\030B01" : U"**\030B00");
 		while (len-- > 0)
 			AddChar(*bp++);
 		display = olddisplay;
 		return;
 	}
 	flayer = &p->w_layer;
-	Input(":", MAXSTR, INP_COOKED, zmodemFin, NULL, 0);
+	Input(U":", MAXSTR, INP_COOKED, zmodemFin, NULL, 0);
 	s = send ? zmodem_sendcmd : zmodem_recvcmd;
-	n = strlen(s);
+	n = u32_strlen(s);
 	LayProcess(&s, &n);
 }
 
@@ -1715,7 +1746,7 @@ int SwapWindows(int old, int dest)
 	Window *p, *win_old;
 
 	if (dest < 0 || dest >= maxwin) {
-		Msg(0, "Given window position is invalid.");
+		Msg(0, U"Given window position is invalid.");
 		return 0;
 	}
 
@@ -1769,29 +1800,29 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 		killit = 1;
 
 	if (ZombieKey_destroy && !killit) {
-		char buf[100], *s, reason[100];
+		uint32_t buf[100], *s, reason[100];
 		time_t now;
 
 		if (wstat_valid) {
 			if (WIFEXITED(wstat))
 				if (WEXITSTATUS(wstat))
-					sprintf(reason, "terminated with exit status %d", WEXITSTATUS(wstat));
+					u32_sprintf(reason, "terminated with exit status %d", WEXITSTATUS(wstat));
 				else
-					sprintf(reason, "terminated normally");
+					u32_sprintf(reason, "terminated normally");
 			else if (WIFSIGNALED(wstat))
-				sprintf(reason, "terminated with signal %d%s", WTERMSIG(wstat),
+				u32_sprintf(reason, "terminated with signal %d%s", WTERMSIG(wstat),
 #ifdef WCOREDUMP
 					WCOREDUMP(wstat) ? " (core file generated)" : "");
 #else
 					"");
 #endif
 		} else
-			sprintf(reason, "detached from window");
+			u32_sprintf(reason, "detached from window");
 
 		(void)time(&now);
-		s = ctime(&now);
+		u32_asprintf(&s, "%s", ctime(&now));
 		if (s && *s)
-			s[strlen(s) - 1] = '\0';
+			s[u32_strlen(s) - 1] = '\0';
 #ifdef ENABLE_UTMP
 		if (p->w_slot != (slot_t) 0 && p->w_slot != (slot_t) - 1) {
 			RemoveUtmp(p);
@@ -1805,8 +1836,8 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 		ResetWindow(p);
 		/* p->w_y = p->w_bot; */
 		p->w_y = MFindUsedLine(p, p->w_bot, 1);
-		sprintf(buf, "\n\r=== Command %s (%s) ===", reason, s ? s : "?");
-		WriteString(p, buf, strlen(buf));
+		u32_sprintf(buf, "\n\r=== Command %s (%llU) ===", reason, s ? s : U"?");
+		WriteString(p, buf, u32_strlen(buf));
 		if (p->w_poll_zombie_timeout) {
 			SetTimeout(&p->w_zombieev, p->w_poll_zombie_timeout * 1000);
 			evenq(&p->w_zombieev);

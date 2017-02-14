@@ -32,7 +32,7 @@
 
 /* Deals with a generic list display */
 
-static void ListProcess(char **, size_t *);
+static void ListProcess(uint32_t **, size_t *);
 static void ListAbort(void);
 static void ListRedisplayLine(int, int, int, int);
 static void ListClearLine(int, int, int, int);
@@ -101,7 +101,7 @@ static ListRow *glist_search_dir(ListData *ldata, ListRow *start, int dir)
 	return row;
 }
 
-static void glist_search(char *buf, size_t len, void *data)
+static void glist_search(uint32_t *buf, size_t len, void *data)
 {
 	ListData *ldata = (ListData *)data;
 	ListRow *row;
@@ -109,7 +109,7 @@ static void glist_search(char *buf, size_t len, void *data)
 	if (ldata->search)
 		Free(ldata->search);
 	if (len > 0)
-		ldata->search = SaveStr(buf);
+		ldata->search = u32_SaveStr(buf);
 	else
 		return;
 
@@ -131,14 +131,14 @@ static void glist_search(char *buf, size_t len, void *data)
 	glist_display_all(ldata);
 }
 
-static void ListProcess(char **ppbuf, size_t *plen)
+static void ListProcess(uint32_t **ppbuf, size_t *plen)
 {
 	ListData *ldata = flayer->l_data;
 	int count = 0;
 
 	while (*plen > 0) {
 		ListRow *old;
-		unsigned char ch;
+		uint32_t ch;
 
 		if (!flayer->l_mouseevent.start && ldata->list_fn->gl_pinput &&
 		    ldata->list_fn->gl_pinput(ldata, ppbuf, plen))
@@ -229,7 +229,7 @@ static void ListProcess(char **ppbuf, size_t *plen)
 		case '/':	/* start searching */
 			if (ldata->list_fn->gl_matchrow) {
 				char *s;
-				Input("Search: ", 80, INP_COOKED, glist_search, (char *)ldata, 0);
+				Input(U"Search: ", 80, INP_COOKED, glist_search, (char *)ldata, 0);
 				if ((s = ldata->search)) {
 					for (; *s; s++) {
 						char *ss = s;

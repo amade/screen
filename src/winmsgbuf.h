@@ -36,7 +36,7 @@
 
 /* Represents a working buffer for window messages */
 typedef struct {
-	char     *buf;
+	uint32_t *buf;
 	size_t    size;
 	uint64_t  rend[MAX_WINMSG_REND];
 	int       rendpos[MAX_WINMSG_REND];
@@ -45,7 +45,7 @@ typedef struct {
 
 typedef struct {
 	WinMsgBuf *buf;
-	char      *p;    /* pointer within buffer */
+	uint32_t      *p;    /* pointer within buffer */
 
 	/* truncation mark */
 	struct {
@@ -65,7 +65,7 @@ void wmb_reset(WinMsgBuf *);
 size_t wmb_expand(WinMsgBuf *, size_t);
 void wmb_rendadd(WinMsgBuf *, uint64_t, int);
 size_t wmb_size(const WinMsgBuf *);
-const char *wmb_contents(const WinMsgBuf *);
+const uint32_t *wmb_contents(const WinMsgBuf *);
 void wmb_reset(WinMsgBuf *);
 void wmb_free(WinMsgBuf *);
 
@@ -73,15 +73,15 @@ WinMsgBufContext *wmbc_create(WinMsgBuf *);
 void wmbc_rewind(WinMsgBufContext *);
 void wmbc_fastfw0(WinMsgBufContext *);
 void wmbc_fastfw_end(WinMsgBufContext *);
-void wmbc_putchar(WinMsgBufContext *, char);
-const char *wmbc_strncpy(WinMsgBufContext *, const char *, size_t);
-const char *wmbc_strcpy(WinMsgBufContext *, const char *);
-int wmbc_printf(WinMsgBufContext *, const char *, ...)
-                __attribute__((format(printf,2,3)));
+void wmbc_putchar(WinMsgBufContext *, uint32_t);
+const uint32_t *wmbc_strncpy(WinMsgBufContext *, const uint32_t *, size_t);
+const uint32_t *wmbc_strcpy(WinMsgBufContext *, const uint32_t *);
+int wmbc_printf(WinMsgBufContext *, const uint32_t *, ...);
+                /* FIXME __attribute__((format(printf,2,3))); */
 size_t wmbc_offset(WinMsgBufContext *);
 size_t wmbc_bytesleft(WinMsgBufContext *);
-const char *wmbc_mergewmb(WinMsgBufContext *, WinMsgBuf *);
-const char *wmbc_finish(WinMsgBufContext *);
+const uint32_t *wmbc_mergewmb(WinMsgBufContext *, WinMsgBuf *);
+const uint32_t *wmbc_finish(WinMsgBufContext *);
 void wmbc_free(WinMsgBufContext *);
 
 #endif

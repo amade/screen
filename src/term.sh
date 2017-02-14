@@ -103,6 +103,8 @@ cat << EOF > kmapdef.c
  * This file is automagically created from term.c -- DO NOT EDIT
  */
 
+#include <stdint.h>
+
 #include "kmapdef.h"
 
 
@@ -133,10 +135,10 @@ $AWK < ${srcdir}/term.c '
   s++;
 }
 END {
-  printf "char *kmapdef[] = {\n"
+  printf "uint32_t *kmapdef[] = {\n"
   for (s = min; s <= max; s++) {
     if (arr[s])
-      printf "%s", arr[s]
+      printf "U%s", arr[s]
     else
       printf "0"
     if (s < max)
@@ -145,10 +147,10 @@ END {
       printf "\n"
   }
   printf "};\n\n"
-  printf "char *kmapadef[] = {\n"
+  printf "uint32_t *kmapadef[] = {\n"
   for (s = amin; s <= amax; s++) {
     if (anarr[s])
-      printf "%s", anarr[s]
+      printf "U%s", anarr[s]
     else
       printf "0"
     if (s < amax)
@@ -157,10 +159,10 @@ END {
       printf "\n"
   }
   printf "};\n\n"
-  printf "char *kmapmdef[] = {\n"
+  printf "uint32_t *kmapmdef[] = {\n"
   for (s = mmin; s <= mmax; s++) {
     if (mnarr[s])
-      printf "%s", mnarr[s]
+      printf "U%s", mnarr[s]
     else
       printf "0"
     if (s < mmax)

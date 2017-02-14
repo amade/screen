@@ -44,6 +44,9 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <time.h>
+#include <uniconv.h>
+#include <unistr.h>
+#include <unistdio.h>
 
 #include "screen.h"
 
@@ -68,9 +71,9 @@
 #include "winmsg.h"
 
 
-static int CheckArgNum(int, char **);
+static int CheckArgNum(int, uint32_t **);
 static void ClearAction(struct action *);
-static void SaveAction(struct action *, int, char **, int *);
+static void SaveAction(struct action *, int, uint32_t **, int *);
 static uint16_t NextWindow(void);
 static uint16_t PreviousWindow(void);
 static int MoreWindows(void);
@@ -78,37 +81,37 @@ static void CollapseWindowlist(void);
 static void LogToggle(bool);
 static void ShowInfo(void);
 static void ShowDInfo(void);
-static Window *WindowByName(char *);
-static int WindowByNumber(char *);
+static Window *WindowByName(uint32_t *);
+static int WindowByNumber(uint32_t *);
 static int ParseSwitch(struct action *, bool *);
 static int ParseOnOff(struct action *, bool *);
 static int ParseWinNum(struct action *, int *);
 static int ParseBase(struct action *, char *, int *, int, char *);
-static int ParseSaveStr(struct action *, char **);
+static int ParseSaveStr(struct action *, uint32_t **);
 static int ParseNum(struct action *, int *);
 static int ParseNum1000(struct action *, int *);
-static char **SaveArgs(char **);
+static uint32_t **SaveArgs(uint32_t **);
 static bool IsNum(char *);
-static void ColonFin(char *, size_t, void *);
+static void ColonFin(uint32_t *, size_t, void *);
 static void InputSelect(void);
-static void InputSetenv(char *);
+static void InputSetenv(uint32_t *);
 static void InputAKA(void);
-static int InputSu(struct acluser **, char *);
-static void suFin(char *, size_t, void *);
-static void AKAFin(char *, size_t, void *);
-static void copy_reg_fn(char *, size_t, void *);
-static void ins_reg_fn(char *, size_t, void *);
-static void process_fn(char *, size_t, void *);
-static void pow_detach_fn(char *, size_t, void *);
-static void digraph_fn(char *, size_t, void *);
+//static int InputSu(struct acluser **, char *);
+//static void suFin(uint32_t *, size_t, void *);
+static void AKAFin(uint32_t *, size_t, void *);
+static void copy_reg_fn(uint32_t *, size_t, void *);
+static void ins_reg_fn(uint32_t *, size_t, void *);
+static void process_fn(uint32_t *, size_t, void *);
+static void pow_detach_fn(uint32_t *, size_t, void *);
+static void digraph_fn(uint32_t *, size_t, void *);
 static int digraph_find(const char *buf);
-static void confirm_fn(char *, size_t, void *);
+static void confirm_fn(uint32_t *, size_t, void *);
 static int IsOnDisplay(Window *);
-static void ResizeRegions(char *, int);
-static void ResizeFin(char *, size_t, void *);
-static struct action *FindKtab(char *, int);
-static void SelectFin(char *, size_t, void *);
-static void SelectLayoutFin(char *, size_t, void *);
+static void ResizeRegions(uint32_t *, int);
+static void ResizeFin(uint32_t *, size_t, void *);
+static struct action *FindKtab(uint32_t *, int);
+static void SelectFin(uint32_t *, size_t, void *);
+static void SelectLayoutFin(uint32_t *, size_t, void *);
 static void ShowWindowsX(char *);
 
 char NullStr[] = "";
@@ -123,18 +126,18 @@ int TtyMode = PTY_MODE;
 bool hardcopy_append = false;
 bool all_norefresh = 0;
 int zmodem_mode = 0;
-char *zmodem_sendcmd;
-char *zmodem_recvcmd;
-static char *zmodes[4] = { "off", "auto", "catch", "pass" };
+uint32_t *zmodem_sendcmd;
+uint32_t *zmodem_recvcmd;
+static uint32_t *zmodes[4] = { U"off", U"auto", U"catch", U"pass" };
 
 int idletimo;
 struct action idleaction;
-char **blankerprg;
+uint32_t **blankerprg;
 
 struct action ktab[256 + KMAP_KEYS];	/* command key translation table */
 struct kclass {
 	struct kclass *next;
-	char *name;
+	uint32_t *name;
 	struct action ktab[256 + KMAP_KEYS];
 };
 struct kclass *kclasses;
@@ -334,18 +337,18 @@ static struct digraph digraphs[MAX_DIGRAPH + 1] = {
 #define RESIZE_FLAG_V 2
 #define RESIZE_FLAG_L 4
 
-static char *resizeprompts[] = {
-	"resize # lines: ",
-	"resize -h # columns: ",
-	"resize -v # lines: ",
-	"resize -b # columns: ",
-	"resize -l # lines: ",
-	"resize -l -h # columns: ",
-	"resize -l -v # lines: ",
-	"resize -l -b # columns: ",
+static uint32_t *resizeprompts[] = {
+	U"resize # lines: ",
+	U"resize -h # columns: ",
+	U"resize -v # lines: ",
+	U"resize -b # columns: ",
+	U"resize -l # lines: ",
+	U"resize -l -h # columns: ",
+	U"resize -l -v # lines: ",
+	U"resize -l -b # columns: ",
 };
 
-static int parse_input_int(const char *buf, size_t len, int *val)
+static int parse_input_int(const uint32_t *buf, size_t len, uint32_t *val)
 {
 	int x = 0;
 	size_t i;
@@ -374,14 +377,14 @@ static int parse_input_int(const char *buf, size_t len, int *val)
 	return 1;
 }
 
-char *noargs[1];
+uint32_t *noargs[1];
 
 int enter_window_name_mode = 0;
 
 void InitKeytab()
 {
 	unsigned int i;
-	char *argarr[2];
+	uint32_t *argarr[2];
 
 	for (i = 0; i < sizeof(ktab) / sizeof(*ktab); i++) {
 		ktab[i].nr = RC_ILLEGAL;
@@ -538,7 +541,7 @@ void InitKeytab()
 	idleaction.argl = 0;
 }
 
-static struct action *FindKtab(char *class, int create)
+static struct action *FindKtab(uint32_t *class, int create)
 {
 	struct kclass *kp, **kpp;
 	int i;
@@ -546,18 +549,18 @@ static struct action *FindKtab(char *class, int create)
 	if (class == 0)
 		return ktab;
 	for (kpp = &kclasses; (kp = *kpp) != 0; kpp = &kp->next)
-		if (!strcmp(kp->name, class))
+		if (!u32_strcmp(kp->name, class))
 			break;
 	if (kp == 0) {
 		if (!create)
 			return 0;
-		if (strlen(class) > 80) {
-			Msg(0, "Command class name too long.");
+		if (u32_strlen(class) > 80) {
+			Msg(0, U"Command class name too long.");
 			return 0;
 		}
-		kp = malloc(sizeof(*kp));
+		kp = malloc(sizeof(*kp) * sizeof(uint32_t));
 		if (kp == 0) {
-			Msg(0, "%s", strnomem);
+			Msg(0, U"%s", strnomem);
 			return 0;
 		}
 		kp->name = SaveStr(class);
@@ -575,7 +578,7 @@ static struct action *FindKtab(char *class, int create)
 
 static void ClearAction(struct action *act)
 {
-	char **p;
+	uint32_t **p;
 
 	if (act->nr == RC_ILLEGAL)
 		return;
@@ -599,20 +602,20 @@ static void ClearAction(struct action *act)
  *  everything else on to ProcessInput2.
  */
 
-void ProcessInput(char *ibuf, size_t ilen)
+void ProcessInput(uint32_t *ibuf, size_t ilen)
 {
-	int ch;
+	uint32_t ch;
 	size_t slen;
-	unsigned char *s, *q;
+	uint32_t *s, *q;
 	int i, l;
-	char *p;
+	uint32_t *p;
 
 	if (display == 0 || ilen == 0)
 		return;
 	if (D_seql)
 		evdeq(&D_mapev);
 	slen = ilen;
-	s = (unsigned char *)ibuf;
+	s = ibuf;
 	while (ilen-- > 0) {
 		ch = *s++;
 		if (D_dontmap || !D_nseqs) {
@@ -628,7 +631,7 @@ void ProcessInput(char *ibuf, size_t ilen)
 				}
 				D_mapdefault = 0;
 				l = D_seql;
-				p = (char *)D_seqp - l;
+				p = D_seqp - l;
 				D_seql = 0;
 				D_seqp = D_kmaps + 3;
 				if (l == 0)
@@ -638,7 +641,7 @@ void ProcessInput(char *ibuf, size_t ilen)
 					i = q[0] << 8 | q[1];
 					i &= ~KMAP_NOTIMEOUT;
 					if (StuffKey(i))
-						ProcessInput2((char *)q + 3, q[2]);
+						ProcessInput2(q + 3, q[2]);
 					if (display == 0)
 						return;
 					l -= q[2];
@@ -660,14 +663,14 @@ void ProcessInput(char *ibuf, size_t ilen)
 					return;
 				D_seqh = 0;
 			}
-			ibuf = (char *)s;
+			ibuf = s;
 			slen = ilen;
 			D_seqp++;
 			l = D_seql;
-			if (l == D_seqp[-l - 1]) {
-				if (D_seqp[l] != l) {
+			if ((uint32_t)l == D_seqp[-l - 1]) {
+				if (D_seqp[l] != (uint32_t)l) {
 					q = D_seqp + 1 + l;
-					if (D_kmaps + D_nseqs > q && q[2] > l && !memcmp(D_seqp - l, q + 3, l)) {
+					if (D_kmaps + D_nseqs > q && q[2] > (uint32_t)l && !memcmp(D_seqp - l, q + 3, l)) {
 						D_seqh = D_seqp - 3 - l;
 						D_seqp = q + 3 + l;
 						break;
@@ -675,7 +678,7 @@ void ProcessInput(char *ibuf, size_t ilen)
 				}
 				i = D_seqp[-l - 3] << 8 | D_seqp[-l - 2];
 				i &= ~KMAP_NOTIMEOUT;
-				p = (char *)D_seqp - l;
+				p = D_seqp - l;
 				D_seql = 0;
 				D_seqp = D_kmaps + 3;
 				D_seqh = 0;
@@ -706,21 +709,23 @@ void ProcessInput(char *ibuf, size_t ilen)
  *  Here only the screen escape commands are handled.
  */
 
-void ProcessInput2(char *ibuf, size_t ilen)
+void ProcessInput2(uint32_t *ibuf, size_t ilen)
 {
-	char *s;
-	int ch;
+	uint32_t *s;
+	uint32_t ch;
 	size_t slen;
 	struct action *ktabp;
 
-	while (ilen && display) {
+	if (!display)
+		return;
+	while (ilen) {
 		flayer = D_forecv->c_layer;
 		fore = D_fore;
 		slen = ilen;
 		s = ibuf;
 		if (!D_ESCseen) {
-			while (ilen > 0) {
-				if ((unsigned char)*s++ == D_user->u_Esc)
+			while (ilen) {
+				if (*s++ == D_user->u_Esc)
 					break;
 				ilen--;
 			}
@@ -740,7 +745,7 @@ void ProcessInput2(char *ibuf, size_t ilen)
 			D_ESCseen = 0;
 			WindowChanged(fore, WINESC_ESC_SEEN);
 		}
-		ch = (unsigned char)*s;
+		ch = *s;
 
 		/*
 		 * As users have different esc characters, but a common ktab[],
@@ -753,14 +758,14 @@ void ProcessInput2(char *ibuf, size_t ilen)
 		else if (ch == D_user->u_MetaEsc)
 			ch = DefaultMetaEsc;
 
-		if (ch >= 0)
+		/*XXX if (ch >= 0) */
 			DoAction(&ktabp[ch], ch);
-		ibuf = (char *)(s + 1);
+		ibuf = s + 1;
 		ilen--;
 	}
 }
 
-void DoProcess(Window *window, char **bufp, size_t *lenp, struct paster *pa)
+void DoProcess(Window *window, uint32_t **bufp, size_t *lenp, struct paster *pa)
 {
 	size_t oldlen;
 	Display *d = display;
@@ -801,12 +806,12 @@ void DoProcess(Window *window, char **bufp, size_t *lenp, struct paster *pa)
 		FreePaster(pa);
 }
 
-int FindCommnr(const char *str)
+int FindCommnr(const uint32_t *str)
 {
 	int x, m, l = 0, r = RC_LAST;
 	while (l <= r) {
 		m = (l + r) / 2;
-		x = strcmp(str, comms[m].name);
+		x = u32_strcmp(str, comms[m].name);
 		if (x > 0)
 			l = m + 1;
 		else if (x < 0)
@@ -817,22 +822,22 @@ int FindCommnr(const char *str)
 	return RC_ILLEGAL;
 }
 
-static int CheckArgNum(int nr, char **args)
+static int CheckArgNum(int nr, uint32_t **args)
 {
 	int i, n;
-	static char *argss[] = { "no", "one", "two", "three", "four", "OOPS" };
-	static char *orformat[] = {
-		"%s: %s: %s argument%s required",
-		"%s: %s: %s or %s argument%s required",
-		"%s: %s: %s, %s or %s argument%s required",
-		"%s: %s: %s, %s, %s or %s argument%s required"
+	static uint32_t *argss[] = { U"no", U"one", U"two", U"three", U"four", U"OOPS" };
+	static uint32_t *orformat[] = {
+		U"%s: %s: %s argument%s required",
+		U"%s: %s: %s or %s argument%s required",
+		U"%s: %s: %s, %s or %s argument%s required",
+		U"%s: %s: %s, %s, %s or %s argument%s required"
 	};
 
 	n = comms[nr].flags & ARGS_MASK;
 	for (i = 0; args[i]; i++) ;
 	if (comms[nr].flags & ARGS_ORMORE) {
 		if (i < n) {
-			Msg(0, "%s: %s: at least %s argument%s required",
+			Msg(0, U"%s: %s: at least %s argument%s required",
 			    rc_name, comms[nr].name, argss[n], n != 1 ? "s" : "");
 			return -1;
 		}
@@ -879,7 +884,7 @@ static int CheckArgNum(int nr, char **args)
 	return i;
 }
 
-static void StuffFin(char *buf, size_t len, void *data)
+static void StuffFin(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -902,14 +907,14 @@ static void StuffFin(char *buf, size_t len, void *data)
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
-	char **args = act->args;
+	uint32_t **args = act->args;
 	int *argl = act->argl;
 	Window *p;
 	bool b;
 	int argc, n, msgok;
 	int64_t i;
 	int j;
-	char *s = NULL;
+	uint32_t *s = NULL;
 	char ch;
 	Display *odisplay = display;
 	struct acluser *user;
@@ -928,22 +933,22 @@ void DoAction(struct action *act, int key)
 	 */
 	if (!(n & CAN_QUERY) && queryflag >= 0) {
 		/* Query flag is set, but this command cannot be queried. */
-		OutputMsg(0, "%s command cannot be queried.", comms[nr].name);
+		OutputMsg(0, U"%s command cannot be queried.", comms[nr].name);
 		queryflag = -1;
 		return;
 	}
 	if ((n & NEED_DISPLAY) && display == 0) {
-		OutputMsg(0, "%s: %s: display required", rc_name, comms[nr].name);
+		OutputMsg(0, U"%s: %s: display required", rc_name, comms[nr].name);
 		queryflag = -1;
 		return;
 	}
 	if ((n & NEED_FORE) && fore == 0) {
-		OutputMsg(0, "%s: %s: window required", rc_name, comms[nr].name);
+		OutputMsg(0, U"%s: %s: window required", rc_name, comms[nr].name);
 		queryflag = -1;
 		return;
 	}
 	if ((n & NEED_LAYER) && flayer == 0) {
-		OutputMsg(0, "%s: %s: display or window required", rc_name, comms[nr].name);
+		OutputMsg(0, U"%s: %s: display or window required", rc_name, comms[nr].name);
 		queryflag = -1;
 		return;
 	}
@@ -951,7 +956,7 @@ void DoAction(struct action *act, int key)
 		return;
 	if (display) {
 		if (AclCheckPermCmd(D_user, ACL_EXEC, &comms[nr])) {
-			OutputMsg(0, "%s: %s: permission denied (user %s)",
+			OutputMsg(0, U"%s: %s: permission denied (user %s)",
 				  rc_name, comms[nr].name, (EffectiveAclUser ? EffectiveAclUser : D_user)->u_name);
 			queryflag = -1;
 			return;
@@ -968,7 +973,7 @@ void DoAction(struct action *act, int key)
 			Activate(0);
 		} else if (args[0][0] == '.' && !args[0][1]) {
 			if (!fore) {
-				OutputMsg(0, "select . needs a window");
+				OutputMsg(0, U"select . needs a window");
 				queryflag = -1;
 			} else {
 				SetForeWindow(fore);
@@ -982,7 +987,7 @@ void DoAction(struct action *act, int key)
 	case RC_MULTIINPUT:
 		if (!*args) {
 			if (!fore)
-				OutputMsg(0, "multiinput needs a window");
+				OutputMsg(0, U"multiinput needs a window");
 			else
 				fore->w_miflag = fore->w_miflag ? 0 : 1;
 		} else {
@@ -999,17 +1004,17 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_DEFAUTONUKE:
 		if (ParseOnOff(act, &defautonuke) == 0 && msgok)
-			OutputMsg(0, "Default autonuke turned %s", defautonuke ? "on" : "off");
+			OutputMsg(0, U"Default autonuke turned %s", defautonuke ? "on" : "off");
 		if (display && *rc_name)
 			D_auto_nuke = defautonuke;
 		break;
 	case RC_AUTONUKE:
 		if (ParseOnOff(act, &D_auto_nuke) == 0 && msgok)
-			OutputMsg(0, "Autonuke turned %s", D_auto_nuke ? "on" : "off");
+			OutputMsg(0, U"Autonuke turned %s", D_auto_nuke ? "on" : "off");
 		break;
 	case RC_DEFOBUFLIMIT:
 		if (ParseNum(act, &defobuflimit) == 0 && msgok)
-			OutputMsg(0, "Default limit set to %d", defobuflimit);
+			OutputMsg(0, U"Default limit set to %d", defobuflimit);
 		if (display && *rc_name) {
 			D_obufmax = defobuflimit;
 			D_obuflenmax = D_obuflen - D_obufmax;
@@ -1017,9 +1022,9 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_OBUFLIMIT:
 		if (*args == 0)
-			OutputMsg(0, "Limit is %d, current buffer size is %d", D_obufmax, D_obuflen);
+			OutputMsg(0, U"Limit is %d, current buffer size is %d", D_obufmax, D_obuflen);
 		else if (ParseNum(act, &D_obufmax) == 0 && msgok)
-			OutputMsg(0, "Limit set to %d", D_obufmax);
+			OutputMsg(0, U"Limit set to %d", D_obufmax);
 		D_obuflenmax = D_obuflen - D_obufmax;
 		break;
 	case RC_DUMPTERMCAP:
@@ -1028,20 +1033,20 @@ void DoAction(struct action *act, int key)
 	case RC_HARDCOPY:
 		{
 			int mode = DUMP_HARDCOPY;
-			char *file = NULL;
+			uint32_t *file = NULL;
 
 			if (args[0]) {
-				if (!strcmp(*args, "-h")) {
+				if (!u32_strcmp(*args, U"-h")) {
 					mode = DUMP_SCROLLBACK;
 					file = args[1];
-				} else if (!strcmp(*args, "--") && args[1])
+				} else if (!u32_strcmp(*args, U"--") && args[1])
 					file = args[1];
 				else
 					file = args[0];
 			}
 
 			if (args[0] && file == args[0] && args[1]) {
-				OutputMsg(0, "%s: hardcopy: too many arguments", rc_name);
+				OutputMsg(0, U"%s: hardcopy: too many arguments", rc_name);
 				break;
 			}
 			WriteFile(user, file, mode);
@@ -1068,42 +1073,42 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_KILL:
 		{
-			char *name;
+			uint32_t *name;
 
 			if (key >= 0) {
-				Input(fore->w_pwin ? "Really kill this filter [y/n]" : "Really kill this window [y/n]",
+				Input(fore->w_pwin ? U"Really kill this filter [y/n]" : U"Really kill this window [y/n]",
 				      1, INP_RAW, confirm_fn, NULL, RC_KILL);
 				break;
 			}
 			n = fore->w_number;
 			if (fore->w_pwin) {
 				FreePseudowin(fore);
-				OutputMsg(0, "Filter removed.");
+				OutputMsg(0, U"Filter removed.");
 				break;
 			}
-			name = SaveStr(fore->w_title);
+			name = u32_strdup(fore->w_title);
 			KillWindow(fore);
-			OutputMsg(0, "Window %d (%s) killed.", n, name);
+			OutputMsg(0, U"Window %d (%llU) killed.", n, name);
 			if (name)
 				free(name);
 			break;
 		}
 	case RC_QUIT:
 		if (key >= 0) {
-			Input("Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
+			Input(U"Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
 			break;
 		}
 		Finit(0);
 		/* NOTREACHED */
 	case RC_DETACH:
-		if (*args && !strcmp(*args, "-h"))
+		if (*args && !u32_strcmp(*args, U"-h"))
 			Hangup();
 		else
 			Detach(D_DETACH);
 		break;
 	case RC_POW_DETACH:
 		if (key >= 0) {
-			static char buf[2];
+			static uint32_t buf[2];
 
 			buf[0] = key;
 			Input(buf, 1, INP_RAW, pow_detach_fn, NULL, 0);
@@ -1111,38 +1116,38 @@ void DoAction(struct action *act, int key)
 			Detach(D_POWER);	/* detach and kill Attacher's parent */
 		break;
 	case RC_ZMODEM:
-		if (*args && !strcmp(*args, "sendcmd")) {
+		if (*args && !u32_strcmp(*args, U"sendcmd")) {
 			if (args[1]) {
 				free(zmodem_sendcmd);
-				zmodem_sendcmd = SaveStr(args[1]);
+				zmodem_sendcmd = u32_SaveStr(args[1]);
 			}
 			if (msgok)
-				OutputMsg(0, "zmodem sendcmd: %s", zmodem_sendcmd);
+				OutputMsg(0, U"zmodem sendcmd: %llU", zmodem_sendcmd);
 			break;
 		}
-		if (*args && !strcmp(*args, "recvcmd")) {
+		if (*args && !u32_strcmp(*args, U"recvcmd")) {
 			if (args[1]) {
 				free(zmodem_recvcmd);
-				zmodem_recvcmd = SaveStr(args[1]);
+				zmodem_recvcmd = u32_SaveStr(args[1]);
 			}
 			if (msgok)
-				OutputMsg(0, "zmodem recvcmd: %s", zmodem_recvcmd);
+				OutputMsg(0, U"zmodem recvcmd: %llU", zmodem_recvcmd);
 			break;
 		}
 		if (*args) {
 			for (i = 0; i < 4; i++)
-				if (!strcmp(zmodes[i], *args))
+				if (!u32_strcmp(zmodes[i], *args))
 					break;
-			if (i == 4 && !strcmp(*args, "on"))
+			if (i == 4 && !u32_strcmp(*args, U"on"))
 				i = 1;
 			if (i == 4) {
-				OutputMsg(0, "usage: zmodem off|auto|catch|pass");
+				OutputMsg(0, U"usage: zmodem off|auto|catch|pass");
 				break;
 			}
 			zmodem_mode = i;
 		}
 		if (msgok)
-			OutputMsg(0, "zmodem mode is %s", zmodes[zmodem_mode]);
+			OutputMsg(0, U"zmodem mode is %s", zmodes[zmodem_mode]);
 		break;
 	case RC_UNBINDALL:
 		{
@@ -1150,7 +1155,7 @@ void DoAction(struct action *act, int key)
 
 			for (i = 0; i < sizeof(ktab) / sizeof(*ktab); i++)
 				ClearAction(&ktab[i]);
-			OutputMsg(0, "Unbound all keys.");
+			OutputMsg(0, U"Unbound all keys.");
 			break;
 		}
 	case RC_ZOMBIE:
@@ -1160,14 +1165,14 @@ void DoAction(struct action *act, int key)
 				break;
 			}
 			if (*argl == 0 || *argl > 2) {
-				OutputMsg(0, "%s:zombie: one or two characters expected.", rc_name);
+				OutputMsg(0, U"%s:zombie: one or two characters expected.", rc_name);
 				break;
 			}
 			if (args[1]) {
-				if (!strcmp(args[1], "onerror")) {
+				if (!u32_strcmp(args[1], U"onerror")) {
 					ZombieKey_onerror = 1;
 				} else {
-					OutputMsg(0, "usage: zombie [keys [onerror]]");
+					OutputMsg(0, U"usage: zombie [keys [onerror]]");
 					break;
 				}
 			} else
@@ -1179,7 +1184,7 @@ void DoAction(struct action *act, int key)
 	case RC_WALL:
 		s = D_user->u_name;
 		{
-			OutputMsg(0, "%s: %s", s, *args);
+			OutputMsg(0, U"%s: %s", s, *args);
 		}
 		break;
 	case RC_AT:
@@ -1189,7 +1194,7 @@ void DoAction(struct action *act, int key)
 		s = SaveStr(user->u_name);
 		/* DO NOT RETURN FROM HERE WITHOUT RESETTING THIS: */
 		EffectiveAclUser = user;
-		n = strlen(args[0]);
+		n = u32_strlen(args[0]);
 		if (n)
 			n--;
 		/*
@@ -1207,12 +1212,12 @@ void DoAction(struct action *act, int key)
 					u = user;
 				else {
 					for (u = users; u; u = u->u_next) {
-						if (!strncmp(*args, u->u_name, n))
+						if (!u32_strncmp(*args, u->u_name, n))
 							break;
 					}
 					if (!u) {
 						args[0][n] = '\0';
-						OutputMsg(0, "Did not find any user matching '%s'", args[0]);
+						OutputMsg(0, U"Did not find any user matching '%s'", args[0]);
 						break;
 					}
 				}
@@ -1226,7 +1231,7 @@ void DoAction(struct action *act, int key)
 						continue;
 					DoCommand(args + 1, argl + 1);
 					if (display)
-						OutputMsg(0, "command from %s: %s %s",
+						OutputMsg(0, U"command from %s: %s %s",
 							  s, args[1], args[2] ? args[2] : "");
 					display = NULL;
 					flayer = 0;
@@ -1244,14 +1249,14 @@ void DoAction(struct action *act, int key)
 						continue;
 					fore = D_fore;
 					flayer = D_forecv->c_layer;
-					if (strncmp(args[0], D_usertty, n) &&
+					if (u32_strncmp(args[0], D_usertty, n) &&
 					    (strncmp("/dev/", D_usertty, 5) ||
-					     strncmp(args[0], D_usertty + 5, n)) &&
-					    (strncmp("/dev/tty", D_usertty, 8) || strncmp(args[0], D_usertty + 8, n)))
+					     u32_strncmp(args[0], D_usertty + 5, n)) &&
+					    (strncmp("/dev/tty", D_usertty, 8) || u32_strncmp(args[0], D_usertty + 8, n)))
 						continue;
 					DoCommand(args + 1, argl + 1);
 					if (display)
-						OutputMsg(0, "command from %s: %s %s",
+						OutputMsg(0, U"command from %s: %s %s",
 							  s, args[1], args[2] ? args[2] : "");
 					display = NULL;
 					fore = NULL;
@@ -1275,7 +1280,7 @@ void DoAction(struct action *act, int key)
 					/* try looping over titles */
 					for (fore = windows; fore; fore = nw) {
 						nw = fore->w_next;
-						if (strncmp(args[0], fore->w_title, n))
+						if (u32_strncmp(args[0], fore->w_title, n))
 							continue;
 						/*
 						 * consider this a bug or a feature:
@@ -1292,14 +1297,14 @@ void DoAction(struct action *act, int key)
 						DoCommand(args + 1, argl + 1);	/* may destroy our display */
 						if (fore && fore->w_layer.l_cvlist) {
 							display = fore->w_layer.l_cvlist->c_display;
-							OutputMsg(0, "command from %s: %s %s",
+							OutputMsg(0, U"command from %s: %s %s",
 								  s, args[1], args[2] ? args[2] : "");
 						}
 					}
 					display = NULL;
 					fore = NULL;
 					if (i < 0)
-						OutputMsg(0, "%s: at '%s': no such window.\n", rc_name, args[0]);
+						OutputMsg(0, U"%s: at '%s': no such window.\n", rc_name, args[0]);
 					break;
 				} else if (i < maxwin && (fore = wtab[i])) {
 					args[0][n] = ch;	/* must restore string in case of bind */
@@ -1309,13 +1314,13 @@ void DoAction(struct action *act, int key)
 					DoCommand(args + 1, argl + 1);
 					if (fore && fore->w_layer.l_cvlist) {
 						display = fore->w_layer.l_cvlist->c_display;
-						OutputMsg(0, "command from %s: %s %s",
+						OutputMsg(0, U"command from %s: %s %s",
 							  s, args[1], args[2] ? args[2] : "");
 					}
 					display = NULL;
 					fore = NULL;
 				} else
-					OutputMsg(0, "%s: at [identifier][%%|*|#] command [args]", rc_name);
+					OutputMsg(0, U"%s: at [identifier][%%|*|#] command [args]", rc_name);
 				break;
 			}
 		}
@@ -1331,11 +1336,11 @@ void DoAction(struct action *act, int key)
 		 * (not dest) there.
 		 */
 		if ((s = *args) == NULL) {
-			Input("Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
+			Input(U"Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
 			break;
 		}
 		if (*argl != 1) {
-			OutputMsg(0, "%s: copyreg: character, ^x, or (octal) \\032 expected.", rc_name);
+			OutputMsg(0, U"%s: copyreg: character, ^x, or (octal) \\032 expected.", rc_name);
 			break;
 		}
 		ch = args[0][0];
@@ -1344,7 +1349,7 @@ void DoAction(struct action *act, int key)
 		 */
 		if (args[1]) {
 			if (args[2]) {
-				OutputMsg(0, "%s: readreg: too many arguments", rc_name);
+				OutputMsg(0, U"%s: readreg: too many arguments", rc_name);
 				break;
 			}
 			if ((s = ReadFile(args[1], &n))) {
@@ -1365,11 +1370,11 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_REGISTER:
 		if (argc != 2) {
-			OutputMsg(0, "%s: register: illegal number of arguments.", rc_name);
+			OutputMsg(0, U"%s: register: illegal number of arguments.", rc_name);
 			break;
 		}
 		if (*argl != 1) {
-			OutputMsg(0, "%s: register: character, ^x, or (octal) \\032 expected.", rc_name);
+			OutputMsg(0, U"%s: register: character, ^x, or (octal) \\032 expected.", rc_name);
 			break;
 		}
 		ch = args[0][0];
@@ -1391,11 +1396,11 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_PROCESS:
 		if ((s = *args) == NULL) {
-			Input("Process register:", 1, INP_RAW, process_fn, NULL, 0);
+			Input(U"Process register:", 1, INP_RAW, process_fn, NULL, 0);
 			break;
 		}
 		if (*argl != 1) {
-			OutputMsg(0, "%s: process: character, ^x, or (octal) \\032 expected.", rc_name);
+			OutputMsg(0, U"%s: process: character, ^x, or (octal) \\032 expected.", rc_name);
 			break;
 		}
 		ch = args[0][0];
@@ -1404,13 +1409,13 @@ void DoAction(struct action *act, int key)
 	case RC_STUFF:
 		s = *args;
 		if (!args[0]) {
-			Input("Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
+			Input(U"Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
 			break;
 		}
 		len = *argl;
 		if (args[1]) {
-			if (strcmp(s, "-k")) {
-				OutputMsg(0, "%s: stuff: invalid option %s", rc_name, s);
+			if (u32_strcmp(s, U"-k")) {
+				OutputMsg(0, U"%s: stuff: invalid option %s", rc_name, s);
 				break;
 			}
 			s = args[1];
@@ -1418,7 +1423,7 @@ void DoAction(struct action *act, int key)
 				if (strcmp(term[i].tcname, s) == 0)
 					break;
 			if (i == T_OCAPS) {
-				OutputMsg(0, "%s: stuff: unknown key '%s'", rc_name, s);
+				OutputMsg(0, U"%s: stuff: unknown key '%s'", rc_name, s);
 				break;
 			}
 			if (StuffKey(i - T_CAPS) == 0)
@@ -1426,7 +1431,7 @@ void DoAction(struct action *act, int key)
 			s = display ? D_tcs[i].str : 0;
 			if (s == 0)
 				break;
-			len = strlen(s);
+			len = u32_strlen(s);
 		}
 		while (len)
 			LayProcess(&s, &len);
@@ -1442,14 +1447,14 @@ void DoAction(struct action *act, int key)
 		ShowWindows(-1);
 		break;
 	case RC_VERSION:
-		OutputMsg(0, "screen %s", version);
+		OutputMsg(0, U"screen %s", version);
 		break;
 	case RC_TIME:
 		if (*args) {
 			timestring = SaveStr(*args);
 			break;
 		}
-		OutputMsg(0, "%s", MakeWinMsg(timestring, fore, '%'));
+		OutputMsg(0, U"%s", MakeWinMsg(timestring, fore, '%'));
 		break;
 	case RC_INFO:
 		ShowInfo();
@@ -1460,9 +1465,9 @@ void DoAction(struct action *act, int key)
 	case RC_COMMAND:
 		{
 			struct action *ktabp = ktab;
-			if (argc == 2 && !strcmp(*args, "-c")) {
+			if (argc == 2 && !u32_strcmp(*args, U"-c")) {
 				if ((ktabp = FindKtab(args[1], 0)) == 0) {
-					OutputMsg(0, "Unknown command class '%s'", args[1]);
+					OutputMsg(0, U"Unknown command class '%s'", args[1]);
 					break;
 				}
 			}
@@ -1522,11 +1527,11 @@ void DoAction(struct action *act, int key)
 							break;
 					}
 				if (n < 0 || n >= (int)(sizeof(types) / sizeof(*types)))
-					OutputMsg(0, "%s invalid, chose one of %s, %s or %s", *args, types[0], types[1],
+					OutputMsg(0, U"%s invalid, chose one of %s, %s or %s", *args, types[0], types[1],
 						  types[2]);
 				else {
 					breaktype = n;
-					OutputMsg(0, "breaktype set to (%d) %s", n, types[n]);
+					OutputMsg(0, U"breaktype set to (%d) %s", n, types[n]);
 				}
 			}
 		}
@@ -1547,9 +1552,9 @@ void DoAction(struct action *act, int key)
 			int w, h;
 			int what = 0;
 
-			if (*args && !strcmp(*args, "-w"))
+			if (*args && !u32_strcmp(*args, U"-w"))
 				what = 1;
-			else if (*args && !strcmp(*args, "-d"))
+			else if (*args && !u32_strcmp(*args, U"-d"))
 				what = 2;
 			if (what)
 				args++;
@@ -1557,21 +1562,21 @@ void DoAction(struct action *act, int key)
 				what = 1;
 			if (what == 1) {
 				if (!flayer) {
-					OutputMsg(0, "%s: %s: window required", rc_name, comms[nr].name);
+					OutputMsg(0, U"%s: %s: window required", rc_name, comms[nr].name);
 					break;
 				}
 				w = flayer->l_width;
 				h = flayer->l_height;
 			} else {
 				if (!display) {
-					OutputMsg(0, "%s: %s: display required", rc_name, comms[nr].name);
+					OutputMsg(0, U"%s: %s: display required", rc_name, comms[nr].name);
 					break;
 				}
 				w = D_width;
 				h = D_height;
 			}
 			if (*args && args[0][0] == '-') {
-				OutputMsg(0, "%s: %s: unknown option %s", rc_name, comms[nr].name, *args);
+				OutputMsg(0, U"%s: %s: unknown option %s", rc_name, comms[nr].name, *args);
 				break;
 			}
 			if (nr == RC_HEIGHT) {
@@ -1587,9 +1592,9 @@ void DoAction(struct action *act, int key)
 					else
 						h = H1height;
 				} else {
-					h = atoi(*args);
+					h = u32_atoi(*args);
 					if (args[1])
-						w = atoi(args[1]);
+						w = u32_atoi(args[1]);
 				}
 			} else {
 				if (!*args) {
@@ -1602,21 +1607,21 @@ void DoAction(struct action *act, int key)
 					else
 						w = Z1width;
 				} else {
-					w = atoi(*args);
+					w = u32_atoi(*args);
 					if (args[1])
-						h = atoi(args[1]);
+						h = u32_atoi(args[1]);
 				}
 			}
 			if (*args && args[1] && args[2]) {
-				OutputMsg(0, "%s: %s: too many arguments", rc_name, comms[nr].name);
+				OutputMsg(0, U"%s: %s: too many arguments", rc_name, comms[nr].name);
 				break;
 			}
 			if (w <= 0) {
-				OutputMsg(0, "Illegal width");
+				OutputMsg(0, U"Illegal width");
 				break;
 			}
 			if (h <= 0) {
-				OutputMsg(0, "Illegal height");
+				OutputMsg(0, U"Illegal height");
 				break;
 			}
 			if (what == 1) {
@@ -1639,15 +1644,15 @@ void DoAction(struct action *act, int key)
 				}
 				if (h == D_height)
 					OutputMsg(0,
-						  "Your termcap does not specify how to change the terminal's width to %d.",
+						  U"Your termcap does not specify how to change the terminal's width to %d.",
 						  w);
 				else if (w == D_width)
 					OutputMsg(0,
-						  "Your termcap does not specify how to change the terminal's height to %d.",
+						  U"Your termcap does not specify how to change the terminal's height to %d.",
 						  h);
 				else
 					OutputMsg(0,
-						  "Your termcap does not specify how to change the terminal's resolution to %dx%d.",
+						  U"Your termcap does not specify how to change the terminal's resolution to %dx%d.",
 						  w, h);
 			}
 		}
@@ -1661,7 +1666,7 @@ void DoAction(struct action *act, int key)
 	case RC_TITLE:
 		if (queryflag >= 0) {
 			if (fore)
-				OutputMsg(0, "%s", fore->w_title);
+				OutputMsg(0, U"%s", fore->w_title);
 			else
 				queryflag = -1;
 			break;
@@ -1669,26 +1674,26 @@ void DoAction(struct action *act, int key)
 		if (*args == 0)
 			InputAKA();
 		else
-			ChangeAKA(fore, *args, strlen(*args));
+			ChangeAKA(fore, *args, u32_strlen(*args));
 		break;
 	case RC_COLON:
-		Input(":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
+		Input(U":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
 		if (*args && **args) {
 			s = *args;
-			len = strlen(s);
+			len = u32_strlen(s);
 			LayProcess(&s, &len);
 		}
 		break;
 	case RC_LASTMSG:
 		if (D_status_lastmsg)
-			OutputMsg(0, "%s", D_status_lastmsg);
+			OutputMsg(0, U"%s", D_status_lastmsg);
 		break;
 	case RC_SCREEN:
 		DoScreen("key", args);
 		break;
 	case RC_WRAP:
 		if (ParseSwitch(act, &fore->w_wrap) == 0 && msgok)
-			OutputMsg(0, "%cwrap", fore->w_wrap ? '+' : '-');
+			OutputMsg(0, U"%cwrap", fore->w_wrap ? '+' : '-');
 		break;
 	case RC_FLOW:
 		if (*args) {
@@ -1707,7 +1712,7 @@ void DoAction(struct action *act, int key)
 		}
 		SetFlow(fore->w_flow & FLOW_ON);
 		if (msgok)
-			OutputMsg(0, "%cflow%s", (fore->w_flow & FLOW_ON) ? '+' : '-',
+			OutputMsg(0, U"%cflow%s", (fore->w_flow & FLOW_ON) ? '+' : '-',
 				  (fore->w_flow & FLOW_AUTOFLAG) ? "(auto)" : "");
 		break;
 	case RC_DEFWRITELOCK:
@@ -1732,18 +1737,18 @@ void DoAction(struct action *act, int key)
 			if (!AclCheckPermWin(D_user, ACL_WRITE, fore))
 				fore->w_wlockuser = D_user;
 		}
-		OutputMsg(0, "writelock %s", (fore->w_wlock == WLOCK_AUTO) ? "auto" :
+		OutputMsg(0, U"writelock %s", (fore->w_wlock == WLOCK_AUTO) ? "auto" :
 			  ((fore->w_wlock == WLOCK_OFF) ? "off" : "on"));
 		break;
 	case RC_CLEAR:
 		ResetAnsiState(fore);
-		WriteString(fore, "\033[H\033[J", 6);
+		WriteString(fore, U"\033[H\033[J", 6);
 		break;
 	case RC_RESET:
 		ResetAnsiState(fore);
 		if (fore->w_zdisplay)
 			zmodem_abort(fore, fore->w_zdisplay);
-		WriteString(fore, "\033c", 2);
+		WriteString(fore, U"\033c", 2);
 		break;
 	case RC_MONITOR:
 		b = fore->w_monitor != MON_OFF;
@@ -1759,7 +1764,7 @@ void DoAction(struct action *act, int key)
 					ACLBYTE(fore->w_mon_notify, i) |= ACLBIT(i);
 			if (fore->w_monitor == MON_OFF)
 				fore->w_monitor = MON_ON;
-			OutputMsg(0, "Window %d (%s) is now being monitored for all activity.", fore->w_number,
+			OutputMsg(0, U"Window %d (%s) is now being monitored for all activity.", fore->w_number,
 				  fore->w_title);
 		} else {
 			if (display)	/* we remove only this user */
@@ -1773,7 +1778,7 @@ void DoAction(struct action *act, int key)
 					break;
 			if (i < 0)
 				fore->w_monitor = MON_OFF;
-			OutputMsg(0, "Window %d (%s) is no longer being monitored for activity.", fore->w_number,
+			OutputMsg(0, U"Window %d (%s) is no longer being monitored for activity.", fore->w_number,
 				  fore->w_title);
 		}
 		break;
@@ -1783,37 +1788,37 @@ void DoAction(struct action *act, int key)
 	case RC_WINDOWLIST:
 		if (!*args)
 			display_windows(0, WLIST_NUM, (Window *)0);
-		else if (!strcmp(*args, "string")) {
+		else if (!u32_strcmp(*args, U"string")) {
 			if (args[1]) {
 				if (wliststr)
 					free(wliststr);
 				wliststr = SaveStr(args[1]);
 			}
 			if (msgok)
-				OutputMsg(0, "windowlist string is '%s'", wliststr);
-		} else if (!strcmp(*args, "title")) {
+				OutputMsg(0, U"windowlist string is '%s'", wliststr);
+		} else if (!u32_strcmp(*args, U"title")) {
 			if (args[1]) {
 				if (wlisttit)
 					free(wlisttit);
 				wlisttit = SaveStr(args[1]);
 			}
 			if (msgok)
-				OutputMsg(0, "windowlist title is '%s'", wlisttit);
+				OutputMsg(0, U"windowlist title is '%s'", wlisttit);
 		} else {
 			int flag = 0;
 			int blank = 0;
 			for (i = 0; i < argc; i++)
 				if (!args[i])
 					continue;
-				else if (!strcmp(args[i], "-m"))
+				else if (!u32_strcmp(args[i], U"-m"))
 					flag |= WLIST_MRU;
-				else if (!strcmp(args[i], "-b"))
+				else if (!u32_strcmp(args[i], U"-b"))
 					blank = 1;
-				else if (!strcmp(args[i], "-g"))
+				else if (!u32_strcmp(args[i], U"-g"))
 					flag |= WLIST_NESTED;
 				else {
 					OutputMsg(0,
-						  "usage: windowlist [-b] [-g] [-m] [string [string] | title [title]]");
+						  U"usage: windowlist [-b] [-g] [-m] [string [string] | title [title]]");
 					break;
 				}
 			if (i == argc)
@@ -1821,10 +1826,10 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_HELP:
-		if (argc == 2 && !strcmp(*args, "-c")) {
+		if (argc == 2 && !u32_strcmp(*args, U"-c")) {
 			struct action *ktabp;
 			if ((ktabp = FindKtab(args[1], 0)) == 0) {
-				OutputMsg(0, "Unknown command class '%s'", args[1]);
+				OutputMsg(0, U"Unknown command class '%s'", args[1]);
 				break;
 			}
 			display_help(args[1], ktabp);
@@ -1836,7 +1841,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_COPY:
 		if (flayer->l_layfn != &WinLf) {
-			OutputMsg(0, "Must be on a window layer");
+			OutputMsg(0, U"Must be on a window layer");
 			break;
 		}
 		MarkRoutine();
@@ -1844,11 +1849,11 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_HISTORY:
 		{
-			static char *pasteargs[] = { ".", 0 };
+			static uint32_t *pasteargs[] = { U".", 0 };
 			static int pasteargl[] = { 1 };
 
 			if (flayer->l_layfn != &WinLf) {
-				OutputMsg(0, "Must be on a window layer");
+				OutputMsg(0, U"Must be on a window layer");
 				break;
 			}
 			if (GetHistory() == 0)
@@ -1860,14 +1865,14 @@ void DoAction(struct action *act, int key)
 		}
 	 /*FALLTHROUGH*/ case RC_PASTE:
 		{
-			char *ss, *dbuf, dch;
+			uint32_t *ss, *dbuf, dch;
 			size_t l = 0;
 
 			/*
 			 * without args we prompt for one(!) register to be pasted in the window
 			 */
 			if ((s = *args) == NULL) {
-				Input("Paste from register:", 1, INP_RAW, ins_reg_fn, NULL, 0);
+				Input(U"Paste from register:", 1, INP_RAW, ins_reg_fn, NULL, 0);
 				break;
 			}
 			if (args[1] == 0 && !fore)	/* no window? */
@@ -1877,7 +1882,7 @@ void DoAction(struct action *act, int key)
 			 * (no window needed here).
 			 */
 			if (args[1] && argl[1] != 1) {
-				OutputMsg(0, "%s: paste destination: character, ^x, or (octal) \\032 expected.",
+				OutputMsg(0, U"%s: paste destination: character, ^x, or (octal) \\032 expected.",
 					  rc_name);
 				break;
 			}
@@ -1893,7 +1898,7 @@ void DoAction(struct action *act, int key)
 				}
 			}
 			if (l == 0) {
-				OutputMsg(0, "empty buffer");
+				OutputMsg(0, U"empty buffer");
 				break;
 			}
 			/*
@@ -1910,7 +1915,7 @@ void DoAction(struct action *act, int key)
 			 * if no shortcut, we construct a buffer
 			 */
 			if ((dbuf = malloc(l)) == 0) {
-				OutputMsg(0, "%s", strnomem);
+				OutputMsg(0, U"%s", strnomem);
 				break;
 			}
 			l = 0;
@@ -1951,17 +1956,17 @@ void DoAction(struct action *act, int key)
 		}
 	case RC_WRITEBUF:
 		if (!user->u_plop.buf) {
-			OutputMsg(0, "empty buffer");
+			OutputMsg(0, U"empty buffer");
 			break;
 		}
 		if (args[0] && args[1])
-			OutputMsg(0, "%s: writebuf: too many arguments", rc_name);
+			OutputMsg(0, U"%s: writebuf: too many arguments", rc_name);
 		else
 			WriteFile(user, args[0], DUMP_EXCHANGE);
 		break;
 	case RC_READBUF:
 		if (args[0] && args[1]) {
-			OutputMsg(0, "%s: readbuf: too many arguments", rc_name);
+			OutputMsg(0, U"%s: readbuf: too many arguments", rc_name);
 			break;
 		}
 		if ((s = ReadFile(args[0] ? args[0] : BufferFile, &n))) {
@@ -1969,7 +1974,7 @@ void DoAction(struct action *act, int key)
 				UserFreeCopyBuffer(user);
 			user->u_plop.len = n;
 			user->u_plop.buf = s;
-			OutputMsg(0, "Read contents of %s into copybuffer",
+			OutputMsg(0, U"Read contents of %s into copybuffer",
                                   args[0] ? args[0] : BufferFile);
 		}
 		break;
@@ -1979,7 +1984,7 @@ void DoAction(struct action *act, int key)
 	case RC_IGNORECASE:
 		(void)ParseSwitch(act, &search_ic);
 		if (msgok)
-			OutputMsg(0, "Will %signore case in searches", search_ic ? "" : "not ");
+			OutputMsg(0, U"Will %signore case in searches", search_ic ? "" : "not ");
 		break;
 	case RC_ESCAPE:
 		if (*argl == 0)
@@ -1987,7 +1992,7 @@ void DoAction(struct action *act, int key)
 		else if (*argl == 2)
 			SetEscape(user, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
 		else {
-			OutputMsg(0, "%s: two characters required after escape.", rc_name);
+			OutputMsg(0, U"%s: two characters required after escape.", rc_name);
 			break;
 		}
 		/* Change defescape if master user. This is because we only
@@ -2002,7 +2007,7 @@ void DoAction(struct action *act, int key)
 		else if (*argl == 2)
 			SetEscape(NULL, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
 		else {
-			OutputMsg(0, "%s: two characters required after defescape.", rc_name);
+			OutputMsg(0, U"%s: two characters required after defescape.", rc_name);
 			break;
 		}
 		CheckEscape();
@@ -2010,7 +2015,7 @@ void DoAction(struct action *act, int key)
 	case RC_CHDIR:
 		s = *args ? *args : home;
 		if (chdir(s) == -1)
-			OutputMsg(errno, "%s", s);
+			OutputMsg(errno, U"%s", s);
 		break;
 	case RC_SHELL:
 	case RC_DEFSHELL:
@@ -2021,48 +2026,48 @@ void DoAction(struct action *act, int key)
 		if (*args)
 			(void)ParseSaveStr(act, &hardcopydir);
 		if (msgok)
-			OutputMsg(0, "hardcopydir is %s\n", hardcopydir && *hardcopydir ? hardcopydir : "<cwd>");
+			OutputMsg(0, U"hardcopydir is %s\n", hardcopydir && *hardcopydir ? hardcopydir : "<cwd>");
 		break;
 	case RC_LOGFILE:
 		if (*args) {
 			char buf[1024];
-			if (args[1] && !(strcmp(*args, "flush"))) {
-				log_flush = atoi(args[1]);
+			if (args[1] && !(u32_strcmp(*args, U"flush"))) {
+				log_flush = u32_atoi(args[1]);
 				if (msgok)
-					OutputMsg(0, "log flush timeout set to %ds\n", log_flush);
+					OutputMsg(0, U"log flush timeout set to %ds\n", log_flush);
 				break;
 			}
 			if (ParseSaveStr(act, &screenlogfile))
 				break;
 			if (fore && fore->w_log)
 				if (DoStartLog(fore, buf, sizeof(buf)))
-					OutputMsg(0, "Error opening logfile \"%s\"", buf);
+					OutputMsg(0, U"Error opening logfile \"%s\"", buf);
 			if (!msgok)
 				break;
 		}
-		OutputMsg(0, "logfile is '%s'", screenlogfile);
+		OutputMsg(0, U"logfile is '%s'", screenlogfile);
 		break;
 	case RC_LOGTSTAMP:
-		if (!*args || !strcmp(*args, "on") || !strcmp(*args, "off")) {
+		if (!*args || !u32_strcmp(*args, U"on") || !u32_strcmp(*args, U"off")) {
 			if (ParseSwitch(act, &logtstamp_on) == 0 && msgok)
-				OutputMsg(0, "timestamps turned %s", logtstamp_on ? "on" : "off");
-		} else if (!strcmp(*args, "string")) {
+				OutputMsg(0, U"timestamps turned %s", logtstamp_on ? "on" : "off");
+		} else if (!u32_strcmp(*args, U"string")) {
 			if (args[1]) {
 				if (logtstamp_string)
 					free(logtstamp_string);
 				logtstamp_string = SaveStr(args[1]);
 			}
 			if (msgok)
-				OutputMsg(0, "logfile timestamp is '%s'", logtstamp_string);
-		} else if (!strcmp(*args, "after")) {
+				OutputMsg(0, U"logfile timestamp is '%s'", logtstamp_string);
+		} else if (!u32_strcmp(*args, U"after")) {
 			if (args[1]) {
-				logtstamp_after = atoi(args[1]);
+				logtstamp_after = u32_atoi(args[1]);
 				if (!msgok)
 					break;
 			}
-			OutputMsg(0, "timestamp printed after %ds\n", logtstamp_after);
+			OutputMsg(0, U"timestamp printed after %ds\n", logtstamp_after);
 		} else
-			OutputMsg(0, "usage: logtstamp [after [n]|string [str]|on|off]");
+			OutputMsg(0, U"usage: logtstamp [after [n]|string [str]|on|off]");
 		break;
 	case RC_SHELLTITLE:
 		(void)ParseSaveStr(act, &nwin_default.aka);
@@ -2071,7 +2076,7 @@ void DoAction(struct action *act, int key)
 	case RC_TERMCAPINFO:
 	case RC_TERMINFO:
 		if (!rc_name || !*rc_name)
-			OutputMsg(0, "Sorry, too late now. Place that in your .screenrc file.");
+			OutputMsg(0, U"Sorry, too late now. Place that in your .screenrc file.");
 		break;
 	case RC_SLEEP:
 		break;		/* Already handled */
@@ -2079,8 +2084,8 @@ void DoAction(struct action *act, int key)
 		s = NULL;
 		if (ParseSaveStr(act, &s))
 			break;
-		if (strlen(s) > MAXTERMLEN) {
-			OutputMsg(0, "%s: term: argument too long ( < %d)", rc_name, MAXTERMLEN);
+		if (u32_strlen(s) > MAXTERMLEN) {
+			OutputMsg(0, U"%s: term: argument too long ( < %d)", rc_name, MAXTERMLEN);
 			free(s);
 			break;
 		}
@@ -2096,12 +2101,12 @@ void DoAction(struct action *act, int key)
 		 * user typed ^A:echo... well, echo isn't FinishRc's job,
 		 * but as he wanted to test us, we show good will
 		 */
-		if (argc > 1 && !strcmp(*args, "-n")) {
+		if (argc > 1 && !u32_strcmp(*args, U"-n")) {
 			args++;
 			argc--;
 		}
 		s = *args;
-		if (argc > 1 && !strcmp(*args, "-p")) {
+		if (argc > 1 && !u32_strcmp(*args, U"-p")) {
 			args++;
 			argc--;
 			s = *args;
@@ -2109,9 +2114,9 @@ void DoAction(struct action *act, int key)
 				s = MakeWinMsg(s, fore, '%');
 		}
 		if (s)
-			OutputMsg(0, "%s", s);
+			OutputMsg(0, U"%s", s);
 		else {
-			OutputMsg(0, "%s: 'echo [-n] [-p] \"string\"' expected.", rc_name);
+			OutputMsg(0, U"%s: 'echo [-n] [-p] \"string\"' expected.", rc_name);
 			queryflag = -1;
 		}
 		break;
@@ -2120,7 +2125,7 @@ void DoAction(struct action *act, int key)
 		if (*args == 0) {
 			char buf[256];
 			AddXChars(buf, sizeof(buf), BellString);
-			OutputMsg(0, "bell_msg is '%s'", buf);
+			OutputMsg(0, U"bell_msg is '%s'", buf);
 			break;
 		}
 		(void)ParseSaveStr(act, &BellString);
@@ -2131,7 +2136,7 @@ void DoAction(struct action *act, int key)
 		else if (ParseSaveStr(act, &BufferFile))
 			break;
 		if (msgok)
-			OutputMsg(0, "Bufferfile is now '%s'", BufferFile);
+			OutputMsg(0, U"Bufferfile is now '%s'", BufferFile);
 		break;
 	case RC_ACTIVITY:
 		(void)ParseSaveStr(act, &ActivityString);
@@ -2140,7 +2145,7 @@ void DoAction(struct action *act, int key)
 		if (*args == 0) {
 			char buf[256];
 			AddXChars(buf, sizeof(buf), PowDetachString);
-			OutputMsg(0, "pow_detach_msg is '%s'", buf);
+			OutputMsg(0, U"pow_detach_msg is '%s'", buf);
 			break;
 		}
 		(void)ParseSaveStr(act, &PowDetachString);
@@ -2148,13 +2153,13 @@ void DoAction(struct action *act, int key)
 #if defined(ENABLE_UTMP) && defined(LOGOUTOK)
 	case RC_LOGIN:
 		b = fore->w_slot != (slot_t)(-1);
-		if (*args && !strcmp(*args, "always")) {
+		if (*args && !u32_strcmp(*args, U"always")) {
 			fore->w_lflag = 3;
 			if (!displays && b)
 				SlotToggle(b);
 			break;
 		}
-		if (*args && !strcmp(*args, "attached")) {
+		if (*args && !u32_strcmp(*args, U"attached")) {
 			fore->w_lflag = 1;
 			if (!displays && b)
 				SlotToggle(0);
@@ -2164,9 +2169,9 @@ void DoAction(struct action *act, int key)
 			SlotToggle(b);
 		break;
 	case RC_DEFLOGIN:
-		if (!strcmp(*args, "always"))
+		if (!u32_strcmp(*args, U"always"))
 			nwin_default.lflag |= 2;
-		else if (!strcmp(*args, "attached"))
+		else if (!u32_strcmp(*args, U"attached"))
 			nwin_default.lflag &= ~2;
 		else if (ParseOnOff(act, &b) == 0)
 			nwin_default.lflag = b ? 1 : 0;
@@ -2212,7 +2217,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_MOUSETRACK:
 		if (!args[0]) {
-			OutputMsg(0, "Mouse tracking for this display is turned %s", D_mousetrack ? "on" : "off");
+			OutputMsg(0, U"Mouse tracking for this display is turned %s", D_mousetrack ? "on" : "off");
 		} else if (ParseOnOff(act, &b) == 0) {
 			D_mousetrack = b ? 1000 : 0;
 			if (D_fore)
@@ -2225,39 +2230,39 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_VERBOSE:
 		if (!*args)
-			OutputMsg(0, "W%s echo command when creating windows.", VerboseCreate ? "ill" : "on't");
+			OutputMsg(0, U"W%s echo command when creating windows.", VerboseCreate ? "ill" : "on't");
 		else
 			ParseOnOff(act, &VerboseCreate);
 		break;
 	case RC_HARDSTATUS:
 		if (display) {
-			OutputMsg(0, "%s", "");	/* wait till mintime (keep gcc quiet) */
+			OutputMsg(0, U"%s", "");	/* wait till mintime (keep gcc quiet) */
 			RemoveStatus();
 		}
-		if (args[0] && strcmp(args[0], "on") && strcmp(args[0], "off")) {
+		if (args[0] && u32_strcmp(args[0], U"on") && u32_strcmp(args[0], U"off")) {
 			Display *olddisplay = display;
 			int old_use, new_use = -1;
 
 			s = args[0];
-			if (!strncmp(s, "always", 6))
+			if (!u32_strncmp(s, U"always", 6))
 				s += 6;
-			if (!strcmp(s, "firstline"))
+			if (!u32_strcmp(s, U"firstline"))
 				new_use = HSTATUS_FIRSTLINE;
-			else if (!strcmp(s, "lastline"))
+			else if (!u32_strcmp(s, U"lastline"))
 				new_use = HSTATUS_LASTLINE;
-			else if (!strcmp(s, "ignore"))
+			else if (!u32_strcmp(s, U"ignore"))
 				new_use = HSTATUS_IGNORE;
-			else if (!strcmp(s, "message"))
+			else if (!u32_strcmp(s, U"message"))
 				new_use = HSTATUS_MESSAGE;
-			else if (!strcmp(args[0], "string")) {
+			else if (!u32_strcmp(args[0], U"string")) {
 				if (!args[1]) {
-					char buf[256];
+					uint32_t buf[256];
 					AddXChars(buf, sizeof(buf), hstatusstring);
-					OutputMsg(0, "hardstatus string is '%s'", buf);
+					OutputMsg(0, U"hardstatus string is '%s'", buf);
 					break;
 				}
 			} else {
-				OutputMsg(0, "%s: usage: hardstatus [always]lastline|ignore|message|string [string]",
+				OutputMsg(0, U"%s: usage: hardstatus [always]lastline|ignore|message|string [string]",
 					  rc_name);
 				break;
 			}
@@ -2268,7 +2273,7 @@ void DoAction(struct action *act, int key)
 					new_use = hardstatusemu & ~HSTATUS_ALWAYS;
 					if (D_HS && s == args[0])
 						new_use = HSTATUS_HS;
-					ShowHStatus((char *)0);
+					ShowHStatus((uint32_t *)0);
 					old_use = D_has_hstatus;
 					D_has_hstatus = new_use;
 					if ((new_use == HSTATUS_LASTLINE && old_use != HSTATUS_LASTLINE)
@@ -2283,7 +2288,7 @@ void DoAction(struct action *act, int key)
 			if (args[1]) {
 				if (hstatusstring)
 					free(hstatusstring);
-				hstatusstring = SaveStr(args[1]);
+				hstatusstring = u32_strdup(args[1]);
 				for (display = displays; display; display = display->d_next)
 					RefreshHStatus();
 			}
@@ -2292,26 +2297,26 @@ void DoAction(struct action *act, int key)
 		}
 		(void)ParseSwitch(act, &use_hardstatus);
 		if (msgok)
-			OutputMsg(0, "messages displayed on %s", use_hardstatus ? "hardstatus line" : "window");
+			OutputMsg(0, U"messages displayed on %s", use_hardstatus ? "hardstatus line" : "window");
 		break;
 	case RC_STATUS:
 		if (display) {
-			Msg(0, "%s", "");	/* wait till mintime (keep gcc quiet) */
+			Msg(0, U"%s", "");	/* wait till mintime (keep gcc quiet) */
 			RemoveStatus();
 		}
 		{
 			int	i = 0;
 			while ( (i <= 1) && args[i]) {
-				if ( (strcmp(args[i], "top") == 0) || (strcmp(args[i], "up") == 0) ) {
+				if ( (u32_strcmp(args[i], U"top") == 0) || (u32_strcmp(args[i], U"up") == 0) ) {
 					statuspos.row = STATUS_TOP;
-				} else if ( (strcmp(args[i], "bottom") == 0) || (strcmp(args[i], "down") == 0) ) {
+				} else if ( (u32_strcmp(args[i], U"bottom") == 0) || (u32_strcmp(args[i], U"down") == 0) ) {
 					statuspos.row = STATUS_BOTTOM;
-				} else if (strcmp(args[i], "left") == 0) {
+				} else if (u32_strcmp(args[i], U"left") == 0) {
 					statuspos.col = STATUS_LEFT;
-				} else if (strcmp(args[i], "right") == 0) {
+				} else if (u32_strcmp(args[i], U"right") == 0) {
 					statuspos.col = STATUS_RIGHT;
 				} else {
-					Msg(0, "%s: usage: status [top|up|down|bottom] [left|right]", rc_name);
+					Msg(0, U"%s: usage: status [top|up|down|bottom] [left|right]", rc_name);
 					break;
 				}
 				i++;
@@ -2319,36 +2324,36 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_CAPTION:
-		if (strcmp(args[0], "top") == 0) {
+		if (u32_strcmp(args[0], U"top") == 0) {
 			captiontop = 1;
 			args++;
-		} else if(strcmp(args[0], "bottom") == 0) {
+		} else if(u32_strcmp(args[0], U"bottom") == 0) {
 			captiontop = 0;
 			args++;
 		}
-		if (strcmp(args[0], "always") == 0 || strcmp(args[0], "splitonly") == 0) {
+		if (u32_strcmp(args[0], U"always") == 0 || u32_strcmp(args[0], U"splitonly") == 0) {
 			Display *olddisplay = display;
 
 			captionalways = args[0][0] == 'a';
 			for (display = displays; display; display = display->d_next)
 				ChangeScreenSize(D_width, D_height, 1);
 			display = olddisplay;
-		} else if (strcmp(args[0], "string") == 0) {
+		} else if (u32_strcmp(args[0], U"string") == 0) {
 			if (!args[1]) {
 				char buf[256];
 				AddXChars(buf, sizeof(buf), captionstring);
-				OutputMsg(0, "caption string is '%s'", buf);
+				OutputMsg(0, U"caption string is '%s'", buf);
 				break;
 			}
 		} else {
-			OutputMsg(0, "%s: usage: caption [ top | bottom ] always|splitonly|string <string>", rc_name);
+			OutputMsg(0, U"%s: usage: caption [ top | bottom ] always|splitonly|string <string>", rc_name);
 			break;
 		}
 		if (!args[1])
 			break;
 		if (captionstring)
 			free(captionstring);
-		captionstring = SaveStr(args[1]);
+		captionstring = u32_strdup(args[1]);
 		RedisplayDisplays(0);
 		break;
 	case RC_CONSOLE:
@@ -2358,12 +2363,12 @@ void DoAction(struct action *act, int key)
 		if (TtyGrabConsole(fore->w_ptyfd, b, rc_name))
 			break;
 		if (b == 0)
-			OutputMsg(0, "%s: releasing console %s", rc_name, HostName);
+			OutputMsg(0, U"%s: releasing console %s", rc_name, HostName);
 		else if (console_window)
-			OutputMsg(0, "%s: stealing console %s from window %d (%s)", rc_name,
+			OutputMsg(0, U"%s: stealing console %s from window %d (%s)", rc_name,
 				  HostName, console_window->w_number, console_window->w_title);
 		else
-			OutputMsg(0, "%s: grabbing console %s", rc_name, HostName);
+			OutputMsg(0, U"%s: grabbing console %s", rc_name, HostName);
 		console_window = b ? fore : 0;
 		break;
 	case RC_ALLPARTIAL:
@@ -2372,7 +2377,7 @@ void DoAction(struct action *act, int key)
 		if (!all_norefresh && fore)
 			Activate(-1);
 		if (msgok)
-			OutputMsg(0, all_norefresh ? "No refresh on window change!\n" : "Window specific refresh\n");
+			OutputMsg(0, all_norefresh ? U"No refresh on window change!\n" : U"Window specific refresh\n");
 		break;
 	case RC_PARTIAL:
 		(void)ParseSwitch(act, &b);
@@ -2382,21 +2387,21 @@ void DoAction(struct action *act, int key)
 		if (ParseSwitch(act, &visual_bell) || !msgok)
 			break;
 		if (visual_bell == 0)
-			OutputMsg(0, "switched to audible bell.");
+			OutputMsg(0, U"switched to audible bell.");
 		else
-			OutputMsg(0, "switched to visual bell.");
+			OutputMsg(0, U"switched to visual bell.");
 		break;
 	case RC_VBELLWAIT:
 		if (ParseNum1000(act, &VBellWait) == 0 && msgok)
-			OutputMsg(0, "vbellwait set to %.10g seconds", VBellWait / 1000.);
+			OutputMsg(0, U"vbellwait set to %.10g seconds", VBellWait / 1000.);
 		break;
 	case RC_MSGWAIT:
 		if (ParseNum1000(act, &MsgWait) == 0 && msgok)
-			OutputMsg(0, "msgwait set to %.10g seconds", MsgWait / 1000.);
+			OutputMsg(0, U"msgwait set to %.10g seconds", MsgWait / 1000.);
 		break;
 	case RC_MSGMINWAIT:
 		if (ParseNum1000(act, &MsgMinWait) == 0 && msgok)
-			OutputMsg(0, "msgminwait set to %.10g seconds", MsgMinWait / 1000.);
+			OutputMsg(0, U"msgminwait set to %.10g seconds", MsgMinWait / 1000.);
 		break;
 	case RC_SILENCEWAIT:
 		if (ParseNum(act, &SilenceWait))
@@ -2406,7 +2411,7 @@ void DoAction(struct action *act, int key)
 		for (p = windows; p; p = p->w_next)
 			p->w_silencewait = SilenceWait;
 		if (msgok)
-			OutputMsg(0, "silencewait set to %d seconds", SilenceWait);
+			OutputMsg(0, U"silencewait set to %d seconds", SilenceWait);
 		break;
 	case RC_BUMPRIGHT:
 		if (fore->w_number < NextWindow())
@@ -2421,7 +2426,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_NUMBER:
 		if (*args == 0)
-			OutputMsg(0, queryflag >= 0 ? "%d (%s)" : "This is window %d (%s).", fore->w_number,
+			OutputMsg(0, queryflag >= 0 ? U"%d (%s)" : U"This is window %d (%s).", fore->w_number,
 				  fore->w_title);
 		else {
 			int old = fore->w_number;
@@ -2451,23 +2456,23 @@ void DoAction(struct action *act, int key)
 
 	case RC_ZOMBIE_TIMEOUT:
 		if (argc != 1) {
-			Msg(0, "Setting zombie polling needs a timeout arg\n");
+			Msg(0, U"Setting zombie polling needs a timeout arg\n");
 			break;
 		}
 
-		nwin_default.poll_zombie_timeout = atoi(args[0]);
+		nwin_default.poll_zombie_timeout = u32_atoi(args[0]);
 		if (fore)
 			fore->w_poll_zombie_timeout = nwin_default.poll_zombie_timeout;
 		break;
 	case RC_SORT:
 		i = 0;
 		if (!wtab[i] || !wtab[i + 1]) {
-			Msg(0, "Less than two windows, sorting makes no sense.\n");
+			Msg(0, U"Less than two windows, sorting makes no sense.\n");
 			break;
 		}
 		for (i = 0; wtab[i + 1] != NULL; i++) {
 			for (n = i, nr = i; wtab[n + 1] != NULL; n++) {
-				if (strcmp(wtab[nr]->w_title, wtab[n + 1]->w_title) > 0) {
+				if (u32_strcmp(wtab[nr]->w_title, wtab[n + 1]->w_title) > 0) {
 					nr = n + 1;
 				}
 			}
@@ -2499,7 +2504,7 @@ void DoAction(struct action *act, int key)
 
 			if (!msgok)
 				break;
-			OutputMsg(0, "The window is now being monitored for %d sec. silence.", fore->w_silencewait);
+			OutputMsg(0, U"The window is now being monitored for %d sec. silence.", fore->w_silencewait);
 		} else {
 			if (display)	/* we remove only this user */
 				ACLBYTE(fore->w_lio_notify, D_user->u_id)
@@ -2516,7 +2521,7 @@ void DoAction(struct action *act, int key)
 			}
 			if (!msgok)
 				break;
-			OutputMsg(0, "The window is no longer being monitored for silence.");
+			OutputMsg(0, U"The window is no longer being monitored for silence.");
 		}
 		break;
 	case RC_DEFSCROLLBACK:
@@ -2524,17 +2529,17 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_SCROLLBACK:
 		if (flayer->l_layfn == &MarkLf) {
-			OutputMsg(0, "Cannot resize scrollback buffer in copy/scrollback mode.");
+			OutputMsg(0, U"Cannot resize scrollback buffer in copy/scrollback mode.");
 			break;
 		}
 		(void)ParseNum(act, &n);
 		ChangeWindowSize(fore, fore->w_width, fore->w_height, n);
 		if (msgok)
-			OutputMsg(0, "scrollback set to %d", fore->w_histheight);
+			OutputMsg(0, U"scrollback set to %d", fore->w_histheight);
 		break;
 	case RC_SESSIONNAME:
 		if (*args == 0)
-			OutputMsg(0, "This session is named '%s'\n", SocketName);
+			OutputMsg(0, U"This session is named '%s'\n", SocketName);
 		else {
 			char buf[MAXPATHLEN];
 
@@ -2542,7 +2547,7 @@ void DoAction(struct action *act, int key)
 			if (ParseSaveStr(act, &s))
 				break;
 			if (!*s || strlen(s) + (SocketName - SocketPath) > MAXPATHLEN - 13 || strchr(s, '/')) {
-				OutputMsg(0, "%s: bad session name '%s'\n", rc_name, s);
+				OutputMsg(0, U"%s: bad session name '%s'\n", rc_name, s);
 				free(s);
 				break;
 			}
@@ -2550,11 +2555,11 @@ void DoAction(struct action *act, int key)
 			sprintf(buf + (SocketName - SocketPath), "%d.%s", (int)getpid(), s);
 			free(s);
 			if ((access(buf, F_OK) == 0) || (errno != ENOENT)) {
-				OutputMsg(0, "%s: inappropriate path: '%s'.", rc_name, buf);
+				OutputMsg(0, U"%s: inappropriate path: '%s'.", rc_name, buf);
 				break;
 			}
 			if (rename(SocketPath, buf)) {
-				OutputMsg(errno, "%s: failed to rename(%s, %s)", rc_name, SocketPath, buf);
+				OutputMsg(errno, U"%s: failed to rename(%s, %s)", rc_name, SocketPath, buf);
 				break;
 			}
 			strncpy(SocketPath, buf, MAXPATHLEN + 2 * MAXSTR);
@@ -2580,16 +2585,16 @@ void DoAction(struct action *act, int key)
 	case RC_SLOWPASTE:
 		if (*args == 0)
 			OutputMsg(0, fore->w_slowpaste ?
-				  "Slowpaste in window %d is %d milliseconds." :
-				  "Slowpaste in window %d is unset.", fore->w_number, fore->w_slowpaste);
+				  U"Slowpaste in window %d is %d milliseconds." :
+				  U"Slowpaste in window %d is unset.", fore->w_number, fore->w_slowpaste);
 		else if (ParseNum(act, &fore->w_slowpaste) == 0 && msgok)
 			OutputMsg(0, fore->w_slowpaste ?
-				  "Slowpaste in window %d set to %d milliseconds." :
-				  "Slowpaste in window %d now unset.", fore->w_number, fore->w_slowpaste);
+				  U"Slowpaste in window %d set to %d milliseconds." :
+				  U"Slowpaste in window %d now unset.", fore->w_number, fore->w_slowpaste);
 		break;
 	case RC_MARKKEYS:
 		if (CompileKeys(*args, *argl, mark_key_tab)) {
-			OutputMsg(0, "%s: markkeys: syntax error.", rc_name);
+			OutputMsg(0, U"%s: markkeys: syntax error.", rc_name);
 			break;
 		}
 		break;
@@ -2598,7 +2603,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_COMPACTHIST:
 		if (ParseSwitch(act, &compacthist) == 0 && msgok)
-			OutputMsg(0, "%scompacting history lines", compacthist ? "" : "not ");
+			OutputMsg(0, U"%scompacting history lines", compacthist ? "" : "not ");
 		break;
 	case RC_HARDCOPY_APPEND:
 		(void)ParseOnOff(act, &hardcopy_append);
@@ -2607,7 +2612,7 @@ void DoAction(struct action *act, int key)
 		if (*args == 0) {
 			char buf[256];
 			AddXChars(buf, sizeof(buf), VisualBellString);
-			OutputMsg(0, "vbell_msg is '%s'", buf);
+			OutputMsg(0, U"vbell_msg is '%s'", buf);
 			break;
 		}
 		(void)ParseSaveStr(act, &VisualBellString);
@@ -2616,12 +2621,12 @@ void DoAction(struct action *act, int key)
 		if (ParseBase(act, *args, &n, 8, "octal"))
 			break;
 		if (n < 0 || n > 0777) {
-			OutputMsg(0, "%s: mode: Invalid tty mode %o", rc_name, n);
+			OutputMsg(0, U"%s: mode: Invalid tty mode %o", rc_name, n);
 			break;
 		}
 		TtyMode = n;
 		if (msgok)
-			OutputMsg(0, "Ttymode set to %03o", TtyMode);
+			OutputMsg(0, U"Ttymode set to %03o", TtyMode);
 		break;
 	case RC_AUTODETACH:
 		(void)ParseOnOff(act, &auto_detach);
@@ -2635,14 +2640,14 @@ void DoAction(struct action *act, int key)
 			int kflag = 0;
 
 			for (;;) {
-				if (argc > 2 && !strcmp(*args, "-c")) {
+				if (argc > 2 && !u32_strcmp(*args, U"-c")) {
 					ktabp = FindKtab(args[1], 1);
 					if (ktabp == 0)
 						break;
 					args += 2;
 					argl += 2;
 					argc -= 2;
-				} else if (argc > 1 && !strcmp(*args, "-k")) {
+				} else if (argc > 1 && !u32_strcmp(*args, U"-k")) {
 					kflag = 1;
 					args++;
 					argl++;
@@ -2652,22 +2657,22 @@ void DoAction(struct action *act, int key)
 			}
 			if (kflag) {
 				for (n = 0; n < KMAP_KEYS; n++)
-					if (strcmp(term[n + T_CAPS].tcname, *args) == 0)
+					if (u32_strcmp(term[n + T_CAPS].tcname, *args) == 0)
 						break;
 				if (n == KMAP_KEYS) {
-					OutputMsg(0, "%s: bind: unknown key '%s'", rc_name, *args);
+					OutputMsg(0, U"%s: bind: unknown key '%s'", rc_name, *args);
 					break;
 				}
 				n += 256;
 			} else if (*argl != 1) {
-				OutputMsg(0, "%s: bind: character, ^x, or (octal) \\032 expected.", rc_name);
+				OutputMsg(0, U"%s: bind: character, ^x, or (octal) \\032 expected.", rc_name);
 				break;
 			} else
 				n = (unsigned char)args[0][0];
 
 			if (args[1]) {
 				if ((i = FindCommnr(args[1])) == RC_ILLEGAL) {
-					OutputMsg(0, "%s: bind: unknown command '%s'", rc_name, args[1]);
+					OutputMsg(0, U"%s: bind: unknown command '%s'", rc_name, args[1]);
 					break;
 				}
 				if (CheckArgNum(i, args + 2) < 0)
@@ -2687,27 +2692,27 @@ void DoAction(struct action *act, int key)
 			struct kmap_ext *kme = NULL;
 
 			for (; *args && **args == '-'; args++, argl++) {
-				if (strcmp(*args, "-t") == 0)
+				if (u32_strcmp(*args, U"-t") == 0)
 					fl = KMAP_NOTIMEOUT;
-				else if (strcmp(*args, "-k") == 0)
+				else if (u32_strcmp(*args, U"-k") == 0)
 					kf = 1;
-				else if (strcmp(*args, "-a") == 0)
+				else if (u32_strcmp(*args, U"-a") == 0)
 					af = 1;
-				else if (strcmp(*args, "-d") == 0)
+				else if (u32_strcmp(*args, U"-d") == 0)
 					df = 1;
-				else if (strcmp(*args, "-m") == 0)
+				else if (u32_strcmp(*args, U"-m") == 0)
 					mf = 1;
-				else if (strcmp(*args, "--") == 0) {
+				else if (u32_strcmp(*args, U"--") == 0) {
 					args++;
 					argl++;
 					break;
 				} else {
-					OutputMsg(0, "%s: bindkey: invalid option %s", rc_name, *args);
+					OutputMsg(0, U"%s: bindkey: invalid option %s", rc_name, *args);
 					return;
 				}
 			}
 			if (df && mf) {
-				OutputMsg(0, "%s: bindkey: -d does not work with -m", rc_name);
+				OutputMsg(0, U"%s: bindkey: -d does not work with -m", rc_name);
 				break;
 			}
 			if (*args == 0) {
@@ -2721,11 +2726,11 @@ void DoAction(struct action *act, int key)
 			}
 			if (kf == 0) {
 				if (af) {
-					OutputMsg(0, "%s: bindkey: -a only works with -k", rc_name);
+					OutputMsg(0, U"%s: bindkey: -a only works with -k", rc_name);
 					break;
 				}
 				if (*argl == 0) {
-					OutputMsg(0, "%s: bindkey: empty string makes no sense", rc_name);
+					OutputMsg(0, U"%s: bindkey: empty string makes no sense", rc_name);
 					break;
 				}
 				for (i = 0, kme = kmap_exts; i < kmap_extn; i++, kme++)
@@ -2738,7 +2743,7 @@ void DoAction(struct action *act, int key)
 						break;
 				if (i == kmap_extn) {
 					if (!args[1]) {
-						OutputMsg(0, "%s: bindkey: keybinding not found", rc_name);
+						OutputMsg(0, U"%s: bindkey: keybinding not found", rc_name);
 						break;
 					}
 					kmap_extn += 8;
@@ -2767,7 +2772,7 @@ void DoAction(struct action *act, int key)
 					if (strcmp(term[i].tcname, *args) == 0)
 						break;
 				if (i == T_OCAPS) {
-					OutputMsg(0, "%s: bindkey: unknown key '%s'", rc_name, *args);
+					OutputMsg(0, U"%s: bindkey: unknown key '%s'", rc_name, *args);
 					break;
 				}
 				if (af && i >= T_CURSOR && i < T_OCAPS)
@@ -2778,7 +2783,7 @@ void DoAction(struct action *act, int key)
 			}
 			if (args[1]) {
 				if ((newnr = FindCommnr(args[1])) == RC_ILLEGAL) {
-					OutputMsg(0, "%s: bindkey: unknown command '%s'", rc_name, args[1]);
+					OutputMsg(0, U"%s: bindkey: unknown command '%s'", rc_name, args[1]);
 					break;
 				}
 				if (CheckArgNum(newnr, args + 2) < 0)
@@ -2810,13 +2815,13 @@ void DoAction(struct action *act, int key)
 			if (ParseNum(act, &n))
 				break;
 			if (n < 0) {
-				OutputMsg(0, "%s: maptimeout: illegal time %d", rc_name, n);
+				OutputMsg(0, U"%s: maptimeout: illegal time %d", rc_name, n);
 				break;
 			}
 			maptimeout = n;
 		}
 		if (*args == 0 || msgok)
-			OutputMsg(0, "maptimeout is %dms", maptimeout);
+			OutputMsg(0, U"maptimeout is %dms", maptimeout);
 		break;
 	case RC_MAPNOTNEXT:
 		D_dontmap = 1;
@@ -2834,7 +2839,7 @@ void DoAction(struct action *act, int key)
 		if (UserDel(args[0], NULL))
 			break;
 		if (msgok)
-			OutputMsg(0, "%s removed from acl database", args[0]);
+			OutputMsg(0, U"%s removed from acl database", args[0]);
 		break;
 	case RC_ACLGRP:
 		/*
@@ -2843,11 +2848,11 @@ void DoAction(struct action *act, int key)
 		 * with chacl in the usual way.
 		 */
 		if (args[1]) {
-			if (strcmp(args[1], "none")) {	/* link a user to another user */
+			if (u32_strcmp(args[1], U"none")) {	/* link a user to another user */
 				if (AclLinkUser(args[0], args[1]))
 					break;
 				if (msgok)
-					OutputMsg(0, "User %s joined acl-group %s", args[0], args[1]);
+					OutputMsg(0, U"User %s joined acl-group %s", args[0], args[1]);
 			} else {	/* remove all groups from user */
 
 				struct acluser *u;
@@ -2869,7 +2874,7 @@ void DoAction(struct action *act, int key)
 
 			if (!(u = *FindUserPtr(args[0]))) {
 				if (msgok)
-					OutputMsg(0, "User %s does not exist.", args[0]);
+					OutputMsg(0, U"User %s does not exist.", args[0]);
 				break;
 			}
 			g = u->u_group;
@@ -2883,7 +2888,7 @@ void DoAction(struct action *act, int key)
 			}
 			if (ngroups)
 				*(--p) = '\0';
-			OutputMsg(0, "%s's group%s: %s.", args[0], (ngroups == 1) ? "" : "s",
+			OutputMsg(0, U"%s's group%s: %s.", args[0], (ngroups == 1) ? "" : "s",
 				  (ngroups == 0) ? "none" : buf);
 		}
 		break;
@@ -2893,7 +2898,7 @@ void DoAction(struct action *act, int key)
 			char *err = 0;
 
 			if (AclUmask(display ? D_user : users, s, &err))
-				OutputMsg(0, "umask: %s\n", err);
+				OutputMsg(0, U"umask: %s\n", err);
 		}
 		break;
 	case RC_MULTIUSER:
@@ -2902,7 +2907,7 @@ void DoAction(struct action *act, int key)
 		multi = b ? "" : 0;
 		chsock();
 		if (msgok)
-			OutputMsg(0, "Multiuser mode %s", multi ? "enabled" : "disabled");
+			OutputMsg(0, U"Multiuser mode %s", multi ? "enabled" : "disabled");
 		break;
 	case RC_EXEC:
 		winexec(args);
@@ -2917,11 +2922,11 @@ void DoAction(struct action *act, int key)
 		else
 			break;
 		if (msgok && j == -1)
-			OutputMsg(0, "display set to blocking mode");
+			OutputMsg(0, U"display set to blocking mode");
 		else if (msgok && j == 0)
-			OutputMsg(0, "display set to nonblocking mode, no timeout");
+			OutputMsg(0, U"display set to nonblocking mode, no timeout");
 		else if (msgok)
-			OutputMsg(0, "display set to nonblocking mode, %.10gs timeout", j / 1000.);
+			OutputMsg(0, U"display set to nonblocking mode, %.10gs timeout", j / 1000.);
 		D_nonblock = j;
 		if (D_nonblock <= 0)
 			evdeq(&D_blockedev);
@@ -2943,12 +2948,12 @@ void DoAction(struct action *act, int key)
 	case RC_GR:
 		if (ParseSwitch(act, &b) == 0 && msgok) {
 			fore->w_gr = b ? 1 : 0;
-			OutputMsg(0, "Will %suse GR", fore->w_gr ? "" : "not ");
+			OutputMsg(0, U"Will %suse GR", fore->w_gr ? "" : "not ");
 		}
 		break;
 	case RC_C1:
 		if (ParseSwitch(act, &fore->w_c1) == 0 && msgok)
-			OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
+			OutputMsg(0, U"Will %suse C1", fore->w_c1 ? "" : "not ");
 		break;
 	case RC_PRINTCMD:
 		if (*args) {
@@ -2960,9 +2965,9 @@ void DoAction(struct action *act, int key)
 		}
 		if (*args == 0 || msgok) {
 			if (printcmd)
-				OutputMsg(0, "using '%s' as print command", printcmd);
+				OutputMsg(0, U"using '%s' as print command", printcmd);
 			else
-				OutputMsg(0, "using termcap entries for printing");
+				OutputMsg(0, U"using termcap entries for printing");
 			break;
 		}
 		break;
@@ -2970,24 +2975,24 @@ void DoAction(struct action *act, int key)
 	case RC_DIGRAPH:
 		if (argl && argl[0] > 0 && args[1] && argl[1] > 0) {
 			if (argl[0] != 2) {
-				OutputMsg(0, "Two characters expected to define a digraph");
+				OutputMsg(0, U"Two characters expected to define a digraph");
 				break;
 			}
 			i = digraph_find(args[0]);
 			digraphs[i].d[0] = args[0][0];
 			digraphs[i].d[1] = args[0][1];
 			if (!parse_input_int(args[1], argl[1], &digraphs[i].value)) {
-				if (!(digraphs[i].value = atoi(args[1]))) {
+				if (!(digraphs[i].value = u32_atoi(args[1]))) {
 					if (!args[1][1])
 						digraphs[i].value = (int)args[1][0];
 				}
 			}
 			break;
 		}
-		Input("Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL, 0);
+		Input(U"Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL, 0);
 		if (*args && **args) {
 			s = *args;
-			len = strlen(s);
+			len = u32_strlen(s);
 			LayProcess(&s, &len);
 		}
 		break;
@@ -2998,7 +3003,7 @@ void DoAction(struct action *act, int key)
 			*buf = 0;
 			if (nwin_default.hstatus)
 				AddXChars(buf, sizeof(buf), nwin_default.hstatus);
-			OutputMsg(0, "default hstatus is '%s'", buf);
+			OutputMsg(0, U"default hstatus is '%s'", buf);
 			break;
 		}
 		(void)ParseSaveStr(act, &nwin_default.hstatus);
@@ -3017,14 +3022,14 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_RENDITION:
 		i = -1;
-		if (strcmp(args[0], "bell") == 0) {
+		if (u32_strcmp(args[0], U"bell") == 0) {
 			i = REND_BELL;
-		} else if (strcmp(args[0], "monitor") == 0) {
+		} else if (u32_strcmp(args[0], U"monitor") == 0) {
 			i = REND_MONITOR;
-		} else if (strcmp(args[0], "silence") == 0) {
+		} else if (u32_strcmp(args[0], U"silence") == 0) {
 			i = REND_SILENCE;
-		} else if (strcmp(args[0], "so") != 0) {
-			OutputMsg(0, "Invalid option '%s' for rendition", args[0]);
+		} else if (u32_strcmp(args[0], U"so") != 0) {
+			OutputMsg(0, U"Invalid option '%s' for rendition", args[0]);
 			break;
 		}
 
@@ -3050,7 +3055,7 @@ void DoAction(struct action *act, int key)
 			WindowChanged((Window *)0, 0);
 		}
 		if (msgok)
-			OutputMsg(0, "Standout attributes 0x%02x  colorbg 0x%02x  colorfg 0x%02x", (unsigned char)mchar_so.attr,
+			OutputMsg(0, U"Standout attributes 0x%02x  colorbg 0x%02x  colorfg 0x%02x", (unsigned char)mchar_so.attr,
 				  (unsigned char)mchar_so.colorbg, (unsigned char)mchar_so.colorfg);
 		break;
 
@@ -3060,21 +3065,21 @@ void DoAction(struct action *act, int key)
 
 	case RC_SU:
 		s = NULL;
-		if (!*args) {
-			OutputMsg(0, "%s:%s screen login", HostName, SocketPath);
-			InputSu(&D_user, NULL);
+		if (!*args) //{
+			OutputMsg(0, U"%s:%s screen login", HostName, SocketPath);
+			/*InputSu(&D_user, NULL);
 		} else if (!args[1])
 			InputSu(&D_user, args[0]);
 		else if (!args[2])
 			s = DoSu(&D_user, args[0], args[1], "\377");
 		else
-			s = DoSu(&D_user, args[0], args[1], args[2]);
+			s = DoSu(&D_user, args[0], args[1], args[2]);*/
 		if (s)
-			OutputMsg(0, "%s", s);
+			OutputMsg(0, U"%s", s);
 		break;
 	case RC_SPLIT:
 		s = args[0];
-		if (s && !strcmp(s, "-v"))
+		if (s && !u32_strcmp(s, U"-v"))
 			AddCanvas(SLICE_HORI);
 		else
 			AddCanvas(SLICE_VERT);
@@ -3100,24 +3105,24 @@ void DoAction(struct action *act, int key)
 	case RC_FOCUS:
 		{
 			Canvas *cv = 0;
-			if (!*args || !strcmp(*args, "next"))
+			if (!*args || !u32_strcmp(*args, U"next"))
 				cv = D_forecv->c_next ? D_forecv->c_next : D_cvlist;
-			else if (!strcmp(*args, "prev")) {
+			else if (!u32_strcmp(*args, U"prev")) {
 				for (cv = D_cvlist; cv->c_next && cv->c_next != D_forecv; cv = cv->c_next) ;
-			} else if (!strcmp(*args, "top"))
+			} else if (!u32_strcmp(*args, U"top"))
 				cv = D_cvlist;
-			else if (!strcmp(*args, "bottom")) {
+			else if (!u32_strcmp(*args, U"bottom")) {
 				for (cv = D_cvlist; cv->c_next; cv = cv->c_next) ;
-			} else if (!strcmp(*args, "up"))
+			} else if (!u32_strcmp(*args, U"up"))
 				cv = FindCanvas(D_forecv->c_xs, D_forecv->c_ys - 1);
-			else if (!strcmp(*args, "down"))
+			else if (!u32_strcmp(*args, U"down"))
 				cv = FindCanvas(D_forecv->c_xs, D_forecv->c_ye + 2);
-			else if (!strcmp(*args, "left"))
+			else if (!u32_strcmp(*args, U"left"))
 				cv = FindCanvas(D_forecv->c_xs - 1, D_forecv->c_ys);
-			else if (!strcmp(*args, "right"))
+			else if (!u32_strcmp(*args, U"right"))
 				cv = FindCanvas(D_forecv->c_xe + 1, D_forecv->c_ys);
 			else {
-				OutputMsg(0, "%s: usage: focus [next|prev|up|down|left|right|top|bottom]", rc_name);
+				OutputMsg(0, U"%s: usage: focus [next|prev|up|down|left|right|top|bottom]", rc_name);
 				break;
 			}
 			SetForeCanvas(display, cv);
@@ -3126,25 +3131,25 @@ void DoAction(struct action *act, int key)
 	case RC_RESIZE:
 		i = 0;
 		if (D_forecv->c_slorient == SLICE_UNKN) {
-			OutputMsg(0, "resize: need more than one region");
+			OutputMsg(0, U"resize: need more than one region");
 			break;
 		}
 		for (; *args; args++) {
-			if (!strcmp(*args, "-h"))
+			if (!u32_strcmp(*args, U"-h"))
 				i |= RESIZE_FLAG_H;
-			else if (!strcmp(*args, "-v"))
+			else if (!u32_strcmp(*args, U"-v"))
 				i |= RESIZE_FLAG_V;
-			else if (!strcmp(*args, "-b"))
+			else if (!u32_strcmp(*args, U"-b"))
 				i |= RESIZE_FLAG_H | RESIZE_FLAG_V;
-			else if (!strcmp(*args, "-p"))
+			else if (!u32_strcmp(*args, U"-p"))
 				i |= D_forecv->c_slorient == SLICE_VERT ? RESIZE_FLAG_H : RESIZE_FLAG_V;
-			else if (!strcmp(*args, "-l"))
+			else if (!u32_strcmp(*args, U"-l"))
 				i |= RESIZE_FLAG_L;
 			else
 				break;
 		}
 		if (*args && args[1]) {
-			OutputMsg(0, "%s: usage: resize [-h] [-v] [-l] [num]\n", rc_name);
+			OutputMsg(0, U"%s: usage: resize [-h] [-v] [-l] [num]\n", rc_name);
 			break;
 		}
 		if (*args)
@@ -3159,7 +3164,7 @@ void DoAction(struct action *act, int key)
 		args = SaveArgs(args);
 		for (i = 0; args[i]; i++) {
 			if (args[i][0])
-				ColonFin(args[i], strlen(args[i]), (char *)0);
+				ColonFin(args[i], u32_strlen(args[i]), (char *)0);
 			free(args[i]);
 		}
 		free(args);
@@ -3167,21 +3172,21 @@ void DoAction(struct action *act, int key)
 	case RC_ALTSCREEN:
 		(void)ParseSwitch(act, &use_altscreen);
 		if (msgok)
-			OutputMsg(0, "Will %sdo alternate screen switching", use_altscreen ? "" : "not ");
+			OutputMsg(0, U"Will %sdo alternate screen switching", use_altscreen ? "" : "not ");
 		break;
 	case RC_MAXWIN:
 		if (!args[0]) {
-			OutputMsg(0, "maximum windows allowed: %d", maxwin);
+			OutputMsg(0, U"maximum windows allowed: %d", maxwin);
 			break;
 		}
 		if (ParseNum(act, &n))
 			break;
 		if (n < 1)
-			OutputMsg(0, "illegal maxwin number specified");
+			OutputMsg(0, U"illegal maxwin number specified");
 		else if (n > 2048)
-			OutputMsg(0, "maximum 2048 windows allowed");
+			OutputMsg(0, U"maximum 2048 windows allowed");
 		else if (n > maxwin && windows)
-			OutputMsg(0, "may increase maxwin only when there's no window");
+			OutputMsg(0, U"may increase maxwin only when there's no window");
 		else {
 			if (!windows) {
 				wtab = realloc(wtab, n * sizeof(Window *));
@@ -3198,7 +3203,7 @@ void DoAction(struct action *act, int key)
 		else {
 			int lifespan, tick;
 			if (argc < 4) {
-				OutputMsg(0, "%s: usage: backtick num [lifespan tick cmd args...]", rc_name);
+				OutputMsg(0, U"%s: usage: backtick num [lifespan tick cmd args...]", rc_name);
 				break;
 			}
 			if (ParseBase(act, args[1], &lifespan, 10, "decimal"))
@@ -3226,9 +3231,9 @@ void DoAction(struct action *act, int key)
 				for (pp = blankerprg; *pp; pp++)
 					p += snprintf(p, sizeof(path) - (p - path) - 1, "%s ", *pp);
 				*(p - 1) = '\0';
-				OutputMsg(0, "blankerprg: %s", path);
+				OutputMsg(0, U"blankerprg: %s", path);
 			} else
-				OutputMsg(0, "No blankerprg set.");
+				OutputMsg(0, U"No blankerprg set.");
 			break;
 		}
 		if (blankerprg) {
@@ -3244,13 +3249,13 @@ void DoAction(struct action *act, int key)
 	case RC_IDLE:
 		if (*args) {
 			Display *olddisplay = display;
-			if (!strcmp(*args, "off"))
+			if (!u32_strcmp(*args, U"off"))
 				idletimo = 0;
 			else if (args[0][0])
-				idletimo = atoi(*args) * 1000;
+				idletimo = u32_atoi(*args) * 1000;
 			if (argc > 1) {
 				if ((i = FindCommnr(args[1])) == RC_ILLEGAL) {
-					OutputMsg(0, "%s: idle: unknown command '%s'", rc_name, args[1]);
+					OutputMsg(0, U"%s: idle: unknown command '%s'", rc_name, args[1]);
 					break;
 				}
 				if (CheckArgNum(i, args + 2) < 0)
@@ -3264,17 +3269,17 @@ void DoAction(struct action *act, int key)
 		}
 		if (msgok) {
 			if (idletimo)
-				OutputMsg(0, "idle timeout %ds, %s", idletimo / 1000, comms[idleaction.nr].name);
+				OutputMsg(0, U"idle timeout %ds, %s", idletimo / 1000, comms[idleaction.nr].name);
 			else
-				OutputMsg(0, "idle off");
+				OutputMsg(0, U"idle off");
 		}
 		break;
 	case RC_FOCUSMINSIZE:
 		for (i = 0; i < 2 && args[i]; i++) {
-			if (!strcmp(args[i], "max") || !strcmp(args[i], "_"))
+			if (!u32_strcmp(args[i], U"max") || !u32_strcmp(args[i], U"_"))
 				n = -1;
 			else
-				n = atoi(args[i]);
+				n = u32_atoi(args[i]);
 			if (i == 0)
 				focusminwidth = n;
 			else
@@ -3289,7 +3294,7 @@ void DoAction(struct action *act, int key)
 				else
 					sprintf(b[i], "%d", n);
 			}
-			OutputMsg(0, "focus min size is %s %s\n", b[0], b[1]);
+			OutputMsg(0, U"focus min size is %s %s\n", b[0], b[1]);
 		}
 		break;
 	case RC_GROUP:
@@ -3306,17 +3311,17 @@ void DoAction(struct action *act, int key)
 		}
 		if (msgok) {
 			if (fore->w_group)
-				OutputMsg(0, "window group is %d (%s)\n", fore->w_group->w_number,
+				OutputMsg(0, U"window group is %d (%s)\n", fore->w_group->w_number,
 					  fore->w_group->w_title);
 			else
-				OutputMsg(0, "window belongs to no group");
+				OutputMsg(0, U"window belongs to no group");
 		}
 		break;
 	case RC_LAYOUT:
 		// A number of the subcommands for "layout" are ignored, or not processed correctly when there
 		// is no attached display.
 
-		if (!strcmp(args[0], "title")) {
+		if (!u32_strcmp(args[0], U"title")) {
 			if (!display) {
 				if (!args[1])	// There is no display, and there is no new title. Ignore.
 					break;
@@ -3328,66 +3333,66 @@ void DoAction(struct action *act, int key)
 			}
 
 			if (!D_layout) {
-				OutputMsg(0, "not on a layout");
+				OutputMsg(0, U"not on a layout");
 				break;
 			}
 			if (!args[1]) {
-				OutputMsg(0, "current layout is %d (%s)", D_layout->lay_number, D_layout->lay_title);
+				OutputMsg(0, U"current layout is %d (%s)", D_layout->lay_number, D_layout->lay_title);
 				break;
 			}
 			RenameLayout(D_layout, args[1]);
-		} else if (!strcmp(args[0], "number")) {
+		} else if (!u32_strcmp(args[0], U"number")) {
 			if (!display) {
 				if (args[1] && layout_attach && layout_attach != &layout_last_marker)
-					RenumberLayout(layout_attach, atoi(args[1]));
+					RenumberLayout(layout_attach, u32_atoi(args[1]));
 				break;
 			}
 
 			if (!D_layout) {
-				OutputMsg(0, "not on a layout");
+				OutputMsg(0, U"not on a layout");
 				break;
 			}
 			if (!args[1]) {
-				OutputMsg(0, "This is layout %d (%s).\n", D_layout->lay_number, D_layout->lay_title);
+				OutputMsg(0, U"This is layout %d (%s).\n", D_layout->lay_number, D_layout->lay_title);
 				break;
 			}
-			RenumberLayout(D_layout, atoi(args[1]));
+			RenumberLayout(D_layout, u32_atoi(args[1]));
 			break;
-		} else if (!strcmp(args[0], "autosave")) {
+		} else if (!u32_strcmp(args[0], U"autosave")) {
 			if (!display) {
 				if (args[1] && layout_attach && layout_attach != &layout_last_marker) {
-					if (!strcmp(args[1], "on"))
+					if (!u32_strcmp(args[1], U"on"))
 						layout_attach->lay_autosave = 1;
-					else if (!strcmp(args[1], "off"))
+					else if (!u32_strcmp(args[1], U"off"))
 						layout_attach->lay_autosave = 0;
 				}
 				break;
 			}
 
 			if (!D_layout) {
-				OutputMsg(0, "not on a layout");
+				OutputMsg(0, U"not on a layout");
 				break;
 			}
 			if (args[1]) {
-				if (!strcmp(args[1], "on"))
+				if (!u32_strcmp(args[1], U"on"))
 					D_layout->lay_autosave = 1;
-				else if (!strcmp(args[1], "off"))
+				else if (!u32_strcmp(args[1], U"off"))
 					D_layout->lay_autosave = 0;
 				else {
-					OutputMsg(0, "invalid argument. Give 'on' or 'off");
+					OutputMsg(0, U"invalid argument. Give 'on' or 'off");
 					break;
 				}
 			}
 			if (msgok)
-				OutputMsg(0, "autosave is %s", D_layout->lay_autosave ? "on" : "off");
-		} else if (!strcmp(args[0], "new")) {
-			char *t = args[1];
+				OutputMsg(0, U"autosave is %s", D_layout->lay_autosave ? "on" : "off");
+		} else if (!u32_strcmp(args[0], U"new")) {
+			uint32_t *t = args[1];
 			n = 0;
 			if (t) {
 				while (*t >= '0' && *t <= '9')
 					t++;
 				if (t != args[1] && (!*t || *t == ':')) {
-					n = atoi(args[1]);
+					n = u32_atoi(args[1]);
 					if (*t)
 						t++;
 				} else
@@ -3397,25 +3402,25 @@ void DoAction(struct action *act, int key)
 				t = "layout";
 			NewLayout(t, n);
 			Activate(-1);
-		} else if (!strcmp(args[0], "save")) {
+		} else if (!u32_strcmp(args[0], U"save")) {
 			if (!args[1]) {
-				OutputMsg(0, "usage: layout save <name>");
+				OutputMsg(0, U"usage: layout save <name>");
 				break;
 			}
 			if (display)
 				SaveLayout(args[1], &D_canvas);
-		} else if (!strcmp(args[0], "select")) {
+		} else if (!u32_strcmp(args[0], U"select")) {
 			if (!display) {
 				if (args[1])
 					layout_attach = FindLayout(args[1]);
 				break;
 			}
 			if (!args[1]) {
-				Input("Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
+				Input(U"Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
 				break;
 			}
-			SelectLayoutFin(args[1], strlen(args[1]), (char *)0);
-		} else if (!strcmp(args[0], "next")) {
+			SelectLayoutFin(args[1], u32_strlen(args[1]), (char *)0);
+		} else if (!u32_strcmp(args[0], U"next")) {
 			if (!display) {
 				if (layout_attach && layout_attach != &layout_last_marker)
 					layout_attach = layout_attach->lay_next ? layout_attach->lay_next : layouts;;
@@ -3427,14 +3432,14 @@ void DoAction(struct action *act, int key)
 			else
 				lay = layouts;
 			if (!lay) {
-				OutputMsg(0, "no layout defined");
+				OutputMsg(0, U"no layout defined");
 				break;
 			}
 			if (lay == D_layout)
 				break;
 			LoadLayout(lay);
 			Activate(-1);
-		} else if (!strcmp(args[0], "prev")) {
+		} else if (!u32_strcmp(args[0], U"prev")) {
 			Layout *lay = display ? D_layout : layout_attach;
 			Layout *target = lay;
 			if (lay) {
@@ -3448,25 +3453,25 @@ void DoAction(struct action *act, int key)
 			}
 
 			if (!lay) {
-				OutputMsg(0, "no layout defined");
+				OutputMsg(0, U"no layout defined");
 				break;
 			}
 			if (lay == D_layout)
 				break;
 			LoadLayout(lay);
 			Activate(-1);
-		} else if (!strcmp(args[0], "attach")) {
+		} else if (!u32_strcmp(args[0], U"attach")) {
 			if (!args[1]) {
 				if (!layout_attach)
-					OutputMsg(0, "no attach layout set");
+					OutputMsg(0, U"no attach layout set");
 				else if (layout_attach == &layout_last_marker)
-					OutputMsg(0, "will attach to last layout");
+					OutputMsg(0, U"will attach to last layout");
 				else
-					OutputMsg(0, "will attach to layout %d (%s)", layout_attach->lay_number,
+					OutputMsg(0, U"will attach to layout %d (%s)", layout_attach->lay_number,
 						  layout_attach->lay_title);
 				break;
 			}
-			if (!strcmp(args[1], ":last"))
+			if (!u32_strcmp(args[1], U":last"))
 				layout_attach = &layout_last_marker;
 			else if (!args[1][0])
 				layout_attach = 0;
@@ -3474,33 +3479,33 @@ void DoAction(struct action *act, int key)
 				Layout *lay;
 				lay = FindLayout(args[1]);
 				if (!lay) {
-					OutputMsg(0, "unknown layout '%s'", args[1]);
+					OutputMsg(0, U"unknown layout '%s'", args[1]);
 					break;
 				}
 				layout_attach = lay;
 			}
-		} else if (!strcmp(args[0], "show")) {
+		} else if (!u32_strcmp(args[0], U"show")) {
 			ShowLayouts(-1);
-		} else if (!strcmp(args[0], "remove")) {
+		} else if (!u32_strcmp(args[0], U"remove")) {
 			Layout *lay = display ? D_layout : layouts;
 			if (args[1]) {
 				lay = layouts ? FindLayout(args[1]) : (Layout *)0;
 				if (!lay) {
-					OutputMsg(0, "unknown layout '%s'", args[1]);
+					OutputMsg(0, U"unknown layout '%s'", args[1]);
 					break;
 				}
 			}
 			if (lay)
 				RemoveLayout(lay);
-		} else if (!strcmp(args[0], "dump")) {
+		} else if (!u32_strcmp(args[0], U"dump")) {
 			if (!display)
-				OutputMsg(0, "Must have a display for 'layout dump'.");
+				OutputMsg(0, U"Must have a display for 'layout dump'.");
 			else if (!LayoutDumpCanvas(&D_canvas, args[1] ? args[1] : "layout-dump"))
-				OutputMsg(errno, "Error dumping layout.");
+				OutputMsg(errno, U"Error dumping layout.");
 			else
-				OutputMsg(0, "Layout dumped to \"%s\"", args[1] ? args[1] : "layout-dump");
+				OutputMsg(0, U"Layout dumped to \"%s\"", args[1] ? args[1] : "layout-dump");
 		} else
-			OutputMsg(0, "unknown layout subcommand");
+			OutputMsg(0, U"unknown layout subcommand");
 		break;
 	case RC_TRUECOLOR:
 		ParseOnOff(act, &hastruecolor);
@@ -3532,10 +3537,10 @@ void CollapseWindowlist()
 				}
 }
 
-void DoCommand(char **argv, int *argl)
+void DoCommand(uint32_t **argv, int *argl)
 {
 	struct action act;
-	const char *cmd = *argv;
+	const uint32_t *cmd = *argv;
 
 	act.quiet = 0;
 	/* For now, we actually treat both 'supress error' and 'suppress normal message' as the
@@ -3551,7 +3556,7 @@ void DoCommand(char **argv, int *argl)
 	}
 
 	if ((act.nr = FindCommnr(cmd)) == RC_ILLEGAL) {
-		Msg(0, "%s: unknown command '%s'", rc_name, cmd);
+		Msg(0, U"%s: unknown command '%s'", rc_name, cmd);
 		return;
 	}
 	act.args = argv + 1;
@@ -3559,10 +3564,10 @@ void DoCommand(char **argv, int *argl)
 	DoAction(&act, -1);
 }
 
-static void SaveAction(struct action *act, int nr, char **args, int *argl)
+static void SaveAction(struct action *act, int nr, uint32_t **args, int *argl)
 {
 	int argc = 0;
-	char **pp;
+	uint32_t **pp;
 	int *lp;
 
 	if (args)
@@ -3574,29 +3579,29 @@ static void SaveAction(struct action *act, int nr, char **args, int *argl)
 		act->argl = 0;
 		return;
 	}
-	if ((pp = malloc((unsigned)(argc + 1) * sizeof(char *))) == 0)
-		Panic(0, "%s", strnomem);
+	if ((pp = malloc((unsigned)(argc + 1) * sizeof(uint32_t *))) == 0)
+		Panic(0, U"%s", strnomem);
 	if ((lp = malloc((unsigned)(argc) * sizeof(int))) == 0)
-		Panic(0, "%s", strnomem);
+		Panic(0, U"%s", strnomem);
 	act->nr = nr;
 	act->args = pp;
 	act->argl = lp;
 	while (argc--) {
-		*lp = argl ? *argl++ : (int)strlen(*args);
+		*lp = argl ? *argl++ : (int)u32_strlen(*args);
 		*pp++ = SaveStrn(*args++, *lp++);
 	}
 	*pp = 0;
 }
 
-static char **SaveArgs(char **args)
+static uint32_t **SaveArgs(uint32_t **args)
 {
-	char **ap, **pp;
+	uint32_t **ap, **pp;
 	int argc = 0;
 
 	while (args[argc])
 		argc++;
-	if ((pp = ap = malloc((unsigned)(argc + 1) * sizeof(char *))) == 0)
-		Panic(0, "%s", strnomem);
+	if ((pp = ap = malloc((unsigned)(argc + 1) * sizeof(uint32_t *))) == 0)
+		Panic(0, U"%s", strnomem);
 	while (argc--)
 		*pp++ = SaveStr(*args++);
 	*pp = 0;
@@ -3612,10 +3617,11 @@ static char **SaveArgs(char **args)
  *
  * argc is returned.
  */
-int Parse(char *buf, int bufl, char **args, int *argl)
+int Parse(uint32_t *buf, int bufl, uint32_t **args, int *argl)
 {
-	char *p = buf, **ap = args, *pp;
-	int delim, argc;
+	uint32_t *p = buf, **ap = args, *pp;
+	uint32_t delim;
+	int argc;
 	int *lp = argl;
 
 	argc = 0;
@@ -3626,7 +3632,7 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 		while (*p && (*p == ' ' || *p == '\t'))
 			++p;
 		if (argc == 0 && *p == '!') {
-			*ap++ = "exec";
+			*ap++ = U"exec";
 			*lp++ = 4;
 			p++;
 			argc++;
@@ -3638,7 +3644,7 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 			return argc;
 		}
 		if (++argc >= MAXARGS) {
-			Msg(0, "%s: too many tokens.", rc_name);
+			Msg(0, U"%s: too many tokens.", rc_name);
 			return 0;
 		}
 		*ap++ = pp;
@@ -3684,7 +3690,7 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 				   && (p[1] == '{' || p[1] == ':' || (p[1] >= 'a' && p[1] <= 'z')
 				       || (p[1] >= 'A' && p[1] <= 'Z') || (p[1] >= '0' && p[1] <= '9') || p[1] == '_'))
 			{
-				char *ps, *pe, op, *v, xbuf[11], path[MAXPATHLEN];
+				uint32_t *ps, *pe, op, *v, xbuf[11], path[MAXPATHLEN];
 				int vl;
 
 				ps = ++p;
@@ -3702,7 +3708,7 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 				pe = p;
 				if (*ps == '{' || *ps == ':') {
 					if (!*p) {
-						Msg(0, "%s: bad variable name.", rc_name);
+						Msg(0, U"%s: bad variable name.", rc_name);
 						return 0;
 					}
 					p++;
@@ -3715,21 +3721,21 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 					if (*ps == '{')
 						ps++;
 					v = xbuf;
-					if (!strcmp(ps, "TERM"))
-						v = display ? D_termname : "unknown";
-					else if (!strcmp(ps, "COLUMNS"))
-						sprintf(xbuf, "%d", display ? D_width : -1);
-					else if (!strcmp(ps, "LINES"))
-						sprintf(xbuf, "%d", display ? D_height : -1);
-					else if (!strcmp(ps, "PID"))
-						sprintf(xbuf, "%d", getpid());
-					else if (!strcmp(ps, "PWD")) {
+					if (!u32_strcmp(ps, U"TERM"))
+						v = display ? D_termname : U"unknown";
+					else if (!u32_strcmp(ps, U"COLUMNS"))
+						u32_sprintf(xbuf, "%d", display ? D_width : -1);
+					else if (!u32_strcmp(ps, U"LINES"))
+						u32_sprintf(xbuf, "%d", display ? D_height : -1);
+					else if (!u32_strcmp(ps, U"PID"))
+						u32_sprintf(xbuf, "%d", getpid());
+					else if (!u32_strcmp(ps, U"PWD")) {
 						if (getcwd(path, sizeof(path) - 1) == 0)
-							v = "?";
+							v = U"?";
 						else
 							v = path;
-					} else if (!strcmp(ps, "STY")) {
-						if ((v = strchr(SocketName, '.')))	/* Skip the PID */
+					} else if (!u32_strcmp(ps, U"STY")) {
+						if ((v = u32_strchr(SocketName, '.')))	/* Skip the PID */
 							v++;
 						else
 							v = SocketName;
@@ -3737,20 +3743,20 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 						v = getenv(ps);
 				}
 				*pe = op;
-				vl = v ? strlen(v) : 0;
+				vl = v ? u32_strlen(v) : 0;
 				if (vl) {
 					if (p - pp < vl) {
-						int right = buf + bufl - (p + strlen(p) + 1);
+						ptrdiff_t right = buf + bufl - (p + u32_strlen(p) + 1);
 						if (right > 0) {
-							memmove(p + right, p, strlen(p) + 1);
+							u32_move(p + right, p, u32_strlen(p) + 1);
 							p += right;
 						}
 					}
 					if (p - pp < vl) {
-						Msg(0, "%s: no space left for variable expansion.", rc_name);
+						Msg(0, U"%s: no space left for variable expansion.", rc_name);
 						return 0;
 					}
-					memmove(pp, v, vl);
+					u32_move(pp, v, vl);
 					pp += vl;
 				}
 				continue;
@@ -3766,7 +3772,7 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 			p++;
 		}
 		if (delim) {
-			Msg(0, "%s: Missing %c quote.", rc_name, delim);
+			Msg(0, U"%s: Missing %c quote.", rc_name, delim);
 			return 0;
 		}
 		if (*p)
@@ -3816,27 +3822,27 @@ static int ParseSwitch(struct action *act, bool *var)
 static int ParseOnOff(struct action *act, bool *var)
 {
 	int num = -1;
-	char **args = act->args;
+	uint32_t **args = act->args;
 
 	if (args[1] == 0) {
-		if (strcmp(args[0], "on") == 0)
+		if (u32_strcmp(args[0], U"on") == 0)
 			num = true;
-		else if (strcmp(args[0], "off") == 0)
+		else if (u32_strcmp(args[0], U"off") == 0)
 			num = false;
 	}
 	if (num < 0) {
-		Msg(0, "%s: %s: invalid argument. Give 'on' or 'off'", rc_name, comms[act->nr].name);
+		Msg(0, U"%s: %s: invalid argument. Give 'on' or 'off'", rc_name, comms[act->nr].name);
 		return -1;
 	}
 	*var = num;
 	return 0;
 }
 
-static int ParseSaveStr(struct action *act, char **var)
+static int ParseSaveStr(struct action *act, uint32_t **var)
 {
-	char **args = act->args;
+	uint32_t **args = act->args;
 	if (*args == 0 || args[1]) {
-		Msg(0, "%s: %s: one argument required.", rc_name, comms[act->nr].name);
+		Msg(0, U"%s: %s: one argument required.", rc_name, comms[act->nr].name);
 		return -1;
 	}
 	if (*var)
@@ -3848,11 +3854,11 @@ static int ParseSaveStr(struct action *act, char **var)
 static int ParseNum(struct action *act, int *var)
 {
 	int i;
-	char *p, **args = act->args;
+	uint32_t *p, **args = act->args;
 
 	p = *args;
 	if (p == 0 || *p == 0 || args[1]) {
-		Msg(0, "%s: %s: invalid argument. Give one argument.", rc_name, comms[act->nr].name);
+		Msg(0, U"%s: %s: invalid argument. Give one argument.", rc_name, comms[act->nr].name);
 		return -1;
 	}
 	i = 0;
@@ -3860,7 +3866,7 @@ static int ParseNum(struct action *act, int *var)
 		if (*p >= '0' && *p <= '9')
 			i = 10 * i + (*p - '0');
 		else {
-			Msg(0, "%s: %s: invalid argument. Give numeric argument.", rc_name, comms[act->nr].name);
+			Msg(0, U"%s: %s: invalid argument. Give numeric argument.", rc_name, comms[act->nr].name);
 			return -1;
 		}
 		p++;
@@ -3872,12 +3878,12 @@ static int ParseNum(struct action *act, int *var)
 static int ParseNum1000(struct action *act, int *var)
 {
 	int i;
-	char *p, **args = act->args;
+	uint32_t *p, **args = act->args;
 	int dig = 0;
 
 	p = *args;
 	if (p == 0 || *p == 0 || args[1]) {
-		Msg(0, "%s: %s: invalid argument. Give one argument.", rc_name, comms[act->nr].name);
+		Msg(0, U"%s: %s: invalid argument. Give one argument.", rc_name, comms[act->nr].name);
 		return -1;
 	}
 	i = 0;
@@ -3892,7 +3898,7 @@ static int ParseNum1000(struct action *act, int *var)
 		} else if (*p == '.' && !dig)
 			dig++;
 		else {
-			Msg(0, "%s: %s: invalid argument. Give floating point argument.", rc_name, comms[act->nr].name);
+			Msg(0, U"%s: %s: invalid argument. Give floating point argument.", rc_name, comms[act->nr].name);
 			return -1;
 		}
 		p++;
@@ -3908,23 +3914,23 @@ static int ParseNum1000(struct action *act, int *var)
 	return 0;
 }
 
-static Window *WindowByName(char *s)
+static Window *WindowByName(uint32_t *s)
 {
 	Window *window;
 
 	for (window = windows; window; window = window->w_next)
-		if (!strcmp(window->w_title, s))
+		if (!u32_strcmp(window->w_title, s))
 			return window;
 	for (window = windows; window; window = window->w_next)
-		if (!strncmp(window->w_title, s, strlen(s)))
+		if (!u32_strncmp(window->w_title, s, u32_strlen(s)))
 			return window;
 	return 0;
 }
 
-static int WindowByNumber(char *string)
+static int WindowByNumber(uint32_t *string)
 {
 	int i;
-	char *s;
+	uint32_t *s;
 
 	for (i = 0, s = string; *s; s++) {
 		if (*s < '0' || *s > '9')
@@ -3939,7 +3945,7 @@ static int WindowByNumber(char *string)
  * Numbers are tried first, then names, a prefix match suffices.
  * Be careful when assigning numeric strings as WindowTitles.
  */
-int WindowByNoN(char *string)
+int WindowByNoN(uint32_t *string)
 {
 	int i;
 	Window *window;
@@ -3958,13 +3964,13 @@ static int ParseWinNum(struct action *act, int *var)
 	int i = 0;
 
 	if (*args == 0 || args[1]) {
-		Msg(0, "%s: %s: one argument required.", rc_name, comms[act->nr].name);
+		Msg(0, U"%s: %s: one argument required.", rc_name, comms[act->nr].name);
 		return -1;
 	}
 
 	i = WindowByNoN(*args);
 	if (i < 0) {
-		Msg(0, "%s: %s: invalid argument. Give window number or name.", rc_name, comms[act->nr].name);
+		Msg(0, U"%s: %s: invalid argument. Give window number or name.", rc_name, comms[act->nr].name);
 		return -1;
 	}
 	*var = i;
@@ -3977,7 +3983,7 @@ static int ParseBase(struct action *act, char *p, int *var, int base, char *bnam
 	int c;
 
 	if (*p == 0) {
-		Msg(0, "%s: %s: empty argument.", rc_name, comms[act->nr].name);
+		Msg(0, U"%s: %s: empty argument.", rc_name, comms[act->nr].name);
 		return -1;
 	}
 	while ((c = *p++)) {
@@ -3987,7 +3993,7 @@ static int ParseBase(struct action *act, char *p, int *var, int base, char *bnam
 			c -= 'A' - ('0' + 10);
 		c -= '0';
 		if (c < 0 || c >= base) {
-			Msg(0, "%s: %s: argument is not %s.", rc_name, comms[act->nr].name, bname);
+			Msg(0, U"%s: %s: argument is not %s.", rc_name, comms[act->nr].name, bname);
 			return -1;
 		}
 		i = base * i + c;
@@ -4033,11 +4039,11 @@ void SwitchWindow(int n)
 		return;
 	}
 	if (window == D_fore) {
-		Msg(0, "This IS window %d (%s).", n, window->w_title);
+		Msg(0, U"This IS window %d (%s).", n, window->w_title);
 		return;
 	}
 	if (AclCheckPermWin(D_user, ACL_READ, window)) {
-		Msg(0, "Access to window %d denied.", window->w_number);
+		Msg(0, U"Access to window %d denied.", window->w_number);
 		return;
 	}
 	SetForeWindow(window);
@@ -4077,7 +4083,7 @@ void Activate(int norefresh)
 	if (display == 0)
 		return;
 	if (D_status) {
-		Msg(0, "%s", "");	/* wait till mintime (keep gcc quiet) */
+		Msg(0, U"%s", "");	/* wait till mintime (keep gcc quiet) */
 		RemoveStatus();
 	}
 
@@ -4136,11 +4142,11 @@ static uint16_t PreviousWindow()
 
 static int MoreWindows()
 {
-	char *m = "No other window.";
+	uint32_t *m = U"No other window.";
 	if (windows && (fore == 0 || windows->w_next))
 		return 1;
 	if (fore == 0) {
-		Msg(0, "No window available");
+		Msg(0, U"No window available");
 		return 0;
 	}
 	Msg(0, m, fore->w_number);
@@ -4206,24 +4212,24 @@ static void LogToggle(bool on)
 
 	if ((fore->w_log != 0) == on) {
 		if (display && !*rc_name)
-			Msg(0, "You are %s logging.", on ? "already" : "not");
+			Msg(0, U"You are %s logging.", on ? "already" : "not");
 		return;
 	}
 	if (fore->w_log != 0) {
-		Msg(0, "Logfile \"%s\" closed.", fore->w_log->name);
+		Msg(0, U"Logfile \"%s\" closed.", fore->w_log->name);
 		logfclose(fore->w_log);
 		fore->w_log = 0;
 		WindowChanged(fore, WINESC_WFLAGS);
 		return;
 	}
 	if (DoStartLog(fore, buf, sizeof(buf))) {
-		Msg(errno, "Error opening logfile \"%s\"", buf);
+		Msg(errno, U"Error opening logfile \"%s\"", buf);
 		return;
 	}
 	if (ftell(fore->w_log->fp) == 0)
-		Msg(0, "Creating logfile \"%s\".", fore->w_log->name);
+		Msg(0, U"Creating logfile \"%s\".", fore->w_log->name);
 	else
-		Msg(0, "Appending to logfile \"%s\".", fore->w_log->name);
+		Msg(0, U"Appending to logfile \"%s\".", fore->w_log->name);
 	WindowChanged(fore, WINESC_WFLAGS);
 }
 
@@ -4294,9 +4300,9 @@ char *AddWindows(WinMsgBufContext *wmbc, int len, int flags, int where)
 	return ss;
 }
 
-char *AddWindowFlags(char *buf, int len, Window *p)
+char *AddWindowFlags(uint32_t *buf, int len, Window *p)
 {
-	char *s = buf;
+	uint32_t *s = buf;
 	if (p == 0 || len < 12) {
 		*s = 0;
 		return s;
@@ -4317,7 +4323,7 @@ char *AddWindowFlags(char *buf, int len, Window *p)
 		*s++ = '$';
 #endif
 	if (p->w_log != 0) {
-		strcpy(s, "(L)");
+		u32_strcpy(s, U"(L)");
 		s += 3;
 	}
 	if (p->w_ptyfd < 0 && p->w_type != W_TYPE_GROUP)
@@ -4395,7 +4401,7 @@ void ShowWindows(int where)
 		}
 	} else
 		ss = buf;
-	Msg(0, "%s", ss);
+	Msg(0, U"%s", ss);
 
 	wmbc_free(wmbc);
 	wmb_free(wmb);
@@ -4412,49 +4418,49 @@ char *str;
 	for (i = 0; i < maxwin; i++) {
 		if (!wtab[i])
 			continue;
-		Msg(0, "%s", MakeWinMsg(str, wtab[i], '%'));
+		Msg(0, U"%s", MakeWinMsg(str, wtab[i], '%'));
 	}
 }
 
 static void ShowInfo()
 {
-	char buf[512], *p;
+	uint32_t buf[512], *p;
 	Window *wp = fore;
 	int i;
 
 	if (wp == 0) {
-		Msg(0, "(%d,%d)/(%d,%d) no window", D_x + 1, D_y + 1, D_width, D_height);
+		Msg(0, U"(%d,%d)/(%d,%d) no window", D_x + 1, D_y + 1, D_width, D_height);
 		return;
 	}
 	p = buf;
 	if (buf < (p += GetAnsiStatus(wp, p)))
 		*p++ = ' ';
-	sprintf(p, "(%d,%d)/(%d,%d)", wp->w_x + 1, wp->w_y + 1, wp->w_width, wp->w_height);
-	sprintf(p += strlen(p), "+%d", wp->w_histheight);
-	sprintf(p += strlen(p), " %c%sflow",
+	u32_sprintf(p, "(%d,%d)/(%d,%d)", wp->w_x + 1, wp->w_y + 1, wp->w_width, wp->w_height);
+	u32_sprintf(p += u32_strlen(p), "+%d", wp->w_histheight);
+	u32_sprintf(p += u32_strlen(p), " %c%sflow",
 		(wp->w_flow & FLOW_ON) ? '+' : '-',
 		(wp->w_flow & FLOW_AUTOFLAG) ? "" : ((wp->w_flow & FLOW_AUTO) ? "(+)" : "(-)"));
 	if (!wp->w_wrap)
-		sprintf(p += strlen(p), " -wrap");
+		u32_sprintf(p += u32_strlen(p), " -wrap");
 	if (wp->w_insert)
-		sprintf(p += strlen(p), " ins");
+		u32_sprintf(p += u32_strlen(p), " ins");
 	if (wp->w_origin)
-		sprintf(p += strlen(p), " org");
+		u32_sprintf(p += u32_strlen(p), " org");
 	if (wp->w_keypad)
-		sprintf(p += strlen(p), " app");
+		u32_sprintf(p += u32_strlen(p), " app");
 	if (wp->w_log)
-		sprintf(p += strlen(p), " log");
+		u32_sprintf(p += u32_strlen(p), " log");
 	if (wp->w_monitor != MON_OFF && (ACLBYTE(wp->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id))
 	    )
-		sprintf(p += strlen(p), " mon");
+		u32_sprintf(p += u32_strlen(p), " mon");
 	if (wp->w_mouse)
-		sprintf(p += strlen(p), " mouse");
+		u32_sprintf(p += u32_strlen(p), " mouse");
 	if (!wp->w_c1)
-		sprintf(p += strlen(p), " -c1");
+		u32_sprintf(p += u32_strlen(p), " -c1");
 	if (wp->w_norefresh)
-		sprintf(p += strlen(p), " nored");
+		u32_sprintf(p += u32_strlen(p), " nored");
 
-	p += strlen(p);
+	p += u32_strlen(p);
 
 	if (wp->w_type == W_TYPE_PLAIN) {
 		/* add info about modem control lines */
@@ -4467,7 +4473,7 @@ static void ShowInfo()
 		TelStatus(wp, p, sizeof(buf) - 1 - (p - buf));
 	}
 #endif
-	Msg(0, "%s %d(%s)", buf, wp->w_number, wp->w_title);
+	Msg(0, U"%s %d(%s)", buf, wp->w_number, wp->w_title);
 }
 
 static void ShowDInfo()
@@ -4494,15 +4500,15 @@ static void ShowDInfo()
 		strncpy(p, " iso2022", l);
 	else if (D_CS0 && *D_CS0)
 		strncpy(p, " altchar", l);
-	Msg(0, "%s", buf);
+	Msg(0, U"%s", buf);
 }
 
-static void AKAFin(char *buf, size_t len, void *data)
+static void AKAFin(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
 	if (len && fore)
-		ChangeAKA(fore, buf, strlen(buf));
+		ChangeAKA(fore, buf, u32_strlen(buf));
 
 	enter_window_name_mode = 0;
 }
@@ -4517,7 +4523,7 @@ static void InputAKA()
 
 	enter_window_name_mode = 1;
 
-	Input("Set window's title to: ", sizeof(fore->w_akabuf) - 1, INP_COOKED, AKAFin, NULL, 0);
+	Input(U"Set window's title to: ", sizeof(fore->w_akabuf) - 1, INP_COOKED, AKAFin, NULL, 0);
 	s = fore->w_title;
 	if (!s)
 		return;
@@ -4530,9 +4536,9 @@ static void InputAKA()
 	}
 }
 
-static void ColonFin(char *buf, size_t len, void *data)
+static void ColonFin(uint32_t *buf, size_t len, void *data)
 {
-	char mbuf[256];
+	uint32_t mbuf[256];
 
 	(void)data; /* unused */
 
@@ -4541,7 +4547,7 @@ static void ColonFin(char *buf, size_t len, void *data)
 		int m, x;
 		int l = 0, r = RC_LAST;
 		int showmessage = 0;
-		char *s = buf;
+		uint32_t *s = buf;
 
 		while (*s && (uintptr_t)(s - buf) < len)
 			if (*s++ == ' ')
@@ -4555,23 +4561,23 @@ static void ColonFin(char *buf, size_t len, void *data)
 
 		while (l <= r) {
 			m = (l + r) / 2;
-			x = strncmp(buf, comms[m].name, len);
+			x = u32_strncmp(buf, comms[m].name, len);
 			if (x > 0)
 				l = m + 1;
 			else if (x < 0)
 				r = m - 1;
 			else {
 				s = mbuf;
-				for (l = m - 1; l >= 0 && strncmp(buf, comms[l].name, len) == 0; l--) ;
+				for (l = m - 1; l >= 0 && u32_strncmp(buf, comms[l].name, len) == 0; l--) ;
 				for (m = ++l;
-				     m <= r && strncmp(buf, comms[m].name, len) == 0 && (uintptr_t)(s - mbuf) < sizeof(mbuf); m++)
-					s += snprintf(s, sizeof(mbuf) - (s - mbuf), " %s", comms[m].name);
+				     m <= r && u32_strncmp(buf, comms[m].name, len) == 0 && (uintptr_t)(s - mbuf) < sizeof(mbuf); m++)
+					s += u32_snprintf(s, sizeof(mbuf) - (s - mbuf), " %s", comms[m].name);
 				if (l < m - 1) {
 					if (showmessage)
-						Msg(0, "Possible commands:%s", mbuf);
+						Msg(0, U"Possible commands:%s", mbuf);
 				} else {
 					s = mbuf;
-					len = snprintf(mbuf, sizeof(mbuf), "%s \t", comms[l].name + len);
+					len = u32_snprintf(mbuf, sizeof(mbuf), "%s \t", comms[l].name + len);
 					if (len > 0 && len < sizeof(mbuf))
 						LayProcess(&s, &len);
 				}
@@ -4579,23 +4585,23 @@ static void ColonFin(char *buf, size_t len, void *data)
 			}
 		}
 		if (l > r && showmessage)
-			Msg(0, "No commands matching '%*s'", (int)len, buf);
+			Msg(0, U"No commands matching '%*s'", (int)len, buf);
 		return;
 	}
 
 	if (!len || buf[len])
 		return;
 
-	len = strlen(buf) + 1;
+	len = u32_strlen(buf) + 1;
 	if (len > (int)sizeof(mbuf))
 		RcLine(buf, len);
 	else {
-		memmove(mbuf, buf, len);
+		u32_move(mbuf, buf, len);
 		RcLine(mbuf, sizeof mbuf);
 	}
 }
 
-static void SelectFin(char *buf, size_t len, void *data)
+static void SelectFin(uint32_t *buf, size_t len, void *data)
 {
 	int n;
 
@@ -4613,7 +4619,7 @@ static void SelectFin(char *buf, size_t len, void *data)
 	SwitchWindow(n);
 }
 
-static void SelectLayoutFin(char *buf, size_t len, void *data)
+static void SelectLayoutFin(uint32_t *buf, size_t len, void *data)
 {
 	Layout *lay;
 
@@ -4628,9 +4634,9 @@ static void SelectLayoutFin(char *buf, size_t len, void *data)
 	}
 	lay = FindLayout(buf);
 	if (!lay)
-		Msg(0, "No such layout\n");
+		Msg(0, U"No such layout\n");
 	else if (lay == D_layout)
-		Msg(0, "This IS layout %d (%s).\n", lay->lay_number, lay->lay_title);
+		Msg(0, U"This IS layout %d (%s).\n", lay->lay_number, lay->lay_title);
 	else {
 		LoadLayout(lay);
 		Activate(0);
@@ -4639,12 +4645,12 @@ static void SelectLayoutFin(char *buf, size_t len, void *data)
 
 static void InputSelect()
 {
-	Input("Switch to window: ", 20, INP_COOKED, SelectFin, NULL, 0);
+	Input(U"Switch to window: ", 20, INP_COOKED, SelectFin, NULL, 0);
 }
 
-static char setenv_var[31];
+static uint32_t setenv_var[31];
 
-static void SetenvFin1(char *buf, size_t len, void *data)
+static void SetenvFin1(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -4653,26 +4659,33 @@ static void SetenvFin1(char *buf, size_t len, void *data)
 	InputSetenv(buf);
 }
 
-static void SetenvFin2(char *buf, size_t len, void *data)
+static void SetenvFin2(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
+	const char *lc = locale_charset();
+
+	char envbuf[1000];  /* FIXME */
+	size_t envlen = 1000;
+
+	u32_conv_to_encoding(lc, iconveh_question_mark,
+		buf, len, 0, envbuf, &envlen);
 
 	if (!len || !display)
 		return;
-	setenv(setenv_var, buf, 1);
+	setenv(setenv_var, envbuf, 1);
 	MakeNewEnv();
 }
 
-static void InputSetenv(char *arg)
+static void InputSetenv(uint32_t *arg)
 {
-	static char setenv_buf[50 + sizeof(setenv_var)];	/* need to be static here, cannot be freed */
+	static uint32_t setenv_buf[50 + sizeof(setenv_var)];	/* need to be static here, cannot be freed */
 
 	if (arg) {
-		strncpy(setenv_var, arg, sizeof(setenv_var) - 1);
-		sprintf(setenv_buf, "Enter value for %s: ", setenv_var);
+		u32_strncpy(setenv_var, arg, sizeof(setenv_var) - 1);
+		u32_sprintf(setenv_buf, "Enter value for %s: ", setenv_var);
 		Input(setenv_buf, 30, INP_COOKED, SetenvFin2, NULL, 0);
 	} else
-		Input("Setenv: Enter variable name: ", 30, INP_COOKED, SetenvFin1, NULL, 0);
+		Input(U"Setenv: Enter variable name: ", 30, INP_COOKED, SetenvFin1, NULL, 0);
 }
 
 /*
@@ -4767,7 +4780,7 @@ void DoScreen(char *fn, char **av)
 			nwin.Lflag = true;
 			break;
 		default:
-			Msg(0, "%s: screen: invalid option -%c.", fn, av[0][1]);
+			Msg(0, U"%s: screen: invalid option -%c.", fn, av[0][1]);
 			break;
 		}
 		++av;
@@ -4777,7 +4790,7 @@ void DoScreen(char *fn, char **av)
 			nwin.aka = buf;
 		num = atoi(*av);
 		if (num < 0 || (maxwin && num > maxwin - 1) || (!maxwin && num > MAXWIN - 1)) {
-			Msg(0, "%s: illegal screen number %d.", fn, num);
+			Msg(0, U"%s: illegal screen number %d.", fn, num);
 			num = 0;
 		}
 		nwin.StartAt = num;
@@ -4835,7 +4848,7 @@ int CompileKeys(char *s, int sl, unsigned char *array)
  *  Asynchronous input functions
  */
 
-static void pow_detach_fn(char *buf, size_t len, void *data)
+static void pow_detach_fn(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -4843,19 +4856,19 @@ static void pow_detach_fn(char *buf, size_t len, void *data)
 		*buf = 0;
 		return;
 	}
-	if (ktab[(int)(unsigned char)*buf].nr != RC_POW_DETACH) {
+	if (ktab[(int)*buf].nr != RC_POW_DETACH) {
 		if (display)
 			write(D_userfd, "\007", 1);
-		Msg(0, "Detach aborted.");
+		Msg(0, U"Detach aborted.");
 	} else
 		Detach(D_POWER);
 }
 
-static void copy_reg_fn(char *buf, size_t len, void *data)
+static void copy_reg_fn(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
-	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
+	struct plop *pp = plop_tab + (int)*buf;
 
 	if (len) {
 		*buf = 0;
@@ -4866,21 +4879,21 @@ static void copy_reg_fn(char *buf, size_t len, void *data)
 	pp->buf = 0;
 	pp->len = 0;
 	if (D_user->u_plop.len) {
-		if ((pp->buf = malloc(D_user->u_plop.len)) == NULL) {
-			Msg(0, "%s", strnomem);
+		if ((pp->buf = malloc(D_user->u_plop.len * sizeof(uint32_t))) == NULL) {
+			Msg(0, U"%s", strnomem);
 			return;
 		}
-		memmove(pp->buf, D_user->u_plop.buf, D_user->u_plop.len);
+		u32_move(pp->buf, D_user->u_plop.buf, D_user->u_plop.len);
 	}
 	pp->len = D_user->u_plop.len;
-	Msg(0, "Copied %zu characters into register %c", D_user->u_plop.len, *buf);
+	Msg(0, U"Copied %zu characters into register %c", D_user->u_plop.len, *buf);
 }
 
-static void ins_reg_fn(char *buf, size_t len, void *data)
+static void ins_reg_fn(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
-	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
+	struct plop *pp = plop_tab + (int)*buf;
 
 	if (len) {
 		*buf = 0;
@@ -4889,17 +4902,17 @@ static void ins_reg_fn(char *buf, size_t len, void *data)
 	if (!fore)
 		return;		/* Input() should not call us w/o fore, but you never know... */
 	if (*buf == '.')
-		Msg(0, "ins_reg_fn: Warning: pasting real register '.'!");
+		Msg(0, U"ins_reg_fn: Warning: pasting real register '.'!");
 	if (pp->buf) {
 		MakePaster(&fore->w_paster, pp->buf, pp->len, 0);
 		return;
 	}
-	Msg(0, "Empty register.");
+	Msg(0, U"Empty register.");
 }
 
-static void process_fn(char *buf, size_t len, void *data)
+static void process_fn(uint32_t *buf, size_t len, void *data)
 {
-	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
+	struct plop *pp = plop_tab + (int)*buf;
 
 	(void)data; /* unused */
 
@@ -4911,10 +4924,10 @@ static void process_fn(char *buf, size_t len, void *data)
 		ProcessInput(pp->buf, pp->len);
 		return;
 	}
-	Msg(0, "Empty register.");
+	Msg(0, U"Empty register.");
 }
 
-static void confirm_fn(char *buf, size_t len, void *data)
+static void confirm_fn(uint32_t *buf, size_t len, void *data)
 {
 	struct action act;
 
@@ -4929,40 +4942,41 @@ static void confirm_fn(char *buf, size_t len, void *data)
 	DoAction(&act, -1);
 }
 
+#if 0
 struct inputsu {
 	struct acluser **up;
-	char name[24];
-	char pw1[130];		/* FreeBSD crypts to 128 bytes */
-	char pw2[130];
+	uint32_t name[24];
+	uint32_t pw1[130];		/* FreeBSD crypts to 128 bytes */
+	uint32_t pw2[130];
 };
 
-static void suFin(char *buf, size_t len, void *data)
+static void suFin(uint32_t *buf, size_t len, void *data)
 {
 	struct inputsu *i = (struct inputsu *)data;
-	char *p;
+	uint32_t *p;
 	size_t l;
 
 	if (!*i->name) {
 		p = i->name;
 		l = sizeof(i->name) - 1;
 	} else if (!*i->pw1) {
-		strcpy(p = i->pw1, "\377");
+		u32_strcpy(p = i->pw1, U"\377");
 		l = sizeof(i->pw1) - 1;
 	} else {
-		strcpy(p = i->pw2, "\377");
+		u32_strcpy(p = i->pw2, U"\377");
 		l = sizeof(i->pw2) - 1;
 	}
 	if (buf && len)
-		strncpy(p, buf, 1 + ((l < len) ? l : len));
+		u32_strncpy(p, buf, 1 + ((l < len) ? l : len));
 	if (!*i->name)
-		Input("Screen User: ", sizeof(i->name) - 1, INP_COOKED, suFin, (char *)i, 0);
+		Input(U"Screen User: ", sizeof(i->name) - 1, INP_COOKED, suFin, (char *)i, 0);
 	else if (!*i->pw1)
-		Input("User's UNIX Password: ", sizeof(i->pw1) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
+		Input(U"User's UNIX Password: ", sizeof(i->pw1) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
 	else if (!*i->pw2)
-		Input("User's Screen Password: ", sizeof(i->pw2) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
+		Input(U"User's Screen Password: ", sizeof(i->pw2) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
 	else {
 		if ((p = DoSu(i->up, i->name, i->pw2, i->pw1)))
-			Msg(0, "%s", p);
+			Msg(0, U"%s", p);
 		free((char *)i);
 	}
 }
@@ -4978,9 +4992,10 @@ static int InputSu(struct acluser **up, char *name)
 	if (name && *name)
 		suFin(name, (int)strlen(name), (char *)i);	/* can also initialise stuff */
 	else
-		suFin((char *)0, 0, (char *)i);
+		suFin((uint32_t *)0, 0, (char *)i);
 	return 0;
 }
+#endif
 
 static int digraph_find(const char *buf)
 {
@@ -4991,9 +5006,10 @@ static int digraph_find(const char *buf)
 	return i;
 }
 
-static void digraph_fn(char *buf, size_t len, void *data)
+static void digraph_fn(uint32_t *buf, size_t len, void *data)
 {
-	int ch, i, x;
+	int i;
+	uint32_t ch, x;
 	size_t l;
 
 	(void)data; /* unused */
@@ -5038,7 +5054,7 @@ static void digraph_fn(char *buf, size_t len, void *data)
 	if (!parse_input_int(buf, len, &x)) {
 		i = digraph_find(buf);
 		if ((x = digraphs[i].value) <= 0) {
-			Msg(0, "Unknown digraph");
+			Msg(0, U"Unknown digraph");
 			return;
 		}
 	}
@@ -5273,7 +5289,7 @@ static int ChangeCanvasSize(Canvas *fcv, int abs, int diff, bool gflag, int perc
 	return done;
 }
 
-static void ResizeRegions(char *arg, int flags)
+static void ResizeRegions(uint32_t *arg, int flags)
 {
 	Canvas *cv;
 	int diff, l;
@@ -5284,7 +5300,7 @@ static void ResizeRegions(char *arg, int flags)
 	if (!*arg)
 		return;
 	if (D_forecv->c_slorient == SLICE_UNKN) {
-		Msg(0, "resize: need more than one region");
+		Msg(0, U"resize: need more than one region");
 		return;
 	}
 	gflag = flags & RESIZE_FLAG_L ? 0 : 1;
@@ -5292,7 +5308,7 @@ static void ResizeRegions(char *arg, int flags)
 	orient |= flags & RESIZE_FLAG_V ? SLICE_VERT : 0;
 	if (orient == 0)
 		orient = D_forecv->c_slorient;
-	l = strlen(arg);
+	l = u32_strlen(arg);
 	if (*arg == '=') {
 		/* make all regions the same height */
 		Canvas *cv = gflag ? &D_canvas : D_forecv->c_slback;
@@ -5312,15 +5328,16 @@ static void ResizeRegions(char *arg, int flags)
 		ResizeLayersToCanvases();
 		return;
 	}
-	if (!strcmp(arg, "min") || !strcmp(arg, "0")) {
+	if (!u32_strcmp(arg, U"min") || !u32_strcmp(arg, U"0")) {
 		abs = 2;
 		diff = 0;
-	} else if (!strcmp(arg, "max") || !strcmp(arg, "_")) {
+	} else if (!u32_strcmp(arg, U"max") || !u32_strcmp(arg, U"_")) {
 		abs = 2;
 		diff = 1;
 	} else {
 		if (l > 0 && arg[l - 1] == '%')
 			percent = 1000;
+#if 0 /* FIXME: we need something like atoi but for UTF-32 string */
 		if (*arg == '+')
 			diff = atoi(arg + 1);
 		else if (*arg == '-')
@@ -5331,6 +5348,7 @@ static void ResizeRegions(char *arg, int flags)
 				diff = 0;
 			abs = diff == 0 ? 2 : 1;
 		}
+#endif
 	}
 	if (!abs && !diff)
 		return;
@@ -5349,11 +5367,11 @@ static void ResizeRegions(char *arg, int flags)
 	return;
 }
 
-static void ResizeFin(char *buf, size_t len, void *data)
+static void ResizeFin(uint32_t *buf, size_t len, void *data)
 {
-	int ch;
+	uint32_t ch;
 	int flags = *(int *)data;
-	ch = ((unsigned char *)buf)[len];
+	ch = buf[len];
 	if (ch == 0) {
 		ResizeRegions(buf, flags);
 		return;
@@ -5433,7 +5451,7 @@ void RefreshXtermOSC()
  *
  *  returns value representing encoded value
  */
-uint64_t ParseAttrColor(char *str, int msgok)
+uint64_t ParseAttrColor(uint32_t *str, int msgok)
 {
 	uint64_t r;
 
@@ -5493,7 +5511,7 @@ uint64_t ParseAttrColor(char *str, int msgok)
 			break;
 		default:
 			if (msgok)
-				Msg(0, "junk after description: '%c'\n", *str);
+				Msg(0, U"junk after description: '%c'\n", *str);
 			break;
 		}
 		str++;

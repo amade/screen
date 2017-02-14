@@ -5,7 +5,7 @@
 
 int   StartRc (char *, int);
 void  FinishRc (char *);
-void  RcLine (char *, int);
+void  RcLine (uint32_t *, int);
 FILE *secfopen (char *, char *);
 int   secopen (char *, int, int);
 void  WriteFile (struct acluser *, char *, int);

@@ -121,7 +121,7 @@ void setbacktick(int num, int lifespan, int tick, char **cmdv)
 	if (!bt) {
 		bt = malloc(sizeof *bt);
 		if (!bt) {
-			Msg(0, "%s", strnomem);
+			Msg(0, U"%s", strnomem);
 			return;
 		}
 		memset(bt, 0, sizeof(*bt));
@@ -140,7 +140,7 @@ void setbacktick(int num, int lifespan, int tick, char **cmdv)
 	if (bt->tick == 0 && bt->lifespan == 0) {
 		bt->buf = malloc(MAXSTR);
 		if (bt->buf == 0) {
-			Msg(0, "%s", strnomem);
+			Msg(0, U"%s", strnomem);
 			setbacktick(num, 0, 0, (char **)0);
 			return;
 		}

@@ -26,11 +26,12 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 
 /* Initialize new condition and set to false; can be used to re-initialize a
  * condition for re-use */
-void wmc_init(WinMsgCond *cond, char *pos)
+void wmc_init(WinMsgCond *cond, uint32_t *pos)
 {
 	cond->locked = false;
 	cond->pos = pos;
@@ -69,7 +70,7 @@ bool wmc_is_set(const WinMsgCond *cond)
 }
 
 /* "else" encounted */
-char *wmc_else(WinMsgCond *cond, char *pos, bool *changed)
+uint32_t *wmc_else(WinMsgCond *cond, uint32_t *pos, bool *changed)
 {
 	assert(wmc_is_active(cond));
 
@@ -90,7 +91,7 @@ char *wmc_else(WinMsgCond *cond, char *pos, bool *changed)
 
 	/* now that we have reached "else" and are not true, we can never be true;
 	 * discard the truth part of the string */
-	char *prevpos = cond->pos;
+	uint32_t *prevpos = cond->pos;
 	cond->pos = pos;
 
 	/* the "else" part must always be true at this point, because the previous
@@ -106,7 +107,7 @@ char *wmc_else(WinMsgCond *cond, char *pos, bool *changed)
 /* End condition and determine if string should be reset or kept---if our value
  * is truthful, then accept the string, otherwise reject and reset to the
  * position that we were initialized with */
-char *wmc_end(const WinMsgCond *cond, char *pos, bool *changed)
+uint32_t *wmc_end(const WinMsgCond *cond, uint32_t *pos, bool *changed)
 {
 	bool set = wmc_is_set(cond);
 	if (changed)

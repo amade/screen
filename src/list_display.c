@@ -37,6 +37,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <unistr.h>
+#include <unistdio.h>
 
 #include "screen.h"
 
@@ -69,8 +71,8 @@ static int gl_Display_header(ListData *ldata)
 {
 	(void)ldata; /* unused */
 
-	leftline("term-type   size         user interface           window       Perms", 0, 0);
-	leftline("---------- ------- ---------- ----------------- ----------     -----", 1, 0);
+	leftline(U"term-type   size         user interface           window       Perms", 0, 0);
+	leftline(U"---------- ------- ---------- ----------------- ----------     -----", 1, 0);
 	return 2;
 }
 
@@ -78,29 +80,29 @@ static int gl_Display_footer(ListData *ldata)
 {
 	(void)ldata; /* unused */
 
-	centerline("[Press ctrl-l to refresh; Return to end.]", flayer->l_height - 1);
+	centerline(U"[Press ctrl-l to refresh; Return to end.]", flayer->l_height - 1);
 	return 1;
 }
 
 static int gl_Display_row(ListData *ldata, ListRow *lrow)
 {
 	Display *d = lrow->data;
-	char tbuf[80];
+	uint32_t tbuf[80];
 	static char *blockstates[5] = { "nb", "NB", "Z<", "Z>", "BL" };
 	Window *w = d->d_fore;
 	struct mchar m_current = mchar_blank;
 	m_current.attr = A_BD;
 
-	sprintf(tbuf, " %-10.10s%4dx%-4d%10.10s@%-16.16s%s",
+	u32_sprintf(tbuf, " %-10.10s%4dx%-4d%10.10s@%-16.16s%s",
 		d->d_termname, d->d_width, d->d_height, d->d_user->u_name,
 		d->d_usertty,
 		(d->d_blocked || d->d_nonblock >= 0) && d->d_blocked <= 4 ? blockstates[d->d_blocked] : "  ");
 
 	if (w) {
-		int l = 10 - strlen(w->w_title);
+		int l = 10 - u32_strlen(w->w_title);
 		if (l < 0)
 			l = 0;
-		sprintf(tbuf + strlen(tbuf), "%3d(%.10s)%*s%c%c%c%c", w->w_number, w->w_title, l, "",
+		u32_sprintf(tbuf + u32_strlen(tbuf), "%3d(%.10s)%*s%c%c%c%c", w->w_number, w->w_title, l, "",
 			/* w->w_dlist->next */ 0 ? '&' : ' ',
 			/*
 			 * The rwx triple:

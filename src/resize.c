@@ -220,7 +220,7 @@ int MayResizeLayer(Layer *l)
 
 static void kaablamm()
 {
-	Msg(0, "Aborted because of window size change.");
+	Msg(0, U"Aborted because of window size change.");
 }
 
 /* Kills non-resizable layers. */
@@ -377,7 +377,7 @@ static void CheckMaxSize(int wi)
 	mline_old.colorbg = xrealloc(mline_old.colorbg, maxwidth * 4);
 	mline_old.colorfg = xrealloc(mline_old.colorfg, maxwidth * 4);
 	if (!(blank && null && mline_old.image && mline_old.attr && mline_old.colorbg && mline_old.colorfg))
-		Panic(0, "%s", strnomem);
+		Panic(0, U"%s", strnomem);
 
 	MakeBlankLine(blank, maxwidth);
 	memset(null, 0, maxwidth * 4);
@@ -456,12 +456,12 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 		return 0;
 
 	if (wi > MAXWIDTH) {
-		Msg(0, "Window width too large. Truncated to %d.", MAXWIDTH);
+		Msg(0, U"Window width too large. Truncated to %d.", MAXWIDTH);
 		wi = MAXWIDTH;
 	}
 
 	if (he > MAXWIDTH) {
-		Msg(0, "Window height too large. Truncated to %d.", MAXWIDTH);
+		Msg(0, U"Window height too large. Truncated to %d.", MAXWIDTH);
 		he = MAXWIDTH;
 	}
 
@@ -483,7 +483,7 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 		if (wi != p->w_width || he != p->w_height) {
 			if ((nmlines = calloc(he, sizeof(struct mline))) == 0) {
 				KillWindow(p);
-				Msg(0, "%s", strnomem);
+				Msg(0, U"%s", strnomem);
 				return -1;
 			}
 		} else {
@@ -497,7 +497,7 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 	}
 	if (hi) {
 		if ((nhlines = calloc(hi, sizeof(struct mline))) == 0) {
-			Msg(0, "No memory for history buffer - turned off");
+			Msg(0, U"No memory for history buffer - turned off");
 			hi = 0;
 			ty = he - 1;
 		}
@@ -668,7 +668,7 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 						free((char *)nhlines);
 				}
 				KillWindow(p);
-				Msg(0, "%s", strnomem);
+				Msg(0, U"%s", strnomem);
 				if (nmlines)
 					free(nmlines);
 				if (nhlines)

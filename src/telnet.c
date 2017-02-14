@@ -114,7 +114,7 @@ int TelOpenAndConnect(Window *win)
 	struct addrinfo hints, *res0, *res;
 
 	if (!(win->w_cmdargs[1])) {
-		Msg(0, "Usage: screen //telnet host [port]");
+		Msg(0, U"Usage: screen //telnet host [port]");
 		return -1;
 	}
 
@@ -124,7 +124,7 @@ int TelOpenAndConnect(Window *win)
 	hints.ai_protocol = IPPROTO_TCP;
 
 	if (getaddrinfo(win->w_cmdargs[1], win->w_cmdargs[2] ? win->w_cmdargs[2] : TEL_DEFPORT, &hints, &res0)) {
-		Msg(0, "unknown host: %s", win->w_cmdargs[1]);
+		Msg(0, U"unknown host: %s", win->w_cmdargs[1]);
 		return -1;
 	}
 
@@ -133,14 +133,14 @@ int TelOpenAndConnect(Window *win)
 			if (res->ai_next)
 				continue;
 			else {
-				Msg(errno, "TelOpenAndConnect: socket");
+				Msg(errno, U"TelOpenAndConnect: socket");
 				freeaddrinfo(res0);
 				return -1;
 			}
 		}
 
 		if (setsockopt(fd, SOL_SOCKET, SO_OOBINLINE, (char *)&on, sizeof(on)))
-			Msg(errno, "TelOpenAndConnect: setsockopt SO_OOBINLINE");
+			Msg(errno, U"TelOpenAndConnect: setsockopt SO_OOBINLINE");
 
 		if (win->w_cmdargs[2] && strcmp(win->w_cmdargs[2], TEL_DEFPORT))
 			snprintf(buf, 256, "Trying %s %s...", win->w_cmdargs[1], win->w_cmdargs[2]);
@@ -162,7 +162,7 @@ int TelOpenAndConnect(Window *win)
 				if (res->ai_next)
 					continue;
 				else {
-					Msg(errno, "TelOpenAndConnect: connect");
+					Msg(errno, U"TelOpenAndConnect: connect");
 					freeaddrinfo(res0);
 					return -1;
 				}
@@ -346,7 +346,7 @@ static void TelReply(Window *win, char *str, size_t len)
 	if (len == 0)
 		return;
 	if (win->w_inlen + len > IOSIZE) {
-		Msg(0, "Warning: telnet protocol overrun!");
+		Msg(0, U"Warning: telnet protocol overrun!");
 		return;
 	}
 	memmove(win->w_inbuf + win->w_inlen, str, len);

@@ -3,8 +3,8 @@
 
 /* global variables */
 
-extern char *kmapadef[];
-extern char *kmapdef[];
-extern char *kmapmdef[];
+extern uint32_t *kmapadef[];
+extern uint32_t *kmapdef[];
+extern uint32_t *kmapmdef[];
 
 #endif /* SCREEN_KMAPDEF_H */

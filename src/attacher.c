@@ -124,13 +124,13 @@ int Attach(int how)
 		eff_uid = own_uid;
 #ifdef HAVE_SETRESUID
 		if (setresuid(multi_uid, own_uid, multi_uid))
-			Panic(errno, "setresuid");
+			Panic(errno, U"setresuid");
 #else
 		xseteuid(multi_uid);
 		xseteuid(own_uid);
 #endif
 		if (chmod(attach_tty, 0666))
-			Panic(errno, "chmod %s", attach_tty);
+			Panic(errno, U"chmod %s", attach_tty);
 		tty_oldmode = tty_mode;
 	}
 
@@ -150,7 +150,7 @@ int Attach(int how)
 
 	if (how == MSG_CONT) {
 		if ((lasts = MakeClientSocket(0)) < 0) {
-			Panic(0, "Sorry, cannot contact session \"%s\" again.\r\n", SocketName);
+			Panic(0, U"Sorry, cannot contact session \"%s\" again.\r\n", SocketName);
 		}
 	} else {
 		n = FindSocket(&lasts, (int *)0, (int *)0, SocketMatch);
@@ -161,10 +161,10 @@ int Attach(int how)
 			if (quietflag)
 				eexit(10);
 			if (SocketMatch && *SocketMatch) {
-				Panic(0, "There is no screen to be %sed matching %s.",
+				Panic(0, U"There is no screen to be %sed matching %s.",
 				      xflag ? "attach" : dflag ? "detach" : "resum", SocketMatch);
 			} else {
-				Panic(0, "There is no screen to be %sed.",
+				Panic(0, U"There is no screen to be %sed.",
 				      xflag ? "attach" : dflag ? "detach" : "resum");
 			}
 			/* NOTREACHED */
@@ -174,7 +174,7 @@ int Attach(int how)
 			if (rflag < 3) {
 				if (quietflag)
 					eexit(10 + n);
-				Panic(0, "Type \"screen [-d] -r [pid.]tty.host\" to resume one of them.");
+				Panic(0, U"Type \"screen [-d] -r [pid.]tty.host\" to resume one of them.");
 			}
 			/* NOTREACHED */
 		}
@@ -186,13 +186,13 @@ int Attach(int how)
 	 */
 	if (!multiattach) {
 		if (setuid(real_uid))
-			Panic(errno, "setuid");
+			Panic(errno, U"setuid");
 	} else {
 		/* This call to xsetuid should also set the saved uid */
 		xseteuid(real_uid);	/* multi_uid, allow backend to send signals */
 	}
 	if (setgid(real_gid))
-		Panic(errno, "setgid");
+		Panic(errno, U"setgid");
 	eff_uid = real_uid;
 	eff_gid = real_gid;
 
@@ -205,9 +205,9 @@ int Attach(int how)
 		MasterPid = 10 * MasterPid + (*s - '0');
 	}
 	if (stat(SocketPath, &st) == -1)
-		Panic(errno, "stat %s", SocketPath);
+		Panic(errno, U"stat %s", SocketPath);
 	if ((st.st_mode & 0600) != 0600)
-		Panic(0, "Socket is in wrong mode (%03o)", (int)st.st_mode);
+		Panic(0, U"Socket is in wrong mode (%03o)", (int)st.st_mode);
 
 	/*
 	 * Change: if -x or -r ignore failing -d
@@ -220,7 +220,7 @@ int Attach(int how)
 	 * With -x the mode is irrelevant unless -d.
 	 */
 	if ((dflag || !xflag) && (st.st_mode & 0700) != (dflag ? 0700 : 0600))
-		Panic(0, "That screen is %sdetached.", dflag ? "already " : "not ");
+		Panic(0, U"That screen is %sdetached.", dflag ? "already " : "not ");
 	if (dflag && (how == MSG_DETACH || how == MSG_POW_DETACH)) {
 		m.m.detach.dpid = getpid();
 		strncpy(m.m.detach.duser, LoginName, sizeof(m.m.detach.duser) - 1);
@@ -233,7 +233,7 @@ int Attach(int how)
 		 * password, then we get a SIGCONT. Otherwise we get a SIG_BYE */
 		xsignal(SIGCONT, AttachSigCont);
 		if (WriteMessage(lasts, &m))
-			Panic(errno, "WriteMessage");
+			Panic(errno, U"WriteMessage");
 		close(lasts);
 		while (!ContinuePlease)
 			pause();	/* wait for SIGCONT */
@@ -243,7 +243,7 @@ int Attach(int how)
 			return 0;	/* we detached it. jw. */
 		sleep(1);	/* we dont want to overrun our poor backend. jw. */
 		if ((lasts = MakeClientSocket(0)) == -1)
-			Panic(0, "Cannot contact screen again. Sigh.");
+			Panic(0, U"Cannot contact screen again. Sigh.");
 		m.type = how;
 	}
 	strncpy(m.m.attach.envterm, attach_term, MAXTERMLEN);
@@ -275,7 +275,7 @@ int Attach(int how)
 		xsignal(SIGCONT, AttachSigCont);
 
 	if (WriteMessage(lasts, &m))
-		Panic(errno, "WriteMessage");
+		Panic(errno, U"WriteMessage");
 	close(lasts);
 	if (multi && (how == MSG_ATTACH || how == MSG_CONT)) {
 		while (!ContinuePlease)
@@ -285,7 +285,7 @@ int Attach(int how)
 		xseteuid(own_uid);
 		if (tty_oldmode >= 0)
 			if (chmod(attach_tty, tty_oldmode))
-				Panic(errno, "chmod %s", attach_tty);
+				Panic(errno, U"chmod %s", attach_tty);
 		tty_oldmode = -1;
 		xseteuid(real_uid);
 	}
@@ -339,7 +339,7 @@ void AttacherFinit(int sigsig)
 	}
 	if (tty_oldmode >= 0) {
 		if (setuid(own_uid))
-			Panic(errno, "setuid");
+			Panic(errno, U"setuid");
 		chmod(attach_tty, tty_oldmode);
 	}
 	exit(0);
@@ -352,9 +352,9 @@ static void AttacherFinitBye(int sigsig)
 	(void)sigsig; /* unused */
 
 	if (setgid(real_gid))
-		Panic(errno, "setgid");
+		Panic(errno, U"setgid");
 	if (setuid(own_uid))
-		Panic(errno, "setuid");
+		Panic(errno, U"setuid");
 
 	/* we don't want to disturb init (even if we were root), eh? jw */
 	if ((ppid = getppid()) > 1)
@@ -440,9 +440,9 @@ static void LockHup(int sigsig)
 	(void)sigsig; /* unused */
 
 	if (setgid(real_gid))
-		Panic(errno, "setgid");
+		Panic(errno, U"setgid");
 	if (setuid(own_uid))
-		Panic(errno, "setuid");
+		Panic(errno, U"setuid");
 	if (ppid > 1)
 		Kill(ppid, SIGHUP);
 	exit(0);
@@ -477,9 +477,9 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 	if (sty == 0) {
 		i = FindSocket(&s, (int *)0, (int *)0, match);
 		if (i == 0)
-			Panic(0, "No screen session found.");
+			Panic(0, U"No screen session found.");
 		if (i != 1)
-			Panic(0, "Use -S to specify a session.");
+			Panic(0, U"Use -S to specify a session.");
 	} else {
 		if (strlen(sty) > FILENAME_MAX)
 			sty[FILENAME_MAX] = 0;
@@ -535,7 +535,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 		}
 
 		if (r < 0)
-			Panic(0, "Could not create a listening socket to read the results.");
+			Panic(0, U"Could not create a listening socket to read the results.");
 
 		strncpy(m.m.command.writeback, SocketPath, sizeof(m.m.command.writeback) - 1);
 		m.m.command.writeback[sizeof(m.m.command.writeback) - 1] = '\0';
@@ -544,7 +544,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 		xsignal(SIGCONT, QueryResultSuccess);
 		xsignal(SIG_BYE, QueryResultFail);
 		if (WriteMessage(s, &m))
-			Msg(errno, "write");
+			Msg(errno, U"write");
 		close(s);
 		while (!QueryResult)
 			pause();
@@ -558,7 +558,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 			exit(1);
 	} else {
 		if (WriteMessage(s, &m))
-			Msg(errno, "write");
+			Msg(errno, U"write");
 		close(s);
 	}
 }
