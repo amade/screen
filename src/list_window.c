@@ -33,6 +33,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <unistr.h>
 
 #include "screen.h"
 
@@ -187,7 +188,7 @@ static int gl_Window_header(ListData *ldata)
 
 	if ((g = (wdata->group != NULL))) {
 		LPutWinMsg(flayer, "Group: ", 7, &mchar_blank, 0, 0);
-		LPutWinMsg(flayer, wdata->group->w_title, strlen(wdata->group->w_title), &mchar_blank, 7, 0);
+		LPutWinMsg(flayer, wdata->group->w_title, u32_strlen(wdata->group->w_title), &mchar_blank, 7, 0);
 	}
 
 	display = 0;

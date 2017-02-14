@@ -32,6 +32,7 @@
 
 #include <sys/types.h>
 #include <stdint.h>
+#include <unistr.h>
 
 #include "screen.h"
 
@@ -47,10 +48,10 @@ static int e_tgetent(char *, char *);
 static char *e_tgetstr(char *, char **);
 static int e_tgetflag(char *);
 static int e_tgetnum(char *);
-static int findseq_ge(char *, int, unsigned char **);
-static void setseqoff(unsigned char *, int, int);
-static int addmapseq(char *, int, int);
-static int remmapseq(char *, int);
+static int findseq_ge(uint32_t *, int, uint32_t **);
+static void setseqoff(uint32_t *, int, int);
+static int addmapseq(uint32_t *, int, int);
+static int remmapseq(uint32_t *, int);
 
 char Termcap[TERMCAP_BUFSIZE + 8];	/* new termcap +8:"TERMCAP=" */
 static int Termcaplen;
@@ -392,7 +393,7 @@ int InitTermcap(int width, int height)
 
 int remap(int n, int map)
 {
-	char *s = 0;
+	uint32_t *s = 0;
 	int fl = 0, domap = 0;
 	struct action *a1, *a2, *tab;
 	int l = 0;
@@ -414,7 +415,7 @@ int remap(int n, int map)
 			if (n >= KMAP_KEYS)
 				n -= T_OCAPS - T_CURSOR;
 			s = D_tcs[n + T_CAPS].str;
-			l = s ? strlen(s) : 0;
+			l = s ? u32_strlen(s) : 0;
 			if (n >= T_CURSOR - T_CAPS)
 				a2 = &tab[n + (T_OCAPS - T_CURSOR)];
 		}
@@ -424,9 +425,9 @@ int remap(int n, int map)
 			a1 = 0;
 		if (a2 && a2->nr == RC_ILLEGAL)
 			a2 = 0;
-		if (a1 && a1->nr == RC_STUFF && a1->args[0] && strcmp(a1->args[0], s) == 0)
+		if (a1 && a1->nr == RC_STUFF && a1->args[0] && u32_strcmp(a1->args[0], s) == 0)
 			a1 = 0;
-		if (a2 && a2->nr == RC_STUFF && a2->args[0] && strcmp(a2->args[0], s) == 0)
+		if (a2 && a2->nr == RC_STUFF && a2->args[0] && u32_strcmp(a2->args[0], s) == 0)
 			a2 = 0;
 		domap |= (a1 || a2);
 		if (tab == umtab) {
@@ -490,9 +491,9 @@ void CheckEscape()
 	display = odisplay;
 }
 
-static int findseq_ge(char *seq, int k, unsigned char **sp)
+static int findseq_ge(uint32_t *seq, int k, uint32_t **sp)
 {
-	unsigned char *p;
+	uint32_t *p;
 	int j, l;
 
 	p = D_kmaps;
@@ -502,8 +503,8 @@ static int findseq_ge(char *seq, int k, unsigned char **sp)
 		for (j = 0;; j++) {
 			if (j == k || j == l)
 				j = l - k;
-			else if (p[j] != ((unsigned char *)seq)[j])
-				j = p[j] - ((unsigned char *)seq)[j];
+			else if (p[j] != seq[j])
+				j = p[j] - seq[j];
 			else
 				continue;
 			break;
@@ -518,9 +519,9 @@ static int findseq_ge(char *seq, int k, unsigned char **sp)
 	return -1;
 }
 
-static void setseqoff(unsigned char *p, int i, int o)
+static void setseqoff(uint32_t *p, int i, int o)
 {
-	unsigned char *q;
+	uint32_t *q;
 	int l, k;
 
 	k = p[2];
@@ -538,10 +539,10 @@ static void setseqoff(unsigned char *p, int i, int o)
 	}
 }
 
-static int addmapseq(char *seq, int k, int nr)
+static int addmapseq(uint32_t *seq, int k, int nr)
 {
 	int i, j, l, mo, m;
-	unsigned char *p, *q;
+	uint32_t *p, *q;
 
 	if (k >= 254)
 		return -1;
@@ -553,7 +554,7 @@ static int addmapseq(char *seq, int k, int nr)
 	}
 	i = p - D_kmaps;
 	if (D_nseqs + 2 * k + 4 >= D_aseqs) {
-		D_kmaps = xrealloc((char *)D_kmaps, D_aseqs + 256);
+		D_kmaps = xrealloc(D_kmaps, (D_aseqs + 256) * 4);
 		D_aseqs += 256;
 		p = D_kmaps + i;
 	}
@@ -562,12 +563,12 @@ static int addmapseq(char *seq, int k, int nr)
 	D_seqh = 0;
 	evdeq(&D_mapev);
 	if (j > 0)
-		memmove((char *)p + 2 * k + 4, (char *)p, D_nseqs - i);
+		u32_move(p + 2 * k + 4, p, D_nseqs - i);
 	p[0] = nr >> 8;
 	p[1] = nr;
 	p[2] = k;
-	memmove((char *)p + 3, seq, k);
-	memset(p + k + 3, 0, k + 1);
+	u32_move(p + 3, seq, k);
+	u32_set(p + k + 3, 0, k + 1);
 	D_nseqs += 2 * k + 4;
 	if (j > 0) {
 		q = p + 2 * k + 4;
@@ -596,10 +597,10 @@ static int addmapseq(char *seq, int k, int nr)
 	return 0;
 }
 
-static int remmapseq(char *seq, int k)
+static int remmapseq(uint32_t *seq, int k)
 {
 	int j, l;
-	unsigned char *p, *q;
+	uint32_t *p, *q;
 
 	if (k >= 254 || (j = findseq_ge(seq, k, &p)) != 0)
 		return -1;
@@ -613,7 +614,7 @@ static int remmapseq(char *seq, int k)
 		}
 	}
 	if (D_kmaps + D_nseqs > p + 2 * k + 4)
-		memmove((char *)p, (char *)p + 2 * k + 4, (D_kmaps + D_nseqs) - (p + 2 * k + 4));
+		u32_move(p, p + 2 * k + 4, (size_t)(D_kmaps + D_nseqs) - (size_t)(p + 2 * k + 4));
 	D_nseqs -= 2 * k + 4;
 	D_seqp = D_kmaps + 3;
 	D_seql = 0;

@@ -37,6 +37,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <unistr.h>
 
 #include "screen.h"
 
@@ -97,7 +98,7 @@ static int gl_Display_row(ListData *ldata, ListRow *lrow)
 		(d->d_blocked || d->d_nonblock >= 0) && d->d_blocked <= 4 ? blockstates[d->d_blocked] : "  ");
 
 	if (w) {
-		int l = 10 - strlen(w->w_title);
+		int l = 10 - u32_strlen(w->w_title);
 		if (l < 0)
 			l = 0;
 		sprintf(tbuf + strlen(tbuf), "%3d(%.10s)%*s%c%c%c%c", w->w_number, w->w_title, l, "",

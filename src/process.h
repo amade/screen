@@ -4,9 +4,9 @@
 #include "winmsgbuf.h"
 
 void  InitKeytab (void);
-void  ProcessInput (char *, size_t);
-void  ProcessInput2 (char *, size_t);
-void  DoProcess (Window *, char **, size_t *, struct paster *);
+void  ProcessInput (uint32_t *, size_t);
+void  ProcessInput2 (uint32_t *, size_t);
+void  DoProcess (Window *, uint32_t **, size_t *, struct paster *);
 void  DoAction  (struct action *, int);
 int   FindCommnr (const char *);
 void  DoCommand (char **, int *);
@@ -19,13 +19,13 @@ void  DoScreen (char *, char **);
 int   IsNumColon (char *, char *, int);
 void  ShowWindows (int);
 char *AddWindows (WinMsgBufContext *, int, int, int);
-char *AddWindowFlags (char *, int, Window *);
+char *AddWindowFlags (uint32_t *, int, Window *);
 char *AddOtherUsers (char *, int, Window *);
-int   WindowByNoN (char *);
+int   WindowByNoN (uint32_t *);
 Window *FindNiceWindow (Window *, char *);
 int   CompileKeys (char *, int, unsigned char *);
 void  RefreshXtermOSC (void);
-uint64_t ParseAttrColor (char *, int);
+uint64_t ParseAttrColor (uint32_t *, int);
 void  ApplyAttrColor (uint64_t, struct mchar *);
 void  SwitchWindow (int);
 int   StuffKey (int);
@@ -34,10 +34,10 @@ int   StuffKey (int);
 
 extern bool hardcopy_append;
 
-extern char *noargs[];
+extern uint32_t *noargs[];
 extern char NullStr[];
-extern char *zmodem_recvcmd;
-extern char *zmodem_sendcmd;
+extern uint32_t *zmodem_recvcmd;
+extern uint32_t *zmodem_sendcmd;
 
 extern int idletimo;
 extern int kmap_extn;

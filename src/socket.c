@@ -42,6 +42,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <signal.h>
+#include <unistr.h>
 
 #include "screen.h"
 
@@ -180,7 +181,7 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 #endif
 		mode = (int)st.st_mode & 0777;
 		if (multi && ((mode & 0677) != 0601)) {
-			if (strcmp(multi, LoginName)) {
+			if (u32_strcmp(multi, LoginName)) {
 				mode = -4;
 			} else {
 			}
@@ -440,7 +441,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 			strcpy(p, *av);
 			p += len;
 		}
-	if (nwin->aka != nwin_undef.aka && p + strlen(nwin->aka) + 1 < m.m.create.line + sizeof(m.m.create.line))
+	if (nwin->aka != nwin_undef.aka && p + u32_strlen(nwin->aka) + 1 < m.m.create.line + sizeof(m.m.create.line))
 		strcpy(p, nwin->aka);
 	else
 		*p = '\0';
@@ -962,7 +963,7 @@ static void FinishAttach(Message *m)
 			noshowwin = 1;
 		} else if (!strcmp(m->m.attach.preselect, "+")) {
 			struct action newscreen;
-			char *na = 0;
+			uint32_t *na = 0;
 			newscreen.nr = RC_SCREEN;
 			newscreen.args = &na;
 			newscreen.quiet = 0;

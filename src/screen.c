@@ -41,6 +41,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <limits.h>
+#include <unistdio.h>
+#include <unistr.h>
 
 #include <locale.h>
 #if defined(HAVE_LANGINFO_H)
@@ -58,7 +60,7 @@ extern char **environ;
 int force_vt = 1;
 int VBellWait, MsgWait, MsgMinWait, SilenceWait;
 
-char *ShellProg;
+uint32_t *ShellProg;
 char *ShellArgs[2];
 
 struct backtick;
@@ -84,7 +86,7 @@ struct passwd *ppp;
 char *attach_tty;
 int attach_fd = -1;
 char *attach_term;
-char *LoginName;
+uint32_t *LoginName;
 struct mode attach_Mode;
 
 char SocketPath[MAXPATHLEN + 2 * MAXSTR];
@@ -100,35 +102,35 @@ char **NewEnv = NULL;
 char *RcFileName = NULL;
 char *home;
 
-char *screenlogfile;		/* filename layout */
+uint32_t *screenlogfile;	/* filename layout */
 int log_flush = 10;		/* flush interval in seconds */
 bool logtstamp_on = false;	/* tstamp disabled */
-char *logtstamp_string;		/* stamp layout */
+uint32_t *logtstamp_string;		/* stamp layout */
 int logtstamp_after = 120;	/* first tstamp after 120s */
 char *hardcopydir = NULL;
-char *BellString;
-char *VisualBellString;
-char *ActivityString;
-char *BufferFile;
+uint32_t *BellString;
+uint32_t *VisualBellString;
+uint32_t *ActivityString;
+uint32_t *BufferFile;
 char *PowDetachString;
-char *hstatusstring;
-char *captionstring;
-char *timestring;
-char *wliststr;
-char *wlisttit;
+uint32_t *hstatusstring;
+uint32_t *captionstring;
+uint32_t *timestring;
+uint32_t *wliststr;
+uint32_t *wlisttit;
 bool auto_detach = true;
 bool adaptflag, cmdflag, iflag, lsflag, quietflag, wipeflag, xflag;
 int rflag, dflag;
 int queryflag = -1;
 bool hastruecolor = false;
 
-char *multi;
+uint32_t *multi;
 char *multi_home;
 int multiattach;
 int tty_mode;
 int tty_oldmode = -1;
 
-char HostName[MAXSTR];
+uint32_t HostName[MAXSTR];
 pid_t MasterPid, PanicPid;
 uid_t real_uid, eff_uid;
 uid_t multi_uid;
@@ -216,19 +218,19 @@ int main(int argc, char **argv)
 	 *  (otherwise, we might have problems with the select() call)
 	 */
 	closeallfiles(0);
-	snprintf(version, 59, "%d.%d.%d (build on %s %s) ", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, __DATE__, __TIME__);
+	u32_asprintf(&version, "%d.%d.%d (build on %s %s) ", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, __DATE__, __TIME__);
 	nversion = VERSION_MAJOR * 10000 + VERSION_MINOR * 100 + VERSION_REVISION;
 
-	BellString = SaveStr("Bell in window %n");
-	VisualBellString = SaveStr("   Wuff,  Wuff!!  ");
-	ActivityString = SaveStr("Activity in window %n");
-	screenlogfile = SaveStr("screenlog.%n");
-	logtstamp_string = SaveStr("-- %n:%t -- time-stamp -- %M/%d/%y %c:%s --\n");
-	hstatusstring = SaveStr("%h");
-	captionstring = SaveStr("%4n %t");
-	timestring = SaveStr("%c:%s %M %d %H%? %l%?");
-	wlisttit = SaveStr(" Num Name%=Flags");
-	wliststr = SaveStr("%4n %t%=%f");
+	BellString = SaveStr(U"Bell in window %n");
+	VisualBellString = SaveStr(U"   Wuff,  Wuff!!  ");
+	ActivityString = SaveStr(U"Activity in window %n");
+	screenlogfile = SaveStr(U"screenlog.%n");
+	logtstamp_string = SaveStr(U"-- %n:%t -- time-stamp -- %M/%d/%y %c:%s --\n");
+	hstatusstring = SaveStr(U"%h");
+	captionstring = SaveStr(U"%4n %t");
+	timestring = SaveStr(U"%c:%s %M %d %H%? %l%?");
+	wlisttit = SaveStr(U" Num Name%=Flags");
+	wliststr = SaveStr(U"%4n %t%=%f");
 	BufferFile = SaveStr(DEFAULT_BUFFERFILE);
 	ShellProg = NULL;
 	PowDetachString = 0;
@@ -238,8 +240,8 @@ int main(int argc, char **argv)
 	MsgWait = MSGWAIT * 1000;
 	MsgMinWait = MSGMINWAIT * 1000;
 	SilenceWait = SILENCEWAIT;
-	zmodem_sendcmd = SaveStr("!!! sz -vv -b ");
-	zmodem_recvcmd = SaveStr("!!! rz -vv -b -E");
+	zmodem_sendcmd = SaveStr(U"!!! sz -vv -b ");
+	zmodem_recvcmd = SaveStr(U"!!! rz -vv -b -E");
 
 	CompileKeys((char *)0, 0, mark_key_tab);
 	nwin = nwin_undef;
@@ -519,10 +521,11 @@ int main(int argc, char **argv)
 
 
 	if (!ShellProg) {
-		char *sh;
+		uint32_t *sh;
 
-		sh = getenv("SHELL");
+		u32_asprintf(&sh, "%s\0", getenv("SHELL"));
 		ShellProg = SaveStr(sh ? sh : DefaultShell);
+		free(sh);
 	}
 	ShellArgs[0] = ShellProg;
 	home = getenv("HOME");
@@ -611,7 +614,7 @@ int main(int argc, char **argv)
 
 	if (home == 0 || *home == '\0')
 		home = ppp->pw_dir;
-	if (strlen(LoginName) > MAXLOGINLEN)
+	if (u32_strlen(LoginName) > MAXLOGINLEN)
 		Panic(0, "LoginName too long - sorry.");
 	if (multi && strlen(multi) > MAXLOGINLEN)
 		Panic(0, "Screen owner name too long - sorry.");
@@ -735,10 +738,14 @@ int main(int argc, char **argv)
 	*SocketName = 0;
 	(void)umask(oumask);
 
-	(void)gethostname(HostName, MAXSTR);
-	HostName[MAXSTR - 1] = '\0';
-	if ((ap = strchr(HostName, '.')) != NULL)
-		*ap = '\0';
+	{
+		char h[MAXSTR];
+		(void)gethostname(h, MAXSTR);
+		h[MAXSTR - 1] = '\0';
+		if ((ap = strchr(h, '.')) != NULL)
+			*ap = '\0';
+		u32_asprintf(&HostName, "%s\0", h);
+	}
 
 	if (lsflag) {
 		int i, fo, oth;
@@ -1124,7 +1131,7 @@ void Finit(int i)
 #ifdef ENABLE_UTMP
 		RestoreLoginSlot();
 #endif
-		AddStr("[screen is terminating]\r\n");
+		AddStr(U"[screen is terminating]\r\n");
 		Flush(3);
 		SetTTY(D_userfd, &D_OldMode);
 		fcntl(D_userfd, F_SETFL, 0);
@@ -1188,12 +1195,12 @@ void Detach(int mode)
 #define AddStrSocket(msg) do { \
     if (SocketName) \
       { \
-	AddStr("[" msg " from "); \
+	AddStr(U"[" msg U" from "); \
 	AddStr(SocketName); \
-	AddStr("]\r\n"); \
+	AddStr(U"]\r\n"); \
       } \
     else \
-      AddStr("[" msg "]\r\n"); \
+      AddStr(U"[" msg U"]\r\n"); \
   } while (0)
 
 	xsignal(SIGHUP, SIG_IGN);
@@ -1207,29 +1214,29 @@ void Detach(int mode)
 		sign = SIG_BYE;
 		break;
 	case D_DETACH:
-		AddStrSocket("detached");
+		AddStrSocket(U"detached");
 		sign = SIG_BYE;
 		break;
 	case D_STOP:
 		sign = SIG_STOP;
 		break;
 	case D_REMOTE:
-		AddStrSocket("remote detached");
+		AddStrSocket(U"remote detached");
 		sign = SIG_BYE;
 		break;
 	case D_POWER:
-		AddStrSocket("power detached");
+		AddStrSocket(U"power detached");
 		if (PowDetachString) {
 			AddStr(PowDetachString);
-			AddStr("\r\n");
+			AddStr(U"\r\n");
 		}
 		sign = SIG_POWER_BYE;
 		break;
 	case D_REMOTE_POWER:
-		AddStrSocket("remote power detached");
+		AddStrSocket(U"remote power detached");
 		if (PowDetachString) {
 			AddStr(PowDetachString);
-			AddStr("\r\n");
+			AddStr(U"\r\n");
 		}
 		sign = SIG_POWER_BYE;
 		break;
@@ -1446,7 +1453,7 @@ void Dummy(int err, const char *fmt, ...)
  *
  */
 
-void PutWinMsg(char *s, int start, int max)
+void PutWinMsg(uint32_t *s, int start, int max)
 {
 	int i, p, l, n;
 	uint64_t r;
@@ -1456,7 +1463,7 @@ void PutWinMsg(char *s, int start, int max)
 
 	if (s != g_winmsg->buf) {
 		/* sorry, no fancy coloring available */
-		l = strlen(s);
+		l = u32_strlen(s);
 		if (l > max)
 			l = max;
 		l -= start;
@@ -1467,7 +1474,7 @@ void PutWinMsg(char *s, int start, int max)
 	}
 	rend = D_rend;
 	p = 0;
-	l = strlen(s);
+	l = u32_strlen(s);
 	for (i = 0; i < g_winmsg->numrend && max > 0; i++) {
 		if (p > g_winmsg->rendpos[i] || g_winmsg->rendpos[i] > l)
 			break;

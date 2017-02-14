@@ -31,6 +31,9 @@
  ****************************************************************
  */
 
+#include <stdint.h>
+#include <unistr.h>
+
 #include "config.h"
 
 #include "winmsg.h"
@@ -61,7 +64,7 @@ WinMsgBuf *g_winmsg;
  * we instead use two separate macros */
 #define WINMSG_ESC_PARAMS \
 	__attribute__((unused)) WinMsgEsc *esc, \
-	__attribute__((unused)) char **src, \
+	__attribute__((unused)) uint32_t **src, \
 	__attribute__((unused)) WinMsgBufContext *wmbc, \
 	__attribute__((unused)) WinMsgCond *cond
 #define winmsg_esc__name(name) __WinMsgEsc##name
@@ -72,13 +75,13 @@ WinMsgBuf *g_winmsg;
 #define WinMsgDoEsc(name) winmsg_esc__name(name)(WINMSG_ESC_ARGS)
 #define WinMsgDoEscEx(name, ...) winmsg_esc__name(name)(WINMSG_ESC_ARGS, __VA_ARGS__)
 
-static void _MakeWinMsgEvRec(WinMsgBufContext *, WinMsgCond *, char *, Window *, int *, int);
+static void _MakeWinMsgEvRec(WinMsgBufContext *, WinMsgCond *, uint32_t *, Window *, int *, int);
 
 
 /* TODO: remove the redundant arguments */
-static char *pad_expand(WinMsgBuf *winmsg, char *buf, char *p, int numpad, int padlen)
+static uint32_t *pad_expand(WinMsgBuf *winmsg, uint32_t *buf, uint32_t *p, int numpad, int padlen)
 {
-	char *pn, *pn2;
+	uint32_t *pn, *pn2;
 	int i, r;
 
 	padlen = padlen - (p - buf);	/* space for rent */
@@ -106,7 +109,7 @@ static char *pad_expand(WinMsgBuf *winmsg, char *buf, char *p, int numpad, int p
 	return pn2;
 }
 
-int AddWinMsgRend(WinMsgBuf *winmsg, const char *str, uint64_t r)
+int AddWinMsgRend(WinMsgBuf *winmsg, const uint32_t *str, uint64_t r)
 {
 	if (winmsg->numrend >= MAX_WINMSG_REND || str < winmsg->buf || str >= winmsg->buf + MAXSTR)
 		return -1;
@@ -131,13 +134,13 @@ winmsg_esc_ex(Wflags, Window *win)
 
 winmsg_esc(Pid)
 {
-	wmbc_printf(wmbc, "%d", (esc->flags.plus && display) ? D_userpid : getpid());
+	wmbc_printf(wmbc, U"%d", (esc->flags.plus && display) ? D_userpid : getpid());
 }
 
 winmsg_esc_ex(Backtick, int id, Window *win, int *tick, struct timeval *now, int rec)
 {
 	Backtick *bt;
-	char *btresult;
+	uint32_t *btresult;
 
 	if (!(bt = bt_find_id(id)))
 		return;
@@ -324,13 +327,13 @@ winmsg_esc_ex(PadOrTrunc, int *numpad, int *lastpad, int padlen)
  */
 winmsg_esc(Rend)
 {
-	char rbuf[RENDBUF_SIZE];
+	uint32_t rbuf[RENDBUF_SIZE];
 	uint8_t i;
 	uint64_t r;
 
 	(*src)++;
 	for (i = 0; i < (RENDBUF_SIZE-1); i++) {
-		char c = (*src)[i];
+		uint32_t c = (*src)[i];
 		if (c && c != WINESC_REND_END)
 			rbuf[i] = c;
 		else
@@ -349,7 +352,7 @@ winmsg_esc(Rend)
 
 winmsg_esc(SessName)
 {
-	char *session_name = strchr(SocketName, '.') + 1;
+	uint32_t *session_name = u32_strchr(SocketName, '.') + 1;
 
 	if (*wmbc_strcpy(wmbc, session_name))
 		wmc_set(cond);
@@ -395,12 +398,12 @@ winmsg_esc_ex(WinArgv, Window *win)
 	if (!win || !win->w_cmdargs[0])
 		return;
 
-	wmbc_printf(wmbc, "%s", win->w_cmdargs[0]);
+	wmbc_printf(wmbc, U"%s", win->w_cmdargs[0]);
 	wmbc_fastfw0(wmbc);
 
 	if (**src == WINESC_CMD_ARGS) {
 		for (int i = 1; win->w_cmdargs[i]; i++) {
-			wmbc_printf(wmbc, " %s", win->w_cmdargs[i]);
+			wmbc_printf(wmbc, U" %s", win->w_cmdargs[i]);
 			wmbc_fastfw0(wmbc);
 		}
 	}
@@ -412,9 +415,9 @@ winmsg_esc_ex(WinNum, Window *win)
 		esc->num = 1;
 
 	if (!win) {
-		wmbc_printf(wmbc, "%*s", esc->num, esc->num > 1 ? "--" : "-");
+		wmbc_printf(wmbc, U"%*s", esc->num, esc->num > 1 ? U"--" : U"-");
 	} else {
-		wmbc_printf(wmbc, "%*d", esc->num, win->w_number);
+		wmbc_printf(wmbc, U"%*d", esc->num, win->w_number);
 	}
 
 	wmc_set(cond);
@@ -423,16 +426,16 @@ winmsg_esc_ex(WinNum, Window *win)
 winmsg_esc_ex(WinLogName, Window *win)
 {
 	if (win && win->w_log && win->w_log->fp)
-		wmbc_printf(wmbc, "%s", win->w_log->name);
+		wmbc_printf(wmbc, U"%s", win->w_log->name);
 
 }
 
 winmsg_esc_ex(WinSize, Window *win)
 {
 	if (!win)
-		wmbc_printf(wmbc, "--x--");
+		wmbc_printf(wmbc, U"--x--");
 	else
-		wmbc_printf(wmbc, "%dx%d", win->w_width, win->w_height);
+		wmbc_printf(wmbc, U"%dx%d", win->w_width, win->w_height);
 }
 
 winmsg_esc_ex(WinTitle, Window *win)
@@ -479,7 +482,7 @@ winmsg_esc_ex(CondElse, int *condrend)
 
 /* TODO: this is temporary until refactoring is complete and this code need not
  * be abstracted */
-static void _MakeWinMsgEvRec(WinMsgBufContext *wmbc, WinMsgCond *cond, char *str,
+static void _MakeWinMsgEvRec(WinMsgBufContext *wmbc, WinMsgCond *cond, uint32_t *str,
                              Window *win, int *tick, int rec)
 {
 	int oldtick = *tick;
@@ -500,9 +503,9 @@ static void _MakeWinMsgEvRec(WinMsgBufContext *wmbc, WinMsgCond *cond, char *str
 	wmb_free(tmp);
 }
 
-/* TODO: const char *str for safety and reassurance */
-char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
-                   int chesc, int padlen, Event *ev, int rec)
+/* TODO: const uint32_t *str for safety and reassurance */
+uint32_t *MakeWinMsgEv(WinMsgBuf *winmsg, uint32_t *str, Window *win,
+                   uint32_t chesc, int padlen, Event *ev, int rec)
 {
 	static int tick;
 	struct timeval now;
@@ -544,7 +547,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 
 	tick = 0;
 	gettimeofday(&now, NULL);
-	for (char *s = str; *s; s++) {
+	for (uint32_t *s = str; *s; s++) {
 		if (*s != chesc) {
 			if ((chesc == '%') && (*s == '^')) {
 				s++;
@@ -668,12 +671,12 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 	return winmsg->buf;
 }
 
-char *MakeWinMsg(char *s, Window *win, int esc)
+uint32_t *MakeWinMsg(uint32_t *s, Window *win, uint32_t esc)
 {
 	return MakeWinMsgEv(NULL, s, win, esc, 0, (Event *)0, 0);
 }
 
-static int WindowChangedCheck(char *s, WinMsgEscapeChar what, int *hp)
+static int WindowChangedCheck(uint32_t *s, WinMsgEscapeChar what, int *hp)
 {
 	int h = 0;
 	int l;

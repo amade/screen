@@ -36,6 +36,7 @@
 #include <sys/ioctl.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <uniconv.h>
 
 #include "screen.h"
 
@@ -63,7 +64,7 @@ static void disp_idle_fn(Event *, void *);
 static void disp_blanker_fn(Event *, void *);
 static void WriteLP(int, int);
 static void INSERTCHAR(int);
-static void RAW_PUTCHAR(int);
+static void RAW_PUTCHAR(uint32_t );
 static void SetBackColor(int);
 static void RemoveStatusMinWait(void);
 
@@ -91,7 +92,7 @@ int focusminwidth, focusminheight;
  *  Default layer management
  */
 
-void DefProcess(char **bufp, size_t *lenp)
+void DefProcess(uint32_t **bufp, size_t *lenp)
 {
 	*bufp += *lenp;
 	*lenp = 0;
@@ -344,7 +345,7 @@ void FinitTerm()
 		AddCStr(D_KE);
 		AddCStr(D_CCE);
 		if (D_hstatus)
-			ShowHStatus((char *)0);
+			ShowHStatus((uint32_t *)0);
 		ClearAllXtermOSC();
 		D_x = D_y = -1;
 		GotoPos(0, D_height - 1);
@@ -382,7 +383,7 @@ void PUTCHAR(int c)
 	RAW_PUTCHAR(c);
 }
 
-void PUTCHARLP(int c)
+void PUTCHARLP(uint32_t c)
 {
 	if (D_x < D_width - 1) {
 		if (D_insert)
@@ -407,7 +408,7 @@ void PUTCHARLP(int c)
  * NOTE: charset Nr. 0 has a conversion table, but c1, c2, ... don't.
  */
 
-static void RAW_PUTCHAR(int c)
+static void RAW_PUTCHAR(uint32_t c)
 {
 	AddChar(c);
 	if (++D_x >= D_width) {
@@ -505,11 +506,11 @@ void MouseMode(int mode)
 		mode = D_mousetrack;
 
 	if (D_mouse != mode) {
-		char mousebuf[20];
+		uint32_t mousebuf[20];
 		if (!D_CXT)
 			return;
 		if (D_mouse) {
-			sprintf(mousebuf, "\033[?%dl", D_mouse);
+			u32_sprintf(mousebuf, "\033[?%dl", D_mouse);
 			AddStr(mousebuf);
 		}
 		if (mode) {
@@ -529,10 +530,10 @@ void BracketedPasteMode(bool mode)
 		if (!D_CXT)
 			return;
 		if (D_bracketed) {
-			AddStr("\033[?2004l\a");
+			AddStr(U"\033[?2004l\a");
 		}
 		if (mode) {
-			AddStr("\033[?2004h\a");
+			AddStr(U"\033[?2004h\a");
 		}
 		D_bracketed = mode;
 	}
@@ -540,7 +541,7 @@ void BracketedPasteMode(bool mode)
 
 void CursorStyle(int mode)
 {
-	char buf[32];
+	uint32_t buf[32];
 
 	if (!display)
 		return;
@@ -1287,9 +1288,9 @@ void SetRenditionMline(struct mline *ml, int x)
 	}
 }
 
-void MakeStatus(char *msg)
+void MakeStatus(uint32_t *msg)
 {
-	char *s, *t;
+	uint32_t *s, *t;
 	int max;
 
 	if (!display)
@@ -1301,7 +1302,7 @@ void MakeStatus(char *msg)
 		if (D_processinputdata)
 			return;	/* XXX: better */
 		AddStr(msg);
-		AddStr("\r\n");
+		AddStr(U"\r\n");
 		Flush(0);
 		return;
 	}
@@ -1313,7 +1314,7 @@ void MakeStatus(char *msg)
 		max = D_WS > 0 ? D_WS : (D_width - !D_CLP);
 	if (D_status) {
 		/* same message? */
-		if (strcmp(msg, D_status_lastmsg) == 0) {
+		if (u32_strcmp(msg, D_status_lastmsg) == 0) {
 			if (!D_status_obufpos)
 				SetTimeout(&D_statusev, MsgWait);
 			return;
@@ -1323,24 +1324,24 @@ void MakeStatus(char *msg)
 	for (s = t = msg; *s && t - msg < max; ++s)
 		if (*s == BELL)
 			AddCStr(D_BL);
-		else if ((unsigned char)*s >= ' ' && *s != 0177)
+		else if (*s >= ' ' && *s != 0177)
 			*t++ = *s;
 	*t = '\0';
 	if (t == msg)
 		return;
 	if (t - msg >= D_status_buflen) {
-		char *buf;
+		uint32_t *buf;
 		if (D_status_lastmsg)
-			buf = realloc(D_status_lastmsg, t - msg + 1);
+			buf = realloc(D_status_lastmsg, (t - msg + 1) * 4);
 		else
-			buf = malloc(t - msg + 1);
+			buf = malloc((t - msg + 1) * 4);
 		if (buf) {
 			D_status_lastmsg = buf;
 			D_status_buflen = t - msg + 1;
 		}
 	}
 	if (t - msg < D_status_buflen)
-		strncpy(D_status_lastmsg, msg, D_status_buflen);
+		u32_strncpy(D_status_lastmsg, msg, D_status_buflen);
 	D_status_len = t - msg;
 	D_status_lastx = D_x;
 	D_status_lasty = D_y;
@@ -1440,14 +1441,14 @@ static void RemoveStatusMinWait()
 	RemoveStatus();
 }
 
-static int PrePutWinMsg(char *s, int start, int max)
+static int PrePutWinMsg(uint32_t *s, int start, int max)
 {
 	PutWinMsg(s, start, max);
 	return max;
 }
 
 /* refresh the display's hstatus line */
-void ShowHStatus(char *str)
+void ShowHStatus(uint32_t *str)
 {
 	int l, ox, oy, max;
 
@@ -1468,7 +1469,7 @@ void ShowHStatus(char *str)
 			return;
 		AddCStr2(D_TS, 0);
 		max = D_WS > 0 ? D_WS : (D_width - !D_CLP);
-		if ((int)strlen(str) > max)
+		if ((int)u32_strlen(str) > max)
 			AddStrn(str, max);
 		else
 			AddStr(str);
@@ -1477,8 +1478,8 @@ void ShowHStatus(char *str)
 	} else if (D_has_hstatus == HSTATUS_LASTLINE) {
 		ox = D_x;
 		oy = D_y;
-		str = str ? str : "";
-		l = strlen(str);
+		str = str ? str : U"";
+		l = u32_strlen(str);
 		if (l > D_width)
 			l = D_width;
 		GotoPos(0, D_height - 1);
@@ -1496,8 +1497,8 @@ void ShowHStatus(char *str)
 	} else if (D_has_hstatus == HSTATUS_FIRSTLINE) {
 		ox = D_x;
 		oy = D_y;
-		str = str ? str : "";
-		l = strlen(str);
+		str = str ? str : U"";
+		l = u32_strlen(str);
 		if (l > D_width)
 			l = D_width;
 		GotoPos(0, 0);
@@ -1522,7 +1523,7 @@ void ShowHStatus(char *str)
  */
 void RefreshHStatus()
 {
-	char *buf;
+	uint32_t *buf;
 	int extrabytes = 0;
 	evdeq(&D_hstatusev);
 	if (D_status == STATUS_ON_HS)
@@ -1535,7 +1536,7 @@ void RefreshHStatus()
 		if (D_has_hstatus != HSTATUS_IGNORE && D_hstatusev.timeout.tv_sec)
 			evenq(&D_hstatusev);
 	} else
-		ShowHStatus((char *)0);
+		ShowHStatus((uint32_t *)0);
 }
 
 /*********************************************************************/
@@ -1571,7 +1572,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 	Canvas *cv, *lcv, *cvlist, *cvlnext;
 	Layer *oldflayer;
 	int xx, yy, l;
-	char *buf;
+	uint32_t *buf;
 	Window *p;
 
 	if (D_status == STATUS_ON_WIN && y == STATLINE()) {
@@ -1607,7 +1608,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 				if (cv->c_captev.timeout.tv_sec)
 					evenq(&cv->c_captev);
 				xx = to > cv->c_xe ? cv->c_xe : to;
-				l = strlen(buf);
+				l = u32_strlen(buf);
 				GotoPos(from, y);
 				SetRendition(&mchar_so);
 				if (l > xx - cv->c_xs + 1)
@@ -1922,27 +1923,27 @@ void ChangeScrollRegion(int newtop, int newbot)
 
 #define WT_FLAG "2"		/* change to "0" to set both title and icon */
 
-void SetXtermOSC(int i, char *s)
+void SetXtermOSC(int i, uint32_t *s)
 {
-	static char *oscs[][2] = {
-		{WT_FLAG ";", "screen"},	/* set window title */
-		{"20;", ""},	/* background */
-		{"39;", "black"},	/* default foreground (black?) */
-		{"49;", "white"}	/* default background (white?) */
+	static uint32_t *oscs[][2] = {
+		{WT_FLAG U";", U"screen"},	/* set window title */
+		{U"20;", U""},	/* background */
+		{U"39;", U"black"},	/* default foreground (black?) */
+		{U"49;", U"white"}	/* default background (white?) */
 	};
 
 	if (!D_CXT)
 		return;
 	if (!s)
-		s = "";
+		s = U"";
 	if (!D_xtermosc[i] && !*s)
 		return;
 	if (i == 0 && !D_xtermosc[0])
-		AddStr("\033[22;" WT_FLAG "t");	/* stack titles (xterm patch #251) */
+		AddStr(U"\033[22;" WT_FLAG "t");	/* stack titles (xterm patch #251) */
 	if (!*s)
 		s = oscs[i][1];
 	D_xtermosc[i] = 1;
-	AddStr("\033]");
+	AddStr(U"\033]");
 	AddStr(oscs[i][0]);
 	AddStr(s);
 	AddChar(7);
@@ -1954,7 +1955,7 @@ void ClearAllXtermOSC()
 	for (i = 3; i >= 0; i--)
 		SetXtermOSC(i, 0);
 	if (D_xtermosc[0])
-		AddStr("\033[23;" WT_FLAG "t");	/* unstack titles (xterm patch #251) */
+		AddStr(U"\033[23;" WT_FLAG "t");	/* unstack titles (xterm patch #251) */
 }
 
 #undef WT_FLAG
@@ -1963,17 +1964,17 @@ void ClearAllXtermOSC()
  *  Output buffering routines
  */
 
-void AddStr(char *str)
+void AddStr(uint32_t *str)
 {
-	char c;
+	uint32_t c;
 
 	while ((c = *str++))
 		AddChar(c);
 }
 
-void AddStrn(char *str, int n)
+void AddStrn(uint32_t *str, int n)
 {
-	char c;
+	uint32_t c;
 
 	while ((c = *str++) && n-- > 0)
 		AddChar(c);
@@ -2134,7 +2135,7 @@ void NukePending()
 		AddCStr(D_ME);
 	else {
 		if (D_hascolor)
-			AddStr("\033[m");	/* why is D_ME not set? */
+			AddStr(U"\033[m");	/* why is D_ME not set? */
 		AddCStr(D_SE);
 		AddCStr(D_UE);
 	}
@@ -2259,7 +2260,10 @@ static void disp_readev_fn(Event *event, void *data)
 {
 	ssize_t size;
 	char buf[IOSIZE];
+	uint32_t imgbuf[IOSIZE];
 	Canvas *cv;
+
+	const char *lc = locale_charset(); /* FIXME needs to be display encoding variable*/
 
 	(void)event; /* unused */
 
@@ -2312,16 +2316,16 @@ static void disp_readev_fn(Event *event, void *data)
 		return;
 	}
 	if (D_blocked > 1) {	/* 2, 3 */
-		char *bufp;
 		Window *p;
 
 		flayer = 0;
 		for (p = windows; p; p = p->w_next)
 			if (p->w_zdisplay == display) {
+				size_t sss = size;
 				flayer = &p->w_layer;
-				bufp = buf;
-				while (size > 0)
-					LayProcess(&bufp, (size_t*)&size);
+				u32_conv_from_encoding(lc, iconveh_question_mark, buf, size, 0, imgbuf, &sss);
+				while (sss > 0)
+					LayProcess((uint32_t **)&imgbuf, &sss);
 				return;
 			}
 		zmodem_abort(0, display);
@@ -2377,7 +2381,12 @@ static void disp_readev_fn(Event *event, void *data)
 			size -= 5;
 		}
 	}
-	(*D_processinput) (buf, size);
+
+	size_t sss = size;
+
+	u32_conv_from_encoding(lc, iconveh_question_mark, buf, sss, 0, imgbuf, &sss);
+
+	(*D_processinput) (imgbuf, sss);
 }
 
 static void disp_status_fn(Event *event, void *data)
@@ -2419,16 +2428,16 @@ static void disp_blocked_fn(Event *event, void *data)
 
 static void disp_map_fn(Event *event, void *data)
 {
-	char *p;
+	uint32_t *p;
 	int l, i;
-	unsigned char *q;
+	uint32_t *q;
 
 	(void)event; /* unused */
 
 	display = (Display *)data;
 	if (!(l = D_seql))
 		return;
-	p = (char *)D_seqp - l;
+	p = D_seqp - l;
 	D_seqp = D_kmaps + 3;
 	D_seql = 0;
 	if ((q = D_seqh) != 0) {
@@ -2436,7 +2445,7 @@ static void disp_map_fn(Event *event, void *data)
 		i = q[0] << 8 | q[1];
 		i &= ~KMAP_NOTIMEOUT;
 		if (StuffKey(i))
-			ProcessInput2((char *)q + 3, q[2]);
+			ProcessInput2(q + 3, q[2]);
 		if (display == 0)
 			return;
 		l -= q[2];
@@ -2517,7 +2526,7 @@ void KillBlanker()
 		AddCStr(D_ME);
 	} else {
 		if (D_hascolor)
-			AddStr("\033[m\033[m");	/* why is D_ME not set? */
+			AddStr(U"\033[m\033[m");	/* why is D_ME not set? */
 		AddCStr(D_SE);
 		AddCStr(D_UE);
 	}

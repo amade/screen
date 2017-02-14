@@ -36,6 +36,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/types.h>
+#include <unistr.h>
+#include <unistdio.h>
 
 #include "screen.h"
 
@@ -43,7 +45,7 @@
 #include "list_generic.h"
 #include "process.h"
 
-char version[60];		/* initialised by main() */
+uint32_t *version;		/* initialised by main() */
 
 static void PadStr(char *, int, int, int);
 
@@ -85,7 +87,7 @@ void exit_with_usage(char *myname, char *message, char *arg)
 	printf("-t title      Set title. (window's name).\n");
 	printf("-T term       Use term as $TERM for windows, rather than \"screen\".\n");
 	printf("-U            Tell screen to use UTF-8 encoding.\n");
-	printf("-v            Print \"Screen version %s\".\n", version);
+	ulc_fprintf(stdout, "-v            Print \"Screen version %llU\".\n", version);
 	printf("-wipe [match] Do nothing, just clean up SocketDir [on possible matches].\n");
 	printf("-x            Attach to a not detached screen. (Multi display mode).\n");
 	printf("-X            Execute <cmd> as a screen command in the specified session.\n");
@@ -101,7 +103,7 @@ void exit_with_usage(char *myname, char *message, char *arg)
 **   Here come the help page routines
 */
 
-static void HelpProcess(char **, size_t *);
+static void HelpProcess(uint32_t **, size_t *);
 static void HelpAbort(void);
 static void HelpRedisplayLine(int, int, int, int);
 static void add_key_to_buf(char *, int);
@@ -202,7 +204,7 @@ void display_help(char *class, struct action *ktabp)
 	helppage();
 }
 
-static void HelpProcess(char **ppbuf, size_t *plen)
+static void HelpProcess(uint32_t **ppbuf, size_t *plen)
 {
 	bool done = false;
 
@@ -317,9 +319,9 @@ static int helppage()
 
 static void AddAction(struct action *act, int x, int y)
 {
-	char buf[256];
+	uint32_t buf[256];
 	int del, l;
-	char *bp, *cp, **pp;
+	uint32_t *bp, *cp, **pp;
 	int *lp, ll;
 	int fr;
 	struct mchar mchar_dol;
@@ -345,14 +347,14 @@ static void AddAction(struct action *act, int x, int y)
 		del = 0;
 		bp = buf;
 		ll = *lp++;
-		if (!ll || (strchr(cp, ' ') != NULL)) {
-			if (strchr(cp, '\'') != NULL)
+		if (!ll || (u32_strchr(cp, ' ') != NULL)) {
+			if (u32_strchr(cp, '\'') != NULL)
 				*bp++ = del = '"';
 			else
 				*bp++ = del = '\'';
 		}
 		while (ll-- && bp < buf + 250)
-			bp += AddXChar(bp, *(unsigned char *)cp++);
+			bp += AddXChar(bp, *cp++);
 		if (del)
 			*bp++ = del;
 		*bp = 0;
@@ -364,8 +366,8 @@ static void AddAction(struct action *act, int x, int y)
 				LPutChar(flayer, &mchar_dol, x, y);
 			return;
 		}
-		PadStr(buf, strlen(buf), x, y);
-		x += strlen(buf);
+		PadStr(buf, u32_strlen(buf), x, y);
+		x += u32_strlen(buf);
 		pp++;
 		if (*pp)
 			LPutChar(flayer, fr ? &mchar_blank : &mchar_dol, x++, y);
@@ -413,14 +415,14 @@ static void HelpRedisplayLine(int y, int xs, int xe, int isblank)
 **
 */
 
-static void CopyrightProcess(char **, size_t *);
+static void CopyrightProcess(uint32_t **, size_t *);
 static void CopyrightRedisplayLine(int, int, int, int);
 static void CopyrightAbort(void);
 static void copypage(void);
 
 struct copydata {
-	char *cps, *savedcps;	/* position in the message */
-	char *refcps, *refsavedcps;	/* backup for redisplaying */
+	uint32_t *cps, *savedcps;	/* position in the message */
+	uint32_t *refcps, *refsavedcps;	/* backup for redisplaying */
 };
 
 static const struct LayFuncs CopyrightLf = {
@@ -433,7 +435,7 @@ static const struct LayFuncs CopyrightLf = {
 	0
 };
 
-static const char cpmsg[] = "\
+static const uint32_t cpmsg[] = U"\
 \n\
 Screen version %v\n\
 \n\
@@ -460,13 +462,13 @@ http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc., \
 Send bugreports, fixes, enhancements, t-shirts, money, beer & pizza to \
 screen-devel@gnu.org\n\n\n"
 #ifdef ENABLE_TELNET
-    "+builtin-telnet "
+    U"+builtin-telnet "
 #else
-    "-builtin-telnet "
+    U"-builtin-telnet "
 #endif
     ;
 
-static void CopyrightProcess(char **ppbuf, size_t *plen)
+static void CopyrightProcess(uint32_t **ppbuf, size_t *plen)
 {
 	int done = 0;
 	struct copydata *copydata;
@@ -510,7 +512,7 @@ void display_copyright()
 	if (InitOverlayPage(sizeof(*copydata), &CopyrightLf, 0))
 		return;
 	copydata = (struct copydata *)flayer->l_data;
-	copydata->cps = (char *)cpmsg;
+	copydata->cps = (uint32_t *)cpmsg;
 	copydata->savedcps = 0;
 	flayer->l_x = 0;
 	flayer->l_y = flayer->l_height - 1;
@@ -519,8 +521,8 @@ void display_copyright()
 
 static void copypage()
 {
-	char *cps;
-	char *ws;
+	uint32_t *cps;
+	uint32_t *ws;
 	int x, y, l;
 	char cbuf[80];
 	struct copydata *copydata;
@@ -536,7 +538,7 @@ static void copypage()
 		ws = cps;
 		while (*cps == ' ')
 			cps++;
-		if (strncmp(cps, "%v", 2) == 0) {
+		if (u32_strncmp(cps, U"%v", 2) == 0) {
 			copydata->savedcps = cps + 2;
 			cps = version;
 			continue;
@@ -603,7 +605,7 @@ static void CopyrightRedisplayLine(int y, int xs, int xe, int isblank)
 **
 */
 
-static void BindkeyProcess(char **, size_t *);
+static void BindkeyProcess(uint32_t **, size_t *);
 static void BindkeyAbort(void);
 static void BindkeyRedisplayLine(int, int, int, int);
 static void bindkeypage(void);
@@ -734,7 +736,7 @@ static void bindkeypage()
 	LaySetCursor();
 }
 
-static void BindkeyProcess(char **ppbuf, size_t *plen)
+static void BindkeyProcess(uint32_t **ppbuf, size_t *plen)
 {
 	int done = 0;
 	struct bindkeydata *bindkeydata;

@@ -24,23 +24,24 @@
 #define SCREEN_WINMSGCOND_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 
 /* represents a window message condition (e.g. %?)*/
 typedef struct {
-	char *pos;     /* starting position in dest string */
+	uint32_t *pos;     /* starting position in dest string */
 	bool  state;   /* conditional truth value */
 	bool  locked;  /* when set, prevents state from changing */
 } WinMsgCond;
 
 /* WinMsgCond is intended to be used as an opaque type */
-void  wmc_init(WinMsgCond *, char *);
+void  wmc_init(WinMsgCond *, uint32_t *);
 void  wmc_set(WinMsgCond *);
 void  wmc_clear(WinMsgCond *);
 bool  wmc_is_active(const WinMsgCond *);
 bool  wmc_is_set(const WinMsgCond *);
-char *wmc_else(WinMsgCond *, char *, bool *);
-char *wmc_end(const WinMsgCond *, char *, bool *);
+uint32_t *wmc_else(WinMsgCond *, uint32_t *, bool *);
+uint32_t *wmc_end(const WinMsgCond *, uint32_t *, bool *);
 void  wmc_deinit(WinMsgCond *);
 
 #endif

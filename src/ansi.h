@@ -109,7 +109,7 @@ enum move_t {
 typedef struct Window Window;
 
 void  ResetAnsiState (Window *);
-void  WriteString (Window *, char *, size_t);
+void  WriteString (Window *, uint32_t *, size_t);
 void  ChangeAKA (Window *, char *, size_t);
 int   GetAnsiStatus (Window *, char *);
 void  WNewAutoFlow (Window *, int);

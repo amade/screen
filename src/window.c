@@ -40,6 +40,8 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <unistr.h>
+#include <uniconv.h>
 
 #include "fileio.h"
 #include "help.h"
@@ -55,13 +57,13 @@
 #include "utmp.h"
 #include "winmsg.h"
 
-static void WinProcess(char **, size_t *);
+static void WinProcess(uint32_t **, size_t *);
 static void WinRedisplayLine(int, int, int, int);
 static void WinClearLine(int, int, int, int);
 static int WinResize(int, int);
 static void WinRestore(void);
-static int DoAutolf(char *, size_t *, int);
-static void ZombieProcess(char **, size_t *);
+static int DoAutolf(uint32_t *, size_t *, int);
+static void ZombieProcess(uint32_t **, size_t *);
 static void win_readev_fn(Event *, void *);
 static void win_writeev_fn(Event *, void *);
 static void win_resurrect_zombie_fn(Event *, void *);
@@ -75,14 +77,14 @@ static void win_destroyev_fn(Event *, void *);
 static int OpenDevice(char **, int, int *, char **);
 static int ForkWindow(Window *, char **, char *);
 static void zmodem_found(Window *, int, char *, size_t);
-static void zmodemFin(char *, size_t, void *);
+static void zmodemFin(uint32_t *, size_t, void *);
 static int zmodem_parse(Window *, char *, size_t);
 
 Window **wtab;		/* window table */
 
 bool VerboseCreate = false;		/* XXX move this to user.h */
 
-char DefaultShell[] = "/bin/sh";
+uint32_t DefaultShell[] = U"/bin/sh";
 #ifndef HAVE_EXECVPE
 static char DefaultPath[] = ":/usr/ucb:/bin:/usr/bin";
 #endif
@@ -181,9 +183,9 @@ const struct LayFuncs WinLf = {
 	0
 };
 
-static int DoAutolf(char *buf, size_t *lenp, int fr)
+static int DoAutolf(uint32_t *buf, size_t *lenp, int fr)
 {
-	char *p;
+	uint32_t *p;
 	size_t len = *lenp;
 	int trunc = 0;
 
@@ -196,17 +198,17 @@ static int DoAutolf(char *buf, size_t *lenp, int fr)
 		}
 		if (len == 0)
 			break;
-		memmove(p + 1, p, len++);
+		u32_move(p + 1, p, len++);
 		p[1] = '\n';
 	}
 	*lenp = p - buf;
 	return trunc;
 }
 
-static void WinProcess(char **bufpp, size_t *lenp)
+static void WinProcess(uint32_t **bufpp, size_t *lenp)
 {
 	size_t l2 = 0, f, *ilen, l = *lenp, trunc;
-	char *ibuf;
+	uint32_t *ibuf;
 
 	fore = (Window *)flayer->l_data;
 
@@ -262,7 +264,7 @@ static void WinProcess(char **bufpp, size_t *lenp)
 #endif
 	{
 		l2 = l;
-		memmove(ibuf + *ilen, *bufpp, l2);
+		u32_move(ibuf + *ilen, *bufpp, l2);
 		if (fore->w_autolf && (trunc = DoAutolf(ibuf + *ilen, &l2, f - l2)))
 			l -= trunc;
 #ifdef ENABLE_TELNET
@@ -279,10 +281,10 @@ static void WinProcess(char **bufpp, size_t *lenp)
 	}
 }
 
-static void ZombieProcess(char **bufpp, size_t *lenp)
+static void ZombieProcess(uint32_t **bufpp, size_t *lenp)
 {
 	size_t l = *lenp;
-	char *buf = *bufpp, b1[10], b2[10];
+	uint32_t *buf = *bufpp, b1[10], b2[10];
 
 	fore = (Window *)flayer->l_data;
 
@@ -294,7 +296,7 @@ static void ZombieProcess(char **bufpp, size_t *lenp)
 			return;
 		}
 		if (*(unsigned char *)buf == ZombieKey_resurrect) {
-			WriteString(fore, "\r\n", 2);
+			WriteString(fore, U"\r\n", 2);
 			RemakeWindow(fore);
 			return;
 		}
@@ -525,14 +527,14 @@ int MakeWindow(struct NewWindow *newwin)
 	if (VerboseCreate && type != W_TYPE_GROUP) {
 		Display *d = display;	/* WriteString zaps display */
 
-		WriteString(p, ":screen (", 9);
-		WriteString(p, p->w_title, strlen(p->w_title));
-		WriteString(p, "):", 2);
+		WriteString(p, U":screen (", 9);
+		WriteString(p, p->w_title, u32_strlen(p->w_title));
+		WriteString(p, U"):", 2);
 		for (f = 0; p->w_cmdargs[f]; f++) {
-			WriteString(p, " ", 1);
+			WriteString(p, U" ", 1);
 			WriteString(p, p->w_cmdargs[f], strlen(p->w_cmdargs[f]));
 		}
-		WriteString(p, "\r\n", 2);
+		WriteString(p, U"\r\n", 2);
 		display = d;
 	}
 
@@ -668,14 +670,14 @@ int RemakeWindow(Window *window)
 	if (VerboseCreate) {
 		Display *d = display;	/* WriteString zaps display */
 
-		WriteString(window, ":screen (", 9);
-		WriteString(window, window->w_title, strlen(window->w_title));
-		WriteString(window, "):", 2);
+		WriteString(window, U":screen (", 9);
+		WriteString(window, window->w_title, u32_strlen(window->w_title));
+		WriteString(window, U"):", 2);
 		for (int i = 0; window->w_cmdargs[i]; i++) {
-			WriteString(window, " ", 1);
+			WriteString(window, U" ", 1);
 			WriteString(window, window->w_cmdargs[i], strlen(window->w_cmdargs[i]));
 		}
-		WriteString(window, "\r\n", 2);
+		WriteString(window, U"\r\n", 2);
 		display = d;
 	}
 
@@ -1347,9 +1349,13 @@ static int muchpending(Window *p, Event *event)
 static void win_readev_fn(Event *event, void *data)
 {
 	Window *p = (Window *)data;
-	char buf[IOSIZE], *bp;
-	int size, len;
+	char readbuf[IOSIZE];
+	ssize_t readlen;
+	uint32_t *buf, *bp;
+	size_t size, len;
 	int wtop;
+
+	buf = calloc(IOSIZE, sizeof(uint32_t));
 
 	bp = buf;
 	size = IOSIZE;
@@ -1380,7 +1386,7 @@ static void win_readev_fn(Event *event, void *data)
 		return;
 	}
 
-	if ((len = read(event->fd, buf, size)) <= 0) {
+	if ((readlen = read(event->fd, readbuf, size)) <= 0) {
 		if (errno == EINTR || errno == EAGAIN)
 			return;
 #if defined(EWOULDBLOCK) && (EWOULDBLOCK != EAGAIN)
@@ -1390,12 +1396,21 @@ static void win_readev_fn(Event *event, void *data)
 		WindowDied(p, 0, 0);
 		return;
 	}
+
+	const char *lc = locale_charset();
+	uint32_t *asdf;
+
+	//u32_set(buf, 0, IOSIZE);
+	asdf = u32_conv_from_encoding(lc, iconveh_question_mark, readbuf, readlen, 0, buf, &len);
+
+	bp = asdf;
+
 #ifdef TIOCPKT
 	if (p->w_type == W_TYPE_PTY) {
-		if (buf[0]) {
-			if (buf[0] & TIOCPKT_NOSTOP)
+		if (asdf[0]) {
+			if (asdf[0] & TIOCPKT_NOSTOP)
 				WNewAutoFlow(p, 0);
-			if (buf[0] & TIOCPKT_DOSTOP)
+			if (asdf[0] & TIOCPKT_DOSTOP)
 				WNewAutoFlow(p, 1);
 		}
 		bp++;
@@ -1404,14 +1419,14 @@ static void win_readev_fn(Event *event, void *data)
 #endif
 #ifdef ENABLE_TELNET
 	if (p->w_type == W_TYPE_TELNET)
-		len = TelIn(p, bp, len, buf + sizeof(buf) - (bp + len));
+		len = TelIn(p, bp, len, asdf + sizeof(buf) - (bp + len));
 #endif
 	if (len == 0)
 		return;
 	if (zmodem_mode && zmodem_parse(p, bp, len))
 		return;
 	if (wtop) {
-		memmove(p->w_pwin->p_inbuf + p->w_pwin->p_inlen, bp, len);
+		u32_move(p->w_pwin->p_inbuf + p->w_pwin->p_inlen, bp, len);
 		p->w_pwin->p_inlen += len;
 	}
 
@@ -1431,7 +1446,7 @@ static void win_resurrect_zombie_fn(Event *event, void *data)
 	/* Already reconnected? */
 	if (p->w_deadpid != p->w_pid)
 		return;
-	WriteString(p, "\r\n", 2);
+	WriteString(p, U"\r\n", 2);
 	RemakeWindow(p);
 }
 
@@ -1440,18 +1455,27 @@ static void win_writeev_fn(Event *event, void *data)
 	Window *p = (Window *)data;
 	size_t len;
 	if (p->w_inlen) {
-		if ((len = write(event->fd, p->w_inbuf, p->w_inlen)) <= 0)
-			len = p->w_inlen;	/* dead window */
+		const char *lc = locale_charset();
+		char inbuf[IOSIZE];
+		size_t inlen = IOSIZE;
 
-		if (p->w_miflag) { /* don't loop if not needed */
-			for (Window *win = windows; win; win = win->w_next) {
-				if (win != p && win->w_miflag)
-					write(win->w_ptyfd, p->w_inbuf, p->w_inlen);
+		u32_conv_to_encoding(lc, iconveh_question_mark,
+				p->w_inbuf, p->w_inlen, 0, inbuf, &inlen);
+
+		if (inbuf) {
+			if ((len = write(event->fd, inbuf, inlen)) <= 0)
+				len = p->w_inlen;	/* dead window */
+
+			if (p->w_miflag) { /* don't loop if not needed */
+				for (Window *win = windows; win; win = win->w_next) {
+					if (win != p && win->w_miflag)
+						write(win->w_ptyfd, inbuf, inlen);
+				}
 			}
-		}
 
-		if ((p->w_inlen -= len))
-			memmove(p->w_inbuf, p->w_inbuf + len, p->w_inlen);
+			if ((p->w_inlen -= len))
+				u32_move(p->w_inbuf, p->w_inbuf + len, p->w_inlen);
+		}
 	}
 	if (p->w_paster.pa_pastelen && !p->w_slowpaste) {
 		struct paster *pa = &p->w_paster;
@@ -1581,7 +1605,7 @@ static int zmodem_parse(Window *p, char *bp, size_t len)
 			if (!p->w_zdisplay) {
 				if (i > 6)
 					WriteString(p, bp, i + 1 - 6);
-				WriteString(p, "\r\n", 2);
+				WriteString(p, U"\r\n", 2);
 				zmodem_found(p, *b2 == '1', b2 + 1, len - i - 1);
 				return 1;
 			} else if (p->w_zauto == 7 || *b2 == '8') {
@@ -1615,18 +1639,18 @@ static int zmodem_parse(Window *p, char *bp, size_t len)
 	return 0;
 }
 
-static void zmodemFin(char *buf, size_t len, void *data)
+static void zmodemFin(uint32_t *buf, size_t len, void *data)
 {
-	char *s;
+	uint32_t *s;
 	size_t l;
 
 	(void)data; /* unused */
 
 	if (len)
-		RcLine(buf, strlen(buf) + 1);
+		RcLine(buf, u32_strlen(buf) + 1);
 	else {
-		s = "\030\030\030\030\030\030\030\030\030\030";
-		l = strlen(s);
+		s = U"\030\030\030\030\030\030\030\030\030\030";
+		l = u32_strlen(s);
 		LayProcess(&s, &l);
 	}
 }
@@ -1671,15 +1695,15 @@ static void zmodem_found(Window *p, int send, char *bp, size_t len)
 		ClearAll();
 		GotoPos(0, 0);
 		SetRendition(&mchar_blank);
-		AddStr("Zmodem active\r\n\r\n");
-		AddStr(send ? "**\030B01" : "**\030B00");
+		AddStr(U"Zmodem active\r\n\r\n");
+		AddStr(send ? U"**\030B01" : U"**\030B00");
 		while (len-- > 0)
 			AddChar(*bp++);
 		display = olddisplay;
 		return;
 	}
 	flayer = &p->w_layer;
-	Input(":", MAXSTR, INP_COOKED, zmodemFin, NULL, 0);
+	Input(U":", MAXSTR, INP_COOKED, zmodemFin, NULL, 0);
 	s = send ? zmodem_sendcmd : zmodem_recvcmd;
 	n = strlen(s);
 	LayProcess(&s, &n);

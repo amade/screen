@@ -16,6 +16,6 @@ void  ZmodemPage (void);
 
 /* global variables */
 
-extern char version[];
+extern uint32_t *version;
 
 #endif /* SCREEN_HELP_H */

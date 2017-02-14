@@ -35,17 +35,18 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <unistr.h>
 
 #include "screen.h"
 
-char *SaveStr(const char *str)
+uint32_t *SaveStr(const uint32_t *str)
 {
-	char *cp;
+	uint32_t *cp;
 
-	if ((cp = malloc(strlen(str) + 1)) == NULL)
+	if ((cp = malloc(4 * (u32_strlen(str) + 1))) == NULL)
 		Panic(0, "%s", strnomem);
 	else
-		strncpy(cp, str, strlen(str) + 1);
+		u32_strncpy(cp, str, u32_strlen(str) + 1);
 	return cp;
 }
 

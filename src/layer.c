@@ -259,9 +259,9 @@ void LPutChar(Layer *l, struct mchar *c, int x, int y)
 	}
 }
 
-void LPutStr(Layer *l, char *s, int n, struct mchar *r, int x, int y)
+void LPutStr(Layer *l, uint32_t *s, int n, struct mchar *r, int x, int y)
 {
-	char *s2;
+	uint32_t *s2;
 	int xs2, xe2, y2;
 
 	if (x + n > l->l_width)
@@ -884,7 +884,7 @@ void ExitOverlayPage()
 	LaySetCursor();
 }
 
-int LayProcessMouse(Layer *l, unsigned char ch)
+int LayProcessMouse(Layer *l, uint32_t ch)
 {
 	/* XXX: Make sure the layer accepts mouse events */
 	size_t len;

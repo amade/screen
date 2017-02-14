@@ -33,6 +33,9 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <stdint.h>
+#include <unistr.h>
+#include <unistdio.h>
 
 #include "screen.h"
 
@@ -94,14 +97,14 @@ static char *state_t_string[] = {
 	"PRIN4"			/* CSI 4 seen in printer mode */
 };
 
-static int Special(Window *,int);
-static void DoESC(Window *, int, int);
-static void DoCSI(Window *, int, int);
+static int Special(Window *, uint32_t);
+static void DoESC(Window *, uint32_t, int);
+static void DoCSI(Window *, uint32_t, int);
 static void StringStart(Window *, enum string_t);
-static void StringChar(Window *, int);
+static void StringChar(Window *, uint32_t);
 static int StringEnd(Window *);
 static void PrintStart(Window *);
-static void PrintChar(Window *, int);
+static void PrintChar(Window *, uint32_t);
 static void PrintFlush(Window *);
 static void SaveCursor(Window *, struct cursor *);
 static void RestoreCursor(Window *, struct cursor *);
@@ -183,9 +186,9 @@ int GetAnsiStatus(Window *win, char *buf)
  *  - translate program output for the display and put it into the obuf.
  *
  */
-void WriteString(Window *win, char *buf, size_t len)
+void WriteString(Window *win, uint32_t *buf, size_t len)
 {
-	int c;
+	uint32_t c;
 	Canvas *cv;
 
 	if (len == 0)
@@ -202,8 +205,7 @@ void WriteString(Window *win, char *buf, size_t len)
 
 	if (win->w_width > 0 && win->w_height > 0) {
 		do {
-			c = (unsigned char)*buf++;
-
+			c = *buf++;
 
  tryagain:
 			switch (win->w_state) {
@@ -485,7 +487,7 @@ static void WLogString(Window *win, char *buf, size_t len)
 		logfflush(win->w_log);
 }
 
-static int Special(Window *win, int c)
+static int Special(Window *win, uint32_t c)
 {
 	switch (c) {
 	case '\b':
@@ -516,7 +518,7 @@ static int Special(Window *win, int c)
 	return 0;
 }
 
-static void DoESC(Window *win, int c, int intermediate)
+static void DoESC(Window *win, uint32_t c, int intermediate)
 {
 	switch (intermediate) {
 	case 0:
@@ -584,7 +586,7 @@ static void DoESC(Window *win, int c, int intermediate)
 	}
 }
 
-static void DoCSI(Window *win, int c, int intermediate)
+static void DoCSI(Window *win, uint32_t c, int intermediate)
 {
 	int i, a1 = win->w_args[0], a2 = win->w_args[1];
 
@@ -720,11 +722,11 @@ static void DoCSI(Window *win, int c, int intermediate)
 				LRefreshAll(&win->w_layer, 0);
 				break;
 			case 21:
-				a1 = strlen(win->w_title);
-				if ((unsigned)(win->w_inlen + 5 + a1) <= sizeof(win->w_inbuf)) {
-					memmove(win->w_inbuf + win->w_inlen, "\033]l", 3);
-					memmove(win->w_inbuf + win->w_inlen + 3, win->w_title, a1);
-					memmove(win->w_inbuf + win->w_inlen + 3 + a1, "\033\\", 2);
+				a1 = u32_strlen(win->w_title);
+				if ((size_t)(win->w_inlen + 5 + a1) <= sizeof(win->w_inbuf)) {
+					u32_move(win->w_inbuf + win->w_inlen, U"\033]l", 3);
+					u32_move(win->w_inbuf + win->w_inlen + 3, win->w_title, a1);
+					u32_move(win->w_inbuf + win->w_inlen + 3 + a1, U"\033\\", 2);
 					win->w_inlen += 5 + a1;
 				}
 				break;
@@ -938,7 +940,7 @@ static void StringStart(Window *win, enum string_t type)
 	win->w_state = ASTR;
 }
 
-static void StringChar(Window *win, int c)
+static void StringChar(Window *win, uint32_t c)
 {
 	if (win->w_stringp >= win->w_string + MAXSTR - 1)
 		win->w_state = LIT;
@@ -953,14 +955,14 @@ static void StringChar(Window *win, int c)
 static int StringEnd(Window *win)
 {
 	Canvas *cv;
-	char *p;
+	uint32_t *p;
 	int typ;
 
 	win->w_state = LIT;
 	*win->w_stringp = '\0';
 	switch (win->w_StringType) {
 	case OSC:		/* special xterm compatibility hack */
-		if (win->w_string[0] == ';' || (p = strchr(win->w_string, ';')) == 0)
+		if (win->w_string[0] == ';' || (p = u32_strchr(win->w_string, ';')) == 0)
 			break;
 		typ = atoi(win->w_string);
 		p++;
@@ -994,8 +996,8 @@ static int StringEnd(Window *win)
 			typ2 = typ / 10;
 			if (--typ2 < 0)
 				typ2 = 0;
-			if (strcmp(win->w_xtermosc[typ2], p)) {
-				strncpy(win->w_xtermosc[typ2], p, sizeof(win->w_xtermosc[typ2]) - 1);
+			if (u32_strcmp(win->w_xtermosc[typ2], p)) {
+				u32_strncpy(win->w_xtermosc[typ2], p, sizeof(win->w_xtermosc[typ2]) - 1);
 				win->w_xtermosc[typ2][sizeof(win->w_xtermosc[typ2]) - 1] = 0;
 
 				for (display = displays; display; display = display->d_next) {
@@ -1013,12 +1015,12 @@ static int StringEnd(Window *win)
 
 		win->w_stringp -= p - win->w_string;
 		if (win->w_stringp > win->w_string)
-			memmove(win->w_string, p, win->w_stringp - win->w_string);
+			u32_move(win->w_string, p, win->w_stringp - win->w_string);
 		*win->w_stringp = '\0';
 		/* FALLTHROUGH */
 	case APC:
 		if (win->w_hstatus) {
-			if (strcmp(win->w_hstatus, win->w_string) == 0)
+			if (u32_strcmp(win->w_hstatus, win->w_string) == 0)
 				break;	/* not changed */
 			free(win->w_hstatus);
 			win->w_hstatus = 0;
@@ -1044,7 +1046,7 @@ static int StringEnd(Window *win)
 		if (win->w_title == win->w_akabuf && !*win->w_string)
 			break;
 		if (win->w_dynamicaka)
-			ChangeAKA(win, win->w_string, strlen(win->w_string));
+			ChangeAKA(win, win->w_string, u32_strlen(win->w_string));
 		if (!*win->w_string)
 			win->w_autoaka = win->w_y + 1;
 		break;
@@ -1084,7 +1086,7 @@ static void PrintStart(Window *win)
 		win->w_pdisplay->d_printfd = printpipe(win, printcmd);
 }
 
-static void PrintChar(Window *win, int c)
+static void PrintChar(Window *win, uint32_t c)
 {
 	if (win->w_stringp >= win->w_string + MAXSTR - 1)
 		PrintFlush(win);
