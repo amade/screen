@@ -599,9 +599,10 @@ static void ClearAction(struct action *act)
  *  everything else on to ProcessInput2.
  */
 
-void ProcessInput(char *ibuf, int ilen)
+void ProcessInput(char *ibuf, size_t ilen)
 {
-	int ch, slen;
+	int ch;
+	size_t slen;
 	unsigned char *s, *q;
 	int i, l;
 	char *p;
@@ -705,7 +706,7 @@ void ProcessInput(char *ibuf, int ilen)
  *  Here only the screen escape commands are handled.
  */
 
-void ProcessInput2(char *ibuf, int ilen)
+void ProcessInput2(char *ibuf, size_t ilen)
 {
 	char *s;
 	int ch;
@@ -726,12 +727,13 @@ void ProcessInput2(char *ibuf, int ilen)
 			slen -= ilen;
 			if (slen)
 				DoProcess(fore, &ibuf, &slen, 0);
-			if (--ilen == 0) {
+			if (ilen == 1) {
 				D_ESCseen = ktab;
 				WindowChanged(fore, WINESC_ESC_SEEN);
+				ilen--;
 			}
 		}
-		if (ilen <= 0)
+		if (ilen == 0)
 			return;
 		ktabp = D_ESCseen ? D_ESCseen : ktab;
 		if (D_ESCseen) {
