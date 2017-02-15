@@ -75,8 +75,8 @@ struct Layer {
 						   [1]: x
 						   [2]: y
 						*/
-		unsigned int len;
-		int start;
+		size_t len;
+		bool start;
 	} l_mouseevent;
 
 	struct {
@@ -188,6 +188,6 @@ void  KillLayerChain (Layer *);
 int   InitOverlayPage (int, const struct LayFuncs *, int);
 void  ExitOverlayPage (void);
 int   LayProcessMouse (Layer *, unsigned char);
-void  LayProcessMouseSwitch (Layer *, int);
+void  LayProcessMouseSwitch (Layer *, bool);
 
 #endif /* SCREEN_LAYER_H */

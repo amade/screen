@@ -908,7 +908,7 @@ void ExitOverlayPage()
 int LayProcessMouse(Layer *l, unsigned char ch)
 {
 	/* XXX: Make sure the layer accepts mouse events */
-	int len;
+	size_t len;
 
 	if (l->l_mouseevent.len >= sizeof(l->l_mouseevent.buffer))
 		return -1;
@@ -918,9 +918,9 @@ int LayProcessMouse(Layer *l, unsigned char ch)
 	return (l->l_mouseevent.len == sizeof(l->l_mouseevent.buffer));
 }
 
-void LayProcessMouseSwitch(Layer *l, int s)
+void LayProcessMouseSwitch(Layer *l, bool start)
 {
-	if ((l->l_mouseevent.start = s)) {
+	if ((l->l_mouseevent.start = start)) {
 		l->l_mouseevent.len = 0;
 	}
 }
