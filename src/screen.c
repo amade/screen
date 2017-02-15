@@ -45,6 +45,10 @@
 #include <ctype.h>
 #include <fcntl.h>
 
+#if defined(__sun)
+# include <limits.h>
+#endif
+
 #ifdef sgi
 # include <sys/sysmacros.h>
 #endif
@@ -52,7 +56,6 @@
 #include <sys/stat.h>
 #ifndef sun
 # include <sys/ioctl.h>
-# include <limits.h>
 #endif
 
 #ifndef SIGINT
