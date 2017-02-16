@@ -1390,17 +1390,13 @@ static void win_readev_fn(Event *event, void *data)
 		return;
 	}
 
-	if ((len = read(event->fd, buf, size)) < 0) {
+	if ((len = read(event->fd, buf, size)) <= 0) {
 		if (errno == EINTR || errno == EAGAIN)
 			return;
 #if defined(EWOULDBLOCK) && (EWOULDBLOCK != EAGAIN)
 		if (errno == EWOULDBLOCK)
 			return;
 #endif
-		WindowDied(p, 0, 0);
-		return;
-	}
-	if (len == 0) {
 		WindowDied(p, 0, 0);
 		return;
 	}
