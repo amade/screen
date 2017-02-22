@@ -7,7 +7,7 @@
 @finalout
 @setchapternewpage odd
 @c %**end of header
-@set version 4.5.0
+@set version 4.5.1
 
 @direntry
 * Screen: (screen).             Full-screen window manager.
@@ -24,7 +24,7 @@
 @ifinfo
 This file documents the @code{Screen} virtual terminal manager.
 
-Copyright (c) 1993-2003 Free Software Foundation, Inc.
+Copyright (c) 1993-2017 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -52,11 +52,11 @@ by the Foundation.
 @title Screen
 @subtitle The virtual terminal manager
 @subtitle for Version @value{version}
-@subtitle Dec 2016
+@subtitle Feb 2017
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1993-2003 Free Software Foundation, Inc.
+Copyright @copyright{} 1993-2017 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -5796,34 +5796,36 @@ Contributors @*
 ============
 
 @example
-     Ken Beal (kbeal@@amber.ssd.csd.harris.com),
-     Rudolf Koenig (rfkoenig@@informatik.uni-erlangen.de),
-     Toerless Eckert (eckert@@informatik.uni-erlangen.de),
-     Wayne Davison (davison@@borland.com),
-     Patrick Wolfe (pat@@kai.com, kailand!pat),
-     Bart Schaefer (schaefer@@cse.ogi.edu),
-     Nathan Glasser (nathan@@brokaw.lcs.mit.edu),
-     Larry W. Virden (lvirden@@cas.org),
-     Howard Chu (hyc@@hanauma.jpl.nasa.gov),
-     Tim MacKenzie (tym@@dibbler.cs.monash.edu.au),
-     Markku Jarvinen (mta@@@{cc,cs,ee@}.tut.fi),
-     Marc Boucher (marc@@CAM.ORG),
-     Doug Siebert (dsiebert@@isca.uiowa.edu),
-     Ken Stillson (stillson@@tsfsrv.mitre.org),
-     Ian Frechett (frechett@@spot.Colorado.EDU),
-     Brian Koehmstedt (bpk@@gnu.ai.mit.edu),
-     Don Smith (djs6015@@ultb.isc.rit.edu),
-     Frank van der Linden (vdlinden@@fwi.uva.nl),
-     Martin Schweikert (schweik@@cpp.ob.open.de),
-     David Vrona (dave@@sashimi.lcu.com),
-     E. Tye McQueen (tye%spillman.UUCP@@uunet.uu.net),
-     Matthew Green (mrg@@eterna.com.au),
-     Christopher Williams (cgw@@pobox.com),
-     Matt Mosley (mattm@@access.digex.net),
-     Gregory Neil Shapiro (gshapiro@@wpi.WPI.EDU),
-     Jason Merrill (jason@@jarthur.Claremont.EDU),
-     Johannes Zellner (johannes@@zellner.org),
-     Pablo Averbuj (pablo@@averbuj.com).
+     Thomas Renninger <treen@suse.com>,
+     Axel Beckert <abe@deuxchevaux.org>,
+     Ken Beal <kbeal@@amber.ssd.csd.harris.com>,
+     Rudolf Koenig <rfkoenig@@informatik.uni-erlangen.de>,
+     Toerless Eckert <eckert@@informatik.uni-erlangen.de>,
+     Wayne Davison <davison@@borland.com>,
+     Patrick Wolfe <pat@@kai.com, kailand!pat>,
+     Bart Schaefer <schaefer@@cse.ogi.edu>,
+     Nathan Glasser <nathan@@brokaw.lcs.mit.edu>,
+     Larry W. Virden <lvirden@@cas.org>,
+     Howard Chu <hyc@@hanauma.jpl.nasa.gov>,
+     Tim MacKenzie <tym@@dibbler.cs.monash.edu.au>,
+     Markku Jarvinen <mta@@@{cc,cs,ee@}.tut.fi>,
+     Marc Boucher <marc@@CAM.ORG>,
+     Doug Siebert <dsiebert@@isca.uiowa.edu>,
+     Ken Stillson <stillson@@tsfsrv.mitre.org>,
+     Ian Frechett <frechett@@spot.Colorado.EDU>,
+     Brian Koehmstedt <bpk@@gnu.ai.mit.edu>,
+     Don Smith <djs6015@@ultb.isc.rit.edu>,
+     Frank van der Linden <vdlinden@@fwi.uva.nl>,
+     Martin Schweikert <schweik@@cpp.ob.open.de>,
+     David Vrona <dave@@sashimi.lcu.com>,
+     E. Tye McQueen <tye%spillman.UUCP@@uunet.uu.net>,
+     Matthew Green <mrg@@eterna.com.au>,
+     Christopher Williams <cgw@@pobox.com>,
+     Matt Mosley <mattm@@access.digex.net>,
+     Gregory Neil Shapiro <gshapiro@@wpi.WPI.EDU>,
+     Jason Merrill <jason@@jarthur.Claremont.EDU>,
+     Johannes Zellner <johannes@@zellner.org>,
+     Pablo Averbuj <pablo@@averbuj.com>.
 @end example
 
 @noindent
