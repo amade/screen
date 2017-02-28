@@ -5795,7 +5795,7 @@ and Alexander Naumov <alexander_naumov@@opensuse.org>.
 Contributors @*
 ============
 
-@example
+@verbatim
      Thomas Renninger <treen@suse.com>,
      Axel Beckert <abe@deuxchevaux.org>,
      Ken Beal <kbeal@@amber.ssd.csd.harris.com>,
@@ -5826,7 +5826,7 @@ Contributors @*
      Jason Merrill <jason@@jarthur.Claremont.EDU>,
      Johannes Zellner <johannes@@zellner.org>,
      Pablo Averbuj <pablo@@averbuj.com>.
-@end example
+@end verbatim
 
 @noindent
 Version @*
