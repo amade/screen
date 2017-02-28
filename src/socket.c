@@ -962,7 +962,7 @@ static void FinishAttach(Message *m)
 			noshowwin = 1;
 		} else if (!strcmp(m->m.attach.preselect, "+")) {
 			struct action newscreen;
-			char *na = 0;
+			uint32_t *na = 0;
 			newscreen.nr = RC_SCREEN;
 			newscreen.args = &na;
 			newscreen.quiet = 0;
