@@ -375,7 +375,7 @@ static int parse_input_int(const uint32_t *buf, size_t len, int *val)
 	return 1;
 }
 
-char *noargs[1];
+uint32_t *noargs[1];
 
 int enter_window_name_mode = 0;
 

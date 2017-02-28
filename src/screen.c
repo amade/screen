@@ -41,6 +41,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <limits.h>
+#include <unistdio.h>
 
 #include <locale.h>
 #if defined(HAVE_LANGINFO_H)
@@ -216,7 +217,7 @@ int main(int argc, char **argv)
 	 *  (otherwise, we might have problems with the select() call)
 	 */
 	closeallfiles(0);
-	snprintf(version, 59, "%d.%d.%d (build on %s %s) ", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, __DATE__, __TIME__);
+	u32_asprintf(&version, "%d.%d.%d (build on %s %s) ", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, __DATE__, __TIME__);
 	nversion = VERSION_MAJOR * 10000 + VERSION_MINOR * 100 + VERSION_REVISION;
 
 	BellString = SaveStr("Bell in window %n");
