@@ -7,7 +7,7 @@
 @finalout
 @setchapternewpage odd
 @c %**end of header
-@set version 4.3.0
+@set version 4.5.1
 
 @direntry
 * Screen: (screen).             Full-screen window manager.
@@ -24,7 +24,7 @@
 @ifinfo
 This file documents the @code{Screen} virtual terminal manager.
 
-Copyright (c) 1993-2003 Free Software Foundation, Inc.
+Copyright (c) 1993-2017 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -52,11 +52,11 @@ by the Foundation.
 @title Screen
 @subtitle The virtual terminal manager
 @subtitle for Version @value{version}
-@subtitle May 2015
+@subtitle Feb 2017
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1993-2003 Free Software Foundation, Inc.
+Copyright @copyright{} 1993-2017 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -3395,8 +3395,7 @@ the terminal type by using the @samp{KJ} termcap entry. @xref{Special Capabiliti
 
 Supported encodings are
 @code{eucJP}, @code{SJIS}, @code{eucKR},
-@code{eucCN}, @code{Big5}, @code{GBK},
-@code{KOI8-R}, @code{KOI8-U}, @code{CP1251},
+@code{eucCN}, @code{Big5}, @code{GBK}, @code{KOI8-R}, @code{CP1251},
 @code{UTF-8}, @code{ISO8859-2}, @code{ISO8859-3},
 @code{ISO8859-4}, @code{ISO8859-5}, @code{ISO8859-6},
 @code{ISO8859-7}, @code{ISO8859-8}, @code{ISO8859-9},
@@ -5524,12 +5523,10 @@ month number
 month name
 @item n
 window number
-@item p
-process id
 @item P
 sets %? to true if the current region is in copy/paste mode
 @item s
-window size
+seconds
 @item S
 session name
 @item t
@@ -5542,10 +5539,6 @@ window; with @code{+} qualifier: starting with the window after the current
 one.
 @item W
 all window numbers and names except the current one
-@item x
-window command arguments
-@item X
-window command
 @item y
 last two digits of the year number
 @item Y
@@ -5792,44 +5785,49 @@ Program for locking the terminal.
 Authors @*
 =======
 
-Originally created by Oliver Laumann, this latest version was
-produced by Juergen Weigert, Michael Schroeder, Micah Cowan and
-Sadrul Habib Chowdhury.
+Originally created by Oliver Laumann. For a long time maintained
+and developed by Juergen Weigert, Michael Schroeder, Micah Cowan
+and Sadrul Habib Chowdhury. This latest version was produced by
+Amadeusz Slawinski <amade@@asmblr.net>
+and Alexander Naumov <alexander_naumov@@opensuse.org>.
 
 @noindent
 Contributors @*
 ============
 
-@example
-     Ken Beal (kbeal@@amber.ssd.csd.harris.com),
-     Rudolf Koenig (rfkoenig@@informatik.uni-erlangen.de),
-     Toerless Eckert (eckert@@informatik.uni-erlangen.de),
-     Wayne Davison (davison@@borland.com),
-     Patrick Wolfe (pat@@kai.com, kailand!pat),
-     Bart Schaefer (schaefer@@cse.ogi.edu),
-     Nathan Glasser (nathan@@brokaw.lcs.mit.edu),
-     Larry W. Virden (lvirden@@cas.org),
-     Howard Chu (hyc@@hanauma.jpl.nasa.gov),
-     Tim MacKenzie (tym@@dibbler.cs.monash.edu.au),
-     Markku Jarvinen (mta@@@{cc,cs,ee@}.tut.fi),
-     Marc Boucher (marc@@CAM.ORG),
-     Doug Siebert (dsiebert@@isca.uiowa.edu),
-     Ken Stillson (stillson@@tsfsrv.mitre.org),
-     Ian Frechett (frechett@@spot.Colorado.EDU),
-     Brian Koehmstedt (bpk@@gnu.ai.mit.edu),
-     Don Smith (djs6015@@ultb.isc.rit.edu),
-     Frank van der Linden (vdlinden@@fwi.uva.nl),
-     Martin Schweikert (schweik@@cpp.ob.open.de),
-     David Vrona (dave@@sashimi.lcu.com),
-     E. Tye McQueen (tye%spillman.UUCP@@uunet.uu.net),
-     Matthew Green (mrg@@eterna.com.au),
-     Christopher Williams (cgw@@pobox.com),
-     Matt Mosley (mattm@@access.digex.net),
-     Gregory Neil Shapiro (gshapiro@@wpi.WPI.EDU),
-     Jason Merrill (jason@@jarthur.Claremont.EDU),
-     Johannes Zellner (johannes@@zellner.org),
-     Pablo Averbuj (pablo@@averbuj.com).
-@end example
+@verbatim
+     Eric S. Raymond <esr@thyrsus.com>,
+     Thomas Renninger <treen@suse.com>,
+     Axel Beckert <abe@deuxchevaux.org>,
+     Ken Beal <kbeal@@amber.ssd.csd.harris.com>,
+     Rudolf Koenig <rfkoenig@@informatik.uni-erlangen.de>,
+     Toerless Eckert <eckert@@informatik.uni-erlangen.de>,
+     Wayne Davison <davison@@borland.com>,
+     Patrick Wolfe <pat@@kai.com, kailand!pat>,
+     Bart Schaefer <schaefer@@cse.ogi.edu>,
+     Nathan Glasser <nathan@@brokaw.lcs.mit.edu>,
+     Larry W. Virden <lvirden@@cas.org>,
+     Howard Chu <hyc@@hanauma.jpl.nasa.gov>,
+     Tim MacKenzie <tym@@dibbler.cs.monash.edu.au>,
+     Markku Jarvinen <mta@@@{cc,cs,ee@}.tut.fi>,
+     Marc Boucher <marc@@CAM.ORG>,
+     Doug Siebert <dsiebert@@isca.uiowa.edu>,
+     Ken Stillson <stillson@@tsfsrv.mitre.org>,
+     Ian Frechett <frechett@@spot.Colorado.EDU>,
+     Brian Koehmstedt <bpk@@gnu.ai.mit.edu>,
+     Don Smith <djs6015@@ultb.isc.rit.edu>,
+     Frank van der Linden <vdlinden@@fwi.uva.nl>,
+     Martin Schweikert <schweik@@cpp.ob.open.de>,
+     David Vrona <dave@@sashimi.lcu.com>,
+     E. Tye McQueen <tye%spillman.UUCP@@uunet.uu.net>,
+     Matthew Green <mrg@@eterna.com.au>,
+     Christopher Williams <cgw@@pobox.com>,
+     Matt Mosley <mattm@@access.digex.net>,
+     Gregory Neil Shapiro <gshapiro@@wpi.WPI.EDU>,
+     Jason Merrill <jason@@jarthur.Claremont.EDU>,
+     Johannes Zellner <johannes@@zellner.org>,
+     Pablo Averbuj <pablo@@averbuj.com>.
+@end verbatim
 
 @noindent
 Version @*
@@ -5947,7 +5945,7 @@ ftp from @samp{prep.ai.mit.edu}, @samp{nic.funet.fi} or any other
 @code{screen} is @samp{ftp.uni-erlangen.de
 (131.188.3.71)}, in the directory @file{pub/utilities/screen}.
 The subdirectory @samp{private} contains the latest beta testing release.
-If you want to help, send a note to screen@@uni-erlangen.de.
+If you want to help, send a note to screen-devel@@gnu.org.
 
 @node Installation, Concept Index, Bugs, Top
 @chapter Installation
