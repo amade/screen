@@ -26,7 +26,7 @@ cat << EOF > comm.h
 
 struct comm
 {
-  char *name;
+  uint32_t *name;
   int flags;
   AclBits userbits[ACL_BITS_PER_CMD];
 };
@@ -91,8 +91,8 @@ $AWK < ${srcdir}/comm.c >> comm.h '
 $CC -E -I. -I${srcdir} ${srcdir}/comm.c > comm.cpp || exit $?
 sed < comm.cpp \
   -n \
-  -e '/^ *{ "/y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/' \
-  -e '/^ *{ "/s/^ *{ "\([^"]*\)".*/\1/p' \
+  -e '/^ *{ U"/y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/' \
+  -e '/^ *{ U"/s/^ *{ U"\([^"]*\)".*/\1/p' \
 | $AWK '
 /.*/ {	printf "#define RC_%s %d\n",$0,i++;
      }
