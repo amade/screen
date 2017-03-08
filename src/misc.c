@@ -63,18 +63,18 @@ char *SaveStrn(const char *str, size_t n)
 	return cp;
 }
 
-void centerline(char *str, int y)
+void centerline(uint32_t *str, int y)
 {
 	int l, n;
 
-	n = strlen(str);
+	n = u32_strlen(str);
 	if (n > flayer->l_width - 1)
 		n = flayer->l_width - 1;
 	l = (flayer->l_width - 1 - n) / 2;
 	LPutStr(flayer, str, n, &mchar_blank, l, y);
 }
 
-void leftline(char *str, int y, struct mchar *rend)
+void leftline(uint32_t *str, int y, struct mchar *rend)
 {
 	int l, n;
 	struct mchar mchar_dol;
@@ -82,7 +82,7 @@ void leftline(char *str, int y, struct mchar *rend)
 	mchar_dol = mchar_blank;
 	mchar_dol.image = '$';
 
-	l = n = strlen(str);
+	l = n = u32_strlen(str);
 	if (n > flayer->l_width - 1)
 		n = flayer->l_width - 1;
 	LPutStr(flayer, str, n, rend ? rend : &mchar_blank, 0, y);

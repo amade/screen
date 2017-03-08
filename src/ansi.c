@@ -968,7 +968,7 @@ static int StringEnd(Window *win)
 		p++;
 		if (typ == 83) {	/* 83 = 'S' */
 			/* special execute commands sequence */
-			char *args[MAXARGS];
+			uint32_t *args[MAXARGS];
 			int argl[MAXARGS];
 			struct acluser *windowuser;
 

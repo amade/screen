@@ -805,12 +805,12 @@ void DoProcess(Window *window, uint32_t **bufp, size_t *lenp, struct paster *pa)
 		FreePaster(pa);
 }
 
-int FindCommnr(const char *str)
+int FindCommnr(const uint32_t *str)
 {
 	int x, m, l = 0, r = RC_LAST;
 	while (l <= r) {
 		m = (l + r) / 2;
-		x = strcmp(str, comms[m].name);
+		x = u32_strcmp(str, comms[m].name);
 		if (x > 0)
 			l = m + 1;
 		else if (x < 0)
@@ -3536,10 +3536,10 @@ void CollapseWindowlist()
 				}
 }
 
-void DoCommand(char **argv, int *argl)
+void DoCommand(uint32_t **argv, int *argl)
 {
 	struct action act;
-	const char *cmd = *argv;
+	const uint32_t *cmd = *argv;
 
 	act.quiet = 0;
 	/* For now, we actually treat both 'supress error' and 'suppress normal message' as the
@@ -3616,9 +3616,9 @@ static char **SaveArgs(char **args)
  *
  * argc is returned.
  */
-int Parse(char *buf, int bufl, char **args, int *argl)
+int Parse(uint32_t *buf, int bufl, uint32_t **args, int *argl)
 {
-	char *p = buf, **ap = args, *pp;
+	uint32_t *p = buf, **ap = args, *pp;
 	int delim, argc;
 	int *lp = argl;
 
@@ -3630,7 +3630,7 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 		while (*p && (*p == ' ' || *p == '\t'))
 			++p;
 		if (argc == 0 && *p == '!') {
-			*ap++ = "exec";
+			*ap++ = U"exec";
 			*lp++ = 4;
 			p++;
 			argc++;
@@ -3688,7 +3688,7 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 				   && (p[1] == '{' || p[1] == ':' || (p[1] >= 'a' && p[1] <= 'z')
 				       || (p[1] >= 'A' && p[1] <= 'Z') || (p[1] >= '0' && p[1] <= '9') || p[1] == '_'))
 			{
-				char *ps, *pe, op, *v, xbuf[11], path[MAXPATHLEN];
+				uint32_t *ps, *pe, op, *v, xbuf[11], path[MAXPATHLEN];
 				int vl;
 
 				ps = ++p;
@@ -3719,21 +3719,21 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 					if (*ps == '{')
 						ps++;
 					v = xbuf;
-					if (!strcmp(ps, "TERM"))
+					if (!u32_strcmp(ps, U"TERM"))
 						v = display ? D_termname : "unknown";
-					else if (!strcmp(ps, "COLUMNS"))
+					else if (!u32_strcmp(ps, U"COLUMNS"))
 						sprintf(xbuf, "%d", display ? D_width : -1);
-					else if (!strcmp(ps, "LINES"))
+					else if (!u32_strcmp(ps, U"LINES"))
 						sprintf(xbuf, "%d", display ? D_height : -1);
-					else if (!strcmp(ps, "PID"))
+					else if (!u32_strcmp(ps, U"PID"))
 						sprintf(xbuf, "%d", getpid());
-					else if (!strcmp(ps, "PWD")) {
+					else if (!u32_strcmp(ps, U"PWD")) {
 						if (getcwd(path, sizeof(path) - 1) == 0)
-							v = "?";
+							v = U"?";
 						else
 							v = path;
-					} else if (!strcmp(ps, "STY")) {
-						if ((v = strchr(SocketName, '.')))	/* Skip the PID */
+					} else if (!u32_strcmp(ps, U"STY")) {
+						if ((v = u32_strchr(SocketName, '.')))	/* Skip the PID */
 							v++;
 						else
 							v = SocketName;
@@ -3741,12 +3741,12 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 						v = getenv(ps);
 				}
 				*pe = op;
-				vl = v ? strlen(v) : 0;
+				vl = v ? u32_strlen(v) : 0;
 				if (vl) {
 					if (p - pp < vl) {
-						int right = buf + bufl - (p + strlen(p) + 1);
+						int right = buf + bufl - (p + u32_strlen(p) + 1);
 						if (right > 0) {
-							memmove(p + right, p, strlen(p) + 1);
+							u32_move(p + right, p, u32_strlen(p) + 1);
 							p += right;
 						}
 					}
@@ -3754,7 +3754,7 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 						Msg(0, "%s: no space left for variable expansion.", rc_name);
 						return 0;
 					}
-					memmove(pp, v, vl);
+					u32_move(pp, v, vl);
 					pp += vl;
 				}
 				continue;

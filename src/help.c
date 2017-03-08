@@ -311,7 +311,7 @@ static int helppage()
 		} else
 			helpdata->grow++;
 	}
-	sprintf(cbuf, "[Press Space %s Return to end.]", helpdata->grow < helpdata->maxrow ? "for next page;" : "or");
+	u32_sprintf(cbuf, "[Press Space %s Return to end.]", helpdata->grow < helpdata->maxrow ? "for next page;" : "or");
 	centerline(cbuf, flayer->l_height - 2);
 	LaySetCursor();
 	return 0;
@@ -512,7 +512,7 @@ void display_copyright()
 	if (InitOverlayPage(sizeof(*copydata), &CopyrightLf, 0))
 		return;
 	copydata = (struct copydata *)flayer->l_data;
-	copydata->cps = (uint32_t *)cpmsg;
+	copydata->cps = cpmsg;
 	copydata->savedcps = 0;
 	flayer->l_x = 0;
 	flayer->l_y = flayer->l_height - 1;
@@ -524,7 +524,7 @@ static void copypage()
 	uint32_t *cps;
 	uint32_t *ws;
 	int x, y, l;
-	char cbuf[80];
+	uint32_t cbuf[80];
 	struct copydata *copydata;
 
 	copydata = (struct copydata *)flayer->l_data;
@@ -575,7 +575,7 @@ static void copypage()
 	}
 	while (*cps == '\n')
 		cps++;
-	sprintf(cbuf, "[Press Space %s Return to end.]", *cps ? "for next page;" : "or");
+	u32_sprintf(cbuf, "[Press Space %s Return to end.]", *cps ? "for next page;" : "or");
 	centerline(cbuf, flayer->l_height - 2);
 	copydata->cps = cps;
 	LaySetCursor();
@@ -670,16 +670,16 @@ static void bindkeypage()
 {
 	struct bindkeydata *bindkeydata;
 	struct kmap_ext *kme;
-	char tbuf[256];
+	uint32_t tbuf[256];
 	int del, i, y, sl;
 	struct action *act;
-	char *xch, *s, *p;
+	uint32_t *xch, *s, *p;
 
 	bindkeydata = (struct bindkeydata *)flayer->l_data;
 
 	LClearAll(flayer, 0);
 
-	sprintf(tbuf, "%s key bindings, page %d of %d.", bindkeydata->title, bindkeydata->page, bindkeydata->pages);
+	u32_sprintf(tbuf, "%s key bindings, page %d of %d.", bindkeydata->title, bindkeydata->page, bindkeydata->pages);
 	centerline(tbuf, 0);
 	y = 2;
 	for (i = bindkeydata->pos; i < KMAP_KEYS + KMAP_AKEYS + kmap_extn && y < flayer->l_height - 3; i++) {

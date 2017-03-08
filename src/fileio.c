@@ -289,7 +289,7 @@ void do_source(char *rcfilename)
  */
 void RcLine(uint32_t *ubuf, int ubufl)
 {
-	char *args[MAXARGS];
+	uint32_t *args[MAXARGS];
 	int argl[MAXARGS];
 
 	if (display) {

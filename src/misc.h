@@ -12,8 +12,8 @@ char *SaveStrn (const char *, size_t);
 #ifndef HAVE_STRERROR
 char *strerror (int);
 #endif
-void  centerline (char *, int);
-void  leftline (char *, int, struct mchar *);
+void  centerline (uint32_t *, int);
+void  leftline (uint32_t *, int, struct mchar *);
 char *Filename (char *);
 char *stripdev (char *);
 void  closeallfiles (int);
