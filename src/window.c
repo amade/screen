@@ -84,7 +84,7 @@ Window **wtab;		/* window table */
 
 bool VerboseCreate = false;		/* XXX move this to user.h */
 
-uint32_t DefaultShell[] = U"/bin/sh";
+char DefaultShell[] = "/bin/sh";
 #ifndef HAVE_EXECVPE
 static char DefaultPath[] = ":/usr/ucb:/bin:/usr/bin";
 #endif

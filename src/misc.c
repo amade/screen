@@ -39,14 +39,14 @@
 
 #include "screen.h"
 
-uint32_t *SaveStr(const uint32_t *str)
+char *SaveStr(const char *str)
 {
-	uint32_t *cp;
+	char *cp;
 
-	if ((cp = malloc(4 * (u32_strlen(str) + 1))) == NULL)
+	if ((cp = malloc(strlen(str) + 1)) == NULL)
 		Panic(0, "%s", strnomem);
 	else
-		u32_strncpy(cp, str, u32_strlen(str) + 1);
+		strncpy(cp, str, strlen(str) + 1);
 	return cp;
 }
 
