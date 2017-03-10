@@ -75,7 +75,7 @@ struct pseudowin {
 	Event	p_writeev;
 	char	p_cmd[MAXSTR];
 	char	p_tty[MAXSTR];
-	char	p_inbuf[IOSIZE];	/* buffered writing to p_ptyfd */
+	uint32_t p_inbuf[IOSIZE];	/* buffered writing to p_ptyfd */
 	size_t	p_inlen;
 };
 

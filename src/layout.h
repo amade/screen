@@ -37,7 +37,7 @@
 typedef struct Layout Layout;
 struct Layout {
 	Layout   *lay_next;
-	char            *lay_title;
+	uint32_t        *lay_title;
 	int              lay_number;
 	Canvas           lay_canvas;
 	Canvas          *lay_forecv;
@@ -46,19 +46,19 @@ struct Layout {
 };
 
 void  FreeLayoutCv(Canvas *c);
-Layout *CreateLayout(char *, int);
+Layout *CreateLayout(uint32_t *, int);
 void  AutosaveLayout (Layout *);
 void  LoadLayout (Layout *);
-void  NewLayout (char *, int);
-void  SaveLayout (char *, Canvas *);
+void  NewLayout (uint32_t *, int);
+void  SaveLayout (uint32_t *, Canvas *);
 void  ShowLayouts (int);
-Layout *FindLayout (char *);
+Layout *FindLayout (uint32_t *);
 void  UpdateLayoutCanvas (Canvas *, Window *);
-Layout *CreateLayout (char *, int);
+Layout *CreateLayout (uint32_t *, int);
 void  RemoveLayout (Layout *);
 int   LayoutDumpCanvas (Canvas *, char *);
 
-void RenameLayout (Layout *, const char *);
+void RenameLayout (Layout *, const uint32_t *);
 int RenumberLayout (Layout *, int);
 
 /* global variables */

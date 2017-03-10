@@ -187,9 +187,9 @@ int UserStatus()
 	return UserSTAT;
 }
 
-int AddXChar(char *buf, int ch)
+uint32_t AddXChar(uint32_t *buf, int ch)
 {
-	char *p = buf;
+	uint32_t *p = buf;
 
 	if (ch < ' ' || ch == 0x7f) {
 		*p++ = '^';
@@ -204,9 +204,9 @@ int AddXChar(char *buf, int ch)
 	return p - buf;
 }
 
-int AddXChars(char *buf, int len, char *str)
+uint32_t AddXChars(uint32_t *buf, int len, uint32_t *str)
 {
-	char *p;
+	uint32_t *p;
 
 	if (str == 0) {
 		*buf = 0;

@@ -44,6 +44,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <time.h>
+#include <uniconv.h>
 #include <unistr.h>
 #include <unistdio.h>
 
@@ -72,7 +73,7 @@
 
 static int CheckArgNum(int, uint32_t **);
 static void ClearAction(struct action *);
-static void SaveAction(struct action *, int, char **, int *);
+static void SaveAction(struct action *, int, uint32_t **, int *);
 static uint16_t NextWindow(void);
 static uint16_t PreviousWindow(void);
 static int MoreWindows(void);
@@ -86,17 +87,17 @@ static int ParseSwitch(struct action *, bool *);
 static int ParseOnOff(struct action *, bool *);
 static int ParseWinNum(struct action *, int *);
 static int ParseBase(struct action *, char *, int *, int, char *);
-static int ParseSaveStr(struct action *, char **);
+static int ParseSaveStr(struct action *, uint32_t **);
 static int ParseNum(struct action *, int *);
 static int ParseNum1000(struct action *, int *);
-static char **SaveArgs(char **);
+static uint32_t **SaveArgs(uint32_t **);
 static bool IsNum(char *);
 static void ColonFin(uint32_t *, size_t, void *);
 static void InputSelect(void);
 static void InputSetenv(uint32_t *);
 static void InputAKA(void);
-static int InputSu(struct acluser **, char *);
-static void suFin(uint32_t *, size_t, void *);
+//static int InputSu(struct acluser **, char *);
+//static void suFin(uint32_t *, size_t, void *);
 static void AKAFin(uint32_t *, size_t, void *);
 static void copy_reg_fn(uint32_t *, size_t, void *);
 static void ins_reg_fn(uint32_t *, size_t, void *);
@@ -108,7 +109,7 @@ static void confirm_fn(uint32_t *, size_t, void *);
 static int IsOnDisplay(Window *);
 static void ResizeRegions(uint32_t *, int);
 static void ResizeFin(uint32_t *, size_t, void *);
-static struct action *FindKtab(char *, int);
+static struct action *FindKtab(uint32_t *, int);
 static void SelectFin(uint32_t *, size_t, void *);
 static void SelectLayoutFin(uint32_t *, size_t, void *);
 static void ShowWindowsX(char *);
@@ -127,7 +128,7 @@ bool all_norefresh = 0;
 int zmodem_mode = 0;
 uint32_t *zmodem_sendcmd;
 uint32_t *zmodem_recvcmd;
-static char *zmodes[4] = { "off", "auto", "catch", "pass" };
+static uint32_t *zmodes[4] = { U"off", U"auto", U"catch", U"pass" };
 
 int idletimo;
 struct action idleaction;
@@ -136,7 +137,7 @@ char **blankerprg;
 struct action ktab[256 + KMAP_KEYS];	/* command key translation table */
 struct kclass {
 	struct kclass *next;
-	char *name;
+	uint32_t *name;
 	struct action ktab[256 + KMAP_KEYS];
 };
 struct kclass *kclasses;
@@ -347,7 +348,7 @@ static uint32_t *resizeprompts[] = {
 	U"resize -l -b # columns: ",
 };
 
-static int parse_input_int(const uint32_t *buf, size_t len, int *val)
+static int parse_input_int(const uint32_t *buf, size_t len, uint32_t *val)
 {
 	int x = 0;
 	size_t i;
@@ -540,7 +541,7 @@ void InitKeytab()
 	idleaction.argl = 0;
 }
 
-static struct action *FindKtab(char *class, int create)
+static struct action *FindKtab(uint32_t *class, int create)
 {
 	struct kclass *kp, **kpp;
 	int i;
@@ -548,16 +549,16 @@ static struct action *FindKtab(char *class, int create)
 	if (class == 0)
 		return ktab;
 	for (kpp = &kclasses; (kp = *kpp) != 0; kpp = &kp->next)
-		if (!strcmp(kp->name, class))
+		if (!u32_strcmp(kp->name, class))
 			break;
 	if (kp == 0) {
 		if (!create)
 			return 0;
-		if (strlen(class) > 80) {
+		if (u32_strlen(class) > 80) {
 			Msg(0, "Command class name too long.");
 			return 0;
 		}
-		kp = malloc(sizeof(*kp));
+		kp = malloc(sizeof(*kp) * sizeof(uint32_t));
 		if (kp == 0) {
 			Msg(0, "%s", strnomem);
 			return 0;
@@ -1848,7 +1849,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_HISTORY:
 		{
-			static char *pasteargs[] = { ".", 0 };
+			static uint32_t *pasteargs[] = { U".", 0 };
 			static int pasteargl[] = { 1 };
 
 			if (flayer->l_layfn != &WinLf) {
@@ -1864,7 +1865,7 @@ void DoAction(struct action *act, int key)
 		}
 	 /*FALLTHROUGH*/ case RC_PASTE:
 		{
-			char *ss, *dbuf, dch;
+			uint32_t *ss, *dbuf, dch;
 			size_t l = 0;
 
 			/*
@@ -2083,7 +2084,7 @@ void DoAction(struct action *act, int key)
 		s = NULL;
 		if (ParseSaveStr(act, &s))
 			break;
-		if (strlen(s) > MAXTERMLEN) {
+		if (u32_strlen(s) > MAXTERMLEN) {
 			OutputMsg(0, "%s: term: argument too long ( < %d)", rc_name, MAXTERMLEN);
 			free(s);
 			break;
@@ -2243,15 +2244,15 @@ void DoAction(struct action *act, int key)
 			int old_use, new_use = -1;
 
 			s = args[0];
-			if (!strncmp(s, "always", 6))
+			if (!u32_strncmp(s, U"always", 6))
 				s += 6;
-			if (!strcmp(s, "firstline"))
+			if (!u32_strcmp(s, U"firstline"))
 				new_use = HSTATUS_FIRSTLINE;
-			else if (!strcmp(s, "lastline"))
+			else if (!u32_strcmp(s, U"lastline"))
 				new_use = HSTATUS_LASTLINE;
-			else if (!strcmp(s, "ignore"))
+			else if (!u32_strcmp(s, U"ignore"))
 				new_use = HSTATUS_IGNORE;
-			else if (!strcmp(s, "message"))
+			else if (!u32_strcmp(s, U"message"))
 				new_use = HSTATUS_MESSAGE;
 			else if (!u32_strcmp(args[0], U"string")) {
 				if (!args[1]) {
@@ -3064,21 +3065,21 @@ void DoAction(struct action *act, int key)
 
 	case RC_SU:
 		s = NULL;
-		if (!*args) {
+		if (!*args) //{
 			OutputMsg(0, "%s:%s screen login", HostName, SocketPath);
-			InputSu(&D_user, NULL);
+			/*InputSu(&D_user, NULL);
 		} else if (!args[1])
 			InputSu(&D_user, args[0]);
 		else if (!args[2])
 			s = DoSu(&D_user, args[0], args[1], "\377");
 		else
-			s = DoSu(&D_user, args[0], args[1], args[2]);
+			s = DoSu(&D_user, args[0], args[1], args[2]);*/
 		if (s)
 			OutputMsg(0, "%s", s);
 		break;
 	case RC_SPLIT:
 		s = args[0];
-		if (s && !strcmp(s, "-v"))
+		if (s && !u32_strcmp(s, U"-v"))
 			AddCanvas(SLICE_HORI);
 		else
 			AddCanvas(SLICE_VERT);
@@ -3418,7 +3419,7 @@ void DoAction(struct action *act, int key)
 				Input(U"Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
 				break;
 			}
-			SelectLayoutFin(args[1], strlen(args[1]), (char *)0);
+			SelectLayoutFin(args[1], u32_strlen(args[1]), (char *)0);
 		} else if (!u32_strcmp(args[0], U"next")) {
 			if (!display) {
 				if (layout_attach && layout_attach != &layout_last_marker)
@@ -3438,7 +3439,7 @@ void DoAction(struct action *act, int key)
 				break;
 			LoadLayout(lay);
 			Activate(-1);
-		} else if (!strcmp(args[0], "prev")) {
+		} else if (!u32_strcmp(args[0], U"prev")) {
 			Layout *lay = display ? D_layout : layout_attach;
 			Layout *target = lay;
 			if (lay) {
@@ -3563,10 +3564,10 @@ void DoCommand(uint32_t **argv, int *argl)
 	DoAction(&act, -1);
 }
 
-static void SaveAction(struct action *act, int nr, char **args, int *argl)
+static void SaveAction(struct action *act, int nr, uint32_t **args, int *argl)
 {
 	int argc = 0;
-	char **pp;
+	uint32_t **pp;
 	int *lp;
 
 	if (args)
@@ -3578,7 +3579,7 @@ static void SaveAction(struct action *act, int nr, char **args, int *argl)
 		act->argl = 0;
 		return;
 	}
-	if ((pp = malloc((unsigned)(argc + 1) * sizeof(char *))) == 0)
+	if ((pp = malloc((unsigned)(argc + 1) * sizeof(uint32_t *))) == 0)
 		Panic(0, "%s", strnomem);
 	if ((lp = malloc((unsigned)(argc) * sizeof(int))) == 0)
 		Panic(0, "%s", strnomem);
@@ -3586,20 +3587,20 @@ static void SaveAction(struct action *act, int nr, char **args, int *argl)
 	act->args = pp;
 	act->argl = lp;
 	while (argc--) {
-		*lp = argl ? *argl++ : (int)strlen(*args);
+		*lp = argl ? *argl++ : (int)u32_strlen(*args);
 		*pp++ = SaveStrn(*args++, *lp++);
 	}
 	*pp = 0;
 }
 
-static char **SaveArgs(char **args)
+static uint32_t **SaveArgs(uint32_t **args)
 {
-	char **ap, **pp;
+	uint32_t **ap, **pp;
 	int argc = 0;
 
 	while (args[argc])
 		argc++;
-	if ((pp = ap = malloc((unsigned)(argc + 1) * sizeof(char *))) == 0)
+	if ((pp = ap = malloc((unsigned)(argc + 1) * sizeof(uint32_t *))) == 0)
 		Panic(0, "%s", strnomem);
 	while (argc--)
 		*pp++ = SaveStr(*args++);
@@ -4321,7 +4322,7 @@ char *AddWindowFlags(uint32_t *buf, int len, Window *p)
 		*s++ = '$';
 #endif
 	if (p->w_log != 0) {
-		u32_strcpy(s, "(L)");
+		u32_strcpy(s, U"(L)");
 		s += 3;
 	}
 	if (p->w_ptyfd < 0 && p->w_type != W_TYPE_GROUP)
@@ -4660,10 +4661,17 @@ static void SetenvFin1(uint32_t *buf, size_t len, void *data)
 static void SetenvFin2(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
+	const char *lc = locale_charset();
+
+	char envbuf[1000];  /* FIXME */
+	size_t envlen = 1000;
+
+	u32_conv_to_encoding(lc, iconveh_question_mark,
+		buf, len, 0, envbuf, &envlen);
 
 	if (!len || !display)
 		return;
-	setenv(setenv_var, buf, 1);
+	setenv(setenv_var, envbuf, 1);
 	MakeNewEnv();
 }
 
@@ -4933,6 +4941,7 @@ static void confirm_fn(uint32_t *buf, size_t len, void *data)
 	DoAction(&act, -1);
 }
 
+#if 0
 struct inputsu {
 	struct acluser **up;
 	uint32_t name[24];
@@ -4985,6 +4994,7 @@ static int InputSu(struct acluser **up, char *name)
 		suFin((uint32_t *)0, 0, (char *)i);
 	return 0;
 }
+#endif
 
 static int digraph_find(const char *buf)
 {

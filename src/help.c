@@ -47,7 +47,7 @@
 
 uint32_t *version;		/* initialised by main() */
 
-static void PadStr(char *, int, int, int);
+static void PadStr(uint32_t *str, int n, int x, int y);
 
 void exit_with_usage(char *myname, char *message, char *arg)
 {
@@ -673,7 +673,8 @@ static void bindkeypage()
 	uint32_t tbuf[256];
 	int del, i, y, sl;
 	struct action *act;
-	uint32_t *xch, *s, *p;
+	uint32_t *s, *p;
+	char *xch;
 
 	bindkeydata = (struct bindkeydata *)flayer->l_data;
 
@@ -718,19 +719,19 @@ static void bindkeypage()
 		*p++ = ' ';
 		while (p < tbuf + 15)
 			*p++ = ' ';
-		sprintf(p, "%s -> ", xch);
+		u32_sprintf(p, "%s -> ", xch);
 		p += 7;
 		if (p - tbuf > flayer->l_width - 1) {
 			tbuf[flayer->l_width - 2] = '$';
 			tbuf[flayer->l_width - 1] = 0;
 		}
-		PadStr(tbuf, strlen(tbuf), 0, y);
-		AddAction(act, strlen(tbuf), y);
+		PadStr(tbuf, u32_strlen(tbuf), 0, y);
+		AddAction(act, u32_strlen(tbuf), y);
 		y++;
 	}
 	y++;
 	bindkeydata->last = i;
-	sprintf(tbuf, "[Press Space %s Return to end.]",
+	u32_sprintf(tbuf, "[Press Space %s Return to end.]",
 		bindkeydata->page < bindkeydata->pages ? "for next page;" : "or");
 	centerline(tbuf, flayer->l_height - 2);
 	LaySetCursor();
@@ -822,14 +823,14 @@ void ZmodemPage()
 	flayer->l_y = 0;
 }
 
-static void PadStr(char *str, int n, int x, int y)
+static void PadStr(uint32_t *str, int n, int x, int y)
 {
 	int l;
 
-	l = strlen(str);
+	l = u32_strlen(str);
 	if (l > n)
 		l = n;
 	LPutStr(flayer, str, l, &mchar_blank, x, y);
 	if (l < n)
-		LPutStr(flayer, (char *)blank, n - l, &mchar_blank, x + l, y);
+		LPutStr(flayer, blank, n - l, &mchar_blank, x + l, y);
 }

@@ -752,7 +752,7 @@ static void consredir_readev_fn(Event * event, void *data)
 		if (*n == '\n') {
 			if (n > p)
 				WriteString(console_window, p, n - p);
-			WriteString(console_window, "\r\n", 2);
+			WriteString(console_window, U"\r\n", 2);
 			p = n + 1;
 		}
 	if (n > p)

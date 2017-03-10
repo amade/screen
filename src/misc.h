@@ -25,8 +25,8 @@ void (*xsignal (int, void (*)(int))) (int);
 void  xseteuid  (int);
 void  xsetegid  (int);
 #endif
-int   AddXChar (char *, int);
-int   AddXChars (char *, int, char *);
+uint32_t AddXChar (uint32_t *, int);
+uint32_t AddXChars (uint32_t *, int, uint32_t *);
 void  sleep1000 (int);
 
 #endif /* SCREEN_MISC_H */

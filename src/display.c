@@ -37,6 +37,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <uniconv.h>
+#include <unistdio.h>
+#include <unistr.h>
 
 #include "screen.h"
 

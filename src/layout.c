@@ -61,7 +61,7 @@ void FreeLayoutCv(Canvas *cv)
 	}
 }
 
-Layout *CreateLayout(char *title, int startat)
+Layout *CreateLayout(uint32_t *title, int startat)
 {
 	Layout *lay, **pl;
 	int i;
@@ -92,12 +92,12 @@ Layout *CreateLayout(char *title, int startat)
 	return lay;
 }
 
-void SaveLayout(char *name, Canvas *cv)
+void SaveLayout(uint32_t *name, Canvas *cv)
 {
 	Layout *lay;
 	Canvas *fcv;
 	for (lay = layouts; lay; lay = lay->lay_next)
-		if (!strcmp(lay->lay_title, name))
+		if (!u32_strcmp(lay->lay_title, name))
 			break;
 	if (lay)
 		FreeLayoutCv(&lay->lay_canvas);
@@ -124,17 +124,17 @@ void AutosaveLayout(Layout *lay)
 	D_forecv = fcv;
 }
 
-Layout *FindLayout(char *name)
+Layout *FindLayout(uint32_t *name)
 {
 	Layout *lay;
-	char *s;
+	uint32_t *s;
 	int i;
 	for (i = 0, s = name; *s >= '0' && *s <= '9'; s++)
 		i = i * 10 + (*s - '0');
 	if (!*s && s != name && i >= 0 && i < MAXLAY)
 		return laytab[i];
 	for (lay = layouts; lay; lay = lay->lay_next)
-		if (!strcmp(lay->lay_title, name))
+		if (!u32_strcmp(lay->lay_title, name))
 			break;
 	return lay;
 }
@@ -171,7 +171,7 @@ void LoadLayout(Layout *lay)
 	D_layout = lay;
 }
 
-void NewLayout(char *title, int startat)
+void NewLayout(uint32_t *title, int startat)
 {
 	Layout *lay;
 	Canvas *fcv;
@@ -193,9 +193,9 @@ void NewLayout(char *title, int startat)
 	lay->lay_autosave = 1;
 }
 
-static char *AddLayoutsInfo(char *buf, int len, int where)
+static uint32_t *AddLayoutsInfo(uint32_t *buf, int len, int where)
 {
-	char *s, *ss, *t;
+	uint32_t *s, *ss, *t;
 	Layout *p, **pp;
 	int l;
 
@@ -206,7 +206,7 @@ static char *AddLayoutsInfo(char *buf, int len, int where)
 		if ((p = *pp) == 0)
 			continue;
 		t = p->lay_title;
-		l = strlen(t);
+		l = u32_strlen(t);
 		if (l > 20)
 			l = 20;
 		if (s - buf + l > len - 24)
@@ -215,14 +215,14 @@ static char *AddLayoutsInfo(char *buf, int len, int where)
 			*s++ = ' ';
 			*s++ = ' ';
 		}
-		sprintf(s, "%d", p->lay_number);
+		u32_sprintf(s, "%d", p->lay_number);
 		if (p->lay_number == where)
 			ss = s;
-		s += strlen(s);
+		s += u32_strlen(s);
 		if (display && p == D_layout)
 			*s++ = '*';
 		*s++ = ' ';
-		strncpy(s, t, l);
+		u32_strncpy(s, t, l);
 		s += l;
 	}
 	*s = 0;
@@ -331,7 +331,7 @@ int LayoutDumpCanvas(Canvas *cv, char *filename)
 	return 1;
 }
 
-void RenameLayout(Layout *layout, const char *name)
+void RenameLayout(Layout *layout, const uint32_t *name)
 {
 	free(layout->lay_title);
 	layout->lay_title = SaveStr(name);
