@@ -906,7 +906,7 @@ static void StuffFin(uint32_t *buf, size_t len, void *data)
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
-	char **args = act->args;
+	uint32_t **args = act->args;
 	int *argl = act->argl;
 	Window *p;
 	bool b;
@@ -1032,13 +1032,13 @@ void DoAction(struct action *act, int key)
 	case RC_HARDCOPY:
 		{
 			int mode = DUMP_HARDCOPY;
-			char *file = NULL;
+			uint32_t *file = NULL;
 
 			if (args[0]) {
-				if (!strcmp(*args, "-h")) {
+				if (!u32_strcmp(*args, U"-h")) {
 					mode = DUMP_SCROLLBACK;
 					file = args[1];
-				} else if (!strcmp(*args, "--") && args[1])
+				} else if (!u32_strcmp(*args, U"--") && args[1])
 					file = args[1];
 				else
 					file = args[0];
@@ -1100,7 +1100,7 @@ void DoAction(struct action *act, int key)
 		Finit(0);
 		/* NOTREACHED */
 	case RC_DETACH:
-		if (*args && !strcmp(*args, "-h"))
+		if (*args && !u32_strcmp(*args, U"-h"))
 			Hangup();
 		else
 			Detach(D_DETACH);
@@ -1115,7 +1115,7 @@ void DoAction(struct action *act, int key)
 			Detach(D_POWER);	/* detach and kill Attacher's parent */
 		break;
 	case RC_ZMODEM:
-		if (*args && !strcmp(*args, "sendcmd")) {
+		if (*args && !u32_strcmp(*args, U"sendcmd")) {
 			if (args[1]) {
 				free(zmodem_sendcmd);
 				zmodem_sendcmd = SaveStr(args[1]);
@@ -1124,7 +1124,7 @@ void DoAction(struct action *act, int key)
 				OutputMsg(0, "zmodem sendcmd: %s", zmodem_sendcmd);
 			break;
 		}
-		if (*args && !strcmp(*args, "recvcmd")) {
+		if (*args && !u32_strcmp(*args, U"recvcmd")) {
 			if (args[1]) {
 				free(zmodem_recvcmd);
 				zmodem_recvcmd = SaveStr(args[1]);
@@ -1135,9 +1135,9 @@ void DoAction(struct action *act, int key)
 		}
 		if (*args) {
 			for (i = 0; i < 4; i++)
-				if (!strcmp(zmodes[i], *args))
+				if (!u32_strcmp(zmodes[i], *args))
 					break;
-			if (i == 4 && !strcmp(*args, "on"))
+			if (i == 4 && !u32_strcmp(*args, U"on"))
 				i = 1;
 			if (i == 4) {
 				OutputMsg(0, "usage: zmodem off|auto|catch|pass");
@@ -1168,7 +1168,7 @@ void DoAction(struct action *act, int key)
 				break;
 			}
 			if (args[1]) {
-				if (!strcmp(args[1], "onerror")) {
+				if (!u32_strcmp(args[1], U"onerror")) {
 					ZombieKey_onerror = 1;
 				} else {
 					OutputMsg(0, "usage: zombie [keys [onerror]]");
@@ -1193,7 +1193,7 @@ void DoAction(struct action *act, int key)
 		s = SaveStr(user->u_name);
 		/* DO NOT RETURN FROM HERE WITHOUT RESETTING THIS: */
 		EffectiveAclUser = user;
-		n = strlen(args[0]);
+		n = u32_strlen(args[0]);
 		if (n)
 			n--;
 		/*
@@ -1211,7 +1211,7 @@ void DoAction(struct action *act, int key)
 					u = user;
 				else {
 					for (u = users; u; u = u->u_next) {
-						if (!strncmp(*args, u->u_name, n))
+						if (!u32_strncmp(*args, u->u_name, n))
 							break;
 					}
 					if (!u) {
@@ -1248,10 +1248,10 @@ void DoAction(struct action *act, int key)
 						continue;
 					fore = D_fore;
 					flayer = D_forecv->c_layer;
-					if (strncmp(args[0], D_usertty, n) &&
+					if (u32_strncmp(args[0], D_usertty, n) &&
 					    (strncmp("/dev/", D_usertty, 5) ||
-					     strncmp(args[0], D_usertty + 5, n)) &&
-					    (strncmp("/dev/tty", D_usertty, 8) || strncmp(args[0], D_usertty + 8, n)))
+					     u32_strncmp(args[0], D_usertty + 5, n)) &&
+					    (strncmp("/dev/tty", D_usertty, 8) || u32_strncmp(args[0], D_usertty + 8, n)))
 						continue;
 					DoCommand(args + 1, argl + 1);
 					if (display)
@@ -1279,7 +1279,7 @@ void DoAction(struct action *act, int key)
 					/* try looping over titles */
 					for (fore = windows; fore; fore = nw) {
 						nw = fore->w_next;
-						if (strncmp(args[0], fore->w_title, n))
+						if (u32_strncmp(args[0], fore->w_title, n))
 							continue;
 						/*
 						 * consider this a bug or a feature:
@@ -1464,7 +1464,7 @@ void DoAction(struct action *act, int key)
 	case RC_COMMAND:
 		{
 			struct action *ktabp = ktab;
-			if (argc == 2 && !strcmp(*args, "-c")) {
+			if (argc == 2 && !u32_strcmp(*args, U"-c")) {
 				if ((ktabp = FindKtab(args[1], 0)) == 0) {
 					OutputMsg(0, "Unknown command class '%s'", args[1]);
 					break;
@@ -1551,9 +1551,9 @@ void DoAction(struct action *act, int key)
 			int w, h;
 			int what = 0;
 
-			if (*args && !strcmp(*args, "-w"))
+			if (*args && !u32_strcmp(*args, U"-w"))
 				what = 1;
-			else if (*args && !strcmp(*args, "-d"))
+			else if (*args && !u32_strcmp(*args, U"-d"))
 				what = 2;
 			if (what)
 				args++;
@@ -1673,7 +1673,7 @@ void DoAction(struct action *act, int key)
 		if (*args == 0)
 			InputAKA();
 		else
-			ChangeAKA(fore, *args, strlen(*args));
+			ChangeAKA(fore, *args, u32_strlen(*args));
 		break;
 	case RC_COLON:
 		Input(U":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
@@ -1787,7 +1787,7 @@ void DoAction(struct action *act, int key)
 	case RC_WINDOWLIST:
 		if (!*args)
 			display_windows(0, WLIST_NUM, (Window *)0);
-		else if (!strcmp(*args, "string")) {
+		else if (!u32_strcmp(*args, U"string")) {
 			if (args[1]) {
 				if (wliststr)
 					free(wliststr);
@@ -1795,7 +1795,7 @@ void DoAction(struct action *act, int key)
 			}
 			if (msgok)
 				OutputMsg(0, "windowlist string is '%s'", wliststr);
-		} else if (!strcmp(*args, "title")) {
+		} else if (!u32_strcmp(*args, U"title")) {
 			if (args[1]) {
 				if (wlisttit)
 					free(wlisttit);
@@ -1809,11 +1809,11 @@ void DoAction(struct action *act, int key)
 			for (i = 0; i < argc; i++)
 				if (!args[i])
 					continue;
-				else if (!strcmp(args[i], "-m"))
+				else if (!u32_strcmp(args[i], U"-m"))
 					flag |= WLIST_MRU;
-				else if (!strcmp(args[i], "-b"))
+				else if (!u32_strcmp(args[i], U"-b"))
 					blank = 1;
-				else if (!strcmp(args[i], "-g"))
+				else if (!u32_strcmp(args[i], U"-g"))
 					flag |= WLIST_NESTED;
 				else {
 					OutputMsg(0,
@@ -1825,7 +1825,7 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_HELP:
-		if (argc == 2 && !strcmp(*args, "-c")) {
+		if (argc == 2 && !u32_strcmp(*args, U"-c")) {
 			struct action *ktabp;
 			if ((ktabp = FindKtab(args[1], 0)) == 0) {
 				OutputMsg(0, "Unknown command class '%s'", args[1]);
@@ -2030,7 +2030,7 @@ void DoAction(struct action *act, int key)
 	case RC_LOGFILE:
 		if (*args) {
 			char buf[1024];
-			if (args[1] && !(strcmp(*args, "flush"))) {
+			if (args[1] && !(u32_strcmp(*args, U"flush"))) {
 				log_flush = atoi(args[1]);
 				if (msgok)
 					OutputMsg(0, "log flush timeout set to %ds\n", log_flush);
@@ -2047,10 +2047,10 @@ void DoAction(struct action *act, int key)
 		OutputMsg(0, "logfile is '%s'", screenlogfile);
 		break;
 	case RC_LOGTSTAMP:
-		if (!*args || !strcmp(*args, "on") || !strcmp(*args, "off")) {
+		if (!*args || !u32_strcmp(*args, U"on") || !u32_strcmp(*args, U"off")) {
 			if (ParseSwitch(act, &logtstamp_on) == 0 && msgok)
 				OutputMsg(0, "timestamps turned %s", logtstamp_on ? "on" : "off");
-		} else if (!strcmp(*args, "string")) {
+		} else if (!u32_strcmp(*args, U"string")) {
 			if (args[1]) {
 				if (logtstamp_string)
 					free(logtstamp_string);
@@ -2058,7 +2058,7 @@ void DoAction(struct action *act, int key)
 			}
 			if (msgok)
 				OutputMsg(0, "logfile timestamp is '%s'", logtstamp_string);
-		} else if (!strcmp(*args, "after")) {
+		} else if (!u32_strcmp(*args, U"after")) {
 			if (args[1]) {
 				logtstamp_after = atoi(args[1]);
 				if (!msgok)
@@ -2100,12 +2100,12 @@ void DoAction(struct action *act, int key)
 		 * user typed ^A:echo... well, echo isn't FinishRc's job,
 		 * but as he wanted to test us, we show good will
 		 */
-		if (argc > 1 && !strcmp(*args, "-n")) {
+		if (argc > 1 && !u32_strcmp(*args, U"-n")) {
 			args++;
 			argc--;
 		}
 		s = *args;
-		if (argc > 1 && !strcmp(*args, "-p")) {
+		if (argc > 1 && !u32_strcmp(*args, U"-p")) {
 			args++;
 			argc--;
 			s = *args;
@@ -2152,13 +2152,13 @@ void DoAction(struct action *act, int key)
 #if defined(ENABLE_UTMP) && defined(LOGOUTOK)
 	case RC_LOGIN:
 		b = fore->w_slot != (slot_t)(-1);
-		if (*args && !strcmp(*args, "always")) {
+		if (*args && !u32_strcmp(*args, U"always")) {
 			fore->w_lflag = 3;
 			if (!displays && b)
 				SlotToggle(b);
 			break;
 		}
-		if (*args && !strcmp(*args, "attached")) {
+		if (*args && !u32_strcmp(*args, U"attached")) {
 			fore->w_lflag = 1;
 			if (!displays && b)
 				SlotToggle(0);
@@ -2168,9 +2168,9 @@ void DoAction(struct action *act, int key)
 			SlotToggle(b);
 		break;
 	case RC_DEFLOGIN:
-		if (!strcmp(*args, "always"))
+		if (!u32_strcmp(*args, U"always"))
 			nwin_default.lflag |= 2;
-		else if (!strcmp(*args, "attached"))
+		else if (!u32_strcmp(*args, U"attached"))
 			nwin_default.lflag &= ~2;
 		else if (ParseOnOff(act, &b) == 0)
 			nwin_default.lflag = b ? 1 : 0;
@@ -2238,7 +2238,7 @@ void DoAction(struct action *act, int key)
 			OutputMsg(0, "%s", "");	/* wait till mintime (keep gcc quiet) */
 			RemoveStatus();
 		}
-		if (args[0] && strcmp(args[0], "on") && strcmp(args[0], "off")) {
+		if (args[0] && u32_strcmp(args[0], U"on") && u32_strcmp(args[0], U"off")) {
 			Display *olddisplay = display;
 			int old_use, new_use = -1;
 
@@ -2253,7 +2253,7 @@ void DoAction(struct action *act, int key)
 				new_use = HSTATUS_IGNORE;
 			else if (!strcmp(s, "message"))
 				new_use = HSTATUS_MESSAGE;
-			else if (!strcmp(args[0], "string")) {
+			else if (!u32_strcmp(args[0], U"string")) {
 				if (!args[1]) {
 					char buf[256];
 					AddXChars(buf, sizeof(buf), hstatusstring);
@@ -2306,13 +2306,13 @@ void DoAction(struct action *act, int key)
 		{
 			int	i = 0;
 			while ( (i <= 1) && args[i]) {
-				if ( (strcmp(args[i], "top") == 0) || (strcmp(args[i], "up") == 0) ) {
+				if ( (u32_strcmp(args[i], U"top") == 0) || (u32_strcmp(args[i], U"up") == 0) ) {
 					statuspos.row = STATUS_TOP;
-				} else if ( (strcmp(args[i], "bottom") == 0) || (strcmp(args[i], "down") == 0) ) {
+				} else if ( (u32_strcmp(args[i], U"bottom") == 0) || (u32_strcmp(args[i], U"down") == 0) ) {
 					statuspos.row = STATUS_BOTTOM;
-				} else if (strcmp(args[i], "left") == 0) {
+				} else if (u32_strcmp(args[i], U"left") == 0) {
 					statuspos.col = STATUS_LEFT;
-				} else if (strcmp(args[i], "right") == 0) {
+				} else if (u32_strcmp(args[i], U"right") == 0) {
 					statuspos.col = STATUS_RIGHT;
 				} else {
 					Msg(0, "%s: usage: status [top|up|down|bottom] [left|right]", rc_name);
@@ -2323,21 +2323,21 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_CAPTION:
-		if (strcmp(args[0], "top") == 0) {
+		if (u32_strcmp(args[0], U"top") == 0) {
 			captiontop = 1;
 			args++;
-		} else if(strcmp(args[0], "bottom") == 0) {
+		} else if(u32_strcmp(args[0], U"bottom") == 0) {
 			captiontop = 0;
 			args++;
 		}
-		if (strcmp(args[0], "always") == 0 || strcmp(args[0], "splitonly") == 0) {
+		if (u32_strcmp(args[0], U"always") == 0 || u32_strcmp(args[0], U"splitonly") == 0) {
 			Display *olddisplay = display;
 
 			captionalways = args[0][0] == 'a';
 			for (display = displays; display; display = display->d_next)
 				ChangeScreenSize(D_width, D_height, 1);
 			display = olddisplay;
-		} else if (strcmp(args[0], "string") == 0) {
+		} else if (u32_strcmp(args[0], U"string") == 0) {
 			if (!args[1]) {
 				char buf[256];
 				AddXChars(buf, sizeof(buf), captionstring);
@@ -2639,14 +2639,14 @@ void DoAction(struct action *act, int key)
 			int kflag = 0;
 
 			for (;;) {
-				if (argc > 2 && !strcmp(*args, "-c")) {
+				if (argc > 2 && !u32_strcmp(*args, U"-c")) {
 					ktabp = FindKtab(args[1], 1);
 					if (ktabp == 0)
 						break;
 					args += 2;
 					argl += 2;
 					argc -= 2;
-				} else if (argc > 1 && !strcmp(*args, "-k")) {
+				} else if (argc > 1 && !u32_strcmp(*args, U"-k")) {
 					kflag = 1;
 					args++;
 					argl++;
@@ -2691,17 +2691,17 @@ void DoAction(struct action *act, int key)
 			struct kmap_ext *kme = NULL;
 
 			for (; *args && **args == '-'; args++, argl++) {
-				if (strcmp(*args, "-t") == 0)
+				if (u32_strcmp(*args, U"-t") == 0)
 					fl = KMAP_NOTIMEOUT;
-				else if (strcmp(*args, "-k") == 0)
+				else if (u32_strcmp(*args, U"-k") == 0)
 					kf = 1;
-				else if (strcmp(*args, "-a") == 0)
+				else if (u32_strcmp(*args, U"-a") == 0)
 					af = 1;
-				else if (strcmp(*args, "-d") == 0)
+				else if (u32_strcmp(*args, U"-d") == 0)
 					df = 1;
-				else if (strcmp(*args, "-m") == 0)
+				else if (u32_strcmp(*args, U"-m") == 0)
 					mf = 1;
-				else if (strcmp(*args, "--") == 0) {
+				else if (u32_strcmp(*args, U"--") == 0) {
 					args++;
 					argl++;
 					break;
@@ -2847,7 +2847,7 @@ void DoAction(struct action *act, int key)
 		 * with chacl in the usual way.
 		 */
 		if (args[1]) {
-			if (strcmp(args[1], "none")) {	/* link a user to another user */
+			if (u32_strcmp(args[1], U"none")) {	/* link a user to another user */
 				if (AclLinkUser(args[0], args[1]))
 					break;
 				if (msgok)
@@ -3021,13 +3021,13 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_RENDITION:
 		i = -1;
-		if (strcmp(args[0], "bell") == 0) {
+		if (u32_strcmp(args[0], U"bell") == 0) {
 			i = REND_BELL;
-		} else if (strcmp(args[0], "monitor") == 0) {
+		} else if (u32_strcmp(args[0], U"monitor") == 0) {
 			i = REND_MONITOR;
-		} else if (strcmp(args[0], "silence") == 0) {
+		} else if (u32_strcmp(args[0], U"silence") == 0) {
 			i = REND_SILENCE;
-		} else if (strcmp(args[0], "so") != 0) {
+		} else if (u32_strcmp(args[0], U"so") != 0) {
 			OutputMsg(0, "Invalid option '%s' for rendition", args[0]);
 			break;
 		}
@@ -3104,21 +3104,21 @@ void DoAction(struct action *act, int key)
 	case RC_FOCUS:
 		{
 			Canvas *cv = 0;
-			if (!*args || !strcmp(*args, "next"))
+			if (!*args || !u32_strcmp(*args, U"next"))
 				cv = D_forecv->c_next ? D_forecv->c_next : D_cvlist;
-			else if (!strcmp(*args, "prev")) {
+			else if (!u32_strcmp(*args, U"prev")) {
 				for (cv = D_cvlist; cv->c_next && cv->c_next != D_forecv; cv = cv->c_next) ;
-			} else if (!strcmp(*args, "top"))
+			} else if (!u32_strcmp(*args, U"top"))
 				cv = D_cvlist;
-			else if (!strcmp(*args, "bottom")) {
+			else if (!u32_strcmp(*args, U"bottom")) {
 				for (cv = D_cvlist; cv->c_next; cv = cv->c_next) ;
-			} else if (!strcmp(*args, "up"))
+			} else if (!u32_strcmp(*args, U"up"))
 				cv = FindCanvas(D_forecv->c_xs, D_forecv->c_ys - 1);
-			else if (!strcmp(*args, "down"))
+			else if (!u32_strcmp(*args, U"down"))
 				cv = FindCanvas(D_forecv->c_xs, D_forecv->c_ye + 2);
-			else if (!strcmp(*args, "left"))
+			else if (!u32_strcmp(*args, U"left"))
 				cv = FindCanvas(D_forecv->c_xs - 1, D_forecv->c_ys);
-			else if (!strcmp(*args, "right"))
+			else if (!u32_strcmp(*args, U"right"))
 				cv = FindCanvas(D_forecv->c_xe + 1, D_forecv->c_ys);
 			else {
 				OutputMsg(0, "%s: usage: focus [next|prev|up|down|left|right|top|bottom]", rc_name);
@@ -3134,15 +3134,15 @@ void DoAction(struct action *act, int key)
 			break;
 		}
 		for (; *args; args++) {
-			if (!strcmp(*args, "-h"))
+			if (!u32_strcmp(*args, U"-h"))
 				i |= RESIZE_FLAG_H;
-			else if (!strcmp(*args, "-v"))
+			else if (!u32_strcmp(*args, U"-v"))
 				i |= RESIZE_FLAG_V;
-			else if (!strcmp(*args, "-b"))
+			else if (!u32_strcmp(*args, U"-b"))
 				i |= RESIZE_FLAG_H | RESIZE_FLAG_V;
-			else if (!strcmp(*args, "-p"))
+			else if (!u32_strcmp(*args, U"-p"))
 				i |= D_forecv->c_slorient == SLICE_VERT ? RESIZE_FLAG_H : RESIZE_FLAG_V;
-			else if (!strcmp(*args, "-l"))
+			else if (!u32_strcmp(*args, U"-l"))
 				i |= RESIZE_FLAG_L;
 			else
 				break;
@@ -3163,7 +3163,7 @@ void DoAction(struct action *act, int key)
 		args = SaveArgs(args);
 		for (i = 0; args[i]; i++) {
 			if (args[i][0])
-				ColonFin(args[i], strlen(args[i]), (char *)0);
+				ColonFin(args[i], u32_strlen(args[i]), (char *)0);
 			free(args[i]);
 		}
 		free(args);
@@ -3248,7 +3248,7 @@ void DoAction(struct action *act, int key)
 	case RC_IDLE:
 		if (*args) {
 			Display *olddisplay = display;
-			if (!strcmp(*args, "off"))
+			if (!u32_strcmp(*args, U"off"))
 				idletimo = 0;
 			else if (args[0][0])
 				idletimo = atoi(*args) * 1000;
@@ -3275,7 +3275,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_FOCUSMINSIZE:
 		for (i = 0; i < 2 && args[i]; i++) {
-			if (!strcmp(args[i], "max") || !strcmp(args[i], "_"))
+			if (!u32_strcmp(args[i], U"max") || !u32_strcmp(args[i], U"_"))
 				n = -1;
 			else
 				n = atoi(args[i]);
@@ -3320,7 +3320,7 @@ void DoAction(struct action *act, int key)
 		// A number of the subcommands for "layout" are ignored, or not processed correctly when there
 		// is no attached display.
 
-		if (!strcmp(args[0], "title")) {
+		if (!u32_strcmp(args[0], U"title")) {
 			if (!display) {
 				if (!args[1])	// There is no display, and there is no new title. Ignore.
 					break;
@@ -3340,7 +3340,7 @@ void DoAction(struct action *act, int key)
 				break;
 			}
 			RenameLayout(D_layout, args[1]);
-		} else if (!strcmp(args[0], "number")) {
+		} else if (!u32_strcmp(args[0], U"number")) {
 			if (!display) {
 				if (args[1] && layout_attach && layout_attach != &layout_last_marker)
 					RenumberLayout(layout_attach, atoi(args[1]));
@@ -3357,12 +3357,12 @@ void DoAction(struct action *act, int key)
 			}
 			RenumberLayout(D_layout, atoi(args[1]));
 			break;
-		} else if (!strcmp(args[0], "autosave")) {
+		} else if (!u32_strcmp(args[0], U"autosave")) {
 			if (!display) {
 				if (args[1] && layout_attach && layout_attach != &layout_last_marker) {
-					if (!strcmp(args[1], "on"))
+					if (!u32_strcmp(args[1], U"on"))
 						layout_attach->lay_autosave = 1;
-					else if (!strcmp(args[1], "off"))
+					else if (!u32_strcmp(args[1], U"off"))
 						layout_attach->lay_autosave = 0;
 				}
 				break;
@@ -3373,9 +3373,9 @@ void DoAction(struct action *act, int key)
 				break;
 			}
 			if (args[1]) {
-				if (!strcmp(args[1], "on"))
+				if (!u32_strcmp(args[1], U"on"))
 					D_layout->lay_autosave = 1;
-				else if (!strcmp(args[1], "off"))
+				else if (!u32_strcmp(args[1], U"off"))
 					D_layout->lay_autosave = 0;
 				else {
 					OutputMsg(0, "invalid argument. Give 'on' or 'off");
@@ -3384,8 +3384,8 @@ void DoAction(struct action *act, int key)
 			}
 			if (msgok)
 				OutputMsg(0, "autosave is %s", D_layout->lay_autosave ? "on" : "off");
-		} else if (!strcmp(args[0], "new")) {
-			char *t = args[1];
+		} else if (!u32_strcmp(args[0], U"new")) {
+			uint32_t *t = args[1];
 			n = 0;
 			if (t) {
 				while (*t >= '0' && *t <= '9')
@@ -3401,14 +3401,14 @@ void DoAction(struct action *act, int key)
 				t = "layout";
 			NewLayout(t, n);
 			Activate(-1);
-		} else if (!strcmp(args[0], "save")) {
+		} else if (!u32_strcmp(args[0], U"save")) {
 			if (!args[1]) {
 				OutputMsg(0, "usage: layout save <name>");
 				break;
 			}
 			if (display)
 				SaveLayout(args[1], &D_canvas);
-		} else if (!strcmp(args[0], "select")) {
+		} else if (!u32_strcmp(args[0], U"select")) {
 			if (!display) {
 				if (args[1])
 					layout_attach = FindLayout(args[1]);
@@ -3419,7 +3419,7 @@ void DoAction(struct action *act, int key)
 				break;
 			}
 			SelectLayoutFin(args[1], strlen(args[1]), (char *)0);
-		} else if (!strcmp(args[0], "next")) {
+		} else if (!u32_strcmp(args[0], U"next")) {
 			if (!display) {
 				if (layout_attach && layout_attach != &layout_last_marker)
 					layout_attach = layout_attach->lay_next ? layout_attach->lay_next : layouts;;
@@ -3459,7 +3459,7 @@ void DoAction(struct action *act, int key)
 				break;
 			LoadLayout(lay);
 			Activate(-1);
-		} else if (!strcmp(args[0], "attach")) {
+		} else if (!u32_strcmp(args[0], U"attach")) {
 			if (!args[1]) {
 				if (!layout_attach)
 					OutputMsg(0, "no attach layout set");
@@ -3470,7 +3470,7 @@ void DoAction(struct action *act, int key)
 						  layout_attach->lay_title);
 				break;
 			}
-			if (!strcmp(args[1], ":last"))
+			if (!u32_strcmp(args[1], U":last"))
 				layout_attach = &layout_last_marker;
 			else if (!args[1][0])
 				layout_attach = 0;
@@ -3483,9 +3483,9 @@ void DoAction(struct action *act, int key)
 				}
 				layout_attach = lay;
 			}
-		} else if (!strcmp(args[0], "show")) {
+		} else if (!u32_strcmp(args[0], U"show")) {
 			ShowLayouts(-1);
-		} else if (!strcmp(args[0], "remove")) {
+		} else if (!u32_strcmp(args[0], U"remove")) {
 			Layout *lay = display ? D_layout : layouts;
 			if (args[1]) {
 				lay = layouts ? FindLayout(args[1]) : (Layout *)0;
@@ -3496,7 +3496,7 @@ void DoAction(struct action *act, int key)
 			}
 			if (lay)
 				RemoveLayout(lay);
-		} else if (!strcmp(args[0], "dump")) {
+		} else if (!u32_strcmp(args[0], U"dump")) {
 			if (!display)
 				OutputMsg(0, "Must have a display for 'layout dump'.");
 			else if (!LayoutDumpCanvas(&D_canvas, args[1] ? args[1] : "layout-dump"))
@@ -3722,11 +3722,11 @@ int Parse(uint32_t *buf, int bufl, uint32_t **args, int *argl)
 					if (!u32_strcmp(ps, U"TERM"))
 						v = display ? D_termname : "unknown";
 					else if (!u32_strcmp(ps, U"COLUMNS"))
-						sprintf(xbuf, "%d", display ? D_width : -1);
+						u32_sprintf(xbuf, "%d", display ? D_width : -1);
 					else if (!u32_strcmp(ps, U"LINES"))
-						sprintf(xbuf, "%d", display ? D_height : -1);
+						u32_sprintf(xbuf, "%d", display ? D_height : -1);
 					else if (!u32_strcmp(ps, U"PID"))
-						sprintf(xbuf, "%d", getpid());
+						u32_sprintf(xbuf, "%d", getpid());
 					else if (!u32_strcmp(ps, U"PWD")) {
 						if (getcwd(path, sizeof(path) - 1) == 0)
 							v = U"?";
