@@ -70,7 +70,7 @@
 #include "winmsg.h"
 
 
-static int CheckArgNum(int, char **);
+static int CheckArgNum(int, uint32_t **);
 static void ClearAction(struct action *);
 static void SaveAction(struct action *, int, char **, int *);
 static uint16_t NextWindow(void);
@@ -93,7 +93,7 @@ static char **SaveArgs(char **);
 static bool IsNum(char *);
 static void ColonFin(uint32_t *, size_t, void *);
 static void InputSelect(void);
-static void InputSetenv(char *);
+static void InputSetenv(uint32_t *);
 static void InputAKA(void);
 static int InputSu(struct acluser **, char *);
 static void suFin(uint32_t *, size_t, void *);
@@ -577,7 +577,7 @@ static struct action *FindKtab(char *class, int create)
 
 static void ClearAction(struct action *act)
 {
-	char **p;
+	uint32_t **p;
 
 	if (act->nr == RC_ILLEGAL)
 		return;
@@ -821,7 +821,7 @@ int FindCommnr(const uint32_t *str)
 	return RC_ILLEGAL;
 }
 
-static int CheckArgNum(int nr, char **args)
+static int CheckArgNum(int nr, uint32_t **args)
 {
 	int i, n;
 	static char *argss[] = { "no", "one", "two", "three", "four", "OOPS" };
@@ -913,7 +913,7 @@ void DoAction(struct action *act, int key)
 	int argc, n, msgok;
 	int64_t i;
 	int j;
-	char *s = NULL;
+	uint32_t *s = NULL;
 	char ch;
 	Display *odisplay = display;
 	struct acluser *user;
@@ -3820,12 +3820,12 @@ static int ParseSwitch(struct action *act, bool *var)
 static int ParseOnOff(struct action *act, bool *var)
 {
 	int num = -1;
-	char **args = act->args;
+	uint32_t **args = act->args;
 
 	if (args[1] == 0) {
-		if (strcmp(args[0], "on") == 0)
+		if (u32_strcmp(args[0], U"on") == 0)
 			num = true;
-		else if (strcmp(args[0], "off") == 0)
+		else if (u32_strcmp(args[0], U"off") == 0)
 			num = false;
 	}
 	if (num < 0) {
@@ -3836,9 +3836,9 @@ static int ParseOnOff(struct action *act, bool *var)
 	return 0;
 }
 
-static int ParseSaveStr(struct action *act, char **var)
+static int ParseSaveStr(struct action *act, uint32_t **var)
 {
-	char **args = act->args;
+	uint32_t **args = act->args;
 	if (*args == 0 || args[1]) {
 		Msg(0, "%s: %s: one argument required.", rc_name, comms[act->nr].name);
 		return -1;
@@ -3852,7 +3852,7 @@ static int ParseSaveStr(struct action *act, char **var)
 static int ParseNum(struct action *act, int *var)
 {
 	int i;
-	char *p, **args = act->args;
+	uint32_t *p, **args = act->args;
 
 	p = *args;
 	if (p == 0 || *p == 0 || args[1]) {
@@ -3876,7 +3876,7 @@ static int ParseNum(struct action *act, int *var)
 static int ParseNum1000(struct action *act, int *var)
 {
 	int i;
-	char *p, **args = act->args;
+	uint32_t *p, **args = act->args;
 	int dig = 0;
 
 	p = *args;
@@ -4646,9 +4646,9 @@ static void InputSelect()
 	Input(U"Switch to window: ", 20, INP_COOKED, SelectFin, NULL, 0);
 }
 
-static char setenv_var[31];
+static uint32_t setenv_var[31];
 
-static void SetenvFin1(char *buf, size_t len, void *data)
+static void SetenvFin1(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -4657,7 +4657,7 @@ static void SetenvFin1(char *buf, size_t len, void *data)
 	InputSetenv(buf);
 }
 
-static void SetenvFin2(char *buf, size_t len, void *data)
+static void SetenvFin2(uint32_t *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
 
@@ -4667,7 +4667,7 @@ static void SetenvFin2(char *buf, size_t len, void *data)
 	MakeNewEnv();
 }
 
-static void InputSetenv(char *arg)
+static void InputSetenv(uint32_t *arg)
 {
 	static uint32_t setenv_buf[50 + sizeof(setenv_var)];	/* need to be static here, cannot be freed */
 
