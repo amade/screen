@@ -125,8 +125,8 @@ int TtyMode = PTY_MODE;
 bool hardcopy_append = false;
 bool all_norefresh = 0;
 int zmodem_mode = 0;
-char *zmodem_sendcmd;
-char *zmodem_recvcmd;
+uint32_t *zmodem_sendcmd;
+uint32_t *zmodem_recvcmd;
 static char *zmodes[4] = { "off", "auto", "catch", "pass" };
 
 int idletimo;

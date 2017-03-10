@@ -7,7 +7,7 @@
 
 #include "image.h"
 
-char *SaveStr (const char *);
+uint32_t *SaveStr (const uint32_t *);
 char *SaveStrn (const char *, size_t);
 #ifndef HAVE_STRERROR
 char *strerror (int);

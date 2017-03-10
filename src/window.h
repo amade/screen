@@ -322,7 +322,7 @@ void execvpe(char *, char **, char **);
 
 /* global variables */
 
-extern char DefaultShell[];
+extern uint32_t DefaultShell[];
 
 extern bool VerboseCreate;
 

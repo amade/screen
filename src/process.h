@@ -36,8 +36,8 @@ extern bool hardcopy_append;
 
 extern uint32_t *noargs[];
 extern char NullStr[];
-extern char *zmodem_recvcmd;
-extern char *zmodem_sendcmd;
+extern uint32_t *zmodem_recvcmd;
+extern uint32_t *zmodem_sendcmd;
 
 extern int idletimo;
 extern int kmap_extn;
