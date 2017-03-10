@@ -692,7 +692,7 @@ static void bindkeypage()
 				continue;
 			del = *p++ = ':';
 			s = term[i + T_CAPS].tcname;
-			sl = s ? strlen(s) : 0;
+			sl = s ? u32_strlen(s) : 0;
 		} else if (i < KMAP_KEYS + KMAP_AKEYS) {
 			act = &bindkeydata->tab[i];
 			if (act->nr == RC_ILLEGAL)

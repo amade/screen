@@ -364,7 +364,7 @@ int GetHistory()
 		return 0;
 	if (D_user->u_plop.buf)
 		UserFreeCopyBuffer(D_user);
-	if ((D_user->u_plop.buf = malloc((unsigned)(i - x + 2))) == NULL) {
+	if ((D_user->u_plop.buf = malloc((unsigned)((i - x + 2) * 4))) == NULL) {
 		LMsg(0, "Not enough memory... Sorry.");
 		return 0;
 	}
@@ -833,11 +833,11 @@ static void MarkProcess(uint32_t **inbufp, size_t *inlenp)
 					/* the +3 below is for : cr + lf + \0 */
 					if (md_user->u_plop.buf)
 						md_user->u_plop.buf = realloc(md_user->u_plop.buf,
-									      (unsigned)(md_user->u_plop.len +
-											 newcopylen + 3));
+									      (unsigned)((md_user->u_plop.len +
+											 newcopylen + 3) * 4));
 					else {
 						md_user->u_plop.len = 0;
-						md_user->u_plop.buf = malloc((unsigned)(newcopylen + 3));
+						md_user->u_plop.buf = malloc((unsigned)((newcopylen + 3) * 4));
 					}
 					if (!md_user->u_plop.buf) {
 						MarkAbort();

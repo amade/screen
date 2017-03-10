@@ -50,14 +50,14 @@ uint32_t *SaveStr(const uint32_t *str)
 	return cp;
 }
 
-char *SaveStrn(const char *str, size_t n)
+uint32_t *SaveStrn(const uint32_t *str, size_t n)
 {
 	char *cp;
 
-	if ((cp = malloc(n + 1)) == NULL)
+	if ((cp = malloc(4 * (n + 1))) == NULL)
 		Panic(0, "%s", strnomem);
 	else {
-		memmove(cp, (char *)str, n);
+		u32_move(cp, str, n);
 		cp[n] = 0;
 	}
 	return cp;

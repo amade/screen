@@ -1434,6 +1434,7 @@ static void win_readev_fn(Event *event, void *data)
 	WriteString(p, bp, len);
 	LayPause(&p->w_layer, 0);
 
+	free(buf);
 	return;
 }
 

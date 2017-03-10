@@ -3188,10 +3188,10 @@ void DoAction(struct action *act, int key)
 		else if (n > maxwin && windows)
 			OutputMsg(0, "may increase maxwin only when there's no window");
 		else {
-			if (!windows) {
+			/*if (!windows) {
 				wtab = realloc(wtab, n * sizeof(Window *));
 				memset(wtab, 0, n * sizeof(Window *));
-			}
+			}*/
 			maxwin = n;
 		}
 		break;
