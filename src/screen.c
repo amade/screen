@@ -131,7 +131,7 @@ int multiattach;
 int tty_mode;
 int tty_oldmode = -1;
 
-char HostName[MAXSTR];
+char *HostName;
 pid_t MasterPid, PanicPid;
 uid_t real_uid, eff_uid;
 uid_t multi_uid;
@@ -745,7 +745,7 @@ int main(int argc, char **argv)
 		h[MAXSTR - 1] = '\0';
 		if ((ap = strchr(h, '.')) != NULL)
 			*ap = '\0';
-		u32_asprintf(&HostName, "%s\0", h);
+		asprintf(&HostName, "%s", h);
 	}
 
 	if (lsflag) {
@@ -1196,8 +1196,10 @@ void Detach(int mode)
 #define AddStrSocket(msg) do { \
     if (SocketName) \
       { \
+	uint32_t *sname; \
+	u32_asprintf(&sname, "%s", SocketName); \
 	AddStr(U"[" msg U" from "); \
-	AddStr(SocketName); \
+	AddStr(sname); \
 	AddStr(U"]\r\n"); \
       } \
     else \

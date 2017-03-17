@@ -36,6 +36,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <unistr.h>
+#include <unistdio.h>
 
 #include "screen.h"
 
@@ -88,6 +89,30 @@ uint32_t *u32_SaveStrn(const uint32_t *str, size_t n)
 	}
 	return cp;
 }
+
+uint32_t *to_u32_SaveStr(const char *str)
+{
+	uint32_t *cp;
+
+	if ((cp = malloc((strlen(str) + 1) * sizeof(uint32_t))) == NULL)
+		Panic(0, U"%s", strnomem);
+	else
+		u32_snprintf(cp, strlen(str), "%s", str);
+	return cp;
+}
+
+
+char *from_u32_SaveStr(const uint32_t *str)
+{
+	char *cp;
+
+	if ((cp = malloc(u32_strlen(str) + 1)) == NULL)
+		Panic(0, U"%s", strnomem);
+	else
+		ulc_snprintf(cp, u32_strlen(str) + 1, "%llU", str);
+	return cp;
+}
+
 
 int u32_atoi(const uint32_t *ntpr) {
 	int ret = 0;

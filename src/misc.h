@@ -12,6 +12,8 @@ char *SaveStr (const char *);
 char *SaveStrn (const char *, size_t);
 uint32_t *u32_SaveStr (const uint32_t *);
 uint32_t *u32_SaveStrn (const uint32_t *, size_t);
+uint32_t *to_u32_SaveStr(const char *);
+char *from_u32_SaveStr(const uint32_t *);
 #ifndef HAVE_STRERROR
 char *strerror (int);
 #endif

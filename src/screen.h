@@ -233,7 +233,7 @@ void  setbacktick (int, int, int, char **);
 /* global variables */
 
 extern char strnomem[];
-extern char HostName[];
+extern char *HostName;
 extern char SocketPath[];
 extern char *attach_tty;
 extern char *attach_term;

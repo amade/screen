@@ -563,7 +563,7 @@ static struct action *FindKtab(uint32_t *class, int create)
 			Msg(0, U"%s", strnomem);
 			return 0;
 		}
-		kp->name = SaveStr(class);
+		kp->name = u32_SaveStr(class);
 		for (i = 0; i < (int)(sizeof(kp->ktab) / sizeof(*kp->ktab)); i++) {
 			kp->ktab[i].nr = RC_ILLEGAL;
 			kp->ktab[i].args = noargs;
@@ -1382,7 +1382,7 @@ void DoAction(struct action *act, int key)
 			if (user->u_plop.buf != NULL)
 				UserFreeCopyBuffer(user);
 			if (args[1] && args[1][0]) {
-				user->u_plop.buf = SaveStrn(args[1], argl[1]);
+				user->u_plop.buf = u32_SaveStrn(args[1], argl[1]);
 				user->u_plop.len = argl[1];
 			}
 		} else {
@@ -1390,7 +1390,7 @@ void DoAction(struct action *act, int key)
 
 			if (plp->buf)
 				free(plp->buf);
-			plp->buf = SaveStrn(args[1], argl[1]);
+			plp->buf = u32_SaveStrn(args[1], argl[1]);
 			plp->len = argl[1];
 		}
 		break;
@@ -1451,7 +1451,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_TIME:
 		if (*args) {
-			timestring = SaveStr(*args);
+			timestring = from_u32_SaveStr(*args);
 			break;
 		}
 		OutputMsg(0, U"%s", MakeWinMsg(timestring, fore, '%'));
@@ -1792,7 +1792,7 @@ void DoAction(struct action *act, int key)
 			if (args[1]) {
 				if (wliststr)
 					free(wliststr);
-				wliststr = SaveStr(args[1]);
+				wliststr = u32_SaveStr(args[1]);
 			}
 			if (msgok)
 				OutputMsg(0, U"windowlist string is '%s'", wliststr);
@@ -1800,7 +1800,7 @@ void DoAction(struct action *act, int key)
 			if (args[1]) {
 				if (wlisttit)
 					free(wlisttit);
-				wlisttit = SaveStr(args[1]);
+				wlisttit = u32_SaveStr(args[1]);
 			}
 			if (msgok)
 				OutputMsg(0, U"windowlist title is '%s'", wlisttit);
@@ -2055,7 +2055,7 @@ void DoAction(struct action *act, int key)
 			if (args[1]) {
 				if (logtstamp_string)
 					free(logtstamp_string);
-				logtstamp_string = SaveStr(args[1]);
+				logtstamp_string = from_u32_SaveStr(args[1]);
 			}
 			if (msgok)
 				OutputMsg(0, U"logfile timestamp is '%s'", logtstamp_string);
@@ -2793,7 +2793,7 @@ void DoAction(struct action *act, int key)
 				if (kf == 0 && args[1]) {
 					if (kme->str)
 						free(kme->str);
-					kme->str = SaveStrn(*args, *argl);
+					kme->str = u32_SaveStrn(*args, *argl);
 					kme->fl = fl | *argl;
 				}
 			} else
@@ -2961,7 +2961,7 @@ void DoAction(struct action *act, int key)
 				free(printcmd);
 			printcmd = 0;
 			if (**args)
-				printcmd = SaveStr(*args);
+				printcmd = from_u32_SaveStr(*args);
 		}
 		if (*args == 0 || msgok) {
 			if (printcmd)
@@ -3588,7 +3588,7 @@ static void SaveAction(struct action *act, int nr, uint32_t **args, int *argl)
 	act->argl = lp;
 	while (argc--) {
 		*lp = argl ? *argl++ : (int)u32_strlen(*args);
-		*pp++ = SaveStrn(*args++, *lp++);
+		*pp++ = u32_SaveStrn(*args++, *lp++);
 	}
 	*pp = 0;
 }
@@ -3603,7 +3603,7 @@ static uint32_t **SaveArgs(uint32_t **args)
 	if ((pp = ap = malloc((unsigned)(argc + 1) * sizeof(uint32_t *))) == 0)
 		Panic(0, U"%s", strnomem);
 	while (argc--)
-		*pp++ = SaveStr(*args++);
+		*pp++ = u32_SaveStr(*args++);
 	*pp = 0;
 	return ap;
 }
@@ -3847,7 +3847,7 @@ static int ParseSaveStr(struct action *act, uint32_t **var)
 	}
 	if (*var)
 		free(*var);
-	*var = SaveStr(*args);
+	*var = u32_SaveStr(*args);
 	return 0;
 }
 
