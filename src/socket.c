@@ -43,6 +43,7 @@
 #include <stdbool.h>
 #include <signal.h>
 #include <unistr.h>
+#include <unistdio.h>
 
 #include "screen.h"
 
@@ -181,9 +182,8 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 #endif
 		mode = (int)st.st_mode & 0777;
 		if (multi && ((mode & 0677) != 0601)) {
-			if (u32_strcmp(multi, LoginName)) {
+			if (strcmp(multi, LoginName)) {
 				mode = -4;
-			} else {
 			}
 		}
 		if ((sent = malloc(sizeof(struct sent))) == 0)
@@ -443,7 +443,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 			p += len;
 		}
 	if (nwin->aka != nwin_undef.aka && p + u32_strlen(nwin->aka) + 1 < m.m.create.line + sizeof(m.m.create.line))
-		strcpy(p, nwin->aka);
+		ulc_sprintf(p, "%llU", nwin->aka); // strcpy(p, nwin->aka);
 	else
 		*p = '\0';
 	m.m.create.nargs = n;

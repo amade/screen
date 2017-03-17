@@ -524,9 +524,9 @@ int main(int argc, char **argv)
 
 	if (!ShellProg) {
 		char *sh;
-		asprintf(&sh, "%s", getenv("SHELL"));
+
+		sh = getenv("SHELL");
 		ShellProg = SaveStr(sh ? sh : DefaultShell);
-		free(sh);
 	}
 	ShellArgs[0] = ShellProg;
 	home = getenv("HOME");

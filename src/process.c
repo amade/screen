@@ -87,7 +87,7 @@ static int ParseSwitch(struct action *, bool *);
 static int ParseOnOff(struct action *, bool *);
 static int ParseWinNum(struct action *, int *);
 static int ParseBase(struct action *, char *, int *, int, char *);
-static int ParseSaveStr(struct action *, uint32_t **);
+static int ParseSaveStr(struct action *, char **);
 static int ParseNum(struct action *, int *);
 static int ParseNum1000(struct action *, int *);
 static uint32_t **SaveArgs(uint32_t **);
@@ -3838,7 +3838,7 @@ static int ParseOnOff(struct action *act, bool *var)
 	return 0;
 }
 
-static int ParseSaveStr(struct action *act, uint32_t **var)
+static int ParseSaveStr(struct action *act, char **var)
 {
 	uint32_t **args = act->args;
 	if (*args == 0 || args[1]) {
@@ -3847,7 +3847,7 @@ static int ParseSaveStr(struct action *act, uint32_t **var)
 	}
 	if (*var)
 		free(*var);
-	*var = u32_SaveStr(*args);
+	*var = from_u32_SaveStr(*args);
 	return 0;
 }
 
@@ -4695,7 +4695,7 @@ static void InputSetenv(uint32_t *arg)
  * -ln, -l0, -ly, -l1, -l
  * -a, -M, -L
  */
-void DoScreen(char *fn, char **av)
+void DoScreen(char *fn, uint32_t **av)
 {
 	struct NewWindow nwin;
 	int num;

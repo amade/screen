@@ -15,7 +15,6 @@ void  KillWindow (Window *);
 void  SetForeWindow (Window *);
 int   Parse (uint32_t *, int, uint32_t **, int *);
 void  SetEscape (struct acluser *, int, int);
-void  DoScreen (char *, char **);
 int   IsNumColon (char *, char *, int);
 void  ShowWindows (int);
 char *AddWindows (WinMsgBufContext *, int, int, int);
