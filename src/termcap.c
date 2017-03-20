@@ -483,6 +483,8 @@ int he;
 
   D_tcinited = 1;
   MakeTermcap(0);
+  /* Make sure libterm uses external term properties for our tputs() calls.  */
+  e_tgetent(tbuf, D_termname);
 #ifdef MAPKEYS
   CheckEscape();
 #endif
