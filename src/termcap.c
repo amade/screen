@@ -392,6 +392,8 @@ int InitTermcap(int width, int height)
 
 	D_tcinited = 1;
 	MakeTermcap(0);
+	/* Make sure libterm uses external term properties for our tputs() calls.  */
+	e_tgetent(tbuf, D_termname);
 	CheckEscape();
 	return 0;
 }
