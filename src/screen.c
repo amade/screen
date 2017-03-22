@@ -981,18 +981,26 @@ int main(int ac, char** av)
 
 #define SET_TTYNAME(fatal) do \
   { \
+    int saved_errno = 0; \
+    errno = 0; \
     if (!(attach_tty = ttyname(0))) \
     { \
-    if (fatal) \
+    /* stdin is a tty but it exists in another namespace. */ \
+    if (fatal && errno == ENODEV) \
+      attach_tty = ""; \
+    else if (fatal) \
       Panic(0, "Must be connected to a terminal."); \
     else \
       attach_tty = ""; \
     } \
     else \
     { \
+    saved_errno = errno; \
     if (stat(attach_tty, &st)) \
       Panic(errno, "Cannot access '%s'", attach_tty); \
-    if (CheckTtyname(attach_tty)) \
+    /* Only call CheckTtyname() if the device does not exist in another \
+     * namespace. */ \
+    if (saved_errno != ENODEV && CheckTtyname(attach_tty)) \
       Panic(0, "Bad tty '%s'", attach_tty); \
     } \
     if (strlen(attach_tty) >= MAXPATHLEN) \
