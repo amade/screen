@@ -17,6 +17,7 @@ struct baud_values *lookup_baud (int bps);
 int   SetBaud (struct mode *, int, int);
 int   SttyMode (struct mode *, char *);
 int   CheckTtyname (char *);
+char  *GetPtsPathOrSymlink (int);
 
 /* global variables */
 

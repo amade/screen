@@ -1193,3 +1193,27 @@ int CheckTtyname(char *tty)
 
 	return rc;
 }
+
+/* len(/proc/self/fd/) + len(max 64 bit int) */
+#define MAX_PTS_SYMLINK (14 + 21)
+char *GetPtsPathOrSymlink(int fd)
+{
+	int ret;
+	char *tty_name;
+	static char tty_symlink[MAX_PTS_SYMLINK];
+
+	errno = 0;
+	tty_name = ttyname(fd);
+	if (!tty_name && errno == ENODEV) {
+		ret = snprintf(tty_symlink, MAX_PTS_SYMLINK, "/proc/self/fd/%d", fd);
+		if (ret < 0 || ret >= MAX_PTS_SYMLINK)
+			return NULL;
+		/* We are setting errno to ENODEV to allow callers to check
+		 * whether the pts device exists in another namespace.
+		 */
+		errno = ENODEV;
+		return tty_symlink;
+	}
+
+	return tty_name;
+}

@@ -37,6 +37,8 @@
 #include <pwd.h>
 #include <signal.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -76,6 +78,7 @@ static void logflush_fn(Event *, void *);
 static int IsSymbol(char *, char *);
 static char *ParseChar(char *, char *);
 static int ParseEscape(char *);
+static void SetTtyname(bool fatal, struct stat *st);
 
 int nversion;			/* numerical version, used for secondary DA */
 
@@ -86,6 +89,10 @@ int attach_fd = -1;
 char *attach_term;
 char *LoginName;
 struct mode attach_Mode;
+/* Indicator whether the current tty exists in another namespace. */
+bool attach_tty_is_in_new_ns = false;
+/* Content of the tty symlink when attach_tty_is_in_new_ns == true. */
+char attach_tty_name_in_ns[MAXPATHLEN];
 
 char SocketPath[MAXPATHLEN + 2 * MAXSTR];
 char *SocketName;			/* SocketName is pointer in SocketPath */
@@ -644,34 +651,6 @@ int main(int argc, char **argv)
     eff_gid = real_gid; \
   } while (0)
 
-#define SET_TTYNAME(fatal) do \
-  { \
-    int saved_errno = 0; \
-    errno = 0; \
-    if (!(attach_tty = ttyname(0))) \
-      { \
-	/* stdin is a tty but it exists in another namespace. */ \
-	if (fatal && errno == ENODEV) \
-	  attach_tty = ""; \
-	else if (fatal) \
-	  Panic(0, "Must be connected to a terminal."); \
-	else \
-	  attach_tty = ""; \
-      } \
-    else \
-      { \
-	saved_errno = errno; \
-	if (stat(attach_tty, &st)) \
-	  Panic(errno, "Cannot access '%s'", attach_tty); \
-	/* Only call CheckTtyname() if the device does not exist in another \
-	 * namespace. */ \
-	if (saved_errno != ENODEV && CheckTtyname(attach_tty)) \
-	  Panic(0, "Bad tty '%s'", attach_tty); \
-      } \
-    if (strlen(attach_tty) >= MAXPATHLEN) \
-      Panic(0, "TtyName too long - sorry."); \
-  } while (0)
-
 	if (home == 0 || *home == '\0')
 		home = ppp->pw_dir;
 	if (strlen(LoginName) > MAXLOGINLEN)
@@ -687,7 +666,7 @@ int main(int argc, char **argv)
 		int fl;
 
 		/* ttyname implies isatty */
-		SET_TTYNAME(1);
+		SetTtyname(true, &st);
 		tty_mode = (int)st.st_mode & 0777;
 
 		fl = fcntl(0, F_GETFL, 0);
@@ -697,7 +676,16 @@ int main(int argc, char **argv)
 		if (attach_fd == -1) {
 			if ((n = secopen(attach_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
 				Panic(0, "Cannot open your terminal '%s' - please check.", attach_tty);
-			close(n);
+			/* In case the pts device exists in another namespace we directly operate
+			 * on the symbolic link itself. However, this means that we need to keep
+			 * the fd open since we have no direct way of identifying the associated
+			 * pts device accross namespaces. This is ok though since keeping fds open
+			 * is done in the codebase already.
+			 */
+			if (attach_tty_is_in_new_ns)
+				attach_fd = n;
+			else
+				close(n);
 		}
 
 		if ((attach_term = getenv("TERM")) == 0 || *attach_term == 0)
@@ -824,7 +812,7 @@ int main(int argc, char **argv)
 	xsignal(SIG_BYE, AttacherFinit);	/* prevent races */
 	if (cmdflag) {
 		/* attach_tty is not mandatory */
-		SET_TTYNAME(0);
+		SetTtyname(false, &st);
 		if (!*argv)
 			Panic(0, "Please specify a command.");
 		SET_GUID();
@@ -838,7 +826,7 @@ int main(int argc, char **argv)
 		if (multiattach)
 			Panic(0, "Can't create sessions of other users.");
 	} else if (dflag && !mflag) {
-		SET_TTYNAME(0);
+		SetTtyname(false, &st);
 		Attach(MSG_DETACH);
 		Msg(0, "[%s %sdetached.]\n", SocketName, (dflag > 1 ? "power " : ""));
 		eexit(0);
@@ -846,7 +834,7 @@ int main(int argc, char **argv)
 	}
 	if (!SocketMatch && !mflag && sty) {
 		/* attach_tty is not mandatory */
-		SET_TTYNAME(0);
+		SetTtyname(false, &st);
 		SET_GUID();
 		nwin_options.args = argv;
 		SendCreateMsg(sty, &nwin);
@@ -1805,3 +1793,42 @@ static int ParseEscape(char *p)
 	return 0;
 }
 
+void SetTtyname(bool fatal, struct stat *st)
+{
+	int ret;
+	int saved_errno = 0;
+
+	attach_tty_is_in_new_ns = false;
+	memset(&attach_tty_name_in_ns, 0, sizeof(attach_tty_name_in_ns));
+
+	errno = 0;
+	attach_tty = ttyname(0);
+	if (!attach_tty) {
+		if (errno == ENODEV) {
+			saved_errno = errno;
+			attach_tty = "/proc/self/fd/0";
+			attach_tty_is_in_new_ns = true;
+			ret = readlink(attach_tty, attach_tty_name_in_ns, sizeof(attach_tty_name_in_ns));
+			if (ret < 0 || (size_t)ret >= sizeof(attach_tty_name_in_ns))
+				Panic(0, "Bad tty '%s'", attach_tty);
+		} else if (fatal) {
+			Panic(0, "Must be connected to a terminal.");
+		} else {
+			attach_tty = "";
+		}
+	}
+
+	if (attach_tty) {
+		if (stat(attach_tty, st))
+			Panic(errno, "Cannot access '%s'", attach_tty);
+
+		if (strlen(attach_tty) >= MAXPATHLEN)
+			Panic(0, "TtyName too long - sorry.");
+
+		/* Only call CheckTtyname() if the device does not exist in
+		 * another namespace.
+		 */
+		if (saved_errno != ENODEV && CheckTtyname(attach_tty))
+			Panic(0, "Bad tty '%s'", attach_tty);
+	}
+}

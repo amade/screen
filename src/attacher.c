@@ -137,7 +137,7 @@ int Attach(int how)
 	memset((char *)&m, 0, sizeof(m));
 	m.type = how;
 	m.protocol_revision = MSG_REVISION;
-	strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
+	strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, sizeof(m.m_tty) - 1);
 	m.m_tty[sizeof(m.m_tty) - 1] = 0;
 
 	if (how == MSG_WINCH) {
@@ -328,7 +328,7 @@ void AttacherFinit(int sigsig)
 	/* Check if signal comes from backend */
 	if (stat(SocketPath, &statb) == 0 && (statb.st_mode & 0777) != 0600) {
 		memset((char *)&m, 0, sizeof(m));
-		strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
+		strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, sizeof(m.m_tty) - 1);
 		m.m_tty[sizeof(m.m_tty) - 1] = 0;
 		m.m.detach.dpid = getpid();
 		m.type = MSG_HANGUP;
@@ -493,7 +493,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 	memset((char *)&m, 0, sizeof(m));
 	m.type = query ? MSG_QUERY : MSG_COMMAND;
 	if (attach_tty) {
-		strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
+		strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, sizeof(m.m_tty) - 1);
 		m.m_tty[sizeof(m.m_tty) - 1] = 0;
 	}
 	p = m.m.command.cmd;

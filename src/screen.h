@@ -233,6 +233,8 @@ void  setbacktick (int, int, int, char **);
 
 /* global variables */
 
+/* Content of the tty symlink when attach_tty_is_in_new_ns == true. */
+extern char attach_tty_name_in_ns[];
 extern char strnomem[];
 extern char HostName[];
 extern char SocketPath[];
@@ -274,6 +276,8 @@ extern bool lsflag;
 extern bool quietflag;
 extern bool wipeflag;
 extern bool xflag;
+/* Indicator whether the current tty exists in another namespace. */
+extern bool attach_tty_is_in_new_ns;
 
 extern int attach_fd;
 extern int dflag;
