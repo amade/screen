@@ -361,7 +361,7 @@ RemoveLoginSlot()
       char *tty;
       debug("couln't zap slot -> do mesg n\n");
       D_loginttymode = 0;
-      if ((tty = ttyname(D_userfd)) && stat(tty, &stb) == 0 && (int)stb.st_uid == real_uid && !CheckTtyname(tty) && ((int)stb.st_mode & 0777) != 0666)
+      if ((tty = GetPtsPathOrSymlink(D_userfd)) && stat(tty, &stb) == 0 && (int)stb.st_uid == real_uid && !CheckTtyname(tty) && ((int)stb.st_mode & 0777) != 0666)
 	{
 	  D_loginttymode = (int)stb.st_mode & 0777;
 	  chmod(D_usertty, stb.st_mode & 0600);
@@ -387,7 +387,7 @@ RestoreLoginSlot()
     }
   UT_CLOSE;
   D_loginslot = (slot_t)0;
-  if (D_loginttymode && (tty = ttyname(D_userfd)) && !CheckTtyname(tty))
+  if (D_loginttymode && (tty = GetPtsPathOrSymlink(D_userfd)) && !CheckTtyname(tty))
     chmod(tty, D_loginttymode);
 }
 
@@ -851,7 +851,7 @@ getlogin()
   static char retbuf[sizeof(u.ut_user)+1];
   int fd;
 
-  for (fd = 0; fd <= 2 && (tty = ttyname(fd)) == NULL; fd++)
+  for (fd = 0; fd <= 2 && (tty = GetPtsPathOrSymlink(fd)) == NULL; fd++)
     ;
   if ((tty == NULL) || CheckTtyname(tty) || ((fd = open(UTMP_FILE, O_RDONLY)) < 0))
     return NULL;

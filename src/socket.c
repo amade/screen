@@ -27,6 +27,9 @@
  */
 
 #include "config.h"
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -869,11 +872,43 @@ struct win *wi;
     }
   if (recvfd != -1)
     {
+      int ret;
+      char ttyname_in_ns[MAXPATHLEN];
       char *myttyname;
+
       i = recvfd;
       recvfd = -1;
-      myttyname = ttyname(i);
-      if (myttyname == 0 || strcmp(myttyname, m->m_tty))
+      memset(&ttyname_in_ns, 0, sizeof(ttyname_in_ns));
+      errno = 0;
+      myttyname = GetPtsPathOrSymlink(i);
+      if (myttyname && errno == ENODEV)
+        {
+          ret = readlink(myttyname, ttyname_in_ns, sizeof(ttyname_in_ns));
+          if (ret < 0 || (size_t)ret >= sizeof(ttyname_in_ns))
+            {
+	      Msg(errno, "Could not perform necessary sanity checks on pts device.");
+	      close(i);
+	      Kill(pid, SIG_BYE);
+	      return -1;
+            }
+          if (strcmp(ttyname_in_ns, m->m_tty))
+            {
+	      Msg(errno, "Attach: passed fd does not match tty: %s - %s!", ttyname_in_ns, m->m_tty[0] != '\0' ? m->m_tty : "(null)");
+	      close(i);
+	      Kill(pid, SIG_BYE);
+	      return -1;
+	    }
+	  /* m->m_tty so far contains the actual name of the pts device in the
+	   * its (e.g. /dev/pts/0). This name however is not valid in the
+	   * current namespace. So after we verified that the symlink returned
+	   * by GetPtsPathOrSymlink() refers to the same pts device in this
+	   * namespace we need to update m->m_tty to use that symlink for all
+	   * future operations.
+	   */
+          strncpy(m->m_tty, myttyname, sizeof(m->m_tty) - 1);
+          m->m_tty[sizeof(m->m_tty) - 1] = 0;
+        }
+      else if (myttyname == 0 || strcmp(myttyname, m->m_tty))
 	{
 	  Msg(errno, "Attach: passed fd does not match tty: %s - %s!", m->m_tty, myttyname ? myttyname : "NULL");
 	  close(i);

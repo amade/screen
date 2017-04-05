@@ -198,7 +198,7 @@ OpenPTY(ttyn)
 char **ttyn;
 {
   int f;
-  char *name, *_getpty(); 
+  char *name, *_getpty();
   sigret_t (*sigcld)__P(SIGPROTOARG);
 
   /*
@@ -227,7 +227,7 @@ char **ttyn;
 {
   register int f;
   struct stat buf;
-   
+
   strcpy(PtyName, "/dev/ptc");
   if ((f = open(PtyName, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0)
     return -1;
@@ -277,7 +277,7 @@ char **ttyn;
       signal(SIGCHLD, sigcld);
       close(f);
       return -1;
-    } 
+    }
   signal(SIGCHLD, sigcld);
   strncpy(TtyName, m, sizeof(TtyName));
   initmaster(f);
@@ -301,7 +301,7 @@ char **ttyn;
   strcpy (PtyName, "/dev/ptc");
   if ((f = open (PtyName, O_RDWR | O_NOCTTY)) < 0)
     return -1;
-  strncpy(TtyName, ttyname(f), sizeof(TtyName));
+  strncpy(TtyName, GetPtsPathOrSymlink(f), sizeof(TtyName));
   if (eff_uid && access(TtyName, R_OK | W_OK))
     {
       close(f);
@@ -331,7 +331,7 @@ char **ttyn;
   initmaster(f);
   pty_preopen = 1;
   *ttyn = TtyName;
-  return f;    
+  return f;
 }
 #endif
 
@@ -390,3 +390,26 @@ char **ttyn;
 }
 #endif
 
+/* len(/proc/self/fd/) + len(max 64 bit int) */
+#define MAX_PTS_SYMLINK (14 + 21)
+char *GetPtsPathOrSymlink(int fd)
+{
+	int ret;
+	char *tty_name;
+	static char tty_symlink[MAX_PTS_SYMLINK];
+
+	errno = 0;
+	tty_name = ttyname(fd);
+	if (!tty_name && errno == ENODEV) {
+		ret = snprintf(tty_symlink, MAX_PTS_SYMLINK, "/proc/self/fd/%d", fd);
+		if (ret < 0 || ret >= MAX_PTS_SYMLINK)
+			return NULL;
+		/* We are setting errno to ENODEV to allow callers to check
+		 * whether the pts device exists in another namespace.
+		 */
+		errno = ENODEV;
+		return tty_symlink;
+	}
+
+	return tty_name;
+}

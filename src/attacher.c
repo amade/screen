@@ -27,6 +27,7 @@
  */
 
 #include "config.h"
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
@@ -58,6 +59,10 @@ extern char *SockName, *SockMatch, SockPath[];
 extern char HostName[];
 extern struct passwd *ppp;
 extern char *attach_tty, *attach_term, *LoginName, *preselect;
+/* Indicator whether the current tty exists in another namespace. */
+extern bool attach_tty_is_in_new_ns;
+/* Content of the tty symlink when attach_tty_is_in_new_ns == true. */
+extern char attach_tty_name_in_ns[];
 extern int xflag, dflag, rflag, quietflag, adaptflag;
 extern struct mode attach_Mode;
 extern struct NewWindow nwin_options;
@@ -226,7 +231,7 @@ int how;
   bzero((char *) &m, sizeof(m));
   m.type = how;
   m.protocol_revision = MSG_REVISION;
-  strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
+  strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, sizeof(m.m_tty) - 1);
   m.m_tty[sizeof(m.m_tty) - 1] = 0;
 
   if (how == MSG_WINCH)
@@ -482,7 +487,7 @@ AttacherFinit SIGDEFARG
     {
       debug("Detaching backend!\n");
       bzero((char *) &m, sizeof(m));
-      strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
+      strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, sizeof(m.m_tty) - 1);
       m.m_tty[sizeof(m.m_tty) - 1] = 0;
       debug1("attach_tty is %s\n", attach_tty);
       m.m.detach.dpid = getpid();
@@ -1022,7 +1027,7 @@ int query;
   m.type = query ? MSG_QUERY : MSG_COMMAND;
   if (attach_tty)
     {
-      strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
+      strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, sizeof(m.m_tty) - 1);
       m.m_tty[sizeof(m.m_tty) - 1] = 0;
     }
   p = m.m.command.cmd;

@@ -43,6 +43,8 @@
 #include <sys/socket.h>
 #endif
 #include <ctype.h>
+#include <stdbool.h>
+#include <unistd.h>
 #include <fcntl.h>
 
 #if defined(__sun)
@@ -125,7 +127,7 @@ int force_vt = 1;
 int VBellWait, MsgWait, MsgMinWait, SilenceWait;
 
 extern struct acluser *users;
-extern struct display *displays, *display; 
+extern struct display *displays, *display;
 extern struct LayFuncs MarkLf;
 
 extern int visual_bell;
@@ -162,6 +164,7 @@ static char *runbacktick __P((struct backtick *, int *, time_t));
 static int   IsSymbol __P((char *, char *));
 static char *ParseChar __P((char *, char *));
 static int   ParseEscape __P((char *));
+static void SetTtyname(bool fatal, struct stat *st);
 static char *pad_expand __P((char *, char *, int, int));
 #ifdef DEBUG
 static void  fds __P((void));
@@ -172,6 +175,10 @@ int nversion;	/* numerical version, used for secondary DA */
 /* the attacher */
 struct passwd *ppp;
 char *attach_tty;
+/* Indicator whether the current tty exists in another namespace. */
+bool attach_tty_is_in_new_ns = false;
+/* Content of the tty symlink when attach_tty_is_in_new_ns == true. */
+char attach_tty_name_in_ns[MAXPATHLEN];
 int attach_fd = -1;
 char *attach_term;
 char *LoginName;
@@ -297,7 +304,7 @@ struct passwd *ppp;
   struct spwd *sss = NULL;
   static char *spw = NULL;
 #endif
- 
+
   if (!ppp && !(ppp = getpwnam(name)))
     return NULL;
 
@@ -860,7 +867,7 @@ int main(int ac, char** av)
       nwin_options.aka = SaveStr(nwin_options.aka);
     }
   }
-  
+
   if (SockMatch && strlen(SockMatch) >= MAXSTR)
     Panic(0, "Ridiculously long socketname - try again.");
   if (cmdflag && !rflag && !dflag && !xflag)
@@ -979,34 +986,6 @@ int main(int ac, char** av)
     eff_gid = real_gid; \
   } while (0)
 
-#define SET_TTYNAME(fatal) do \
-  { \
-    int saved_errno = 0; \
-    errno = 0; \
-    if (!(attach_tty = ttyname(0))) \
-    { \
-    /* stdin is a tty but it exists in another namespace. */ \
-    if (fatal && errno == ENODEV) \
-      attach_tty = ""; \
-    else if (fatal) \
-      Panic(0, "Must be connected to a terminal."); \
-    else \
-      attach_tty = ""; \
-    } \
-    else \
-    { \
-    saved_errno = errno; \
-    if (stat(attach_tty, &st)) \
-      Panic(errno, "Cannot access '%s'", attach_tty); \
-    /* Only call CheckTtyname() if the device does not exist in another \
-     * namespace. */ \
-    if (saved_errno != ENODEV && CheckTtyname(attach_tty)) \
-      Panic(0, "Bad tty '%s'", attach_tty); \
-    } \
-    if (strlen(attach_tty) >= MAXPATHLEN) \
-      Panic(0, "TtyName too long - sorry."); \
-  } while (0)
-
   if (home == 0 || *home == '\0')
     home = ppp->pw_dir;
   if (strlen(LoginName) > MAXLOGINLEN)
@@ -1027,7 +1006,7 @@ int main(int ac, char** av)
 #endif
 
     /* ttyname implies isatty */
-    SET_TTYNAME(1);
+    SetTtyname(true, &st);
 #ifdef MULTIUSER
     tty_mode = (int)st.st_mode & 0777;
 #endif
@@ -1041,7 +1020,16 @@ int main(int ac, char** av)
     if (attach_fd == -1) {
       if ((n = secopen(attach_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
         Panic(0, "Cannot open your terminal '%s' - please check.", attach_tty);
-      close(n);
+      /* In case the pts device exists in another namespace we directly operate
+       * on the symbolic link itself. However, this means that we need to keep
+       * the fd open since we have no direct way of identifying the associated
+       * pts device accross namespaces. This is ok though since keeping fds open
+       * is done in the codebase already.
+       */
+      if (attach_tty_is_in_new_ns)
+	attach_fd = n;
+      else
+	close(n);
     }
 
     debug2("attach_tty is %s, attach_fd is %d\n", attach_tty, attach_fd);
@@ -1215,7 +1203,7 @@ int main(int ac, char** av)
   signal(SIG_BYE, AttacherFinit);	/* prevent races */
   if (cmdflag) {
     /* attach_tty is not mandatory */
-    SET_TTYNAME(0);
+    SetTtyname(false, &st);
     if (!*av)
       Panic(0, "Please specify a command.");
     SET_GUID();
@@ -1236,7 +1224,7 @@ int main(int ac, char** av)
     debug("screen -r: backend not responding -- still crying\n");
   }
   else if (dflag && !mflag) {
-    SET_TTYNAME(0);
+    SetTtyname(false, &st);
     Attach(MSG_DETACH);
     Msg(0, "[%s %sdetached.]\n", SockName, (dflag > 1 ? "power " : ""));
     eexit(0);
@@ -1244,7 +1232,7 @@ int main(int ac, char** av)
   }
   if (!SockMatch && !mflag && sty) {
     /* attach_tty is not mandatory */
-    SET_TTYNAME(0);
+    SetTtyname(false, &st);
     SET_GUID();
     nwin_options.args = av;
     SendCreateMsg(sty, &nwin);
@@ -1385,7 +1373,7 @@ int main(int ac, char** av)
   (void)StartRc(RcFileName, 0);
 # ifdef UTMPOK
 #  ifndef UTNOKEEP
-  InitUtmp(); 
+  InitUtmp();
 #  endif /* UTNOKEEP */
 # endif /* UTMPOK */
   if (display) {
@@ -1409,7 +1397,7 @@ int main(int ac, char** av)
 #ifdef LOADAV
   InitLoadav();
 #endif /* LOADAV */
- 
+
   MakeNewEnv();
   signal(SIGHUP, SigHup);
   signal(SIGINT, FinitHandler);
@@ -1456,13 +1444,13 @@ int main(int ac, char** av)
       /* NOTREACHED */
     }
   }
-  else if (ac) /* Screen was invoked with a command */ 
+  else if (ac) /* Screen was invoked with a command */
     MakeWindow(&nwin);
 
 #ifdef HAVE_BRAILLE
   StartBraille();
 #endif
-  
+
   if (display && default_startup)
     display_copyright();
   signal(SIGINT, SigInt);
@@ -1623,7 +1611,7 @@ sigret_t SigHup SIGDEFARG
   SIGRETURN;
 }
 
-/* 
+/*
  * the backend's Interrupt handler
  * we cannot insert the intrc directly, as we never know
  * if fore is valid.
@@ -1718,10 +1706,10 @@ static void DoWait()
 # else
 
 # ifdef USE_WAIT2
-  /* 
-   * From: rouilj@sni-usa.com (John Rouillard) 
+  /*
+   * From: rouilj@sni-usa.com (John Rouillard)
    * note that WUNTRACED is not documented to work, but it is defined in
-   * /usr/include/sys/wait.h, so it may work 
+   * /usr/include/sys/wait.h, so it may work
    */
   while ((pid = wait2(&wstat, WNOHANG | WUNTRACED )) > 0)
 #  else /* USE_WAIT2 */
@@ -1742,7 +1730,7 @@ static void DoWait()
       if ((p->w_pid && pid == p->w_pid) || (p->w_deadpid && pid == p->w_deadpid)) {
       /* child has ceased to exist */
         p->w_pid = 0;
-		
+
 #ifdef BSDJOBS
         if (WIFSTOPPED(wstat)) {
           debug3("Window %d pid %d: WIFSTOPPED (sig %d)\n", p->w_number, pid, WSTOPSIG(wstat));
@@ -1850,7 +1838,7 @@ void Finit(int i)
       Kill(D_userpid, SIG_BYE);
   }
   /*
-   * we _cannot_ call eexit(i) here, 
+   * we _cannot_ call eexit(i) here,
    * instead of playing with the Socket above. Sigh.
    */
   exit(i);
@@ -2207,7 +2195,7 @@ DEFINE_VARARGS_FN(Dummy)
 
 /*
  * '^' is allowed as an escape mechanism for control characters. jw.
- * 
+ *
  * Added time insertion using ideas/code from /\ndy Jones
  *   (andy@lingua.cltr.uq.OZ.AU) - thanks a lot!
  *
@@ -2392,7 +2380,7 @@ void setbacktick(int num, int lifespan, int tick, char **cmdv)
       setbacktick(num, 0, 0, (char **)0);
       return;
 	}
- 
+
     bt->ev.type = EV_READ;
     bt->ev.fd = readpipe(bt->cmdv);
     bt->ev.handler = backtick_fn;
@@ -2482,12 +2470,12 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
   int truncper = 0;
   int trunclong = 0;
   struct backtick *bt = NULL;
- 
+
   if (winmsg_numrend >= 0)
     winmsg_numrend = 0;
   else
     winmsg_numrend = -winmsg_numrend;
-    
+
   tick = 0;
   tm = 0;
   ctrl = 0;
@@ -2523,10 +2511,10 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
 
     if (*++s == esc)	/* double escape ? */
       continue;
- 
+
     if ((plusflg = *s == '+') != 0)
       s++;
- 
+
     if ((minusflg = *s == '-') != 0)
       s++;
 
@@ -3242,7 +3230,7 @@ static void serv_select_fn(struct event *ev, char *data)
         RethinkViewportOffsets(cv);
         if (n > cv->c_layer->l_height)
           n = cv->c_layer->l_height;
-        CV_CALL(cv, 
+        CV_CALL(cv,
             LScrollV(flayer, -n, 0, flayer->l_height - 1, 0);
             LayRedisplayLine(-1, -1, -1, 1);
             for (i = 0; i < n; i++)
@@ -3257,7 +3245,7 @@ static void serv_select_fn(struct event *ev, char *data)
         RethinkViewportOffsets(cv);
         if (n > cv->c_layer->l_height)
           n = cv->c_layer->l_height;
-        CV_CALL(cv, 
+        CV_CALL(cv,
            LScrollV(flayer, n, 0, cv->c_layer->l_height - 1, 0);
            LayRedisplayLine(-1, -1, -1, 1);
            for (i = 0; i < n; i++)
@@ -3276,7 +3264,7 @@ static void serv_select_fn(struct event *ev, char *data)
         RethinkViewportOffsets(cv);
         if (n > cv->c_layer->l_width)
           n = cv->c_layer->l_width;
-        CV_CALL(cv, 
+        CV_CALL(cv,
            LayRedisplayLine(-1, -1, -1, 1);
            for (i = 0; i < flayer->l_height; i++) {
               LScrollH(flayer, -n, i, 0, flayer->l_width - 1, 0, 0);
@@ -3296,7 +3284,7 @@ static void serv_select_fn(struct event *ev, char *data)
         RethinkViewportOffsets(cv);
         if (n > cv->c_layer->l_width)
           n = cv->c_layer->l_width;
-        CV_CALL(cv, 
+        CV_CALL(cv,
            LayRedisplayLine(-1, -1, -1, 1);
            for (i = 0; i < flayer->l_height; i++) {
              LScrollH(flayer, n, i, 0, flayer->l_width - 1, 0, 0);
@@ -3352,9 +3340,9 @@ static void logflush_fn(struct event *ev, char *data)
 /*
  * Interprets ^?, ^@ and other ^-control-char notation.
  * Interprets \ddd octal notation
- * 
- * The result is placed in *cp, p is advanced behind the parsed expression and 
- * returned. 
+ *
+ * The result is placed in *cp, p is advanced behind the parsed expression and
+ * returned.
  */
 static char *ParseChar(char *p, char *cp)
 {
@@ -3396,3 +3384,42 @@ static int ParseEscape(char *p)
   return 0;
 }
 
+void SetTtyname(bool fatal, struct stat *st)
+{
+	int ret;
+	int saved_errno = 0;
+
+	attach_tty_is_in_new_ns = false;
+	memset(&attach_tty_name_in_ns, 0, sizeof(attach_tty_name_in_ns));
+
+	errno = 0;
+	attach_tty = ttyname(0);
+	if (!attach_tty) {
+		if (errno == ENODEV) {
+			saved_errno = errno;
+			attach_tty = "/proc/self/fd/0";
+			attach_tty_is_in_new_ns = true;
+			ret = readlink(attach_tty, attach_tty_name_in_ns, sizeof(attach_tty_name_in_ns));
+			if (ret < 0 || (size_t)ret >= sizeof(attach_tty_name_in_ns))
+				Panic(0, "Bad tty '%s'", attach_tty);
+		} else if (fatal) {
+			Panic(0, "Must be connected to a terminal.");
+		} else {
+			attach_tty = "";
+		}
+	}
+
+	if (attach_tty) {
+		if (stat(attach_tty, st))
+			Panic(errno, "Cannot access '%s'", attach_tty);
+
+		if (strlen(attach_tty) >= MAXPATHLEN)
+			Panic(0, "TtyName too long - sorry.");
+
+		/* Only call CheckTtyname() if the device does not exist in
+		 * another namespace.
+		 */
+		if (saved_errno != ENODEV && CheckTtyname(attach_tty))
+			Panic(0, "Bad tty '%s'", attach_tty);
+	}
+}

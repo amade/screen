@@ -111,7 +111,7 @@ extern struct baud_values *lookup_baud __P((int bps));
 extern int   SetBaud __P((struct mode *, int, int));
 extern int   SttyMode __P((struct mode *, char *));
 extern int   CheckTtyname __P((char *));
-
+extern char  *GetPtsPathOrSymlink __P((int));
 
 /* mark.c */
 extern int   GetHistory __P((void));
