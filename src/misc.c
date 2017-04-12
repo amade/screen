@@ -34,31 +34,28 @@
 #include <sys/stat.h>		/* mkdir() declaration */
 #include <signal.h>
 #include <stdint.h>
+#include <string.h>
 #include <stdbool.h>
 
 #include "screen.h"
 
 char *SaveStr(const char *str)
 {
-	char *cp;
+	char *cp = strdup(str);
 
-	if ((cp = malloc(strlen(str) + 1)) == NULL)
+	if (cp == NULL)
 		Panic(0, "%s", strnomem);
-	else
-		strncpy(cp, str, strlen(str) + 1);
+
 	return cp;
 }
 
 char *SaveStrn(const char *str, size_t n)
 {
-	char *cp;
+	char *cp = strndup(str, n + 1);
 
-	if ((cp = malloc(n + 1)) == NULL)
+	if (cp == NULL)
 		Panic(0, "%s", strnomem);
-	else {
-		memmove(cp, (char *)str, n);
-		cp[n] = 0;
-	}
+
 	return cp;
 }
 
