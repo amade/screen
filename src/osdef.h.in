@@ -147,9 +147,7 @@ extern char *malloc __P((int));
 extern char *realloc __P((char *, int));
 extern void  free __P((char *));
 
-#ifdef NAMEDPIPE
 extern int   mknod __P((char *, int, int));
-#else
 struct sockaddr;	/* for connect __P */
 extern int   socket __P((int, int, int));
 extern int   connect __P((int, struct sockaddr *, int));
@@ -159,7 +157,6 @@ extern int   listen __P((int, int));
 extern int   accept __P((int, struct sockaddr *, socklen_t *));
 #else
 extern int   accept __P((int, struct sockaddr *, int *));
-#endif
 #endif
 
 #if defined(UTMPOK) && defined(GETUTENT)

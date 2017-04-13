@@ -28,9 +28,7 @@ cat << EOF > osdef0.c
 #include <string.h>
 #include <stdlib.h>
 #endif
-#ifndef NAMEDPIPE
 #include <sys/socket.h>
-#endif
 #ifndef NOSYSLOG
 #include <syslog.h>
 #endif

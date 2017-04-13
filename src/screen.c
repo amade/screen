@@ -164,8 +164,8 @@ static char *runbacktick __P((struct backtick *, int *, time_t));
 static int   IsSymbol __P((char *, char *));
 static char *ParseChar __P((char *, char *));
 static int   ParseEscape __P((char *));
-static void SetTtyname(bool fatal, struct stat *st);
 static char *pad_expand __P((char *, char *, int, int));
+static void SetTtyname __P((bool, struct stat *));
 #ifdef DEBUG
 static void  fds __P((void));
 #endif
@@ -421,9 +421,6 @@ int main(int ac, char** av)
 #endif
 #ifdef SYSVSIGS
   debug("SYSVSIGS\n");
-#endif
-#ifdef NAMEDPIPE
-  debug("NAMEDPIPE\n");
 #endif
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
   debug("Window size changing enabled\n");
@@ -1001,9 +998,6 @@ int main(int ac, char** av)
   attach_tty = "";
   if (!detached && !lsflag && !cmdflag && !(dflag && !mflag && !rflag && !xflag) &&
       !(sty && !SockMatch && !mflag && !rflag && !xflag)) {
-#ifndef NAMEDPIPE
-      int fl;
-#endif
 
     /* ttyname implies isatty */
     SetTtyname(true, &st);
@@ -1011,25 +1005,11 @@ int main(int ac, char** av)
     tty_mode = (int)st.st_mode & 0777;
 #endif
 
-#ifndef NAMEDPIPE
-    fl = fcntl(0, F_GETFL, 0);
-    if (fl != -1 && (fl & (O_RDWR|O_RDONLY|O_WRONLY)) == O_RDWR)
-      attach_fd = 0;
-#endif
-
     if (attach_fd == -1) {
       if ((n = secopen(attach_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
         Panic(0, "Cannot open your terminal '%s' - please check.", attach_tty);
-      /* In case the pts device exists in another namespace we directly operate
-       * on the symbolic link itself. However, this means that we need to keep
-       * the fd open since we have no direct way of identifying the associated
-       * pts device accross namespaces. This is ok though since keeping fds open
-       * is done in the codebase already.
-       */
-      if (attach_tty_is_in_new_ns)
-	attach_fd = n;
-      else
-	close(n);
+      /* If the server uses a socket we need an open fd. */
+      attach_fd = n;
     }
 
     debug2("attach_tty is %s, attach_fd is %d\n", attach_tty, attach_fd);
@@ -1181,6 +1161,7 @@ int main(int ac, char** av)
 
   if (lsflag) {
     int i, fo, oth;
+    bool sock;
 
 #ifdef MULTIUSER
     if (multi)
@@ -1188,7 +1169,7 @@ int main(int ac, char** av)
 #endif
 
     SET_GUID();
-    i = FindSocket((int *)NULL, &fo, &oth, SockMatch);
+    i = FindSocket((int *)NULL, &fo, &oth, SockMatch, &sock);
     if (quietflag) {
       if (rflag)
         exit(10 + i);
@@ -1359,7 +1340,10 @@ int main(int ac, char** av)
 #endif
 
   sprintf(SockPath + strlen(SockPath), "/%s", socknamebuf);
-  ServerSocket = MakeServerSocket();
+  /* Always create sockets. We only only allow attaching to fifos not creating
+   * new ones.
+   */
+  ServerSocket = MakeServerSocket(true);
   InitKeytab();
 
 #ifdef ETCSCREENRC

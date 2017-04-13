@@ -504,11 +504,6 @@
 #undef SELECT_BROKEN
 
 /*
- * Define this if your system supports named pipes.
- */
-#undef NAMEDPIPE
-
-/*
  * Define this if your system exits select() immediatly if a pipe is
  * opened read-only and no writer has opened it.
  */

@@ -32,6 +32,8 @@
 #define __attribute__(x)
 #endif
 
+#include <stdbool.h>
+
 /* screen.c */
 extern int   main __P((int, char **));
 extern sigret_t SigHup __P(SIGPROTOARG);
@@ -336,9 +338,9 @@ extern void  SetTimeout __P((struct event *, int));
 extern void  sched __P((void));
 
 /* socket.c */
-extern int   FindSocket __P((int *, int *, int *, char *));
-extern int   MakeClientSocket __P((int));
-extern int   MakeServerSocket __P((void));
+extern int   FindSocket __P((int *, int *, int *, char *, bool *));
+extern int   MakeClientSocket __P((int, bool));
+extern int   MakeServerSocket __P((bool));
 extern int   RecoverSocket __P((void));
 extern int   chsock __P((void));
 extern void  ReceiveMsg __P((void));
@@ -346,6 +348,7 @@ extern void  SendCreateMsg __P((char *, struct NewWindow *));
 extern int   SendErrorMsg __P((char *, char *));
 extern int   SendAttachMsg __P((int, struct msg *, int));
 extern void  ReceiveRaw __P((int));
+extern bool  IsSocket __P((const char *));
 
 /* misc.c */
 extern char *SaveStr __P((const char *));

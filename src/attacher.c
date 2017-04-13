@@ -120,11 +120,11 @@ int s;
 struct msg *m;
 {
   int r, l = sizeof(*m);
+  bool is_socket;
 
-#ifndef NAMEDPIPE
-  if (m->type == MSG_ATTACH)
+  is_socket = IsSocket(SockPath);
+  if (is_socket && m->type == MSG_ATTACH)
     return SendAttachMsg(s, m, attach_fd);
-#endif
 
   while(l > 0)
     {
@@ -147,6 +147,7 @@ int how;
   struct msg m;
   struct stat st;
   char *s;
+  bool is_socket;
 
   debug2("Attach: how=%d, tty=%s\n", how, attach_tty);
 #ifdef MULTIUSER
@@ -234,9 +235,10 @@ int how;
   strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, sizeof(m.m_tty) - 1);
   m.m_tty[sizeof(m.m_tty) - 1] = 0;
 
+  is_socket = IsSocket(SockPath);
   if (how == MSG_WINCH)
     {
-      if ((lasts = MakeClientSocket(0)) >= 0)
+      if ((lasts = MakeClientSocket(0, is_socket)) >= 0)
 	{
 	  WriteMessage(lasts, &m);
           close(lasts);
@@ -246,7 +248,7 @@ int how;
 
   if (how == MSG_CONT)
     {
-      if ((lasts = MakeClientSocket(0)) < 0)
+      if ((lasts = MakeClientSocket(0, is_socket)) < 0)
         {
           Panic(0, "Sorry, cannot contact session \"%s\" again.\r\n",
                  SockName);
@@ -254,7 +256,7 @@ int how;
     }
   else
     {
-      n = FindSocket(&lasts, (int *)0, (int *)0, SockMatch);
+      n = FindSocket(&lasts, (int *)0, (int *)0, SockMatch, &is_socket);
       switch (n)
 	{
 	case 0:
@@ -363,7 +365,7 @@ int how;
       if (how != MSG_ATTACH)
 	return 0;	/* we detached it. jw. */
       sleep(1);	/* we dont want to overrun our poor backend. jw. */
-      if ((lasts = MakeClientSocket(0)) == -1)
+      if ((lasts = MakeClientSocket(0, is_socket)) == -1)
 	Panic(0, "Cannot contact screen again. Sigh.");
       m.type = how;
     }
@@ -479,6 +481,7 @@ AttacherFinit SIGDEFARG
   struct stat statb;
   struct msg m;
   int s;
+  bool is_socket;
 
   debug("AttacherFinit();\n");
   signal(SIGHUP, SIG_IGN);
@@ -493,7 +496,8 @@ AttacherFinit SIGDEFARG
       m.m.detach.dpid = getpid();
       m.type = MSG_HANGUP;
       m.protocol_revision = MSG_REVISION;
-      if ((s = MakeClientSocket(0)) >= 0)
+      is_socket = IsSocket(SockPath);
+      if ((s = MakeClientSocket(0, is_socket)) >= 0)
 	{
           WriteMessage(s, &m);
 	  close(s);
@@ -1002,10 +1006,11 @@ int query;
   struct msg m;
   char *p;
   int len, n;
+  bool is_socket;
 
   if (sty == 0)
     {
-      i = FindSocket(&s, (int *)0, (int *)0, match);
+      i = FindSocket(&s, (int *)0, (int *)0, match, &is_socket);
       if (i == 0)
 	Panic(0, "No screen session found.");
       if (i != 1)
@@ -1020,7 +1025,8 @@ int query;
       if (strlen(sty) > 2 * MAXSTR - 1)
 	sty[2 * MAXSTR - 1] = 0;
       sprintf(SockPath + strlen(SockPath), "/%s", sty);
-      if ((s = MakeClientSocket(1)) == -1)
+      is_socket = IsSocket(SockPath);
+      if ((s = MakeClientSocket(1, is_socket)) == -1)
 	exit(1);
     }
   bzero((char *)&m, sizeof(m));
@@ -1060,7 +1066,7 @@ int query;
 	{
 	  query[6] = c;
 	  strcpy(sp, query);	/* XXX: strncpy? */
-	  if ((r = MakeServerSocket()) >= 0)
+	  if ((r = MakeServerSocket(is_socket)) >= 0)
 	    break;
 	}
       if (r < 0)
@@ -1069,7 +1075,7 @@ int query;
 	    {
 	      query[6] = c;
 	      strcpy(sp, query);
-	      if ((r = MakeServerSocket()) >= 0)
+	      if ((r = MakeServerSocket(is_socket)) >= 0)
 		break;
 	    }
 	}

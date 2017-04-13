@@ -33,13 +33,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#if !defined(NAMEDPIPE)
 # include <sys/socket.h>
 # ifdef _OpenBSD_
 #  include <sys/uio.h>
 # endif
 # include <sys/un.h>
-#endif
 
 #ifndef SIGINT
 # include <signal.h>
@@ -67,7 +65,7 @@
 static int   CheckPid __P((int));
 static void  ExecCreate __P((struct msg *));
 static void  DoCommandMsg __P((struct msg *));
-#if defined(_SEQUENT_) && !defined(NAMEDPIPE)
+#if defined(_SEQUENT_)
 # define connect sconnect	/* _SEQUENT_ has braindamaged connect */
 static int   sconnect __P((int, struct sockaddr *, int));
 #endif
@@ -122,14 +120,15 @@ extern struct comm comms[];
  *  If none exists or fdp is NULL SockPath is not changed.
  *
  *  Returns: number of good sockets.
- *    
+ *
  */
 
 int
-FindSocket(fdp, nfoundp, notherp, match)
+FindSocket(fdp, nfoundp, notherp, match, is_sock)
 int *fdp;
 int *nfoundp, *notherp;
 char *match;
+bool *is_sock;
 {
   DIR *dirp;
   struct dirent *dp;
@@ -226,21 +225,9 @@ char *match;
 	  continue;
 	}
 
-#ifndef SOCK_NOT_IN_FS
-# ifdef NAMEDPIPE
-#  ifdef S_ISFIFO
-      debug("S_ISFIFO?\n");
-      if (!S_ISFIFO(st.st_mode))
+      *is_sock = S_ISSOCK(st.st_mode);
+      if (!(*is_sock) && !S_ISFIFO(st.st_mode))
 	continue;
-#  endif
-# else
-#  ifdef S_ISSOCK
-      debug("S_ISSOCK?\n");
-      if (!S_ISSOCK(st.st_mode))
-	continue;
-#  endif
-# endif
-#endif
 
       debug2("st.st_uid = %d, real_uid = %d\n", st.st_uid, real_uid);
 #ifdef SOCKDIR /* if SOCKDIR is not defined, the socket is in $HOME.
@@ -250,7 +237,7 @@ char *match;
 #endif
       mode = (int)st.st_mode & 0777;
       debug1("  has mode 0%03o\n", mode);
-#ifdef MULTIUSER 
+#ifdef MULTIUSER
       if (multi && ((mode & 0677) != 0601))
         {
 	  debug("  is not a MULTI-USER session");
@@ -274,7 +261,7 @@ char *match;
       *slisttail = sent;
       slisttail = &sent->next;
       nfound++;
-      sockfd = MakeClientSocket(0);
+      sockfd = MakeClientSocket(0, *is_sock);
 #ifdef USE_SETEUID
       /* MakeClientSocket sets ids back to eff */
       xseteuid(real_uid);
@@ -436,60 +423,60 @@ char *match;
   return ngood;
 }
 
-
-/*
-**
-**        Socket/pipe create routines
-**
-*/
-
-#ifdef NAMEDPIPE
-
-int
-MakeServerSocket()
+/* FIFO (legacy mode) */
+static int
+MakeServerFifo()
 {
   register int s;
   struct stat st;
 
-# ifdef USE_SETEUID
+#ifdef USE_SETEUID
   xseteuid(real_uid);
   xsetegid(real_gid);
-# endif
-  if ((s = open(SockPath, O_WRONLY | O_NONBLOCK)) >= 0)
+#endif
+  s = open(SockPath, O_WRONLY | O_NONBLOCK);
+  if (s >= 0)
     {
       debug("huii, my fifo already exists??\n");
       if (quietflag)
-	{
-	  Kill(D_userpid, SIG_BYE);
-	  eexit(11);
-	}
+        {
+          Kill(D_userpid, SIG_BYE);
+          eexit(11);
+        }
+
       Msg(0, "There is already a screen running on %s.", Filename(SockPath));
-      if (stat(SockPath, &st) == -1)
-	Panic(errno, "stat");
-#ifdef SOCKDIR /* if SOCKDIR is not defined, the socket is in $HOME.
+
+      if (stat(SockPath, &st) < 0)
+        Panic(errno, "stat");
+
+#ifdef SOCKDIR /* if SOCKDIR is not defined, the socket is in $HOME.           \
                   in that case it does not make sense to compare uids. */
       if ((int)st.st_uid != real_uid)
-	Panic(0, "Unfortunately you are not its owner.");
+        Panic(0, "Unfortunately you are not its owner.");
 #endif
       if ((st.st_mode & 0700) == 0600)
-	Panic(0, "To resume it, use \"screen -r\"");
+        Panic(0, "To resume it, use \"screen -r\"");
       else
-	Panic(0, "It is not detached.");
+        Panic(0, "It is not detached.");
       /* NOTREACHED */
     }
 # ifdef USE_SETEUID
   (void) unlink(SockPath);
-  if (mkfifo(SockPath, SOCKMODE))
+  if (mkfifo(SockPath, SOCKMODE) < 0)
     Panic(0, "mkfifo %s failed", SockPath);
 #  ifdef BROKEN_PIPE
-  if ((s = open(SockPath, O_RDWR | O_NONBLOCK, 0)) < 0)
+  s = open(SockPath, O_RDWR | O_NONBLOCK, 0);
 #  else
-  if ((s = open(SockPath, O_RDONLY | O_NONBLOCK, 0)) < 0)
+  s = open(SockPath, O_RDONLY | O_NONBLOCK, 0);
 #  endif
+  if (s < 0)
     Panic(errno, "open fifo %s", SockPath);
+
   xseteuid(eff_uid);
   xsetegid(eff_gid);
+
   return s;
+
 # else /* !USE_SETEUID */
   if (UserContext() > 0)
     {
@@ -499,49 +486,53 @@ MakeServerSocket()
   if (UserStatus())
     Panic(0, "mkfifo %s failed", SockPath);
 #  ifdef BROKEN_PIPE
-  if ((s = secopen(SockPath, O_RDWR | O_NONBLOCK, 0)) < 0)
+  s = secopen(SockPath, O_RDWR | O_NONBLOCK, 0);
 #  else
-  if ((s = secopen(SockPath, O_RDONLY | O_NONBLOCK, 0)) < 0)
+  s = secopen(SockPath, O_RDONLY | O_NONBLOCK, 0);
 #  endif
+  if (s < 0)
     Panic(errno, "open fifo %s", SockPath);
+
   return s;
 # endif /* !USE_SETEUID */
 }
 
-
-int
-MakeClientSocket(err)
+static int
+MakeClientFifo(err)
 int err;
 {
   register int s = 0;
 
-  if ((s = secopen(SockPath, O_WRONLY | O_NONBLOCK, 0)) >= 0)
+  s = secopen(SockPath, O_WRONLY | O_NONBLOCK, 0);
+  if (s >= 0)
     {
       (void) fcntl(s, F_SETFL, 0);
       return s;
     }
+
   if (err)
     Msg(errno, "%s", SockPath);
   debug2("MakeClientSocket() open %s failed (%d)\n", SockPath, errno);
+
   return -1;
 }
 
-
-#else	/* NAMEDPIPE */
-
-
-int
-MakeServerSocket()
+/* Unix Domain Sockets */
+static int
+MakeServerUnixSocket()
 {
   register int s;
   struct sockaddr_un a;
   struct stat st;
 
-  if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
+  s = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (s < 0)
     Panic(errno, "socket");
+
   a.sun_family = AF_UNIX;
   strncpy(a.sun_path, SockPath, sizeof(a.sun_path));
   a.sun_path[sizeof(a.sun_path) - 1] = 0;
+
 # ifdef USE_SETEUID
   xseteuid(real_uid);
   xsetegid(real_gid);
@@ -550,103 +541,128 @@ MakeServerSocket()
     {
       debug("oooooh! socket already is alive!\n");
       if (quietflag)
-	{ 
-	  Kill(D_userpid, SIG_BYE);
-	  /* 
-	   * oh, well. nobody receives that return code. papa 
-	   * dies by signal.
-	   */
-	  eexit(11);
-	}
+        {
+          Kill(D_userpid, SIG_BYE);
+          /*
+           * oh, well. nobody receives that return code. papa
+           * dies by signal.
+           */
+          eexit(11);
+        }
       Msg(0, "There is already a screen running on %s.", Filename(SockPath));
-      if (stat(SockPath, &st) == -1)
-	Panic(errno, "stat");
-#ifdef SOCKDIR /* if SOCKDIR is not defined, the socket is in $HOME.
+
+      if (stat(SockPath, &st) < 0)
+        Panic(errno, "stat");
+
+#ifdef SOCKDIR /* if SOCKDIR is not defined, the socket is in $HOME.           \
                   in that case it does not make sense to compare uids. */
       if (st.st_uid != real_uid)
-	Panic(0, "Unfortunately you are not its owner.");
+        Panic(0, "Unfortunately you are not its owner.");
 #endif
       if ((st.st_mode & 0700) == 0600)
-	Panic(0, "To resume it, use \"screen -r\"");
+        Panic(0, "To resume it, use \"screen -r\"");
       else
-	Panic(0, "It is not detached.");
+        Panic(0, "It is not detached.");
       /* NOTREACHED */
     }
+
 #if defined(m88k) || defined(sysV68)
-  close(s);	/* we get bind: Invalid argument if this is not done */
-  if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
+  close(s); /* we get bind: Invalid argument if this is not done */
+  s = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (s < 0)
     Panic(errno, "reopen socket");
 #endif
   (void) unlink(SockPath);
   if (bind(s, (struct sockaddr *) & a, strlen(SockPath) + 2) == -1)
     Panic(errno, "bind (%s)", SockPath);
 #ifdef SOCK_NOT_IN_FS
-    {
-      int f;
-      if ((f = secopen(SockPath, O_RDWR | O_CREAT, SOCKMODE)) < 0)
-        Panic(errno, "shadow socket open");
-      close(f);
-    }
+  {
+    int f = secopen(SockPath, O_RDWR | O_CREAT, SOCKMODE);
+    if (f < 0)
+      Panic(errno, "shadow socket open");
+    close(f);
+  }
 #else
   chmod(SockPath, SOCKMODE);
-# ifndef USE_SETEUID
+#ifndef USE_SETEUID
   chown(SockPath, real_uid, real_gid);
-# endif
+#endif
 #endif /* SOCK_NOT_IN_FS */
   if (listen(s, 5) == -1)
     Panic(errno, "listen");
-# ifdef F_SETOWN
+#ifdef F_SETOWN
   fcntl(s, F_SETOWN, getpid());
   debug1("Serversocket owned by %d\n", fcntl(s, F_GETOWN, 0));
-# endif /* F_SETOWN */
-# ifdef USE_SETEUID
+#endif /* F_SETOWN */
+#ifdef USE_SETEUID
   xseteuid(eff_uid);
   xsetegid(eff_gid);
-# endif
+#endif
   return s;
 }
 
-int
-MakeClientSocket(err)
+static int
+MakeClientUnixSocket(err)
 int err;
 {
   register int s;
   struct sockaddr_un a;
 
-  if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
+  s = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (s < 0)
     Panic(errno, "socket");
+
   a.sun_family = AF_UNIX;
   strncpy(a.sun_path, SockPath, sizeof(a.sun_path));
   a.sun_path[sizeof(a.sun_path) - 1] = 0;
-# ifdef USE_SETEUID
+#ifdef USE_SETEUID
   xseteuid(real_uid);
   xsetegid(real_gid);
-# else
+#else
   if (access(SockPath, W_OK))
     {
       if (err)
-	Msg(errno, "%s", SockPath);
+        Msg(errno, "%s", SockPath);
       debug2("MakeClientSocket: access(%s): %d.\n", SockPath, errno);
       close(s);
       return -1;
     }
-# endif
-  if (connect(s, (struct sockaddr *) &a, strlen(SockPath) + 2) == -1)
+#endif
+  if (connect(s, (struct sockaddr *)&a, strlen(SockPath) + 2) == -1)
     {
       if (err)
-	Msg(errno, "%s: connect", SockPath);
+        Msg(errno, "%s: connect", SockPath);
       debug("MakeClientSocket: connect failed.\n");
       close(s);
       s = -1;
     }
-# ifdef USE_SETEUID
+#ifdef USE_SETEUID
   xseteuid(eff_uid);
   xsetegid(eff_gid);
-# endif
+#endif
   return s;
 }
-#endif /* NAMEDPIPE */
 
+int
+MakeServerSocket(socket)
+bool socket;
+{
+  if (socket)
+    return MakeServerUnixSocket();
+
+  return MakeServerFifo();
+}
+
+int
+MakeClientSocket(err, socket)
+int err;
+bool socket;
+{
+  if (socket)
+    return MakeClientUnixSocket(err);
+
+  return MakeClientFifo(err);
+}
 
 /*
 **
@@ -664,6 +680,7 @@ struct NewWindow *nwin;
   register char *p;
   register int len, n;
   char **av;
+  bool is_socket;
 
 #ifdef NAME_MAX
   if (strlen(sty) > NAME_MAX)
@@ -672,7 +689,8 @@ struct NewWindow *nwin;
   if (strlen(sty) > 2 * MAXSTR - 1)
     sty[2 * MAXSTR - 1] = 0;
   sprintf(SockPath + strlen(SockPath), "/%s", sty);
-  if ((s = MakeClientSocket(1)) == -1)
+  is_socket = IsSocket(SockPath);
+  if ((s = MakeClientSocket(1, is_socket)) == -1)
     exit(1);
   debug1("SendCreateMsg() to '%s'\n", SockPath);
   bzero((char *)&m, sizeof(m));
@@ -720,10 +738,12 @@ char *tty, *buf;
 {
   int s;
   struct msg m;
+  bool is_socket;
 
   strncpy(m.m.message, buf, sizeof(m.m.message) - 1);
   m.m.message[sizeof(m.m.message) - 1] = 0;
-  s = MakeClientSocket(0);
+  is_socket = IsSocket(SockPath);
+  s = MakeClientSocket(0, is_socket);
   if (s < 0)
     return -1;
   m.type = MSG_ERROR;
@@ -1017,106 +1037,116 @@ ReceiveMsg()
   struct win *wi;
   int recvfd = -1;
   struct acluser *user;
+  bool is_socket;
 
-#ifdef NAMEDPIPE
-  debug("Ha, there was someone knocking on my fifo??\n");
-  if (fcntl(ServerSocket, F_SETFL, 0) == -1)
-    Panic(errno, "BLOCK fcntl");
-  p = (char *) &m;
-  left = sizeof(m);
-#else
+  /* Socket specific variables. */
   struct sockaddr_un a;
   struct msghdr msg;
   struct iovec iov;
   char control[1024];
 
-  len = sizeof(a);
-  debug("Ha, there was someone knocking on my socket??\n");
-  if ((ns = accept(ns, (struct sockaddr *) &a, (void *)&len)) < 0)
+  is_socket = IsSocket(SockPath);
+  if (!is_socket)
     {
-      Msg(errno, "accept");
-      return;
+      debug("Ha, there was someone knocking on my fifo??\n");
+      if (fcntl(ServerSocket, F_SETFL, 0) == -1)
+        Panic(errno, "BLOCK fcntl");
+      p = (char *)&m;
+      left = sizeof(m);
     }
-
-  p = (char *) &m;
-  left = sizeof(m);
-  bzero(&msg, sizeof(msg));
-  iov.iov_base = &m;
-  iov.iov_len = left;
-  msg.msg_iov = &iov;
-  msg.msg_iovlen  = 1;
-  msg.msg_controllen = sizeof(control);
-  msg.msg_control = &control;
-  while (left > 0)
+  else
     {
-      len = recvmsg(ns, &msg, 0);
-      if (len < 0 && errno == EINTR)
-	continue;
-      if (len < 0)
-	{
-	  close(ns);
-	  Msg(errno, "read");
-	  return;
-	}
-      if (msg.msg_controllen)
-	{
-	  struct cmsghdr  *cmsg;
-	  for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg))
-	    {
-	      int cl;
-	      char *cp;
-	      if (cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_type != SCM_RIGHTS)
-		continue;
-	      cp = (char *)CMSG_DATA(cmsg);
-	      cl = cmsg->cmsg_len;
-	      while(cl >= CMSG_LEN(sizeof(int)))
-		{
-		  int passedfd;
-		  bcopy(cp, &passedfd, sizeof(int));
-		  if (recvfd >= 0 && passedfd != recvfd)
-		    close(recvfd);
-		  recvfd = passedfd;
-		  cl -= CMSG_LEN(sizeof(int));
-		}
-	    }
-	}
-      p += len;
-      left -= len;
-      break;
-    }
+      len = sizeof(a);
+      debug("Ha, there was someone knocking on my socket??\n");
+      if ((ns = accept(ns, (struct sockaddr *)&a, (void *)&len)) < 0)
+        {
+          Msg(errno, "accept");
+          return;
+        }
 
-#endif
+      p = (char *)&m;
+      left = sizeof(m);
+      bzero(&msg, sizeof(msg));
+      iov.iov_base = &m;
+      iov.iov_len = left;
+      msg.msg_iov = &iov;
+      msg.msg_iovlen = 1;
+      msg.msg_controllen = sizeof(control);
+      msg.msg_control = &control;
+      while (left > 0)
+        {
+          len = recvmsg(ns, &msg, 0);
+          if (len < 0 && errno == EINTR)
+            continue;
+          if (len < 0)
+            {
+              close(ns);
+              Msg(errno, "read");
+              return;
+            }
+          if (msg.msg_controllen)
+            {
+              struct cmsghdr *cmsg;
+              for (cmsg = CMSG_FIRSTHDR(&msg); cmsg;
+                   cmsg = CMSG_NXTHDR(&msg, cmsg))
+                {
+                  int cl;
+                  char *cp;
+                  if (cmsg->cmsg_level != SOL_SOCKET ||
+                      cmsg->cmsg_type != SCM_RIGHTS)
+                    continue;
+                  cp = (char *)CMSG_DATA(cmsg);
+                  cl = cmsg->cmsg_len;
+                  while (cl >= CMSG_LEN(sizeof(int)))
+                    {
+                      int passedfd;
+                      bcopy(cp, &passedfd, sizeof(int));
+                      if (recvfd >= 0 && passedfd != recvfd)
+                        close(recvfd);
+                      recvfd = passedfd;
+                      cl -= CMSG_LEN(sizeof(int));
+                    }
+                }
+            }
+          p += len;
+          left -= len;
+          break;
+        }
+    }
 
   while (left > 0)
     {
       len = read(ns, p, left);
       if (len < 0 && errno == EINTR)
-	continue;
+        continue;
       if (len <= 0)
-	break;
+        break;
       p += len;
       left -= len;
     }
 
-#ifdef NAMEDPIPE
-# ifndef BROKEN_PIPE
-  /* Reopen pipe to prevent EOFs at the select() call */
-  close(ServerSocket);
-  if ((ServerSocket = secopen(SockPath, O_RDONLY | O_NONBLOCK, 0)) < 0)
-    Panic(errno, "reopen fifo %s", SockPath);
-  evdeq(&serv_read);
-  serv_read.fd = ServerSocket;
-  evenq(&serv_read);
-# endif
-#else
-  close(ns);
+  if (!is_socket)
+    {
+#ifndef BROKEN_PIPE
+      /* Reopen pipe to prevent EOFs at the select() call */
+      close(ServerSocket);
+      if ((ServerSocket = secopen(SockPath, O_RDONLY | O_NONBLOCK, 0)) < 0)
+        Panic(errno, "reopen fifo %s", SockPath);
+      evdeq(&serv_read);
+      serv_read.fd = ServerSocket;
+      evenq(&serv_read);
 #endif
+    }
+  else
+    {
+      close(ns);
+    }
 
   if (len < 0)
     {
       Msg(errno, "read");
       if (recvfd != -1)
-	close(recvfd);
+        close(recvfd);
       return;
     }
   if (left > 0)
@@ -1124,13 +1154,13 @@ ReceiveMsg()
       if (left != sizeof(m))
         Msg(0, "Message %d of %d bytes too small", left, (int)sizeof(m));
       else
-	debug("No data on socket.\n");
+        debug("No data on socket.\n");
       return;
     }
   if (m.protocol_revision != MSG_REVISION)
     {
       if (recvfd != -1)
-	close(recvfd);
+        close(recvfd);
       Msg(0, "Invalid message (magic 0x%08x).", m.protocol_revision);
       return;
     }
@@ -1151,12 +1181,13 @@ ReceiveMsg()
     {
       for (wi = windows; wi; wi = wi->w_next)
         if (!TTYCMP(m.m_tty, wi->w_tty))
-	  {
-	    /* XXX: hmmm, rework this? */
-            display = wi->w_layer.l_cvlist ? wi->w_layer.l_cvlist->c_display : 0;
-	    debug2("but window %s %sfound.\n", m.m_tty, display ? "" : 
-	    	   "(backfacing)");
-	    break;
+          {
+            /* XXX: hmmm, rework this? */
+            display =
+                wi->w_layer.l_cvlist ? wi->w_layer.l_cvlist->c_display : 0;
+            debug2("but window %s %sfound.\n", m.m_tty,
+                   display ? "" : "(backfacing)");
+            break;
           }
     }
 
@@ -1167,90 +1198,96 @@ ReceiveMsg()
   if (display && !D_tcinited && m.type != MSG_HANGUP)
     {
       if (recvfd != -1)
-	close(recvfd);
-      return;		/* ignore messages for bad displays */
+        close(recvfd);
+      return; /* ignore messages for bad displays */
     }
 
   switch (m.type)
     {
-    case MSG_WINCH:
-      if (display)
-        CheckScreenSize(1); /* Change fore */
-      break;
-    case MSG_CREATE:
-      /*
-       * the window that issued the create message need not be an active
-       * window. Then we create the window without having a display.
-       * Resulting in another inactive window.
-       */
-      ExecCreate(&m);
-      break;
-    case MSG_CONT:
-	if (display && D_userpid != 0 && kill(D_userpid, 0) == 0)
-	  break;		/* Intruder Alert */
-      debug2("RecMsg: apid=%d,was %d\n", m.m.attach.apid, display ? D_userpid : 0);
+      case MSG_WINCH:
+        if (display)
+          CheckScreenSize(1); /* Change fore */
+        break;
+      case MSG_CREATE:
+        /*
+         * the window that issued the create message need not be an
+         * active
+         * window. Then we create the window without having a display.
+         * Resulting in another inactive window.
+         */
+        ExecCreate(&m);
+        break;
+      case MSG_CONT:
+        if (display && D_userpid != 0 && kill(D_userpid, 0) == 0)
+          break; /* Intruder Alert */
+        debug2("RecMsg: apid=%d,was %d\n", m.m.attach.apid,
+               display ? D_userpid : 0);
       /* FALLTHROUGH */
 
-    case MSG_ATTACH:
-      if (CreateTempDisplay(&m, recvfd, wi))
-	break;
+      case MSG_ATTACH:
+        if (CreateTempDisplay(&m, recvfd, wi))
+          break;
 #ifdef PASSWORD
-      if (D_user->u_password && *D_user->u_password)
-	AskPassword(&m);
-      else
+        if (D_user->u_password && *D_user->u_password)
+          AskPassword(&m);
+        else
 #endif
-        FinishAttach(&m);
-      break;
-    case MSG_ERROR:
-      Msg(0, "%s", m.m.message);
-      break;
-    case MSG_HANGUP:
-      if (!wi)		/* ignore hangups from inside */
-        Hangup();
-      break;
+          FinishAttach(&m);
+        break;
+      case MSG_ERROR:
+        Msg(0, "%s", m.m.message);
+        break;
+      case MSG_HANGUP:
+        if (!wi) /* ignore hangups from inside */
+          Hangup();
+        break;
 #ifdef REMOTE_DETACH
-    case MSG_DETACH:
-# ifdef POW_DETACH
-    case MSG_POW_DETACH:
-# endif				/* POW_DETACH */
+      case MSG_DETACH:
+#ifdef POW_DETACH
+      case MSG_POW_DETACH:
+#endif /* POW_DETACH */
 #ifdef PASSWORD
-      user = *FindUserPtr(m.m.detach.duser);
-      if (user && user->u_password && *user->u_password)
-	{
-	  if (CreateTempDisplay(&m, recvfd, 0))
-	    break;
-	  AskPassword(&m);
-	}
-      else
+        user = *FindUserPtr(m.m.detach.duser);
+        if (user && user->u_password && *user->u_password)
+          {
+            if (CreateTempDisplay(&m, recvfd, 0))
+              break;
+            AskPassword(&m);
+          }
+        else
 #endif /* PASSWORD */
-	FinishDetach(&m);
-      break;
+          FinishDetach(&m);
+        break;
 #endif
-    case MSG_QUERY:
-	{
-	  char *oldSockPath = SaveStr(SockPath);
-	  strcpy(SockPath, m.m.command.writeback);
-	  int s = MakeClientSocket(0);
-	  strcpy(SockPath, oldSockPath);
-	  Free(oldSockPath);
-	  if (s >= 0)
-	    {
-	      queryflag = s;
-	      DoCommandMsg(&m);
-	      close(s);
-	    }
-	  else
-	    queryflag = -1;
+      case MSG_QUERY:
+        {
+          char *oldSockPath = SaveStr(SockPath);
+          strcpy(SockPath, m.m.command.writeback);
+          bool is_socket = IsSocket(SockPath);
+          int s = MakeClientSocket(0, is_socket);
+          strcpy(SockPath, oldSockPath);
+          Free(oldSockPath);
+          if (s >= 0)
+            {
+              queryflag = s;
+              DoCommandMsg(&m);
+              close(s);
+            }
+          else
+            queryflag = -1;
 
-	  Kill(m.m.command.apid, (queryflag >= 0) ? SIGCONT : SIG_BYE);	/* Send SIG_BYE if an error happened */
-	  queryflag = -1;
-	}
-      break;
-    case MSG_COMMAND:
-      DoCommandMsg(&m);
-      break;
-    default:
-      Msg(0, "Invalid message (type %d).", m.type);
+          Kill(m.m.command.apid,
+               (queryflag >= 0)
+                   ? SIGCONT
+                   : SIG_BYE); /* Send SIG_BYE if an error happened */
+          queryflag = -1;
+        }
+        break;
+      case MSG_COMMAND:
+        DoCommandMsg(&m);
+        break;
+      default:
+        Msg(0, "Invalid message (type %d).", m.type);
     }
 }
 
@@ -1260,18 +1297,26 @@ int s;
 {
   char rd[256];
   int len = 0;
-#ifdef NAMEDPIPE
-  if (fcntl(s, F_SETFL, 0) == -1)
-    Panic(errno, "BLOCK fcntl");
-#else
   struct sockaddr_un a;
-  len = sizeof(a);
-  if ((s = accept(s, (struct sockaddr *) &a, (void *)&len)) < 0)
+  bool is_socket;
+
+  is_socket = IsSocket(SockPath);
+  if (!is_socket)
     {
-      Msg(errno, "accept");
-      return;
+      if (fcntl(s, F_SETFL, 0) < 0)
+        Panic(errno, "BLOCK fcntl");
     }
-#endif
+  else
+    {
+      len = sizeof(a);
+      s = accept(s, (struct sockaddr *)&a, (void *)&len);
+      if (s < 0)
+        {
+          Msg(errno, "accept");
+          return;
+        }
+    }
+
   while ((len = read(s, rd, 255)) > 0)
     {
       rd[len] = 0;
@@ -1280,7 +1325,7 @@ int s;
   close(s);
 }
 
-#if defined(_SEQUENT_) && !defined(NAMEDPIPE)
+#if defined(_SEQUENT_)
 #undef connect
 /*
  *  sequent_ptx socket emulation must have mode 000 on the socket!
@@ -1318,7 +1363,7 @@ chsock()
         return UserStatus();
     }
   r = chmod(SockPath, SOCKMODE);
-  /* 
+  /*
    * Sockets usually reside in the /tmp/ area, where sysadmin scripts
    * may be happy to remove old files. We manually prevent the socket
    * from becoming old. (chmod does not touch mtime).
@@ -1336,6 +1381,8 @@ chsock()
 int
 RecoverSocket()
 {
+  bool is_socket;
+
   close(ServerSocket);
   if ((int)geteuid() != real_uid)
     {
@@ -1346,7 +1393,8 @@ RecoverSocket()
   else
     (void) unlink(SockPath);
 
-  if ((ServerSocket = MakeServerSocket()) < 0)
+  is_socket = IsSocket(SockPath);
+  if ((ServerSocket = MakeServerSocket(is_socket)) < 0)
     return 0;
   evdeq(&serv_read);
   serv_read.fd = ServerSocket;
@@ -1390,7 +1438,7 @@ struct msg *m;
    * We reboot our Terminal Emulator. Forget all we knew about
    * the old terminal, reread the termcap entries in .screenrc
    * (and nothing more from .screenrc is read. Mainly because
-   * I did not check, weather a full reinit is safe. jw) 
+   * I did not check, weather a full reinit is safe. jw)
    * and /etc/screenrc, and initialise anew.
    */
   if (extra_outcap)
@@ -1454,7 +1502,7 @@ struct msg *m;
    * there may be a window that we remember from last detach:
    */
   debug1("D_user->u_detachwin = %d\n", D_user->u_detachwin);
-  if (D_user->u_detachwin >= 0) 
+  if (D_user->u_detachwin >= 0)
     fore = wtab[D_user->u_detachwin];
   else
     fore = 0;
@@ -1831,8 +1879,6 @@ struct msg *mp;
 #endif
 }
 
-#ifndef NAMEDPIPE
-
 int
 SendAttachMsg(s, m, fd)
 int s;
@@ -1850,13 +1896,13 @@ int fd;
   bzero(&msg, sizeof(msg));
   msg.msg_name = 0;
   msg.msg_namelen = 0;
-  msg.msg_iov = &iov; 
+  msg.msg_iov = &iov;
   msg.msg_iovlen = 1;
   msg.msg_control = buf;
   msg.msg_controllen = sizeof(buf);
   cmsg = CMSG_FIRSTHDR(&msg);
   cmsg->cmsg_level = SOL_SOCKET;
-  cmsg->cmsg_type = SCM_RIGHTS; 
+  cmsg->cmsg_type = SCM_RIGHTS;
   cmsg->cmsg_len = CMSG_LEN(sizeof(int));
   bcopy(&fd, CMSG_DATA(cmsg), sizeof(int));
   msg.msg_controllen = cmsg->cmsg_len;
@@ -1871,4 +1917,14 @@ int fd;
     }
 }
 
-#endif
+bool
+IsSocket(path)
+const char *path;
+{
+  struct stat st;
+
+  if (stat(path, &st) < 0)
+    return false;
+
+  return S_ISSOCK(st.st_mode);
+}

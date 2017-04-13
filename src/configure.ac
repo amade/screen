@@ -530,31 +530,9 @@ fi
 dnl
 dnl    ****  choose sockets or fifos  ****
 dnl
-if test -n "$fifo"; then
-  if test -n "$sock"; then
-    if test -n "$nore"; then
-      AC_NOTE(- hmmm... better take the fifos)
-      AC_DEFINE(NAMEDPIPE)
-    elif test -n "$fifobr"; then
-      AC_NOTE(- as your fifos are broken lets use the sockets.)
-    else
-      AC_NOTE(- both sockets and fifos usable. let's take sockets.)
-    fi
-  else
-    AC_NOTE(- using named pipes, of course)
-    AC_DEFINE(NAMEDPIPE)
-  fi
-elif test -n "$sock"; then
-  AC_NOTE(- using unix-domain sockets, of course)
-else
-  AC_MSG_ERROR(you have neither usable sockets nor usable pipes -> no screen)
-fi
-
-dnl
 dnl    ****  check the select implementation ****
 dnl
 
-AC_CHECKING(select return value)
 AC_TRY_RUN([
 /* For select - According to POSIX 1003.1-2001 */
 #include <sys/select.h>
@@ -569,14 +547,10 @@ AC_TRY_RUN([
 
 char *nam = "/tmp/conftest$$";
 
-#ifdef NAMEDPIPE
-
 #ifndef O_NONBLOCK
 #define O_NONBLOCK O_NDELAY
-#endif
 #ifndef S_IFIFO
 #define S_IFIFO 0010000
-#endif
 
 
 main()
