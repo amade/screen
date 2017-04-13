@@ -36,6 +36,7 @@
 #include <sys/ioctl.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #include "screen.h"
 
@@ -2308,7 +2309,7 @@ void DisplaySleep1000(int n, int eat)
 	if (n <= 0)
 		return;
 	if (!display) {
-		sleep1000(n);
+		usleep(1000 * n);
 		return;
 	}
 	t.tv_usec = (n % 1000) * 1000;

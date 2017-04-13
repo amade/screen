@@ -39,6 +39,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 #include "screen.h"
 #include "fileio.h"
@@ -673,7 +674,7 @@ static void DoSendBreak(int fd, int n, int type)
 			Msg(errno, "Can't send BREAK (TIOCSBRK)");
 			return;
 		}
-		sleep1000(n ? n * 250 : 250);
+		usleep(1000 * (n ? n * 250 : 250));
 		if (ioctl(fd, TIOCCBRK, (char *)0) < 0) {
 			Msg(errno, "BREAK stuck!!! -- HELP! (TIOCCBRK)");
 			return;
@@ -710,7 +711,7 @@ void SendBreak(Window * wp, int n, int closeopen)
 
 	if (closeopen) {
 		close(wp->w_ptyfd);
-		sleep1000(n ? n * 250 : 250);
+		usleep(1000 * (n ? n * 250 : 250));
 		if ((wp->w_ptyfd = OpenTTY(wp->w_tty, wp->w_cmdargs[1])) < 1) {
 			Msg(0, "Ouch, cannot reopen line %s, please try harder", wp->w_tty);
 			return;

@@ -218,12 +218,3 @@ int AddXChars(char *buf, int len, char *str)
 	*p = 0;
 	return p - buf;
 }
-
-void sleep1000(int msec)
-{
-	struct timeval t;
-
-	t.tv_sec = (long)(msec / 1000);
-	t.tv_usec = (long)((msec % 1000) * 1000);
-	select(0, (fd_set *) 0, (fd_set *) 0, (fd_set *) 0, &t);
-}

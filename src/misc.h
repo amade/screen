@@ -27,6 +27,5 @@ void  xsetegid  (int);
 #endif
 int   AddXChar (char *, int);
 int   AddXChars (char *, int, char *);
-void  sleep1000 (int);
 
 #endif /* SCREEN_MISC_H */
