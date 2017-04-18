@@ -935,7 +935,7 @@ static void FinishAttach(Message *m)
 	 * We reboot our Terminal Emulator. Forget all we knew about
 	 * the old terminal, reread the termcap entries in .screenrc
 	 * (and nothing more from .screenrc is read. Mainly because
-	 * I did not check, weather a full reinit is safe. jw)
+	 * I did not check, whether a full reinit is safe. jw)
 	 * and /etc/screenrc, and initialise anew.
 	 */
 	if (extra_outcap)
