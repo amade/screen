@@ -1427,7 +1427,7 @@ struct msg *m;
 #if defined(pyr) || defined(xelos) || defined(sequent)
   /*
    * Kludge for systems with braindamaged termcap routines,
-   * which evaluate $TERMCAP, regardless weather it describes
+   * which evaluate $TERMCAP, regardless whether it describes
    * the correct terminal type or not.
    */
   debug("unsetenv(TERMCAP) in case of a different terminal");
@@ -1438,7 +1438,7 @@ struct msg *m;
    * We reboot our Terminal Emulator. Forget all we knew about
    * the old terminal, reread the termcap entries in .screenrc
    * (and nothing more from .screenrc is read. Mainly because
-   * I did not check, weather a full reinit is safe. jw)
+   * I did not check, whether a full reinit is safe. jw)
    * and /etc/screenrc, and initialise anew.
    */
   if (extra_outcap)

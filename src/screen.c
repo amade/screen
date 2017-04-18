@@ -1340,7 +1340,7 @@ int main(int ac, char** av)
 #endif
 
   sprintf(SockPath + strlen(SockPath), "/%s", socknamebuf);
-  /* Always create sockets. We only only allow attaching to fifos not creating
+  /* Always create sockets. We only allow attaching to fifos not creating
    * new ones.
    */
   ServerSocket = MakeServerSocket(true);
