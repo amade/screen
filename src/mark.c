@@ -419,7 +419,7 @@ void MarkRoutine()
 {
 	int x, y;
 
-	if (InitOverlayPage(sizeof(*markdata), &MarkLf, 1))
+	if (InitOverlayPage(sizeof(struct markdata), &MarkLf, 1))
 		return;
 	flayer->l_encoding = fore->w_encoding;
 	flayer->l_mode = 1;

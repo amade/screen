@@ -251,12 +251,12 @@ static void WinProcess(char **bufpp, size_t *lenp)
 		/* we send the user input to our pseudowin */
 		ibuf = fore->w_pwin->p_inbuf;
 		ilen = &fore->w_pwin->p_inlen;
-		f = sizeof(fore->w_pwin->p_inbuf) - *ilen;
+		f = ARRAY_SIZE(fore->w_pwin->p_inbuf) - *ilen;
 	} else {
 		/* we send the user input to the window */
 		ibuf = fore->w_inbuf;
 		ilen = &fore->w_inlen;
-		f = sizeof(fore->w_inbuf) - *ilen;
+		f = ARRAY_SIZE(fore->w_inbuf) - *ilen;
 	}
 
 	if (l > f)
@@ -497,7 +497,7 @@ int MakeWindow(struct NewWindow *newwin)
 	p->w_flow = nwin.flowflag | ((nwin.flowflag & FLOW_AUTOFLAG) ? (FLOW_AUTO | FLOW_ON) : FLOW_AUTO);
 	if (!nwin.aka)
 		nwin.aka = Filename(nwin.args[0]);
-	strncpy(p->w_akabuf, nwin.aka, sizeof(p->w_akabuf) - 1);
+	strncpy(p->w_akabuf, nwin.aka, ARRAY_SIZE(p->w_akabuf) - 1);
 	if ((nwin.aka = strrchr(p->w_akabuf, '|')) != NULL) {
 		p->w_autoaka = 0;
 		*nwin.aka++ = 0;
@@ -607,7 +607,7 @@ int MakeWindow(struct NewWindow *newwin)
 
 	if (nwin.Lflag) {
 		char buf[1024];
-		DoStartLog(p, buf, sizeof(buf));
+		DoStartLog(p, buf, ARRAY_SIZE(buf));
 	}
 
 	/* Is this all where I have to init window poll timeout? */
@@ -1046,13 +1046,13 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 		}
 		NewEnv[2] = MakeTermcap(display == 0 || win->w_aflag);
 		strcpy(shellbuf, "SHELL=");
-		strncpy(shellbuf + 6, ShellProg + (*ShellProg == '-'), sizeof(shellbuf) - 7);
-		shellbuf[sizeof(shellbuf) - 1] = 0;
+		strncpy(shellbuf + 6, ShellProg + (*ShellProg == '-'), ARRAY_SIZE(shellbuf) - 7);
+		shellbuf[ARRAY_SIZE(shellbuf) - 1] = 0;
 		NewEnv[4] = shellbuf;
 		if (win->w_term && *win->w_term && strcmp(screenterm, win->w_term) && (strlen(win->w_term) < MAXTERMLEN)) {
 			char *s1, *s2, tl;
 
-			snprintf(tebuf, sizeof(tebuf), "TERM=%s", win->w_term);
+			snprintf(tebuf, ARRAY_SIZE(tebuf), "TERM=%s", win->w_term);
 			tl = strlen(win->w_term);
 			NewEnv[1] = tebuf;
 			if ((s1 = strchr(NewEnv[2], '|'))) {
@@ -1064,7 +1064,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 				}
 			}
 		}
-		snprintf(ebuf, sizeof(ebuf), "WINDOW=%d", win->w_number);
+		snprintf(ebuf, ARRAY_SIZE(ebuf), "WINDOW=%d", win->w_number);
 		NewEnv[3] = ebuf;
 
 		if (*proc == '-')
@@ -1096,11 +1096,11 @@ void execvpe(char *prog, char **args, char **env)
 	do {
 		char *p;
 		for (p = buf; *path && *path != ':'; path++)
-			if (p - buf < (int)sizeof(buf) - 2)
+			if (p - buf < (int)ARRAY_SIZE(buf) - 2)
 				*p++ = *path;
 		if (p > buf)
 			*p++ = '/';
-		if (p - buf + strlen(prog) >= sizeof(buf) - 1)
+		if (p - buf + strlen(prog) >= ARRAY_SIZE(buf) - 1)
 			continue;
 		strcpy(p, prog);
 		execve(buf, args, env);
@@ -1422,7 +1422,7 @@ static void win_readev_fn(Event *event, void *data)
 #endif
 #ifdef ENABLE_TELNET
 	if (p->w_type == W_TYPE_TELNET)
-		len = TelIn(p, bp, len, buf + sizeof(buf) - (bp + len));
+		len = TelIn(p, bp, len, buf + ARRAY_SIZE(buf) - (bp + len));
 #endif
 	if (len == 0)
 		return;

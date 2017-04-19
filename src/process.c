@@ -384,7 +384,7 @@ void InitKeytab()
 	unsigned int i;
 	char *argarr[2];
 
-	for (i = 0; i < sizeof(ktab) / sizeof(*ktab); i++) {
+	for (i = 0; i < ARRAY_SIZE(ktab); i++) {
 		ktab[i].nr = RC_ILLEGAL;
 		ktab[i].args = noargs;
 		ktab[i].argl = 0;
@@ -556,13 +556,13 @@ static struct action *FindKtab(char *class, int create)
 			Msg(0, "Command class name too long.");
 			return 0;
 		}
-		kp = malloc(sizeof(*kp));
+		kp = malloc(sizeof(struct kclass));
 		if (kp == 0) {
 			Msg(0, "%s", strnomem);
 			return 0;
 		}
 		kp->name = SaveStr(class);
-		for (i = 0; i < (int)(sizeof(kp->ktab) / sizeof(*kp->ktab)); i++) {
+		for (i = 0; i < (int)(ARRAY_SIZE(kp->ktab)); i++) {
 			kp->ktab[i].nr = RC_ILLEGAL;
 			kp->ktab[i].args = noargs;
 			kp->ktab[i].argl = 0;
@@ -1149,7 +1149,7 @@ void DoAction(struct action *act, int key)
 		{
 			unsigned int i;
 
-			for (i = 0; i < sizeof(ktab) / sizeof(*ktab); i++)
+			for (i = 0; i < ARRAY_SIZE(ktab); i++)
 				ClearAction(&ktab[i]);
 			OutputMsg(0, "Unbound all keys.");
 			break;
@@ -1533,7 +1533,7 @@ void DoAction(struct action *act, int key)
 
 			if (*args) {
 				if (ParseNum(act, &n))
-					for (n = 0; n < (int)(sizeof(types) / sizeof(*types)); n++) {
+					for (n = 0; n < (int)(ARRAY_SIZE(types)); n++) {
 						for (i = 0; i < 4; i++) {
 							ch = args[0][i];
 							if (ch >= 'a' && ch <= 'z')
@@ -1544,7 +1544,7 @@ void DoAction(struct action *act, int key)
 						if (i == 4)
 							break;
 					}
-				if (n < 0 || n >= (int)(sizeof(types) / sizeof(*types)))
+				if (n < 0 || n >= (int)(ARRAY_SIZE(types)))
 					OutputMsg(0, "%s invalid, chose one of %s, %s or %s", *args, types[0], types[1],
 						  types[2]);
 				else {
@@ -2126,7 +2126,7 @@ void DoAction(struct action *act, int key)
 			if (ParseSaveStr(act, &screenlogfile))
 				break;
 			if (fore && fore->w_log)
-				if (DoStartLog(fore, buf, sizeof(buf)))
+				if (DoStartLog(fore, buf, ARRAY_SIZE(buf)))
 					OutputMsg(0, "Error opening logfile \"%s\"", buf);
 			if (!msgok)
 				break;
@@ -2210,7 +2210,7 @@ void DoAction(struct action *act, int key)
 	case RC_BELL_MSG:
 		if (*args == 0) {
 			char buf[256];
-			AddXChars(buf, sizeof(buf), BellString);
+			AddXChars(buf, ARRAY_SIZE(buf), BellString);
 			OutputMsg(0, "bell_msg is '%s'", buf);
 			break;
 		}
@@ -2230,7 +2230,7 @@ void DoAction(struct action *act, int key)
 	case RC_POW_DETACH_MSG:
 		if (*args == 0) {
 			char buf[256];
-			AddXChars(buf, sizeof(buf), PowDetachString);
+			AddXChars(buf, ARRAY_SIZE(buf), PowDetachString);
 			OutputMsg(0, "pow_detach_msg is '%s'", buf);
 			break;
 		}
@@ -2343,7 +2343,7 @@ void DoAction(struct action *act, int key)
 			else if (!strcmp(args[0], "string")) {
 				if (!args[1]) {
 					char buf[256];
-					AddXChars(buf, sizeof(buf), hstatusstring);
+					AddXChars(buf, ARRAY_SIZE(buf), hstatusstring);
 					OutputMsg(0, "hardstatus string is '%s'", buf);
 					break;
 				}
@@ -2427,7 +2427,7 @@ void DoAction(struct action *act, int key)
 		} else if (strcmp(args[0], "string") == 0) {
 			if (!args[1]) {
 				char buf[256];
-				AddXChars(buf, sizeof(buf), captionstring);
+				AddXChars(buf, ARRAY_SIZE(buf), captionstring);
 				OutputMsg(0, "caption string is '%s'", buf);
 				break;
 			}
@@ -2701,7 +2701,7 @@ void DoAction(struct action *act, int key)
 	case RC_VBELL_MSG:
 		if (*args == 0) {
 			char buf[256];
-			AddXChars(buf, sizeof(buf), VisualBellString);
+			AddXChars(buf, ARRAY_SIZE(buf), VisualBellString);
 			OutputMsg(0, "vbell_msg is '%s'", buf);
 			break;
 		}
@@ -2837,9 +2837,9 @@ void DoAction(struct action *act, int key)
 						break;
 					}
 					kmap_extn += 8;
-					kmap_exts = xrealloc((char *)kmap_exts, kmap_extn * sizeof(*kmap_exts));
+					kmap_exts = xrealloc((char *)kmap_exts, kmap_extn * sizeof(struct kmap_ext));
 					kme = kmap_exts + i;
-					memset((char *)kme, 0, 8 * sizeof(*kmap_exts));
+					memset((char *)kme, 0, 8 * sizeof(struct kmap_ext));
 					for (; i < kmap_extn; i++, kme++) {
 						kme->str = 0;
 						kme->dm.nr = kme->mm.nr = kme->um.nr = RC_ILLEGAL;
@@ -3190,7 +3190,7 @@ void DoAction(struct action *act, int key)
 			char buf[256];
 			*buf = 0;
 			if (nwin_default.hstatus)
-				AddXChars(buf, sizeof(buf), nwin_default.hstatus);
+				AddXChars(buf, ARRAY_SIZE(buf), nwin_default.hstatus);
 			OutputMsg(0, "default hstatus is '%s'", buf);
 			break;
 		}
@@ -3215,7 +3215,7 @@ void DoAction(struct action *act, int key)
 			char buf[256];
 			*buf = 0;
 			if (nwin_default.charset)
-				AddXChars(buf, sizeof(buf), nwin_default.charset);
+				AddXChars(buf, ARRAY_SIZE(buf), nwin_default.charset);
 			OutputMsg(0, "default charset is '%s'", buf);
 			break;
 		}
@@ -3425,7 +3425,7 @@ void DoAction(struct action *act, int key)
 				char path[MAXPATHLEN];
 				char *p = path, **pp;
 				for (pp = blankerprg; *pp; pp++)
-					p += snprintf(p, sizeof(path) - (p - path) - 1, "%s ", *pp);
+					p += snprintf(p, ARRAY_SIZE(path) - (p - path) - 1, "%s ", *pp);
 				*(p - 1) = '\0';
 				OutputMsg(0, "blankerprg: %s", path);
 			} else
@@ -3932,7 +3932,7 @@ int Parse(char *buf, int bufl, char **args, int *argl)
 					else if (!strcmp(ps, "PID"))
 						sprintf(xbuf, "%d", getpid());
 					else if (!strcmp(ps, "PWD")) {
-						if (getcwd(path, sizeof(path) - 1) == 0)
+						if (getcwd(path, ARRAY_SIZE(path) - 1) == 0)
 							v = "?";
 						else
 							v = path;
@@ -4424,7 +4424,7 @@ static void LogToggle(bool on)
 		WindowChanged(fore, WINESC_WFLAGS);
 		return;
 	}
-	if (DoStartLog(fore, buf, sizeof(buf))) {
+	if (DoStartLog(fore, buf, ARRAY_SIZE(buf))) {
 		Msg(errno, "Error opening logfile \"%s\"", buf);
 		return;
 	}
@@ -4708,7 +4708,7 @@ static void ShowInfo()
 #ifdef ENABLE_TELNET
 	else if (wp->w_type == W_TYPE_TELNET) {
 		*p++ = ' ';
-		TelStatus(wp, p, sizeof(buf) - 1 - (p - buf));
+		TelStatus(wp, p, ARRAY_SIZE(buf) - 1 - (p - buf));
 	}
 #endif
 	Msg(0, "%s %d(%s)", buf, wp->w_number, wp->w_title);
@@ -4767,7 +4767,7 @@ static void InputAKA()
 
 	enter_window_name_mode = 1;
 
-	Input("Set window's title to: ", sizeof(fore->w_akabuf) - 1, INP_COOKED, AKAFin, NULL, 0);
+	Input("Set window's title to: ", ARRAY_SIZE(fore->w_akabuf) - 1, INP_COOKED, AKAFin, NULL, 0);
 	s = fore->w_title;
 	if (!s)
 		return;
@@ -4814,15 +4814,15 @@ static void ColonFin(char *buf, size_t len, void *data)
 				s = mbuf;
 				for (l = m - 1; l >= 0 && strncmp(buf, comms[l].name, len) == 0; l--) ;
 				for (m = ++l;
-				     m <= r && strncmp(buf, comms[m].name, len) == 0 && (uintptr_t)(s - mbuf) < sizeof(mbuf); m++)
-					s += snprintf(s, sizeof(mbuf) - (s - mbuf), " %s", comms[m].name);
+				     m <= r && strncmp(buf, comms[m].name, len) == 0 && (uintptr_t)(s - mbuf) < ARRAY_SIZE(mbuf); m++)
+					s += snprintf(s, ARRAY_SIZE(mbuf) - (s - mbuf), " %s", comms[m].name);
 				if (l < m - 1) {
 					if (showmessage)
 						Msg(0, "Possible commands:%s", mbuf);
 				} else {
 					s = mbuf;
-					len = snprintf(mbuf, sizeof(mbuf), "%s \t", comms[l].name + len);
-					if (len > 0 && len < sizeof(mbuf))
+					len = snprintf(mbuf, ARRAY_SIZE(mbuf), "%s \t", comms[l].name + len);
+					if (len > 0 && len < ARRAY_SIZE(mbuf))
 						LayProcess(&s, &len);
 				}
 				break;
@@ -4837,11 +4837,11 @@ static void ColonFin(char *buf, size_t len, void *data)
 		return;
 
 	len = strlen(buf) + 1;
-	if (len > (int)sizeof(mbuf))
+	if (len > (int)ARRAY_SIZE(mbuf))
 		RcLine(buf, len);
 	else {
 		memmove(mbuf, buf, len);
-		RcLine(mbuf, sizeof mbuf);
+		RcLine(mbuf, ARRAY_SIZE(mbuf));
 	}
 }
 
@@ -4915,10 +4915,10 @@ static void SetenvFin2(char *buf, size_t len, void *data)
 
 static void InputSetenv(char *arg)
 {
-	static char setenv_buf[50 + sizeof(setenv_var)];	/* need to be static here, cannot be freed */
+	static char setenv_buf[50 + ARRAY_SIZE(setenv_var)];	/* need to be static here, cannot be freed */
 
 	if (arg) {
-		strncpy(setenv_var, arg, sizeof(setenv_var) - 1);
+		strncpy(setenv_var, arg, ARRAY_SIZE(setenv_var) - 1);
 		sprintf(setenv_buf, "Enter value for %s: ", setenv_var);
 		Input(setenv_buf, 30, INP_COOKED, SetenvFin2, NULL, 0);
 	} else
@@ -5022,7 +5022,7 @@ void DoScreen(char *fn, char **av)
 		}
 		++av;
 	}
-	if (av && *av && IsNumColon(*av, buf, sizeof(buf))) {
+	if (av && *av && IsNumColon(*av, buf, ARRAY_SIZE(buf))) {
 		if (*buf != '\0')
 			nwin.aka = buf;
 		num = atoi(*av);
@@ -5196,22 +5196,22 @@ static void suFin(char *buf, size_t len, void *data)
 
 	if (!*i->name) {
 		p = i->name;
-		l = sizeof(i->name) - 1;
+		l = ARRAY_SIZE(i->name) - 1;
 	} else if (!*i->pw1) {
 		strcpy(p = i->pw1, "\377");
-		l = sizeof(i->pw1) - 1;
+		l = ARRAY_SIZE(i->pw1) - 1;
 	} else {
 		strcpy(p = i->pw2, "\377");
-		l = sizeof(i->pw2) - 1;
+		l = ARRAY_SIZE(i->pw2) - 1;
 	}
 	if (buf && len)
 		strncpy(p, buf, 1 + ((l < len) ? l : len));
 	if (!*i->name)
-		Input("Screen User: ", sizeof(i->name) - 1, INP_COOKED, suFin, (char *)i, 0);
+		Input("Screen User: ", ARRAY_SIZE(i->name) - 1, INP_COOKED, suFin, (char *)i, 0);
 	else if (!*i->pw1)
-		Input("User's UNIX Password: ", sizeof(i->pw1) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
+		Input("User's UNIX Password: ", ARRAY_SIZE(i->pw1) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
 	else if (!*i->pw2)
-		Input("User's Screen Password: ", sizeof(i->pw2) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
+		Input("User's Screen Password: ", ARRAY_SIZE(i->pw2) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
 	else {
 		if ((p = DoSu(i->up, i->name, i->pw2, i->pw1)))
 			Msg(0, "%s", p);
@@ -5237,7 +5237,7 @@ static int InputSu(struct acluser **up, char *name)
 static int digraph_find(const char *buf)
 {
 	uint32_t i;
-	for (i = 0; i < sizeof(digraphs) && digraphs[i].d[0]; i++)
+	for (i = 0; i < ARRAY_SIZE(digraphs) && digraphs[i].d[0]; i++)
 		if ((digraphs[i].d[0] == (unsigned char)buf[0] && digraphs[i].d[1] == (unsigned char)buf[1]))
 			break;
 	return i;

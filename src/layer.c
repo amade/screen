@@ -33,6 +33,7 @@
 #include "screen.h"
 #include "encoding.h"
 #include "mark.h"
+#include "misc.h"
 #include "tty.h"
 
 /*
@@ -725,14 +726,14 @@ void LMsg(int err, const char *fmt, ...)
 	Canvas *cv;
 
 	va_start(ap, fmt);
-	(void)vsnprintf(p, sizeof(buf) - 100, fmt, ap);
+	(void)vsnprintf(p, ARRAY_SIZE(buf) - 100, fmt, ap);
 	va_end(ap);
 	if (err) {
 		p += strlen(p);
 		*p++ = ':';
 		*p++ = ' ';
-		strncpy(p, strerror(err), buf + sizeof(buf) - p - 1);
-		buf[sizeof(buf) - 1] = 0;
+		strncpy(p, strerror(err), buf + ARRAY_SIZE(buf) - p - 1);
+		buf[ARRAY_SIZE(buf) - 1] = 0;
 	}
 	for (display = displays; display; display = display->d_next) {
 		for (cv = D_cvlist; cv; cv = cv->c_next)
@@ -910,12 +911,12 @@ int LayProcessMouse(Layer *l, unsigned char ch)
 	/* XXX: Make sure the layer accepts mouse events */
 	size_t len;
 
-	if (l->l_mouseevent.len >= sizeof(l->l_mouseevent.buffer))
+	if (l->l_mouseevent.len >= ARRAY_SIZE(l->l_mouseevent.buffer))
 		return -1;
 
 	len = l->l_mouseevent.len++;
 	l->l_mouseevent.buffer[len] = (len > 0 ? ch - 33 : ch);
-	return (l->l_mouseevent.len == sizeof(l->l_mouseevent.buffer));
+	return (l->l_mouseevent.len == ARRAY_SIZE(l->l_mouseevent.buffer));
 }
 
 void LayProcessMouseSwitch(Layer *l, bool start)

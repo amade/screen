@@ -366,7 +366,7 @@ static int gl_Window_input(ListData *ldata, char **inp, size_t *len)
 	case 'K':		/* Kill a window */
 		{
 			char str[MAXSTR];
-			snprintf(str, sizeof(str) - 1, "Really kill window %d (%s) [y/n]", win->w_number, win->w_title);
+			snprintf(str, ARRAY_SIZE(str) - 1, "Really kill window %d (%s) [y/n]", win->w_number, win->w_title);
 			Input(str, 1, INP_RAW, window_kill_confirm, (char *)win, 0);
 		}
 		break;

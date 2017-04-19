@@ -40,6 +40,8 @@
 
 #include "screen.h"
 
+#include "misc.h"
+
 extern Window *fore;
 extern Layer *flayer;
 extern bool visual_bell;
@@ -92,11 +94,11 @@ static void tel_connev_fn(Event *ev, void *data)
 
 	(void)ev; /* unused */
 
-	if (connect(win->w_ptyfd, (struct sockaddr *)&win->w_telsa, sizeof(win->w_telsa)) && errno != EISCONN) {
+	if (connect(win->w_ptyfd, (struct sockaddr *)&win->w_telsa, sizeof(struct sockaddr_in)) && errno != EISCONN) {
 		char buf[1024];
 		buf[0] = ' ';
-		strncpy(buf + 1, strerror(errno), sizeof(buf) - 2);
-		buf[sizeof(buf) - 1] = 0;
+		strncpy(buf + 1, strerror(errno), ARRAY_SIZE(buf) - 2);
+		buf[ARRAY_SIZE(buf) - 1] = 0;
 		WriteString(win, buf, strlen(buf));
 		WindowDied(win, 0, 0);
 		return;
@@ -118,7 +120,7 @@ int TelOpenAndConnect(Window *win)
 		return -1;
 	}
 
-	memset(&hints, 0, sizeof(hints));
+	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = af;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
@@ -139,7 +141,7 @@ int TelOpenAndConnect(Window *win)
 			}
 		}
 
-		if (setsockopt(fd, SOL_SOCKET, SO_OOBINLINE, (char *)&on, sizeof(on)))
+		if (setsockopt(fd, SOL_SOCKET, SO_OOBINLINE, (char *)&on, sizeof(int)))
 			Msg(errno, "TelOpenAndConnect: setsockopt SO_OOBINLINE");
 
 		if (win->w_cmdargs[2] && strcmp(win->w_cmdargs[2], TEL_DEFPORT))
@@ -171,7 +173,7 @@ int TelOpenAndConnect(Window *win)
 			WriteString(win, "connected.\r\n", 12);
 
 		if (!(win->w_cmdargs[2] && strcmp(win->w_cmdargs[2], TEL_DEFPORT)))
-			TelReply(win, (char *)tn_init, sizeof(tn_init));
+			TelReply(win, (char *)tn_init, ARRAY_SIZE(tn_init));
 
 		win->w_ptyfd = fd;
 		memmove(&win->w_telsa, &res->ai_addr, sizeof(res->ai_addr));
@@ -301,7 +303,7 @@ int TelIn(Window *win, char *buf, size_t len, int free)
 			else
 				win->w_telstate = TC_SB;
 			win->w_telsubbuf[win->w_telsubidx] = c;
-			if (win->w_telsubidx < (int)sizeof(win->w_telsubbuf) - 1)
+			if (win->w_telsubidx < (int)ARRAY_SIZE(win->w_telsubbuf) - 1)
 				win->w_telsubidx++;
 			continue;
 		}

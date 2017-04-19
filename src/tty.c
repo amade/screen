@@ -156,7 +156,7 @@ int OpenTTY(char *line, char *opt)
 
 void InitTTY(struct mode *m, int ttyflag)
 {
-	memset((char *)m, 0, sizeof(*m));
+	memset((char *)m, 0, sizeof(struct mode));
 	/* struct termios tio
 	 * defaults, as seen on SunOS 4.1.3
 	 */
@@ -745,7 +745,7 @@ static void consredir_readev_fn(Event * event, void *data)
 
 	(void)data;		/* unused */
 
-	if (!console_window || (l = read(consredirfd[0], buf, sizeof(buf))) <= 0) {
+	if (!console_window || (l = read(consredirfd[0], buf, ARRAY_SIZE(buf))) <= 0) {
 		close(consredirfd[0]);
 		close(consredirfd[1]);
 		consredirfd[0] = consredirfd[1] = -1;
@@ -1188,7 +1188,7 @@ int CheckTtyname(char *tty)
 	real = realpath(tty, realbuf);
 	if (!real)
 		return -1;
-	realbuf[sizeof(realbuf) - 1] = 0;
+	realbuf[ARRAY_SIZE(realbuf) - 1] = 0;
 
 	if (lstat(real, &st) || !S_ISCHR(st.st_mode) || (st.st_nlink > 1 && strncmp(real, "/dev", 4)))
 		rc = -1;

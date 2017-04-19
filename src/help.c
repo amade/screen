@@ -141,7 +141,7 @@ void display_help(char *class, struct action *ktabp)
 		LMsg(0, "Window height too small for help page");
 		return;
 	}
-	if (InitOverlayPage(sizeof(*helpdata), &HelpLf, 0))
+	if (InitOverlayPage(sizeof(struct helpdata), &HelpLf, 0))
 		return;
 
 	helpdata = (struct helpdata *)flayer->l_data;
@@ -284,7 +284,7 @@ static int helppage()
 				buf[0] = '\0';
 				for (key = 0; key < 256 + KMAP_KEYS; key++)
 					if (ktabp[key].nr == n && ktabp[key].args == noargs
-					    && strlen(buf) < sizeof(buf) - 7) {
+					    && strlen(buf) < ARRAY_SIZE(buf) - 7) {
 						strcat(buf, " ");
 						add_key_to_buf(buf, key);
 					}
@@ -508,7 +508,7 @@ void display_copyright()
 		LMsg(0, "Window size too small for copyright page");
 		return;
 	}
-	if (InitOverlayPage(sizeof(*copydata), &CopyrightLf, 0))
+	if (InitOverlayPage(sizeof(struct copydata), &CopyrightLf, 0))
 		return;
 	copydata = (struct copydata *)flayer->l_data;
 	copydata->cps = (char *)cpmsg;
@@ -637,7 +637,7 @@ void display_bindkey(char *title, struct action *tab)
 		LMsg(0, "Window height too small for bindkey page");
 		return;
 	}
-	if (InitOverlayPage(sizeof(*bindkeydata), &BindkeyLf, 0))
+	if (InitOverlayPage(sizeof(struct bindkeydata), &BindkeyLf, 0))
 		return;
 
 	bindkeydata = (struct bindkeydata *)flayer->l_data;

@@ -37,7 +37,7 @@ int RethinkDisplayViewports() {
 	for (Canvas *canvas = display->d_cvlist; canvas; canvas = canvas->c_next) {
 		for (viewport = canvas->c_vplist; viewport; viewport = viewport_next) {
 			viewport_next = viewport->v_next;
-			memset((char *)viewport, 0, sizeof(*viewport));
+			memset((char *)viewport, 0, sizeof(Viewport));
 			free(viewport);
 		}
 		canvas->c_vplist = 0;
@@ -46,7 +46,7 @@ int RethinkDisplayViewports() {
 	display->d_vpxmax = -1;
 
 	for (Canvas *canvas = display->d_cvlist; canvas; canvas = canvas->c_next) {
-		if ((viewport = malloc(sizeof *viewport)) == 0) {
+		if ((viewport = malloc(sizeof(Viewport))) == 0) {
 			return -1;
 		}
 		viewport->v_canvas = canvas;

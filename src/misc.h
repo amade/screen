@@ -28,4 +28,6 @@ void  xsetegid  (int);
 int   AddXChar (char *, int);
 int   AddXChars (char *, int, char *);
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
 #endif /* SCREEN_MISC_H */

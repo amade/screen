@@ -78,7 +78,7 @@ Layout *CreateLayout(char *title, int startat)
 			return 0;
 		}
 	}
-	lay = calloc(1, sizeof(*lay));
+	lay = calloc(1, sizeof(Layout));
 	lay->lay_title = SaveStr(title);
 	lay->lay_autosave = 1;
 	lay->lay_number = i;
@@ -242,7 +242,7 @@ void ShowLayouts(int where)
 	}
 	if (where == -1 && D_layout)
 		where = D_layout->lay_number;
-	ss = AddLayoutsInfo(buf, sizeof(buf), where);
+	ss = AddLayoutsInfo(buf, ARRAY_SIZE(buf), where);
 	s = buf + strlen(buf);
 	if (ss - buf > D_width / 2) {
 		ss -= D_width / 2;

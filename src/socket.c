@@ -353,8 +353,8 @@ int MakeServerSocket()
 	if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
 		Panic(errno, "socket");
 	a.sun_family = AF_UNIX;
-	strncpy(a.sun_path, SocketPath, sizeof(a.sun_path));
-	a.sun_path[sizeof(a.sun_path) - 1] = 0;
+	strncpy(a.sun_path, SocketPath, ARRAY_SIZE(a.sun_path));
+	a.sun_path[ARRAY_SIZE(a.sun_path) - 1] = 0;
 	xseteuid(real_uid);
 	xsetegid(real_gid);
 	if (connect(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) != -1) {
@@ -404,8 +404,8 @@ int MakeClientSocket(int err)
 	if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
 		Panic(errno, "socket");
 	a.sun_family = AF_UNIX;
-	strncpy(a.sun_path, SocketPath, sizeof(a.sun_path));
-	a.sun_path[sizeof(a.sun_path) - 1] = 0;
+	strncpy(a.sun_path, SocketPath, ARRAY_SIZE(a.sun_path));
+	a.sun_path[ARRAY_SIZE(a.sun_path) - 1] = 0;
 	xseteuid(real_uid);
 	xsetegid(real_gid);
 	if (connect(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) == -1) {
@@ -440,21 +440,21 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	sprintf(SocketPath + strlen(SocketPath), "/%s", sty);
 	if ((s = MakeClientSocket(1)) == -1)
 		exit(1);
-	memset((char *)&m, 0, sizeof(m));
+	memset((char *)&m, 0, sizeof(Message));
 	m.type = MSG_CREATE;
-	strncpy(m.m_tty, attach_tty, sizeof(m.m_tty) - 1);
-	m.m_tty[sizeof(m.m_tty) - 1] = 0;
+	strncpy(m.m_tty, attach_tty, ARRAY_SIZE(m.m_tty) - 1);
+	m.m_tty[ARRAY_SIZE(m.m_tty) - 1] = 0;
 	p = m.m.create.line;
 	n = 0;
 	if (nwin->args != nwin_undef.args)
 		for (av = nwin->args; *av && n < MAXARGS - 1; ++av, ++n) {
 			len = strlen(*av) + 1;
-			if (p + len >= m.m.create.line + sizeof(m.m.create.line) - 1)
+			if (p + len >= m.m.create.line + ARRAY_SIZE(m.m.create.line) - 1)
 				break;
 			strcpy(p, *av);
 			p += len;
 		}
-	if (nwin->aka != nwin_undef.aka && p + strlen(nwin->aka) + 1 < m.m.create.line + sizeof(m.m.create.line))
+	if (nwin->aka != nwin_undef.aka && p + strlen(nwin->aka) + 1 < m.m.create.line + ARRAY_SIZE(m.m.create.line))
 		strcpy(p, nwin->aka);
 	else
 		*p = '\0';
@@ -463,7 +463,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	m.m.create.flowflag = nwin->flowflag;
 	m.m.create.lflag = nwin->lflag;
 	m.m.create.hheight = nwin->histheight;
-	if (getcwd(m.m.create.dir, sizeof(m.m.create.dir)) == 0) {
+	if (getcwd(m.m.create.dir, ARRAY_SIZE(m.m.create.dir)) == 0) {
 		Msg(errno, "getcwd");
 		return;
 	}
@@ -471,7 +471,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 		strncpy(m.m.create.screenterm, nwin->term, MAXTERMLEN);
 	m.m.create.screenterm[MAXTERMLEN] = '\0';
 	m.protocol_revision = MSG_REVISION;
-	if (write(s, (char *)&m, sizeof m) != sizeof m)
+	if (write(s, (char *)&m, sizeof(Message)) != sizeof(Message))
 		Msg(errno, "write");
 	close(s);
 }
@@ -482,16 +482,16 @@ int SendErrorMsg(char *tty, char *buf)
 	int ret = 0;
 	Message m;
 
-	strncpy(m.m.message, buf, sizeof(m.m.message) - 1);
-	m.m.message[sizeof(m.m.message) - 1] = 0;
+	strncpy(m.m.message, buf, ARRAY_SIZE(m.m.message) - 1);
+	m.m.message[ARRAY_SIZE(m.m.message) - 1] = 0;
 	s = MakeClientSocket(0);
 	if (s < 0)
 		return -1;
 	m.type = MSG_ERROR;
-	strncpy(m.m_tty, tty, sizeof(m.m_tty) - 1);
-	m.m_tty[sizeof(m.m_tty) - 1] = 0;
+	strncpy(m.m_tty, tty, ARRAY_SIZE(m.m_tty) - 1);
+	m.m_tty[ARRAY_SIZE(m.m_tty) - 1] = 0;
 	m.protocol_revision = MSG_REVISION;
-	if (write(s, (char *)&m, sizeof m))
+	if (write(s, (char *)&m, sizeof(Message)))
 		ret = -2;
 	close(s);
 	return ret;
@@ -514,7 +514,7 @@ static void ExecCreate(Message *mp)
 		int l, num;
 
 		l = strlen(p);
-		if (IsNumColon(p, buf, sizeof(buf))) {
+		if (IsNumColon(p, buf, ARRAY_SIZE(buf))) {
 			if (*buf)
 				nwin.aka = buf;
 			num = atoi(p);
@@ -594,8 +594,8 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 		myttyname = GetPtsPathOrSymlink(i);
 		if (myttyname && errno == ENODEV) {
 			ssize_t ret = readlink(myttyname, ttyname_in_ns,
-					       sizeof(ttyname_in_ns));
-			if (ret < 0 || (size_t)ret >= sizeof(ttyname_in_ns)) {
+				       ARRAY_SIZE(ttyname_in_ns));
+			if (ret < 0 || (size_t)ret >= ARRAY_SIZE(ttyname_in_ns)) {
 				Msg(errno, "Could not perform necessary sanity "
 					   "checks on pts device.");
 				close(i);
@@ -619,8 +619,8 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 			 * in this namespace we need to update m->m_tty to use
 			 * that symlink for all future operations.
 			 */
-			strncpy(m->m_tty, myttyname, sizeof(m->m_tty) - 1);
-			m->m_tty[sizeof(m->m_tty) - 1] = 0;
+			strncpy(m->m_tty, myttyname, ARRAY_SIZE(m->m_tty) - 1);
+			m->m_tty[ARRAY_SIZE(m->m_tty) - 1] = 0;
 		} else if (myttyname == 0 || strcmp(myttyname, m->m_tty)) {
 			Msg(errno,
 			    "Attach: passed fd does not match tty: %s - %s!",
@@ -709,13 +709,13 @@ void ReceiveMsg()
 	}
 
 	p = (char *)&m;
-	left = sizeof(m);
-	memset(&msg, 0, sizeof(msg));
+	left = sizeof(Message);
+	memset(&msg, 0, sizeof(struct msghdr));
 	iov.iov_base = &m;
 	iov.iov_len = left;
 	msg.msg_iov = &iov;
 	msg.msg_iovlen = 1;
-	msg.msg_controllen = sizeof(control);
+	msg.msg_controllen = ARRAY_SIZE(control);
 	msg.msg_control = &control;
 	while (left > 0) {
 		len = recvmsg(ns, &msg, 0);
@@ -769,8 +769,8 @@ void ReceiveMsg()
 		return;
 	}
 	if (left > 0) {
-		if (left != sizeof(m))
-			Msg(0, "Message %d of %d bytes too small", left, (int)sizeof(m));
+		if (left != sizeof(Message))
+			Msg(0, "Message %d of %d bytes too small", left, (int)sizeof(Message));
 		return;
 	}
 	if (m.protocol_revision != MSG_REVISION) {
@@ -1296,7 +1296,7 @@ static void DoCommandMsg(Message *mp)
 	for (fc = fullcmd; n > 0; n--) {
 		size_t len = strlen(p);
 		*fc++ = '"';
-		if (!(fc = strncpy_escape_quote(fc, p, fullcmd + sizeof(fullcmd) - 2))) {	/* '"' ' ' */
+		if (!(fc = strncpy_escape_quote(fc, p, fullcmd + ARRAY_SIZE(fullcmd) - 2))) {	/* '"' ' ' */
 			Msg(0, "Remote command too long.");
 			queryflag = -1;
 			return;
@@ -1307,7 +1307,7 @@ static void DoCommandMsg(Message *mp)
 	}
 	if (fc != fullcmd)
 		*--fc = 0;
-	if (Parse(fullcmd, sizeof fullcmd, args, argl) <= 0) {
+	if (Parse(fullcmd, ARRAY_SIZE(fullcmd), args, argl) <= 0) {
 		queryflag = -1;
 		return;
 	}
@@ -1384,14 +1384,14 @@ int SendAttachMsg(int s, Message *m, int fd)
 	struct cmsghdr *cmsg;
 
 	iov.iov_base = (char *)m;
-	iov.iov_len = sizeof(*m);
-	memset(&msg, 0, sizeof(msg));
+	iov.iov_len = sizeof(Message);
+	memset(&msg, 0, sizeof(struct msghdr));
 	msg.msg_name = 0;
 	msg.msg_namelen = 0;
 	msg.msg_iov = &iov;
 	msg.msg_iovlen = 1;
 	msg.msg_control = buf;
-	msg.msg_controllen = sizeof(buf);
+	msg.msg_controllen = ARRAY_SIZE(buf);
 	cmsg = CMSG_FIRSTHDR(&msg);
 	cmsg->cmsg_level = SOL_SOCKET;
 	cmsg->cmsg_type = SCM_RIGHTS;

@@ -113,7 +113,7 @@ static char *findrcfile(char *rcfile)
 
 	if (rcfile) {
 		char *rcend = strrchr(rc_name, '/');
-		if (*rcfile != '/' && rcend && (rcend - rc_name) + strlen(rcfile) + 2 < sizeof(buf)) {
+		if (*rcfile != '/' && rcend && (rcend - rc_name) + strlen(rcfile) + 2 < ARRAY_SIZE(buf)) {
 			strncpy(buf, rc_name, rcend - rc_name + 1);
 			strncpy(buf + (rcend - rc_name) + 1, rcfile, 256 - (rcend - rc_name));
 			if (access(buf, R_OK) == 0)
@@ -124,7 +124,7 @@ static char *findrcfile(char *rcfile)
 	if ((p = getenv("SCREENRC")) != NULL && *p != '\0') {
 		return SaveStr(p);
 	} else {
-		if (strlen(home) > sizeof(buf) - 12)
+		if (strlen(home) > ARRAY_SIZE(buf) - 12)
 			Panic(0, "Rc: home too large");
 		sprintf(buf, "%s/.screenrc", home);
 		return SaveStr(buf);
@@ -175,10 +175,10 @@ int StartRc(char *rcfilename, int nopanic)
 		rc_name = oldrc_name;
 		return 1;
 	}
-	while (fgets(buf, sizeof buf, fp) != NULL) {
+	while (fgets(buf, ARRAY_SIZE(buf), fp) != NULL) {
 		if ((p = strrchr(buf, '\n')) != NULL)
 			*p = '\0';
-		if ((argc = Parse(buf, sizeof buf, args, argl)) == 0)
+		if ((argc = Parse(buf, ARRAY_SIZE(buf), args, argl)) == 0)
 			continue;
 		if (strcmp(args[0], "echo") == 0) {
 			if (!display)
@@ -265,8 +265,8 @@ void FinishRc(char *rcfilename)
 		return;
 	}
 
-	while (fgets(buf, sizeof buf, fp) != NULL)
-		RcLine(buf, sizeof buf);
+	while (fgets(buf, ARRAY_SIZE(buf), fp) != NULL)
+		RcLine(buf, ARRAY_SIZE(buf));
 	(void)fclose(fp);
 	Free(rc_name);
 	rc_name = oldrc_name;
@@ -346,7 +346,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 	case DUMP_TERMCAP:
 		if (fn == 0) {
 			i = SocketName - SocketPath;
-			if (i > (int)sizeof(fnbuf) - 9)
+			if (i > (int)ARRAY_SIZE(fnbuf) - 9)
 				i = 0;
 			strncpy(fnbuf, SocketPath, i);
 			strncpy(fnbuf + i, ".termcap", 9);
@@ -358,7 +358,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 		if (fn == 0) {
 			if (fore == 0)
 				return;
-			if (hardcopydir && *hardcopydir && strlen(hardcopydir) < sizeof(fnbuf) - 21)
+			if (hardcopydir && *hardcopydir && strlen(hardcopydir) < ARRAY_SIZE(fnbuf) - 21)
 				sprintf(fnbuf, "%s/hardcopy.%d", hardcopydir, fore->w_number);
 			else
 				sprintf(fnbuf, "hardcopy.%d", fore->w_number);
@@ -369,8 +369,8 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 		break;
 	case DUMP_EXCHANGE:
 		if (fn == 0) {
-			strncpy(fnbuf, BufferFile, sizeof(fnbuf) - 1);
-			fnbuf[sizeof(fnbuf) - 1] = 0;
+			strncpy(fnbuf, BufferFile, ARRAY_SIZE(fnbuf) - 1);
+			fnbuf[ARRAY_SIZE(fnbuf) - 1] = 0;
 			fn = fnbuf;
 		}
 		public = !strcmp(fn, DEFAULT_BUFFERFILE);

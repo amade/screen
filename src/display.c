@@ -165,7 +165,7 @@ Display *MakeDisplay(char *uname, char *utty, char *term, int fd, pid_t pid, str
 	if (!*(u = FindUserPtr(uname)) && UserAdd(uname, u))
 		return 0;	/* could not find or add user */
 
-	if ((display = calloc(1, sizeof(*display))) == 0)
+	if ((display = calloc(1, sizeof(Display))) == 0)
 		return 0;
 	display->d_next = displays;
 	displays = display;
@@ -212,8 +212,8 @@ Display *MakeDisplay(char *uname, char *utty, char *term, int fd, pid_t pid, str
 	D_obufp = D_obuf;
 	D_printfd = -1;
 	D_userpid = pid;
-	strncpy(D_usertty, utty, sizeof(D_usertty) - 1);
-	D_usertty[sizeof(D_usertty) - 1] = 0;
+	strncpy(D_usertty, utty, ARRAY_SIZE(D_usertty) - 1);
+	D_usertty[ARRAY_SIZE(D_usertty) - 1] = 0;
 	strncpy(D_termname, term, MAXTERMLEN);
 	D_termname[MAXTERMLEN] = 0;
 	D_user = *u;
@@ -2495,9 +2495,9 @@ static void disp_readev_fn(Event *event, void *data)
 		size = IOSIZE;
 	else {
 		if (W_UWP(D_fore))
-			size = sizeof(D_fore->w_pwin->p_inbuf) - D_fore->w_pwin->p_inlen;
+			size = ARRAY_SIZE(D_fore->w_pwin->p_inbuf) - D_fore->w_pwin->p_inlen;
 		else
-			size = sizeof(D_fore->w_inbuf) - D_fore->w_inlen;
+			size = ARRAY_SIZE(D_fore->w_inbuf) - D_fore->w_inlen;
 	}
 
 	if (size > IOSIZE)
@@ -2611,7 +2611,7 @@ static void disp_readev_fn(Event *event, void *data)
 				j += EncodeChar(buf2 + j, -1, enc, &font);
 			} else
 				j += EncodeChar(buf2 + j, c, enc, 0);
-			if (j > (int)sizeof(buf2) - 10)	/* just in case... */
+			if (j > (int)ARRAY_SIZE(buf2) - 10)	/* just in case... */
 				break;
 		}
 		(*D_processinput) (buf2, j);
@@ -2782,7 +2782,7 @@ void RunBlanker(char **cmdv)
 
 	strncpy(termname, "TERM=", 6);
 	strncpy(termname + 5, D_termname, MAXTERMLEN - 6);
-	termname[sizeof(termname) - 1] = 0;
+	termname[ARRAY_SIZE(termname) - 1] = 0;
 	KillBlanker();
 	D_blankerpid = -1;
 	if ((D_blankerev.fd = OpenPTY(&m)) == -1) {

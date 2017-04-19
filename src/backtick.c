@@ -34,6 +34,7 @@
 #include "backtick.h"
 
 #include "fileio.h"
+#include "misc.h"
 #include "winmsg.h"
 
 /* TODO: get rid of global var */
@@ -119,12 +120,12 @@ void setbacktick(int num, int lifespan, int tick, char **cmdv)
 		return;
 	}
 	if (!bt) {
-		bt = malloc(sizeof *bt);
+		bt = malloc(sizeof(struct backtick));
 		if (!bt) {
 			Msg(0, "%s", strnomem);
 			return;
 		}
-		memset(bt, 0, sizeof(*bt));
+		memset(bt, 0, sizeof(struct backtick));
 		bt->next = 0;
 		*btp = bt;
 	}
@@ -167,13 +168,13 @@ char *runbacktick(Backtick *bt, int *tickp, time_t now)
 	if (f == -1)
 		return bt->result;
 	i = 0;
-	while ((l = read(f, bt->result + i, sizeof(bt->result) - i)) > 0) {
+	while ((l = read(f, bt->result + i, ARRAY_SIZE(bt->result) - i)) > 0) {
 		i += l;
 		for (j = 1; j < l; j++)
 			if (bt->result[i - j - 1] == '\n')
 				break;
-		if (j == l && i == sizeof(bt->result)) {
-			j = sizeof(bt->result) / 2;
+		if (j == l && i == ARRAY_SIZE(bt->result)) {
+			j = ARRAY_SIZE(bt->result) / 2;
 			l = j + 1;
 		}
 		if (j < l) {
@@ -182,7 +183,7 @@ char *runbacktick(Backtick *bt, int *tickp, time_t now)
 		}
 	}
 	close(f);
-	bt->result[sizeof(bt->result) - 1] = '\n';
+	bt->result[ARRAY_SIZE(bt->result) - 1] = '\n';
 	if (i && bt->result[i - 1] == '\n')
 		i--;
 	bt->result[i] = 0;

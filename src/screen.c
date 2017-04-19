@@ -1807,7 +1807,7 @@ void SetTtyname(bool fatal, struct stat *st)
 	int saved_errno = 0;
 
 	attach_tty_is_in_new_ns = false;
-	memset(&attach_tty_name_in_ns, 0, sizeof(attach_tty_name_in_ns));
+	memset(&attach_tty_name_in_ns, 0, ARRAY_SIZE(attach_tty_name_in_ns));
 
 	errno = 0;
 	attach_tty = ttyname(0);
@@ -1816,8 +1816,8 @@ void SetTtyname(bool fatal, struct stat *st)
 			saved_errno = errno;
 			attach_tty = "/proc/self/fd/0";
 			attach_tty_is_in_new_ns = true;
-			ret = readlink(attach_tty, attach_tty_name_in_ns, sizeof(attach_tty_name_in_ns));
-			if (ret < 0 || (size_t)ret >= sizeof(attach_tty_name_in_ns))
+			ret = readlink(attach_tty, attach_tty_name_in_ns, ARRAY_SIZE(attach_tty_name_in_ns));
+			if (ret < 0 || (size_t)ret >= ARRAY_SIZE(attach_tty_name_in_ns))
 				Panic(0, "Bad tty '%s'", attach_tty);
 		} else if (fatal) {
 			Panic(0, "Must be connected to a terminal.");

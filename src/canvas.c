@@ -321,7 +321,7 @@ int MakeDefaultCanvas()
 {
 	Canvas *cv;
 
-	if ((cv = calloc(1, sizeof *cv)) == 0)
+	if ((cv = calloc(1, sizeof(Canvas))) == 0)
 		return -1;
 	cv->c_xs = 0;
 	cv->c_xe = D_width - 1;
@@ -547,7 +547,7 @@ static Canvas *AddPerp(Canvas *cv)
 {
 	Canvas *pcv;
 
-	if ((pcv = calloc(1, sizeof *cv)) == 0)
+	if ((pcv = calloc(1, sizeof(Canvas))) == 0)
 		return 0;
 	pcv->c_next = 0;
 	pcv->c_display = cv->c_display;
@@ -613,7 +613,7 @@ int AddCanvas(int orient)
 	if (h < 0)
 		return -1;	/* can't fit in */
 
-	if ((cv = calloc(1, sizeof *cv)) == 0)
+	if ((cv = calloc(1, sizeof(Canvas))) == 0)
 		return -1;
 
 	D_forecv->c_slback->c_ys = ys;	/* in case we modified it above */

@@ -251,7 +251,7 @@ int SetUtmp(Window *win)
 	int saved_ut;
 #if defined(HAVE_UT_HOST)
 	char *p;
-	char host[sizeof(D_loginhost) + 15];
+	char host[ARRAY_SIZE(D_loginhost) + 15];
 #else
 	char *host = 0;
 #endif/* HAVE_UT_HOST */
@@ -263,18 +263,18 @@ int SetUtmp(Window *win)
 		return -1;
 	}
 
-	memset((char *)&u, 0, sizeof(u));
-	if ((saved_ut = memcmp((char *)&win->w_savut, (char *)&u, sizeof(u))))
+	memset((char *)&u, 0, sizeof(struct utmpx));
+	if ((saved_ut = memcmp((char *)&win->w_savut, (char *)&u, sizeof(struct utmpx))))
 		/* restore original, of which we will adopt all fields but ut_host */
-		memmove((char *)&u, (char *)&win->w_savut, sizeof(u));
+		memmove((char *)&u, (char *)&win->w_savut, sizeof(struct utmpx));
 
 	if (!saved_ut)
 		makeuser(&u, stripdev(win->w_tty), LoginName, win->w_pid);
 
 #if defined(HAVE_UT_HOST)
-	host[sizeof(host) - 15] = '\0';
+	host[ARRAY_SIZE(host) - 15] = '\0';
 	if (display) {
-		strncpy(host, D_loginhost, sizeof(host) - 15);
+		strncpy(host, D_loginhost, ARRAY_SIZE(host) - 15);
 		if (D_loginslot != (slot_t) 0 && D_loginslot != (slot_t) - 1 && host[0] != '\0') {
 			/*
 			 * we want to set our ut_host field to something like
@@ -295,15 +295,15 @@ int SetUtmp(Window *win)
 					}
 			}
 		} else {
-			strncpy(host + 1, stripdev(D_usertty), sizeof(host) - 15 - 1);
+			strncpy(host + 1, stripdev(D_usertty), ARRAY_SIZE(host) - 15 - 1);
 			host[0] = ':';
 		}
 	} else
-		strncpy(host, "local", sizeof(host) - 15);
+		strncpy(host, "local", ARRAY_SIZE(host) - 15);
 
 	sprintf(host + strlen(host), ":S.%d", win->w_number);
 
-	strncpy(u.ut_host, host, sizeof(u.ut_host));
+	strncpy(u.ut_host, host, ARRAY_SIZE(u.ut_host));
 #endif				/* UTHOST */
 
 	if (pututslot(slot, &u, host, win) == 0) {
@@ -311,7 +311,7 @@ int SetUtmp(Window *win)
 		return -1;
 	}
 	win->w_slot = slot;
-	memmove((char *)&win->w_savut, (char *)&u, sizeof(u));
+	memmove((char *)&win->w_savut, (char *)&u, sizeof(struct utmpx));
 	return 0;
 }
 
@@ -332,12 +332,12 @@ int RemoveUtmp(Window *win)
 		win->w_slot = (slot_t)-1;
 		return 0;
 	}
-	memset((char *)&u, 0, sizeof(u));
+	memset((char *)&u, 0, sizeof(struct utmpx));
 	if ((uu = getutslot(slot)) == 0) {
 		Msg(0, "Utmp slot not found -> not removed");
 		return -1;
 	}
-	memmove((char *)&win->w_savut, (char *)uu, sizeof(win->w_savut));
+	memmove((char *)&win->w_savut, (char *)uu, sizeof(struct utmpx));
 	u = *uu;
 	makedead(&u);
 	if (pututslot(slot, &u, (char *)0, win) == 0) {
@@ -358,8 +358,8 @@ int RemoveUtmp(Window *win)
 static struct utmpx *getutslot(slot_t slot)
 {
 	struct utmpx u;
-	memset((char *)&u, 0, sizeof(u));
-	strncpy(u.ut_line, (char *)slot, sizeof(u.ut_line));
+	memset((char *)&u, 0, sizeof(struct utmpx));
+	strncpy(u.ut_line, (char *)slot, ARRAY_SIZE(u.ut_line));
 	setutxent();
 	return getutxline(&u);
 }
@@ -399,10 +399,10 @@ static void makeuser(struct utmpx *u, char *line, char *user, pid_t pid)
 {
 	time_t now;
 	u->ut_type = USER_PROCESS;
-	strncpy(u->ut_user, user, sizeof(u->ut_user));
+	strncpy(u->ut_user, user, ARRAY_SIZE(u->ut_user));
 	/* Now the tricky part... guess ut_id */
-	strncpy(u->ut_id, line + 3, sizeof(u->ut_id));
-	strncpy(u->ut_line, line, sizeof(u->ut_line));
+	strncpy(u->ut_id, line + 3, ARRAY_SIZE(u->ut_id));
+	strncpy(u->ut_line, line, ARRAY_SIZE(u->ut_line));
 	u->ut_pid = pid;
 	/* must use temp variable because of NetBSD/sparc64, where
 	 * ut_xtime is long(64) but time_t is int(32) */

@@ -94,7 +94,7 @@ int InitTermcap(int width, int height)
 	char tbuf[TERMCAP_BUFSIZE], *tp;
 	int t, xue, xse, xme;
 
-	memset(tbuf, 0, sizeof(tbuf));
+	memset(tbuf, 0, ARRAY_SIZE(tbuf));
 	if (*D_termname == 0 || e_tgetent(tbuf, D_termname) != 1) {
 		Msg(0, "Cannot find terminfo entry for '%s'.", D_termname);
 		return -1;
@@ -822,7 +822,7 @@ char *MakeTermcap(bool aflag)
 			}
 			if (act->nr != RC_ILLEGAL) {
 				if (act->nr == RC_STUFF) {
-					MakeString(term[i].tcname, buf, sizeof(buf), act->args[0]);
+					MakeString(term[i].tcname, buf, ARRAY_SIZE(buf), act->args[0]);
 					AddCap(buf);
 				}
 				continue;
@@ -834,7 +834,7 @@ char *MakeTermcap(bool aflag)
 		case T_STR:
 			if (D_tcs[i].str == 0)
 				break;
-			MakeString(term[i].tcname, buf, sizeof(buf), D_tcs[i].str);
+			MakeString(term[i].tcname, buf, ARRAY_SIZE(buf), D_tcs[i].str);
 			AddCap(buf);
 			break;
 		case T_FLG:

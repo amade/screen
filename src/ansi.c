@@ -972,7 +972,7 @@ static void DoCSI(Window *win, int c, int intermediate)
 				break;
 			case 21:
 				a1 = strlen(win->w_title);
-				if ((unsigned)(win->w_inlen + 5 + a1) <= sizeof(win->w_inbuf)) {
+				if ((unsigned)(win->w_inlen + 5 + a1) <= ARRAY_SIZE(win->w_inbuf)) {
 					memmove(win->w_inbuf + win->w_inlen, "\033]l", 3);
 					memmove(win->w_inbuf + win->w_inlen + 3, win->w_title, a1);
 					memmove(win->w_inbuf + win->w_inlen + 3 + a1, "\033\\", 2);
@@ -1232,7 +1232,7 @@ static int StringEnd(Window *win)
 			struct acluser *windowuser;
 
 			windowuser = *FindUserPtr(":window:");
-			if (windowuser && Parse(p, sizeof(win->w_string) - (p - win->w_string), args, argl)) {
+			if (windowuser && Parse(p, ARRAY_SIZE(win->w_string) - (p - win->w_string), args, argl)) {
 				for (display = displays; display; display = display->d_next)
 					if (D_forecv->c_layer->l_bottom == &win->w_layer)
 						break;	/* found it */
@@ -1256,8 +1256,8 @@ static int StringEnd(Window *win)
 			if (--typ2 < 0)
 				typ2 = 0;
 			if (strcmp(win->w_xtermosc[typ2], p)) {
-				strncpy(win->w_xtermosc[typ2], p, sizeof(win->w_xtermosc[typ2]) - 1);
-				win->w_xtermosc[typ2][sizeof(win->w_xtermosc[typ2]) - 1] = 0;
+				strncpy(win->w_xtermosc[typ2], p, ARRAY_SIZE(win->w_xtermosc[typ2]) - 1);
+				win->w_xtermosc[typ2][ARRAY_SIZE(win->w_xtermosc[typ2]) - 1] = 0;
 
 				for (display = displays; display; display = display->d_next) {
 					if (!D_CXT)
@@ -1750,7 +1750,7 @@ static void SelectRendition(Window *win)
 			colorfg = 0;
 		}
 
-		if (j < 0 || j >= (int)(sizeof(rendlist)/sizeof(*rendlist)))
+		if (j < 0 || j >= (int)(ARRAY_SIZE(rendlist)))
 			continue;
 		j = rendlist[j];
 		if (j & (1 << NATTR))
@@ -1793,7 +1793,7 @@ void ChangeAKA(Window *win, char *s, size_t len)
 	int i, c;
 
 	for (i = 0; len > 0; len--) {
-		if (win->w_akachange + i == win->w_akabuf + sizeof(win->w_akabuf) - 1)
+		if (win->w_akachange + i == win->w_akabuf + ARRAY_SIZE(win->w_akabuf) - 1)
 			break;
 		c = (unsigned char)*s++;
 		if (c == 0)
@@ -1867,12 +1867,12 @@ static void Report(Window *win, char *fmt, int n1, int n2)
 	len = strlen(rbuf);
 
 	if (W_UWP(win)) {
-		if ((unsigned)(win->w_pwin->p_inlen + len) <= sizeof(win->w_pwin->p_inbuf)) {
+		if ((unsigned)(win->w_pwin->p_inlen + len) <= ARRAY_SIZE(win->w_pwin->p_inbuf)) {
 			memmove(win->w_pwin->p_inbuf + win->w_pwin->p_inlen, rbuf, len);
 			win->w_pwin->p_inlen += len;
 		}
 	} else {
-		if ((unsigned)(win->w_inlen + len) <= sizeof(win->w_inbuf)) {
+		if ((unsigned)(win->w_inlen + len) <= ARRAY_SIZE(win->w_inbuf)) {
 			memmove(win->w_inbuf + win->w_inlen, rbuf, len);
 			win->w_inlen += len;
 		}

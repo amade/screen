@@ -93,13 +93,13 @@ static void QueryResultFail(int sigsig)
 
 static int WriteMessage(int sock, Message *msg)
 {
-	ssize_t r, l = sizeof(*msg);
+	ssize_t r, l = sizeof(Message);
 
 	if (msg->type == MSG_ATTACH)
 		return SendAttachMsg(sock, msg, attach_fd);
 
 	while (l > 0) {
-		r = write(sock, (char *)msg + (sizeof(*msg) - l), l);
+		r = write(sock, (char *)msg + (sizeof(Message) - l), l);
 		if (r == -1 && errno == EINTR)
 			continue;
 		if (r == -1 || r == 0)
@@ -131,11 +131,11 @@ int Attach(int how)
 		tty_oldmode = tty_mode;
 	}
 
-	memset((char *)&m, 0, sizeof(m));
+	memset((char *)&m, 0, sizeof(Message));
 	m.type = how;
 	m.protocol_revision = MSG_REVISION;
-	strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, sizeof(m.m_tty) - 1);
-	m.m_tty[sizeof(m.m_tty) - 1] = 0;
+	strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, ARRAY_SIZE(m.m_tty) - 1);
+	m.m_tty[ARRAY_SIZE(m.m_tty) - 1] = 0;
 
 	if (how == MSG_WINCH) {
 		if ((lasts = MakeClientSocket(0)) >= 0) {
@@ -218,8 +218,8 @@ int Attach(int how)
 		Panic(0, "That screen is %sdetached.", dflag ? "already " : "not ");
 	if (dflag && (how == MSG_DETACH || how == MSG_POW_DETACH)) {
 		m.m.detach.dpid = getpid();
-		strncpy(m.m.detach.duser, LoginName, sizeof(m.m.detach.duser) - 1);
-		m.m.detach.duser[sizeof(m.m.detach.duser) - 1] = 0;
+		strncpy(m.m.detach.duser, LoginName, ARRAY_SIZE(m.m.detach.duser) - 1);
+		m.m.detach.duser[ARRAY_SIZE(m.m.detach.duser) - 1] = 0;
 		if (dflag == 2)
 			m.type = MSG_POW_DETACH;
 		else
@@ -244,12 +244,12 @@ int Attach(int how)
 	strncpy(m.m.attach.envterm, attach_term, MAXTERMLEN);
 	m.m.attach.envterm[MAXTERMLEN] = 0;
 
-	strncpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1);
-	m.m.attach.auser[sizeof(m.m.attach.auser) - 1] = 0;
+	strncpy(m.m.attach.auser, LoginName, ARRAY_SIZE(m.m.attach.auser) - 1);
+	m.m.attach.auser[ARRAY_SIZE(m.m.attach.auser) - 1] = 0;
 	m.m.attach.esc = DefaultEsc;
 	m.m.attach.meta_esc = DefaultMetaEsc;
-	strncpy(m.m.attach.preselect, preselect ? preselect : "", sizeof(m.m.attach.preselect) - 1);
-	m.m.attach.preselect[sizeof(m.m.attach.preselect) - 1] = 0;
+	strncpy(m.m.attach.preselect, preselect ? preselect : "", ARRAY_SIZE(m.m.attach.preselect) - 1);
+	m.m.attach.preselect[ARRAY_SIZE(m.m.attach.preselect) - 1] = 0;
 	m.m.attach.apid = getpid();
 	m.m.attach.adaptflag = adaptflag;
 	m.m.attach.lines = m.m.attach.columns = 0;
@@ -322,9 +322,9 @@ void AttacherFinit(int sigsig)
 	xsignal(SIGHUP, SIG_IGN);
 	/* Check if signal comes from backend */
 	if (stat(SocketPath, &statb) == 0 && (statb.st_mode & 0777) != 0600) {
-		memset((char *)&m, 0, sizeof(m));
-		strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, sizeof(m.m_tty) - 1);
-		m.m_tty[sizeof(m.m_tty) - 1] = 0;
+		memset((char *)&m, 0, sizeof(Message));
+		strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, ARRAY_SIZE(m.m_tty) - 1);
+		m.m_tty[ARRAY_SIZE(m.m_tty) - 1] = 0;
 		m.m.detach.dpid = getpid();
 		m.type = MSG_HANGUP;
 		m.protocol_revision = MSG_REVISION;
@@ -448,29 +448,29 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 		if ((s = MakeClientSocket(1)) == -1)
 			exit(1);
 	}
-	memset((char *)&m, 0, sizeof(m));
+	memset((char *)&m, 0, sizeof(Message));
 	m.type = query ? MSG_QUERY : MSG_COMMAND;
 	if (attach_tty) {
-		strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, sizeof(m.m_tty) - 1);
-		m.m_tty[sizeof(m.m_tty) - 1] = 0;
+		strncpy(m.m_tty, attach_tty_is_in_new_ns ? attach_tty_name_in_ns : attach_tty, ARRAY_SIZE(m.m_tty) - 1);
+		m.m_tty[ARRAY_SIZE(m.m_tty) - 1] = 0;
 	}
 	p = m.m.command.cmd;
 	n = 0;
 	for (; *av && n < MAXARGS - 1; ++av, ++n) {
 		size_t len;
 		len = strlen(*av) + 1;
-		if (p + len >= m.m.command.cmd + sizeof(m.m.command.cmd) - 1)
+		if (p + len >= m.m.command.cmd + ARRAY_SIZE(m.m.command.cmd) - 1)
 			break;
 		strncpy(p, *av, MAXPATHLEN);
 		p += len;
 	}
 	*p = 0;
 	m.m.command.nargs = n;
-	strncpy(m.m.attach.auser, LoginName, sizeof(m.m.attach.auser) - 1);
-	m.m.command.auser[sizeof(m.m.command.auser) - 1] = 0;
+	strncpy(m.m.attach.auser, LoginName, ARRAY_SIZE(m.m.attach.auser) - 1);
+	m.m.command.auser[ARRAY_SIZE(m.m.command.auser) - 1] = 0;
 	m.protocol_revision = MSG_REVISION;
-	strncpy(m.m.command.preselect, preselect ? preselect : "", sizeof(m.m.command.preselect) - 1);
-	m.m.command.preselect[sizeof(m.m.command.preselect) - 1] = 0;
+	strncpy(m.m.command.preselect, preselect ? preselect : "", ARRAY_SIZE(m.m.command.preselect) - 1);
+	m.m.command.preselect[ARRAY_SIZE(m.m.command.preselect) - 1] = 0;
 	m.m.command.apid = getpid();
 	if (query) {
 		/* Create a server socket so we can get back the result */
@@ -496,8 +496,8 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 		if (r < 0)
 			Panic(0, "Could not create a listening socket to read the results.");
 
-		strncpy(m.m.command.writeback, SocketPath, sizeof(m.m.command.writeback) - 1);
-		m.m.command.writeback[sizeof(m.m.command.writeback) - 1] = '\0';
+		strncpy(m.m.command.writeback, SocketPath, ARRAY_SIZE(m.m.command.writeback) - 1);
+		m.m.command.writeback[ARRAY_SIZE(m.m.command.writeback) - 1] = '\0';
 
 		/* Send the message, then wait for a response */
 		xsignal(SIGCONT, QueryResultSuccess);

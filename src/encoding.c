@@ -30,6 +30,7 @@
 
 #include "screen.h"
 #include "fileio.h"
+#include "misc.h"
 
 static int encmatch(char *, char *);
 static int recode_char(int, int, int);
@@ -1083,8 +1084,8 @@ bool utf8_isdouble(uint32_t c)
 		{0x30000, 0x3FFFD},
 	};
 
-	return ((bisearch(c, wide, sizeof(wide) / sizeof(struct interval) - 1)) ||
-		(cjkwidth && bisearch(c, ambiguous, sizeof(ambiguous) / sizeof(struct interval) - 1)));
+	return ((bisearch(c, wide, ARRAY_SIZE(wide) - 1)) ||
+		(cjkwidth && bisearch(c, ambiguous, ARRAY_SIZE(ambiguous) - 1)));
 }
 
 bool utf8_iscomb(uint32_t c)
@@ -1141,7 +1142,7 @@ bool utf8_iscomb(uint32_t c)
 		{0xE0100, 0xE01EF}
 	};
 
-	return bisearch(c, combining, sizeof(combining) / sizeof(struct interval) - 1);
+	return bisearch(c, combining, ARRAY_SIZE(combining) - 1);
 }
 
 static void comb_tofront(int root, int i)
@@ -1262,7 +1263,7 @@ int FindEncoding(char *name)
 		name = "eucJP";
 	if (encmatch(name, "off") || encmatch(name, "iso8859-1"))
 		return 0;
-	for (encoding = 0; encoding < (int)(sizeof(encodings) / sizeof(*encodings)); encoding++)
+	for (encoding = 0; encoding < (int)(ARRAY_SIZE(encodings)); encoding++)
 		if (encmatch(name, encodings[encoding].name)) {
 			LoadFontTranslationsForEncoding(encoding);
 			return encoding;
@@ -1272,7 +1273,7 @@ int FindEncoding(char *name)
 
 char *EncodingName(int encoding)
 {
-	if (encoding >= (int)(sizeof(encodings) / sizeof(*encodings)))
+	if (encoding >= (int)(ARRAY_SIZE(encodings)))
 		return 0;
 	return encodings[encoding].name;
 }
@@ -1649,7 +1650,7 @@ int LoadFontTranslation(int font, char *file)
 	if (myfile == 0) {
 		if (font == 0 || screenencodings == 0)
 			return -1;
-		if (strlen(screenencodings) > sizeof(buf) - 10)
+		if (strlen(screenencodings) > ARRAY_SIZE(buf) - 10)
 			return -1;
 		sprintf(buf, "%s/%02x", screenencodings, font & 0xff);
 		myfile = buf;

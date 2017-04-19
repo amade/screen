@@ -93,8 +93,8 @@ void inp_setprompt(char *p, char *s)
 	}
 	if (s) {
 		if (s != inpdata->inp.buf)
-			strncpy(inpdata->inp.buf, s, sizeof(inpdata->inp.buf) - 1);
-		inpdata->inp.buf[sizeof(inpdata->inp.buf) - 1] = 0;
+			strncpy(inpdata->inp.buf, s, ARRAY_SIZE(inpdata->inp.buf) - 1);
+		inpdata->inp.buf[ARRAY_SIZE(inpdata->inp.buf) - 1] = 0;
 		inpdata->inp.pos = inpdata->inp.len = strlen(inpdata->inp.buf);
 	}
 	InpRedisplayLine(INPUTLINE, 0, flayer->l_width - 1, 0);
@@ -127,7 +127,7 @@ void Input(char *istr, size_t len, int mode, void (*finfunc) (char *buf, size_t 
 		if (len > maxlen)
 			len = maxlen;
 	}
-	if (InitOverlayPage(sizeof(*inpdata), &InpLf, 1))
+	if (InitOverlayPage(sizeof(struct inpdata), &InpLf, 1))
 		return;
 	flayer->l_mode = 1;
 	inpdata = (struct inpdata *)flayer->l_data;

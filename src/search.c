@@ -34,6 +34,7 @@
 #include <sys/types.h>
 
 #include "mark.h"
+#include "misc.h"
 #include "input.h"
 
 #define INPUTLINE (flayer->l_height - 1)
@@ -60,7 +61,7 @@ void Search(int dir)
 		else
 			LMsg(0, "No previous pattern");
 	} else
-		Input((dir > 0 ? "/" : "?"), sizeof(markdata->isstr) - 1, INP_COOKED,
+		Input((dir > 0 ? "/" : "?"), ARRAY_SIZE(markdata->isstr) - 1, INP_COOKED,
 		      (dir > 0 ? searchend : backsearchend), NULL, 0);
 }
 
@@ -256,7 +257,7 @@ static void is_process(char *p, size_t len, void *data)
 		break;
 	case '\023':		/* CTRL-S */
 	case '\022':		/* CTRL-R */
-		if (markdata->isistrl >= (int)sizeof(markdata->isistr))
+		if (markdata->isistrl >= (int)ARRAY_SIZE(markdata->isistr))
 			return;
 		dir = (*p == '\023') ? 1 : -1;
 		pos += dir;
@@ -269,8 +270,8 @@ static void is_process(char *p, size_t len, void *data)
 		markdata->isistr[markdata->isistrl++] = *p;
 		break;
 	default:
-		if (*p < ' ' || markdata->isistrl >= (int)sizeof(markdata->isistr)
-		    || markdata->isstrl >= (int)sizeof(markdata->isstr) - 1)
+		if (*p < ' ' || markdata->isistrl >= (int)ARRAY_SIZE(markdata->isistr)
+		    || markdata->isstrl >= (int)ARRAY_SIZE(markdata->isstr) - 1)
 			return;
 		markdata->isstr[markdata->isstrl++] = *p;
 		markdata->isistr[markdata->isistrl++] = *p;
@@ -339,7 +340,7 @@ void ISearch(int dir)
 	markdata->isistrl = markdata->isstrl = 0;
 	if (W2D(markdata->cy) == INPUTLINE)
 		revto_line(markdata->cx, markdata->cy, INPUTLINE > 0 ? INPUTLINE - 1 : 1);
-	Input(isprompts[dir + 1], sizeof(markdata->isstr) - 1, INP_RAW, is_process, NULL, 0);
+	Input(isprompts[dir + 1], ARRAY_SIZE(markdata->isstr) - 1, INP_RAW, is_process, NULL, 0);
 	LGotoPos(flayer, markdata->cx, W2D(markdata->cy));
 	flayer->l_x = markdata->cx;
 	flayer->l_y = W2D(markdata->cy);
