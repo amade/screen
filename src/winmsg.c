@@ -444,6 +444,16 @@ winmsg_esc_ex(WinTitle, Window *win)
 		wmc_set(cond);
 }
 
+winmsg_esc_ex(WinGroup, Window *win)
+{
+	if (!win || !win->w_group)
+		return;
+
+	if (*wmbc_strcpy(wmbc, win->w_group->w_title))
+		wmc_set(cond);
+
+}
+
 winmsg_esc_ex(Cond, int *condrend)
 {
 	if (wmc_is_active(cond)) {
@@ -598,6 +608,9 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 			break;
 		case WINESC_WIN_TITLE:
 			WinMsgDoEscEx(WinTitle, win);
+			break;
+		case WINESC_WIN_GROUP:
+			WinMsgDoEscEx(WinGroup, win);
 			break;
 		case WINESC_REND_START:
 			WinMsgDoEsc(Rend);

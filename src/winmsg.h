@@ -58,6 +58,7 @@ typedef enum {
 	WINESC_WIN_SIZE        = 's',
 	WINESC_SESS_NAME       = 'S',
 	WINESC_WIN_TITLE       = 't',
+	WINESC_WIN_GROUP       = 'g',
 	WINESC_WIN_NAMES       = 'w',
 	WINESC_WIN_NAMES_NOCUR = 'W',
 	WINESC_CMD_ARGS        = 'x',
