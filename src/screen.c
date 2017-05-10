@@ -44,6 +44,7 @@
 #endif
 #include <ctype.h>
 #include <stdbool.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -3393,7 +3394,7 @@ void SetTtyname(bool fatal, struct stat *st)
 		}
 	}
 
-	if (attach_tty) {
+	if (attach_tty && strcmp(attach_tty, "")) {
 		if (stat(attach_tty, st))
 			Panic(errno, "Cannot access '%s'", attach_tty);
 
