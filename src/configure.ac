@@ -89,9 +89,9 @@ dnl Check user changeable stuff
 dnl
 
 AC_ARG_ENABLE(pam, AS_HELP_STRING([--enable-pam],
-	      [enable PAM support (default: disabled)]),
+	      [enable PAM support (default: enabled)]),
 	      [enable_pam=$enableval],
-	      [enable_pam=no])
+	      [enable_pam=yes])
 AC_ARG_ENABLE(utmp, AS_HELP_STRING([--enable-utmp],
 	      [enable utmp support (default: disabled)]),
 	      [enable_utmp=$enableval],
@@ -203,3 +203,29 @@ dnl Generate files from *.in ones
 dnl
 
 AC_OUTPUT(Makefile doc/Makefile)
+
+dnl
+dnl Print out config
+dnl
+
+echo ""
+echo "Configuration:"
+echo ""
+echo " PAM support: .............................. $enable_pam"
+echo " telnet support: ........................... $enable_telnet"
+echo " utmp support: ............................. $enable_utmp"
+echo " global socket directory: .................. $enable_socket_dir"
+echo ""
+echo " system screenrc location: ................. $with_system_screenrc"
+echo " pty mode: ................................. $with_pty_mode"
+echo " pty group: ................................ $with_pty_group"
+echo " pty on read only file system: ............. $with_pty_rofs"
+echo ""
+
+AS_IF([test "x$enable_pam" != "xyes"], [
+	echo "!!! WARNING !!!"
+	echo "YOU ARE DISABLING PAM SUPPORT!"
+	echo "FOR screen TO WORK IT WILL NEED TO RUN AS SUID root BINARY"
+	echo "THIS CONFIGURATION IS _HIGHLY_ NOT RECOMMENDED!"
+	echo "!!! WARNING !!!"
+])
