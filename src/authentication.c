@@ -135,9 +135,6 @@ static bool CheckPassword() {
 
 	ret = (strcmp(passwd, p->sp_pwdp) == 0);
 
-	free(p);
-	free(passwd);
-
 	return ret;
 }
 #endif /* ENABLE_PAM */
