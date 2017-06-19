@@ -15,7 +15,7 @@ autodetach on
 startup_message off
 
 # emulate .logout message
-pow_detach_msg "Screen session of \$LOGNAME \$:cr:\$:nl:ended."
+pow_detach_msg "Screen session of $LOGNAME detached."
 
 # advertise hardstatus support to $TERMCAP
 # termcapinfo  * '' 'hs:ts=\E_:fs=\E\\:ds=\E_\E\\'
