@@ -5116,7 +5116,8 @@ static void pow_detach_fn(char *buf, size_t len, void *data)
 	}
 	if (ktab[(int)(unsigned char)*buf].nr != RC_POW_DETACH) {
 		if (display)
-			write(D_userfd, "\007", 1);
+			if (write(D_userfd, "\007", 1) < 0)
+				Panic(0, "Can't write to D_userfd");
 		Msg(0, "Detach aborted.");
 	} else
 		Detach(D_POWER);
