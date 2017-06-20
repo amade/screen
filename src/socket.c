@@ -374,7 +374,8 @@ int MakeServerSocket()
 	if (bind(s, (struct sockaddr *)&a, strlen(SocketPath) + 2) == -1)
 		Panic(errno, "bind (%s)", SocketPath);
 	chmod(SocketPath, SOCKMODE);
-	chown(SocketPath, real_uid, real_gid);
+	if (chown(SocketPath, real_uid, real_gid))
+		Panic(errno, "chown");
 	if (listen(s, 5) == -1)
 		Panic(errno, "listen");
 #ifdef F_SETOWN
