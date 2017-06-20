@@ -690,7 +690,7 @@ void ReceiveMsg()
 	char control[1024];
 
 	len = sizeof(a);
-	if ((ns = accept(ns, (struct sockaddr *)&a, (socklen_t *) & len)) < 0) {
+	if ((ns = accept(ns, (struct sockaddr *)&a, (socklen_t *) &len)) < 0) {
 		Msg(errno, "accept");
 		return;
 	}
@@ -758,7 +758,6 @@ void ReceiveMsg()
 	if (left > 0) {
 		if (left != sizeof(m))
 			Msg(0, "Message %d of %d bytes too small", left, (int)sizeof(m));
-		else
 		return;
 	}
 	if (m.protocol_revision != MSG_REVISION) {
