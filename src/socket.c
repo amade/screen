@@ -577,15 +577,14 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 		return -1;
 	}
 	if (recvfd != -1) {
-		int ret;
 		char ttyname_in_ns[MAXPATHLEN] = {0};
 		char *myttyname;
 		i = recvfd;
 		errno = 0;
 		myttyname = GetPtsPathOrSymlink(i);
 		if (myttyname && errno == ENODEV) {
-			ret = readlink(myttyname, ttyname_in_ns,
-				       sizeof(ttyname_in_ns));
+			ssize_t ret = readlink(myttyname, ttyname_in_ns,
+					       sizeof(ttyname_in_ns));
 			if (ret < 0 || (size_t)ret >= sizeof(ttyname_in_ns)) {
 				Msg(errno, "Could not perform necessary sanity "
 					   "checks on pts device.");
