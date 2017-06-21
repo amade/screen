@@ -681,7 +681,7 @@ void ReceiveMsg()
 	static Message m;
 	char *p;
 	int ns = ServerSocket;
-	Window *wi;
+	Window *win = NULL;
 	int recvfd = -1;
 
 	struct sockaddr_un a;
@@ -775,12 +775,11 @@ void ReceiveMsg()
 	for (display = displays; display; display = display->d_next)
 		if (strcmp(D_usertty, m.m_tty) == 0)
 			break;
-	wi = 0;
 	if (!display) {
-		for (wi = windows; wi; wi = wi->w_next)
-			if (!strcmp(m.m_tty, wi->w_tty)) {
+		for (win = windows; win; win = win->w_next)
+			if (!strcmp(m.m_tty, win->w_tty)) {
 				/* XXX: hmmm, rework this? */
-				display = wi->w_layer.l_cvlist ? wi->w_layer.l_cvlist->c_display : 0;
+				display = win->w_layer.l_cvlist ? win->w_layer.l_cvlist->c_display : 0;
 				break;
 			}
 	}
@@ -814,7 +813,7 @@ void ReceiveMsg()
 		/* FALLTHROUGH */
 
 	case MSG_ATTACH:
-		if (CreateTempDisplay(&m, recvfd, wi))
+		if (CreateTempDisplay(&m, recvfd, win))
 			break;
 		FinishAttach(&m);
 		break;
@@ -822,7 +821,7 @@ void ReceiveMsg()
 		Msg(0, "%s", m.m.message);
 		break;
 	case MSG_HANGUP:
-		if (!wi)	/* ignore hangups from inside */
+		if (!win)	/* ignore hangups from inside */
 			Hangup();
 		break;
 	case MSG_DETACH:
@@ -863,7 +862,7 @@ void ReceiveRaw(int s)
 	ssize_t len = 0;
 	struct sockaddr_un a;
 	len = sizeof(a);
-	if ((s = accept(s, (struct sockaddr *)&a, (socklen_t *) & len)) < 0) {
+	if ((s = accept(s, (struct sockaddr *)&a, (socklen_t *)&len)) < 0) {
 		Msg(errno, "accept");
 		return;
 	}
@@ -879,13 +878,13 @@ void ReceiveRaw(int s)
  */
 int chsock()
 {
-	int r;
+	int ret;
 	uid_t euid = geteuid();
 	if (euid != real_uid) {
 		if (UserContext() <= 0)
 			return UserStatus();
 	}
-	r = chmod(SocketPath, SOCKMODE);
+	ret = chmod(SocketPath, SOCKMODE);
 	/*
 	 * Sockets usually reside in the /tmp/ area, where sysadmin scripts
 	 * may be happy to remove old files. We manually prevent the socket
@@ -894,8 +893,8 @@ int chsock()
 	(void)utimes(SocketPath, NULL);
 
 	if (euid != real_uid)
-		UserReturn(r);
-	return r;
+		UserReturn(ret);
+	return ret;
 }
 
 /*
@@ -1189,7 +1188,6 @@ static void DoCommandMsg(Message *mp)
 
 int SendAttachMsg(int s, Message *m, int fd)
 {
-	int r;
 	struct msghdr msg;
 	struct iovec iov;
 	char buf[CMSG_SPACE(sizeof(int))];
@@ -1211,10 +1209,10 @@ int SendAttachMsg(int s, Message *m, int fd)
 	memmove(CMSG_DATA(cmsg), &fd, sizeof(int));
 	msg.msg_controllen = cmsg->cmsg_len;
 	while (1) {
-		r = sendmsg(s, &msg, 0);
-		if (r == -1 && errno == EINTR)
+		int ret = sendmsg(s, &msg, 0);
+		if (ret == -1 && errno == EINTR)
 			continue;
-		if (r == -1)
+		if (ret == -1)
 			return -1;
 		return 0;
 	}
