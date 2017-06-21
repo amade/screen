@@ -196,8 +196,6 @@ int Attach(int how)
 	eff_uid = real_uid;
 	eff_gid = real_gid;
 
-	LockTerminal();
-
 	MasterPid = 0;
 	for (s = SocketName; *s; s++) {
 		if (*s > '9' || *s < '0')
