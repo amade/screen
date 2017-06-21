@@ -415,7 +415,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 					fputs("<\n", f);
 				}
 				if (dump == DUMP_SCROLLBACK) {
-					for (i = 0; i < fore->w_histheight; i++) {
+					for (i = fore->w_histheight - fore->w_scrollback_height; i < fore->w_histheight; i++) {
 						p = (WIN(i)->image);
 						pf = WIN(i)->font;
 						for (k = fore->w_width - 1; k >= 0 && p[k] == ' '; k--) ;

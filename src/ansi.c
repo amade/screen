@@ -2250,6 +2250,8 @@ static void WAddLineToHist(Window *win, struct mline *ml)
 
 	if (++win->w_histidx >= win->w_histheight)
 		win->w_histidx = 0;
+	if (win->w_scrollback_height < win->w_histheight)
+		++win->w_scrollback_height;
 }
 
 int MFindUsedLine(Window *win, int ye, int ys)
