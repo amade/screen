@@ -77,6 +77,7 @@ static void DoCommandMsg(Message *);
 static void FinishAttach(Message *);
 static void FinishDetach(Message *);
 static void AskPassword(Message *);
+static void PasswordProcessInput(char *, size_t);
 
 #define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0) | (multi ? 1 : 0))
 
@@ -1071,8 +1072,6 @@ static void FinishDetach(Message *m)
 		Kill(pid, SIGCONT);
 	}
 }
-
-static void PasswordProcessInput(char *, size_t);
 
 struct pwdata {
 	int l;
