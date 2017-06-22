@@ -45,7 +45,6 @@
 #include <security/pam_appl.h>
 #endif
 
-#include "authentication.h"
 #include "misc.h"
 #include "socket.h"
 #include "tty.h"
@@ -54,8 +53,6 @@ static int WriteMessage(int, Message *);
 static void AttacherSigInt(int);
 static void AttacherWinch(int);
 static void DoLock(int);
-static void LockTerminal(void);
-static void LockHup(int);
 static void AttachSigCont(int);
 
 static bool AttacherPanic = false;
@@ -426,41 +423,6 @@ void Attacher()
 			SigWinchPlease = false;
 			(void)Attach(MSG_WINCH);
 		}
-	}
-}
-
-/* ADDED by Rainer Pruy 10/15/87 */
-/* POLISHED by mls. 03/10/91 */
-
-static void LockHup(int sigsig)
-{
-	pid_t ppid = getppid();
-
-	(void)sigsig; /* unused */
-
-	if (setgid(real_gid))
-		Panic(errno, "setgid");
-	if (setuid(own_uid))
-		Panic(errno, "setuid");
-	if (ppid > 1)
-		Kill(ppid, SIGHUP);
-	exit(0);
-}
-
-static void LockTerminal()
-{
-	int sig;
-	void (*sigs[NSIG - 1]) (int);
-
-	for (sig = 1; sig < NSIG - 1; sig++)
-		sigs[sig] = xsignal(sig, sig == SIGCHLD ? SIG_DFL : SIG_IGN);
-	xsignal(SIGHUP, LockHup);
-	printf("\n");
-
-	/* reset signals */
-	for (sig = 1; sig < NSIG - 1; sig++) {
-		if (sigs[sig] != (void (*)(int))-1)
-			xsignal(sig, sigs[sig]);
 	}
 }
 
