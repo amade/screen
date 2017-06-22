@@ -91,6 +91,7 @@ static int utmpfd = -1;
 #ifndef ENABLE_UTMP
 void SlotToggle(bool how)
 {
+	(void)how; /* unused */
 #ifdef UTMPXFILE
 	Msg(0, "Unable to modify %s.\n", UTMPXFILE);
 #else
