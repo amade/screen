@@ -646,8 +646,10 @@ int main(int argc, char **argv)
 
 #define SET_GUID() do \
   { \
-    setgid(real_gid); \
-    setuid(real_uid); \
+    if (setgid(real_gid)) \
+	  Panic(0, "setgid"); \
+    if (setuid(real_uid)) \
+	  Panic(0, "setuid"); \
     eff_uid = real_uid; \
     eff_gid = real_gid; \
   } while (0)
@@ -1076,8 +1078,10 @@ static void CoreDump(int sigsig)
 
 	(void)sigsig; /* unused */
 
-	setgid(getgid());
-	setuid(getuid());
+	if (setgid(getgid()))
+		Panic(0, "setgid");
+	if (setuid(getuid()))
+		Panic(0, "setuid");
 	unlink("core");
 
 	sprintf(buf, "\r\n[screen caught a fatal signal. (core dumped)]\r\n");
@@ -1194,9 +1198,12 @@ void Finit(int i)
 void eexit(int e)
 {
 	if (ServerSocket != -1) {
-		setgid(real_gid);
-		setuid(real_uid);
-		(void)unlink(SocketPath);
+		if (setgid(real_gid))
+			AddStr("Failed to set gid\r\n");
+		if (setuid(real_uid))
+			AddStr("Failed to set uid\r\n");
+		if (unlink(SocketPath))
+			AddStr("Failed to remove socket\r\n");
 	}
 	exit(e);
 }
