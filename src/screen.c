@@ -902,10 +902,10 @@ int main(int argc, char **argv)
 			n = dup(attach_fd);
 	} else
 		n = -1;
-	freopen("/dev/null", "r", stdin);
-	freopen("/dev/null", "w", stdout);
-
-	freopen("/dev/null", "w", stderr);
+	if (!freopen("/dev/null", "r", stdin) ||
+	    !freopen("/dev/null", "w", stdout) ||
+	    !freopen("/dev/null", "w", stderr))
+		Panic(0, "Cannot reassociate std streams");
 
 	/*
 	 * This guarantees that the session owner is listed, even when we
