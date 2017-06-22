@@ -458,7 +458,7 @@ void WriteFile(struct acluser *user, char *fn, int dump) {
               }
               if (dump == DUMP_SCROLLBACK) {
 #ifdef COPY_PASTE
-                for (i = 0; i < fore->w_histheight; i++) {
+                for (i = fore->w_histheight - fore->w_scrollback_height; i < fore->w_histheight; i++) {
                   p = (char *)(WIN(i)->image);
                     for (k = fore->w_width - 1; k >= 0 && p[k] == ' '; k--)
                       ;

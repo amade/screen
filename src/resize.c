@@ -1019,6 +1019,8 @@ int wi, he, hi;
   /* store new size */
   p->w_width = wi;
   p->w_height = he;
+  if(p->w_scrollback_height > hi)
+    p->w_scrollback_height = hi;
 #ifdef COPY_PASTE
   p->w_histidx = 0;
   p->w_histheight = hi;

@@ -248,6 +248,7 @@ struct win
   int    w_slowpaste;		/* do careful writes to the window */
   int	 w_histheight;		/* all histbases are malloced with width * histheight */
   int	 w_histidx;		/* 0 <= histidx < histheight; where we insert lines */
+  int	 w_scrollback_height;	/* number of lines of output stored, to be updated with w_histidx, w_histheight */
   struct mline *w_hlines;	/* history buffer */
   struct paster w_paster;	/* paste info */
 #else

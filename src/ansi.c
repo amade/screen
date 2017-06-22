@@ -2906,6 +2906,8 @@ struct mline *ml;
 
   if (++wp->w_histidx >= wp->w_histheight)
     wp->w_histidx = 0;
+  if (wp->w_scrollback_height < wp->w_histheight)
+    ++wp->w_scrollback_height;
 }
 #endif
 

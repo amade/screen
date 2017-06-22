@@ -782,7 +782,10 @@ processchar:
 	    rep_cnt = 0;
 	  if (rep_cnt > 100)
 	    rep_cnt = 100;
-	  revto_line(markdata->left_mar, (rep_cnt * (fore->w_histheight + fore->w_height)) / 100, (fore->w_height - 1) / 2);
+	  revto_line(markdata->left_mar,
+		     fore->w_histheight - fore->w_scrollback_height +
+		     (int)(rep_cnt * (fore->w_scrollback_height + fore->w_height) / 100.0),
+		     (fore->w_height - 1) / 2);
 	  break;
 	case 0201:
 	case 'g':
@@ -1122,8 +1125,8 @@ int tx, ty, line;
     tx = 0;
   else if (tx > fore->w_width - 1)
     tx = fore->w_width -1;
-  if (ty < 0)
-    ty = 0;
+  if (ty < fore->w_histheight - fore->w_scrollback_height)
+    ty = fore->w_histheight - fore->w_scrollback_height;
   else if (ty > fore->w_histheight + fore->w_height - 1)
     ty = fore->w_histheight + fore->w_height - 1;
 
