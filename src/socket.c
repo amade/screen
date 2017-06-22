@@ -640,7 +640,8 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 
 	if (attach) {
 		if (display || win) {
-			write(i, "Attaching from inside of screen?\n", 33);
+			int unused_result = write(i, "Attaching from inside of screen?\n", 33);
+			(void)unused_result; /* unused */
 			close(i);
 			Kill(pid, SIG_BYE);
 			Msg(0, "Attach msg ignored: coming from inside.");
@@ -649,7 +650,8 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 
 		if (strcmp(user, LoginName))
 			if (*FindUserPtr(user) == 0) {
-				write(i, "Access to session denied.\n", 26);
+				int unused_result = write(i, "Access to session denied.\n", 26);
+				(void)unused_result; /* unused */
 				close(i);
 				Kill(pid, SIG_BYE);
 				Msg(0, "Attach: access denied for user %s.", user);
@@ -660,7 +662,8 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 	/* create new display */
 	GetTTY(i, &Mode);
 	if (MakeDisplay(user, m->m_tty, attach ? m->m.attach.envterm : "", i, pid, &Mode) == 0) {
-		write(i, "Could not make display.\n", 24);
+		int unused_result = write(i, "Could not make display.\n", 24);
+		(void)unused_result; /* unused */
 		close(i);
 		Msg(0, "Attach: could not make display for user %s", user);
 		Kill(pid, SIG_BYE);
