@@ -30,6 +30,7 @@
 
 #include "socket.h"
 
+#include <pwd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -1074,7 +1075,7 @@ static void FinishDetach(Message *m)
 }
 
 struct pwdata {
-	int l;
+	size_t len;
 	char buf[MAXLOGINLEN + 1];
 	Message m;
 };
@@ -1082,49 +1083,43 @@ struct pwdata {
 static void AskPassword(Message *m)
 {
 	struct pwdata *pwdata;
-	pwdata = malloc(sizeof(struct pwdata));
+	char prompt[MAXSTR];
+
+	pwdata = calloc(1, sizeof(struct pwdata));
 	if (!pwdata)
 		Panic(0, "%s", strnomem);
-	pwdata->l = 0;
+
+	pwdata->len = 0;
 	pwdata->m = *m;
+
 	D_processinputdata = (char *)pwdata;
 	D_processinput = PasswordProcessInput;
-	AddStr("Screen password: ");
+
+	snprintf(prompt, sizeof(prompt), "\ascreen used by %s%s<%s> on %s.\nPassword: ", ppp->pw_gecos,
+		 ppp->pw_gecos[0] ? " " : "", ppp->pw_name, HostName);
+	AddStr(prompt);
 }
 
 static void PasswordProcessInput(char *ibuf, size_t ilen)
 {
 	struct pwdata *pwdata;
-	int c, l;
+	int c;
+	size_t len;
 	char *up;
 	int pid = D_userpid;
 
 	pwdata = (struct pwdata *)D_processinputdata;
-	l = pwdata->l;
+	len = pwdata->len;
 	while (ilen-- > 0) {
 		c = *(unsigned char *)ibuf++;
 		if (c == '\r' || c == '\n') {
 			char *buf = NULL;
-			up = "XXXXXX";
-			pwdata->buf[l] = 0;
-			buf = crypt(pwdata->buf, up);
-			if (!buf || strncmp(buf, up, strlen(up))) {
-				/* uh oh, user failed */
-				memset(pwdata->buf, 0, sizeof(pwdata->buf));
-				if (!buf)
-					AddStr("\r\ncrypt() failed.\r\n");
-				else
-					AddStr("\r\nPassword incorrect.\r\n");
-				D_processinputdata = 0;	/* otherwise freed by FreeDis */
-				FreeDisplay();
-				Msg(0, "Illegal reattach attempt from terminal %s.", pwdata->m.m_tty);
-				free(pwdata);
-				Kill(pid, SIG_BYE);
-				return;
-			}
+			pwdata->buf[len] = 0;
+
 			/* great, pw matched, all is fine */
 			memset(pwdata->buf, 0, sizeof(pwdata->buf));
 			AddStr("\r\n");
+
 			D_processinputdata = 0;
 			D_processinput = ProcessInput;
 			if (pwdata->m.type == MSG_DETACH || pwdata->m.type == MSG_POW_DETACH)
@@ -1135,24 +1130,28 @@ static void PasswordProcessInput(char *ibuf, size_t ilen)
 			return;
 		}
 		if (c == Ctrl('c')) {
+			memset(pwdata->buf, 0, sizeof(pwdata->buf));
 			AddStr("\r\n");
 			FreeDisplay();
 			Kill(pid, SIG_BYE);
 			return;
 		}
 		if (c == '\b' || c == 0177) {
-			if (l > 0)
-				l--;
+			if (len > 0) {
+				pwdata->buf[len] = 0;
+				len--;
+			}
 			continue;
 		}
 		if (c == Ctrl('u')) {
-			l = 0;
+			memset(pwdata->buf, 1, sizeof(pwdata->buf));
+			len = 0;
 			continue;
 		}
-		if (l < (int)sizeof(pwdata->buf) - 1)
-			pwdata->buf[l++] = c;
+		if (len < sizeof(pwdata->buf) - 1)
+			pwdata->buf[len++] = c;
 	}
-	pwdata->l = l;
+	pwdata->len = len;
 }
 
 /* 'end' is exclusive, i.e. you should *not* write in *end */
