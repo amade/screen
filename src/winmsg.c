@@ -704,7 +704,7 @@ static int WindowChangedCheck(char *s, WinMsgEscapeChar what, int *hp)
 		}
 		if (*s == WINESC_HSTATUS)
 			h = 1;
-		if (*s == what || ((*s | l) == what))
+		if (*s == (char)what || ((*s | l) == (int)what))
 			break;
 		if (*s)
 			s++;
