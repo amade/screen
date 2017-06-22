@@ -42,7 +42,7 @@ AWK = @AWK@
 SHELL=/bin/sh
 
 CFILES=	screen.c \
-	acls.c ansi.c attacher.c authentication.c backtick.c canvas.c comm.c \
+	acls.c ansi.c attacher.c backtick.c canvas.c comm.c \
 	display.c encoding.c fileio.c help.c input.c kmapdef.c layer.c \
 	layout.c list_display.c list_generic.c list_window.c logfile.c mark.c \
 	misc.c process.c pty.c resize.c sched.c search.c socket.c telnet.c \
@@ -184,7 +184,7 @@ resize.o: resize.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
 socket.o: socket.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
  layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h encoding.h fileio.h list_generic.h misc.h process.h \
- winmsgbuf.h resize.h socket.h termcap.h tty.h utmp.h authentication.h
+ winmsgbuf.h resize.h socket.h termcap.h tty.h utmp.h
 search.o: search.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
  layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h mark.h input.h
@@ -211,7 +211,7 @@ input.o: input.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
  logfile.h misc.h
 attacher.o: attacher.c config.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
- window.h logfile.h misc.h socket.h tty.h authentication.h
+ window.h logfile.h misc.h socket.h tty.h
 pty.o: pty.c config.h screen.h os.h ansi.h sched.h acls.h comm.h layer.h \
  term.h image.h canvas.h display.h layout.h viewport.h window.h logfile.h
 process.o: process.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
@@ -273,4 +273,3 @@ list_window.o: list_window.c config.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
  window.h logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h input.h \
  list_generic.h misc.h process.h
-authentication.o: authentication.h

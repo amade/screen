@@ -457,8 +457,6 @@ static void LockTerminal()
 	xsignal(SIGHUP, LockHup);
 	printf("\n");
 
-	Authenticate();
-
 	/* reset signals */
 	for (sig = 1; sig < NSIG - 1; sig++) {
 		if (sigs[sig] != (void (*)(int))-1)

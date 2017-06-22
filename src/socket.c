@@ -46,6 +46,12 @@
 #include <unistd.h>
 #include <signal.h>
 
+#if ENABLE_PAM
+#include <security/pam_appl.h>
+#else
+#include <shadow.h>
+#endif
+
 #include "screen.h"
 
 #ifdef HAVE_DIRENT_H
@@ -78,6 +84,7 @@ static void DoCommandMsg(Message *);
 static void FinishAttach(Message *);
 static void FinishDetach(Message *);
 static void AskPassword(Message *);
+static bool CheckPassword(const char *password);
 static void PasswordProcessInput(char *, size_t);
 
 #define SOCKMODE (S_IWRITE | S_IREAD | (displays ? S_IEXEC : 0) | (multi ? 1 : 0))
@@ -1095,17 +1102,103 @@ static void AskPassword(Message *m)
 	D_processinputdata = (char *)pwdata;
 	D_processinput = PasswordProcessInput;
 
-	snprintf(prompt, sizeof(prompt), "\ascreen used by %s%s<%s> on %s.\nPassword: ", ppp->pw_gecos,
+	snprintf(prompt, sizeof(prompt), "\ascreen used by %s%s<%s> on %s.\r\nPassword: ", ppp->pw_gecos,
 		 ppp->pw_gecos[0] ? " " : "", ppp->pw_name, HostName);
 	AddStr(prompt);
 }
+
+#if ENABLE_PAM
+int screen_conv(int num_msg, const struct pam_message **msg,
+		struct pam_response **resp, void *data)
+{
+	(void)num_msg;	/* unused */
+	(void)msg;	/* unused */
+
+	*resp = (struct pam_response *)data;
+	return PAM_SUCCESS;
+}
+
+static bool CheckPassword(const char *password) {
+	bool ret = false;
+
+	struct pam_response *reply;
+
+	pam_handle_t *pamh = 0;
+	struct pam_conv pamc;
+	int pam_ret;
+	char *tty_name;
+
+	reply = (struct pam_response *)malloc(sizeof(struct pam_response));  
+
+	reply[0].resp = strdup(password);  
+	reply[0].resp_retcode = 0;  
+
+	pamc.conv = &screen_conv; 
+	pamc.appdata_ptr = (void *)reply;
+	pam_ret= pam_start("screen", ppp->pw_name, &pamc, &pamh);
+	if (pam_ret!= PAM_SUCCESS) {
+		return false;
+	}
+
+	if (strncmp(attach_tty, "/dev/", 5) == 0) {
+		tty_name = attach_tty + 5;
+	} else {
+		tty_name = attach_tty;
+	}
+	pam_ret = pam_set_item(pamh, PAM_TTY, tty_name);
+	if (pam_ret != PAM_SUCCESS) {
+		return false;
+	}
+
+	pam_ret = pam_authenticate(pamh, 0);
+	pam_end(pamh, pam_ret);
+
+	if (pam_ret == PAM_MAXTRIES) {
+		AddStr("\r\nmaximum number of tries exceeded\r\n");
+		return false;
+	} else if (pam_ret == PAM_ABORT) {
+		AddStr("\r\nabort requested by PAM\r\n");
+		return false;
+	} else if (pam_ret == PAM_SUCCESS) {
+		ret = true;
+	}
+
+	return ret;
+}
+
+#else /* ENABLE_PAM */
+
+static bool CheckPassword(const char *password) {
+	bool ret = false;
+	char *passwd = 0;
+	struct spwd *p;
+	gid_t gid = getegid();
+	uid_t uid = geteuid();
+
+	if (seteuid(0) || setegid(0))
+		Panic(0, "\r\ncan't get root uid/gid\r\n");
+	p = getspnam(ppp->pw_name);
+	if (seteuid(uid) || setegid(gid))
+		Panic(0, "\r\ncan't restore uid/gid\r\n");
+
+	if (p == NULL) {
+		AddStr("\r\ncan't open passwd file\r\n");
+		return false;
+	}
+
+	passwd = crypt(password, p->sp_pwdp);
+
+	ret = (strcmp(passwd, p->sp_pwdp) == 0);
+
+	return ret;
+}
+#endif /* ENABLE_PAM */
 
 static void PasswordProcessInput(char *ibuf, size_t ilen)
 {
 	struct pwdata *pwdata;
 	int c;
 	size_t len;
-	char *up;
 	int pid = D_userpid;
 
 	pwdata = (struct pwdata *)D_processinputdata;
@@ -1113,8 +1206,19 @@ static void PasswordProcessInput(char *ibuf, size_t ilen)
 	while (ilen-- > 0) {
 		c = *(unsigned char *)ibuf++;
 		if (c == '\r' || c == '\n') {
-			char *buf = NULL;
 			pwdata->buf[len] = 0;
+
+			if (!CheckPassword(pwdata->buf)) {
+				/* uh oh, user failed */
+				memset(pwdata->buf, 0, sizeof(pwdata->buf));
+				AddStr("\r\nPassword incorrect.\r\n");
+				D_processinputdata = 0; /* otherwise freed by FreeDis */
+				FreeDisplay();
+				Msg(0, "Illegal reattach attempt from terminal %s.", pwdata->m.m_tty);
+				free(pwdata);
+				Kill(pid, SIG_BYE);
+				return;
+			}
 
 			/* great, pw matched, all is fine */
 			memset(pwdata->buf, 0, sizeof(pwdata->buf));
