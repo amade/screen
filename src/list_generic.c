@@ -51,7 +51,7 @@ const struct LayFuncs ListLf = {
 };
 
 /** Returns non-zero on success. */
-ListData *glist_display(GenericList *list, const char *name)
+ListData *glist_display(const GenericList *list, const char *name)
 {
 	ListData *ldata;
 

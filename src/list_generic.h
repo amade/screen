@@ -53,7 +53,7 @@ struct ListData {
 	ListRow *selected;		/* The selected row */
 	ListRow *top;			/* The topmost visible row */
 
-	GenericList *list_fn;		/* The functions that deal with the list */
+	const GenericList *list_fn;		/* The functions that deal with the list */
 
 	char *search;			/* The search term, if any */
 
@@ -67,7 +67,7 @@ void glist_remove_rows (ListData *ldata);
 
 void glist_display_all (ListData *list);
 
-ListData * glist_display (GenericList *list, const char *name);
+ListData * glist_display (const GenericList *list, const char *name);
 
 void glist_abort (void);
 

@@ -440,7 +440,7 @@ static int gl_Window_match(ListData *ldata, ListRow *row, const char *needle)
 	return 0;
 }
 
-static GenericList gl_Window = {
+static const GenericList gl_Window = {
 	gl_Window_header,
 	gl_Window_footer,
 	gl_Window_row,

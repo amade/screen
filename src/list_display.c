@@ -196,7 +196,7 @@ static int gl_Display_free(ListData *ldata)
 	return 0;
 }
 
-static GenericList gl_Display = {
+static const GenericList gl_Display = {
 	gl_Display_header,
 	gl_Display_footer,
 	gl_Display_row,
