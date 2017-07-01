@@ -999,12 +999,18 @@ int main(int ac, char** av)
   attach_tty = "";
   if (!detached && !lsflag && !cmdflag && !(dflag && !mflag && !rflag && !xflag) &&
       !(sty && !SockMatch && !mflag && !rflag && !xflag)) {
+    int fl;
 
     /* ttyname implies isatty */
     SetTtyname(true, &st);
 #ifdef MULTIUSER
     tty_mode = (int)st.st_mode & 0777;
 #endif
+
+    fl = fcntl(0, F_GETFL, 0);
+    if (fl != -1 && (fl & (O_RDWR|O_RDONLY|O_WRONLY)) == O_RDWR)
+      attach_fd = 0;
+
 
     if (attach_fd == -1) {
       if ((n = secopen(attach_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
