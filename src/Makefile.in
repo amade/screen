@@ -69,7 +69,7 @@ check: $(TESTBIN)
 tests/test-%: tests/test-%.c %.o tests/mallocmock.o tests/macros.h tests/signature.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) $< -o $@ $*.o tests/mallocmock.o
 
-install_bin: screen
+install_bin: screen installdirs
 	-if [ -f $(DESTDIR)$(bindir)/$(SCREEN) ] && [ ! -f $(DESTDIR)$(bindir)/$(SCREEN).old ]; \
 		then mv $(DESTDIR)$(bindir)/$(SCREEN) $(DESTDIR)$(bindir)/$(SCREEN).old; fi
 	$(INSTALL_PROGRAM) screen $(DESTDIR)$(bindir)/$(SCREEN)
