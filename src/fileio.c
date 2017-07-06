@@ -557,7 +557,8 @@ int printpipe(Window *p, char *cmd)
 		display = p->w_pdisplay;
 		displays = 0;
 		close(0);
-		dup(pi[0]);
+		if (dup(pi[0]) < 0)
+			Panic(errno, "printpipe dup");
 		closeallfiles(0);
 		if (setgid(real_gid) || setuid(real_uid))
 			Panic(errno, "printpipe setuid");
