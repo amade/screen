@@ -239,11 +239,11 @@ static void nextword(int *xp, int *yp, int flags, int num)
 
 static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend)
 {
-	int i, j, from, to, ry, c;
+	int i, j, from, to, ry;
 	int l = 0;
 	uint32_t *im;
 	struct mline *ml;
-	int cf, cfx, font;
+	int font;
 	uint32_t *fo, *fox;
 
 	markdata->second = 0;
@@ -288,9 +288,9 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
 		fox = ml->fontx + j;
 		font = ASCII;
 		for (; j <= to; j++) {
-			c = (unsigned char)*im++;
-			cf = (unsigned char)*fo++;
-			cfx = (unsigned char)*fox++;
+			uint32_t c = *im++;
+			uint32_t cf = *fo++;
+			uint32_t cfx = *fox++;
 			if (fore->w_encoding == UTF8) {
 				c |= cf << 8 | cfx << 16;
 				if (c == UCS_HIDDEN)
@@ -302,7 +302,7 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
 				continue;
 			}
 			if (is_dw_font(cf)) {
-				c = c << 8 | (unsigned char)*im++;
+				c = c << 8 | *im++;
 				fo++;
 				j++;
 			}
