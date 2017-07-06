@@ -386,10 +386,14 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 		if (dump == DUMP_EXCHANGE && public) {
 			if (exists) {
 				if ((fd = open(fn, O_WRONLY, 0666)) >= 0) {
-					if (fstat(fd, &stb2) == 0 && stb.st_dev == stb2.st_dev
-					    && stb.st_ino == stb2.st_ino)
-						ftruncate(fd, 0);
-					else {
+					if (fstat(fd, &stb2) == 0
+					    && stb.st_dev == stb2.st_dev
+					    && stb.st_ino == stb2.st_ino) {
+						if (ftruncate(fd, 0) != 0) {
+							close(fd);
+							fd = -1;
+						}
+					} else {
 						close(fd);
 						fd = -1;
 					}
