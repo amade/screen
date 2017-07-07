@@ -1245,8 +1245,9 @@ int color256to88(int color)
  * SetColor - Sets foreground and background color
  * 0x00000000 <- default color ("transparent")
  * 	one note here that "null" variable is pointer to array of 0 and that's one of reasons to use it this way 
- * 0x010000xx <- 256 color
- * 0x02xxxxxx <- truecolor
+ * 0x0100000x <- 16 base color
+ * 0x020000xx <- 256 color
+ * 0x04xxxxxx <- truecolor
  */
 void SetColor(uint32_t foreground, uint32_t background)
 {
@@ -1289,14 +1290,7 @@ void SetColor(uint32_t foreground, uint32_t background)
 		AddCStr("\033[39m");	/* works because AX is set */
 	}
 	if (f != of && (f & 0x01000000)) {
-		f &= 0x0ff;
-		if (f > 15 && D_CCO != 256) {
-			f = D_CCO == 88 && D_CAF ? color256to88(f) : color256to16(f);
-			of = f;
-		}
-		if (f > 15 && D_CAF) {
-			AddCStr2(D_CAF, f);
-		}
+		f &= 0x0f;
 		if (f < 8) {
 			if (D_CAF)
 				AddCStr2(D_CAF, f);
@@ -1307,7 +1301,21 @@ void SetColor(uint32_t foreground, uint32_t background)
 			AddCStr2("\033[9%p1%dm", f & 7);
 		}
 	}
-	if (f != of && (f & 0x02000000) && hastruecolor) {
+	if (f != of && (f & 0x02000000)) {
+		f &= 0x0ff;
+		if (f > 15 && D_CCO != 256) {
+			f = D_CCO == 88 && D_CAF ? color256to88(f) : color256to16(f);
+		}
+		if (D_CAF) {
+			//AddCStr2(D_CAF, f);
+			FILE *F = fopen("/tmp/debug", "a+");
+			fprintf(F, "%s\n", D_CAF);
+			fclose(F);
+			tputs(tparm("\033[38;5;%dm", f), 1, DoAddChar);
+		}
+		
+	}
+	if (f != of && (f & 0x04000000) && hastruecolor) {
 		uint8_t _r, _g, _b;
 
 		_r = (f & 0x00ff0000) >> 16;
@@ -1323,14 +1331,7 @@ void SetColor(uint32_t foreground, uint32_t background)
 		AddCStr("\033[49m");	/* works because AX is set */
 	}
 	if (b != ob && (b & 0x01000000)) {
-		b &= 0x0ff;
-		if (b > 15 && D_CCO != 256) {
-			b = D_CCO == 88 && D_CAB ? color256to88(b) : color256to16(b);
-			ob = b;
-		}
-		if (b > 15 && D_CAB) {
-			AddCStr2(D_CAB, b);
-		}
+		b &= 0x0f;
 		if (b < 8) {
 			if (D_CAB)
 				AddCStr2(D_CAB, b);
@@ -1341,7 +1342,20 @@ void SetColor(uint32_t foreground, uint32_t background)
 			AddCStr2("\033[10%p1%dm", b & 7);
 		}
 	}
-	if (b != ob && (b & 0x02000000) && hastruecolor) {
+	if (b != ob && (b & 0x02000000)) {
+		b &= 0x0ff;
+		if (b > 15 && D_CCO != 256) {
+			b = D_CCO == 88 && D_CAB ? color256to88(b) : color256to16(b);
+		}
+		if (D_CAB) {
+		//	AddCStr2(D_CAB, b);
+			FILE *F = fopen("/tmp/debug", "a+");
+			fprintf(F, "%s\n", D_CAB);
+			fclose(F);
+			tputs(tparm("\033[48;5;%dm", b), 1, DoAddChar);
+		}
+	}
+	if (b != ob && (b & 0x04000000) && hastruecolor) {
 		uint8_t _r, _g, _b;
 
 		_r = (b & 0x00ff0000) >> 16;

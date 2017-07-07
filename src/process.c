@@ -5746,7 +5746,7 @@ uint64_t ParseAttrColor(char *str, int msgok)
 			*cm = 0;
 			break;
 		case 'x':
-			*cm = 2;
+			*cm = 4;
 		case '0':
 		case '1':
 		case '2':
@@ -5757,7 +5757,7 @@ uint64_t ParseAttrColor(char *str, int msgok)
 		case '7':
 		case '8':
 		case '9':
-			if (!*cm) *cm = 1;
+			if (!*cm) *cm = 2;
 			*cl = *cl * 10 + (*str - '0');
 			break;
 		case ';':
@@ -5798,7 +5798,7 @@ uint64_t ParseAttrColor(char *str, int msgok)
  *	xx 00 00 00 00 00 00 00 - attr
  *	00 x0 00 00 00 00 00 00 - what kind of background
  *	00 0x 00 00 00 00 00 00 - what kind of foreground
- *	                          0 - default, 1 - 256, 2 - truecolor
+ *	                          0 - default, 1 - base 16; 2 - 256, 4 - truecolor
  *	00 00 xx xx xx 00 00 00 - background
  *	00 00 00 00 00 xx xx xx - foreground
  *   	mc -structure to modify
@@ -5813,8 +5813,10 @@ void ApplyAttrColor(uint64_t i, struct mchar *mc)
 
 	h = (0x00FF000000000000 & i) >> 48;
 
+	if (h & 0x40) b |= 0x04000000;
 	if (h & 0x20) b |= 0x02000000;
 	if (h & 0x10) b |= 0x01000000;
+	if (h & 0x04) f |= 0x04000000;
 	if (h & 0x02) f |= 0x02000000;
 	if (h & 0x01) f |= 0x01000000;
 	

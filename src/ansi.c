@@ -1708,9 +1708,9 @@ static void SelectRendition(Window *win)
 			if (jj < 0 || jj > 255)
 				continue;
 			if (j == 38) {
-				colorfg = jj | 0x01000000;
+				colorfg = jj | 0x02000000;
 			} else {
-				colorbg = jj | 0x01000000;
+				colorbg = jj | 0x02000000;
 			}
 			continue;
 		}
@@ -1724,9 +1724,9 @@ static void SelectRendition(Window *win)
 			b = win->w_args[i + 4];
 
 			if (j == 38) {
-				colorfg = 0x02000000 | (r << 16) | (g << 8) | b;
+				colorfg = 0x04000000 | (r << 16) | (g << 8) | b;
 			} else {
-				colorbg = 0x02000000 | (r << 16) | (g << 8) | b;
+				colorbg = 0x04000000 | (r << 16) | (g << 8) | b;
 			}
 			i += 4;
 			continue;
