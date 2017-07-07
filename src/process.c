@@ -3402,13 +3402,23 @@ void DoAction(struct action *act, int key)
 			OutputMsg(0, "illegal maxwin number specified");
 		else if (n > 2048)
 			OutputMsg(0, "maximum 2048 windows allowed");
-		else if (n > maxwin && windows)
-			OutputMsg(0, "may increase maxwin only when there's no window");
 		else {
-			if (!windows) {
-				wtab = realloc(wtab, n * sizeof(Window *));
-				memset(wtab, 0, n * sizeof(Window *));
+			if (n < maxwin) {
+				int current_maxwin = 0;
+				for (Window *win = windows; win; win = win->w_next) {
+					if (win->w_number > current_maxwin)
+						current_maxwin = win->w_number;	
+				}
+				if (current_maxwin + 1 > n) { /* we count windows from 0 */
+					OutputMsg(0, "you still have too many windows");
+					break;
+				}
 			}
+			Window **newwtab = calloc(n, sizeof(Window *));
+			Window **oldwtab = wtab;
+			memcpy(newwtab, oldwtab, maxwin * sizeof(Window *));
+			wtab = newwtab;
+			free(oldwtab);
 			maxwin = n;
 		}
 		break;
