@@ -401,12 +401,13 @@ int MakeWindow(struct NewWindow *newwin)
 
 	if (!wtab) {
 		if (!maxwin)
-			maxwin = MAXWIN;
+			maxwin = 16;
 		wtab = calloc(maxwin, sizeof(Window *));
 	}
 
 	nwin_compose(&nwin_default, newwin, &nwin);
 
+	/* search for free spot in the list */
 	startat = nwin.StartAt < maxwin ? nwin.StartAt : 0;
 	pp = wtab + startat;
 
@@ -417,9 +418,16 @@ int MakeWindow(struct NewWindow *newwin)
 			pp = wtab;
 	}
 	while (pp != wtab + startat);
+
+	/* no free spots, let's make one */
 	if (*pp) {
-		Msg(0, "No more windows.");
-		return -1;
+		Window **newwtab = calloc(maxwin * 2, sizeof(Window *));
+		Window **oldwtab = wtab;
+		memcpy(newwtab, oldwtab, maxwin * sizeof(Window *));
+		wtab = newwtab;
+		free(oldwtab);
+		pp = wtab + maxwin;
+		maxwin *= 2;
 	}
 	n = pp - wtab;
 

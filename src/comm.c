@@ -146,7 +146,6 @@ struct comm comms[RC_LAST + 1] =
   { "mapnotnext",	NEED_DISPLAY|ARGS_0,		{NULL} },
   { "maptimeout",	ARGS_01,			{NULL} },
   { "markkeys",		ARGS_1,				{NULL} },
-  { "maxwin",		ARGS_01,			{NULL} },
   { "meta",		NEED_LAYER|ARGS_0,		{NULL} },
   { "monitor",		NEED_FORE|ARGS_01,		{NULL} },
   { "mousetrack",	NEED_DISPLAY | ARGS_01,		{NULL} },

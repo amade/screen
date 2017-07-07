@@ -3391,37 +3391,6 @@ void DoAction(struct action *act, int key)
 		if (msgok)
 			OutputMsg(0, "Will %sdo alternate screen switching", use_altscreen ? "" : "not ");
 		break;
-	case RC_MAXWIN:
-		if (!args[0]) {
-			OutputMsg(0, "maximum windows allowed: %d", maxwin);
-			break;
-		}
-		if (ParseNum(act, &n))
-			break;
-		if (n < 1)
-			OutputMsg(0, "illegal maxwin number specified");
-		else if (n > 2048)
-			OutputMsg(0, "maximum 2048 windows allowed");
-		else {
-			if (n < maxwin) {
-				int current_maxwin = 0;
-				for (Window *win = windows; win; win = win->w_next) {
-					if (win->w_number > current_maxwin)
-						current_maxwin = win->w_number;	
-				}
-				if (current_maxwin + 1 > n) { /* we count windows from 0 */
-					OutputMsg(0, "you still have too many windows");
-					break;
-				}
-			}
-			Window **newwtab = calloc(n, sizeof(Window *));
-			Window **oldwtab = wtab;
-			memcpy(newwtab, oldwtab, maxwin * sizeof(Window *));
-			wtab = newwtab;
-			free(oldwtab);
-			maxwin = n;
-		}
-		break;
 	case RC_BACKTICK:
 		if (ParseBase(act, *args, &n, 10, "decimal"))
 			break;
@@ -3762,7 +3731,7 @@ void CollapseWindowlist()
 {
 	int pos, moveto = 0;
 
-	for (pos = 1; pos < MAXWIN; pos++)
+	for (pos = 1; pos < maxwin ; pos++)
 		if (wtab[pos])
 			for (; moveto < pos; moveto++)
 				if (!wtab[moveto]) {
@@ -5057,7 +5026,7 @@ void DoScreen(char *fn, char **av)
 		if (*buf != '\0')
 			nwin.aka = buf;
 		num = atoi(*av);
-		if (num < 0 || (maxwin && num > maxwin - 1) || (!maxwin && num > MAXWIN - 1)) {
+		if (num < 0 || (num > maxwin - 1)) {
 			Msg(0, "%s: illegal screen number %d.", fn, num);
 			num = 0;
 		}

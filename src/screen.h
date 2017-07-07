@@ -46,7 +46,6 @@
 #define MSGWAIT 	5
 #define MSGMINWAIT 	1
 #define SILENCEWAIT	30
-#define MAXWIN		100
 
 /*
  * if a nasty user really wants to try a history of 3000 lines on all 10
