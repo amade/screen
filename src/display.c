@@ -2805,8 +2805,10 @@ void RunBlanker(char **cmdv)
 		closeallfiles(slave);
 		if (open(m, O_RDWR))
 			Panic(errno, "Cannot open %s", m);
-		dup(0);
-		dup(0);
+		if (dup(0) < 0)
+			Panic(errno, "Cannot dup() %s", m);
+		if (dup(0) < 0)
+			Panic(errno, "Cannot dup() %s", m);
 		if (slave != -1)
 			close(slave);
 		SetTTY(0, &D_OldMode);
