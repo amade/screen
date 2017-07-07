@@ -13,9 +13,6 @@ void  SendBreak (Window *, int, int);
 int   TtyGrabConsole (int, bool, char *);
 char *TtyGetModemStatus (int, char *);
 void  brktty (int);
-struct baud_values *lookup_baud (int bps);
-int   SetBaud (struct mode *, int, int);
-int   SttyMode (struct mode *, char *);
 int   CheckTtyname (char *);
 char  *GetPtsPathOrSymlink (int);
 

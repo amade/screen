@@ -49,11 +49,14 @@
 #include "tty.h"
 
 static void consredir_readev_fn(Event *, void *);
+static struct baud_values *lookup_baud (int);
 
 bool separate_sids = true;
 
 static void DoSendBreak(int, int, int);
 static void SigAlrmDummy(int);
+static int SttyMode(struct mode *, char *);
+static int SetBaud (struct mode *, int, int);
 
 /* Frank Schulz (fschulz@pyramid.com):
  * I have no idea why VSTART is not defined and my fix is probably not
@@ -536,7 +539,7 @@ void SetFlow(bool on)
 }
 
 /* parse commands from opt and modify m */
-int SttyMode(struct mode *m, char *opt)
+static int SttyMode(struct mode *m, char *opt)
 {
 	static const char sep[] = " \t:;,";
 
@@ -1147,7 +1150,7 @@ static struct baud_values btable[] = {
  * baud may either be a bits-per-second value or a symbolic
  * value as returned by cfget?speed()
  */
-struct baud_values *lookup_baud(int baud)
+static struct baud_values *lookup_baud(int baud)
 {
 	for (struct baud_values *p = btable; p->bps >= 0; p++)
 		if (baud == p->bps || baud == p->sym)
@@ -1161,7 +1164,7 @@ struct baud_values *lookup_baud(int baud)
  * termio B... symbols as defined in e.g. suns sys/ttydev.h
  * -1 means don't change.
  */
-int SetBaud(struct mode *m, int ibaud, int obaud)
+static int SetBaud(struct mode *m, int ibaud, int obaud)
 {
 	struct baud_values *ip, *op;
 
