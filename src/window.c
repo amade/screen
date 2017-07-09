@@ -975,7 +975,8 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 			brktty(-1);
 		if (slave != -1) {
 			close(0);
-			dup(slave);
+			if(dup(slave) < 0)
+				Panic(errno, "Cannot duplicate file descriptor");
 			close(slave);
 			closeallfiles(win->w_ptyfd);
 			slave = dup(0);
@@ -1004,10 +1005,13 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 #endif
 					if (newfd < 0)
 						Panic(errno, "Cannot open %s", ttyn);
-				} else
-					dup(newfd);
+				} else {
+					if (dup(newfd) < 0)
+						Panic(errno, "Cannot duplicate file descriptor");
+				}
 			} else {
-				dup(win->w_ptyfd);
+				if(dup(win->w_ptyfd) < 0)
+					Panic(errno, "Cannot duplicate file descriptor");
 				wfdused = 1;
 			}
 		}
