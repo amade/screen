@@ -103,7 +103,7 @@ typedef char* slot_t;	/* used internally in utmp.c */
  *    signal stuff
  */
 
-/* apparently NSIG is not part of standart, but it's present some form in most
+/* apparently NSIG is not part of standard, but it's present some form in most
  * libc headers, if not define sane default
  */
 #if !defined(NSIG)
