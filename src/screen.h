@@ -57,7 +57,7 @@
 
 struct mode {
 	struct termios tio;
-#if defined(KANJI) && defined(TIOCKSET)
+#if defined(TIOCKSET)
 	struct jtchars m_jtchars;
 	int m_knjmode;
 #endif
