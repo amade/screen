@@ -31,12 +31,6 @@
 #include "pty.h"
 
 #include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <fcntl.h>
-#include <signal.h>
 
 #include "screen.h"
 
@@ -50,25 +44,7 @@
 # include <libutil.h>
 #endif
 
-/*
- * if no PTYRANGE[01] is in the config file, we pick a default
- */
-#ifndef PTYRANGE0
-#define PTYRANGE0 "qpr"
-#endif
-#ifndef PTYRANGE1
-#define PTYRANGE1 "0123456789abcdef"
-#endif
-
 int pty_preopen = 0;
-
-/*
- *  Open all ptys with O_NOCTTY, just to be on the safe side
- *  (RISCos mips breaks otherwise)
- */
-#ifndef O_NOCTTY
-#define O_NOCTTY 0
-#endif
 
 /***************************************************************/
 
