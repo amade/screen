@@ -60,8 +60,6 @@
 #define PTYRANGE1 "0123456789abcdef"
 #endif
 
-static char TtyName[32];
-
 int pty_preopen = 0;
 
 /*
@@ -76,7 +74,9 @@ int pty_preopen = 0;
 
 int OpenPTY(char **ttyn)
 {
+	static char TtyName[32];
 	int f, s;
+
 	if (openpty(&f, &s, TtyName, NULL, NULL) != 0)
 		return -1;
 	close(s);
