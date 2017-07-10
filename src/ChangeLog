@@ -1,3 +1,9 @@
+Version 4.6.1 (10/07/2017):
+  * Fixes:
+	- problems with starting session in some cases
+	- parallel make install
+	- segfault when querying info on nonUTF locale
+
 Version 4.6.0 (28/06/2017):
   * Update Unicode wide tables to 9.0
   * Support more serial speeds
