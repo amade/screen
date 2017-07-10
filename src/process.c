@@ -4669,7 +4669,7 @@ static void ShowInfo()
 		p += strlen(p);
 	}
 	if (wp->w_encoding != UTF8)
-		if (D_CC0 || (D_CS0 && *D_CS0)) {
+		if (display && (D_CC0 || (D_CS0 && *D_CS0))) {
 			if (wp->w_gr == 2) {
 				sprintf(p, " G%c", wp->w_Charset + '0');
 				if (wp->w_FontE >= ' ')
