@@ -5771,7 +5771,7 @@ ShowInfo()
   if (wp->w_encoding != UTF8)
 #  endif
 # endif
-    if (D_CC0 || (D_CS0 && *D_CS0))
+    if (display && (D_CC0 || (D_CS0 && *D_CS0)))
       {
 	if (wp->w_gr == 2)
 	  {
