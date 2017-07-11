@@ -201,7 +201,7 @@ static int gl_Window_footer(ListData *ldata)
 {
 	(void)ldata; /* unused */
 	centerline("[Press ctrl-l to refresh; Return to end.]", flayer->l_height - 1);
-	return 0;
+	return 1;
 }
 
 static int gl_Window_row(ListData *ldata, ListRow *lrow)
