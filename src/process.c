@@ -1855,7 +1855,7 @@ void DoAction(struct action *act, int key)
 			display_help((char *)0, ktab);
 		break;
 	case RC_LICENSE:
-		display_copyright();
+		display_license();
 		break;
 	case RC_COPY:
 		if (flayer->l_layfn != &WinLf) {

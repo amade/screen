@@ -52,6 +52,7 @@
 
 #include "logfile.h"		/* islogfile, logfflush, logfopen/logfclose */
 #include "fileio.h"
+#include "list_generic.h"
 #include "mark.h"
 #include "utmp.h"
 #include "winmsg.h"
@@ -1000,7 +1001,7 @@ int main(int argc, char **argv)
 	}
 
 	if (display && default_startup)
-		display_copyright();
+		display_license();
 	xsignal(SIGINT, SigInt);
 	if (rflag && (rflag & 1) == 0 && !quietflag) {
 		Msg(0, "New screen...");

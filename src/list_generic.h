@@ -73,6 +73,8 @@ void glist_abort (void);
 
 void display_displays (void);
 
+void display_license (void);
+
 void display_windows (int onblank, int order, Window *group);
 
 /* global variables */
