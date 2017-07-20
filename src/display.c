@@ -1307,10 +1307,7 @@ void SetColor(uint32_t foreground, uint32_t background)
 			f = D_CCO == 88 && D_CAF ? color256to88(f) : color256to16(f);
 		}
 		if (D_CAF) {
-			//AddCStr2(D_CAF, f);
-			FILE *F = fopen("/tmp/debug", "a+");
-			fprintf(F, "%s\n", D_CAF);
-			fclose(F);
+			//AddCStr2(D_CAF, f); //FIXME
 			tputs(tparm("\033[38;5;%dm", f), 1, DoAddChar);
 		}
 		
@@ -1348,10 +1345,7 @@ void SetColor(uint32_t foreground, uint32_t background)
 			b = D_CCO == 88 && D_CAB ? color256to88(b) : color256to16(b);
 		}
 		if (D_CAB) {
-		//	AddCStr2(D_CAB, b);
-			FILE *F = fopen("/tmp/debug", "a+");
-			fprintf(F, "%s\n", D_CAB);
-			fclose(F);
+		//	AddCStr2(D_CAB, b); // FIXME
 			tputs(tparm("\033[48;5;%dm", b), 1, DoAddChar);
 		}
 	}
