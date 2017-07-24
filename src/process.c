@@ -5608,7 +5608,7 @@ struct win *p;
     *s++ = '&';
   if (p->w_monitor == MON_DONE
 #ifdef MULTIUSER
-      && (ACLBYTE(p->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id))
+      && display && (ACLBYTE(p->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id))
 #endif
      )
     *s++ = '@';
