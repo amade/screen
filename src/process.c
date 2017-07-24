@@ -4515,7 +4515,7 @@ char *AddWindowFlags(char *buf, int len, Window *p)
 		*s++ = '-';
 	if (p->w_layer.l_cvlist && p->w_layer.l_cvlist->c_lnext)
 		*s++ = '&';
-	if (p->w_monitor == MON_DONE && (ACLBYTE(p->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id))
+	if (display && p->w_monitor == MON_DONE && (ACLBYTE(p->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id))
 	    )
 		*s++ = '@';
 	if (p->w_bell == BELL_DONE)
