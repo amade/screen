@@ -220,7 +220,6 @@ gl_Window_header(struct ListData *ldata)
       LPutWinMsg(flayer, wdata->group->w_title, strlen(wdata->group->w_title), &mchar_blank, 7, 0);
     }
 
-  display = 0;
   str = MakeWinMsgEv(wlisttit, (struct win *)0, '%', flayer->l_width, (struct event *)0, 0);
 
   LPutWinMsg(flayer, str, strlen(str), &mchar_blank, 0, g);
@@ -252,7 +251,6 @@ gl_Window_row(struct ListData *ldata, struct ListRow *lrow)
 
   for (xoff = 0, g = w->w_group; g != wdata->group; g = g->w_group)
     xoff += 2;
-  display = Layer2Window(flayer) ? 0 : flayer->l_cvlist ? flayer->l_cvlist->c_display : 0;
   str = MakeWinMsgEv(wliststr, w, '%', flayer->l_width - xoff, NULL, 0);
   if (ldata->selected == lrow)
     mchar = &mchar_so;
