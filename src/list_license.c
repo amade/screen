@@ -210,7 +210,7 @@ static const GenericList gl_License = {
 void display_license()
 {
 	ListData *ldata;
-	if (flayer->l_width < 10 || flayer->l_height < 5) {
+	if (flayer->l_width < 40 || flayer->l_height < 5) {
 		LMsg(0, "Window size too small for license page");
 		return;
 	}
