@@ -445,6 +445,7 @@ static const GenericList gl_Window = {
 	gl_Window_input,
 	gl_Window_freerow,
 	gl_Window_free,
+	gl_Window_rebuild,
 	gl_Window_match
 };
 

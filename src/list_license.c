@@ -203,6 +203,7 @@ static const GenericList gl_License = {
 	gl_License_input,
 	gl_License_freerow,
 	gl_License_free,
+	gl_License_rebuild,
 	NULL			/* We do not allow searching in the license page, at the moment */
 };
 

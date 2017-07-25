@@ -44,6 +44,7 @@ struct GenericList {
 	int (*gl_pinput) (ListData *, char **inp, size_t *len);	/* Process input */
 	int (*gl_freerow) (ListData *, ListRow *);		/* Free data for a row */
 	int (*gl_free) (ListData *);				/* Free data for the list */
+	void  (*gl_rebuild) (ListData *);				/* Rebuild display */
 	int (*gl_matchrow) (ListData *, ListRow *, const char *);
 };
 
