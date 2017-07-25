@@ -3983,59 +3983,52 @@ standout
 blinking
 .PD
 .PP
-Colors are coded either as a hexadecimal number or two letters specifying
-the desired background and foreground color (in that order). The following
-colors are known:
-.IP k
+The old format of specifying colors by letters (k,r,g,y,b,m,c,w) is now
+deprecated. Colors are coded as 0-7 for basic ANSI, 0-255 for 256 color
+mode, or for truecolor, either a hexadecimal code starting with x, or
+HTML notation as either 3 or 6 hexadecimal digits. Foreground and background
+are specified by putting a semicolon between them. Ex: \*Q#FFF;#000\*U or
+\*Qi7;0\*U is white on a black background.
+.PP
+The following numbers are for basic ANSI:
+.IP 0
 black
 .PD 0
-.IP r
+.IP 1
 red
-.IP g
+.IP 2
 green
-.IP y
+.IP 3
 yellow
-.IP b
+.IP 4
 blue
-.IP m
+.IP 5
 magenta
-.IP c
+.IP 6
 cyan
-.IP w
+.IP 7
 white
-.IP d
-default color
-.IP .
-leave color unchanged
 .PD
 .PP
-The capitalized versions of the letter specify bright colors. You can also
-use the pseudo-color 'i' to set just the brightness and leave the color
-unchanged.
-.br
-A one digit/letter color description is treated as foreground or
-background color dependent on the current attributes: if reverse mode is
-set, the background color is changed instead of the foreground color.
-If you don't like this, prefix the color with a \*Q.\*U. If you want
-the same behavior for two-letter color descriptions, also prefix them
-with a \*Q.\*U.
+You can also use the pseudo-color 'i' to set just the brightness and leave
+the color unchanged.
 .br
 As a special case, \*Q%{\-}\*U restores the attributes and colors that
 were set before the last change was made (i.e., pops one level of the
 color-change stack).
 .PP
 Examples:
-.IP "\*QG\*U"
+.IP "\*Qi2\*U"
 set color to bright green
 .IP "\*Q+b r\*U"
 use bold red
-.IP "\*Q= yd\*U"
-clear all attributes, write in default color on yellow background.
-.IP "%\-Lw%{= BW}%50>%n%f* %t%{\-}%+Lw%<"
+.IP "\*Q#F00;FFA\*U"
+write in bright red color on a pale yellow background.
+.IP "%\-Lw%{#AAA;#006}%50>%n%f* %t%{\-}%+Lw%<"
 The available windows centered at the current window and truncated to
 the available width. The current window is displayed white on blue.
 This can be used with \*Qhardstatus alwayslastline\*U.
-.IP "%?%F%{.R.}%?%3n %t%? [%h]%?"
+.IP "%?%F%{;2}%?%3n %t%? [%h]%?"
 The window number and title and the window's hardstatus, if one is set.
 Also use a red background if this is the active focus. Useful for
 \*Qcaption string\*U.
