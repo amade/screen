@@ -5683,6 +5683,9 @@ void RefreshXtermOSC()
  *  	        l - blinking
  *  	        0-255;0-255 - foreground;background
  *  	        xABCDEF;xABCDEF - truecolor foreground;background
+ *  	        #ABCDEF;#ABCDEF - truecolor foreground;background
+ *  	        xABC;xABC - truecolor foreground;background
+ *  	        #ABC;#ABC - truecolor foreground;background
  *  	msgok - can we be verbose if something is wrong
  *
  *  returns value representing encoded value
@@ -5700,64 +5703,138 @@ uint64_t ParseAttrColor(char *str, int msgok)
 	cl = &fg;
 	cm = &fm;
 
-
 	while (*str) {
-		switch (*str) {
-		case 'd':
-			attr |= A_DI;
-			break;
-		case 'u':
-			attr |= A_US;
-			break;
-		case 'b':
-			attr |= A_BD;
-			break;
-		case 'r':
-			attr |= A_RV;
-			break;
-		case 'i':
-			attr |= A_IT;
-			break;
-		case 'l':
-			attr |= A_BL;
-			break;
-		case '-':
-			*cm = 0;
-			break;
-		case 'x':
-			*cm = 4;
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			if (!*cm) *cm = 2;
-			*cl = *cl * 10 + (*str - '0');
-			break;
-		case ';':
-			cl = &bg;
-			cm = &bm;
-			break;
-		case ' ':
-			break;
-		default:
-			if (msgok)
-				Msg(0, "junk after description: '%c'\n", *str);
-			break;
+		if (*cm < 4) {
+			switch (*str) {
+			case 'd':
+				attr |= A_DI;
+				break;
+			case 'u':
+				attr |= A_US;
+				break;
+			case 'b':
+				attr |= A_BD;
+				break;
+			case 'r':
+				attr |= A_RV;
+				break;
+			case 'i':
+				attr |= A_IT;
+				break;
+			case 'l':
+				attr |= A_BL;
+				break;
+			case '-':
+				*cm = 0;
+				break;
+			case 'x':
+			case '#':
+				*cm = 4;
+				str++;
+				continue;
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				if (!*cm) *cm = 1;
+				*cl = *cl * 10 + (*str - '0');
+				break;
+			case ';':
+				cl = &bg;
+				cm = &bm;
+				break;
+			case ' ':
+				break;
+			default:
+				if (msgok)
+					Msg(0, "junk after description: '%c'\n", *str);
+				break;
+			}
+		}
+		if (*cm == 4) {
+			switch (*str) {
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				*cl = ((*cl & 0x0F000000)+0x01000000) + ((*cl << 4) | (*str - '0'));
+				break;
+			case 'a':
+			case 'b':
+			case 'c':
+			case 'd':
+			case 'e':
+			case 'f':
+				*cl = ((*cl & 0x0F000000)+0x01000000) + ((*cl << 4) | (*str - ('a' - 10)));
+				break;
+			case 'A':
+			case 'B':
+			case 'C':
+			case 'D':
+			case 'E':
+			case 'F':
+				*cl = ((*cl & 0x0F000000)+0x01000000) + ((*cl << 4) | (*str - ('A' - 10)));
+				break;
+			case ';':
+				cl = &bg;
+				cm = &bm;
+				break;
+			default:
+				if (msgok)
+					Msg(0, "junk after description: '%c'\n", *str);
+				break;
+			}
 		}
 		str++;
 	}
 
-	if (fg > 255) {
-		fg = fm = 0;
+	/* fm/bm auto switches from 1 to 2 when color >= 16
+	 * fm/bm mode 4 uses 4th byte as a digit counter. If it's 3
+	 *       digits, translate 0x00000ABC to 0x00AABBCC
+	 * fm/bm mode 4 gets & 0x0FFFFFF at the end, so we don't care
+	 *       about upper boundaries.
+	 */
+	if (fm == 4) {
+		if (fg <= 0x03000000)
+		{
+			fg &= 0x0FFF;
+			fg = ((fg & 0x0F00) << 8) | ((fg & 0x0F0) << 4) | (fg & 0x0F);
+			fg = fg | (fg << 4);
+		}
+	} else {
+		if (fg > 7) {
+			fm = 2;
+		}
+		if (fg > 255) {
+			fg = fm = 0;
+		}
 	}
-	if (bg > 255) {
-		bg = bm = 0;
+	if (bm == 4) {
+		if (bg <= 0x03000000)
+		{
+			bg &= 0x0FFF;
+			bg = ((bg & 0x0F00) << 8) | ((bg & 0x0F0) << 4) | (bg & 0x0F);
+			bg = bg | (bg << 4);
+		}
+	} else {
+		if (bg > 7) {
+			bm = 2;
+		}
+		if (bg > 255) {
+			bg = bm = 0;
+		}
 	}
 
 	r = (((uint64_t)attr & 0x0FF) << 56);
@@ -5772,15 +5849,15 @@ uint64_t ParseAttrColor(char *str, int msgok)
 
 /*
  *   ApplyAttrColor - decodes color attributes and sets them in structure
- *   	i - encoded attributes and color
- *   	00 00 00 00 00 00 00 00
+ *	i - encoded attributes and color
+ *	00 00 00 00 00 00 00 00
  *	xx 00 00 00 00 00 00 00 - attr
  *	00 x0 00 00 00 00 00 00 - what kind of background
  *	00 0x 00 00 00 00 00 00 - what kind of foreground
  *	                          0 - default, 1 - base 16; 2 - 256, 4 - truecolor
  *	00 00 xx xx xx 00 00 00 - background
  *	00 00 00 00 00 xx xx xx - foreground
- *   	mc -structure to modify
+ *	mc -structure to modify
  */
 void ApplyAttrColor(uint64_t i, struct mchar *mc)
 {
