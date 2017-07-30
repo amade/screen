@@ -347,9 +347,6 @@ static int ListResize(int wi, int he)
 {
 	ListData *ldata;
 
-	if (wi < 10 || he < 5)
-		return -1;
-
 	ldata = flayer->l_data;
 
 	flayer->l_width = wi;
@@ -357,7 +354,9 @@ static int ListResize(int wi, int he)
 	flayer->l_y = he - 1;
 
 	glist_remove_rows(ldata);
-	ldata->list_fn->gl_rebuild(ldata);
+	if (ldata->list_fn->gl_rebuild(ldata) < 0) {
+		return -1;
+	}
 
 	return 0;
 }

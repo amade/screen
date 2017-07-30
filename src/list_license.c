@@ -117,12 +117,15 @@ static int gl_License_row(ListData *ldata, ListRow *lrow)
 	return 1;
 }
 
-static void gl_License_rebuild(ListData *ldata)
+static int gl_License_rebuild(ListData *ldata)
 {
 	/* recreate the rows */
 	ListRow *row = NULL;
 	size_t linelen = 0;
 	char *lastspace = NULL;
+
+	if (flayer->l_width < 40 || flayer->l_height < 5)
+		return -1; 
 
 	for (char *c = license; *c != 0; c++) {
 		if (linelen == 0)
@@ -145,8 +148,8 @@ static void gl_License_rebuild(ListData *ldata)
 		}
 	}
 
-
 	glist_display_all(ldata);
+	return 0;
 }
 
 static int gl_License_input(ListData *ldata, char **inp, size_t *len)

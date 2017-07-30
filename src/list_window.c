@@ -131,17 +131,21 @@ static ListRow *gl_Window_add_group(ListData *ldata, ListRow *row)
 	return cur;
 }
 
-static void gl_Window_rebuild(ListData *ldata)
+static int gl_Window_rebuild(ListData *ldata)
 {
 	ListRow *row = NULL;
 	struct gl_Window_Data *wdata = ldata->data;
 	Window *w;
+
+	if (flayer->l_width < 10 || flayer->l_height < 6)
+		return -1;
 
 	FOR_EACH_WINDOW(wdata, w, if (w->w_group != wdata->group)
 			continue; row = glist_add_row(ldata, w, row); if (w == wdata->fore)
 			ldata->selected = row; if (w->w_type == W_TYPE_GROUP && wdata->nested)
 			row = gl_Window_add_group(ldata, row);) ;
 	glist_display_all(ldata);
+	return 0;
 }
 
 static ListRow *gl_Window_findrow(ListData *ldata, Window *p)

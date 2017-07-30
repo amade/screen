@@ -123,11 +123,15 @@ static int gl_Display_row(ListData *ldata, ListRow *lrow)
 	return 1;
 }
 
-static void gl_Display_rebuild(ListData *ldata)
+static int gl_Display_rebuild(ListData *ldata)
 {
 	/* recreate the rows */
 	Display *d;
 	ListRow *row = NULL;
+
+	if (flayer->l_width < 10 || flayer->l_height < 5)
+		return -1;
+
 	for (d = displays; d; d = d->d_next) {
 		row = glist_add_row(ldata, d, row);
 		if (d == display)
@@ -135,6 +139,7 @@ static void gl_Display_rebuild(ListData *ldata)
 	}
 
 	glist_display_all(ldata);
+	return 0;
 }
 
 static int gl_Display_input(ListData *ldata, char **inp, size_t *len)
