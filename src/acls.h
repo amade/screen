@@ -39,7 +39,7 @@
 #define ACL_BITS_PER_CMD 1	/* for comm.h */
 #define ACL_BITS_PER_WIN 3	/* for window.h */
 
-#define USER_CHUNK 8
+#define USER_CHUNK 1
 
 #define ACLBYTE(data, w)   ((data)[(w) >> 3])
 #define ACLBIT(w)   (0x80 >> ((w) & 7))
