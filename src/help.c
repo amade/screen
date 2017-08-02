@@ -47,56 +47,6 @@ char version[60];		/* initialised by main() */
 
 static void PadStr(char *, int, int, int);
 
-void exit_with_usage(char *myname, char *message, char *arg)
-{
-	printf("Use: %s [-opts] [cmd [args]]\n", myname);
-	printf(" or: %s -r [host.tty]\n\nOptions:\n", myname);
-#ifdef ENABLE_TELNET
-	printf("-4            Resolve hostnames only to IPv4 addresses.\n");
-	printf("-6            Resolve hostnames only to IPv6 addresses.\n");
-#endif
-	printf("-a            Force all capabilities into each window's termcap.\n");
-	printf("-A -[r|R]     Adapt all windows to the new display width & height.\n");
-	printf("-c file       Read configuration file instead of '.screenrc'.\n");
-	printf("-d (-r)       Detach the elsewhere running screen (and reattach here).\n");
-	printf("-dmS name     Start as daemon: Screen session in detached mode.\n");
-	printf("-D (-r)       Detach and logout remote (and reattach here).\n");
-	printf("-D -RR        Do whatever is needed to get a screen session.\n");
-	printf("-e xy         Change command characters.\n");
-	printf("-f            Flow control on, -fn = off, -fa = auto.\n");
-	printf("-h lines      Set the size of the scrollback history buffer.\n");
-	printf("-i            Interrupt output sooner when flow control is on.\n");
-#if defined(ENABLE_UTMP)
-	printf("-l            Login mode on (update %s), -ln = off.\n", UTMPXFILE);
-#endif
-	printf("-ls [match]   or\n");
-	printf("-list         Do nothing, just list our SocketDir [on possible matches].\n");
-	printf("-L            Turn on output logging.\n");
-	printf("-Logfile file Set logfile name.\n");
-	printf("-m            ignore $STY variable, do create a new screen session.\n");
-	printf("-O            Choose optimal output rather than exact vt100 emulation.\n");
-	printf("-p window     Preselect the named window if it exists.\n");
-	printf("-q            Quiet startup. Exits with non-zero return code if unsuccessful.\n");
-	printf("-Q            Commands will send the response to the stdout of the querying process.\n");
-	printf("-r [session]  Reattach to a detached screen process.\n");
-	printf("-R            Reattach if possible, otherwise start a new session.\n");
-	printf("-s shell      Shell to execute rather than $SHELL.\n");
-	printf("-S sockname   Name this session <pid>.sockname instead of <pid>.<tty>.<host>.\n");
-	printf("-t title      Set title. (window's name).\n");
-	printf("-T term       Use term as $TERM for windows, rather than \"screen\".\n");
-	printf("-U            Tell screen to use UTF-8 encoding.\n");
-	printf("-v            Print \"Screen version %s\".\n", version);
-	printf("-wipe [match] Do nothing, just clean up SocketDir [on possible matches].\n");
-	printf("-x            Attach to a not detached screen. (Multi display mode).\n");
-	printf("-X            Execute <cmd> as a screen command in the specified session.\n");
-	if (message && *message) {
-		printf("\nError: ");
-		printf(message, arg);
-		printf("\n");
-	}
-	exit(1);
-}
-
 /*
 **   Here come the help page routines
 */

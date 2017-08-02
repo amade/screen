@@ -4,7 +4,6 @@
 #include "comm.h"
 #include "canvas.h"
 
-void  exit_with_usage (char *, char *, char *);
 void  display_help (char *, struct action *);
 void  display_bindkey (char *, struct action *);
 int   InWList (void);
