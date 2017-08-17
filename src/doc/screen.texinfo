@@ -993,8 +993,6 @@ Select default character encoding.  @xref{Character Processing}.
 Set default line-wrapping behavior.  @xref{Wrap}.
 @item defwritelock @var{on|off|auto}
 Set default writelock behavior.  @xref{Multiuser Session}.
-@item defzombie [@var{keys}]
-Keep dead windows.  @xref{Zombie}.
 @item zombie_timeout [@var{seconds}]
 Try to reconnect dead windows after timeout.  @xref{Zombie}.
 @item detach [-h]
@@ -5277,7 +5275,6 @@ Display the version and modification date in the message line.
 @node Zombie, Printcmd, Version, Miscellaneous
 @section Zombie
 @deffn Command zombie [@var{keys} [onerror] ]
-@deffnx Command defzombie [@var{keys}]
 @deffn Command zombie_timeout [@var{seconds}]
 @end deffn
 (none)@*
@@ -5292,8 +5289,7 @@ parameters will clear the zombie setting, thus making windows disappear when
 the process terminates.
 
 As the zombie setting is affected globally for all windows, this command 
-should only be called @code{defzombie}. Until we need this as a per window 
-setting, the commands @code{zombie} and @code{defzombie} are synonymous.
+should probably be called @code{defzombie}, but it isn't.
 
 Optionally you can put the word @code{onerror} after the keys. This will
 cause screen to monitor exit status of the process running in the window.
