@@ -943,8 +943,6 @@ Enter copy mode.  @xref{Copy}.
 Removed. Use @code{paste} instead.  @xref{Registers}.
 @item crlf @var{state}
 Select line break behavior for copying.  @xref{Line Termination}.
-@item debug @var{state}
-Suppress/allow debugging output.  @xref{Debug}.
 @item defautonuke @var{state}
 Select default autonuke behavior.  @xref{Autonuke}.
 @item defbce @var{state}
@@ -5054,7 +5052,6 @@ categories.
 * Bumpleft::			Swaps window with previous one on window list.
 * Bumpright::			Swaps window with next one on window list.
 * Collapse::			Collapses window list.
-* Debug::                       Suppress/allow debugging output.
 * License::                     Display the disclaimer page.
 * Nethack::                     Use @code{nethack}-like error messages.
 * Nonblock::			Disable flow-control to a display.
@@ -5168,25 +5165,14 @@ Exchanges windows positions on window list, with window having bigger number
 (right to current one).
 @end deffn
 
-@node Collapse, Debug, Bumpright, Miscellaneous
+@node Collapse, License, Bumpright, Miscellaneous
 @section Collapse
 @deffn Command collapse
 (none)@*
 Changes windows numbers, so there is no gaps between them.
 @end deffn
 
-@node Debug, License, Collapse, Miscellaneous
-@section Debug
-@deffn Command debug [on|off]
-(none)@*
-Turns runtime debugging on or off. If @code{screen} has been compiled with
-option @code{-DDEBUG} debugging is available and is turned on per default.
-Note that this command only affects debugging output from the main 
-@samp{SCREEN} process correctly. Debug output from attacher processes can only
-be turned off once and forever.
-@end deffn
-
-@node License, Nethack, Debug, Miscellaneous
+@node License, Nethack, Collapse, Miscellaneous
 @section License
 @kindex ,
 @deffn Command license
@@ -5924,10 +5910,7 @@ If you find a bug in @code{Screen}, please send electronic mail to
 of @code{Screen} which you are using.  Also include in your message the
 hardware and operating system, the compiler used to compile, a
 description of the bug behavior, and the conditions that triggered the
-bug. Please recompile @code{screen} with the @samp{-DDEBUG} options
-enabled, reproduce the bug, and have a look at the debug output written to
-the directory @file{/tmp/debug}. If necessary quote suspect passages from the
-debug output and show the contents of your @file{config.h} if it matters.
+bug.
 
 @node Availability,  , Reporting Bugs, Bugs
 @section Availability
