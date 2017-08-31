@@ -359,7 +359,7 @@ void  freetty (void);
 void  Resize_obuf (void);
 void  NukePending (void);
 void  ClearAllXtermOSC (void);
-void  SetXtermOSC (int, char *);
+void  SetXtermOSC (int, char *, char *);
 void  ResetIdle (void);
 void  KillBlanker (void);
 void  DisplaySleep1000 (int, int);

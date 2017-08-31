@@ -1216,6 +1216,11 @@ static int StringEnd(Window *win)
 	Canvas *cv;
 	char *p;
 	int typ;
+	char *t;
+
+	/* There's two ways to terminate an OSC. If we've seen an ESC
+	 * then it's been ST otherwise it's BEL. */
+	t = win->w_state == STRESC ? "\033\\" : "\a";
 
 	win->w_state = LIT;
 	*win->w_stringp = '\0';
@@ -1263,7 +1268,7 @@ static int StringEnd(Window *win)
 					if (!D_CXT)
 						continue;
 					if (D_forecv->c_layer->l_bottom == &win->w_layer)
-						SetXtermOSC(typ2, p);
+						SetXtermOSC(typ2, p, t);
 					if ((typ2 == 3 || typ2 == 4) && D_xtermosc[typ2])
 						Redisplay(0);
 					if (typ == 11 && !strcmp("?", p))

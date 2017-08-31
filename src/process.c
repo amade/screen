@@ -5669,7 +5669,7 @@ void RefreshXtermOSC()
 
 	p = Layer2Window(D_forecv->c_layer);
 	for (i = 4; i >= 0; i--)
-		SetXtermOSC(i, p ? p->w_xtermosc[i] : 0);
+		SetXtermOSC(i, p ? p->w_xtermosc[i] : 0, "\a");
 }
 
 /*
