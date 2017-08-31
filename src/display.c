@@ -2128,6 +2128,7 @@ void SetXtermOSC(int i, char *s)
 {
 	static char *oscs[][2] = {
 		{WT_FLAG ";", "screen"},	/* set window title */
+		{"11;", ""},	/* background RGB */
 		{"20;", ""},	/* background */
 		{"39;", "black"},	/* default foreground (black?) */
 		{"49;", "white"}	/* default background (white?) */
@@ -2153,7 +2154,7 @@ void SetXtermOSC(int i, char *s)
 void ClearAllXtermOSC()
 {
 	int i;
-	for (i = 3; i >= 0; i--)
+	for (i = 4; i >= 0; i--)
 		SetXtermOSC(i, 0);
 	if (D_xtermosc[0])
 		AddStr("\033[23;" WT_FLAG "t");	/* unstack titles (xterm patch #251) */

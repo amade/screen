@@ -1250,22 +1250,24 @@ static int StringEnd(Window *win)
 			}
 			break;
 		}
-		if (typ == 0 || typ == 1 || typ == 2 || typ == 20 || typ == 39 || typ == 49) {
+		if (typ == 0 || typ == 1 || typ == 2 || typ == 11 || typ == 20 || typ == 39 || typ == 49) {
 			int typ2;
 			typ2 = typ / 10;
-			if (--typ2 < 0)
-				typ2 = 0;
 			if (strcmp(win->w_xtermosc[typ2], p)) {
-				strncpy(win->w_xtermosc[typ2], p, ARRAY_SIZE(win->w_xtermosc[typ2]) - 1);
-				win->w_xtermosc[typ2][ARRAY_SIZE(win->w_xtermosc[typ2]) - 1] = 0;
+				if (typ != 11 || strcmp("?", p)) {
+					strncpy(win->w_xtermosc[typ2], p, ARRAY_SIZE(win->w_xtermosc[typ2]) - 1);
+					win->w_xtermosc[typ2][ARRAY_SIZE(win->w_xtermosc[typ2]) - 1] = 0;
+				}
 
 				for (display = displays; display; display = display->d_next) {
 					if (!D_CXT)
 						continue;
 					if (D_forecv->c_layer->l_bottom == &win->w_layer)
-						SetXtermOSC(typ2, win->w_xtermosc[typ2]);
-					if ((typ2 == 2 || typ2 == 3) && D_xtermosc[typ2])
+						SetXtermOSC(typ2, p);
+					if ((typ2 == 3 || typ2 == 4) && D_xtermosc[typ2])
 						Redisplay(0);
+					if (typ == 11 && !strcmp("?", p))
+						break;
 				}
 			}
 		}
