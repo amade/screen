@@ -1094,6 +1094,8 @@ static void AskPassword(Message *m)
 {
 	struct pwdata *pwdata;
 	char prompt[MAXSTR];
+	char *gecos_comma;
+	char *realname = NULL;
 
 	pwdata = calloc(1, sizeof(struct pwdata));
 	if (!pwdata)
@@ -1105,8 +1107,16 @@ static void AskPassword(Message *m)
 	D_processinputdata = (char *)pwdata;
 	D_processinput = PasswordProcessInput;
 
-	snprintf(prompt, sizeof(prompt), "\ascreen used by %s%s<%s> on %s.\r\nPassword: ", ppp->pw_gecos,
+	/* if GECOS data is CSV, we only want the text before the first comma */
+	if ((gecos_comma = strchr(ppp->pw_gecos, ',')))
+		if (!(realname = strndup(ppp->pw_gecos, gecos_comma -  ppp->pw_gecos)))
+			gecos_comma = NULL; /* well, it was worth a shot. */
+
+	snprintf(prompt, sizeof(prompt), "\ascreen used by %s%s<%s> on %s.\r\nPassword: ",
+		 gecos_comma ? realname : ppp->pw_gecos,
 		 ppp->pw_gecos[0] ? " " : "", ppp->pw_name, HostName);
+
+	free(realname);
 	AddStr(prompt);
 }
 
