@@ -153,7 +153,7 @@ struct Window {
 	char	 w_inbuf[IOSIZE];
 	size_t	 w_inlen;
 	char	 w_outbuf[IOSIZE];
-	int	 w_outlen;
+	size_t	 w_outlen;
 	bool	 w_aflag;		/* (-a option) */
 	bool	 w_dynamicaka;		/* should we change name */
 	char	*w_title;		/* name of the window */
