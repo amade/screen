@@ -389,8 +389,7 @@ ListRow *glist_add_row(ListData *ldata, void *data, ListRow *after)
 
 void glist_remove_rows(ListData *ldata)
 {
-	ListRow *row;
-	for (row = ldata->root; row;) {
+	for (ListRow *row = ldata->root; row;) {
 		ListRow *r = row;
 		row = row->next;
 		ldata->list_fn->gl_freerow(ldata, r);
