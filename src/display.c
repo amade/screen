@@ -939,8 +939,6 @@ void RedisplayDisplays(int cur_only)
 /* XXX: use oml! */
 void ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
 {
-	int i;
-
 	(void)oml; /* unused */
 
 	if (n == 0)
@@ -961,7 +959,7 @@ void ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
 		if (D_CDC && !(n == 1 && D_DC))
 			AddCStr2(D_CDC, n);
 		else if (D_DC) {
-			for (i = n; i--;)
+			for (int i = n; i--;)
 				AddCStr(D_DC);
 		} else {
 			RefreshLine(y, xs, xe, 0);
@@ -975,13 +973,13 @@ void ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
 			if (D_CIC && !(n == -1 && D_IC))
 				AddCStr2(D_CIC, -n);
 			else if (D_IC) {
-				for (i = -n; i--;)
+				for (int i = -n; i--;)
 					AddCStr(D_IC);
 			} else if (D_IM) {
 				InsertMode(true);
 				SetRendition(&mchar_null);
 				SetBackColor(bce);
-				for (i = -n; i--;)
+				for (int i = -n; i--;)
 					INSERTCHAR(' ');
 				bce = 0;	/* all done */
 			} else {
@@ -992,7 +990,7 @@ void ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
 		} else {
 			SetRendition(&mchar_null);
 			SetBackColor(bce);
-			for (i = -n; i--;)
+			for (int i = -n; i--;)
 				INSERTCHAR(' ');
 			bce = 0;	/* all done */
 		}
@@ -1012,7 +1010,6 @@ void ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
 
 void ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 {
-	int i;
 	int up;
 	int /*oldtop,*/ oldbot;
 	int alok, dlok, aldlfaster;
@@ -1080,11 +1077,11 @@ void ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 	if ((up || D_SR) && D_top == ys && D_bot == ye && !aldlfaster) {
 		if (up) {
 			GotoPos(0, ye);
-			for (i = n; i-- > 0;)
+			for (int i = n; i-- > 0;)
 				AddCStr(D_NL);	/* was SF, I think NL is faster */
 		} else {
 			GotoPos(0, ys);
-			for (i = n; i-- > 0;)
+			for (int i = n; i-- > 0;)
 				AddCStr(D_SR);
 		}
 	} else if (alok && dlok) {
@@ -1093,7 +1090,7 @@ void ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 			if (D_CDL && !(n == 1 && D_DL))
 				AddCStr2(D_CDL, n);
 			else
-				for (i = n; i--;)
+				for (int i = n; i--;)
 					AddCStr(D_DL);
 		}
 		if (!up || ye != D_bot) {
@@ -1101,7 +1098,7 @@ void ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 			if (D_CAL && !(n == 1 && D_AL))
 				AddCStr2(D_CAL, n);
 			else
-				for (i = n; i--;)
+				for (int i = n; i--;)
 					AddCStr(D_AL);
 		}
 	} else {
@@ -1697,9 +1694,7 @@ void RefreshHStatus()
 
 void RefreshAll(int isblank)
 {
-	Canvas *cv;
-
-	for (cv = D_cvlist; cv; cv = cv->c_next) {
+	for (Canvas *cv = D_cvlist; cv; cv = cv->c_next) {
 		CV_CALL(cv, LayRedisplayLine(-1, -1, -1, isblank));
 		display = cv->c_display;	/* just in case! */
 	}
@@ -1708,12 +1703,11 @@ void RefreshAll(int isblank)
 
 void RefreshArea(int xs, int ys, int xe, int ye, int isblank)
 {
-	int y;
 	if (!isblank && xs == 0 && xe == D_width - 1 && ye == D_height - 1 && (ys == 0 || D_CD)) {
 		ClearArea(xs, ys, xs, xe, xe, ye, 0, 0);
 		isblank = 1;
 	}
-	for (y = ys; y <= ye; y++)
+	for (int y = ys; y <= ye; y++)
 		RefreshLine(y, xs, xe, isblank);
 }
 
@@ -2153,8 +2147,7 @@ void SetXtermOSC(int i, char *s, char *t)
 
 void ClearAllXtermOSC()
 {
-	int i;
-	for (i = 4; i >= 0; i--)
+	for (int i = 4; i >= 0; i--)
 		SetXtermOSC(i, 0, "\a");
 	if (D_xtermosc[0])
 		AddStr("\033[23;" WT_FLAG "t");	/* unstack titles (xterm patch #251) */
@@ -2524,14 +2517,11 @@ static void disp_readev_fn(Event *event, void *data)
 		return;
 	}
 	if (D_blocked > 1) {	/* 2, 3 */
-		char *bufp;
-		Window *p;
-
 		flayer = 0;
-		for (p = windows; p; p = p->w_next)
+		for (Window *p = windows; p; p = p->w_next)
 			if (p->w_zdisplay == display) {
+				char *bufp = buf;
 				flayer = &p->w_layer;
-				bufp = buf;
 				while (size > 0)
 					LayProcess(&bufp, (size_t*)&size);
 				return;
@@ -2637,15 +2627,13 @@ static void disp_hstatus_fn(Event *event, void *data)
 
 static void disp_blocked_fn(Event *event, void *data)
 {
-	Window *p;
-
 	(void)event; /* unused */
 
 	display = (Display *)data;
 	if (D_obufp - D_obuf > D_obufmax + D_blocked_fuzz) {
 		D_blocked = 1;
 		/* re-enable all windows */
-		for (p = windows; p; p = p->w_next)
+		for (Window *p = windows; p; p = p->w_next)
 			if (p->w_readev.condneg == &D_obuflenmax) {
 				p->w_readev.condpos = p->w_readev.condneg = 0;
 			}
