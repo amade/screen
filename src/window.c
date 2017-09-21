@@ -40,6 +40,7 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <sys/wait.h>
 
 #include "fileio.h"
 #include "help.h"

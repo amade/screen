@@ -143,34 +143,6 @@ typedef char* slot_t;	/* used internally in utmp.c */
 # define FNBLOCK O_NONBLOCK
 #endif
 
-
-/*****************************************************************
- *    Wait stuff
- */
-
-# include <sys/wait.h>
-
-#ifndef WTERMSIG
-# define WTERMSIG(status) (status & 0177)
-#endif
-
-#ifndef WSTOPSIG
-# define WSTOPSIG(status) ((status >> 8) & 0377)
-#endif
-
-/* NET-2 uses WCOREDUMP */
-#if defined(WCOREDUMP) && !defined(WIFCORESIG)
-# define WIFCORESIG(status) WCOREDUMP(status)
-#endif
-
-#ifndef WIFCORESIG
-# define WIFCORESIG(status) (status & 0200)
-#endif
-
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(status) ((status >> 8) & 0377)
-#endif
-
 /*****************************************************************
  *    user defineable stuff
  */
