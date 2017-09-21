@@ -1668,11 +1668,7 @@ void ShowHStatus(char *str)
 void RefreshHStatus()
 {
 	char *buf;
-#ifdef UTF8
 	int extrabytes = strlen(hstatusstring) - strlen_onscreen(hstatusstring, NULL);
-#else
-	int extrabytes = 0;
-#endif
 	evdeq(&D_hstatusev);
 	if (D_status == STATUS_ON_HS)
 		return;
@@ -1744,11 +1740,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 		lvp = 0;
 		for (cv = display->d_cvlist; cv; cv = cv->c_next) {
 			if (y == (captiontop ? cv->c_ys - 1 : cv->c_ye + 1) && from >= cv->c_xs && from <= cv->c_xe) {
-#ifdef UTF8
 				int extrabytes = strlen(captionstring) - strlen_onscreen(captionstring, NULL);
-#else
-				int extrabytes = 0;
-#endif
 				p = Layer2Window(cv->c_layer);
 				buf =
 				    MakeWinMsgEv(NULL, captionstring, p, '%',
