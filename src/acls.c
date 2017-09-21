@@ -91,11 +91,10 @@ static int UserAclCopy(struct acluser **, struct acluser **);
 static int GrowBitfield(AclBits * bfp, int len, int delta, int defaultbit)
 {
 	AclBits n, o = *bfp;
-	int i;
 
 	if (!(n = (AclBits) calloc(1, (unsigned long)(&ACLBYTE((char *)0, len + delta + 1)))))
 		return -1;
-	for (i = 0; i < (len + delta); i++) {
+	for (int i = 0; i < (len + delta); i++) {
 		if (((i < len) && (ACLBIT(i) & ACLBYTE(o, i))) || ((i >= len) && (defaultbit)))
 			ACLBYTE(n, i) |= ACLBIT(i);
 	}
@@ -142,8 +141,6 @@ int DefaultMetaEsc = -1;
  */
 int UserAdd(char *name, struct acluser **up)
 {
-	int j;
-
 	if (!up)
 		up = FindUserPtr(name);
 	if (*up) {
@@ -168,10 +165,6 @@ int UserAdd(char *name, struct acluser **up)
 		if (!(ACLBIT((*up)->u_id) & ACLBYTE(userbits, (*up)->u_id)))
 			break;
 	if ((*up)->u_id == maxusercount) {
-		int j;
-		Window *w;
-		struct acluser *u;
-
 		/* the bitfields are full, grow a chunk */
 		/* first, the used_uid_indicator: */
 		if (GrowBitfield(&userbits, maxusercount, USER_CHUNK, 0)) {
@@ -182,7 +175,7 @@ int UserAdd(char *name, struct acluser **up)
 		/* second, default command bits  */
 		/* (only if we generate commands dynamically) */
 /*
-      for (j = 0; j < ACL_BITS_PER_CMD; j++)
+      for (int j = 0; j < ACL_BITS_PER_CMD; j++)
 	if (GrowBitfield(&default_c_userbits[j], maxusercount, USER_CHUNK, 
 	    default_c_bit[j]))
 	  {
@@ -190,10 +183,8 @@ int UserAdd(char *name, struct acluser **up)
 	  }
 */
 		/* third, the bits for each commands */
-		for (j = 0; j <= RC_LAST; j++) {
-			int i;
-
-			for (i = 0; i < ACL_BITS_PER_CMD; i++)
+		for (int j = 0; j <= RC_LAST; j++) {
+			for (int i = 0; i < ACL_BITS_PER_CMD; i++)
 				if (GrowBitfield(&comms[j].userbits[i], maxusercount, USER_CHUNK, default_c_bit[i])) {
 					free((char *)*up);
 					*up = NULL;
@@ -201,8 +192,8 @@ int UserAdd(char *name, struct acluser **up)
 				}
 		}
 		/* fourth, default window creation bits per user */
-		for (u = users; u != *up; u = u->u_next) {
-			for (j = 0; j < ACL_BITS_PER_WIN; j++) {
+		for (struct acluser *u = users; u != *up; u = u->u_next) {
+			for (int j = 0; j < ACL_BITS_PER_WIN; j++) {
 				if (GrowBitfield(&u->u_umask_w_bits[j], maxusercount, USER_CHUNK, default_w_bit[j])) {
 					free((char *)*up);
 					*up = NULL;
@@ -213,9 +204,9 @@ int UserAdd(char *name, struct acluser **up)
 
 		/* fifth, the bits for each window */
 		/* keep these in sync with NewWindowAcl() */
-		for (w = windows; w; w = w->w_next) {
+		for (Window *w = windows; w; w = w->w_next) {
 			/* five a: the access control list */
-			for (j = 0; j < ACL_BITS_PER_WIN; j++)
+			for (int j = 0; j < ACL_BITS_PER_WIN; j++)
 				if (GrowBitfield(&w->w_userbits[j], maxusercount, USER_CHUNK, default_w_bit[j])) {
 					free((char *)*up);
 					*up = NULL;
@@ -254,7 +245,7 @@ int UserAdd(char *name, struct acluser **up)
 	 * Give default_w_bit's for all users, 
 	 * but allow himself everything on "his" windows.
 	 */
-	for (j = 0; j < ACL_BITS_PER_WIN; j++) {
+	for (int j = 0; j < ACL_BITS_PER_WIN; j++) {
 		if (GrowBitfield(&(*up)->u_umask_w_bits[j], 0, maxusercount, default_w_bit[j])) {
 			free((char *)*up);
 			*up = NULL;
@@ -278,7 +269,6 @@ int UserAdd(char *name, struct acluser **up)
 int UserDel(char *name, struct acluser **up)
 {
 	struct acluser *u;
-	int i;
 	Display *old, *next;
 
 	if (!up)
@@ -317,7 +307,7 @@ int UserDel(char *name, struct acluser **up)
 	AclSetPerm(NULL, u, default_w_bit[ACL_WRITE] ? "+w" : "-w", "#");
 	AclSetPerm(NULL, u, default_w_bit[ACL_EXEC] ? "+x" : "-x", "#");
 	AclSetPerm(NULL, u, default_c_bit[ACL_EXEC] ? "+x" : "-x", "?");
-	for (i = 0; i < ACL_BITS_PER_WIN; i++)
+	for (int i = 0; i < ACL_BITS_PER_WIN; i++)
 		free((char *)u->u_umask_w_bits[i]);
 	UserFreeCopyBuffer(u);
 	free((char *)u);
@@ -339,13 +329,10 @@ int UserDel(char *name, struct acluser **up)
  */
 int UserFreeCopyBuffer(struct acluser *u)
 {
-	Window *w;
-	struct paster *pa;
-
 	if (!u->u_plop.buf)
 		return -1;
-	for (w = windows; w; w = w->w_next) {
-		pa = &w->w_paster;
+	for (Window *w = windows; w; w = w->w_next) {
+		struct paster *pa = &w->w_paster;
 		if (pa->pa_pasteptr >= u->u_plop.buf && pa->pa_pasteptr - u->u_plop.buf < (ptrdiff_t)u->u_plop.len)
 			FreePaster(pa);
 	}
@@ -479,13 +466,10 @@ char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 /* This gives the users default rights to the new window w created by u */
 int NewWindowAcl(Window *w, struct acluser *u)
 {
-	int i, j;
-
-
 	/* keep these in sync with UserAdd part five. */
 	if (GrowBitfield(&w->w_mon_notify, 0, maxusercount, 0) || GrowBitfield(&w->w_lio_notify, 0, maxusercount, 0))
 		return -1;
-	for (j = 0; j < ACL_BITS_PER_WIN; j++) {
+	for (int j = 0; j < ACL_BITS_PER_WIN; j++) {
 		/* we start with len 0 for the new bitfield size and add maxusercount */
 		if (GrowBitfield(&w->w_userbits[j], 0, maxusercount, 0)) {
 			while (--j >= 0)
@@ -494,7 +478,7 @@ int NewWindowAcl(Window *w, struct acluser *u)
 			free((char *)w->w_lio_notify);
 			return -1;
 		}
-		for (i = 0; i < maxusercount; i++)
+		for (int i = 0; i < maxusercount; i++)
 			if (u ? (ACLBIT(i) & ACLBYTE(u->u_umask_w_bits[j], i)) : default_w_bit[j])
 				ACLBYTE(w->w_userbits[j], i) |= ACLBIT(i);
 	}
@@ -503,9 +487,7 @@ int NewWindowAcl(Window *w, struct acluser *u)
 
 void FreeWindowAcl(Window *w)
 {
-	int i;
-
-	for (i = 0; i < ACL_BITS_PER_WIN; i++)
+	for (int i = 0; i < ACL_BITS_PER_WIN; i++)
 		free((char *)w->w_userbits[i]);
 	free((char *)w->w_mon_notify);
 	free((char *)w->w_lio_notify);
@@ -633,7 +615,6 @@ static int AclSetPermWin(struct acluser *uu, struct acluser *u, char *mode, Wind
  */
 int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
 {
-	Window *w;
 	int i;
 	char *p, ch;
 
@@ -645,7 +626,7 @@ int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
 			if (uu)	/* window umask or .. */
 				AclSetPermWin(uu, u, mode, (Window *)1);
 			else	/* .. or all windows */
-				for (w = windows; w; w = w->w_next)
+				for (Window *w = windows; w; w = w->w_next)
 					AclSetPermWin((struct acluser *)0, u, mode, w);
 			s++;
 			break;
@@ -703,15 +684,14 @@ static int UserAcl(struct acluser *uu, struct acluser **u, int argc, char **argv
 
 static int UserAclCopy(struct acluser **to_up, struct acluser **from_up)
 {
-	Window *w;
-	int i, j, to_id, from_id;
+	int to_id, from_id;
 
 	if (!*to_up || !*from_up)
 		return -1;
 	if ((to_id = (*to_up)->u_id) == (from_id = (*from_up)->u_id))
 		return -1;
-	for (w = windows; w; w = w->w_next) {
-		for (i = 0; i < ACL_BITS_PER_WIN; i++) {
+	for (Window *w = windows; w; w = w->w_next) {
+		for (int i = 0; i < ACL_BITS_PER_WIN; i++) {
 			if (ACLBYTE(w->w_userbits[i], from_id) & ACLBIT(from_id))
 				ACLBYTE(w->w_userbits[i], to_id) |= ACLBIT(to_id);
 			else {
@@ -724,8 +704,8 @@ static int UserAclCopy(struct acluser **to_up, struct acluser **from_up)
 			}
 		}
 	}
-	for (j = 0; j <= RC_LAST; j++) {
-		for (i = 0; i < ACL_BITS_PER_CMD; i++) {
+	for (int j = 0; j <= RC_LAST; j++) {
+		for (int i = 0; i < ACL_BITS_PER_CMD; i++) {
 			if (ACLBYTE(comms[j].userbits[i], from_id) & ACLBIT(from_id))
 				ACLBYTE(comms[j].userbits[i], to_id) |= ACLBIT(to_id);
 			else
@@ -763,9 +743,7 @@ int UsersAcl(struct acluser *uu, int argc, char **argv)
 	}
 
 	if (argv[0][0] == '*' && argv[0][1] == '\0') {
-		struct acluser **u;
-
-		for (u = &users; *u; u = &(*u)->u_next)
+		for (struct acluser **u = &users; *u; u = &(*u)->u_next)
 			if (strcmp("nobody", (*u)->u_name) &&
 			    ((cf_u) ? ((UserAclCopy(u, cf_u)) < 0) : ((UserAcl(uu, u, argc, argv)) < 0)))
 				return -1;
