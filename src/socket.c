@@ -1261,7 +1261,7 @@ static void PasswordProcessInput(char *ibuf, size_t ilen)
 			continue;
 		}
 		if (c == Ctrl('u')) {
-			memset(pwdata->buf, 1, sizeof(pwdata->buf));
+			memset(pwdata->buf, 0, sizeof(pwdata->buf));
 			len = 0;
 			continue;
 		}
