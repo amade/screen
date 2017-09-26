@@ -25,13 +25,13 @@ AH_TEMPLATE([HAVE_UT_EXIT], [utmpx struct has ut_exit field])
 AH_TEMPLATE([HAVE_UT_HOST], [utmpx struct has ut_host field])
 
 dnl -
-AH_TEMPLATE([ENABLE_PAM], [Enable Pluggable Authenticaion Modules support])
+AH_TEMPLATE([ENABLE_PAM], [Enable Pluggable Authentication Modules support])
 
 dnl -
-AH_TEMPLATE([ENABLE_TELNET], [Enable built in telnet client])
+AH_TEMPLATE([ENABLE_TELNET], [Enable built-in telnet client])
 
 dnl -
-AH_TEMPLATE([SOCKET_DIR], [Path to socket dir])
+AH_TEMPLATE([SOCKET_DIR], [Path to socket directory])
 
 dnl -
 AH_TEMPLATE([SYSTEM_SCREENRC], [Path to system screenrc])
