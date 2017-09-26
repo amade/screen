@@ -1019,7 +1019,7 @@ Run a subprocess (filter).  @xref{Exec}.
 Change window size to current display size.  @xref{Window Size}.
 @item flow [@var{fstate}]
 Set flow control behavior.  @xref{Flow}.
-@item focus
+@item focus [@code{next}|@code{prev}|@code{up}|@code{down}|@code{left}|@code{right}|@code{top}|@code{bottom}]
 Move focus to next region.  @xref{Regions}.
 @item focusminsize
 Force the current region to a certain size.  @xref{Focusminsize}.
@@ -1166,7 +1166,7 @@ Change text attributes in caption for flagged windows.  @xref{Rendition}.
 @item reset
 Reset the terminal settings for the window.  @xref{Reset}.
 @item resize [(+/-)lines]
-Grow or shrink a region
+Grow or shrink a region.  @xref{Resize}.
 @item screen [@var{opts}] [@var{n}] [@var{cmd} [@var{args}] | //group]
 Create a new window.  @xref{Screen Command}.
 @item scrollback @var{num}
@@ -2086,10 +2086,19 @@ which can contain different windows.
 (@kbd{C-a S}, @kbd{C-a |})@*
 Split the current region into two new ones. All regions on the
 display are resized to make room for the new region. The blank
-window is displayed on the new region. The default is to create
+window is displayed in the new region. The default is to create
 a horizontal split, putting the new regions on the top and
-bottom of each other. Using -v will create a vertical split,
+bottom of each other. Using @samp{-v} will create a vertical split,
 causing the new regions to appear side by side of each other.
+Use the @code{remove} or the @code{only} command to delete regions.
+Use @code{focus} to toggle between regions.
+
+When a region is split opposite of how it was previously split
+(that is, vertical then horizontal or horizontal then vertical),
+a new layer is created. The layer is used to group together the
+regions that are split the same. Normally, as a user, you should
+not see nor have to worry about layers, but they will affect how
+some commands (@code{focus} and @code{resize}) behave.
 
 With this current implementation of @code{screen}, scrolling data
 will appear much slower in a vertically split region than one
@@ -2100,19 +2109,49 @@ to use system commands such as @code{cat} or @code{tail -f}.
 @node Focus, Only, Split, Regions
 @section Focus
 @kindex TAB
-@deffn Command focus
+@deffn Command focus [ @code{next|prev|up|down|left|right|top|bottom} ]
 (@kbd{C-a @key{Tab}})@*
 Move the input focus to the next region. This is done in a cyclic
-way so that the top region is selected after the bottom one. If
-no subcommand is given it defaults to `down'. `up' cycles in the
-opposite order, `top' and `bottom' go to the top and bottom
-region respectively. Useful bindings are (j and k as in vi)
+way so that the top left region is selected after the bottom right
+one. If no option is given it defaults to @code{next}. The next
+region to be selected is determined by how the regions are layered.
+Normally, the next region in the same layer would be selected.
+However, if that next region contains one or more layers, the first
+region in the highest layer is selected first. If you are at the
+last region of the current layer, @code{next} will move the focus
+to the next region in the lower layer (if there is a lower layer).
+@code{Prev} cycles in the opposite order. @xref{Split} for more
+information about layers.
+
+The rest of the options (@code{up}, @code{down}, @code{left},
+@code{right}, @code{top}, and @code{bottom}) are more indifferent
+to layers. The option @code{up} will move the focus upward to the
+region that is touching the upper left corner of the current region.
+@code{Down} will move downward to the region that is touching the
+lower left corner of the current region. The option @code{left}
+will move the focus leftward to the region that is touching the
+upper left corner of the current region, while @code{right} will
+move rightward to the region that is touching the upper right corner
+of the current region. Moving left from a left most region or moving
+right from a right most region will result in no action.
+
+The option @code{top} will move the focus to the very first region
+in the upper list corner of the screen, and @code{bottom} will move
+to the region in the bottom right corner of the screen. Moving up from
+a top most region or moving down from a bottom most region will result
+in no action.
+
+Useful bindings are (h, j, k, and l as in vi):
 @example
+bind h focus left
 bind j focus down
 bind k focus up
+bind l focus right
 bind t focus top
 bind b focus bottom
 @end example
+
+Note that @samp{k} is traditionally bound to the @code{kill} command.
 @end deffn
 
 @node Only, Remove, Focus, Regions
@@ -2133,18 +2172,47 @@ Kill the current region. This is a no-op if there is only one region.
 
 @node Resize, Caption, Remove, Regions
 @section Resize
-@deffn Command resize [(+/-)@var{lines}]
+@deffn Command resize [@code{-h|-v|-b|-l|-p}]  [ [+|-]@var{n}[@code{%}] | @code{=} | @code{max} | @code{min} | @code{_} | @code{0} ]
 (none)@*
 Resize the current region. The space will be removed from or added to
-the region below or if there's not enough space from the region above.
+the surrounding regions depending on the order of the splits.
+The available options for resizing are @samp{-h}(horizontal),
+@samp{-v}(vertical), @samp{-b}(both), @samp{-l}(local to layer),
+and @samp{-p}(perpendicular). Horizontal resizes will add or remove width
+to a region, vertical will add or remove height, and both will add or
+remove size from both dimensions. Local and perpendicular are similar to
+horizontal and vertical, but they take in account of how a region was split.
+If a region's last split was horizontal, a local resize will work like a
+vertical resize. If a region's last split was vertical, a local resize will
+work like a horizontal resize. Perpendicular resizes work in opposite of
+local resizes. If no option is specified, local is the default.
+
+The amount of lines to add or remove can be expressed a couple of different
+ways. By specifying a number @var{n} by itself will resize the region by
+that absolute amount. You can specify a relative amount by prefixing a
+plus @samp{+} or minus @samp{-} to the amount, such as adding @code{+n} lines
+or removing @code{-n} lines. Resizing can also be expressed as an absolute
+or relative percentage by postfixing a percent sign @samp{%}. Using zero
+@samp{0} is a synonym for @code{min} and using an underscore @samp{_} is a
+synonym for @code{max}.
+
+Some examples are:
 @example
-resize +N       increase current region height by N
-resize -N       decrease current region height by N
-resize  N       set current region height to N
-resize  =       make all windows equally high
-resize  max     maximize current region height
-resize  min     minimize current region height
+resize +N       increase current region by N
+resize -N       decrease current region by N
+resize N        set current region to N
+resize 20%      set current region to 20% of original size
+resize +20%     increase current region by 20%
+resize -b =     make all windows equally
+resize max      maximize current region
+resize min      minimize current region
 @end example
+
+Without any arguments, @code{screen} will prompt for how you would
+like to resize the current region.
+
+See @code{focusminsize} if you want to restrict the minimun size a region can have.
+
 @end deffn
 
 @node Caption, Fit, Resize, Regions

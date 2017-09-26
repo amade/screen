@@ -2110,17 +2110,45 @@ details and note, that this is subject to change in future releases.
 Default is set by `defflow'.
 .RE
 .TP
-.BR "focus " [ up | down | top | bottom ]
+.BR "focus " [ next|prev|up|down|left|right|top|bottom ]
 .RS 0
 .PP
 Move the input focus to the next region. This is done in a cyclic
-way so that the top region is selected after the bottom one. If
-no subcommand is given it defaults to `down'. `up' cycles in the
-opposite order, `top' and `bottom' go to the top and bottom
-region respectively. Useful bindings are (j and k as in vi)
+way so that the top left region is selected after the bottom right
+one. If no option is given it defaults to `next'. The next
+region to be selected is determined by how the regions are layered.
+Normally, the next region in the same layer would be selected.
+However, if that next region contains one or more layers, the first
+region in the highest layer is selected first. If you are at the
+last region of the current layer, `next' will move the focus
+to the next region in the lower layer (if there is a lower layer).
+`Prev' cycles in the opposite order. See \*Qsplit\*U for more
+information about layers.
+
+The rest of the options (`up', `down', `left',
+`right', `top', and `bottom') are more indifferent
+to layers. The option `up' will move the focus upward to the
+region that is touching the upper left corner of the current region.
+`Down' will move downward to the region that is touching the
+lower left corner of the current region. The option `left'
+will move the focus leftward to the region that is touching the
+upper left corner of the current region, while `right' will
+move rightward to the region that is touching the upper right corner
+of the current region. Moving left from a left most region or moving
+right from a right most region will result in no action.
+
+The option `top' will move the focus to the very first region
+in the upper list corner of the screen, and `bottom' will move
+to the region in the bottom right corner of the screen. Moving up from
+a top most region or moving down from a bottom most region will result
+in no action.
+
+Useful bindings are (h, j, k, and l as in vi)
 .nf
+    bind h focus left
     bind j focus down
     bind k focus up
+    bind l focus right
     bind t focus top
     bind b focus bottom
 .fi
@@ -3007,29 +3035,66 @@ an application.
 .RE
 .TP
 .B "resize"
+.RB [ -h | -v | -b | -l | -p ]
+.RB [[ + | - ]
+.IR n "[%]"
+.RB | = | max | min | _ | 0 ]
 .RS 0
 .PP 
 Resize the current region. The space will be removed from or added to
-the region below or if there's not enough space from the region above.
-.RS
+the surrounding regions depending on the order of the splits.
+The available options for resizing are `-h'(horizontal),
+`-v'(vertical), `-b'(both), `-l'(local to layer),
+and `-p'(perpendicular). Horizontal resizes will add or remove width
+to a region, vertical will add or remove height, and both will add or
+remove size from both dimensions. Local and perpendicular are similar to
+horizontal and vertical, but they take in account of how a region was split.
+If a region's last split was horizontal, a local resize will work like a
+vertical resize. If a region's last split was vertical, a local resize will
+work like a horizontal resize. Perpendicular resizes work in opposite of
+local resizes. If no option is specified, local is the default.
+
+The amount of lines to add or remove can be expressed a couple of different
+ways. By specifying a number \fIn\fP by itself will resize the region by
+that absolute amount. You can specify a relative amount by prefixing a
+plus `+' or minus `-' to the amount, such as adding +\fIn\fP lines
+or removing -\fIn\fP lines. Resizing can also be expressed as an absolute
+or relative percentage by postfixing a percent sign `%'. Using zero
+`0' is a synonym for `min' and using an underscore `_' is a
+synonym for `max'.
+
+Some examples are:
 .TP
 resize +N
-increase current region height by N
+increase current region by N
 .TP
 resize \-N
-decrease current region height by N
+decrease current region by N
 .TP
 resize  N
-set current region height to N
+set current region to N
 .TP
-resize  =
-make all windows equally high
+resize 20%
+set current region to 20% of original size
+.TP
+resize +20%
+increase current region by 20%
+.TP
+resize -b =
+make all windows equally
 .TP
 resize  max
-maximize current region height
+maximize current region
 .TP
 resize  min
-minimize current region height
+minimize current region
+.PP
+Without any arguments,
+.I screen
+will prompt for how you would like to resize the current region.
+
+See \*Qfocusminsize\*U if you want to restrict the minimun size a region
+can have.
 .RE
 .RE
 .TP
@@ -3228,9 +3293,24 @@ This command is deprecated. See "rendition so" instead.
 .PP
 Split the current region into two new ones. All regions on the
 display are resized to make room for the new region. The blank
-window is displayed on the new region. Splits are made horizontally
-unless \-v is used. Use the \*Qremove\*U or the \*Qonly\*U command
-to delete regions. Use \*Qfocus\*U to toggle between regions.
+window is displayed in the new region. The default is to create
+a horizontal split, putting the new regions on the top and
+bottom of each other. Using `-v' will create a vertical split,
+causing the new regions to appear side by side of each other.
+Use the \*Qremove\*U or the \*Qonly\*U command to delete regions.
+Use \*Qfocus\*U to toggle between regions.
+
+When a region is split opposite of how it was previously split
+(that is, vertical then horizontal or horizontal then vertical),
+a new layer is created. The layer is used to group together the
+regions that are split the same. Normally, as a user, you should
+not see nor have to worry about layers, but they will affect how
+some commands (\*Qfocus\*U and \*Qresize\*U) behave.
+
+With this current implementation of screen, scrolling data
+will appear much slower in a vertically split region than one
+that is not. This should be taken into consideration if you need
+to use system commands such as \*Qcat\*U or \*Qtail -f\*U.
 .RE
 .TP
 .B "startup_message on\fP|\fBoff"
