@@ -424,7 +424,7 @@ int MakeWindow(struct NewWindow *newwin)
 	if (*pp) {
 		Window **newwtab = calloc(maxwin * 2, sizeof(Window *));
 		Window **oldwtab = wtab;
-		memcpy(newwtab, oldwtab, maxwin * sizeof(Window *));
+		memmove(newwtab, oldwtab, maxwin * sizeof(Window *));
 		wtab = newwtab;
 		free(oldwtab);
 		pp = wtab + maxwin;
