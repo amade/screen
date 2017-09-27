@@ -990,6 +990,7 @@ void FreeTransTable()
 		free(*p);
 	}
 	free(D_xtable);
+	D_xtable = NULL;
 }
 
 static int copyarg(char **pp, char *s)
