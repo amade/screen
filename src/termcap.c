@@ -1296,6 +1296,7 @@ FreeTransTable()
       free(*p);
     }
   free(D_xtable);
+  D_xtable = NULL;
 }
 #endif /* FONT */
 
