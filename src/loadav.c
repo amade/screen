@@ -42,6 +42,11 @@
 # endif
 #endif
 
+#ifdef _AIX
+#include    <sys/kinfo.h>
+extern int getkerninfo(int op, char *buf, int *buf_size, int32long64_t arg);
+#endif
+
 #include "config.h"
 #include "screen.h"
 
@@ -260,6 +265,41 @@ GetLoadav()
   return LOADAV_NUM;
 }
 #endif
+
+
+/***************************************************************/
+
+#if defined(_AIX) && !defined(LOADAV_DONE)
+#define LOADAV_DONE
+/*
+ * AIX uses KINFO_GET_AVENRUN syscall
+ */
+void
+InitLoadav()
+{
+  loadok = 1;
+}
+
+static int
+GetLoadav()
+{
+  long long avenrun[3];
+  int avsize = 3 * sizeof(long long);
+  int i;
+
+  if (getkerninfo(KINFO_GET_AVENRUN, (char *)&avenrun, &avsize, 0) < 0)
+    {
+      return 0;
+    }
+
+  for (i = 0; i < (LOADAV_NUM > 3 ? 3 : LOADAV_NUM); i++)
+    {
+      loadav[i] = avenrun[i];
+    }
+
+  return i;
+}
+#endif /* _AIX */
 
 /***************************************************************/
 
