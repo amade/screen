@@ -151,9 +151,9 @@ fi
 
 
 AC_CHECKING(for Ultrix)
-AC_EGREP_CPP(yes,
+AC_EGREP_CPP(YES_IS_DEFINED,
 [#if defined(ultrix) || defined(__ultrix)
-   yes;
+   YES_IS_DEFINED;
 #endif
 ], ULTRIX=1)
 
@@ -168,9 +168,9 @@ dnl ghazi@caip.rutgers.edu (Kaveh R. Ghazi):
 dnl BBN butterfly is not POSIX, but a MACH BSD system.
 dnl Do not define POSIX and TERMIO.
 AC_CHECKING(for butterfly)
-AC_EGREP_CPP(yes,
+AC_EGREP_CPP(YES_IS_DEFINED,
 [#if defined(butterfly)
-  yes;
+  YES_IS_DEFINED;
 #endif
 ], butterfly=1)
 
@@ -179,12 +179,12 @@ if test -n "$ULTRIX"; then
   test -z "$GCC" && CC="$CC -YBSD"
 fi
 AC_CHECKING(for POSIX.1)
-AC_EGREP_CPP(yes,
+AC_EGREP_CPP(YES_IS_DEFINED,
 [#include <sys/types.h>
 #include <unistd.h>
 main () {
 #ifdef _POSIX_VERSION
-  yes;
+  YES_IS_DEFINED;
 #endif
 ], AC_NOTE(- you have a POSIX system) AC_DEFINE(POSIX) posix=1)
 fi
@@ -196,9 +196,9 @@ AC_TRY_COMPILE(
 #include <fcntl.h>], [int x = SIGCHLD | FNDELAY;], , AC_DEFINE(SYSV))
 
 AC_CHECKING(for sequent/ptx)
-AC_EGREP_CPP(yes,
+AC_EGREP_CPP(YES_IS_DEFINED,
 [#ifdef _SEQUENT_
-  yes;
+  YES_IS_DEFINED;
 #endif
 ], LIBS="$LIBS -lsocket -linet";seqptx=1)
 
@@ -213,9 +213,9 @@ AC_TRY_LINK([#include <utmpx.h>
 AC_CHECK_HEADERS([stropts.h string.h strings.h])
 
 AC_CHECKING(for Solaris 2.x)
-AC_EGREP_CPP(yes,
+AC_EGREP_CPP(YES_IS_DEFINED,
 [#if defined(SVR4) && defined(sun)
-  yes
+  YES_IS_DEFINED;
 #endif
 ], LIBS="$LIBS -lsocket -lnsl -lkstat")
 
@@ -699,9 +699,9 @@ else
 pdir='/dev'
 fi
 dnl SCO uses ptyp%d
-AC_EGREP_CPP(yes,
+AC_EGREP_CPP(YES_IS_DEFINED,
 [#ifdef M_UNIX
-   yes;
+   YES_IS_DEFINED;
 #endif
 ], ptys=`echo /dev/ptyp??`, ptys=`echo $pdir/pty??`)
 dnl if test -c /dev/ptyp19; then
@@ -878,9 +878,9 @@ fi
 )
 
 if test -z "$load" ; then
-AC_EGREP_CPP(yes,
+AC_EGREP_CPP(YES_IS_DEFINED,
 [#if defined(NeXT) || defined(apollo) || defined(linux)
-  yes;
+  YES_IS_DEFINED;
 #endif
 ], load=1)
 fi
@@ -1105,9 +1105,9 @@ AC_CHECKING(syslog in libbsd.a)
 AC_TRY_LINK(, [closelog();], AC_NOTE(- found.), [LIBS="$oldlibs"
 AC_NOTE(- bad news: syslog missing.) AC_DEFINE(NOSYSLOG)])])
 
-AC_EGREP_CPP(yes,
+AC_EGREP_CPP(YES_IS_DEFINED,
 [#ifdef M_UNIX
-   yes;
+   YES_IS_DEFINED;
 #endif
 ], LIBS="$LIBS -lsocket -lcrypt_i")
 
