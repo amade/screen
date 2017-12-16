@@ -1246,7 +1246,11 @@ if test "$enable_pam" = "yes"; then
        AC_MSG_RESULT(no);LIBS="$oldlibs")
 fi
 
-AC_ARG_ENABLE(use_locale, [  --enable-use-locale         use localized month/day names])
+AC_ARG_ENABLE(use-locale,
+    [  --enable-use-locale     use localized month/day names (default: yes)],
+    [],
+    [enable_use_locale=yes]
+)
 if test "$enable_use_locale" = "yes"; then
   AC_DEFINE(USE_LOCALE)
 fi
