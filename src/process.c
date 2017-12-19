@@ -4184,7 +4184,7 @@ static int ParseBase(struct action *act, char *p, int *var, int base, char *bnam
 	int i = 0;
 	int c;
 
-	if (*p == 0) {
+	if (!p || *p == 0) {
 		Msg(0, "%s: %s: empty argument.", rc_name, comms[act->nr].name);
 		return -1;
 	}
