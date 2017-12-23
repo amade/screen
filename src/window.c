@@ -840,6 +840,7 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 		}
 		if ((fd = OpenTTY(arg, args[1])) < 0)
 			return -1;
+		lflag = 0;
 		*typep = W_TYPE_PLAIN;
 		*namep = arg;
 	} else {
