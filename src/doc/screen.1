@@ -730,7 +730,7 @@ is invoked, it executes initialization commands from the files
 defaults\*U that can be overridden in the following ways: for the
 global screenrc file 
 .I screen
-searches for the environment variable $SYSSCREENRC (this override feature
+searches for the environment variable $SYSTEM_SCREENRC (this override feature
 may be disabled at compile-time). The user specific
 screenrc file is searched in $SCREENRC, then $HOME/.screenrc.
 The command line option \fB\-c\fP takes
@@ -5052,7 +5052,7 @@ Default shell program for opening windows (default \*Q/bin/sh\*U).
 See also \*Qshell\*U .screenrc command.
 .IP STY
 Alternate socket name.
-.IP SYSSCREENRC
+.IP SYSTEM_SCREENRC
 Alternate system screenrc file.
 .IP TERM
 Terminal name.
@@ -5068,7 +5068,7 @@ Window number of a window (at creation time).
 Examples in the 
 .I screen
 distribution package for private and global initialization files.
-.IP $SYSSCREENRC 
+.IP $SYSTEM_SCREENRC
 .IP /usr/local/etc/screenrc
 .I screen
 initialization commands

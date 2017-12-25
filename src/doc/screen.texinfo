@@ -499,7 +499,7 @@ the files @file{.screenrc} in the user's home directory and
 @file{/usr/local/etc/screenrc}.  These defaults can be overridden in the 
 following ways:
 For the global screenrc file @code{screen} searches for the environment
-variable @code{$SYSSCREENRC} (this override feature may be disabled at
+variable @code{$SYSTEM_SCREENRC} (this override feature may be disabled at
 compile-time).  The user specific screenrc file is
 searched for in @code{$SCREENRC}, then 
 @file{@code{$HOME}/.screenrc}.  The command line option @samp{-c}
@@ -5764,7 +5764,7 @@ Alternate socket name. If @code{screen} is invoked, and the environment variable
 @code{STY} is set, then it creates only a window in the running @code{screen}
 session rather than starting a new session.
 
-@item SYSSCREENRC
+@item SYSTEM_SCREENRC
 Alternate system screenrc file.
 
 @item TERM
@@ -5787,7 +5787,7 @@ Window number of a window (at creation time).
 Examples in the @code{screen} distribution package for private and
 global initialization files.
 
-@item @code{$SYSSCREENRC}
+@item @code{$SYSTEM_SCREENRC}
 @itemx /local/etc/screenrc
 @code{screen} initialization commands
 
