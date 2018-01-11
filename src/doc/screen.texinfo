@@ -24,7 +24,7 @@
 @ifinfo
 This file documents the @code{Screen} virtual terminal manager.
 
-Copyright (c) 1993-2017 Free Software Foundation, Inc.
+Copyright (c) 1993-2018 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -56,7 +56,7 @@ by the Foundation.
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1993-2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1993-2018 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -5851,8 +5851,8 @@ Authors @*
 
 Originally created by Oliver Laumann. For a long time maintained
 and developed by Juergen Weigert, Michael Schroeder, Micah Cowan
-and Sadrul Habib Chowdhury. This latest version was produced by
-Amadeusz Slawinski <amade@@asmblr.net>
+and Sadrul Habib Chowdhury. Since 2015 maintained and developed
+by Amadeusz Slawinski <amade@@asmblr.net>
 and Alexander Naumov <alexander_naumov@@opensuse.org>.
 
 @noindent
