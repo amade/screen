@@ -508,6 +508,7 @@ WinRestore()
       ReverseVideo(fore->w_revvid);
       CursorVisibility(fore->w_curinv ? -1 : fore->w_curvvis);
       MouseMode(fore->w_mouse);
+      ExtMouseMode(fore->w_extmouse);
     }
 }
 

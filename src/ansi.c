@@ -1471,6 +1471,12 @@ int c, intermediate;
 	      curr->w_mouse = i ? a1 : 0;
 	      LMouseMode(&curr->w_layer, curr->w_mouse);
 	      break;
+         /* case 1005:     UTF-8 mouse mode rejected */
+	    case 1006:  /* SGR mouse mode */
+		curr->w_extmouse = i ? a1 : 0;
+		LExtMouseMode(&curr->w_layer, curr->w_extmouse);
+                break;
+	 /* case 1015:     UXRVT mouse mode rejected */
 	    }
 	}
       break;
