@@ -75,6 +75,12 @@ struct statusposstr {
 #define STATUS_RIGHT		1
 
 
+struct mouse_parse {
+	char sgrmode;			/* non-zero if parsing an SGR sequence */
+	char state;			/* current state of parsing */
+	int params[3];			/* parsed params: button, x, y */
+};
+
 typedef struct Display Display;
 struct Display {
 	Display *d_next;		/* linked list */
@@ -111,7 +117,9 @@ struct Display {
 	HardStatus	d_has_hstatus;		/* display has hardstatus line */
 	bool d_hstatus;		/* hardstatus used */
 	int	d_lp_missing;		/* last character on bot line missing */
-	int   d_mouse;			/* mouse mode */
+	int	d_mouse;			/* mouse mode */
+	int	d_extmouse;		/* extended mouse mode */
+	struct mouse_parse d_mouse_parse;	/* state of mouse code parsing */
 	int	d_mousetrack;		/* set when user wants to use mouse even when the window
 					   does not */
 	int   d_bracketed;		/* bracketed paste mode */
@@ -223,6 +231,8 @@ struct Display {
 #define D_hstatus	DISPLAY(d_hstatus)
 #define D_lp_missing	DISPLAY(d_lp_missing)
 #define D_mouse		DISPLAY(d_mouse)
+#define D_mouse_parse	DISPLAY(d_mouse_parse)
+#define D_extmouse	DISPLAY(d_extmouse)
 #define D_mousetrack	DISPLAY(d_mousetrack)
 #define D_xtermosc	DISPLAY(d_xtermosc)
 #define D_lpchar	DISPLAY(d_lpchar)
@@ -345,6 +355,7 @@ void  CursorkeysMode (int);
 void  ReverseVideo (bool);
 void  CursorVisibility (int);
 void  MouseMode (int);
+void  ExtMouseMode (int);
 void  BracketedPasteMode (bool);
 void  CursorStyle (int);
 void  SetRendition (struct mchar *);

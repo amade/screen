@@ -674,6 +674,18 @@ void LMouseMode(Layer *l, int on)
 	}
 }
 
+void LExtMouseMode(Layer *l, int on)
+{
+	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {
+		display = cv->c_display;
+		if (D_blocked)
+			continue;
+		if (cv != D_forecv)
+			continue;
+		ExtMouseMode(on);
+	}
+}
+
 void LBracketedPasteMode(Layer *l, bool on)
 {
 	for (Canvas *cv = l->l_cvlist; cv; cv = cv->c_lnext) {

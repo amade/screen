@@ -181,6 +181,7 @@ void  LSetFlow (Layer *, bool);
 void  LKeypadMode (Layer *, int);
 void  LCursorkeysMode (Layer *, int);
 void  LMouseMode (Layer *, int);
+void  LExtMouseMode (Layer *, int);
 void  LBracketedPasteMode (Layer *, bool);
 void  LCursorStyle (Layer *, int);
 void  LMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));

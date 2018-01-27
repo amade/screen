@@ -51,6 +51,12 @@
 #include "tty.h"
 #include "winmsg.h"
 
+/* CSI parsing status */
+enum {
+	CSI_PB=0, CSI_PX=1, CSI_PY=2, CSI_DONE=3,
+	CSI_ESC_SEEN, CSI_BEGIN, CSI_INACTIVE, CSI_INVALID
+};
+
 static int CountChars(int);
 static int DoAddChar(int);
 static int BlankResize(int, int);
@@ -63,6 +69,7 @@ static void disp_blocked_fn(Event *, void *);
 static void disp_map_fn(Event *, void *);
 static void disp_idle_fn(Event *, void *);
 static void disp_blanker_fn(Event *, void *);
+static void disp_processinput (Display *, unsigned char *, size_t);
 static void WriteLP(int, int);
 static void INSERTCHAR(int);
 static void RAW_PUTCHAR(int);
@@ -125,6 +132,7 @@ void DefRestore()
 	LCursorkeysMode(flayer, 0);
 	LCursorVisibility(flayer, 0);
 	LMouseMode(flayer, 0);
+	LExtMouseMode(flayer, 0);
 	LBracketedPasteMode(flayer, false);
 	LCursorStyle(flayer, 0);
 	LSetRendition(flayer, &mchar_null);
@@ -290,6 +298,7 @@ void FreeDisplay()
 	if (D_mousetrack) {
 		D_mousetrack = 0;
 		MouseMode(0);
+		ExtMouseMode(0);
 	}
 	free((char *)display);
 	display = 0;
@@ -340,6 +349,7 @@ void FinitTerm()
 		if (D_mousetrack)
 			D_mousetrack = 0;
 		MouseMode(0);
+		ExtMouseMode(0);
 		BracketedPasteMode(false);
 		CursorStyle(0);
 		SetRendition(&mchar_null);
@@ -583,8 +593,29 @@ void MouseMode(int mode)
 			AddStr(mousebuf);
 		}
 		D_mouse = mode;
+		D_mouse_parse.state = CSI_INACTIVE;
 	}
 }
+
+void ExtMouseMode(int mode)
+{
+	if (display && D_extmouse != mode) {
+		char mousebuf[20];
+		if (!D_CXT)
+			return;
+		if (D_extmouse) {
+			sprintf(mousebuf, "\033[?%dl", D_extmouse);
+			AddStr(mousebuf);
+		}
+		if (mode) {
+			sprintf(mousebuf, "\033[?%dh", mode);
+			AddStr(mousebuf);
+		}
+		D_extmouse = mode;
+		D_mouse_parse.state = CSI_INACTIVE;
+	}
+}
+
 
 void BracketedPasteMode(bool mode)
 {
@@ -912,6 +943,7 @@ void Redisplay(int cur_only)
 	CursorkeysMode(0);
 	CursorVisibility(0);
 	MouseMode(0);
+	ExtMouseMode(0);
 	BracketedPasteMode(false);
 	CursorStyle(0);
 	SetRendition(&mchar_null);
@@ -2312,6 +2344,7 @@ void NukePending()
 	int oldkeypad = D_keypad, oldcursorkeys = D_cursorkeys;
 	int oldcurvis = D_curvis;
 	int oldmouse = D_mouse;
+	int extoldmouse = D_extmouse;
 	bool oldbracketed = D_bracketed;
 	int oldcursorstyle = D_cursorstyle;
 
@@ -2357,6 +2390,7 @@ void NukePending()
 	CursorkeysMode(oldcursorkeys);
 	CursorVisibility(oldcurvis);
 	MouseMode(oldmouse);
+	ExtMouseMode(extoldmouse);
 	BracketedPasteMode(oldbracketed);
 	CursorStyle(oldcursorstyle);
 	if (D_CWS) {
@@ -2452,10 +2486,20 @@ static void disp_writeev_fn(Event *event, void *data)
 	}
 }
 
+/* maximum mouse sequence length is SGR: ESC [ < b ; x ; y M */
+#define MAX_MOUSE_SEQUENCE (3+10+1+10+1+10+1)
+
 static void disp_readev_fn(Event *event, void *data)
 {
+	/* We have to intercept mouse sequences in order to translate them
+	 * properly, and an incoming sequence could be spread over multiple
+	 * I/O reads. When this occurs, we buffer intermediate state in
+	 * D_mouse_params, and then use the reservation at the front of
+	 * bufspace to prepend the completed and translated mouse sequence.
+	 */
 	ssize_t size;
-	char buf[IOSIZE];
+	char bufspace[MAX_MOUSE_SEQUENCE + IOSIZE];
+	unsigned char *buf = bufspace + MAX_MOUSE_SEQUENCE;
 	Canvas *cv;
 
 	(void)event; /* unused */
@@ -2524,53 +2568,204 @@ static void disp_readev_fn(Event *event, void *data)
 		ResetIdle();
 	if (D_fore)
 		D_fore->w_lastdisp = display;
+
 	if (D_mouse && D_forecv) {
 		unsigned char *bp = (unsigned char *)buf;
-		int x, y, i;
+		unsigned char *end = bp + size;
+		unsigned char *mark = NULL;
 
-		/* XXX this assumes that the string is read in as a whole... */
-		for (i = size; i > 0; i--, bp++) {
-			if (i > 5 && bp[0] == 033 && bp[1] == '[' && bp[2] == 'M') {
-				bp++;
-				i--;
-			} else if (i < 5 || bp[0] != 0233 || bp[1] != 'M')
-				continue;
-			x = bp[3] - 33;
-			y = bp[4] - 33;
-			if (x >= D_forecv->c_xs && x <= D_forecv->c_xe && y >= D_forecv->c_ys && y <= D_forecv->c_ye) {
-				if ((D_fore && D_fore->w_mouse) || (D_mousetrack && D_forecv->c_layer->l_mode == 1)) {
-					/* Send clicks only if the window is expecting clicks */
-					x -= D_forecv->c_xoff;
-					y -= D_forecv->c_yoff;
-					if (x >= 0 && x < D_forecv->c_layer->l_width && y >= 0
-					    && y < D_forecv->c_layer->l_height) {
-						bp[3] = x + 33;
-						bp[4] = y + 33;
-						i -= 4;
-						bp += 4;
-						continue;
+		/* When mouse mode is enabled, buffer up incoming CSI until we
+		 * know whether it is a mouse sequence. If not a mouse event,
+		 * emit the CSI unchanged; if an invalid mouse event, swallow
+		 * it; otherwise, translate the sequence and emit it.
+		 *
+		 * Supported mouse events take two flavors.
+		 *
+		 * VT200: CSI M Cb Cx Cy
+		 * SGR:   CSI < Ps ; Ps ; Ps M|m
+		 *
+		 * UTF-8 and UXRVT modes are explicitly rejected because they
+		 * introduce incompatibilities with other control sequences.
+		 *
+		 * NOTE: applications wishing to use SGR mode will normally
+		 * enable VT200 mode first as a fallback in case the terminal
+		 * does not support SGR mode. Thus, we must expect to receive
+		 * either mode's sequences when mouse mode is enabled. We will
+		 * dutifully translate whatever arrives, without attempting to
+		 * convert between modes on behalf of the application.
+		 */
+		switch (D_mouse_parse.state) {
+		case CSI_PY:
+		case CSI_PX:
+		case CSI_PB:
+			/* Partial mouse sequence; do not restore suppressed
+			 * characters. We will emit a translated version (if valid)
+			 * or swallow them (otherwise).
+			 */
+			break;
+		case CSI_BEGIN:
+			/* Partial CSI; restore suppressed characters in case it
+			 * turns out not to be a mouse sequence after all.
+			 */
+			*(--buf) = '[';
+			++size;
+			/* fall through */
+		case CSI_ESC_SEEN:
+			/* Escape character; restore it in case this turns out not
+			 * to be the start of a mouse sequence after all.
+			 */
+			*(--buf) = '\033';
+			++size;
+			break;
+		default:
+			break;
+		};
+
+		while (bp != end) {
+			unsigned char c = *(bp++);
+
+			switch (D_mouse_parse.state) {
+			case CSI_INACTIVE:
+				if (c == '\033') {
+					/* potential escape sequence */
+					mark = bp - 1;
+					D_mouse_parse.state = CSI_ESC_SEEN;
+				}
+				break;
+			case CSI_ESC_SEEN:
+				if (c == '[') {
+					/* continue buffering an escape sequence */
+					D_mouse_parse.state = CSI_BEGIN;
+				} else
+					D_mouse_parse.state = CSI_INACTIVE;
+				break;
+			case CSI_BEGIN:
+				if (c == 'M') {
+					/* VT200 mouse sequence */
+					D_mouse_parse.state = CSI_PB;
+					D_mouse_parse.sgrmode = 0;
+				} else if (c == '<') {
+					/* SGR mouse sequence */
+					D_mouse_parse.state = CSI_PB;
+					D_mouse_parse.params[D_mouse_parse.state] = 0;
+					D_mouse_parse.sgrmode = 1;
+				} else
+					D_mouse_parse.state = CSI_INACTIVE;
+				break;
+			case CSI_PB:
+			case CSI_PX:
+			case CSI_PY:
+				if (D_mouse_parse.sgrmode) {
+					/* SGR mode: parse decimal numbers */
+					if ('0' <= c && c <= '9') {
+						D_mouse_parse.params[D_mouse_parse.state] *= 10;
+						D_mouse_parse.params[D_mouse_parse.state] += c - '0';
+					} else if (D_mouse_parse.state == CSI_PY) {
+						if (c == 'M' || c == 'm')
+							D_mouse_parse.state = CSI_DONE;
+						else
+							D_mouse_parse.state = CSI_INVALID;
+					} else if (c == ';') {
+						D_mouse_parse.state++;
+						D_mouse_parse.params[D_mouse_parse.state] = 0;
+					} else
+						D_mouse_parse.state = CSI_INVALID;
+				} else {
+					/* VT200 mode: read raw binary values */
+					D_mouse_parse.params[D_mouse_parse.state++] = c;
+				}
+				break;
+			default:
+				break;
+			}
+
+			if (D_mouse_parse.state == CSI_INVALID) {
+				/* swallow invalid sequence, but emit whatever came before */
+				if (buf < mark)
+					disp_processinput(display, buf, mark - buf);
+
+				buf = bp;
+				size = end - bp;
+				D_mouse_parse.state = CSI_INACTIVE;
+			} else if (D_mouse_parse.state == CSI_DONE) {
+				/* emit whatever came before this sequence */
+				if (buf < mark)
+					disp_processinput(display, buf, mark - buf);
+
+				buf = bp;
+				size = end - bp;
+
+				int x = D_mouse_parse.params[CSI_PX];
+				int y = D_mouse_parse.params[CSI_PY];
+				int bias = D_mouse_parse.sgrmode? 1 : 33;
+
+				x -= bias;
+				y -= bias;
+
+				if (x >= D_forecv->c_xs && x <= D_forecv->c_xe && y >= D_forecv->c_ys && y <= D_forecv->c_ye) {
+					if ((D_fore && D_fore->w_mouse) || (D_mousetrack && D_forecv->c_layer->l_mode == 1)) {
+						/* Send clicks only if the window is expecting clicks */
+						x -= D_forecv->c_xoff;
+						y -= D_forecv->c_yoff;
+
+						if (x >= 0 && x < D_forecv->c_layer->l_width && y >= 0 && y < D_forecv->c_layer->l_height) {
+							char tmp[MAX_MOUSE_SEQUENCE+1];
+							int n;
+
+							x += bias;
+							y += bias;
+
+							if (D_mouse_parse.sgrmode) {
+								n = snprintf(
+								tmp, MAX_MOUSE_SEQUENCE, "\033[<%d;%d;%d%c",
+								D_mouse_parse.params[CSI_PB], x, y, c);
+							} else {
+								n = snprintf(
+								tmp, MAX_MOUSE_SEQUENCE, "\033[M%c%c%c",
+								D_mouse_parse.params[CSI_PB], x, y);
+							}
+
+							if (n > MAX_MOUSE_SEQUENCE)
+								n = MAX_MOUSE_SEQUENCE;
+
+							/* emit sequence */
+
+							buf -= n;
+							size += n;
+							memcpy(buf, tmp, n);
+						}
+					}
+				} else if (D_mousetrack) {
+					/* 'focus' to the clicked region, only on mouse up */
+					int focus = 0;
+					if (D_mouse_parse.sgrmode)
+						focus = (c == 'm');
+					else
+						focus = (D_mouse_parse.params[CSI_PB] == '#');
+
+					Canvas *cv = FindCanvas(x, y);
+					if (focus && cv) {
+						SetForeCanvas(display, cv);
+						/* XXX: Do we want to reset the input buffer? */
 					}
 				}
-			} else if (D_mousetrack && bp[2] == '#') {
-				/* 'focus' to the clicked region, only on mouse up */
-				Canvas *cv = FindCanvas(x, y);
-				if (cv) {
-					SetForeCanvas(display, cv);
-					/* XXX: Do we want to reset the input buffer? */
-				}
+
+				D_mouse_parse.state = CSI_INACTIVE;
 			}
-			if (bp[0] == '[') {
-				memmove((char *)bp, (char *)bp + 1, i);
-				bp--;
-				size--;
-			}
-			if (i > 5)
-				memmove((char *)bp, (char *)bp + 5, i - 5);
-			bp--;
-			i -= 4;
-			size -= 5;
+		}
+
+		if (D_mouse_parse.state != CSI_INACTIVE) {
+			/* suppress partial sequence at end */
+			size = mark? mark - buf : 0;
 		}
 	}
+
+	if (size > 0)
+		disp_processinput(display, buf, size);
+}
+
+static void disp_processinput(Display * display, unsigned char *buf, size_t size)
+{
 	if (D_encoding != (D_forecv ? D_forecv->c_layer->l_encoding : 0)) {
 		int i, j, c, enc;
 		char buf2[IOSIZE * 2 + 10];

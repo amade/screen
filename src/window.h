@@ -218,6 +218,7 @@ struct Window {
 	char	 w_norefresh;		/* dont redisplay when switching to that win */
 	char	 w_xtermosc[4][MAXSTR];	/* special xterm/rxvt escapes */
 	int	 w_mouse;		/* mouse mode 0,9,1000 */
+	int	 w_extmouse;		/* extended mouse mode 0,1006 */
 	bool	 w_bracketed;		/* bracketed paste mode */
 	int	 w_cursorstyle;		/* cursor style */
 

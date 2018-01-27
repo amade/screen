@@ -1174,6 +1174,12 @@ static void DoCSI(Window *win, int c, int intermediate)
 				win->w_mouse = i ? a1 : 0;
 				LMouseMode(&win->w_layer, win->w_mouse);
 				break;
+			/* case 1005:     UTF-8 mouse mode rejected */
+			case 1006:	/* SGR mouse mode */
+				win->w_extmouse = i ? a1 : 0;
+				LExtMouseMode(&win->w_layer, win->w_extmouse);
+				break;
+			/* case 1015:     UXRVT mouse mode rejected */
 			case 2004:	/* bracketed paste mode */
 				win->w_bracketed = i ? true : false;
 				LBracketedPasteMode(&win->w_layer, win->w_bracketed);
