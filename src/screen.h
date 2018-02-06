@@ -225,7 +225,7 @@ void  Msg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 void  Panic (int, const char *, ...) __attribute__((format(printf, 2, 3))) __attribute__((__noreturn__));
 void  QueryMsg (int, const char *, ...) __attribute__((format(printf, 2, 3)));
 void  Dummy (int, const char *, ...) __attribute__((format(printf, 2, 3)));
-void  Finit (int);
+void  Finit (int) __attribute__((__noreturn__));
 void  MakeNewEnv (void);
 void  PutWinMsg (char *, int, int);
 void  setbacktick (int, int, int, char **);
