@@ -686,6 +686,7 @@ static int Special(Window *win, int c)
 	case '\n':
 		if (win->w_autoaka)
 			FindAKA(win);
+		/* fall through */
 	case '\013':		/* Vertical tab is the same as Line Feed */
 		LineFeed(win, 0);
 		return 1;
