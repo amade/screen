@@ -2732,7 +2732,7 @@ static void disp_readev_fn(Event *event, void *data)
 
 							buf -= n;
 							size += n;
-							memcpy(buf, tmp, n);
+							memmove(buf, tmp, n);
 						}
 					}
 				} else if (D_mousetrack) {
