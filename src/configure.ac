@@ -48,31 +48,6 @@ AC_PROG_GCC_TRADITIONAL
 AC_ISC_POSIX
 AC_USE_SYSTEM_EXTENSIONS
 
-AC_TRY_RUN(main(){exit(0);},,[
-if test $CC != cc ; then
-AC_NOTE(Your $CC failed - restarting with CC=cc)
-AC_NOTE()
-CC=cc
-export CC
-exec $0 $configure_args
-fi
-])
-
-AC_TRY_RUN(main(){exit(0);},,
-exec 5>&2
-eval $ac_link
-AC_NOTE(CC=$CC; CFLAGS=$CFLAGS; LIBS=$LIBS;)
-AC_NOTE($ac_compile)
-AC_MSG_ERROR(Can't run the compiler - sorry))
-
-AC_TRY_RUN([
-main()
-{
-  int __something_strange_();
-  __something_strange_(0);
-}
-],AC_MSG_ERROR(Your compiler does not set the exit status - sorry))
-
 AC_PROG_AWK
 
 AC_PROG_INSTALL
@@ -1277,8 +1252,6 @@ if test -z "$old_CFLAGS"; then
 fi
 dnl Ptx bug workaround -- insert -lc after -ltermcap
 test -n "$seqptx" && LIBS="-ltermcap -lc -lsocket -linet -lnsl -lsec -lseq"
-
-AC_TRY_RUN(main(){exit(0);},,AC_MSG_ERROR(Can't run the compiler - internal error. Sorry.))
 
 ETCSCREENRC=
 AC_MSG_CHECKING(for the global screenrc file)
