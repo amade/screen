@@ -179,14 +179,24 @@ AC_EGREP_CPP(YES_IS_DEFINED,
 #endif
 ], LIBS="$LIBS -lsocket -linet";seqptx=1)
 
+AC_CHECKING(SVR4)
+AC_EGREP_CPP(yes,
+[main () {
+#if defined(SVR4) || defined(__SVR4)
+  yes;
+#endif
+], AC_NOTE(- you have a SVR4 system) AC_DEFINE(SVR4) svr4=1)
+if test -n "$svr4" ; then
 oldlibs="$LIBS"
 LIBS="$LIBS -lelf"
 AC_CHECKING(SVR4)
 AC_TRY_LINK([#include <utmpx.h>
 ],,
-[AC_CHECK_HEADER(dwarf.h, AC_DEFINE(SVR4) AC_DEFINE(BUGGYGETLOGIN),
-[AC_CHECK_HEADER(elf.h, AC_DEFINE(SVR4) AC_DEFINE(BUGGYGETLOGIN))])]
+[AC_CHECK_HEADER(dwarf.h, AC_DEFINE(BUGGYGETLOGIN),
+[AC_CHECK_HEADER(elf.h, AC_DEFINE(BUGGYGETLOGIN))])]
 ,LIBS="$oldlibs")
+fi
+
 AC_CHECK_HEADERS([stropts.h string.h strings.h])
 
 AC_CHECKING(for Solaris 2.x)
