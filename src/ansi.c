@@ -979,6 +979,9 @@ static void DoCSI(Window *win, int c, int intermediate)
 				else
 					Report(win, "\033[2t", 0, 0);
 				break;
+			case 18:
+				Report(win, "\033[8;%d;%dt", win->w_height, win->w_width);
+				break;
 			case 21:
 				a1 = strlen(win->w_title);
 				if ((unsigned)(win->w_inlen + 5 + a1) <= ARRAY_SIZE(win->w_inbuf)) {
