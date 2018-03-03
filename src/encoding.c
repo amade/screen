@@ -545,10 +545,6 @@ void AddUtf8(uint32_t c)
 		c = combchars[c - 0xd800]->c2;
 	}
 	if (c >= 0x10000) {
-		if (c >= 0x200000) {
-			AddChar((c & 0x3000000) >> 12 ^ 0xf8);
-			c = (c & 0xffffff) ^ ((0xf0 ^ 0x80) << 18);
-		}
 		AddChar((c & 0x1fc0000) >> 18 ^ 0xf0);
 		c = (c & 0x3ffff) ^ ((0xe0 ^ 0x80) << 12);
 	}
@@ -578,12 +574,6 @@ size_t ToUtf8(char *p, uint32_t c)
 {
 	int l = 1;
 	if (c >= 0x10000) {
-		if (c >= 0x200000) {
-			if (p)
-				*p++ = (c & 0x3000000) >> 12 ^ 0xf8;
-			l++;
-			c = (c & 0xffffff) ^ ((0xf0 ^ 0x80) << 18);
-		}
 		if (p)
 			*p++ = (c & 0x1fc0000) >> 18 ^ 0xf0;
 		l++;
