@@ -2786,7 +2786,7 @@ static void disp_processinput(Display * display, unsigned char *buf, size_t size
 		(*D_processinput) (buf2, j);
 		return;
 	}
-	(*D_processinput) (buf, size);
+	(*D_processinput) ((char *)buf, size);
 }
 
 static void disp_status_fn(Event *event, void *data)
