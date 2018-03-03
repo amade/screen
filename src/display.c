@@ -2643,7 +2643,7 @@ static void disp_readev_fn(Event *event, void *data)
 				} else if (c == '<') {
 					/* SGR mouse sequence */
 					D_mouse_parse.state = CSI_PB;
-					D_mouse_parse.params[D_mouse_parse.state] = 0;
+					D_mouse_parse.params[(int)D_mouse_parse.state] = 0;
 					D_mouse_parse.sgrmode = 1;
 				} else
 					D_mouse_parse.state = CSI_INACTIVE;
@@ -2654,8 +2654,8 @@ static void disp_readev_fn(Event *event, void *data)
 				if (D_mouse_parse.sgrmode) {
 					/* SGR mode: parse decimal numbers */
 					if ('0' <= c && c <= '9') {
-						D_mouse_parse.params[D_mouse_parse.state] *= 10;
-						D_mouse_parse.params[D_mouse_parse.state] += c - '0';
+						D_mouse_parse.params[(int)D_mouse_parse.state] *= 10;
+						D_mouse_parse.params[(int)D_mouse_parse.state] += c - '0';
 					} else if (D_mouse_parse.state == CSI_PY) {
 						if (c == 'M' || c == 'm')
 							D_mouse_parse.state = CSI_DONE;
@@ -2663,12 +2663,12 @@ static void disp_readev_fn(Event *event, void *data)
 							D_mouse_parse.state = CSI_INVALID;
 					} else if (c == ';') {
 						D_mouse_parse.state++;
-						D_mouse_parse.params[D_mouse_parse.state] = 0;
+						D_mouse_parse.params[(int)D_mouse_parse.state] = 0;
 					} else
 						D_mouse_parse.state = CSI_INVALID;
 				} else {
 					/* VT200 mode: read raw binary values */
-					D_mouse_parse.params[D_mouse_parse.state++] = c;
+					D_mouse_parse.params[(int)D_mouse_parse.state++] = c;
 				}
 				break;
 			default:
