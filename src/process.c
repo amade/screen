@@ -2410,6 +2410,8 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_CAPTION:
+		if (!*args)
+			break;
 		if (strcmp(args[0], "top") == 0) {
 			captiontop = 1;
 			args++;
@@ -2662,7 +2664,8 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_UNSETENV:
-		unsetenv(*args);
+		if (*args)
+			unsetenv(*args);
 		MakeNewEnv();
 		break;
 	case RC_DEFSLOWPASTE:
@@ -3238,6 +3241,8 @@ void DoAction(struct action *act, int key)
 		nwin_default.charset = SaveStr(*args);
 		break;
 	case RC_RENDITION:
+		if (!*args)
+			break;
 		i = -1;
 		if (strcmp(args[0], "bell") == 0) {
 			i = REND_BELL;
@@ -3514,6 +3519,8 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_LAYOUT:
+		if (!*args)
+			break;
 		// A number of the subcommands for "layout" are ignored, or not processed correctly when there
 		// is no attached display.
 
@@ -4026,7 +4033,7 @@ static int ParseOnOff(struct action *act, bool *var)
 	int num = -1;
 	char **args = act->args;
 
-	if (args[1] == 0) {
+	if (*args && args[1] == 0) {
 		if (strcmp(args[0], "on") == 0)
 			num = true;
 		else if (strcmp(args[0], "off") == 0)
