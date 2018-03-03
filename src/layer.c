@@ -54,7 +54,6 @@ static struct mline *mlineoffset(const struct mline *ml, const int offset)
 	mml.image = ml->image + offset;
 	mml.attr = ml->attr + offset;
 	mml.font = ml->font + offset;
-	mml.fontx = ml->fontx + offset;
 	mml.colorbg = ml->colorbg + offset;
 	mml.colorfg = ml->colorfg + offset;
 	return &mml;
@@ -298,7 +297,7 @@ void LPutStr(Layer *l, char *s, int n, struct mchar *r, int x, int y)
 			GotoPos(xs2, y2);
 			SetRendition(r);
 			s2 = s + xs2 - x - vp->v_xoff;
-			if (D_encoding == UTF8 && l->l_encoding != UTF8 && (r->font || r->fontx || l->l_encoding)) {
+			if (D_encoding == UTF8 && l->l_encoding != UTF8 && (r->font || l->l_encoding)) {
 				struct mchar mc;
 				mc = *r;
 				while (xs2 <= xe2) {

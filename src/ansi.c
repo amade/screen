@@ -64,8 +64,8 @@ struct mline mline_blank;
 struct mline mline_null;
 
 struct mchar mchar_null;
-struct mchar mchar_blank = { ' ', 0, 0, 0, 0, 0, 0 };
-struct mchar mchar_so = { ' ', A_RV, 0, 0, 0, 0, 0};
+struct mchar mchar_blank = { ' ', 0, 0, 0, 0, 0 };
+struct mchar mchar_so = { ' ', A_RV, 0, 0, 0, 0};
 
 uint64_t renditions[NUM_RENDS] = { 65529 /* =ub */ , 65531 /* =b */ , 65533 /* =u */  };
 
@@ -492,7 +492,6 @@ void WriteString(Window *win, char *buf, size_t len)
 						mc.image = c;
 						mc.mbcs = 0;
 						mc.font = '0';
-						mc.fontx = 0;
 						mcp = recode_mchar(&mc, 0, UTF8);
 						c = mcp->image | mcp->font << 8;
 					}
@@ -513,7 +512,7 @@ void WriteString(Window *win, char *buf, size_t len)
 					if (oy < 0)
 						oy = 0;
 					copy_mline2mchar(&omc, &win->w_mlines[oy], ox);
-					if (omc.image == 0xff && omc.font == 0xff && omc.fontx == 0) {
+					if (omc.image == 0xff && omc.font == 0xff) {
 						ox--;
 						if (ox >= 0) {
 							copy_mline2mchar(&omc, &win->w_mlines[oy], ox);
@@ -607,7 +606,6 @@ void WriteString(Window *win, char *buf, size_t len)
 				win->w_rend.image = c;
 				if (win->w_encoding == UTF8) {
 					win->w_rend.font = c >> 8;
-					win->w_rend.fontx = c >> 16;
 				}
 				win->w_rend.mbcs = win->w_mbcs;
 				if (win->w_x < win->w_width - 1) {
@@ -1919,14 +1917,8 @@ static void MFixLine(Window *win, int y, struct mchar *mc)
 			ml->font = null;
 			win->w_FontL = win->w_charsets[win->w_ss ? win->w_ss : win->w_Charset] = 0;
 			win->w_FontR = win->w_charsets[win->w_ss ? win->w_ss : win->w_CharsetR] = 0;
-			mc->font = mc->fontx = win->w_rend.font = 0;
+			mc->font = win->w_rend.font = 0;
 			WMsg(win, 0, "Warning: no space for font - turned off");
-		}
-	}
-	if (mc->fontx && ml->fontx == null) {
-		if ((ml->fontx = calloc(win->w_width + 1, 4)) == 0) {
-			ml->fontx = null;
-			mc->fontx = 0;
 		}
 	}
 	if (mc->colorbg && ml->colorbg == null) {
@@ -2026,9 +2018,6 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 			if (ml->font != null)
 				free(ml->font);
 			ml->font = null;
-			if (ml->fontx != null)
-				free(ml->fontx);
-			ml->fontx = null;
 			if (ml->colorbg != null)
 				free(ml->colorbg);
 			ml->colorbg = null;
@@ -2062,9 +2051,6 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 			if (ml->font != null)
 				free(ml->font);
 			ml->font = null;
-			if (ml->fontx != null)
-				free(ml->fontx);
-			ml->fontx = null;
 			if (ml->colorbg != null)
 				free(ml->colorbg);
 			ml->colorbg = null;
@@ -2153,7 +2139,6 @@ static void MInsChar(Window *win, struct mchar *c, int x, int y)
 			ml->font[x + 1] |= 0x80;
 		else if (win->w_encoding == UTF8 && c->mbcs) {
 			ml->font[x + 1] = c->mbcs;
-			ml->fontx[x + 1] = 0;
 		}
 	}
 }
@@ -2175,7 +2160,6 @@ static void MPutChar(Window *win, struct mchar *c, int x, int y)
 			ml->font[x + 1] |= 0x80;
 		else if (win->w_encoding == UTF8 && c->mbcs) {
 			ml->font[x + 1] = c->mbcs;
-			ml->fontx[x + 1] = 0;
 		}
 	}
 }
@@ -2243,12 +2227,6 @@ static void WAddLineToHist(Window *win, struct mline *ml)
 	ml->font = null;
 	if (o != null)
 		free(o);
-	q = ml->fontx;
-	o = hml->fontx;
-	hml->fontx = q;
-	ml->fontx = null;
-	if (o != null)
-		free(o);
 	q = ml->colorbg;
 	o = hml->colorbg;
 	hml->colorbg = q;
@@ -2284,8 +2262,6 @@ int MFindUsedLine(Window *win, int ye, int ys)
 			break;
 		if (win->w_encoding == UTF8) {
 			if (ml->font != null && memcmp(ml->font, null, win->w_width))
-				break;
-			if (ml->fontx != null && memcmp(ml->fontx, null, win->w_width))
 				break;
 		}
 	}

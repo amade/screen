@@ -461,8 +461,6 @@ struct mchar *recode_mchar(struct mchar *mc, int from, int to)
 	if (rmc.font == 0)	/* latin1 is the same in unicode */
 		return mc;
 	c = rmc.image | (rmc.font << 8);
-	if (from == UTF8)
-		c |= rmc.fontx << 16;
 	if (rmc.mbcs) {
 		int c2 = rmc.mbcs;
 		c = recode_char_dw_to_encoding(c, &c2, to);
@@ -471,8 +469,6 @@ struct mchar *recode_mchar(struct mchar *mc, int from, int to)
 		c = recode_char_to_encoding(c, to);
 	rmc.image = c & 255;
 	rmc.font = c >> 8 & 255;
-	if (to == UTF8)
-		rmc.fontx = c >> 16 & 255;
 	return &rmc;
 }
 
@@ -485,7 +481,7 @@ struct mline *recode_mline(struct mline *ml, int w, int from, int to)
 
 	if (from == to || (from != UTF8 && to != UTF8) || w == 0)
 		return ml;
-	if (ml->font == null && ml->fontx == null && encodings[from].deffont == 0)
+	if (ml->font == null && encodings[from].deffont == 0)
 		return ml;
 	if (w > maxlen) {
 		for (i = 0; i < 2; i++) {
@@ -497,11 +493,7 @@ struct mline *recode_mline(struct mline *ml, int w, int from, int to)
 				rml[i].font = malloc(w * 4);
 			else
 				rml[i].font = realloc(rml[i].font, w * 4);
-			if (rml[i].fontx == 0)
-				rml[i].fontx = malloc(w * 4);
-			else
-				rml[i].fontx = realloc(rml[i].fontx, w * 4);
-			if (rml[i].image == 0 || rml[i].font == 0 || rml[i].fontx == 0) {
+			if (rml[i].image == 0 || rml[i].font == 0) {
 				maxlen = 0;
 				return ml;	/* sorry */
 			}
@@ -515,8 +507,6 @@ struct mline *recode_mline(struct mline *ml, int w, int from, int to)
 	rl->colorfg = ml->colorfg;
 	for (i = 0; i < w; i++) {
 		c = ml->image[i] | (ml->font[i] << 8);
-		if (from == UTF8)
-			c |= ml->fontx[i] << 16;
 		if (from != UTF8 && c < 256)
 			c |= encodings[from].deffont << 8;
 		if ((from != UTF8 && (c & 0x1f00) != 0 && (c & 0xe000) == 0) || (from == UTF8 && utf8_isdouble(c))) {
@@ -527,8 +517,6 @@ struct mline *recode_mline(struct mline *ml, int w, int from, int to)
 				i++;
 				c2 = ml->image[i] | (ml->font[i] << 8);
 				c = recode_char_dw_to_encoding(c, &c2, to);
-				if (to == UTF8)
-					rl->fontx[i - 1] = c >> 16 & 255;
 				rl->font[i - 1] = c >> 8 & 255;
 				rl->image[i - 1] = c & 255;
 				c = c2;
@@ -537,8 +525,6 @@ struct mline *recode_mline(struct mline *ml, int w, int from, int to)
 			c = recode_char_to_encoding(c, to);
 		rl->image[i] = c & 255;
 		rl->font[i] = c >> 8 & 255;
-		if (to == UTF8)
-			rl->fontx[i] = c >> 16 & 255;
 	}
 	last ^= 1;
 	return rl;
@@ -701,12 +687,10 @@ void WinSwitchEncoding(Window *p, int encoding)
 	flayer = oldflayer;
 	for (j = 0; j < p->w_height + p->w_histheight; j++) {
 		ml = j < p->w_height ? &p->w_mlines[j] : &p->w_hlines[j - p->w_height];
-		if (ml->font == null && ml->fontx == 0 && encodings[p->w_encoding].deffont == 0)
+		if (ml->font == null && encodings[p->w_encoding].deffont == 0)
 			continue;
 		for (i = 0; i < p->w_width; i++) {
 			c = ml->image[i] | (ml->font[i] << 8);
-			if (p->w_encoding == UTF8)
-				c |= ml->fontx[i] << 16;
 			if (p->w_encoding != UTF8 && c < 256)
 				c |= encodings[p->w_encoding].deffont << 8;
 			if (c < 256)
@@ -724,19 +708,8 @@ void WinSwitchEncoding(Window *p, int encoding)
 				else {
 					int c2;
 					i++;
-					c2 = ml->image[i] | (ml->font[i] << 8) | (ml->fontx[i] << 16);
+					c2 = ml->image[i] | (ml->font[i] << 8);
 					c = recode_char_dw_to_encoding(c, &c2, encoding);
-					if (encoding == UTF8) {
-						if (c > 0x10000 && ml->fontx == null) {
-							if ((ml->fontx =
-							     calloc(p->w_width + 1, 4)) == 0) {
-								ml->fontx = null;
-								break;
-							}
-						}
-						ml->fontx[i - 1] = c >> 16 & 255;
-					} else
-						ml->fontx = null;
 					ml->font[i - 1] = c >> 8 & 255;
 					ml->image[i - 1] = c & 255;
 					c = c2;
@@ -745,16 +718,6 @@ void WinSwitchEncoding(Window *p, int encoding)
 				c = recode_char_to_encoding(c, encoding);
 			ml->image[i] = c & 255;
 			ml->font[i] = c >> 8 & 255;
-			if (encoding == UTF8) {
-				if (c > 0x10000 && ml->fontx == null) {
-					if ((ml->fontx = calloc(p->w_width + 1, 4)) == 0) {
-						ml->fontx = null;
-						break;
-					}
-				}
-				ml->fontx[i] = c >> 16 & 255;
-			} else
-				ml->fontx = null;
 		}
 	}
 	p->w_encoding = encoding;
@@ -1167,7 +1130,7 @@ void utf8_handle_comb(unsigned int c, struct mchar *mc)
 	unsigned int i, c1;
 	int isdouble;
 
-	c1 = mc->image | (mc->font << 8) | mc->fontx << 16;
+	c1 = mc->image | (mc->font << 8);
 	isdouble = c1 >= 0x1100 && utf8_isdouble(c1);
 	if (!combchars) {
 		combchars = calloc(0x802, sizeof(struct combchar *));
@@ -1222,7 +1185,6 @@ void utf8_handle_comb(unsigned int c, struct mchar *mc)
 	combchars[i]->c2 = c;
 	mc->image = i & 0xff;
 	mc->font = (i >> 8) + 0xd8;
-	mc->fontx = 0;
 	comb_tofront(root, i);
 }
 
