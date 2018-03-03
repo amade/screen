@@ -2763,10 +2763,11 @@ static void disp_readev_fn(Event *event, void *data)
 static void disp_processinput(Display * display, unsigned char *buf, size_t size)
 {
 	if (D_encoding != (D_forecv ? D_forecv->c_layer->l_encoding : 0)) {
-		int i, j, c, enc;
+		int c, enc;
+		ptrdiff_t i, j;
 		char buf2[IOSIZE * 2 + 10];
 		enc = D_forecv ? D_forecv->c_layer->l_encoding : 0;
-		for (i = j = 0; i < size; i++) {
+		for (i = j = 0; i < (ptrdiff_t)size; i++) {
 			c = ((unsigned char *)buf)[i];
 			c = DecodeChar(c, D_encoding, &D_decodestate);
 			if (c == -2)
