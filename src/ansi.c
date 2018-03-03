@@ -960,23 +960,8 @@ static void DoCSI(Window *win, int c, int intermediate)
 			break;
 		case 't':
 			switch (a1) {
-			case 11:
-				if (win->w_layer.l_cvlist)
-					Report(win, "\033[1t", 0, 0);
-				else
-					Report(win, "\033[2t", 0, 0);
-				break;
 			case 7:
 				LRefreshAll(&win->w_layer, 0);
-				break;
-			case 21:
-				a1 = strlen(win->w_title);
-				if ((unsigned)(win->w_inlen + 5 + a1) <= ARRAY_SIZE(win->w_inbuf)) {
-					memmove(win->w_inbuf + win->w_inlen, "\033]l", 3);
-					memmove(win->w_inbuf + win->w_inlen + 3, win->w_title, a1);
-					memmove(win->w_inbuf + win->w_inlen + 3 + a1, "\033\\", 2);
-					win->w_inlen += 5 + a1;
-				}
 				break;
 			case 8:
 				a1 = win->w_args[2];
@@ -987,6 +972,21 @@ static void DoCSI(Window *win, int c, int intermediate)
 				if (a1 > 10000 || a2 > 10000)
 					break;
 				WChangeSize(win, a1, a2);
+				break;
+			case 11:
+				if (win->w_layer.l_cvlist)
+					Report(win, "\033[1t", 0, 0);
+				else
+					Report(win, "\033[2t", 0, 0);
+				break;
+			case 21:
+				a1 = strlen(win->w_title);
+				if ((unsigned)(win->w_inlen + 5 + a1) <= ARRAY_SIZE(win->w_inbuf)) {
+					memmove(win->w_inbuf + win->w_inlen, "\033]l", 3);
+					memmove(win->w_inbuf + win->w_inlen + 3, win->w_title, a1);
+					memmove(win->w_inbuf + win->w_inlen + 3 + a1, "\033\\", 2);
+					win->w_inlen += 5 + a1;
+				}
 				break;
 			default:
 				break;
