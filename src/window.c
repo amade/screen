@@ -824,6 +824,10 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 	struct stat st;
 	int fd;
 
+#ifndef ENABLE_UTMP
+	(void)lflag; /* unused */
+#endif
+
 	if (!arg)
 		return -1;
 	if (strcmp(arg, "//group") == 0) {
@@ -841,7 +845,9 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 		}
 		if ((fd = OpenTTY(arg, args[1])) < 0)
 			return -1;
+#ifdef ENABLE_UTMP
 		lflag = 0;
+#endif
 		*typep = W_TYPE_PLAIN;
 		*namep = arg;
 	} else {
