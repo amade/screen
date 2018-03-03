@@ -2494,7 +2494,7 @@ static void disp_readev_fn(Event *event, void *data)
 	 * bufspace to prepend the completed and translated mouse sequence.
 	 */
 	ssize_t size;
-	char bufspace[MAX_MOUSE_SEQUENCE + IOSIZE];
+	unsigned char bufspace[MAX_MOUSE_SEQUENCE + IOSIZE];
 	unsigned char *buf = bufspace + MAX_MOUSE_SEQUENCE;
 	Canvas *cv;
 
@@ -2552,7 +2552,7 @@ static void disp_readev_fn(Event *event, void *data)
 		flayer = 0;
 		for (Window *p = windows; p; p = p->w_next)
 			if (p->w_zdisplay == display) {
-				char *bufp = buf;
+				char *bufp = (char *)buf;
 				flayer = &p->w_layer;
 				while (size > 0)
 					LayProcess(&bufp, (size_t*)&size);
