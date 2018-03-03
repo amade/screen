@@ -71,8 +71,8 @@ static void disp_idle_fn(Event *, void *);
 static void disp_blanker_fn(Event *, void *);
 static void disp_processinput (Display *, unsigned char *, size_t);
 static void WriteLP(int, int);
-static void INSERTCHAR(int);
-static void RAW_PUTCHAR(int);
+static void INSERTCHAR(uint32_t);
+static void RAW_PUTCHAR(uint32_t);
 static void SetBackColor(int);
 static void RemoveStatusMinWait(void);
 
@@ -368,7 +368,7 @@ void FinitTerm()
 	Flush(3);
 }
 
-static void INSERTCHAR(int c)
+static void INSERTCHAR(uint32_t c)
 {
 	if (!D_insert && D_x < D_width - 1) {
 		if (D_IC || D_CIC) {
@@ -388,14 +388,14 @@ static void INSERTCHAR(int c)
 	RAW_PUTCHAR(c);
 }
 
-void PUTCHAR(int c)
+void PUTCHAR(uint32_t c)
 {
 	if (D_insert && D_x < D_width - 1)
 		InsertMode(false);
 	RAW_PUTCHAR(c);
 }
 
-void PUTCHARLP(int c)
+void PUTCHARLP(uint32_t c)
 {
 	if (D_x < D_width - 1) {
 		if (D_insert)
@@ -427,7 +427,7 @@ void PUTCHARLP(int c)
  * NOTE: charset Nr. 0 has a conversion table, but c1, c2, ... don't.
  */
 
-static void RAW_PUTCHAR(int c)
+static void RAW_PUTCHAR(uint32_t c)
 {
 
 	if (D_encoding == UTF8) {
@@ -478,7 +478,7 @@ static void RAW_PUTCHAR(int c)
 	    && D_xtable[(int)(unsigned char)D_rend.font][(int)(unsigned char)c])
 		AddStr(D_xtable[(int)(unsigned char)D_rend.font][(int)(unsigned char)c]);
 	else
-		AddChar(D_rend.font != '0' ? c : D_c0_tab[(int)(unsigned char)c]);
+		AddChar(D_rend.font != '0' ? c : (uint32_t)D_c0_tab[(int)(unsigned char)c]);
 
  addedutf8:
 	if (++D_x >= D_width) {
