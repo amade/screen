@@ -2468,6 +2468,7 @@ void DoAction(struct action *act, int key)
 			OutputMsg(0, all_norefresh ? "No refresh on window change!\n" : "Window specific refresh\n");
 		break;
 	case RC_PARTIAL:
+		b = fore->w_norefresh;
 		(void)ParseSwitch(act, &b);
 		fore->w_norefresh = b;
 		break;
@@ -3006,7 +3007,7 @@ void DoAction(struct action *act, int key)
 		winexec(args);
 		break;
 	case RC_NONBLOCK:
-		j = D_nonblock >= 0;
+		b = D_nonblock >= 0;
 		if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
 			if (ParseNum1000(act, &j))
 				break;
@@ -3041,6 +3042,7 @@ void DoAction(struct action *act, int key)
 	case RC_GR:
 		if (fore->w_gr == 2)
 			fore->w_gr = 0;
+		b = fore->w_gr;
 		if (ParseSwitch(act, &b) == 0 && msgok) {
 			fore->w_gr = b ? 1 : 0;
 			OutputMsg(0, "Will %suse GR", fore->w_gr ? "" : "not ");
