@@ -1951,11 +1951,12 @@ static void MFixLine(Window *win, int y, struct mchar *mc)
     }
 
 #define MKillDwLeft(p, ml, x)					\
+  if (x + 1 < p->w_width) {					\
   if (dw_left(ml, x, p->w_encoding))				\
     {								\
       copy_mchar2mline(&mchar_blank, ml, x);			\
       copy_mchar2mline(&mchar_blank, ml, x + 1);		\
-    }
+    }}
 
 static void MScrollH(Window *win, int n, int y, int xs, int xe, int bce)
 {
@@ -2027,7 +2028,7 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 			if (ml->colorfg != null)
 				free(ml->colorfg);
 			ml->colorfg = null;
-			memmove(ml->image, blank, (win->w_width + 1) * 4);
+			memmove(ml->image, blank, (win->w_width) * 4);
 			if (bce)
 				MBceLine(win, i, 0, win->w_width, bce);
 		}
@@ -2060,7 +2061,7 @@ static void MScrollV(Window *win, int n, int ys, int ye, int bce)
 			if (ml->colorfg != null)
 				free(ml->colorfg);
 			ml->colorfg = null;
-			memmove(ml->image, blank, (win->w_width + 1) * 4);
+			memmove(ml->image, blank, (win->w_width) * 4);
 			if (bce)
 				MBceLine(win, i, 0, win->w_width, bce);
 		}
@@ -2175,7 +2176,7 @@ static void MWrapChar(Window *win, struct mchar *c, int y, int top, int bot, boo
 	bce = c->colorbg;
 	MFixLine(win, y, c);
 	ml = &win->w_mlines[y];
-	copy_mchar2mline(&mchar_null, ml, win->w_width);
+	copy_mchar2mline(&mchar_null, ml, win->w_width - 1);
 	if (y == bot)
 		MScrollV(win, 1, top, bot, bce);
 	else if (y < win->w_height - 1)
