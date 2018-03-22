@@ -1122,6 +1122,31 @@ static void DoCommandQuit(struct action *act, int key)
 	/* does not return */
 }
 
+static void DoCommandDetach(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (*args && !strcmp(*args, "-h"))
+		Hangup();
+	else
+		Detach(D_DETACH);
+}
+
+static void DoCommandPow_detach(struct action *act, int key)
+{
+	(void)act; /* unused */
+
+	if (key >= 0) {
+		static char buf[2];
+
+		buf[0] = key;
+		Input(buf, 1, INP_RAW, pow_detach_fn, NULL, 0);
+	} else
+		Detach(D_POWER);	/* detach and kill Attacher's parent */
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1226,19 +1251,10 @@ void DoAction(struct action *act, int key)
 		DoCommandQuit(act, key);
 		break;
 	case RC_DETACH:
-		if (*args && !strcmp(*args, "-h"))
-			Hangup();
-		else
-			Detach(D_DETACH);
+		DoCommandDetach(act, key);
 		break;
 	case RC_POW_DETACH:
-		if (key >= 0) {
-			static char buf[2];
-
-			buf[0] = key;
-			Input(buf, 1, INP_RAW, pow_detach_fn, NULL, 0);
-		} else
-			Detach(D_POWER);	/* detach and kill Attacher's parent */
+		DoCommandPow_detach(act, key);
 		break;
 	case RC_ZMODEM:
 		if (*args && !strcmp(*args, "sendcmd")) {
