@@ -927,6 +927,32 @@ static void DoCommandSelect(struct action *act, int key)
 
 }
 
+static void DoCommandMultiinput(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (!*args) {
+		if (!fore)
+			OutputMsg(0, "multiinput needs a window");
+		else
+			fore->w_miflag = fore->w_miflag ? 0 : 1;
+	} else {
+		int n;
+		if (ParseWinNum(act, &n) == 0) {
+			Window *p = NULL;
+			if (n < maxwin)
+				p = wtab[n];
+			if (p)
+				p->w_miflag = p->w_miflag ? 0 : 1;
+			else
+				ShowWindows(n);
+		}
+	}
+
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -989,22 +1015,7 @@ void DoAction(struct action *act, int key)
 		DoCommandSelect(act, key);
 		break;
 	case RC_MULTIINPUT:
-		if (!*args) {
-			if (!fore)
-				OutputMsg(0, "multiinput needs a window");
-			else
-				fore->w_miflag = fore->w_miflag ? 0 : 1;
-		} else {
-			if (ParseWinNum(act, &n) == 0) {
-				Window *p;
-				if ((p = wtab[n]) == 0) {
-					ShowWindows(n);
-					break;
-				} else {
-					p->w_miflag = p->w_miflag ? 0 : 1;
-				}
-			}
-		}
+		DoCommandMultiinput(act, key);
 		break;
 	case RC_DEFAUTONUKE:
 		if (ParseOnOff(act, &defautonuke) == 0 && msgok)
