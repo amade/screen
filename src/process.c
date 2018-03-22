@@ -1199,6 +1199,35 @@ static void DoCommandUnbindall(struct action *act, int key)
 	OutputMsg(0, "Unbound all keys.");
 }
 
+static void DoCommandZombie(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+	char *s = NULL;
+
+	(void)key; /* unused */
+
+	if (!(s = *args)) {
+		ZombieKey_destroy = 0;
+		return;
+	}
+	if (*argl == 0 || *argl > 2) {
+		OutputMsg(0, "%s:zombie: one or two characters expected.", rc_name);
+		return;
+	}
+	if (args[1]) {
+		if (!strcmp(args[1], "onerror")) {
+			ZombieKey_onerror = 1;
+		} else {
+			OutputMsg(0, "usage: zombie [keys [onerror]]");
+			return;
+		}
+	} else
+		ZombieKey_onerror = 0;
+	ZombieKey_destroy = args[0][0];
+	ZombieKey_resurrect = *argl == 2 ? args[0][1] : 0;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1315,27 +1344,7 @@ void DoAction(struct action *act, int key)
 		DoCommandUnbindall(act, key);
 		break;
 	case RC_ZOMBIE:
-		{
-			if (!(s = *args)) {
-				ZombieKey_destroy = 0;
-				break;
-			}
-			if (*argl == 0 || *argl > 2) {
-				OutputMsg(0, "%s:zombie: one or two characters expected.", rc_name);
-				break;
-			}
-			if (args[1]) {
-				if (!strcmp(args[1], "onerror")) {
-					ZombieKey_onerror = 1;
-				} else {
-					OutputMsg(0, "usage: zombie [keys [onerror]]");
-					break;
-				}
-			} else
-				ZombieKey_onerror = 0;
-			ZombieKey_destroy = args[0][0];
-			ZombieKey_resurrect = *argl == 2 ? args[0][1] : 0;
-		}
+		DoCommandZombie(act, key);
 		break;
 	case RC_WALL:
 		s = D_user->u_name;
