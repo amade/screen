@@ -1014,6 +1014,33 @@ static void DoCommandDumptermcap(struct action *act, int key)
 	WriteFile(user, (char *)0, DUMP_TERMCAP);
 }
 
+
+static void DoCommandHardcopy(struct action *act, int key)
+{
+	char **args = act->args;
+	int mode = DUMP_HARDCOPY;
+	char *file = NULL;
+	struct acluser *user = display ? D_user : users;
+
+	(void)key; /* unused */
+
+	if (args[0]) {
+		if (!strcmp(*args, "-h")) {
+			mode = DUMP_SCROLLBACK;
+			file = args[1];
+		} else if (!strcmp(*args, "--") && args[1])
+			file = args[1];
+		else
+			file = args[0];
+	}
+
+	if (args[0] && file == args[0] && args[1]) {
+		OutputMsg(0, "%s: hardcopy: too many arguments", rc_name);
+		return;
+	}
+	WriteFile(user, file, mode);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1094,26 +1121,7 @@ void DoAction(struct action *act, int key)
 		DoCommandDumptermcap(act, key);
 		break;
 	case RC_HARDCOPY:
-		{
-			int mode = DUMP_HARDCOPY;
-			char *file = NULL;
-
-			if (args[0]) {
-				if (!strcmp(*args, "-h")) {
-					mode = DUMP_SCROLLBACK;
-					file = args[1];
-				} else if (!strcmp(*args, "--") && args[1])
-					file = args[1];
-				else
-					file = args[0];
-			}
-
-			if (args[0] && file == args[0] && args[1]) {
-				OutputMsg(0, "%s: hardcopy: too many arguments", rc_name);
-				break;
-			}
-			WriteFile(user, file, mode);
-		}
+		DoCommandHardcopy(act, key);
 		break;
 	case RC_DEFLOG:
 		(void)ParseOnOff(act, &nwin_default.Lflag);
