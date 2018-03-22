@@ -1228,6 +1228,16 @@ static void DoCommandZombie(struct action *act, int key)
 	ZombieKey_resurrect = *argl == 2 ? args[0][1] : 0;
 }
 
+static void DoCommandWall(struct action *act, int key)
+{
+	char **args = act->args;
+	char *s = D_user->u_name;
+
+	(void)key; /* unused */
+
+	OutputMsg(0, "%s: %s", s, *args);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1347,10 +1357,7 @@ void DoAction(struct action *act, int key)
 		DoCommandZombie(act, key);
 		break;
 	case RC_WALL:
-		s = D_user->u_name;
-		{
-			OutputMsg(0, "%s: %s", s, *args);
-		}
+		DoCommandWall(act, key);
 		break;
 	case RC_AT:
 		/* where this AT command comes from: */
