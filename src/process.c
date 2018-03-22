@@ -907,7 +907,6 @@ void DoAction(struct action *act, int key)
 	int *argl = act->argl;
 	bool b;
 	int argc, n, msgok;
-	int64_t i;
 	int j;
 	char *s = NULL;
 	char ch;
@@ -1130,6 +1129,7 @@ void DoAction(struct action *act, int key)
 			break;
 		}
 		if (*args) {
+			int i;
 			for (i = 0; i < 4; i++)
 				if (!strcmp(zmodes[i], *args))
 					break;
@@ -1146,7 +1146,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_UNBINDALL:
 		{
-			unsigned int i;
+			size_t i;
 
 			for (i = 0; i < ARRAY_SIZE(ktab); i++)
 				ClearAction(&ktab[i]);
@@ -1266,6 +1266,7 @@ void DoAction(struct action *act, int key)
 			{
 				Window *nw;
 				int ch;
+				int i;
 
 				n++;
 				ch = args[0][n];
@@ -1324,93 +1325,97 @@ void DoAction(struct action *act, int key)
 		break;
 
 	case RC_READREG:
-		i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
-		if (args[0] && args[1] && !strcmp(args[0], "-e")) {
-			i = FindEncoding(args[1]);
-			if (i == -1) {
-				OutputMsg(0, "%s: readreg: unknown encoding", rc_name);
-				break;
+		{
+			int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
+			if (args[0] && args[1] && !strcmp(args[0], "-e")) {
+				i = FindEncoding(args[1]);
+				if (i == -1) {
+					OutputMsg(0, "%s: readreg: unknown encoding", rc_name);
+					break;
+				}
+				args += 2;
 			}
-			args += 2;
-		}
-		/*
-		 * Without arguments we prompt for a destination register.
-		 * It will receive the copybuffer contents.
-		 * This is not done by RC_PASTE, as we prompt for source
-		 * (not dest) there.
-		 */
-		if ((s = *args) == NULL) {
-			Input("Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
-			break;
-		}
-		if (*argl != 1) {
-			OutputMsg(0, "%s: copyreg: character, ^x, or (octal) \\032 expected.", rc_name);
-			break;
-		}
-		ch = args[0][0];
-		/*
-		 * With two arguments we *really* read register contents from file
-		 */
-		if (args[1]) {
-			if (args[2]) {
-				OutputMsg(0, "%s: readreg: too many arguments", rc_name);
-				break;
-			}
-			if ((s = ReadFile(args[1], &n))) {
-				struct plop *pp = plop_tab + (int)(unsigned char)ch;
-
-				if (pp->buf)
-					free(pp->buf);
-				pp->buf = s;
-				pp->len = n;
-				pp->enc = i;
-			}
-		} else
 			/*
-			 * with one argument we copy the copybuffer into a specified register
-			 * This could be done with RC_PASTE too, but is here to be consistent
-			 * with the zero argument call.
+			 * Without arguments we prompt for a destination register.
+			 * It will receive the copybuffer contents.
+			 * This is not done by RC_PASTE, as we prompt for source
+			 * (not dest) there.
 			 */
-			copy_reg_fn(&ch, 0, NULL);
-		break;
-	case RC_REGISTER:
-		i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
-		if (args[0] && args[1] && !strcmp(args[0], "-e")) {
-			i = FindEncoding(args[1]);
-			if (i == -1) {
-				OutputMsg(0, "%s: register: unknown encoding", rc_name);
+			if ((s = *args) == NULL) {
+				Input("Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
 				break;
 			}
-			args += 2;
-			argc -= 2;
-		}
-		if (argc != 2) {
-			OutputMsg(0, "%s: register: illegal number of arguments.", rc_name);
-			break;
-		}
-		if (*argl != 1) {
-			OutputMsg(0, "%s: register: character, ^x, or (octal) \\032 expected.", rc_name);
-			break;
-		}
-		ch = args[0][0];
-		if (ch == '.') {
-			if (user->u_plop.buf != NULL)
-				UserFreeCopyBuffer(user);
-			if (args[1] && args[1][0]) {
-				user->u_plop.buf = SaveStrn(args[1], argl[1]);
-				user->u_plop.len = argl[1];
-				user->u_plop.enc = i;
+			if (*argl != 1) {
+				OutputMsg(0, "%s: copyreg: character, ^x, or (octal) \\032 expected.", rc_name);
+				break;
 			}
-		} else {
-			struct plop *plp = plop_tab + (int)(unsigned char)ch;
-
-			if (plp->buf)
-				free(plp->buf);
-			plp->buf = SaveStrn(args[1], argl[1]);
-			plp->len = argl[1];
-			plp->enc = i;
+			ch = args[0][0];
+			/*
+			 * With two arguments we *really* read register contents from file
+			 */
+			if (args[1]) {
+				if (args[2]) {
+					OutputMsg(0, "%s: readreg: too many arguments", rc_name);
+					break;
+				}
+				if ((s = ReadFile(args[1], &n))) {
+					struct plop *pp = plop_tab + (int)(unsigned char)ch;
+	
+					if (pp->buf)
+						free(pp->buf);
+					pp->buf = s;
+					pp->len = n;
+					pp->enc = i;
+				}
+			} else
+				/*
+				 * with one argument we copy the copybuffer into a specified register
+				 * This could be done with RC_PASTE too, but is here to be consistent
+				 * with the zero argument call.
+				 */
+				copy_reg_fn(&ch, 0, NULL);
+			break;
 		}
-		break;
+	case RC_REGISTER:
+		{
+			int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
+			if (args[0] && args[1] && !strcmp(args[0], "-e")) {
+				i = FindEncoding(args[1]);
+				if (i == -1) {
+					OutputMsg(0, "%s: register: unknown encoding", rc_name);
+					break;
+				}
+				args += 2;
+				argc -= 2;
+			}
+			if (argc != 2) {
+				OutputMsg(0, "%s: register: illegal number of arguments.", rc_name);
+				break;
+			}
+			if (*argl != 1) {
+				OutputMsg(0, "%s: register: character, ^x, or (octal) \\032 expected.", rc_name);
+				break;
+			}
+			ch = args[0][0];
+			if (ch == '.') {
+				if (user->u_plop.buf != NULL)
+					UserFreeCopyBuffer(user);
+				if (args[1] && args[1][0]) {
+					user->u_plop.buf = SaveStrn(args[1], argl[1]);
+					user->u_plop.len = argl[1];
+					user->u_plop.enc = i;
+				}
+			} else {
+				struct plop *plp = plop_tab + (int)(unsigned char)ch;
+	
+				if (plp->buf)
+					free(plp->buf);
+				plp->buf = SaveStrn(args[1], argl[1]);
+				plp->len = argl[1];
+				plp->enc = i;
+			}
+			break;
+		}
 	case RC_PROCESS:
 		if ((s = *args) == NULL) {
 			Input("Process register:", 1, INP_RAW, process_fn, NULL, 0);
@@ -1431,6 +1436,7 @@ void DoAction(struct action *act, int key)
 		}
 		len = *argl;
 		if (args[1]) {
+			int i;
 			if (strcmp(s, "-k")) {
 				OutputMsg(0, "%s: stuff: invalid option %s", rc_name, s);
 				break;
@@ -1533,6 +1539,7 @@ void DoAction(struct action *act, int key)
 			if (*args) {
 				if (ParseNum(act, &n))
 					for (n = 0; n < (int)(ARRAY_SIZE(types)); n++) {
+						int i;
 						for (i = 0; i < 4; i++) {
 							ch = args[0][i];
 							if (ch >= 'a' && ch <= 'z')
@@ -1777,13 +1784,14 @@ void DoAction(struct action *act, int key)
 			if (display)	/* we tell only this user */
 				ACLBYTE(fore->w_mon_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
 			else
-				for (i = 0; i < maxusercount; i++)
+				for (int i = 0; i < maxusercount; i++)
 					ACLBYTE(fore->w_mon_notify, i) |= ACLBIT(i);
 			if (fore->w_monitor == MON_OFF)
 				fore->w_monitor = MON_ON;
 			OutputMsg(0, "Window %d (%s) is now being monitored for all activity.", fore->w_number,
 				  fore->w_title);
 		} else {
+			int i;
 			if (display)	/* we remove only this user */
 				ACLBYTE(fore->w_mon_notify, D_user->u_id)
 				    &= ~ACLBIT(D_user->u_id);
@@ -1824,6 +1832,7 @@ void DoAction(struct action *act, int key)
 		} else {
 			int flag = 0;
 			int blank = 0;
+			int i;
 			for (i = 0; i < argc; i++)
 				if (!args[i])
 					continue;
@@ -2040,29 +2049,31 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_READBUF:
-		i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
-		if (args[0] && args[1] && !strcmp(args[0], "-e")) {
-			i = FindEncoding(args[1]);
-			if (i == -1) {
-				OutputMsg(0, "%s: readbuf: unknown encoding", rc_name);
+		{
+			int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
+			if (args[0] && args[1] && !strcmp(args[0], "-e")) {
+				i = FindEncoding(args[1]);
+				if (i == -1) {
+					OutputMsg(0, "%s: readbuf: unknown encoding", rc_name);
+					break;
+				}
+				args += 2;
+			}
+			if (args[0] && args[1]) {
+				OutputMsg(0, "%s: readbuf: too many arguments", rc_name);
 				break;
 			}
-			args += 2;
-		}
-		if (args[0] && args[1]) {
-			OutputMsg(0, "%s: readbuf: too many arguments", rc_name);
+			if ((s = ReadFile(args[0] ? args[0] : BufferFile, &n))) {
+				if (user->u_plop.buf)
+					UserFreeCopyBuffer(user);
+				user->u_plop.len = n;
+				user->u_plop.buf = s;
+				user->u_plop.enc = i;
+				OutputMsg(0, "Read contents of %s into copybuffer",
+	                                  args[0] ? args[0] : BufferFile);
+			}
 			break;
 		}
-		if ((s = ReadFile(args[0] ? args[0] : BufferFile, &n))) {
-			if (user->u_plop.buf)
-				UserFreeCopyBuffer(user);
-			user->u_plop.len = n;
-			user->u_plop.buf = s;
-			user->u_plop.enc = i;
-			OutputMsg(0, "Read contents of %s into copybuffer",
-                                  args[0] ? args[0] : BufferFile);
-		}
-		break;
 	case RC_REMOVEBUF:
 		KillBuffers();
 		break;
@@ -2390,7 +2401,7 @@ void DoAction(struct action *act, int key)
 			RemoveStatus();
 		}
 		{
-			int	i = 0;
+			int i = 0;
 			while ( (i <= 1) && args[i]) {
 				if ( (strcmp(args[i], "top") == 0) || (strcmp(args[i], "up") == 0) ) {
 					statuspos.row = STATUS_TOP;
@@ -2553,23 +2564,25 @@ void DoAction(struct action *act, int key)
 			fore->w_poll_zombie_timeout = nwin_default.poll_zombie_timeout;
 		break;
 	case RC_SORT:
-		i = 0;
-		if (!wtab[i] || !wtab[i + 1]) {
-			Msg(0, "Less than two windows, sorting makes no sense.\n");
-			break;
-		}
-		for (i = 0; wtab[i + 1] != NULL; i++) {
-			for (n = i, nr = i; wtab[n + 1] != NULL; n++) {
-				if (strcmp(wtab[nr]->w_title, wtab[n + 1]->w_title) > 0) {
-					nr = n + 1;
+		{
+			int i = 0;
+			if (!wtab[i] || !wtab[i + 1]) {
+				Msg(0, "Less than two windows, sorting makes no sense.\n");
+				break;
+			}
+			for (i = 0; wtab[i + 1] != NULL; i++) {
+				for (n = i, nr = i; wtab[n + 1] != NULL; n++) {
+					if (strcmp(wtab[nr]->w_title, wtab[n + 1]->w_title) > 0) {
+						nr = n + 1;
+					}
+				}
+				if (nr != i) {
+					SwapWindows(nr, i);
 				}
 			}
-			if (nr != i) {
-				SwapWindows(nr, i);
-			}
+			WindowChanged((Window *)0, 0);
+			break;
 		}
-		WindowChanged((Window *)0, 0);
-		break;
 	case RC_SILENCE:
 		b = fore->w_silence != 0;
 		j = fore->w_silencewait;
@@ -2594,6 +2607,7 @@ void DoAction(struct action *act, int key)
 				break;
 			OutputMsg(0, "The window is now being monitored for %d sec. silence.", fore->w_silencewait);
 		} else {
+			int i;
 			if (display)	/* we remove only this user */
 				ACLBYTE(fore->w_lio_notify, D_user->u_id)
 				    &= ~ACLBIT(D_user->u_id);
@@ -2764,6 +2778,7 @@ void DoAction(struct action *act, int key)
 				n = (unsigned char)args[0][0];
 
 			if (args[1]) {
+				int i;
 				if ((i = FindCommnr(args[1])) == RC_ILLEGAL) {
 					OutputMsg(0, "%s: bind: unknown command '%s'", rc_name, args[1]);
 					break;
@@ -2783,6 +2798,7 @@ void DoAction(struct action *act, int key)
 			Display *odisp = display;
 			int used = 0;
 			struct kmap_ext *kme = NULL;
+			int i;
 
 			for (; *args && **args == '-'; args++, argl++) {
 				if (strcmp(*args, "-t") == 0)
@@ -3074,7 +3090,7 @@ void DoAction(struct action *act, int key)
 				OutputMsg(0, "encoding: utf8 encoding file loaded");
 			break;
 		}
-		for (i = 0; i < 2; i++) {
+		for (int i = 0; i < 2; i++) {
 			if (args[i] == 0)
 				break;
 			if (!strcmp(args[i], "."))
@@ -3109,7 +3125,7 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_UTF8:
-		for (i = 0; i < 2; i++) {
+		for (int i = 0; i < 2; i++) {
 			if (i && args[i] == 0)
 				break;
 			if (args[i] == 0)
@@ -3151,6 +3167,7 @@ void DoAction(struct action *act, int key)
 
 	case RC_DIGRAPH:
 		if (argl && argl[0] > 0 && args[1] && argl[1] > 0) {
+			int i;
 			if (argl[0] != 2) {
 				OutputMsg(0, "Two characters expected to define a digraph");
 				break;
@@ -3242,36 +3259,39 @@ void DoAction(struct action *act, int key)
 		nwin_default.charset = SaveStr(*args);
 		break;
 	case RC_RENDITION:
-		if (!*args)
-			break;
-		i = -1;
-		if (strcmp(args[0], "bell") == 0) {
-			i = REND_BELL;
-		} else if (strcmp(args[0], "monitor") == 0) {
-			i = REND_MONITOR;
-		} else if (strcmp(args[0], "silence") == 0) {
-			i = REND_SILENCE;
-		} else if (strcmp(args[0], "so") != 0) {
-			OutputMsg(0, "Invalid option '%s' for rendition", args[0]);
-			break;
+		{
+			int i;
+			if (!*args)
+				break;
+			i = -1;
+			if (strcmp(args[0], "bell") == 0) {
+				i = REND_BELL;
+			} else if (strcmp(args[0], "monitor") == 0) {
+				i = REND_MONITOR;
+			} else if (strcmp(args[0], "silence") == 0) {
+				i = REND_SILENCE;
+			} else if (strcmp(args[0], "so") != 0) {
+				OutputMsg(0, "Invalid option '%s' for rendition", args[0]);
+				break;
+			}
+	
+			++args;
+			++argl;
+	
+			if (i != -1) {
+				renditions[i] = ParseAttrColor(args[0], 1);
+				WindowChanged((Window *)0, WINESC_WIN_NAMES);
+				WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
+				WindowChanged((Window *)0, 0);
+				break;
+			}
 		}
-
-		++args;
-		++argl;
-
-		if (i != -1) {
-			renditions[i] = ParseAttrColor(args[0], 1);
-			WindowChanged((Window *)0, WINESC_WIN_NAMES);
-			WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
-			WindowChanged((Window *)0, 0);
-			break;
-		}
-
+	
 		/* We are here, means we want to set the sorendition. */
 		/* FALLTHROUGH */
 	case RC_SORENDITION:
 		if (args[0]) {
-			i = ParseAttrColor(args[0], 1);
+			int i = ParseAttrColor(args[0], 1);
 			if (i == 0)
 				break;
 			ApplyAttrColor(i, &mchar_so);
@@ -3352,40 +3372,42 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_RESIZE:
-		i = 0;
-		if (D_forecv->c_slorient == SLICE_UNKN) {
-			OutputMsg(0, "resize: need more than one region");
-			break;
-		}
-		for (; *args; args++) {
-			if (!strcmp(*args, "-h"))
-				i |= RESIZE_FLAG_H;
-			else if (!strcmp(*args, "-v"))
-				i |= RESIZE_FLAG_V;
-			else if (!strcmp(*args, "-b"))
-				i |= RESIZE_FLAG_H | RESIZE_FLAG_V;
-			else if (!strcmp(*args, "-p"))
-				i |= D_forecv->c_slorient == SLICE_VERT ? RESIZE_FLAG_H : RESIZE_FLAG_V;
-			else if (!strcmp(*args, "-l"))
-				i |= RESIZE_FLAG_L;
-			else
+		{
+			int i = 0;
+			if (D_forecv->c_slorient == SLICE_UNKN) {
+				OutputMsg(0, "resize: need more than one region");
 				break;
-		}
-		if (*args && args[1]) {
-			OutputMsg(0, "%s: usage: resize [-h] [-v] [-l] [num]\n", rc_name);
+			}
+			for (; *args; args++) {
+				if (!strcmp(*args, "-h"))
+					i |= RESIZE_FLAG_H;
+				else if (!strcmp(*args, "-v"))
+					i |= RESIZE_FLAG_V;
+				else if (!strcmp(*args, "-b"))
+					i |= RESIZE_FLAG_H | RESIZE_FLAG_V;
+				else if (!strcmp(*args, "-p"))
+					i |= D_forecv->c_slorient == SLICE_VERT ? RESIZE_FLAG_H : RESIZE_FLAG_V;
+				else if (!strcmp(*args, "-l"))
+					i |= RESIZE_FLAG_L;
+				else
+					break;
+			}
+			if (*args && args[1]) {
+				OutputMsg(0, "%s: usage: resize [-h] [-v] [-l] [num]\n", rc_name);
+				break;
+			}
+			if (*args)
+				ResizeRegions(*args, i);
+			else
+				Input(resizeprompts[i], 20, INP_EVERY, ResizeFin, (char *)0, i);
 			break;
 		}
-		if (*args)
-			ResizeRegions(*args, i);
-		else
-			Input(resizeprompts[i], 20, INP_EVERY, ResizeFin, (char *)0, i);
-		break;
 	case RC_SETSID:
 		(void)ParseSwitch(act, &separate_sids);
 		break;
 	case RC_EVAL:
 		args = SaveArgs(args);
-		for (i = 0; args[i]; i++) {
+		for (int i = 0; args[i]; i++) {
 			if (args[i][0])
 				ColonFin(args[i], strlen(args[i]), (char *)0);
 			free(args[i]);
@@ -3456,6 +3478,7 @@ void DoAction(struct action *act, int key)
 			else if (args[0][0])
 				idletimo = atoi(*args) * 1000;
 			if (argc > 1) {
+				int i;
 				if ((i = FindCommnr(args[1])) == RC_ILLEGAL) {
 					OutputMsg(0, "%s: idle: unknown command '%s'", rc_name, args[1]);
 					break;
@@ -3477,7 +3500,7 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_FOCUSMINSIZE:
-		for (i = 0; i < 2 && args[i]; i++) {
+		for (int i = 0; i < 2 && args[i]; i++) {
 			if (!strcmp(args[i], "max") || !strcmp(args[i], "_"))
 				n = -1;
 			else
@@ -3489,7 +3512,7 @@ void DoAction(struct action *act, int key)
 		}
 		if (msgok) {
 			char b[2][20];
-			for (i = 0; i < 2; i++) {
+			for (int i = 0; i < 2; i++) {
 				n = i == 0 ? focusminwidth : focusminheight;
 				if (n == -1)
 					strncpy(b[i], "max", 20);
