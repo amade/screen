@@ -1085,6 +1085,32 @@ static void DoCommandPrev(struct action *act, int key)
 		SwitchWindow(PreviousWindow());
 }
 
+static void DoCommandKill(struct action *act, int key)
+{
+	char *name;
+	int n;
+
+	(void)act; /* unused */
+
+	if (key >= 0) {
+		Input(fore->w_pwin ? "Really kill this filter [y/n]" : "Really kill this window [y/n]",
+		      1, INP_RAW, confirm_fn, NULL, RC_KILL);
+		return;
+	}
+	n = fore->w_number;
+	if (fore->w_pwin) {
+		FreePseudowin(fore);
+		OutputMsg(0, "Filter removed.");
+		return;
+	}
+	name = SaveStr(fore->w_title);
+	KillWindow(fore);
+	OutputMsg(0, "Window %d (%s) killed.", n, name);
+	if (name)
+		free(name);
+}
+
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1183,27 +1209,8 @@ void DoAction(struct action *act, int key)
 		DoCommandPrev(act, key);
 		break;
 	case RC_KILL:
-		{
-			char *name;
-
-			if (key >= 0) {
-				Input(fore->w_pwin ? "Really kill this filter [y/n]" : "Really kill this window [y/n]",
-				      1, INP_RAW, confirm_fn, NULL, RC_KILL);
-				break;
-			}
-			n = fore->w_number;
-			if (fore->w_pwin) {
-				FreePseudowin(fore);
-				OutputMsg(0, "Filter removed.");
-				break;
-			}
-			name = SaveStr(fore->w_title);
-			KillWindow(fore);
-			OutputMsg(0, "Window %d (%s) killed.", n, name);
-			if (name)
-				free(name);
-			break;
-		}
+		DoCommandKill(act, key);
+		break;
 	case RC_QUIT:
 		if (key >= 0) {
 			Input("Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
