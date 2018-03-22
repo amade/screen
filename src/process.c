@@ -1041,6 +1041,23 @@ static void DoCommandHardcopy(struct action *act, int key)
 	WriteFile(user, file, mode);
 }
 
+static void DoCommandDeflog(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseOnOff(act, &nwin_default.Lflag);
+}
+
+static void DoCommandLog(struct action *act, int key)
+{
+	bool b = fore->w_log ? true : false;
+
+	(void)key; /* unused */
+
+	ParseSwitch(act, &b);
+	LogToggle(b);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1124,15 +1141,11 @@ void DoAction(struct action *act, int key)
 		DoCommandHardcopy(act, key);
 		break;
 	case RC_DEFLOG:
-		(void)ParseOnOff(act, &nwin_default.Lflag);
+		DoCommandDeflog(act, key);
 		break;
 	case RC_LOG:
-		{
-			bool b = fore->w_log ? true : false;
-			ParseSwitch(act, &b);
-			LogToggle(b);
-			break;
-		}
+		DoCommandLog(act, key);
+		break;
 	case RC_SUSPEND:
 		Detach(D_STOP);
 		break;
