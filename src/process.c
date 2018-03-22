@@ -1147,6 +1147,48 @@ static void DoCommandPow_detach(struct action *act, int key)
 		Detach(D_POWER);	/* detach and kill Attacher's parent */
 }
 
+static void DoCommandZmodem(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (*args && !strcmp(*args, "sendcmd")) {
+		if (args[1]) {
+			free(zmodem_sendcmd);
+			zmodem_sendcmd = SaveStr(args[1]);
+		}
+		if (msgok)
+			OutputMsg(0, "zmodem sendcmd: %s", zmodem_sendcmd);
+		return;
+	}
+	if (*args && !strcmp(*args, "recvcmd")) {
+		if (args[1]) {
+			free(zmodem_recvcmd);
+			zmodem_recvcmd = SaveStr(args[1]);
+		}
+		if (msgok)
+			OutputMsg(0, "zmodem recvcmd: %s", zmodem_recvcmd);
+		return;
+	}
+	if (*args) {
+		int i;
+		for (i = 0; i < 4; i++)
+			if (!strcmp(zmodes[i], *args))
+				return;
+		if (i == 4 && !strcmp(*args, "on"))
+			i = 1;
+		if (i == 4) {
+			OutputMsg(0, "usage: zmodem off|auto|catch|pass");
+			return;
+		}
+		zmodem_mode = i;
+	}
+	if (msgok)
+		OutputMsg(0, "zmodem mode is %s", zmodes[zmodem_mode]);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1257,39 +1299,7 @@ void DoAction(struct action *act, int key)
 		DoCommandPow_detach(act, key);
 		break;
 	case RC_ZMODEM:
-		if (*args && !strcmp(*args, "sendcmd")) {
-			if (args[1]) {
-				free(zmodem_sendcmd);
-				zmodem_sendcmd = SaveStr(args[1]);
-			}
-			if (msgok)
-				OutputMsg(0, "zmodem sendcmd: %s", zmodem_sendcmd);
-			break;
-		}
-		if (*args && !strcmp(*args, "recvcmd")) {
-			if (args[1]) {
-				free(zmodem_recvcmd);
-				zmodem_recvcmd = SaveStr(args[1]);
-			}
-			if (msgok)
-				OutputMsg(0, "zmodem recvcmd: %s", zmodem_recvcmd);
-			break;
-		}
-		if (*args) {
-			int i;
-			for (i = 0; i < 4; i++)
-				if (!strcmp(zmodes[i], *args))
-					break;
-			if (i == 4 && !strcmp(*args, "on"))
-				i = 1;
-			if (i == 4) {
-				OutputMsg(0, "usage: zmodem off|auto|catch|pass");
-				break;
-			}
-			zmodem_mode = i;
-		}
-		if (msgok)
-			OutputMsg(0, "zmodem mode is %s", zmodes[zmodem_mode]);
+		DoCommandZmodem(act, key);
 		break;
 	case RC_UNBINDALL:
 		{
