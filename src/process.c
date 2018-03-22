@@ -1004,6 +1004,16 @@ static void DoCommandObuflimit(struct action *act, int key)
 	D_obuflenmax = D_obuflen - D_obufmax;
 }
 
+static void DoCommandDumptermcap(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	struct acluser *user = display ? D_user : users;
+
+	WriteFile(user, (char *)0, DUMP_TERMCAP);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1081,7 +1091,7 @@ void DoAction(struct action *act, int key)
 		DoCommandObuflimit(act, key);
 		break;
 	case RC_DUMPTERMCAP:
-		WriteFile(user, (char *)0, DUMP_TERMCAP);
+		DoCommandDumptermcap(act, key);
 		break;
 	case RC_HARDCOPY:
 		{
