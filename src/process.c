@@ -905,7 +905,6 @@ void DoAction(struct action *act, int key)
 	int nr = act->nr;
 	char **args = act->args;
 	int *argl = act->argl;
-	Window *p;
 	bool b;
 	int argc, n, msgok;
 	int64_t i;
@@ -2497,7 +2496,7 @@ void DoAction(struct action *act, int key)
 			break;
 		if (SilenceWait < 1)
 			SilenceWait = 1;
-		for (p = windows; p; p = p->w_next)
+		for (Window *p = windows; p; p = p->w_next)
 			p->w_silencewait = SilenceWait;
 		if (msgok)
 			OutputMsg(0, "silencewait set to %d seconds", SilenceWait);
