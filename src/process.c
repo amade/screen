@@ -1389,6 +1389,68 @@ static void DoCommandAt(struct action *act, int key)
 	EffectiveAclUser = NULL;
 }
 
+static void DoCommandReadreg(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+	int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
+	char ch;
+	char *s;
+	int n;
+
+	(void)key; /* unused */
+
+	if (args[0] && args[1] && !strcmp(args[0], "-e")) {
+		i = FindEncoding(args[1]);
+		if (i == -1) {
+			OutputMsg(0, "%s: readreg: unknown encoding", rc_name);
+			return;
+		}
+		args += 2;
+	}
+	/*
+	 * Without arguments we prompt for a destination register.
+	 * It will receive the copybuffer contents.
+	 * This is not done by RC_PASTE, as we prompt for source
+	 * (not dest) there.
+	 */
+	if (*args == NULL) {
+		Input("Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
+		return;
+	}
+	if (*argl != 1) {
+		OutputMsg(0, "%s: copyreg: character, ^x, or (octal) \\032 expected.", rc_name);
+		return;
+	}
+	ch = args[0][0];
+	/*
+	 * With two arguments we *really* read register contents from file
+	 */
+	if (args[1]) {
+		if (args[2]) {
+			OutputMsg(0, "%s: readreg: too many arguments", rc_name);
+			return;
+		}
+		if ((s = ReadFile(args[1], &n))) {
+			struct plop *pp = plop_tab + (int)(unsigned char)ch;
+
+			if (pp->buf)
+				free(pp->buf);
+			pp->buf = s;
+			pp->len = n;
+			pp->enc = i;
+		}
+	} else {
+		/*
+		 * with one argument we copy the copybuffer into a specified register
+		 * This could be done with RC_PASTE too, but is here to be consistent
+		 * with the zero argument call.
+		 */
+		copy_reg_fn(&ch, 0, NULL);
+	}
+}
+
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1514,57 +1576,8 @@ void DoAction(struct action *act, int key)
 		DoCommandAt(act, key);
 		break;
 	case RC_READREG:
-		{
-			int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
-			if (args[0] && args[1] && !strcmp(args[0], "-e")) {
-				i = FindEncoding(args[1]);
-				if (i == -1) {
-					OutputMsg(0, "%s: readreg: unknown encoding", rc_name);
-					break;
-				}
-				args += 2;
-			}
-			/*
-			 * Without arguments we prompt for a destination register.
-			 * It will receive the copybuffer contents.
-			 * This is not done by RC_PASTE, as we prompt for source
-			 * (not dest) there.
-			 */
-			if ((s = *args) == NULL) {
-				Input("Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
-				break;
-			}
-			if (*argl != 1) {
-				OutputMsg(0, "%s: copyreg: character, ^x, or (octal) \\032 expected.", rc_name);
-				break;
-			}
-			ch = args[0][0];
-			/*
-			 * With two arguments we *really* read register contents from file
-			 */
-			if (args[1]) {
-				if (args[2]) {
-					OutputMsg(0, "%s: readreg: too many arguments", rc_name);
-					break;
-				}
-				if ((s = ReadFile(args[1], &n))) {
-					struct plop *pp = plop_tab + (int)(unsigned char)ch;
-	
-					if (pp->buf)
-						free(pp->buf);
-					pp->buf = s;
-					pp->len = n;
-					pp->enc = i;
-				}
-			} else
-				/*
-				 * with one argument we copy the copybuffer into a specified register
-				 * This could be done with RC_PASTE too, but is here to be consistent
-				 * with the zero argument call.
-				 */
-				copy_reg_fn(&ch, 0, NULL);
-			break;
-		}
+		DoCommandReadreg(act, key);
+		break;
 	case RC_REGISTER:
 		{
 			int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
