@@ -905,7 +905,6 @@ void DoAction(struct action *act, int key)
 	int nr = act->nr;
 	char **args = act->args;
 	int *argl = act->argl;
-	bool b;
 	int argc, n, msgok;
 	int j;
 	char *s = NULL;
@@ -1050,10 +1049,12 @@ void DoAction(struct action *act, int key)
 		(void)ParseOnOff(act, &nwin_default.Lflag);
 		break;
 	case RC_LOG:
-		b = fore->w_log ? true : false;
-		ParseSwitch(act, &b);
-		LogToggle(b);
-		break;
+		{
+			bool b = fore->w_log ? true : false;
+			ParseSwitch(act, &b);
+			LogToggle(b);
+			break;
+		}
 	case RC_SUSPEND:
 		Detach(D_STOP);
 		break;
@@ -1720,36 +1721,43 @@ void DoAction(struct action *act, int key)
 			OutputMsg(0, "%cwrap", fore->w_wrap ? '+' : '-');
 		break;
 	case RC_FLOW:
-		if (*args) {
-			if (args[0][0] == 'a') {
-				fore->w_flow =
-				    (fore->w_flow & FLOW_AUTO) ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_ON : FLOW_AUTOFLAG;
-			} else 	if (ParseOnOff(act, &b) == 0)
-				fore->w_flow = (fore->w_flow & FLOW_AUTO) | b ? FLOW_ON : FLOW_OFF;
-		} else {
-			if (fore->w_flow & FLOW_AUTOFLAG)
-				fore->w_flow = (fore->w_flow & FLOW_AUTO) | FLOW_ON;
-			else if (fore->w_flow & FLOW_ON)
-				fore->w_flow &= ~FLOW_ON;
-			else
-				fore->w_flow = fore->w_flow ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_ON : FLOW_AUTOFLAG;
+		{
+			bool b;
+			if (*args) {
+				if (args[0][0] == 'a') {
+					fore->w_flow =
+					    (fore->w_flow & FLOW_AUTO) ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_ON : FLOW_AUTOFLAG;
+				} else 	if (ParseOnOff(act, &b) == 0)
+					fore->w_flow = (fore->w_flow & FLOW_AUTO) | b ? FLOW_ON : FLOW_OFF;
+			} else {
+				if (fore->w_flow & FLOW_AUTOFLAG)
+					fore->w_flow = (fore->w_flow & FLOW_AUTO) | FLOW_ON;
+				else if (fore->w_flow & FLOW_ON)
+					fore->w_flow &= ~FLOW_ON;
+				else
+					fore->w_flow = fore->w_flow ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_ON : FLOW_AUTOFLAG;
+			}
+			SetFlow(fore->w_flow & FLOW_ON);
+			if (msgok)
+				OutputMsg(0, "%cflow%s", (fore->w_flow & FLOW_ON) ? '+' : '-',
+					  (fore->w_flow & FLOW_AUTOFLAG) ? "(auto)" : "");
+			break;
 		}
-		SetFlow(fore->w_flow & FLOW_ON);
-		if (msgok)
-			OutputMsg(0, "%cflow%s", (fore->w_flow & FLOW_ON) ? '+' : '-',
-				  (fore->w_flow & FLOW_AUTOFLAG) ? "(auto)" : "");
-		break;
 	case RC_DEFWRITELOCK:
-		if (args[0][0] == 'a')
-			nwin_default.wlock = WLOCK_AUTO;
-		else if (ParseOnOff(act, &b) == 0)
-			nwin_default.wlock = b ? WLOCK_ON : WLOCK_OFF;
-		break;
+		{
+			bool b;
+			if (args[0][0] == 'a')
+				nwin_default.wlock = WLOCK_AUTO;
+			else if (ParseOnOff(act, &b) == 0)
+				nwin_default.wlock = b ? WLOCK_ON : WLOCK_OFF;
+			break;
+		}
 	case RC_WRITELOCK:
 		if (*args) {
 			if (args[0][0] == 'a') {
 				fore->w_wlock = WLOCK_AUTO;
 			} else {
+				bool b;
 				if (ParseOnOff(act, &b))
 					break;
 				fore->w_wlock = b ? WLOCK_ON : WLOCK_OFF;
@@ -1775,38 +1783,40 @@ void DoAction(struct action *act, int key)
 		WriteString(fore, "\033c", 2);
 		break;
 	case RC_MONITOR:
-		b = fore->w_monitor != MON_OFF;
-		if (display)
-			b = b && (ACLBYTE(fore->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id));
-		if (ParseSwitch(act, &b))
+		{
+			bool b = fore->w_monitor != MON_OFF;
+			if (display)
+				b = b && (ACLBYTE(fore->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id));
+			if (ParseSwitch(act, &b))
+				break;
+			if (b) {
+				if (display)	/* we tell only this user */
+					ACLBYTE(fore->w_mon_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
+				else
+					for (int i = 0; i < maxusercount; i++)
+						ACLBYTE(fore->w_mon_notify, i) |= ACLBIT(i);
+				if (fore->w_monitor == MON_OFF)
+					fore->w_monitor = MON_ON;
+				OutputMsg(0, "Window %d (%s) is now being monitored for all activity.", fore->w_number,
+					  fore->w_title);
+			} else {
+				int i;
+				if (display)	/* we remove only this user */
+					ACLBYTE(fore->w_mon_notify, D_user->u_id)
+					    &= ~ACLBIT(D_user->u_id);
+				else
+					for (i = 0; i < maxusercount; i++)
+						ACLBYTE(fore->w_mon_notify, i) &= ~ACLBIT(i);
+				for (i = maxusercount - 1; i >= 0; i--)
+					if (ACLBYTE(fore->w_mon_notify, i))
+						break;
+				if (i < 0)
+					fore->w_monitor = MON_OFF;
+				OutputMsg(0, "Window %d (%s) is no longer being monitored for activity.", fore->w_number,
+					  fore->w_title);
+			}
 			break;
-		if (b) {
-			if (display)	/* we tell only this user */
-				ACLBYTE(fore->w_mon_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
-			else
-				for (int i = 0; i < maxusercount; i++)
-					ACLBYTE(fore->w_mon_notify, i) |= ACLBIT(i);
-			if (fore->w_monitor == MON_OFF)
-				fore->w_monitor = MON_ON;
-			OutputMsg(0, "Window %d (%s) is now being monitored for all activity.", fore->w_number,
-				  fore->w_title);
-		} else {
-			int i;
-			if (display)	/* we remove only this user */
-				ACLBYTE(fore->w_mon_notify, D_user->u_id)
-				    &= ~ACLBIT(D_user->u_id);
-			else
-				for (i = 0; i < maxusercount; i++)
-					ACLBYTE(fore->w_mon_notify, i) &= ~ACLBIT(i);
-			for (i = maxusercount - 1; i >= 0; i--)
-				if (ACLBYTE(fore->w_mon_notify, i))
-					break;
-			if (i < 0)
-				fore->w_monitor = MON_OFF;
-			OutputMsg(0, "Window %d (%s) is no longer being monitored for activity.", fore->w_number,
-				  fore->w_title);
 		}
-		break;
 	case RC_DISPLAYS:
 		display_displays();
 		break;
@@ -2248,47 +2258,55 @@ void DoAction(struct action *act, int key)
 		break;
 #if defined(ENABLE_UTMP) && defined(LOGOUTOK)
 	case RC_LOGIN:
-		b = fore->w_slot != (slot_t)(-1);
-		if (*args && !strcmp(*args, "always")) {
-			fore->w_lflag = 3;
-			if (!displays && b)
+		{
+			bool b = fore->w_slot != (slot_t)(-1);
+			if (*args && !strcmp(*args, "always")) {
+				fore->w_lflag = 3;
+				if (!displays && b)
+					SlotToggle(b);
+				break;
+			}
+			if (*args && !strcmp(*args, "attached")) {
+				fore->w_lflag = 1;
+				if (!displays && b)
+					SlotToggle(0);
+				break;
+			}
+			if (ParseSwitch(act, &b) == 0)
 				SlotToggle(b);
 			break;
 		}
-		if (*args && !strcmp(*args, "attached")) {
-			fore->w_lflag = 1;
-			if (!displays && b)
-				SlotToggle(0);
+	case RC_DEFLOGIN:
+		{
+			bool b;
+			if (!strcmp(*args, "always"))
+				nwin_default.lflag |= 2;
+			else if (!strcmp(*args, "attached"))
+				nwin_default.lflag &= ~2;
+			else if (ParseOnOff(act, &b) == 0)
+				nwin_default.lflag = b ? 1 : 0;
 			break;
 		}
-		if (ParseSwitch(act, &b) == 0)
-			SlotToggle(b);
-		break;
-	case RC_DEFLOGIN:
-		if (!strcmp(*args, "always"))
-			nwin_default.lflag |= 2;
-		else if (!strcmp(*args, "attached"))
-			nwin_default.lflag &= ~2;
-		else if (ParseOnOff(act, &b) == 0)
-			nwin_default.lflag = b ? 1 : 0;
-		break;
 #endif
 	case RC_DEFFLOW:
-		if (args[0] && args[1] && args[1][0] == 'i') {
-			iflag = true;
-			for (display = displays; display; display = display->d_next) {
-				if (!D_flow)
-					continue;
-				D_NewMode.tio.c_cc[VINTR] = D_OldMode.tio.c_cc[VINTR];
-				D_NewMode.tio.c_lflag |= ISIG;
-				SetTTY(D_userfd, &D_NewMode);
+		{
+			bool b;
+			if (args[0] && args[1] && args[1][0] == 'i') {
+				iflag = true;
+				for (display = displays; display; display = display->d_next) {
+					if (!D_flow)
+						continue;
+					D_NewMode.tio.c_cc[VINTR] = D_OldMode.tio.c_cc[VINTR];
+					D_NewMode.tio.c_lflag |= ISIG;
+					SetTTY(D_userfd, &D_NewMode);
+				}
 			}
+			if (args[0] && args[0][0] == 'a')
+				nwin_default.flowflag = FLOW_AUTOFLAG;
+			else if (ParseOnOff(act, &b) == 0)
+				nwin_default.flowflag = b ? FLOW_ON : FLOW_OFF;
+			break;
 		}
-		if (args[0] && args[0][0] == 'a')
-			nwin_default.flowflag = FLOW_AUTOFLAG;
-		else if (ParseOnOff(act, &b) == 0) 
-			nwin_default.flowflag = b ? FLOW_ON : FLOW_OFF;
-		break;
 	case RC_DEFWRAP:
 		(void)ParseOnOff(act, &nwin_default.wrap);
 		break;
@@ -2296,34 +2314,52 @@ void DoAction(struct action *act, int key)
 		(void)ParseOnOff(act, &nwin_default.c1);
 		break;
 	case RC_DEFBCE:
-		if (ParseOnOff(act, &b) == 0)
-			nwin_default.bce = b ? 1 : 0;
-		break;
-	case RC_DEFGR:
-		if (ParseOnOff(act, &b) == 0)
-			nwin_default.gr = b ? 1 : 0;
-		break;
-	case RC_DEFMONITOR:
-		if (ParseOnOff(act, &b) == 0)
-			nwin_default.monitor = b ? MON_ON : MON_OFF;
-		break;
-	case RC_DEFMOUSETRACK:
-		if (ParseOnOff(act, &b) == 0)
-			defmousetrack = b ? 1000 : 0;
-		break;
-	case RC_MOUSETRACK:
-		if (!args[0]) {
-			OutputMsg(0, "Mouse tracking for this display is turned %s", D_mousetrack ? "on" : "off");
-		} else if (ParseOnOff(act, &b) == 0) {
-			D_mousetrack = b ? 1000 : 0;
-			if (D_fore)
-				MouseMode(D_fore->w_mouse);
+		{
+			bool b;
+			if (ParseOnOff(act, &b) == 0)
+				nwin_default.bce = b ? 1 : 0;
+			break;
 		}
-		break;
+	case RC_DEFGR:
+		{
+			bool b;
+			if (ParseOnOff(act, &b) == 0)
+				nwin_default.gr = b ? 1 : 0;
+			break;
+		}
+	case RC_DEFMONITOR:
+		{
+			bool b;
+			if (ParseOnOff(act, &b) == 0)
+				nwin_default.monitor = b ? MON_ON : MON_OFF;
+			break;
+		}
+	case RC_DEFMOUSETRACK:
+		{
+			bool b;
+			if (ParseOnOff(act, &b) == 0)
+				defmousetrack = b ? 1000 : 0;
+			break;
+		}
+	case RC_MOUSETRACK:
+		{
+			bool b;
+			if (!args[0]) {
+				OutputMsg(0, "Mouse tracking for this display is turned %s", D_mousetrack ? "on" : "off");
+			} else if (ParseOnOff(act, &b) == 0) {
+				D_mousetrack = b ? 1000 : 0;
+				if (D_fore)
+					MouseMode(D_fore->w_mouse);
+			}
+			break;
+		}
 	case RC_DEFSILENCE:
-		if (ParseOnOff(act, &b) == 0)
-			nwin_default.silence = b ? SILENCE_ON : SILENCE_OFF;
-		break;
+		{
+			bool b;
+			if (ParseOnOff(act, &b) == 0)
+				nwin_default.silence = b ? SILENCE_ON : SILENCE_OFF;
+			break;
+		}
 	case RC_VERBOSE:
 		if (!*args)
 			OutputMsg(0, "W%s echo command when creating windows.", VerboseCreate ? "ill" : "on't");
@@ -2455,20 +2491,22 @@ void DoAction(struct action *act, int key)
 		RedisplayDisplays(0);
 		break;
 	case RC_CONSOLE:
-		b = (console_window != 0);
-		if (ParseSwitch(act, &b))
+		{
+			bool b = (console_window != 0);
+			if (ParseSwitch(act, &b))
+				break;
+			if (TtyGrabConsole(fore->w_ptyfd, b, rc_name))
+				break;
+			if (b == 0)
+				OutputMsg(0, "%s: releasing console %s", rc_name, HostName);
+			else if (console_window)
+				OutputMsg(0, "%s: stealing console %s from window %d (%s)", rc_name,
+					  HostName, console_window->w_number, console_window->w_title);
+			else
+				OutputMsg(0, "%s: grabbing console %s", rc_name, HostName);
+			console_window = b ? fore : 0;
 			break;
-		if (TtyGrabConsole(fore->w_ptyfd, b, rc_name))
-			break;
-		if (b == 0)
-			OutputMsg(0, "%s: releasing console %s", rc_name, HostName);
-		else if (console_window)
-			OutputMsg(0, "%s: stealing console %s from window %d (%s)", rc_name,
-				  HostName, console_window->w_number, console_window->w_title);
-		else
-			OutputMsg(0, "%s: grabbing console %s", rc_name, HostName);
-		console_window = b ? fore : 0;
-		break;
+		}
 	case RC_ALLPARTIAL:
 		if (ParseOnOff(act, &all_norefresh))
 			break;
@@ -2478,10 +2516,12 @@ void DoAction(struct action *act, int key)
 			OutputMsg(0, all_norefresh ? "No refresh on window change!\n" : "Window specific refresh\n");
 		break;
 	case RC_PARTIAL:
-		b = fore->w_norefresh;
-		(void)ParseSwitch(act, &b);
-		fore->w_norefresh = b;
-		break;
+		{
+			bool b = fore->w_norefresh;
+			(void)ParseSwitch(act, &b);
+			fore->w_norefresh = b;
+			break;
+		}
 	case RC_VBELL:
 		if (ParseSwitch(act, &visual_bell) || !msgok)
 			break;
@@ -2584,48 +2624,50 @@ void DoAction(struct action *act, int key)
 			break;
 		}
 	case RC_SILENCE:
-		b = fore->w_silence != 0;
-		j = fore->w_silencewait;
-		if (args[0] && (args[0][0] == '-' || (args[0][0] >= '0' && args[0][0] <= '9'))) {
-			if (ParseNum(act, &j))
-				break;
-			n = j > 0;
-		} else if (ParseSwitch(act, &b))
-			break;
-		if (b) {
-			if (display)	/* we tell only this user */
-				ACLBYTE(fore->w_lio_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
-			else
-				for (n = 0; n < maxusercount; n++)
-					ACLBYTE(fore->w_lio_notify, n) |= ACLBIT(n);
-			fore->w_silencewait = j;
-			fore->w_silence = SILENCE_ON;
-			SetTimeout(&fore->w_silenceev, fore->w_silencewait * 1000);
-			evenq(&fore->w_silenceev);
-
-			if (!msgok)
-				break;
-			OutputMsg(0, "The window is now being monitored for %d sec. silence.", fore->w_silencewait);
-		} else {
-			int i;
-			if (display)	/* we remove only this user */
-				ACLBYTE(fore->w_lio_notify, D_user->u_id)
-				    &= ~ACLBIT(D_user->u_id);
-			else
-				for (n = 0; n < maxusercount; n++)
-					ACLBYTE(fore->w_lio_notify, n) &= ~ACLBIT(n);
-			for (i = maxusercount - 1; i >= 0; i--)
-				if (ACLBYTE(fore->w_lio_notify, i))
+		{
+			bool b = fore->w_silence != 0;
+			j = fore->w_silencewait;
+			if (args[0] && (args[0][0] == '-' || (args[0][0] >= '0' && args[0][0] <= '9'))) {
+				if (ParseNum(act, &j))
 					break;
-			if (i < 0) {
-				fore->w_silence = SILENCE_OFF;
-				evdeq(&fore->w_silenceev);
-			}
-			if (!msgok)
+				n = j > 0;
+			} else if (ParseSwitch(act, &b))
 				break;
-			OutputMsg(0, "The window is no longer being monitored for silence.");
+			if (b) {
+				if (display)	/* we tell only this user */
+					ACLBYTE(fore->w_lio_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
+				else
+					for (n = 0; n < maxusercount; n++)
+						ACLBYTE(fore->w_lio_notify, n) |= ACLBIT(n);
+				fore->w_silencewait = j;
+				fore->w_silence = SILENCE_ON;
+				SetTimeout(&fore->w_silenceev, fore->w_silencewait * 1000);
+				evenq(&fore->w_silenceev);
+
+				if (!msgok)
+					break;
+				OutputMsg(0, "The window is now being monitored for %d sec. silence.", fore->w_silencewait);
+			} else {
+				int i;
+				if (display)	/* we remove only this user */
+					ACLBYTE(fore->w_lio_notify, D_user->u_id)
+					    &= ~ACLBIT(D_user->u_id);
+				else
+					for (n = 0; n < maxusercount; n++)
+						ACLBYTE(fore->w_lio_notify, n) &= ~ACLBIT(n);
+				for (i = maxusercount - 1; i >= 0; i--)
+					if (ACLBYTE(fore->w_lio_notify, i))
+						break;
+				if (i < 0) {
+					fore->w_silence = SILENCE_OFF;
+					evdeq(&fore->w_silenceev);
+				}
+				if (!msgok)
+					break;
+				OutputMsg(0, "The window is no longer being monitored for silence.");
+			}
+			break;
 		}
-		break;
 	case RC_DEFSCROLLBACK:
 		(void)ParseNum(act, &nwin_default.histheight);
 		break;
@@ -3011,60 +3053,71 @@ void DoAction(struct action *act, int key)
 		}
 		break;
 	case RC_MULTIUSER:
-		if (ParseOnOff(act, &b))
+		{
+			bool b;
+			if (ParseOnOff(act, &b))
+				break;
+			multi = b ? "" : 0;
+			chsock();
+			if (msgok)
+				OutputMsg(0, "Multiuser mode %s", multi ? "enabled" : "disabled");
 			break;
-		multi = b ? "" : 0;
-		chsock();
-		if (msgok)
-			OutputMsg(0, "Multiuser mode %s", multi ? "enabled" : "disabled");
-		break;
+		}
 	case RC_EXEC:
 		winexec(args);
 		break;
 	case RC_NONBLOCK:
-		b = D_nonblock >= 0;
-		if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
-			if (ParseNum1000(act, &j))
+		{
+			bool b = D_nonblock >= 0;
+			if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
+				if (ParseNum1000(act, &j))
+					break;
+			} else if (!ParseSwitch(act, &b))
+				j = b == 0 ? -1 : 1000;
+			else
 				break;
-		} else if (!ParseSwitch(act, &b))
-			j = b == 0 ? -1 : 1000;
-		else
-			break;
-		if (msgok && j == -1)
-			OutputMsg(0, "display set to blocking mode");
-		else if (msgok && j == 0)
-			OutputMsg(0, "display set to nonblocking mode, no timeout");
-		else if (msgok)
-			OutputMsg(0, "display set to nonblocking mode, %.10gs timeout", j / 1000.);
-		D_nonblock = j;
-		if (D_nonblock <= 0)
-			evdeq(&D_blockedev);
-		break;
-	case RC_DEFNONBLOCK:
-		if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
-			if (ParseNum1000(act, &defnonblock))
-				break;
-		} else if (!ParseOnOff(act, &b))
-			defnonblock = b == 0 ? -1 : 1000;
-		else
-			break;
-		if (display && *rc_name) {
-			D_nonblock = defnonblock;
+			if (msgok && j == -1)
+				OutputMsg(0, "display set to blocking mode");
+			else if (msgok && j == 0)
+				OutputMsg(0, "display set to nonblocking mode, no timeout");
+			else if (msgok)
+				OutputMsg(0, "display set to nonblocking mode, %.10gs timeout", j / 1000.);
+			D_nonblock = j;
 			if (D_nonblock <= 0)
 				evdeq(&D_blockedev);
+			break;
 		}
-		break;
+	case RC_DEFNONBLOCK:
+		{
+			bool b;
+			if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
+				if (ParseNum1000(act, &defnonblock))
+					break;
+			} else if (!ParseOnOff(act, &b))
+				defnonblock = b == 0 ? -1 : 1000;
+			else
+				break;
+			if (display && *rc_name) {
+				D_nonblock = defnonblock;
+				if (D_nonblock <= 0)
+					evdeq(&D_blockedev);
+			}
+			break;
+		}
 	case RC_GR:
-		if (fore->w_gr == 2)
-			fore->w_gr = 0;
-		b = fore->w_gr;
-		if (ParseSwitch(act, &b) == 0 && msgok) {
-			fore->w_gr = b ? 1 : 0;
-			OutputMsg(0, "Will %suse GR", fore->w_gr ? "" : "not ");
+		{
+			bool b;
+			if (fore->w_gr == 2)
+				fore->w_gr = 0;
+			b = fore->w_gr;
+			if (ParseSwitch(act, &b) == 0 && msgok) {
+				fore->w_gr = b ? 1 : 0;
+				OutputMsg(0, "Will %suse GR", fore->w_gr ? "" : "not ");
+			}
+			if (fore->w_gr == 0 && fore->w_FontE)
+				fore->w_gr = 2;
+			break;
 		}
-		if (fore->w_gr == 0 && fore->w_FontE)
-			fore->w_gr = 2;
-		break;
 	case RC_C1:
 		if (ParseSwitch(act, &fore->w_c1) == 0 && msgok)
 			OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
@@ -3117,13 +3170,15 @@ void DoAction(struct action *act, int key)
 		nwin_default.encoding = n;
 		break;
 	case RC_DEFUTF8:
-		b = nwin_default.encoding == UTF8;
-		if (ParseSwitch(act, &b) == 0) {
-			nwin_default.encoding = b ? UTF8 : 0;
-			if (msgok)
-				OutputMsg(0, "Will %suse UTF-8 encoding for new windows", b ? "" : "not ");
+		{
+			bool b = nwin_default.encoding == UTF8;
+			if (ParseSwitch(act, &b) == 0) {
+				nwin_default.encoding = b ? UTF8 : 0;
+				if (msgok)
+					OutputMsg(0, "Will %suse UTF-8 encoding for new windows", b ? "" : "not ");
+			}
+			break;
 		}
-		break;
 	case RC_UTF8:
 		for (int i = 0; i < 2; i++) {
 			if (i && args[i] == 0)
