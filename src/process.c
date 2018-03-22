@@ -1110,6 +1110,17 @@ static void DoCommandKill(struct action *act, int key)
 		free(name);
 }
 
+static void DoCommandQuit(struct action *act, int key)
+{
+	(void)act; /* unused */
+
+	if (key >= 0) {
+		Input("Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
+		return;
+	}
+	Finit(0);
+	/* does not return */
+}
 
 void DoAction(struct action *act, int key)
 {
@@ -1212,12 +1223,8 @@ void DoAction(struct action *act, int key)
 		DoCommandKill(act, key);
 		break;
 	case RC_QUIT:
-		if (key >= 0) {
-			Input("Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
-			break;
-		}
-		Finit(0);
-		/* NOTREACHED */
+		DoCommandQuit(act, key);
+		break;
 	case RC_DETACH:
 		if (*args && !strcmp(*args, "-h"))
 			Hangup();
