@@ -1450,6 +1450,53 @@ static void DoCommandReadreg(struct action *act, int key)
 	}
 }
 
+static void DoCommandRegister(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+	int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
+	struct acluser *user = display ? D_user : users;
+	int argc = CheckArgNum(act->nr, args);
+	char ch;
+
+	(void)key; /* unused */
+
+	if (args[0] && args[1] && !strcmp(args[0], "-e")) {
+		i = FindEncoding(args[1]);
+		if (i == -1) {
+			OutputMsg(0, "%s: register: unknown encoding", rc_name);
+			return;
+		}
+		args += 2;
+		argc -= 2;
+	}
+	if (argc != 2) {
+		OutputMsg(0, "%s: register: illegal number of arguments.", rc_name);
+		return;
+	}
+	if (*argl != 1) {
+		OutputMsg(0, "%s: register: character, ^x, or (octal) \\032 expected.", rc_name);
+		return;
+	}
+	ch = args[0][0];
+	if (ch == '.') {
+		if (user->u_plop.buf != NULL)
+			UserFreeCopyBuffer(user);
+		if (args[1] && args[1][0]) {
+			user->u_plop.buf = SaveStrn(args[1], argl[1]);
+			user->u_plop.len = argl[1];
+			user->u_plop.enc = i;
+		}
+	} else {
+		struct plop *plp = plop_tab + (int)(unsigned char)ch;
+
+		if (plp->buf)
+			free(plp->buf);
+		plp->buf = SaveStrn(args[1], argl[1]);
+		plp->len = argl[1];
+		plp->enc = i;
+	}
+}
 
 void DoAction(struct action *act, int key)
 {
@@ -1579,45 +1626,8 @@ void DoAction(struct action *act, int key)
 		DoCommandReadreg(act, key);
 		break;
 	case RC_REGISTER:
-		{
-			int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
-			if (args[0] && args[1] && !strcmp(args[0], "-e")) {
-				i = FindEncoding(args[1]);
-				if (i == -1) {
-					OutputMsg(0, "%s: register: unknown encoding", rc_name);
-					break;
-				}
-				args += 2;
-				argc -= 2;
-			}
-			if (argc != 2) {
-				OutputMsg(0, "%s: register: illegal number of arguments.", rc_name);
-				break;
-			}
-			if (*argl != 1) {
-				OutputMsg(0, "%s: register: character, ^x, or (octal) \\032 expected.", rc_name);
-				break;
-			}
-			ch = args[0][0];
-			if (ch == '.') {
-				if (user->u_plop.buf != NULL)
-					UserFreeCopyBuffer(user);
-				if (args[1] && args[1][0]) {
-					user->u_plop.buf = SaveStrn(args[1], argl[1]);
-					user->u_plop.len = argl[1];
-					user->u_plop.enc = i;
-				}
-			} else {
-				struct plop *plp = plop_tab + (int)(unsigned char)ch;
-	
-				if (plp->buf)
-					free(plp->buf);
-				plp->buf = SaveStrn(args[1], argl[1]);
-				plp->len = argl[1];
-				plp->enc = i;
-			}
-			break;
-		}
+		DoCommandRegister(act, key);
+		break;
 	case RC_PROCESS:
 		if ((s = *args) == NULL) {
 			Input("Process register:", 1, INP_RAW, process_fn, NULL, 0);
