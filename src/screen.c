@@ -123,7 +123,6 @@ char *BufferFile;
 char *PowDetachString;
 char *hstatusstring;
 char *captionstring;
-char *timestring;
 char *wliststr;
 char *wlisttit;
 bool auto_detach = true;
@@ -305,7 +304,6 @@ int main(int argc, char **argv)
 	logtstamp_string = SaveStr("-- %n:%t -- time-stamp -- %M/%d/%y %c:%s --\n");
 	hstatusstring = SaveStr("%h");
 	captionstring = SaveStr("%4n %t");
-	timestring = SaveStr("%c:%s %M %d %H%? %l%?");
 	wlisttit = SaveStr(" Num Name%=Flags");
 	wliststr = SaveStr("%4n %t%=%f");
 	BufferFile = SaveStr(DEFAULT_BUFFERFILE);
