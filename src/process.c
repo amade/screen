@@ -953,6 +953,29 @@ static void DoCommandMultiinput(struct action *act, int key)
 
 }
 
+static void DoCommandDefautonuke(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseOnOff(act, &defautonuke) == 0 && msgok)
+		OutputMsg(0, "Default autonuke turned %s", defautonuke ? "on" : "off");
+	if (display && *rc_name)
+		D_auto_nuke = defautonuke;
+}
+
+
+static void DoCommandAutonuke(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseOnOff(act, &D_auto_nuke) == 0 && msgok)
+		OutputMsg(0, "Autonuke turned %s", D_auto_nuke ? "on" : "off");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1018,14 +1041,10 @@ void DoAction(struct action *act, int key)
 		DoCommandMultiinput(act, key);
 		break;
 	case RC_DEFAUTONUKE:
-		if (ParseOnOff(act, &defautonuke) == 0 && msgok)
-			OutputMsg(0, "Default autonuke turned %s", defautonuke ? "on" : "off");
-		if (display && *rc_name)
-			D_auto_nuke = defautonuke;
+		DoCommandDefautonuke(act, key);
 		break;
 	case RC_AUTONUKE:
-		if (ParseOnOff(act, &D_auto_nuke) == 0 && msgok)
-			OutputMsg(0, "Autonuke turned %s", D_auto_nuke ? "on" : "off");
+		DoCommandAutonuke(act, key);
 		break;
 	case RC_DEFOBUFLIMIT:
 		if (ParseNum(act, &defobuflimit) == 0 && msgok)
