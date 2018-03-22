@@ -1189,6 +1189,16 @@ static void DoCommandZmodem(struct action *act, int key)
 		OutputMsg(0, "zmodem mode is %s", zmodes[zmodem_mode]);
 }
 
+static void DoCommandUnbindall(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	for (size_t i = 0; i < ARRAY_SIZE(ktab); i++)
+		ClearAction(&ktab[i]);
+	OutputMsg(0, "Unbound all keys.");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1302,14 +1312,8 @@ void DoAction(struct action *act, int key)
 		DoCommandZmodem(act, key);
 		break;
 	case RC_UNBINDALL:
-		{
-			size_t i;
-
-			for (i = 0; i < ARRAY_SIZE(ktab); i++)
-				ClearAction(&ktab[i]);
-			OutputMsg(0, "Unbound all keys.");
-			break;
-		}
+		DoCommandUnbindall(act, key);
+		break;
 	case RC_ZOMBIE:
 		{
 			if (!(s = *args)) {
