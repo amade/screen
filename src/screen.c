@@ -97,7 +97,7 @@ bool attach_tty_is_in_new_ns = false;
 /* Content of the tty symlink when attach_tty_is_in_new_ns == true. */
 char attach_tty_name_in_ns[MAXPATHLEN];
 
-char SocketPath[MAXPATHLEN + 2 * MAXSTR];
+char SocketPath[MAXPATHLEN];
 char *SocketName;			/* SocketName is pointer in SocketPath */
 char *SocketMatch = NULL;		/* session id command line argument */
 int ServerSocket = -1;
@@ -784,7 +784,7 @@ int main(int argc, char **argv)
 					Panic(0, "Cannot make directory '%s'.", SocketDir);
 			}
 			if (SocketDir != SocketPath)
-				strncpy(SocketPath, SocketDir, MAXPATHLEN + 2 * MAXSTR);
+				strncpy(SocketPath, SocketDir, ARRAY_SIZE(SocketPath));
 		}
 #ifdef SOCKET_DIR
 		else {

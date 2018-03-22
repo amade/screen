@@ -236,7 +236,7 @@ void  setbacktick (int, int, int, char **);
 extern char attach_tty_name_in_ns[];
 extern char strnomem[];
 extern char HostName[];
-extern char SocketPath[];
+extern char SocketPath[MAXPATHLEN];
 extern char *attach_tty;
 extern char *attach_term;
 extern char *captionstring;

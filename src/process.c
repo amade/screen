@@ -2651,7 +2651,7 @@ void DoAction(struct action *act, int key)
 				OutputMsg(errno, "%s: failed to rename(%s, %s)", rc_name, SocketPath, buf);
 				break;
 			}
-			strncpy(SocketPath, buf, MAXPATHLEN + 2 * MAXSTR);
+			strncpy(SocketPath, buf, ARRAY_SIZE(SocketPath));
 			MakeNewEnv();
 			WindowChanged((Window *)0, WINESC_SESS_NAME);
 		}
