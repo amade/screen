@@ -900,6 +900,33 @@ static void StuffFin(char *buf, size_t len, void *data)
  */
 #define OutputMsg	(!act->quiet ? Msg : queryflag >= 0 ? QueryMsg : Dummy)
 
+static void DoCommandSelect(struct action *act, int key)
+{
+	char **args = act->args;
+	int n;
+
+	(void)key; /* unused */
+
+	if (!*args)
+		InputSelect();
+	else if (args[0][0] == '-' && !args[0][1]) {
+		SetForeWindow((Window *)0);
+		Activate(0);
+	} else if (args[0][0] == '.' && !args[0][1]) {
+		if (!fore) {
+			OutputMsg(0, "select . needs a window");
+			queryflag = -1;
+		} else {
+			SetForeWindow(fore);
+			Activate(0);
+		}
+	} else if (ParseWinNum(act, &n) == 0)
+		SwitchWindow(n);
+	else if (queryflag >= 0)
+		queryflag = -1;	/* ParseWinNum already prints out an appropriate error message. */
+
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -959,23 +986,7 @@ void DoAction(struct action *act, int key)
 	msgok = display && !*rc_name;
 	switch (nr) {
 	case RC_SELECT:
-		if (!*args)
-			InputSelect();
-		else if (args[0][0] == '-' && !args[0][1]) {
-			SetForeWindow((Window *)0);
-			Activate(0);
-		} else if (args[0][0] == '.' && !args[0][1]) {
-			if (!fore) {
-				OutputMsg(0, "select . needs a window");
-				queryflag = -1;
-			} else {
-				SetForeWindow(fore);
-				Activate(0);
-			}
-		} else if (ParseWinNum(act, &n) == 0)
-			SwitchWindow(n);
-		else if (queryflag >= 0)
-			queryflag = -1;	/* ParseWinNum already prints out an appropriate error message. */
+		DoCommandSelect(act, key);
 		break;
 	case RC_MULTIINPUT:
 		if (!*args) {
