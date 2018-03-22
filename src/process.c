@@ -1238,6 +1238,157 @@ static void DoCommandWall(struct action *act, int key)
 	OutputMsg(0, "%s: %s", s, *args);
 }
 
+static void DoCommandAt(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+	struct acluser *user = display ? D_user : users;
+	char *s;
+	size_t n;
+
+	(void)key; /* unused */
+
+	/* where this AT command comes from: */
+	if (!user)
+		return;
+	s = SaveStr(user->u_name);
+	/* DO NOT RETURN FROM HERE WITHOUT RESETTING THIS: */
+	EffectiveAclUser = user;
+	n = strlen(args[0]);
+	if (n)
+		n--;
+	/*
+	 * the windows/displays loops are quite dangerous here, take extra
+	 * care not to trigger landmines. Things may appear/disappear while
+	 * we are walking along.
+	 */
+	switch (args[0][n]) {
+	case '*':	/* user */
+		{
+			Display *nd;
+			struct acluser *u;
+
+			if (!n)
+				u = user;
+			else {
+				for (u = users; u; u = u->u_next) {
+					if (!strncmp(*args, u->u_name, n))
+						return;
+				}
+				if (!u) {
+					args[0][n] = '\0';
+					OutputMsg(0, "Did not find any user matching '%s'", args[0]);
+					return;
+				}
+			}
+			for (display = displays; display; display = nd) {
+				nd = display->d_next;
+				if (D_forecv == 0)
+					continue;
+				flayer = D_forecv->c_layer;
+				fore = D_fore;
+				if (D_user != u)
+					continue;
+				DoCommand(args + 1, argl + 1);
+				if (display)
+					OutputMsg(0, "command from %s: %s %s",
+						  s, args[1], args[2] ? args[2] : "");
+				display = NULL;
+				flayer = 0;
+				fore = NULL;
+			}
+			return;
+		}
+	case '%':	/* display */
+		{
+			Display *nd;
+
+			for (display = displays; display; display = nd) {
+				nd = display->d_next;
+				if (D_forecv == 0)
+					continue;
+				fore = D_fore;
+				flayer = D_forecv->c_layer;
+				if (strncmp(args[0], D_usertty, n) &&
+				    (strncmp("/dev/", D_usertty, 5) ||
+				     strncmp(args[0], D_usertty + 5, n)) &&
+				    (strncmp("/dev/tty", D_usertty, 8) || strncmp(args[0], D_usertty + 8, n)))
+					continue;
+				DoCommand(args + 1, argl + 1);
+				if (display)
+					OutputMsg(0, "command from %s: %s %s",
+						  s, args[1], args[2] ? args[2] : "");
+				display = NULL;
+				fore = NULL;
+				flayer = 0;
+			}
+			return;
+		}
+	case '#':	/* window */
+		n--;
+		/* FALLTHROUGH */
+	default:
+		{
+			Window *nw;
+			int ch;
+			int i;
+
+			n++;
+			ch = args[0][n];
+			args[0][n] = '\0';
+			if (!*args[0] || (i = WindowByNumber(args[0])) < 0) {
+				args[0][n] = ch;	/* must restore string in case of bind */
+				/* try looping over titles */
+				for (fore = windows; fore; fore = nw) {
+					nw = fore->w_next;
+					if (strncmp(args[0], fore->w_title, n))
+						continue;
+					/*
+					 * consider this a bug or a feature:
+					 * while looping through windows, we have fore AND
+					 * display context. This will confuse users who try to
+					 * set up loops inside of loops, but often allows to do
+					 * what you mean, even when you adress your context wrong.
+					 */
+					i = 0;
+					/* XXX: other displays? */
+					if (fore->w_layer.l_cvlist)
+						display = fore->w_layer.l_cvlist->c_display;
+					flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
+					DoCommand(args + 1, argl + 1);	/* may destroy our display */
+					if (fore && fore->w_layer.l_cvlist) {
+						display = fore->w_layer.l_cvlist->c_display;
+						OutputMsg(0, "command from %s: %s %s",
+							  s, args[1], args[2] ? args[2] : "");
+					}
+				}
+				display = NULL;
+				fore = NULL;
+				if (i < 0)
+					OutputMsg(0, "%s: at '%s': no such window.\n", rc_name, args[0]);
+				return;
+			} else if (i < maxwin && (fore = wtab[i])) {
+				args[0][n] = ch;	/* must restore string in case of bind */
+				if (fore->w_layer.l_cvlist)
+					display = fore->w_layer.l_cvlist->c_display;
+				flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
+				DoCommand(args + 1, argl + 1);
+				if (fore && fore->w_layer.l_cvlist) {
+					display = fore->w_layer.l_cvlist->c_display;
+					OutputMsg(0, "command from %s: %s %s",
+						  s, args[1], args[2] ? args[2] : "");
+				}
+				display = NULL;
+				fore = NULL;
+			} else
+				OutputMsg(0, "%s: at [identifier][%%|*|#] command [args]", rc_name);
+			return;
+		}
+	}
+	free(s);
+	EffectiveAclUser = NULL;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1360,147 +1511,8 @@ void DoAction(struct action *act, int key)
 		DoCommandWall(act, key);
 		break;
 	case RC_AT:
-		/* where this AT command comes from: */
-		if (!user)
-			break;
-		s = SaveStr(user->u_name);
-		/* DO NOT RETURN FROM HERE WITHOUT RESETTING THIS: */
-		EffectiveAclUser = user;
-		n = strlen(args[0]);
-		if (n)
-			n--;
-		/*
-		 * the windows/displays loops are quite dangerous here, take extra
-		 * care not to trigger landmines. Things may appear/disappear while
-		 * we are walking along.
-		 */
-		switch (args[0][n]) {
-		case '*':	/* user */
-			{
-				Display *nd;
-				struct acluser *u;
-
-				if (!n)
-					u = user;
-				else {
-					for (u = users; u; u = u->u_next) {
-						if (!strncmp(*args, u->u_name, n))
-							break;
-					}
-					if (!u) {
-						args[0][n] = '\0';
-						OutputMsg(0, "Did not find any user matching '%s'", args[0]);
-						break;
-					}
-				}
-				for (display = displays; display; display = nd) {
-					nd = display->d_next;
-					if (D_forecv == 0)
-						continue;
-					flayer = D_forecv->c_layer;
-					fore = D_fore;
-					if (D_user != u)
-						continue;
-					DoCommand(args + 1, argl + 1);
-					if (display)
-						OutputMsg(0, "command from %s: %s %s",
-							  s, args[1], args[2] ? args[2] : "");
-					display = NULL;
-					flayer = 0;
-					fore = NULL;
-				}
-				break;
-			}
-		case '%':	/* display */
-			{
-				Display *nd;
-
-				for (display = displays; display; display = nd) {
-					nd = display->d_next;
-					if (D_forecv == 0)
-						continue;
-					fore = D_fore;
-					flayer = D_forecv->c_layer;
-					if (strncmp(args[0], D_usertty, n) &&
-					    (strncmp("/dev/", D_usertty, 5) ||
-					     strncmp(args[0], D_usertty + 5, n)) &&
-					    (strncmp("/dev/tty", D_usertty, 8) || strncmp(args[0], D_usertty + 8, n)))
-						continue;
-					DoCommand(args + 1, argl + 1);
-					if (display)
-						OutputMsg(0, "command from %s: %s %s",
-							  s, args[1], args[2] ? args[2] : "");
-					display = NULL;
-					fore = NULL;
-					flayer = 0;
-				}
-				break;
-			}
-		case '#':	/* window */
-			n--;
-			/* FALLTHROUGH */
-		default:
-			{
-				Window *nw;
-				int ch;
-				int i;
-
-				n++;
-				ch = args[0][n];
-				args[0][n] = '\0';
-				if (!*args[0] || (i = WindowByNumber(args[0])) < 0) {
-					args[0][n] = ch;	/* must restore string in case of bind */
-					/* try looping over titles */
-					for (fore = windows; fore; fore = nw) {
-						nw = fore->w_next;
-						if (strncmp(args[0], fore->w_title, n))
-							continue;
-						/*
-						 * consider this a bug or a feature:
-						 * while looping through windows, we have fore AND
-						 * display context. This will confuse users who try to
-						 * set up loops inside of loops, but often allows to do
-						 * what you mean, even when you adress your context wrong.
-						 */
-						i = 0;
-						/* XXX: other displays? */
-						if (fore->w_layer.l_cvlist)
-							display = fore->w_layer.l_cvlist->c_display;
-						flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
-						DoCommand(args + 1, argl + 1);	/* may destroy our display */
-						if (fore && fore->w_layer.l_cvlist) {
-							display = fore->w_layer.l_cvlist->c_display;
-							OutputMsg(0, "command from %s: %s %s",
-								  s, args[1], args[2] ? args[2] : "");
-						}
-					}
-					display = NULL;
-					fore = NULL;
-					if (i < 0)
-						OutputMsg(0, "%s: at '%s': no such window.\n", rc_name, args[0]);
-					break;
-				} else if (i < maxwin && (fore = wtab[i])) {
-					args[0][n] = ch;	/* must restore string in case of bind */
-					if (fore->w_layer.l_cvlist)
-						display = fore->w_layer.l_cvlist->c_display;
-					flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
-					DoCommand(args + 1, argl + 1);
-					if (fore && fore->w_layer.l_cvlist) {
-						display = fore->w_layer.l_cvlist->c_display;
-						OutputMsg(0, "command from %s: %s %s",
-							  s, args[1], args[2] ? args[2] : "");
-					}
-					display = NULL;
-					fore = NULL;
-				} else
-					OutputMsg(0, "%s: at [identifier][%%|*|#] command [args]", rc_name);
-				break;
-			}
-		}
-		free(s);
-		EffectiveAclUser = NULL;
+		DoCommandAt(act, key);
 		break;
-
 	case RC_READREG:
 		{
 			int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
