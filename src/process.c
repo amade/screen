@@ -976,6 +976,34 @@ static void DoCommandAutonuke(struct action *act, int key)
 		OutputMsg(0, "Autonuke turned %s", D_auto_nuke ? "on" : "off");
 }
 
+static void DoCommandDefobuflimit(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseNum(act, &defobuflimit) == 0 && msgok)
+		OutputMsg(0, "Default limit set to %d", defobuflimit);
+	if (display && *rc_name) {
+		D_obufmax = defobuflimit;
+		D_obuflenmax = D_obuflen - D_obufmax;
+	}
+}
+
+static void DoCommandObuflimit(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (*args == 0)
+		OutputMsg(0, "Limit is %d, current buffer size is %d", D_obufmax, D_obuflen);
+	else if (ParseNum(act, &D_obufmax) == 0 && msgok)
+		OutputMsg(0, "Limit set to %d", D_obufmax);
+	D_obuflenmax = D_obuflen - D_obufmax;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1047,19 +1075,10 @@ void DoAction(struct action *act, int key)
 		DoCommandAutonuke(act, key);
 		break;
 	case RC_DEFOBUFLIMIT:
-		if (ParseNum(act, &defobuflimit) == 0 && msgok)
-			OutputMsg(0, "Default limit set to %d", defobuflimit);
-		if (display && *rc_name) {
-			D_obufmax = defobuflimit;
-			D_obuflenmax = D_obuflen - D_obufmax;
-		}
+		DoCommandDefobuflimit(act, key);
 		break;
 	case RC_OBUFLIMIT:
-		if (*args == 0)
-			OutputMsg(0, "Limit is %d, current buffer size is %d", D_obufmax, D_obuflen);
-		else if (ParseNum(act, &D_obufmax) == 0 && msgok)
-			OutputMsg(0, "Limit set to %d", D_obufmax);
-		D_obuflenmax = D_obuflen - D_obufmax;
+		DoCommandObuflimit(act, key);
 		break;
 	case RC_DUMPTERMCAP:
 		WriteFile(user, (char *)0, DUMP_TERMCAP);
