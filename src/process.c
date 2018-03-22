@@ -1058,6 +1058,15 @@ static void DoCommandLog(struct action *act, int key)
 	LogToggle(b);
 }
 
+
+static void DoCommandSuspend(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	Detach(D_STOP);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1147,7 +1156,7 @@ void DoAction(struct action *act, int key)
 		DoCommandLog(act, key);
 		break;
 	case RC_SUSPEND:
-		Detach(D_STOP);
+		DoCommandSuspend(act, key);
 		break;
 	case RC_NEXT:
 		if (MoreWindows())
