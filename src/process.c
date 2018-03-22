@@ -1067,6 +1067,24 @@ static void DoCommandSuspend(struct action *act, int key)
 	Detach(D_STOP);
 }
 
+static void DoCommandNext(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	if (MoreWindows())
+		SwitchWindow(NextWindow());
+}
+
+static void DoCommandPrev(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	if (MoreWindows())
+		SwitchWindow(PreviousWindow());
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1159,12 +1177,10 @@ void DoAction(struct action *act, int key)
 		DoCommandSuspend(act, key);
 		break;
 	case RC_NEXT:
-		if (MoreWindows())
-			SwitchWindow(NextWindow());
+		DoCommandNext(act, key);
 		break;
 	case RC_PREV:
-		if (MoreWindows())
-			SwitchWindow(PreviousWindow());
+		DoCommandPrev(act, key);
 		break;
 	case RC_KILL:
 		{
