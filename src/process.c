@@ -1937,6 +1937,23 @@ static void DoCommandHeight(struct action *act, int key)
 	}
 }
 
+
+static void DoCommandDefdynamictitle(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	(void)ParseOnOff(act, &nwin_default.dynamicaka);
+}
+
+static void DoCommandDynamictitle(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	(void)ParseOnOff(act, &fore->w_dynamicaka);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2123,10 +2140,10 @@ void DoAction(struct action *act, int key)
 		DoCommandHeight(act, key);
 		break;
 	case RC_DEFDYNAMICTITLE:
-		(void)ParseOnOff(act, &nwin_default.dynamicaka);
+		DoCommandDefdynamictitle(act, key);
 		break;
 	case RC_DYNAMICTITLE:
-		(void)ParseOnOff(act, &fore->w_dynamicaka);
+		DoCommandDynamictitle(act, key);
 		break;
 	case RC_TITLE:
 		if (queryflag >= 0) {
