@@ -1604,6 +1604,37 @@ static void DoCommandDinfo(struct action *act, int key)
 	ShowDInfo();
 }
 
+static void DoCommandCommand(struct action *act, int key)
+{
+	char **args = act->args;
+	int argc = CheckArgNum(act->nr, args);
+	struct action *ktabp = ktab;
+
+	(void)key; /* unused */
+
+	if (argc == 2 && !strcmp(*args, "-c")) {
+		if ((ktabp = FindKtab(args[1], 0)) == 0) {
+			OutputMsg(0, "Unknown command class '%s'", args[1]);
+			return;
+		}
+	}
+	if (D_ESCseen != ktab || ktabp != ktab) {
+		if (D_ESCseen != ktabp) {
+			D_ESCseen = ktabp;
+			WindowChanged(fore, WINESC_ESC_SEEN);
+		}
+		return;
+	}
+	if (D_ESCseen) {
+		D_ESCseen = 0;
+		WindowChanged(fore, WINESC_ESC_SEEN);
+	}
+	if (MoreWindows())
+		SwitchWindow(display && D_other ? D_other->w_number : NextWindow());
+}
+
+
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1756,27 +1787,8 @@ void DoAction(struct action *act, int key)
 		DoCommandDinfo(act, key);
 		break;
 	case RC_COMMAND:
-		{
-			struct action *ktabp = ktab;
-			if (argc == 2 && !strcmp(*args, "-c")) {
-				if ((ktabp = FindKtab(args[1], 0)) == 0) {
-					OutputMsg(0, "Unknown command class '%s'", args[1]);
-					break;
-				}
-			}
-			if (D_ESCseen != ktab || ktabp != ktab) {
-				if (D_ESCseen != ktabp) {
-					D_ESCseen = ktabp;
-					WindowChanged(fore, WINESC_ESC_SEEN);
-				}
-				break;
-			}
-			if (D_ESCseen) {
-				D_ESCseen = 0;
-				WindowChanged(fore, WINESC_ESC_SEEN);
-			}
-		}
-		/* FALLTHROUGH */
+		DoCommandCommand(act, key);
+		break;
 	case RC_OTHER:
 		if (MoreWindows())
 			SwitchWindow(display && D_other ? D_other->w_number : NextWindow());
