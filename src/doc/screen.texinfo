@@ -1211,8 +1211,6 @@ Tweak termcap entries for best performance.  @xref{Termcap Syntax}.
 Ditto, for terminfo systems.  @xref{Termcap Syntax}.
 @item termcapinfo @var{term} @var{terminal-tweaks} [@var{window-tweaks}]
 Ditto, for both systems.  @xref{Termcap Syntax}.
-@item time [@var{string}]
-Display time and load average.  @xref{Time}.
 @item title [@var{windowtitle}]
 Set the name of the current window.  @xref{Title Command}.
 @item umask [@var{users}]+/-@var{bits} ...
@@ -5295,19 +5293,6 @@ used by another window, both windows exchange their numbers. If no argument is
 specified, the current window number (and title) is shown. Using either a
 plus (`+') or minus (`-') will change the window's number by the relative
 amount specified.
-@end deffn
-
-@node Time, Verbose, Number, Miscellaneous
-@section Time
-@kindex t
-@kindex C-t
-@deffn Command time [@var{string}]
-(@kbd{C-a t}, @kbd{C-a C-t})@*
-Uses the message line to display the time of day, the host name, and the
-load averages over 1, 5, and 15 minutes (if this is available on your
-system).  For window-specific information use @code{info} (@pxref{Info}).
-If a @var{string} is specified, it changes the format of the time report
-like it is described in the string escapes chapter (@pxref{String Escapes}). Screen uses a default of @samp{%c:%s %M %d %H%? %l%?}.
 @end deffn
 
 @node Verbose, Version, Time, Miscellaneous

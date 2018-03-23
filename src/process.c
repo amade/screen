@@ -446,7 +446,6 @@ void InitKeytab()
 	ktab[Ctrl('v')].nr = RC_DIGRAPH;
 	ktab['q'].nr = ktab[Ctrl('q')].nr = RC_XON;
 	ktab['s'].nr = ktab[Ctrl('s')].nr = RC_XOFF;
-	ktab['t'].nr = ktab[Ctrl('t')].nr = RC_TIME;
 	ktab['i'].nr = ktab[Ctrl('i')].nr = RC_INFO;
 	ktab['m'].nr = ktab[Ctrl('m')].nr = RC_LASTMSG;
 	ktab['A'].nr = RC_TITLE;
@@ -1733,13 +1732,6 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_VERSION:
 		DoCommandVersion(act, key);
-		break;
-	case RC_TIME:
-		if (*args) {
-			timestring = SaveStr(*args);
-			break;
-		}
-		OutputMsg(0, "%s", MakeWinMsg(timestring, fore, '%'));
 		break;
 	case RC_INFO:
 		ShowInfo();

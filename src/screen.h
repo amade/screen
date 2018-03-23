@@ -248,7 +248,6 @@ extern char *multi;
 extern char *preselect;
 extern char *screenencodings;
 extern char *screenlogfile;
-extern char *timestring;
 extern char *wliststr;
 extern char *wlisttit;
 extern char *ActivityString;
