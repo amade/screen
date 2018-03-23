@@ -1973,6 +1973,20 @@ static void DoCommandTitle(struct action *act, int key)
 		ChangeAKA(fore, *args, strlen(*args));
 }
 
+static void DoCommandColon(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	Input(":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
+	if (*args && **args) {
+		char *s = *args;
+		size_t len = strlen(s);
+		LayProcess(&s, &len);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2168,12 +2182,7 @@ void DoAction(struct action *act, int key)
 		DoCommandTitle(act, key);
 		break;
 	case RC_COLON:
-		Input(":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
-		if (*args && **args) {
-			s = *args;
-			len = strlen(s);
-			LayProcess(&s, &len);
-		}
+		DoCommandColon(act, key);
 		break;
 	case RC_LASTMSG:
 		if (D_status_lastmsg)
