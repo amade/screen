@@ -1559,6 +1559,15 @@ static void DoCommandStuff(struct action *act, int key)
 		LayProcess(&s, &len);
 }
 
+
+static void DoCommandRedisplay(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	Activate(-1);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1696,7 +1705,7 @@ void DoAction(struct action *act, int key)
 		DoCommandStuff(act, key);
 		break;
 	case RC_REDISPLAY:
-		Activate(-1);
+		DoCommandRedisplay(act, key);
 		break;
 	case RC_WINDOWS:
 		if (args[0]) {
