@@ -1519,6 +1519,46 @@ static void DoCommandProcess(struct action *act, int key)
 
 }
 
+static void DoCommandStuff(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+	char *s;
+	size_t len;
+
+	(void)key; /* unused */
+
+	s = *args;
+	if (!args[0]) {
+		Input("Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
+		return;
+	}
+	len = *argl;
+	if (args[1]) {
+		int i;
+		if (strcmp(s, "-k")) {
+			OutputMsg(0, "%s: stuff: invalid option %s", rc_name, s);
+			return;
+		}
+		s = args[1];
+		for (i = T_CAPS; i < T_OCAPS; i++)
+			if (strcmp(term[i].tcname, s) == 0)
+				return;
+		if (i == T_OCAPS) {
+			OutputMsg(0, "%s: stuff: unknown key '%s'", rc_name, s);
+			return;
+		}
+		if (StuffKey(i - T_CAPS) == 0)
+			return;
+		s = display ? D_tcs[i].str : 0;
+		if (s == 0)
+			return;
+		len = strlen(s);
+	}
+	while (len)
+		LayProcess(&s, &len);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1653,35 +1693,7 @@ void DoAction(struct action *act, int key)
 		DoCommandProcess(act, key);
 		break;
 	case RC_STUFF:
-		s = *args;
-		if (!args[0]) {
-			Input("Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
-			break;
-		}
-		len = *argl;
-		if (args[1]) {
-			int i;
-			if (strcmp(s, "-k")) {
-				OutputMsg(0, "%s: stuff: invalid option %s", rc_name, s);
-				break;
-			}
-			s = args[1];
-			for (i = T_CAPS; i < T_OCAPS; i++)
-				if (strcmp(term[i].tcname, s) == 0)
-					break;
-			if (i == T_OCAPS) {
-				OutputMsg(0, "%s: stuff: unknown key '%s'", rc_name, s);
-				break;
-			}
-			if (StuffKey(i - T_CAPS) == 0)
-				break;
-			s = display ? D_tcs[i].str : 0;
-			if (s == 0)
-				break;
-			len = strlen(s);
-		}
-		while (len)
-			LayProcess(&s, &len);
+		DoCommandStuff(act, key);
 		break;
 	case RC_REDISPLAY:
 		Activate(-1);
