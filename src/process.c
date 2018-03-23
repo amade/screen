@@ -1642,6 +1642,21 @@ static void DoCommandOther(struct action *act, int key)
 		SwitchWindow(display && D_other ? D_other->w_number : NextWindow());
 }
 
+
+static void DoCommandMeta(struct action *act, int key)
+{
+	struct acluser *user = display ? D_user : users;
+	char ch = user->u_Esc;
+	char *s = &ch;
+	size_t len = 1;
+
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	if (ch != -1)
+		LayProcess(&s, &len);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1800,12 +1815,7 @@ void DoAction(struct action *act, int key)
 		DoCommandOther(act, key);
 		break;
 	case RC_META:
-		if (user->u_Esc == -1)
-			break;
-		ch = user->u_Esc;
-		s = &ch;
-		len = 1;
-		LayProcess(&s, &len);
+		DoCommandMeta(act, key);
 		break;
 	case RC_XON:
 		ch = Ctrl('q');
