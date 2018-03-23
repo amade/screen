@@ -1596,6 +1596,14 @@ static void DoCommandInfo(struct action *act, int key)
 	ShowInfo();
 }
 
+static void DoCommandDinfo(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	ShowDInfo();
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1745,7 +1753,7 @@ void DoAction(struct action *act, int key)
 		DoCommandInfo(act, key);
 		break;
 	case RC_DINFO:
-		ShowDInfo();
+		DoCommandDinfo(act, key);
 		break;
 	case RC_COMMAND:
 		{
