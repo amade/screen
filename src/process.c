@@ -1987,6 +1987,15 @@ static void DoCommandColon(struct action *act, int key)
 	}
 }
 
+static void DoCommandLastmsg(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	if (D_status_lastmsg)
+		OutputMsg(0, "%s", D_status_lastmsg);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2185,8 +2194,7 @@ void DoAction(struct action *act, int key)
 		DoCommandColon(act, key);
 		break;
 	case RC_LASTMSG:
-		if (D_status_lastmsg)
-			OutputMsg(0, "%s", D_status_lastmsg);
+		DoCommandLastmsg(act, key);
 		break;
 	case RC_SCREEN:
 		DoScreen("key", args);
