@@ -1588,6 +1588,14 @@ static void DoCommandVersion(struct action *act, int key)
 	OutputMsg(0, "screen %s", version);
 }
 
+static void DoCommandInfo(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	ShowInfo();
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1734,7 +1742,7 @@ void DoAction(struct action *act, int key)
 		DoCommandVersion(act, key);
 		break;
 	case RC_INFO:
-		ShowInfo();
+		DoCommandInfo(act, key);
 		break;
 	case RC_DINFO:
 		ShowDInfo();
