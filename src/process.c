@@ -2092,6 +2092,17 @@ static void DoCommandClear(struct action *act, int key)
 	WriteString(fore, "\033[H\033[J", 6);
 }
 
+static void DoCommandReset(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	ResetAnsiState(fore);
+	if (fore->w_zdisplay)
+		zmodem_abort(fore, fore->w_zdisplay);
+	WriteString(fore, "\033c", 2);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2311,10 +2322,7 @@ void DoAction(struct action *act, int key)
 		DoCommandClear(act, key);
 		break;
 	case RC_RESET:
-		ResetAnsiState(fore);
-		if (fore->w_zdisplay)
-			zmodem_abort(fore, fore->w_zdisplay);
-		WriteString(fore, "\033c", 2);
+		DoCommandReset(act, key);
 		break;
 	case RC_MONITOR:
 		{
