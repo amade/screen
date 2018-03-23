@@ -1747,6 +1747,196 @@ static void DoCommandLockscreen(struct action *act, int key)
 	Detach(D_LOCK);
 }
 
+static void DoCommandWidth(struct action *act, int key)
+{
+	char **args = act->args;
+	int w, h;
+	int what = 0;
+
+	(void)key; /* unused */
+
+	if (*args && !strcmp(*args, "-w"))
+		what = 1;
+	else if (*args && !strcmp(*args, "-d"))
+		what = 2;
+	if (what)
+		args++;
+	if (what == 0 && flayer && !display)
+		what = 1;
+	if (what == 1) {
+		if (!flayer) {
+			OutputMsg(0, "%s: width: window required", rc_name);
+			return;
+		}
+		w = flayer->l_width;
+		h = flayer->l_height;
+	} else {
+		if (!display) {
+			OutputMsg(0, "%s: width: display required", rc_name);
+			return;
+		}
+		w = D_width;
+		h = D_height;
+	}
+	if (*args && args[0][0] == '-') {
+		OutputMsg(0, "%s: width: unknown option %s", rc_name, *args);
+		return;
+	}
+	if (!*args) {
+		if (w == Z0width)
+			w = Z1width;
+		else if (w == Z1width)
+			w = Z0width;
+		else if (w > (Z0width + Z1width) / 2)
+			w = Z0width;
+		else
+			w = Z1width;
+	} else {
+		w = atoi(*args);
+		if (args[1])
+			h = atoi(args[1]);
+	}
+	if (*args && args[1] && args[2]) {
+		OutputMsg(0, "%s: width: too many arguments", rc_name);
+		return;
+	}
+	if (w <= 0) {
+		OutputMsg(0, "Illegal width");
+		return;
+	}
+	if (h <= 0) {
+		OutputMsg(0, "Illegal height");
+		return;
+	}
+	if (what == 1) {
+		if (flayer->l_width == w && flayer->l_height == h)
+			return;
+		ResizeLayer(flayer, w, h, (Display *)0);
+		return;
+	}
+	if (D_width == w && D_height == h)
+		return;
+	if (what == 2) {
+		ChangeScreenSize(w, h, 1);
+	} else {
+		if (ResizeDisplay(w, h) == 0) {
+			Activate(D_fore ? D_fore->w_norefresh : 0);
+			/* autofit */
+			ResizeLayer(D_forecv->c_layer, D_forecv->c_xe - D_forecv->c_xs + 1,
+				    D_forecv->c_ye - D_forecv->c_ys + 1, 0);
+			return;
+		}
+		if (h == D_height)
+			OutputMsg(0,
+				  "Your termcap does not specify how to change the terminal's width to %d.",
+				  w);
+		else if (w == D_width)
+			OutputMsg(0,
+				  "Your termcap does not specify how to change the terminal's height to %d.",
+				  h);
+		else
+			OutputMsg(0,
+				  "Your termcap does not specify how to change the terminal's resolution to %dx%d.",
+				  w, h);
+	}
+}
+
+static void DoCommandHeight(struct action *act, int key)
+{
+	char **args = act->args;
+	int w, h;
+	int what = 0;
+
+	(void)key; /* unused */
+
+	if (*args && !strcmp(*args, "-w"))
+		what = 1;
+	else if (*args && !strcmp(*args, "-d"))
+		what = 2;
+	if (what)
+		args++;
+	if (what == 0 && flayer && !display)
+		what = 1;
+	if (what == 1) {
+		if (!flayer) {
+			OutputMsg(0, "%s: height: window required", rc_name);
+			return;
+		}
+		w = flayer->l_width;
+		h = flayer->l_height;
+	} else {
+		if (!display) {
+			OutputMsg(0, "%s: height: display required", rc_name);
+			return;
+		}
+		w = D_width;
+		h = D_height;
+	}
+	if (*args && args[0][0] == '-') {
+		OutputMsg(0, "%s: height: unknown option %s", rc_name, *args);
+		return;
+	}
+	if (!*args) {
+#define H0height 42
+#define H1height 24
+		if (h == H0height)
+			h = H1height;
+		else if (h == H1height)
+			h = H0height;
+		else if (h > (H0height + H1height) / 2)
+			h = H0height;
+		else
+			h = H1height;
+	} else {
+		h = atoi(*args);
+		if (args[1])
+			w = atoi(args[1]);
+	}
+	if (*args && args[1] && args[2]) {
+		OutputMsg(0, "%s: height: too many arguments", rc_name);
+		return;
+	}
+	if (w <= 0) {
+		OutputMsg(0, "Illegal width");
+		return;
+	}
+	if (h <= 0) {
+		OutputMsg(0, "Illegal height");
+		return;
+	}
+	if (what == 1) {
+		if (flayer->l_width == w && flayer->l_height == h)
+			return;
+		ResizeLayer(flayer, w, h, (Display *)0);
+		return;
+	}
+	if (D_width == w && D_height == h)
+		return;
+	if (what == 2) {
+		ChangeScreenSize(w, h, 1);
+	} else {
+		if (ResizeDisplay(w, h) == 0) {
+			Activate(D_fore ? D_fore->w_norefresh : 0);
+			/* autofit */
+			ResizeLayer(D_forecv->c_layer, D_forecv->c_xe - D_forecv->c_xs + 1,
+				    D_forecv->c_ye - D_forecv->c_ys + 1, 0);
+			return;
+		}
+		if (h == D_height)
+			OutputMsg(0,
+				  "Your termcap does not specify how to change the terminal's width to %d.",
+				  w);
+		else if (w == D_width)
+			OutputMsg(0,
+				  "Your termcap does not specify how to change the terminal's height to %d.",
+				  h);
+		else
+			OutputMsg(0,
+				  "Your termcap does not specify how to change the terminal's resolution to %dx%d.",
+				  w, h);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1927,115 +2117,10 @@ void DoAction(struct action *act, int key)
 		DoCommandLockscreen(act, key);
 		break;
 	case RC_WIDTH:
+		DoCommandWidth(act, key);
+		break;
 	case RC_HEIGHT:
-		{
-			int w, h;
-			int what = 0;
-
-			if (*args && !strcmp(*args, "-w"))
-				what = 1;
-			else if (*args && !strcmp(*args, "-d"))
-				what = 2;
-			if (what)
-				args++;
-			if (what == 0 && flayer && !display)
-				what = 1;
-			if (what == 1) {
-				if (!flayer) {
-					OutputMsg(0, "%s: %s: window required", rc_name, comms[nr].name);
-					break;
-				}
-				w = flayer->l_width;
-				h = flayer->l_height;
-			} else {
-				if (!display) {
-					OutputMsg(0, "%s: %s: display required", rc_name, comms[nr].name);
-					break;
-				}
-				w = D_width;
-				h = D_height;
-			}
-			if (*args && args[0][0] == '-') {
-				OutputMsg(0, "%s: %s: unknown option %s", rc_name, comms[nr].name, *args);
-				break;
-			}
-			if (nr == RC_HEIGHT) {
-				if (!*args) {
-#define H0height 42
-#define H1height 24
-					if (h == H0height)
-						h = H1height;
-					else if (h == H1height)
-						h = H0height;
-					else if (h > (H0height + H1height) / 2)
-						h = H0height;
-					else
-						h = H1height;
-				} else {
-					h = atoi(*args);
-					if (args[1])
-						w = atoi(args[1]);
-				}
-			} else {
-				if (!*args) {
-					if (w == Z0width)
-						w = Z1width;
-					else if (w == Z1width)
-						w = Z0width;
-					else if (w > (Z0width + Z1width) / 2)
-						w = Z0width;
-					else
-						w = Z1width;
-				} else {
-					w = atoi(*args);
-					if (args[1])
-						h = atoi(args[1]);
-				}
-			}
-			if (*args && args[1] && args[2]) {
-				OutputMsg(0, "%s: %s: too many arguments", rc_name, comms[nr].name);
-				break;
-			}
-			if (w <= 0) {
-				OutputMsg(0, "Illegal width");
-				break;
-			}
-			if (h <= 0) {
-				OutputMsg(0, "Illegal height");
-				break;
-			}
-			if (what == 1) {
-				if (flayer->l_width == w && flayer->l_height == h)
-					break;
-				ResizeLayer(flayer, w, h, (Display *)0);
-				break;
-			}
-			if (D_width == w && D_height == h)
-				break;
-			if (what == 2) {
-				ChangeScreenSize(w, h, 1);
-			} else {
-				if (ResizeDisplay(w, h) == 0) {
-					Activate(D_fore ? D_fore->w_norefresh : 0);
-					/* autofit */
-					ResizeLayer(D_forecv->c_layer, D_forecv->c_xe - D_forecv->c_xs + 1,
-						    D_forecv->c_ye - D_forecv->c_ys + 1, 0);
-					break;
-				}
-				if (h == D_height)
-					OutputMsg(0,
-						  "Your termcap does not specify how to change the terminal's width to %d.",
-						  w);
-				else if (w == D_width)
-					OutputMsg(0,
-						  "Your termcap does not specify how to change the terminal's height to %d.",
-						  h);
-				else
-					OutputMsg(0,
-						  "Your termcap does not specify how to change the terminal's resolution to %dx%d.",
-						  w, h);
-			}
-		}
+		DoCommandHeight(act, key);
 		break;
 	case RC_DEFDYNAMICTITLE:
 		(void)ParseOnOff(act, &nwin_default.dynamicaka);
