@@ -1498,6 +1498,27 @@ static void DoCommandRegister(struct action *act, int key)
 	}
 }
 
+static void DoCommandProcess(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+	char ch;
+
+	(void)key; /* unused */
+
+	if (*args == NULL) {
+		Input("Process register:", 1, INP_RAW, process_fn, NULL, 0);
+		return;
+	}
+	if (*argl != 1) {
+		OutputMsg(0, "%s: process: character, ^x, or (octal) \\032 expected.", rc_name);
+		return;
+	}
+	ch = args[0][0];
+	process_fn(&ch, 0, NULL);
+
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1629,16 +1650,7 @@ void DoAction(struct action *act, int key)
 		DoCommandRegister(act, key);
 		break;
 	case RC_PROCESS:
-		if ((s = *args) == NULL) {
-			Input("Process register:", 1, INP_RAW, process_fn, NULL, 0);
-			break;
-		}
-		if (*argl != 1) {
-			OutputMsg(0, "%s: process: character, ^x, or (octal) \\032 expected.", rc_name);
-			break;
-		}
-		ch = args[0][0];
-		process_fn(&ch, 0, NULL);
+		DoCommandProcess(act, key);
 		break;
 	case RC_STUFF:
 		s = *args;
