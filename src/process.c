@@ -2238,6 +2238,264 @@ static void DoCommandCopy(struct action *act, int key)
 	WindowChanged(fore, WINESC_COPY_MODE);
 }
 
+static void DoCommandHistory(struct action *act, int key)
+{
+	static char *pasteargs[] = { ".", 0 };
+	static int pasteargl[] = { 1 };
+	struct acluser *user = display ? D_user : users;
+	char **args;
+	int *argl;
+	int enc = -1;
+	size_t l = 0;
+	char *s, *ss, *dbuf;
+	char ch, dch;
+
+	(void)key; /* unused */
+
+	if (flayer->l_layfn != &WinLf) {
+		OutputMsg(0, "Must be on a window layer");
+		return;
+	}
+	if (GetHistory() == 0)
+		return;
+	if (user->u_plop.buf == NULL)
+		return;
+
+	args = pasteargs;
+	argl = pasteargl;
+
+	/*
+	 * without args we prompt for one(!) register to be pasted in the window
+	 */
+	if ((s = *args) == NULL) {
+		Input("Paste from register:", 1, INP_RAW, ins_reg_fn, NULL, 0);
+		return;
+	}
+	if (args[1] == 0 && !fore)	/* no window? */
+		return;
+	/*
+	 * with two arguments we paste into a destination register
+	 * (no window needed here).
+	 */
+	if (args[1] && argl[1] != 1) {
+		OutputMsg(0, "%s: paste destination: character, ^x, or (octal) \\032 expected.",
+			  rc_name);
+		return;
+	} else if (fore)
+		enc = fore->w_encoding;
+
+	/*
+	 * measure length of needed buffer
+	 */
+	for (ss = s = *args; (ch = *ss); ss++) {
+		if (ch == '.') {
+			if (enc == -1)
+				enc = user->u_plop.enc;
+			if (enc != user->u_plop.enc)
+				l += RecodeBuf((unsigned char *)user->u_plop.buf, user->u_plop.len,
+					       user->u_plop.enc, enc, (unsigned char *)0);
+			else
+				l += user->u_plop.len;
+		} else {
+			if (enc == -1)
+				enc = plop_tab[(int)(unsigned char)ch].enc;
+			if (enc != plop_tab[(int)(unsigned char)ch].enc)
+				l += RecodeBuf((unsigned char *)plop_tab[(int)(unsigned char)ch].buf,
+					       plop_tab[(int)(unsigned char)ch].len,
+					       plop_tab[(int)(unsigned char)ch].enc, enc,
+					       (unsigned char *)0);
+			else
+				l += plop_tab[(int)(unsigned char)ch].len;
+		}
+	}
+	if (l == 0) {
+		OutputMsg(0, "empty buffer");
+		return;
+	}
+	/*
+	 * shortcut:
+	 * if there is only one source and the destination is a window, then
+	 * pass a pointer rather than duplicating the buffer.
+	 */
+	if (s[1] == 0 && args[1] == 0)
+		if (enc == (*s == '.' ? user->u_plop.enc : plop_tab[(int)(unsigned char)*s].enc)) {
+			MakePaster(&fore->w_paster,
+				   *s == '.' ? user->u_plop.buf : plop_tab[(int)(unsigned char)*s].buf,
+				   l, 0);
+			return;
+		}
+	/*
+	 * if no shortcut, we construct a buffer
+	 */
+	if ((dbuf = malloc(l)) == 0) {
+		OutputMsg(0, "%s", strnomem);
+		return;
+	}
+	l = 0;
+	/*
+	 * concatenate all sources into our own buffer, copy buffer is
+	 * special and is skipped if no display exists.
+	 */
+	for (ss = s; (ch = *ss); ss++) {
+		struct plop *pp = (ch == '.' ? &user->u_plop : &plop_tab[(int)(unsigned char)ch]);
+		if (pp->enc != enc) {
+			l += RecodeBuf((unsigned char *)pp->buf, pp->len, pp->enc, enc,
+				       (unsigned char *)dbuf + l);
+			continue;
+		}
+		memmove(dbuf + l, pp->buf, pp->len);
+		l += pp->len;
+	}
+	/*
+	 * when called with one argument we paste our buffer into the window
+	 */
+	if (args[1] == 0) {
+		MakePaster(&fore->w_paster, dbuf, l, 1);
+	} else {
+		/*
+		 * we have two arguments, the second is already in dch.
+		 * use this as destination rather than the window.
+		 */
+		dch = args[1][0];
+		if (dch == '.') {
+			if (user->u_plop.buf != NULL)
+				UserFreeCopyBuffer(user);
+			user->u_plop.buf = dbuf;
+			user->u_plop.len = l;
+			user->u_plop.enc = enc;
+		} else {
+			struct plop *pp = plop_tab + (int)(unsigned char)dch;
+			if (pp->buf)
+				free(pp->buf);
+			pp->buf = dbuf;
+			pp->len = l;
+			pp->enc = enc;
+		}
+	}
+}
+
+static void DoCommandPaste(struct action *act, int key)
+{
+	struct acluser *user = display ? D_user : users;
+	char **args = act->args;
+	int *argl = act->argl;
+	int enc = -1;
+	size_t l = 0;
+	char *s, *ss, *dbuf;
+	char ch, dch;
+
+	(void)key; /* unused */
+
+	/*
+	 * without args we prompt for one(!) register to be pasted in the window
+	 */
+	if ((s = *args) == NULL) {
+		Input("Paste from register:", 1, INP_RAW, ins_reg_fn, NULL, 0);
+		return;
+	}
+	if (args[1] == 0 && !fore)	/* no window? */
+		return;
+	/*
+	 * with two arguments we paste into a destination register
+	 * (no window needed here).
+	 */
+	if (args[1] && argl[1] != 1) {
+		OutputMsg(0, "%s: paste destination: character, ^x, or (octal) \\032 expected.",
+			  rc_name);
+		return;
+	} else if (fore)
+		enc = fore->w_encoding;
+
+	/*
+	 * measure length of needed buffer
+	 */
+	for (ss = s = *args; (ch = *ss); ss++) {
+		if (ch == '.') {
+			if (enc == -1)
+				enc = user->u_plop.enc;
+			if (enc != user->u_plop.enc)
+				l += RecodeBuf((unsigned char *)user->u_plop.buf, user->u_plop.len,
+					       user->u_plop.enc, enc, (unsigned char *)0);
+			else
+				l += user->u_plop.len;
+		} else {
+			if (enc == -1)
+				enc = plop_tab[(int)(unsigned char)ch].enc;
+			if (enc != plop_tab[(int)(unsigned char)ch].enc)
+				l += RecodeBuf((unsigned char *)plop_tab[(int)(unsigned char)ch].buf,
+					       plop_tab[(int)(unsigned char)ch].len,
+					       plop_tab[(int)(unsigned char)ch].enc, enc,
+					       (unsigned char *)0);
+			else
+				l += plop_tab[(int)(unsigned char)ch].len;
+		}
+	}
+	if (l == 0) {
+		OutputMsg(0, "empty buffer");
+		return;
+	}
+	/*
+	 * shortcut:
+	 * if there is only one source and the destination is a window, then
+	 * pass a pointer rather than duplicating the buffer.
+	 */
+	if (s[1] == 0 && args[1] == 0)
+		if (enc == (*s == '.' ? user->u_plop.enc : plop_tab[(int)(unsigned char)*s].enc)) {
+			MakePaster(&fore->w_paster,
+				   *s == '.' ? user->u_plop.buf : plop_tab[(int)(unsigned char)*s].buf,
+				   l, 0);
+			return;
+		}
+	/*
+	 * if no shortcut, we construct a buffer
+	 */
+	if ((dbuf = malloc(l)) == 0) {
+		OutputMsg(0, "%s", strnomem);
+		return;
+	}
+	l = 0;
+	/*
+	 * concatenate all sources into our own buffer, copy buffer is
+	 * special and is skipped if no display exists.
+	 */
+	for (ss = s; (ch = *ss); ss++) {
+		struct plop *pp = (ch == '.' ? &user->u_plop : &plop_tab[(int)(unsigned char)ch]);
+		if (pp->enc != enc) {
+			l += RecodeBuf((unsigned char *)pp->buf, pp->len, pp->enc, enc,
+				       (unsigned char *)dbuf + l);
+			continue;
+		}
+		memmove(dbuf + l, pp->buf, pp->len);
+		l += pp->len;
+	}
+	/*
+	 * when called with one argument we paste our buffer into the window
+	 */
+	if (args[1] == 0) {
+		MakePaster(&fore->w_paster, dbuf, l, 1);
+	} else {
+		/*
+		 * we have two arguments, the second is already in dch.
+		 * use this as destination rather than the window.
+		 */
+		dch = args[1][0];
+		if (dch == '.') {
+			if (user->u_plop.buf != NULL)
+				UserFreeCopyBuffer(user);
+			user->u_plop.buf = dbuf;
+			user->u_plop.len = l;
+			user->u_plop.enc = enc;
+		} else {
+			struct plop *pp = plop_tab + (int)(unsigned char)dch;
+			if (pp->buf)
+				free(pp->buf);
+			pp->buf = dbuf;
+			pp->len = l;
+			pp->enc = enc;
+		}
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2478,137 +2736,11 @@ void DoAction(struct action *act, int key)
 		DoCommandCopy(act, key);
 		break;
 	case RC_HISTORY:
-		{
-			static char *pasteargs[] = { ".", 0 };
-			static int pasteargl[] = { 1 };
-
-			if (flayer->l_layfn != &WinLf) {
-				OutputMsg(0, "Must be on a window layer");
-				break;
-			}
-			if (GetHistory() == 0)
-				break;
-			if (user->u_plop.buf == NULL)
-				break;
-			args = pasteargs;
-			argl = pasteargl;
-		}
-	 /*FALLTHROUGH*/ case RC_PASTE:
-		{
-			char *ss, *dbuf, dch;
-			size_t l = 0;
-			int enc = -1;
-
-			/*
-			 * without args we prompt for one(!) register to be pasted in the window
-			 */
-			if ((s = *args) == NULL) {
-				Input("Paste from register:", 1, INP_RAW, ins_reg_fn, NULL, 0);
-				break;
-			}
-			if (args[1] == 0 && !fore)	/* no window? */
-				break;
-			/*
-			 * with two arguments we paste into a destination register
-			 * (no window needed here).
-			 */
-			if (args[1] && argl[1] != 1) {
-				OutputMsg(0, "%s: paste destination: character, ^x, or (octal) \\032 expected.",
-					  rc_name);
-				break;
-			} else if (fore)
-				enc = fore->w_encoding;
-
-			/*
-			 * measure length of needed buffer
-			 */
-			for (ss = s = *args; (ch = *ss); ss++) {
-				if (ch == '.') {
-					if (enc == -1)
-						enc = user->u_plop.enc;
-					if (enc != user->u_plop.enc)
-						l += RecodeBuf((unsigned char *)user->u_plop.buf, user->u_plop.len,
-							       user->u_plop.enc, enc, (unsigned char *)0);
-					else
-						l += user->u_plop.len;
-				} else {
-					if (enc == -1)
-						enc = plop_tab[(int)(unsigned char)ch].enc;
-					if (enc != plop_tab[(int)(unsigned char)ch].enc)
-						l += RecodeBuf((unsigned char *)plop_tab[(int)(unsigned char)ch].buf,
-							       plop_tab[(int)(unsigned char)ch].len,
-							       plop_tab[(int)(unsigned char)ch].enc, enc,
-							       (unsigned char *)0);
-					else
-						l += plop_tab[(int)(unsigned char)ch].len;
-				}
-			}
-			if (l == 0) {
-				OutputMsg(0, "empty buffer");
-				break;
-			}
-			/*
-			 * shortcut:
-			 * if there is only one source and the destination is a window, then
-			 * pass a pointer rather than duplicating the buffer.
-			 */
-			if (s[1] == 0 && args[1] == 0)
-				if (enc == (*s == '.' ? user->u_plop.enc : plop_tab[(int)(unsigned char)*s].enc)) {
-					MakePaster(&fore->w_paster,
-						   *s == '.' ? user->u_plop.buf : plop_tab[(int)(unsigned char)*s].buf,
-						   l, 0);
-					break;
-				}
-			/*
-			 * if no shortcut, we construct a buffer
-			 */
-			if ((dbuf = malloc(l)) == 0) {
-				OutputMsg(0, "%s", strnomem);
-				break;
-			}
-			l = 0;
-			/*
-			 * concatenate all sources into our own buffer, copy buffer is
-			 * special and is skipped if no display exists.
-			 */
-			for (ss = s; (ch = *ss); ss++) {
-				struct plop *pp = (ch == '.' ? &user->u_plop : &plop_tab[(int)(unsigned char)ch]);
-				if (pp->enc != enc) {
-					l += RecodeBuf((unsigned char *)pp->buf, pp->len, pp->enc, enc,
-						       (unsigned char *)dbuf + l);
-					continue;
-				}
-				memmove(dbuf + l, pp->buf, pp->len);
-				l += pp->len;
-			}
-			/*
-			 * when called with one argument we paste our buffer into the window
-			 */
-			if (args[1] == 0) {
-				MakePaster(&fore->w_paster, dbuf, l, 1);
-			} else {
-				/*
-				 * we have two arguments, the second is already in dch.
-				 * use this as destination rather than the window.
-				 */
-				dch = args[1][0];
-				if (dch == '.') {
-					if (user->u_plop.buf != NULL)
-						UserFreeCopyBuffer(user);
-					user->u_plop.buf = dbuf;
-					user->u_plop.len = l;
-					user->u_plop.enc = enc;
-				} else {
-					struct plop *pp = plop_tab + (int)(unsigned char)dch;
-					if (pp->buf)
-						free(pp->buf);
-					pp->buf = dbuf;
-					pp->len = l;
-					pp->enc = enc;
-				}
-			}
-			break;
-		}
+		DoCommandHistory(act, key);
+		break;
+	case RC_PASTE:
+		DoCommandPaste(act, key);
+		break;
 	case RC_WRITEBUF:
 		if (!user->u_plop.buf) {
 			OutputMsg(0, "empty buffer");
