@@ -2044,6 +2044,45 @@ static void DoCommandFlow(struct action *act, int key)
 			  (fore->w_flow & FLOW_AUTOFLAG) ? "(auto)" : "");
 }
 
+static void DoCommandDefwritelock(struct action *act, int key)
+{
+	char **args = act->args;
+	bool b;
+
+	(void)key; /* unused */
+
+	if (args[0][0] == 'a')
+		nwin_default.wlock = WLOCK_AUTO;
+	else if (ParseOnOff(act, &b) == 0)
+		nwin_default.wlock = b ? WLOCK_ON : WLOCK_OFF;
+}
+
+static void DoCommandWritelock(struct action *act, int key)
+{
+	char **args = act->args;
+	bool b;
+
+	(void)key; /* unused */
+
+	if (*args) {
+		if (args[0][0] == 'a') {
+			fore->w_wlock = WLOCK_AUTO;
+		} else {
+			if (ParseOnOff(act, &b))
+				return;
+			fore->w_wlock = b ? WLOCK_ON : WLOCK_OFF;
+		}
+		/* 
+		 * user may have permission to change the writelock setting, 
+		 * but he may never aquire the lock himself without write permission
+		 */
+		if (!AclCheckPermWin(D_user, ACL_WRITE, fore))
+			fore->w_wlockuser = D_user;
+	}
+	OutputMsg(0, "writelock %s", (fore->w_wlock == WLOCK_AUTO) ? "auto" :
+		  ((fore->w_wlock == WLOCK_OFF) ? "off" : "on"));
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2254,33 +2293,10 @@ void DoAction(struct action *act, int key)
 		DoCommandFlow(act, key);
 		break;
 	case RC_DEFWRITELOCK:
-		{
-			bool b;
-			if (args[0][0] == 'a')
-				nwin_default.wlock = WLOCK_AUTO;
-			else if (ParseOnOff(act, &b) == 0)
-				nwin_default.wlock = b ? WLOCK_ON : WLOCK_OFF;
-			break;
-		}
+		DoCommandDefwritelock(act, key);
+		break;
 	case RC_WRITELOCK:
-		if (*args) {
-			if (args[0][0] == 'a') {
-				fore->w_wlock = WLOCK_AUTO;
-			} else {
-				bool b;
-				if (ParseOnOff(act, &b))
-					break;
-				fore->w_wlock = b ? WLOCK_ON : WLOCK_OFF;
-			}
-			/* 
-			 * user may have permission to change the writelock setting, 
-			 * but he may never aquire the lock himself without write permission
-			 */
-			if (!AclCheckPermWin(D_user, ACL_WRITE, fore))
-				fore->w_wlockuser = D_user;
-		}
-		OutputMsg(0, "writelock %s", (fore->w_wlock == WLOCK_AUTO) ? "auto" :
-			  ((fore->w_wlock == WLOCK_OFF) ? "off" : "on"));
+		DoCommandWritelock(act, key);
 		break;
 	case RC_CLEAR:
 		ResetAnsiState(fore);
