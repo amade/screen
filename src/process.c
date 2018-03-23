@@ -1633,7 +1633,14 @@ static void DoCommandCommand(struct action *act, int key)
 		SwitchWindow(display && D_other ? D_other->w_number : NextWindow());
 }
 
+static void DoCommandOther(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
 
+	if (MoreWindows())
+		SwitchWindow(display && D_other ? D_other->w_number : NextWindow());
+}
 
 void DoAction(struct action *act, int key)
 {
@@ -1790,8 +1797,7 @@ void DoAction(struct action *act, int key)
 		DoCommandCommand(act, key);
 		break;
 	case RC_OTHER:
-		if (MoreWindows())
-			SwitchWindow(display && D_other ? D_other->w_number : NextWindow());
+		DoCommandOther(act, key);
 		break;
 	case RC_META:
 		if (user->u_Esc == -1)
