@@ -1996,6 +1996,15 @@ static void DoCommandLastmsg(struct action *act, int key)
 		OutputMsg(0, "%s", D_status_lastmsg);
 }
 
+static void DoCommandScreen(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	DoScreen("key", args);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2197,7 +2206,7 @@ void DoAction(struct action *act, int key)
 		DoCommandLastmsg(act, key);
 		break;
 	case RC_SCREEN:
-		DoScreen("key", args);
+		DoCommandScreen(act, key);
 		break;
 	case RC_WRAP:
 		if (ParseSwitch(act, &fore->w_wrap) == 0 && msgok)
