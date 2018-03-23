@@ -1568,6 +1568,19 @@ static void DoCommandRedisplay(struct action *act, int key)
 	Activate(-1);
 }
 
+
+static void DoCommandWindows(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (args[0])
+		ShowWindowsX(args[0]);
+	else
+		ShowWindows(-1);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1708,11 +1721,7 @@ void DoAction(struct action *act, int key)
 		DoCommandRedisplay(act, key);
 		break;
 	case RC_WINDOWS:
-		if (args[0]) {
-			ShowWindowsX(args[0]);
-			break;
-		}
-		ShowWindows(-1);
+		DoCommandWindows(act, key);
 		break;
 	case RC_VERSION:
 		OutputMsg(0, "screen %s", version);
