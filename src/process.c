@@ -1739,6 +1739,14 @@ static void DoCommandBreak(struct action *act, int key)
 	SendBreak(fore, n, false);
 }
 
+static void DoCommandLockscreen(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	Detach(D_LOCK);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1916,7 +1924,7 @@ void DoAction(struct action *act, int key)
 		DoCommandBreak(act, key);
 		break;
 	case RC_LOCKSCREEN:
-		Detach(D_LOCK);
+		DoCommandLockscreen(act, key);
 		break;
 	case RC_WIDTH:
 	case RC_HEIGHT:
