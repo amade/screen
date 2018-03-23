@@ -2141,6 +2141,14 @@ static void DoCommandMonitor(struct action *act, int key)
 	}
 }
 
+static void DoCommandDisplays(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	display_displays();
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2366,7 +2374,7 @@ void DoAction(struct action *act, int key)
 		DoCommandMonitor(act, key);
 		break;
 	case RC_DISPLAYS:
-		display_displays();
+		DoCommandDisplays(act, key);
 		break;
 	case RC_WINDOWLIST:
 		if (!*args)
