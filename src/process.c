@@ -1954,6 +1954,25 @@ static void DoCommandDynamictitle(struct action *act, int key)
 	(void)ParseOnOff(act, &fore->w_dynamicaka);
 }
 
+static void DoCommandTitle(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (queryflag >= 0) {
+		if (fore)
+			OutputMsg(0, "%s", fore->w_title);
+		else
+			queryflag = -1;
+		return;
+	}
+	if (*args == 0)
+		InputAKA();
+	else
+		ChangeAKA(fore, *args, strlen(*args));
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2146,17 +2165,7 @@ void DoAction(struct action *act, int key)
 		DoCommandDynamictitle(act, key);
 		break;
 	case RC_TITLE:
-		if (queryflag >= 0) {
-			if (fore)
-				OutputMsg(0, "%s", fore->w_title);
-			else
-				queryflag = -1;
-			break;
-		}
-		if (*args == 0)
-			InputAKA();
-		else
-			ChangeAKA(fore, *args, strlen(*args));
+		DoCommandTitle(act, key);
 		break;
 	case RC_COLON:
 		Input(":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
