@@ -2005,6 +2005,17 @@ static void DoCommandScreen(struct action *act, int key)
 	DoScreen("key", args);
 }
 
+
+static void DoCommandWrap(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseSwitch(act, &fore->w_wrap) == 0 && msgok)
+		OutputMsg(0, "%cwrap", fore->w_wrap ? '+' : '-');
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2209,8 +2220,7 @@ void DoAction(struct action *act, int key)
 		DoCommandScreen(act, key);
 		break;
 	case RC_WRAP:
-		if (ParseSwitch(act, &fore->w_wrap) == 0 && msgok)
-			OutputMsg(0, "%cwrap", fore->w_wrap ? '+' : '-');
+		DoCommandWrap(act, key);
 		break;
 	case RC_FLOW:
 		{
