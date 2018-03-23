@@ -1714,6 +1714,31 @@ static void DoCommandBreaktype(struct action *act, int key)
 	}
 }
 
+
+static void DoCommandPow_break(struct action *act, int key)
+{
+	char **args = act->args;
+	int n = 0;
+
+	(void)key; /* unused */
+
+	if (*args && ParseNum(act, &n))
+		return;
+	SendBreak(fore, n, true);
+}
+
+static void DoCommandBreak(struct action *act, int key)
+{
+	char **args = act->args;
+	int n = 0;
+
+	(void)key; /* unused */
+
+	if (*args && ParseNum(act, &n))
+		return;
+	SendBreak(fore, n, false);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1885,11 +1910,10 @@ void DoAction(struct action *act, int key)
 		DoCommandBreaktype(act, key);
 		break;
 	case RC_POW_BREAK:
+		DoCommandPow_break(act, key);
+		break;
 	case RC_BREAK:
-		n = 0;
-		if (*args && ParseNum(act, &n))
-			break;
-		SendBreak(fore, n, nr == RC_POW_BREAK);
+		DoCommandBreak(act, key);
 		break;
 	case RC_LOCKSCREEN:
 		Detach(D_LOCK);
