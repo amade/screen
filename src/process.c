@@ -2224,6 +2224,20 @@ static void DoCommandLicense(struct action *act, int key)
 	display_license();
 }
 
+
+static void DoCommandCopy(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	if (flayer->l_layfn != &WinLf) {
+		OutputMsg(0, "Must be on a window layer");
+		return;
+	}
+	MarkRoutine();
+	WindowChanged(fore, WINESC_COPY_MODE);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2461,12 +2475,7 @@ void DoAction(struct action *act, int key)
 		DoCommandLicense(act, key);
 		break;
 	case RC_COPY:
-		if (flayer->l_layfn != &WinLf) {
-			OutputMsg(0, "Must be on a window layer");
-			break;
-		}
-		MarkRoutine();
-		WindowChanged(fore, WINESC_COPY_MODE);
+		DoCommandCopy(act, key);
 		break;
 	case RC_HISTORY:
 		{
