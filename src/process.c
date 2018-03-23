@@ -2496,6 +2496,88 @@ static void DoCommandPaste(struct action *act, int key)
 	}
 }
 
+static void DoCommandWritebuf(struct action *act, int key)
+{
+	struct acluser *user = display ? D_user : users;
+	char **args = act->args;
+	int enc = -1;
+	size_t l = 0;
+	char *newbuf;
+	struct plop oldplop;
+
+	(void)key; /* unused */
+
+	if (!user->u_plop.buf) {
+		OutputMsg(0, "empty buffer");
+		return;
+	}
+
+	oldplop = user->u_plop;
+	if (args[0] && args[1] && !strcmp(args[0], "-e")) {
+		enc = FindEncoding(args[1]);
+		if (enc == -1) {
+			OutputMsg(0, "%s: writebuf: unknown encoding", rc_name);
+			return;
+		}
+		if (enc != oldplop.enc) {
+			l = RecodeBuf((unsigned char *)oldplop.buf, oldplop.len, oldplop.enc, enc,
+				      (unsigned char *)0);
+			newbuf = malloc(l + 1);
+			if (!newbuf) {
+				OutputMsg(0, "%s", strnomem);
+				return;
+			}
+			user->u_plop.len =
+			    RecodeBuf((unsigned char *)oldplop.buf, oldplop.len, oldplop.enc, enc,
+				      (unsigned char *)newbuf);
+			user->u_plop.buf = newbuf;
+			user->u_plop.enc = enc;
+		}
+		args += 2;
+	}
+	if (args[0] && args[1])
+		OutputMsg(0, "%s: writebuf: too many arguments", rc_name);
+	else
+		WriteFile(user, args[0], DUMP_EXCHANGE);
+	if (user->u_plop.buf != oldplop.buf)
+		free(user->u_plop.buf);
+	user->u_plop = oldplop;
+}
+
+static void DoCommandReadbuf(struct action *act, int key)
+{
+	struct acluser *user = display ? D_user : users;
+	char **args = act->args;
+	char *s;
+	int i;
+	int l = 0;
+
+	(void)key; /* unused */
+
+	i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
+	if (args[0] && args[1] && !strcmp(args[0], "-e")) {
+		i = FindEncoding(args[1]);
+		if (i == -1) {
+			OutputMsg(0, "%s: readbuf: unknown encoding", rc_name);
+			return;
+		}
+		args += 2;
+	}
+	if (args[0] && args[1]) {
+		OutputMsg(0, "%s: readbuf: too many arguments", rc_name);
+		return;
+	}
+	if ((s = ReadFile(args[0] ? args[0] : BufferFile, &l))) {
+		if (user->u_plop.buf)
+			UserFreeCopyBuffer(user);
+		user->u_plop.len = l;
+		user->u_plop.buf = s;
+		user->u_plop.enc = i;
+		OutputMsg(0, "Read contents of %s into copybuffer",
+                          args[0] ? args[0] : BufferFile);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2742,74 +2824,11 @@ void DoAction(struct action *act, int key)
 		DoCommandPaste(act, key);
 		break;
 	case RC_WRITEBUF:
-		if (!user->u_plop.buf) {
-			OutputMsg(0, "empty buffer");
-			break;
-		}
-		{
-			struct plop oldplop;
-
-			oldplop = user->u_plop;
-			if (args[0] && args[1] && !strcmp(args[0], "-e")) {
-				int enc, l;
-				char *newbuf;
-
-				enc = FindEncoding(args[1]);
-				if (enc == -1) {
-					OutputMsg(0, "%s: writebuf: unknown encoding", rc_name);
-					break;
-				}
-				if (enc != oldplop.enc) {
-					l = RecodeBuf((unsigned char *)oldplop.buf, oldplop.len, oldplop.enc, enc,
-						      (unsigned char *)0);
-					newbuf = malloc(l + 1);
-					if (!newbuf) {
-						OutputMsg(0, "%s", strnomem);
-						break;
-					}
-					user->u_plop.len =
-					    RecodeBuf((unsigned char *)oldplop.buf, oldplop.len, oldplop.enc, enc,
-						      (unsigned char *)newbuf);
-					user->u_plop.buf = newbuf;
-					user->u_plop.enc = enc;
-				}
-				args += 2;
-			}
-			if (args[0] && args[1])
-				OutputMsg(0, "%s: writebuf: too many arguments", rc_name);
-			else
-				WriteFile(user, args[0], DUMP_EXCHANGE);
-			if (user->u_plop.buf != oldplop.buf)
-				free(user->u_plop.buf);
-			user->u_plop = oldplop;
-		}
+		DoCommandWritebuf(act, key);
 		break;
 	case RC_READBUF:
-		{
-			int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
-			if (args[0] && args[1] && !strcmp(args[0], "-e")) {
-				i = FindEncoding(args[1]);
-				if (i == -1) {
-					OutputMsg(0, "%s: readbuf: unknown encoding", rc_name);
-					break;
-				}
-				args += 2;
-			}
-			if (args[0] && args[1]) {
-				OutputMsg(0, "%s: readbuf: too many arguments", rc_name);
-				break;
-			}
-			if ((s = ReadFile(args[0] ? args[0] : BufferFile, &n))) {
-				if (user->u_plop.buf)
-					UserFreeCopyBuffer(user);
-				user->u_plop.len = n;
-				user->u_plop.buf = s;
-				user->u_plop.enc = i;
-				OutputMsg(0, "Read contents of %s into copybuffer",
-	                                  args[0] ? args[0] : BufferFile);
-			}
-			break;
-		}
+		DoCommandReadbuf(act, key);
+		break;
 	case RC_REMOVEBUF:
 		KillBuffers();
 		break;
