@@ -2578,6 +2578,14 @@ static void DoCommandReadbuf(struct action *act, int key)
 	}
 }
 
+static void DoCommandRemovebuf(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	KillBuffers();
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2830,7 +2838,7 @@ void DoAction(struct action *act, int key)
 		DoCommandReadbuf(act, key);
 		break;
 	case RC_REMOVEBUF:
-		KillBuffers();
+		DoCommandRemovebuf(act, key);
 		break;
 	case RC_IGNORECASE:
 		(void)ParseSwitch(act, &search_ic);
