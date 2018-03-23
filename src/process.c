@@ -2149,6 +2149,55 @@ static void DoCommandDisplays(struct action *act, int key)
 	display_displays();
 }
 
+static void DoCommandWindowlist(struct action *act, int key)
+{
+	char **args = act->args;
+	int argc = CheckArgNum(act->nr, args);
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (!*args)
+		display_windows(0, WLIST_NUM, (Window *)0);
+	else if (!strcmp(*args, "string")) {
+		if (args[1]) {
+			if (wliststr)
+				free(wliststr);
+			wliststr = SaveStr(args[1]);
+		}
+		if (msgok)
+			OutputMsg(0, "windowlist string is '%s'", wliststr);
+	} else if (!strcmp(*args, "title")) {
+		if (args[1]) {
+			if (wlisttit)
+				free(wlisttit);
+			wlisttit = SaveStr(args[1]);
+		}
+		if (msgok)
+			OutputMsg(0, "windowlist title is '%s'", wlisttit);
+	} else {
+		int flag = 0;
+		int blank = 0;
+		int i;
+		for (i = 0; i < argc; i++)
+			if (!args[i])
+				continue;
+			else if (!strcmp(args[i], "-m"))
+				flag |= WLIST_MRU;
+			else if (!strcmp(args[i], "-b"))
+				blank = 1;
+			else if (!strcmp(args[i], "-g"))
+				flag |= WLIST_NESTED;
+			else {
+				OutputMsg(0,
+					  "usage: windowlist [-b] [-g] [-m] [string [string] | title [title]]");
+				return;
+			}
+		if (i == argc)
+			display_windows(blank, flag, (Window *)0);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2377,45 +2426,7 @@ void DoAction(struct action *act, int key)
 		DoCommandDisplays(act, key);
 		break;
 	case RC_WINDOWLIST:
-		if (!*args)
-			display_windows(0, WLIST_NUM, (Window *)0);
-		else if (!strcmp(*args, "string")) {
-			if (args[1]) {
-				if (wliststr)
-					free(wliststr);
-				wliststr = SaveStr(args[1]);
-			}
-			if (msgok)
-				OutputMsg(0, "windowlist string is '%s'", wliststr);
-		} else if (!strcmp(*args, "title")) {
-			if (args[1]) {
-				if (wlisttit)
-					free(wlisttit);
-				wlisttit = SaveStr(args[1]);
-			}
-			if (msgok)
-				OutputMsg(0, "windowlist title is '%s'", wlisttit);
-		} else {
-			int flag = 0;
-			int blank = 0;
-			int i;
-			for (i = 0; i < argc; i++)
-				if (!args[i])
-					continue;
-				else if (!strcmp(args[i], "-m"))
-					flag |= WLIST_MRU;
-				else if (!strcmp(args[i], "-b"))
-					blank = 1;
-				else if (!strcmp(args[i], "-g"))
-					flag |= WLIST_NESTED;
-				else {
-					OutputMsg(0,
-						  "usage: windowlist [-b] [-g] [-m] [string [string] | title [title]]");
-					break;
-				}
-			if (i == argc)
-				display_windows(blank, flag, (Window *)0);
-		}
+		DoCommandWindowlist(act, key);
 		break;
 	case RC_HELP:
 		if (argc == 2 && !strcmp(*args, "-c")) {
