@@ -1681,6 +1681,39 @@ static void DoCommandXoff(struct action *act, int key)
 	LayProcess(&s, &len);
 }
 
+static void DoCommandBreaktype(struct action *act, int key)
+{
+	static char *types[] = { "TIOCSBRK", "TCSBRK", "tcsendbreak", NULL };
+	char **args = act->args;
+	char ch;
+	int n;
+
+	(void)key; /* unused */
+
+	if (*args) {
+		if (ParseNum(act, &n))
+			for (n = 0; n < (int)(ARRAY_SIZE(types)); n++) {
+				int i;
+				for (i = 0; i < 4; i++) {
+					ch = args[0][i];
+					if (ch >= 'a' && ch <= 'z')
+						ch -= 'a' - 'A';
+					if (ch != types[n][i] && (ch + ('a' - 'A')) != types[n][i])
+						break;
+				}
+				if (i == 4)
+					break;
+			}
+		if (n < 0 || n >= (int)(ARRAY_SIZE(types)))
+			OutputMsg(0, "%s invalid, chose one of %s, %s or %s", *args, types[0], types[1],
+				  types[2]);
+		else {
+			breaktype = n;
+			OutputMsg(0, "breaktype set to (%d) %s", n, types[n]);
+		}
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1849,32 +1882,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_DEFBREAKTYPE:
 	case RC_BREAKTYPE:
-		{
-			static char *types[] = { "TIOCSBRK", "TCSBRK", "tcsendbreak", NULL };
-
-			if (*args) {
-				if (ParseNum(act, &n))
-					for (n = 0; n < (int)(ARRAY_SIZE(types)); n++) {
-						int i;
-						for (i = 0; i < 4; i++) {
-							ch = args[0][i];
-							if (ch >= 'a' && ch <= 'z')
-								ch -= 'a' - 'A';
-							if (ch != types[n][i] && (ch + ('a' - 'A')) != types[n][i])
-								break;
-						}
-						if (i == 4)
-							break;
-					}
-				if (n < 0 || n >= (int)(ARRAY_SIZE(types)))
-					OutputMsg(0, "%s invalid, chose one of %s, %s or %s", *args, types[0], types[1],
-						  types[2]);
-				else {
-					breaktype = n;
-					OutputMsg(0, "breaktype set to (%d) %s", n, types[n]);
-				}
-			}
-		}
+		DoCommandBreaktype(act, key);
 		break;
 	case RC_POW_BREAK:
 	case RC_BREAK:
