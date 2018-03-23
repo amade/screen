@@ -2216,6 +2216,14 @@ static void DoCommandHelp(struct action *act, int key)
 		display_help((char *)0, ktab);
 }
 
+static void DoCommandLicense(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	display_license();
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2450,7 +2458,7 @@ void DoAction(struct action *act, int key)
 		DoCommandHelp(act, key);
 		break;
 	case RC_LICENSE:
-		display_license();
+		DoCommandLicense(act, key);
 		break;
 	case RC_COPY:
 		if (flayer->l_layfn != &WinLf) {
