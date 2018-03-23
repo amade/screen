@@ -2198,6 +2198,24 @@ static void DoCommandWindowlist(struct action *act, int key)
 	}
 }
 
+static void DoCommandHelp(struct action *act, int key)
+{
+	char **args = act->args;
+	int argc = CheckArgNum(act->nr, args);
+
+	(void)key; /* unused */
+
+	if (argc == 2 && !strcmp(*args, "-c")) {
+		struct action *ktabp;
+		if ((ktabp = FindKtab(args[1], 0)) == 0) {
+			OutputMsg(0, "Unknown command class '%s'", args[1]);
+			return;
+		}
+		display_help(args[1], ktabp);
+	} else
+		display_help((char *)0, ktab);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2429,15 +2447,7 @@ void DoAction(struct action *act, int key)
 		DoCommandWindowlist(act, key);
 		break;
 	case RC_HELP:
-		if (argc == 2 && !strcmp(*args, "-c")) {
-			struct action *ktabp;
-			if ((ktabp = FindKtab(args[1], 0)) == 0) {
-				OutputMsg(0, "Unknown command class '%s'", args[1]);
-				break;
-			}
-			display_help(args[1], ktabp);
-		} else
-			display_help((char *)0, ktab);
+		DoCommandHelp(act, key);
 		break;
 	case RC_LICENSE:
 		display_license();
