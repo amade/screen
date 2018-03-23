@@ -1657,6 +1657,30 @@ static void DoCommandMeta(struct action *act, int key)
 		LayProcess(&s, &len);
 }
 
+static void DoCommandXon(struct action *act, int key)
+{
+	char ch = Ctrl('q');
+	char *s = &ch;
+	size_t len = 1;
+
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	LayProcess(&s, &len);
+}
+
+static void DoCommandXoff(struct action *act, int key)
+{
+	char ch = Ctrl('s');
+	char *s = &ch;
+	size_t len = 1;
+
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	LayProcess(&s, &len);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1818,16 +1842,10 @@ void DoAction(struct action *act, int key)
 		DoCommandMeta(act, key);
 		break;
 	case RC_XON:
-		ch = Ctrl('q');
-		s = &ch;
-		len = 1;
-		LayProcess(&s, &len);
+		DoCommandXon(act, key);
 		break;
 	case RC_XOFF:
-		ch = Ctrl('s');
-		s = &ch;
-		len = 1;
-		LayProcess(&s, &len);
+		DoCommandXoff(act, key);
 		break;
 	case RC_DEFBREAKTYPE:
 	case RC_BREAKTYPE:
