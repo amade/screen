@@ -2103,6 +2103,44 @@ static void DoCommandReset(struct action *act, int key)
 	WriteString(fore, "\033c", 2);
 }
 
+static void DoCommandMonitor(struct action *act, int key)
+{
+	bool b = fore->w_monitor != MON_OFF;
+	int i;
+
+	(void)key; /* unused */
+
+	if (display)
+		b = b && (ACLBYTE(fore->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id));
+	if (ParseSwitch(act, &b))
+		return;
+	if (b) {
+		if (display)	/* we tell only this user */
+			ACLBYTE(fore->w_mon_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
+		else
+			for (i = 0; i < maxusercount; i++)
+				ACLBYTE(fore->w_mon_notify, i) |= ACLBIT(i);
+		if (fore->w_monitor == MON_OFF)
+			fore->w_monitor = MON_ON;
+		OutputMsg(0, "Window %d (%s) is now being monitored for all activity.", fore->w_number,
+			  fore->w_title);
+	} else {
+		if (display)	/* we remove only this user */
+			ACLBYTE(fore->w_mon_notify, D_user->u_id)
+			    &= ~ACLBIT(D_user->u_id);
+		else
+			for (i = 0; i < maxusercount; i++)
+				ACLBYTE(fore->w_mon_notify, i) &= ~ACLBIT(i);
+		for (i = maxusercount - 1; i >= 0; i--)
+			if (ACLBYTE(fore->w_mon_notify, i))
+				return;
+		if (i < 0)
+			fore->w_monitor = MON_OFF;
+		OutputMsg(0, "Window %d (%s) is no longer being monitored for activity.", fore->w_number,
+			  fore->w_title);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2325,40 +2363,8 @@ void DoAction(struct action *act, int key)
 		DoCommandReset(act, key);
 		break;
 	case RC_MONITOR:
-		{
-			bool b = fore->w_monitor != MON_OFF;
-			if (display)
-				b = b && (ACLBYTE(fore->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id));
-			if (ParseSwitch(act, &b))
-				break;
-			if (b) {
-				if (display)	/* we tell only this user */
-					ACLBYTE(fore->w_mon_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
-				else
-					for (int i = 0; i < maxusercount; i++)
-						ACLBYTE(fore->w_mon_notify, i) |= ACLBIT(i);
-				if (fore->w_monitor == MON_OFF)
-					fore->w_monitor = MON_ON;
-				OutputMsg(0, "Window %d (%s) is now being monitored for all activity.", fore->w_number,
-					  fore->w_title);
-			} else {
-				int i;
-				if (display)	/* we remove only this user */
-					ACLBYTE(fore->w_mon_notify, D_user->u_id)
-					    &= ~ACLBIT(D_user->u_id);
-				else
-					for (i = 0; i < maxusercount; i++)
-						ACLBYTE(fore->w_mon_notify, i) &= ~ACLBIT(i);
-				for (i = maxusercount - 1; i >= 0; i--)
-					if (ACLBYTE(fore->w_mon_notify, i))
-						break;
-				if (i < 0)
-					fore->w_monitor = MON_OFF;
-				OutputMsg(0, "Window %d (%s) is no longer being monitored for activity.", fore->w_number,
-					  fore->w_title);
-			}
-			break;
-		}
+		DoCommandMonitor(act, key);
+		break;
 	case RC_DISPLAYS:
 		display_displays();
 		break;
