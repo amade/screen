@@ -2083,6 +2083,15 @@ static void DoCommandWritelock(struct action *act, int key)
 		  ((fore->w_wlock == WLOCK_OFF) ? "off" : "on"));
 }
 
+static void DoCommandClear(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	ResetAnsiState(fore);
+	WriteString(fore, "\033[H\033[J", 6);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2299,8 +2308,7 @@ void DoAction(struct action *act, int key)
 		DoCommandWritelock(act, key);
 		break;
 	case RC_CLEAR:
-		ResetAnsiState(fore);
-		WriteString(fore, "\033[H\033[J", 6);
+		DoCommandClear(act, key);
 		break;
 	case RC_RESET:
 		ResetAnsiState(fore);
