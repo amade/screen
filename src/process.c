@@ -2016,6 +2016,34 @@ static void DoCommandWrap(struct action *act, int key)
 		OutputMsg(0, "%cwrap", fore->w_wrap ? '+' : '-');
 }
 
+static void DoCommandFlow(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+	bool b;
+
+	(void)key; /* unused */
+
+	if (*args) {
+		if (args[0][0] == 'a') {
+			fore->w_flow =
+			    (fore->w_flow & FLOW_AUTO) ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_ON : FLOW_AUTOFLAG;
+		} else 	if (ParseOnOff(act, &b) == 0)
+			fore->w_flow = (fore->w_flow & FLOW_AUTO) | b ? FLOW_ON : FLOW_OFF;
+	} else {
+		if (fore->w_flow & FLOW_AUTOFLAG)
+			fore->w_flow = (fore->w_flow & FLOW_AUTO) | FLOW_ON;
+		else if (fore->w_flow & FLOW_ON)
+			fore->w_flow &= ~FLOW_ON;
+		else
+			fore->w_flow = fore->w_flow ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_ON : FLOW_AUTOFLAG;
+	}
+	SetFlow(fore->w_flow & FLOW_ON);
+	if (msgok)
+		OutputMsg(0, "%cflow%s", (fore->w_flow & FLOW_ON) ? '+' : '-',
+			  (fore->w_flow & FLOW_AUTOFLAG) ? "(auto)" : "");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2223,28 +2251,8 @@ void DoAction(struct action *act, int key)
 		DoCommandWrap(act, key);
 		break;
 	case RC_FLOW:
-		{
-			bool b;
-			if (*args) {
-				if (args[0][0] == 'a') {
-					fore->w_flow =
-					    (fore->w_flow & FLOW_AUTO) ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_ON : FLOW_AUTOFLAG;
-				} else 	if (ParseOnOff(act, &b) == 0)
-					fore->w_flow = (fore->w_flow & FLOW_AUTO) | b ? FLOW_ON : FLOW_OFF;
-			} else {
-				if (fore->w_flow & FLOW_AUTOFLAG)
-					fore->w_flow = (fore->w_flow & FLOW_AUTO) | FLOW_ON;
-				else if (fore->w_flow & FLOW_ON)
-					fore->w_flow &= ~FLOW_ON;
-				else
-					fore->w_flow = fore->w_flow ? FLOW_AUTOFLAG | FLOW_AUTO | FLOW_ON : FLOW_AUTOFLAG;
-			}
-			SetFlow(fore->w_flow & FLOW_ON);
-			if (msgok)
-				OutputMsg(0, "%cflow%s", (fore->w_flow & FLOW_ON) ? '+' : '-',
-					  (fore->w_flow & FLOW_AUTOFLAG) ? "(auto)" : "");
-			break;
-		}
+		DoCommandFlow(act, key);
+		break;
 	case RC_DEFWRITELOCK:
 		{
 			bool b;
