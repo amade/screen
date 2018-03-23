@@ -1581,6 +1581,14 @@ static void DoCommandWindows(struct action *act, int key)
 		ShowWindows(-1);
 }
 
+static void DoCommandVersion(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	OutputMsg(0, "screen %s", version);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -1724,7 +1732,7 @@ void DoAction(struct action *act, int key)
 		DoCommandWindows(act, key);
 		break;
 	case RC_VERSION:
-		OutputMsg(0, "screen %s", version);
+		DoCommandVersion(act, key);
 		break;
 	case RC_TIME:
 		if (*args) {
