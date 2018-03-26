@@ -2597,6 +2597,52 @@ static void DoCommandIgnorecase(struct action *act, int key)
 		OutputMsg(0, "Will %signore case in searches", search_ic ? "" : "not ");
 }
 
+static void DoCommandEscape(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+	struct acluser *user = display ? D_user : users;
+
+	(void)key; /* unused */
+
+	if (*argl == 0)
+		SetEscape(user, -1, -1);
+	else if (*argl == 2)
+		SetEscape(user, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
+	else {
+		OutputMsg(0, "%s: two characters required after escape.", rc_name);
+		return;
+	}
+	/* Change defescape if master user. This is because we only
+	 * have one ktab.
+	 */
+	if (display && user != users)
+		return;
+	if (*argl == 0)
+		SetEscape(NULL, -1, -1);
+	else if (*argl == 2)
+		SetEscape(NULL, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
+	CheckEscape();
+}
+
+static void DoCommandDefescape(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+
+	(void)key; /* unused */
+
+	if (*argl == 0)
+		SetEscape(NULL, -1, -1);
+	else if (*argl == 2)
+		SetEscape(NULL, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
+	else {
+		OutputMsg(0, "%s: two characters required after defescape.", rc_name);
+		return;
+	}
+	CheckEscape();
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2855,30 +2901,10 @@ void DoAction(struct action *act, int key)
 		DoCommandIgnorecase(act, key);
 		break;
 	case RC_ESCAPE:
-		if (*argl == 0)
-			SetEscape(user, -1, -1);
-		else if (*argl == 2)
-			SetEscape(user, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
-		else {
-			OutputMsg(0, "%s: two characters required after escape.", rc_name);
-			break;
-		}
-		/* Change defescape if master user. This is because we only
-		 * have one ktab.
-		 */
-		if (display && user != users)
-			break;
-		/* FALLTHROUGH */
+		DoCommandEscape(act, key);
+		break;
 	case RC_DEFESCAPE:
-		if (*argl == 0)
-			SetEscape(NULL, -1, -1);
-		else if (*argl == 2)
-			SetEscape(NULL, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
-		else {
-			OutputMsg(0, "%s: two characters required after defescape.", rc_name);
-			break;
-		}
-		CheckEscape();
+		DoCommandDefescape(act, key);
 		break;
 	case RC_CHDIR:
 		s = *args ? *args : home;
