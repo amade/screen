@@ -2643,6 +2643,18 @@ static void DoCommandDefescape(struct action *act, int key)
 	CheckEscape();
 }
 
+static void DoCommandChdir(struct action *act, int key)
+{
+	char **args = act->args;
+	char *s;
+
+	(void)key; /* unused */
+
+	s = *args ? *args : home;
+	if (chdir(s) == -1)
+		OutputMsg(errno, "%s", s);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2907,9 +2919,7 @@ void DoAction(struct action *act, int key)
 		DoCommandDefescape(act, key);
 		break;
 	case RC_CHDIR:
-		s = *args ? *args : home;
-		if (chdir(s) == -1)
-			OutputMsg(errno, "%s", s);
+		DoCommandChdir(act, key);
 		break;
 	case RC_SHELL:
 	case RC_DEFSHELL:
