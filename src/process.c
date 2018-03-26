@@ -2586,6 +2586,17 @@ static void DoCommandRemovebuf(struct action *act, int key)
 	KillBuffers();
 }
 
+static void DoCommandIgnorecase(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	(void)ParseSwitch(act, &search_ic);
+	if (msgok)
+		OutputMsg(0, "Will %signore case in searches", search_ic ? "" : "not ");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2841,9 +2852,7 @@ void DoAction(struct action *act, int key)
 		DoCommandRemovebuf(act, key);
 		break;
 	case RC_IGNORECASE:
-		(void)ParseSwitch(act, &search_ic);
-		if (msgok)
-			OutputMsg(0, "Will %signore case in searches", search_ic ? "" : "not ");
+		DoCommandIgnorecase(act, key);
 		break;
 	case RC_ESCAPE:
 		if (*argl == 0)
