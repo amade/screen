@@ -3570,6 +3570,21 @@ static void DoCommandHardcopy_append(struct action *act, int key)
 	(void)ParseOnOff(act, &hardcopy_append);
 }
 
+static void DoCommandVbell_msg(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (*args == 0) {
+		char buf[256];
+		AddXChars(buf, ARRAY_SIZE(buf), VisualBellString);
+		OutputMsg(0, "vbell_msg is '%s'", buf);
+		return;
+	}
+	(void)ParseSaveStr(act, &VisualBellString);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4008,13 +4023,7 @@ void DoAction(struct action *act, int key)
 		DoCommandHardcopy_append(act, key);
 		break;
 	case RC_VBELL_MSG:
-		if (*args == 0) {
-			char buf[256];
-			AddXChars(buf, ARRAY_SIZE(buf), VisualBellString);
-			OutputMsg(0, "vbell_msg is '%s'", buf);
-			break;
-		}
-		(void)ParseSaveStr(act, &VisualBellString);
+		DoCommandVbell_msg(act, key);
 		break;
 	case RC_DEFMODE:
 		if (ParseBase(act, *args, &n, 8, "octal"))
