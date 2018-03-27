@@ -3281,6 +3281,14 @@ static void DoCommandBumpleft(struct action *act, int key)
 		SwapWindows(fore->w_number, PreviousWindow());
 }
 
+static void DoCommandCollapse(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	CollapseWindowlist();
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3668,7 +3676,7 @@ void DoAction(struct action *act, int key)
 		DoCommandBumpleft(act, key);
 		break;
 	case RC_COLLAPSE:
-		CollapseWindowlist();
+		DoCommandCollapse(act, key);
 		break;
 	case RC_NUMBER:
 		if (*args == 0)
