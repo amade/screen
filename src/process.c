@@ -2702,6 +2702,35 @@ static void DoCommandLogfile(struct action *act, int key)
 	OutputMsg(0, "logfile is '%s'", screenlogfile);
 }
 
+static void DoCommandLogtstamp(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (!*args || !strcmp(*args, "on") || !strcmp(*args, "off")) {
+		if (ParseSwitch(act, &logtstamp_on) == 0 && msgok)
+			OutputMsg(0, "timestamps turned %s", logtstamp_on ? "on" : "off");
+	} else if (!strcmp(*args, "string")) {
+		if (args[1]) {
+			if (logtstamp_string)
+				free(logtstamp_string);
+			logtstamp_string = SaveStr(args[1]);
+		}
+		if (msgok)
+			OutputMsg(0, "logfile timestamp is '%s'", logtstamp_string);
+	} else if (!strcmp(*args, "after")) {
+		if (args[1]) {
+			logtstamp_after = atoi(args[1]);
+			if (!msgok)
+				return;
+		}
+		OutputMsg(0, "timestamp printed after %ds\n", logtstamp_after);
+	} else
+		OutputMsg(0, "usage: logtstamp [after [n]|string [str]|on|off]");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2979,26 +3008,7 @@ void DoAction(struct action *act, int key)
 		DoCommandLogfile(act, key);
 		break;
 	case RC_LOGTSTAMP:
-		if (!*args || !strcmp(*args, "on") || !strcmp(*args, "off")) {
-			if (ParseSwitch(act, &logtstamp_on) == 0 && msgok)
-				OutputMsg(0, "timestamps turned %s", logtstamp_on ? "on" : "off");
-		} else if (!strcmp(*args, "string")) {
-			if (args[1]) {
-				if (logtstamp_string)
-					free(logtstamp_string);
-				logtstamp_string = SaveStr(args[1]);
-			}
-			if (msgok)
-				OutputMsg(0, "logfile timestamp is '%s'", logtstamp_string);
-		} else if (!strcmp(*args, "after")) {
-			if (args[1]) {
-				logtstamp_after = atoi(args[1]);
-				if (!msgok)
-					break;
-			}
-			OutputMsg(0, "timestamp printed after %ds\n", logtstamp_after);
-		} else
-			OutputMsg(0, "usage: logtstamp [after [n]|string [str]|on|off]");
+		DoCommandLogtstamp(act, key);
 		break;
 	case RC_SHELLTITLE:
 		(void)ParseSaveStr(act, &nwin_default.aka);
