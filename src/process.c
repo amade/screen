@@ -2807,6 +2807,21 @@ static void DoCommandEcho(struct action *act, int key)
 	}
 }
 
+static void DoCommandBell(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (*args == 0) {
+		char buf[256];
+		AddXChars(buf, ARRAY_SIZE(buf), BellString);
+		OutputMsg(0, "bell_msg is '%s'", buf);
+		return;
+	}
+	(void)ParseSaveStr(act, &BellString);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3105,13 +3120,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_BELL:
 	case RC_BELL_MSG:
-		if (*args == 0) {
-			char buf[256];
-			AddXChars(buf, ARRAY_SIZE(buf), BellString);
-			OutputMsg(0, "bell_msg is '%s'", buf);
-			break;
-		}
-		(void)ParseSaveStr(act, &BellString);
+		DoCommandBell(act, key);
 		break;
 	case RC_BUFFERFILE:
 		if (*args == 0)
