@@ -3342,6 +3342,31 @@ static void DoCommandZombie_timeout(struct action *act, int key)
 		fore->w_poll_zombie_timeout = nwin_default.poll_zombie_timeout;
 }
 
+static void DoCommandSort(struct action *act, int key)
+{
+	int i = 0;
+	int nr = 0;
+
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	if (!wtab[i] || !wtab[i + 1]) {
+		Msg(0, "Less than two windows, sorting makes no sense.\n");
+		return;
+	}
+	for (i = 0; wtab[i + 1] != NULL; i++) {
+		for (int n = i, nr = i; wtab[n + 1] != NULL; n++) {
+			if (strcmp(wtab[nr]->w_title, wtab[n + 1]->w_title) > 0) {
+				nr = n + 1;
+			}
+		}
+		if (nr != i) {
+			SwapWindows(nr, i);
+		}
+	}
+	WindowChanged((Window *)0, 0);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3738,25 +3763,8 @@ void DoAction(struct action *act, int key)
 		DoCommandZombie_timeout(act, key);
 		break;
 	case RC_SORT:
-		{
-			int i = 0;
-			if (!wtab[i] || !wtab[i + 1]) {
-				Msg(0, "Less than two windows, sorting makes no sense.\n");
-				break;
-			}
-			for (i = 0; wtab[i + 1] != NULL; i++) {
-				for (n = i, nr = i; wtab[n + 1] != NULL; n++) {
-					if (strcmp(wtab[nr]->w_title, wtab[n + 1]->w_title) > 0) {
-						nr = n + 1;
-					}
-				}
-				if (nr != i) {
-					SwapWindows(nr, i);
-				}
-			}
-			WindowChanged((Window *)0, 0);
-			break;
-		}
+		DoCommandSort(act, key);
+		break;
 	case RC_SILENCE:
 		{
 			bool b = fore->w_silence != 0;
