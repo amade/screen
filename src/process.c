@@ -3476,6 +3476,31 @@ static void DoCommandSessionname(struct action *act, int key)
 	}
 }
 
+static void DoCommandSetenv(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (!args[0] || !args[1]) {
+		InputSetenv(args[0]);
+	} else {
+		setenv(args[0], args[1], 1);
+		MakeNewEnv();
+	}
+}
+
+static void DoCommandUnsetenv(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (*args)
+		unsetenv(*args);
+	MakeNewEnv();
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3887,17 +3912,10 @@ void DoAction(struct action *act, int key)
 		DoCommandSessionname(act, key);
 		break;
 	case RC_SETENV:
-		if (!args[0] || !args[1]) {
-			InputSetenv(args[0]);
-		} else {
-			setenv(args[0], args[1], 1);
-			MakeNewEnv();
-		}
+		DoCommandSetenv(act, key);
 		break;
 	case RC_UNSETENV:
-		if (*args)
-			unsetenv(*args);
-		MakeNewEnv();
+		DoCommandUnsetenv(act, key);
 		break;
 	case RC_DEFSLOWPASTE:
 		(void)ParseNum(act, &nwin_default.slow);
