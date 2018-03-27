@@ -3963,6 +3963,54 @@ static void DoCommandExec(struct action *act, int key)
 	winexec(args);
 }
 
+static void DoCommandNonblock(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+	bool b = D_nonblock >= 0;
+	int n = 0;
+
+	(void)key; /* unused */
+
+	if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
+		if (ParseNum1000(act, &n))
+			return;
+	} else if (!ParseSwitch(act, &b))
+		n = b == 0 ? -1 : 1000;
+	else
+		return;
+	if (msgok && n == -1)
+		OutputMsg(0, "display set to blocking mode");
+	else if (msgok && n == 0)
+		OutputMsg(0, "display set to nonblocking mode, no timeout");
+	else if (msgok)
+		OutputMsg(0, "display set to nonblocking mode, %.10gs timeout", n / 1000.);
+	D_nonblock = n;
+	if (D_nonblock <= 0)
+		evdeq(&D_blockedev);
+}
+
+static void DoCommandDefnonblock(struct action *act, int key)
+{
+	char **args = act->args;
+	bool b;
+
+	(void)key; /* unused */
+
+	if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
+		if (ParseNum1000(act, &defnonblock))
+			return;
+	} else if (!ParseOnOff(act, &b))
+		defnonblock = b == 0 ? -1 : 1000;
+	else
+		return;
+	if (display && *rc_name) {
+		D_nonblock = defnonblock;
+		if (D_nonblock <= 0)
+			evdeq(&D_blockedev);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4450,43 +4498,11 @@ void DoAction(struct action *act, int key)
 		DoCommandExec(act, key);
 		break;
 	case RC_NONBLOCK:
-		{
-			bool b = D_nonblock >= 0;
-			if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
-				if (ParseNum1000(act, &j))
-					break;
-			} else if (!ParseSwitch(act, &b))
-				j = b == 0 ? -1 : 1000;
-			else
-				break;
-			if (msgok && j == -1)
-				OutputMsg(0, "display set to blocking mode");
-			else if (msgok && j == 0)
-				OutputMsg(0, "display set to nonblocking mode, no timeout");
-			else if (msgok)
-				OutputMsg(0, "display set to nonblocking mode, %.10gs timeout", j / 1000.);
-			D_nonblock = j;
-			if (D_nonblock <= 0)
-				evdeq(&D_blockedev);
-			break;
-		}
+		DoCommandNonblock(act, key);
+		break;
 	case RC_DEFNONBLOCK:
-		{
-			bool b;
-			if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
-				if (ParseNum1000(act, &defnonblock))
-					break;
-			} else if (!ParseOnOff(act, &b))
-				defnonblock = b == 0 ? -1 : 1000;
-			else
-				break;
-			if (display && *rc_name) {
-				D_nonblock = defnonblock;
-				if (D_nonblock <= 0)
-					evdeq(&D_blockedev);
-			}
-			break;
-		}
+		DoCommandDefnonblock(act, key);
+		break;
 	case RC_GR:
 		{
 			bool b;
