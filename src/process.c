@@ -3002,6 +3002,18 @@ static void DoCommandDefsilence(struct action *act, int key)
 		nwin_default.silence = b ? SILENCE_ON : SILENCE_OFF;
 }
 
+static void DoCommandVerbose(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (!*args)
+		OutputMsg(0, "W%s echo command when creating windows.", VerboseCreate ? "ill" : "on't");
+	else
+		ParseOnOff(act, &VerboseCreate);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3347,10 +3359,7 @@ void DoAction(struct action *act, int key)
 		DoCommandDefsilence(act, key);
 		break;
 	case RC_VERBOSE:
-		if (!*args)
-			OutputMsg(0, "W%s echo command when creating windows.", VerboseCreate ? "ill" : "on't");
-		else
-			ParseOnOff(act, &VerboseCreate);
+		DoCommandVerbose(act, key);
 		break;
 	case RC_HARDSTATUS:
 		if (display) {
