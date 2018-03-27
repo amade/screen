@@ -3217,6 +3217,52 @@ static void DoCommandVbell(struct action *act, int key)
 		OutputMsg(0, "switched to visual bell.");
 }
 
+static void DoCommandVbellwait(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseNum1000(act, &VBellWait) == 0 && msgok)
+		OutputMsg(0, "vbellwait set to %.10g seconds", VBellWait / 1000.);
+}
+
+static void DoCommandMsgwait(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseNum1000(act, &MsgWait) == 0 && msgok)
+		OutputMsg(0, "msgwait set to %.10g seconds", MsgWait / 1000.);
+}
+
+static void DoCommandMsgminwait(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseNum1000(act, &MsgMinWait) == 0 && msgok)
+		OutputMsg(0, "msgminwait set to %.10g seconds", MsgMinWait / 1000.);
+}
+
+static void DoCommandSilencewait(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseNum(act, &SilenceWait))
+		return;
+	if (SilenceWait < 1)
+		SilenceWait = 1;
+	for (Window *win = windows; win; win = win->w_next)
+		win->w_silencewait = SilenceWait;
+	if (msgok)
+		OutputMsg(0, "silencewait set to %d seconds", SilenceWait);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3586,26 +3632,16 @@ void DoAction(struct action *act, int key)
 		DoCommandVbell(act, key);
 		break;
 	case RC_VBELLWAIT:
-		if (ParseNum1000(act, &VBellWait) == 0 && msgok)
-			OutputMsg(0, "vbellwait set to %.10g seconds", VBellWait / 1000.);
+		DoCommandVbellwait(act, key);
 		break;
 	case RC_MSGWAIT:
-		if (ParseNum1000(act, &MsgWait) == 0 && msgok)
-			OutputMsg(0, "msgwait set to %.10g seconds", MsgWait / 1000.);
+		DoCommandMsgwait(act, key);
 		break;
 	case RC_MSGMINWAIT:
-		if (ParseNum1000(act, &MsgMinWait) == 0 && msgok)
-			OutputMsg(0, "msgminwait set to %.10g seconds", MsgMinWait / 1000.);
+		DoCommandMsgminwait(act, key);
 		break;
 	case RC_SILENCEWAIT:
-		if (ParseNum(act, &SilenceWait))
-			break;
-		if (SilenceWait < 1)
-			SilenceWait = 1;
-		for (Window *p = windows; p; p = p->w_next)
-			p->w_silencewait = SilenceWait;
-		if (msgok)
-			OutputMsg(0, "silencewait set to %d seconds", SilenceWait);
+		DoCommandSilencewait(act, key);
 		break;
 	case RC_BUMPRIGHT:
 		if (fore->w_number < NextWindow())
