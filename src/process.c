@@ -2900,6 +2900,29 @@ static void DoCommandDeflogin(struct action *act, int key)
 
 #endif
 
+static void DoCommandDefflow(struct action *act, int key)
+{
+	char **args = act->args;
+	bool b;
+
+	(void)key; /* unused */
+
+	if (args[0] && args[1] && args[1][0] == 'i') {
+		iflag = true;
+		for (display = displays; display; display = display->d_next) {
+			if (!D_flow)
+				continue;
+			D_NewMode.tio.c_cc[VINTR] = D_OldMode.tio.c_cc[VINTR];
+			D_NewMode.tio.c_lflag |= ISIG;
+			SetTTY(D_userfd, &D_NewMode);
+		}
+	}
+	if (args[0] && args[0][0] == 'a')
+		nwin_default.flowflag = FLOW_AUTOFLAG;
+	else if (ParseOnOff(act, &b) == 0)
+		nwin_default.flowflag = b ? FLOW_ON : FLOW_OFF;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3218,24 +3241,8 @@ void DoAction(struct action *act, int key)
 		break;
 #endif
 	case RC_DEFFLOW:
-		{
-			bool b;
-			if (args[0] && args[1] && args[1][0] == 'i') {
-				iflag = true;
-				for (display = displays; display; display = display->d_next) {
-					if (!D_flow)
-						continue;
-					D_NewMode.tio.c_cc[VINTR] = D_OldMode.tio.c_cc[VINTR];
-					D_NewMode.tio.c_lflag |= ISIG;
-					SetTTY(D_userfd, &D_NewMode);
-				}
-			}
-			if (args[0] && args[0][0] == 'a')
-				nwin_default.flowflag = FLOW_AUTOFLAG;
-			else if (ParseOnOff(act, &b) == 0)
-				nwin_default.flowflag = b ? FLOW_ON : FLOW_OFF;
-			break;
-		}
+		DoCommandDefflow(act, key);
+		break;
 	case RC_DEFWRAP:
 		(void)ParseOnOff(act, &nwin_default.wrap);
 		break;
