@@ -2676,6 +2676,32 @@ static void DoCommandHardcopydir(struct action *act, int key)
 		OutputMsg(0, "hardcopydir is %s\n", hardcopydir && *hardcopydir ? hardcopydir : "<cwd>");
 }
 
+static void DoCommandLogfile(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (*args) {
+		char buf[MAXPATHLEN];
+		if (args[1] && !(strcmp(*args, "flush"))) {
+			log_flush = atoi(args[1]);
+			if (msgok)
+				OutputMsg(0, "log flush timeout set to %ds\n", log_flush);
+			return;
+		}
+		if (ParseSaveStr(act, &screenlogfile))
+			return;
+		if (fore && fore->w_log)
+			if (DoStartLog(fore, buf, ARRAY_SIZE(buf)))
+				OutputMsg(0, "Error opening logfile \"%s\"", buf);
+		if (!msgok)
+			return;
+	}
+	OutputMsg(0, "logfile is '%s'", screenlogfile);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2950,23 +2976,7 @@ void DoAction(struct action *act, int key)
 		DoCommandHardcopydir(act, key);
 		break;
 	case RC_LOGFILE:
-		if (*args) {
-			char buf[1024];
-			if (args[1] && !(strcmp(*args, "flush"))) {
-				log_flush = atoi(args[1]);
-				if (msgok)
-					OutputMsg(0, "log flush timeout set to %ds\n", log_flush);
-				break;
-			}
-			if (ParseSaveStr(act, &screenlogfile))
-				break;
-			if (fore && fore->w_log)
-				if (DoStartLog(fore, buf, ARRAY_SIZE(buf)))
-					OutputMsg(0, "Error opening logfile \"%s\"", buf);
-			if (!msgok)
-				break;
-		}
-		OutputMsg(0, "logfile is '%s'", screenlogfile);
+		DoCommandLogfile(act, key);
 		break;
 	case RC_LOGTSTAMP:
 		if (!*args || !strcmp(*args, "on") || !strcmp(*args, "off")) {
