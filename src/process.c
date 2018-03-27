@@ -3178,6 +3178,30 @@ static void DoCommandConsole(struct action *act, int key)
 	console_window = b ? fore : 0;
 }
 
+static void DoCommandAllpartial(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseOnOff(act, &all_norefresh))
+		return;
+	if (!all_norefresh && fore)
+		Activate(-1);
+	if (msgok)
+		OutputMsg(0, all_norefresh ? "No refresh on window change!\n" : "Window specific refresh\n");
+}
+
+static void DoCommandPartial(struct action *act, int key)
+{
+	bool b = fore->w_norefresh;
+
+	(void)key; /* unused */
+
+	(void)ParseSwitch(act, &b);
+	fore->w_norefresh = b;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3538,20 +3562,11 @@ void DoAction(struct action *act, int key)
 		DoCommandConsole(act, key);
 		break;
 	case RC_ALLPARTIAL:
-		if (ParseOnOff(act, &all_norefresh))
-			break;
-		if (!all_norefresh && fore)
-			Activate(-1);
-		if (msgok)
-			OutputMsg(0, all_norefresh ? "No refresh on window change!\n" : "Window specific refresh\n");
+		DoCommandAllpartial(act, key);
 		break;
 	case RC_PARTIAL:
-		{
-			bool b = fore->w_norefresh;
-			(void)ParseSwitch(act, &b);
-			fore->w_norefresh = b;
-			break;
-		}
+		DoCommandPartial(act, key);
+		break;
 	case RC_VBELL:
 		if (ParseSwitch(act, &visual_bell) || !msgok)
 			break;
