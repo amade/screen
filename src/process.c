@@ -3827,6 +3827,14 @@ static void DoCommandMaptimeout(struct action *act, int key)
 		OutputMsg(0, "maptimeout is %dms", maptimeout);
 }
 
+static void DoCommandMapnotnext(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	D_dontmap = 1;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4286,7 +4294,7 @@ void DoAction(struct action *act, int key)
 		DoCommandMaptimeout(act, key);
 		break;
 	case RC_MAPNOTNEXT:
-		D_dontmap = 1;
+		DoCommandMapnotnext(act, key);
 		break;
 	case RC_MAPDEFAULT:
 		D_mapdefault = 1;
