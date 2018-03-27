@@ -3501,6 +3501,30 @@ static void DoCommandUnsetenv(struct action *act, int key)
 	MakeNewEnv();
 }
 
+static void DoCommandDefslowpaste(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseNum(act, &nwin_default.slow);
+}
+
+static void DoCommandSlowpaste(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (*args == 0)
+		OutputMsg(0, fore->w_slowpaste ?
+			  "Slowpaste in window %d is %d milliseconds." :
+			  "Slowpaste in window %d is unset.", fore->w_number, fore->w_slowpaste);
+	else if (ParseNum(act, &fore->w_slowpaste) == 0 && msgok)
+		OutputMsg(0, fore->w_slowpaste ?
+			  "Slowpaste in window %d set to %d milliseconds." :
+			  "Slowpaste in window %d now unset.", fore->w_number, fore->w_slowpaste);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3918,17 +3942,10 @@ void DoAction(struct action *act, int key)
 		DoCommandUnsetenv(act, key);
 		break;
 	case RC_DEFSLOWPASTE:
-		(void)ParseNum(act, &nwin_default.slow);
+		DoCommandDefslowpaste(act, key);
 		break;
 	case RC_SLOWPASTE:
-		if (*args == 0)
-			OutputMsg(0, fore->w_slowpaste ?
-				  "Slowpaste in window %d is %d milliseconds." :
-				  "Slowpaste in window %d is unset.", fore->w_number, fore->w_slowpaste);
-		else if (ParseNum(act, &fore->w_slowpaste) == 0 && msgok)
-			OutputMsg(0, fore->w_slowpaste ?
-				  "Slowpaste in window %d set to %d milliseconds." :
-				  "Slowpaste in window %d now unset.", fore->w_number, fore->w_slowpaste);
+		DoCommandSlowpaste(act, key);
 		break;
 	case RC_MARKKEYS:
 		if (CompileKeys(*args, *argl, mark_key_tab)) {
