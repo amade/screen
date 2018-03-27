@@ -2923,6 +2923,13 @@ static void DoCommandDefflow(struct action *act, int key)
 		nwin_default.flowflag = b ? FLOW_ON : FLOW_OFF;
 }
 
+static void DoCommandDefwrap(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseOnOff(act, &nwin_default.wrap);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3244,7 +3251,7 @@ void DoAction(struct action *act, int key)
 		DoCommandDefflow(act, key);
 		break;
 	case RC_DEFWRAP:
-		(void)ParseOnOff(act, &nwin_default.wrap);
+		DoCommandDefwrap(act, key);
 		break;
 	case RC_DEFC1:
 		(void)ParseOnOff(act, &nwin_default.c1);
