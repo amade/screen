@@ -2655,6 +2655,14 @@ static void DoCommandChdir(struct action *act, int key)
 		OutputMsg(errno, "%s", s);
 }
 
+static void DoCommandShell(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	if (ParseSaveStr(act, &ShellProg) == 0)
+		ShellArgs[0] = ShellProg;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2923,8 +2931,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_SHELL:
 	case RC_DEFSHELL:
-		if (ParseSaveStr(act, &ShellProg) == 0)
-			ShellArgs[0] = ShellProg;
+		DoCommandShell(act, key);
 		break;
 	case RC_HARDCOPYDIR:
 		if (*args)
