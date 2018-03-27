@@ -3611,6 +3611,13 @@ static void DoCommandAutodetach(struct action *act, int key)
 	(void)ParseOnOff(act, &auto_detach);
 }
 
+static void DoCommandStartup_message(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseOnOff(act, &default_startup);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4058,7 +4065,7 @@ void DoAction(struct action *act, int key)
 		DoCommandAutodetach(act, key);
 		break;
 	case RC_STARTUP_MESSAGE:
-		(void)ParseOnOff(act, &default_startup);
+		DoCommandStartup_message(act, key);
 		break;
 	case RC_BIND:
 		{
