@@ -2837,6 +2837,13 @@ static void DoCommandBufferfile(struct action *act, int key)
 		OutputMsg(0, "Bufferfile is now '%s'", BufferFile);
 }
 
+static void DoCommandActivity(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseSaveStr(act, &ActivityString);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3141,7 +3148,7 @@ void DoAction(struct action *act, int key)
 		DoCommandBufferfile(act, key);
 		break;
 	case RC_ACTIVITY:
-		(void)ParseSaveStr(act, &ActivityString);
+		DoCommandActivity(act, key);
 		break;
 	case RC_POW_DETACH_MSG:
 		if (*args == 0) {
