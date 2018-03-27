@@ -2822,6 +2822,21 @@ static void DoCommandBell(struct action *act, int key)
 	(void)ParseSaveStr(act, &BellString);
 }
 
+static void DoCommandBufferfile(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (*args == 0)
+		BufferFile = SaveStr(DEFAULT_BUFFERFILE);
+	else if (ParseSaveStr(act, &BufferFile))
+		return;
+	if (msgok)
+		OutputMsg(0, "Bufferfile is now '%s'", BufferFile);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3123,12 +3138,7 @@ void DoAction(struct action *act, int key)
 		DoCommandBell(act, key);
 		break;
 	case RC_BUFFERFILE:
-		if (*args == 0)
-			BufferFile = SaveStr(DEFAULT_BUFFERFILE);
-		else if (ParseSaveStr(act, &BufferFile))
-			break;
-		if (msgok)
-			OutputMsg(0, "Bufferfile is now '%s'", BufferFile);
+		DoCommandBufferfile(act, key);
 		break;
 	case RC_ACTIVITY:
 		(void)ParseSaveStr(act, &ActivityString);
