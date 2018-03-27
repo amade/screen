@@ -3843,6 +3843,16 @@ static void DoCommandMapdefault(struct action *act, int key)
 	D_mapdefault = 1;
 }
 
+static void DoCommandAclchg(struct action *act, int key)
+{
+	char **args = act->args;
+	int argc = CheckArgNum(act->nr, args);
+
+	(void)key; /* unused */
+
+	UsersAcl(NULL, argc, args);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4311,7 +4321,7 @@ void DoAction(struct action *act, int key)
 	case RC_ACLADD:
 	case RC_ADDACL:
 	case RC_CHACL:
-		UsersAcl(NULL, argc, args);
+		DoCommandAclchg(act, key);
 		break;
 	case RC_ACLDEL:
 		if (UserDel(args[0], NULL))
