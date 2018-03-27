@@ -3806,6 +3806,27 @@ static void DoCommandBindkey(struct action *act, int key)
 	display = olddisplay;
 }
 
+static void DoCommandMaptimeout(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+	int n = 0;
+
+	(void)key; /* unused */
+
+	if (*args) {
+		if (ParseNum(act, &n))
+			return;
+		if (n < 0) {
+			OutputMsg(0, "%s: maptimeout: illegal time %d", rc_name, n);
+			return;
+		}
+		maptimeout = n;
+	}
+	if (*args == 0 || msgok)
+		OutputMsg(0, "maptimeout is %dms", maptimeout);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4262,17 +4283,7 @@ void DoAction(struct action *act, int key)
 		DoCommandBindkey(act, key);
 		break;
 	case RC_MAPTIMEOUT:
-		if (*args) {
-			if (ParseNum(act, &n))
-				break;
-			if (n < 0) {
-				OutputMsg(0, "%s: maptimeout: illegal time %d", rc_name, n);
-				break;
-			}
-			maptimeout = n;
-		}
-		if (*args == 0 || msgok)
-			OutputMsg(0, "maptimeout is %dms", maptimeout);
+		DoCommandMaptimeout(act, key);
 		break;
 	case RC_MAPNOTNEXT:
 		D_dontmap = 1;
