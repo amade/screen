@@ -3563,6 +3563,13 @@ static void DoCommandCompacthist(struct action *act, int key)
 		OutputMsg(0, "%scompacting history lines", compacthist ? "" : "not ");
 }
 
+static void DoCommandHardcopy_append(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseOnOff(act, &hardcopy_append);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3998,7 +4005,7 @@ void DoAction(struct action *act, int key)
 		DoCommandCompacthist(act, key);
 		break;
 	case RC_HARDCOPY_APPEND:
-		(void)ParseOnOff(act, &hardcopy_append);
+		DoCommandHardcopy_append(act, key);
 		break;
 	case RC_VBELL_MSG:
 		if (*args == 0) {
