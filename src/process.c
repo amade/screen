@@ -3525,6 +3525,17 @@ static void DoCommandSlowpaste(struct action *act, int key)
 			  "Slowpaste in window %d now unset.", fore->w_number, fore->w_slowpaste);
 }
 
+static void DoCommandMarkkeys(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+
+	(void)key; /* unused */
+
+	if (CompileKeys(*args, *argl, mark_key_tab))
+		OutputMsg(0, "%s: markkeys: syntax error.", rc_name);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3948,10 +3959,7 @@ void DoAction(struct action *act, int key)
 		DoCommandSlowpaste(act, key);
 		break;
 	case RC_MARKKEYS:
-		if (CompileKeys(*args, *argl, mark_key_tab)) {
-			OutputMsg(0, "%s: markkeys: syntax error.", rc_name);
-			break;
-		}
+		DoCommandMarkkeys(act, key);
 		break;
 	case RC_PASTEFONT:
 		if (ParseSwitch(act, &pastefont) == 0 && msgok)
