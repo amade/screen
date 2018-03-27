@@ -3325,6 +3325,23 @@ static void DoCommandNumber(struct action *act, int key)
 	}
 }
 
+static void DoCommandZombie_timeout(struct action *act, int key)
+{
+	char **args = act->args;
+	int argc = CheckArgNum(act->nr, args);
+
+	(void)key; /* unused */
+
+	if (argc != 1) {
+		Msg(0, "Setting zombie polling needs a timeout arg\n");
+		return;
+	}
+
+	nwin_default.poll_zombie_timeout = atoi(args[0]);
+	if (fore)
+		fore->w_poll_zombie_timeout = nwin_default.poll_zombie_timeout;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3718,14 +3735,7 @@ void DoAction(struct action *act, int key)
 		DoCommandNumber(act, key);
 		break;
 	case RC_ZOMBIE_TIMEOUT:
-		if (argc != 1) {
-			Msg(0, "Setting zombie polling needs a timeout arg\n");
-			break;
-		}
-
-		nwin_default.poll_zombie_timeout = atoi(args[0]);
-		if (fore)
-			fore->w_poll_zombie_timeout = nwin_default.poll_zombie_timeout;
+		DoCommandZombie_timeout(act, key);
 		break;
 	case RC_SORT:
 		{
