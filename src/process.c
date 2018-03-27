@@ -2844,6 +2844,21 @@ static void DoCommandActivity(struct action *act, int key)
 	(void)ParseSaveStr(act, &ActivityString);
 }
 
+static void DoCommandPow_detach_msg(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (*args == 0) {
+		char buf[256];
+		AddXChars(buf, ARRAY_SIZE(buf), PowDetachString);
+		OutputMsg(0, "pow_detach_msg is '%s'", buf);
+		return;
+	}
+	(void)ParseSaveStr(act, &PowDetachString);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3151,13 +3166,7 @@ void DoAction(struct action *act, int key)
 		DoCommandActivity(act, key);
 		break;
 	case RC_POW_DETACH_MSG:
-		if (*args == 0) {
-			char buf[256];
-			AddXChars(buf, ARRAY_SIZE(buf), PowDetachString);
-			OutputMsg(0, "pow_detach_msg is '%s'", buf);
-			break;
-		}
-		(void)ParseSaveStr(act, &PowDetachString);
+		DoCommandPow_detach_msg(act, key);
 		break;
 #if defined(ENABLE_UTMP) && defined(LOGOUTOK)
 	case RC_LOGIN:
