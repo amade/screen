@@ -3954,6 +3954,15 @@ static void DoCommandMultiuser(struct action *act, int key)
 		OutputMsg(0, "Multiuser mode %s", multi ? "enabled" : "disabled");
 }
 
+static void DoCommandExec(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	winexec(args);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4438,7 +4447,7 @@ void DoAction(struct action *act, int key)
 		DoCommandMultiuser(act, key);
 		break;
 	case RC_EXEC:
-		winexec(args);
+		DoCommandExec(act, key);
 		break;
 	case RC_NONBLOCK:
 		{
