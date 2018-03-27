@@ -3866,6 +3866,64 @@ static void DoCommandAcldel(struct action *act, int key)
 		OutputMsg(0, "%s removed from acl database", args[0]);
 }
 
+static void DoCommandAclgrp(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	/*
+	 * modify a user to gain or lose rights granted to a group.
+	 * This group is actually a normal user whose rights were defined
+	 * with chacl in the usual way.
+	 */
+	if (args[1]) {
+		if (strcmp(args[1], "none")) {	/* link a user to another user */
+			if (AclLinkUser(args[0], args[1]))
+				return;
+			if (msgok)
+				OutputMsg(0, "User %s joined acl-group %s", args[0], args[1]);
+		} else {	/* remove all groups from user */
+
+			struct acluser *u;
+			struct aclusergroup *g;
+
+			if (!(u = *FindUserPtr(args[0])))
+				return;
+			while ((g = u->u_group)) {
+				u->u_group = g->next;
+				free((char *)g);
+			}
+		}
+	} else {	/* show all groups of user */
+
+		char buf[256], *p = buf;
+		int ngroups = 0;
+		struct acluser *u;
+		struct aclusergroup *g;
+
+		if (!(u = *FindUserPtr(args[0]))) {
+			if (msgok)
+				OutputMsg(0, "User %s does not exist.", args[0]);
+			return;
+		}
+		g = u->u_group;
+		while (g) {
+			ngroups++;
+			sprintf(p, "%s ", g->u->u_name);
+			p += strlen(p);
+			if (p > buf + 200)
+				break;
+			g = g->next;
+		}
+		if (ngroups)
+			*(--p) = '\0';
+		OutputMsg(0, "%s's group%s: %s.", args[0], (ngroups == 1) ? "" : "s",
+			  (ngroups == 0) ? "none" : buf);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4340,55 +4398,7 @@ void DoAction(struct action *act, int key)
 		DoCommandAcldel(act, key);
 		break;
 	case RC_ACLGRP:
-		/*
-		 * modify a user to gain or lose rights granted to a group.
-		 * This group is actually a normal user whose rights were defined
-		 * with chacl in the usual way.
-		 */
-		if (args[1]) {
-			if (strcmp(args[1], "none")) {	/* link a user to another user */
-				if (AclLinkUser(args[0], args[1]))
-					break;
-				if (msgok)
-					OutputMsg(0, "User %s joined acl-group %s", args[0], args[1]);
-			} else {	/* remove all groups from user */
-
-				struct acluser *u;
-				struct aclusergroup *g;
-
-				if (!(u = *FindUserPtr(args[0])))
-					break;
-				while ((g = u->u_group)) {
-					u->u_group = g->next;
-					free((char *)g);
-				}
-			}
-		} else {	/* show all groups of user */
-
-			char buf[256], *p = buf;
-			int ngroups = 0;
-			struct acluser *u;
-			struct aclusergroup *g;
-
-			if (!(u = *FindUserPtr(args[0]))) {
-				if (msgok)
-					OutputMsg(0, "User %s does not exist.", args[0]);
-				break;
-			}
-			g = u->u_group;
-			while (g) {
-				ngroups++;
-				sprintf(p, "%s ", g->u->u_name);
-				p += strlen(p);
-				if (p > buf + 200)
-					break;
-				g = g->next;
-			}
-			if (ngroups)
-				*(--p) = '\0';
-			OutputMsg(0, "%s's group%s: %s.", args[0], (ngroups == 1) ? "" : "s",
-				  (ngroups == 0) ? "none" : buf);
-		}
+		DoCommandAclgrp(act, key);
 		break;
 	case RC_ACLUMASK:
 	case RC_UMASK:
