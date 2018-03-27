@@ -2947,6 +2947,15 @@ static void DoCommandDefbce(struct action *act, int key)
 		nwin_default.bce = b ? 1 : 0;
 }
 
+static void DoCommandDefgr(struct action *act, int key)
+{
+	bool b;
+
+	(void)key; /* unused */
+	if (ParseOnOff(act, &b) == 0)
+		nwin_default.gr = b ? 1 : 0;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3277,12 +3286,8 @@ void DoAction(struct action *act, int key)
 		DoCommandDefbce(act, key);
 		break;
 	case RC_DEFGR:
-		{
-			bool b;
-			if (ParseOnOff(act, &b) == 0)
-				nwin_default.gr = b ? 1 : 0;
-			break;
-		}
+		DoCommandDefgr(act, key);
+		break;
 	case RC_DEFMONITOR:
 		{
 			bool b;
