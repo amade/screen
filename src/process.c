@@ -3835,6 +3835,14 @@ static void DoCommandMapnotnext(struct action *act, int key)
 	D_dontmap = 1;
 }
 
+static void DoCommandMapdefault(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	D_mapdefault = 1;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4297,7 +4305,7 @@ void DoAction(struct action *act, int key)
 		DoCommandMapnotnext(act, key);
 		break;
 	case RC_MAPDEFAULT:
-		D_mapdefault = 1;
+		DoCommandMapdefault(act, key);
 		break;
 	case RC_ACLCHG:
 	case RC_ACLADD:
