@@ -3263,6 +3263,24 @@ static void DoCommandSilencewait(struct action *act, int key)
 		OutputMsg(0, "silencewait set to %d seconds", SilenceWait);
 }
 
+static void DoCommandBumpright(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	if (fore->w_number < NextWindow())
+		SwapWindows(fore->w_number, NextWindow());
+}
+
+static void DoCommandBumpleft(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	if (fore->w_number > PreviousWindow())
+		SwapWindows(fore->w_number, PreviousWindow());
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3644,12 +3662,10 @@ void DoAction(struct action *act, int key)
 		DoCommandSilencewait(act, key);
 		break;
 	case RC_BUMPRIGHT:
-		if (fore->w_number < NextWindow())
-			SwapWindows(fore->w_number, NextWindow());
+		DoCommandBumpright(act, key);
 		break;
 	case RC_BUMPLEFT:
-		if (fore->w_number > PreviousWindow())
-			SwapWindows(fore->w_number, PreviousWindow());
+		DoCommandBumpleft(act, key);
 		break;
 	case RC_COLLAPSE:
 		CollapseWindowlist();
