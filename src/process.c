@@ -3924,6 +3924,21 @@ static void DoCommandAclgrp(struct action *act, int key)
 	}
 }
 
+static void DoCommandAclumask(struct action *act, int key)
+{
+	char **args = act->args;
+	char *s = NULL;
+
+	(void)key; /* unused */
+
+	while ((s = *args++)) {
+		char *err = 0;
+
+		if (AclUmask(display ? D_user : users, s, &err))
+			OutputMsg(0, "umask: %s\n", err);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4402,12 +4417,7 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_ACLUMASK:
 	case RC_UMASK:
-		while ((s = *args++)) {
-			char *err = 0;
-
-			if (AclUmask(display ? D_user : users, s, &err))
-				OutputMsg(0, "umask: %s\n", err);
-		}
+		DoCommandAclumask(act, key);
 		break;
 	case RC_MULTIUSER:
 		{
