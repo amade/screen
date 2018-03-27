@@ -3014,6 +3014,79 @@ static void DoCommandVerbose(struct action *act, int key)
 		ParseOnOff(act, &VerboseCreate);
 }
 
+static void DoCommandHardstatus(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+	char *s = NULL;
+
+	(void)key; /* unused */
+
+	if (display) {
+		OutputMsg(0, "%s", "");	/* wait till mintime (keep gcc quiet) */
+		RemoveStatus();
+	}
+	if (args[0] && strcmp(args[0], "on") && strcmp(args[0], "off")) {
+		Display *olddisplay = display;
+		int old_use, new_use = -1;
+
+		s = args[0];
+		if (!strncmp(s, "always", 6))
+			s += 6;
+		if (!strcmp(s, "firstline"))
+			new_use = HSTATUS_FIRSTLINE;
+		else if (!strcmp(s, "lastline"))
+			new_use = HSTATUS_LASTLINE;
+		else if (!strcmp(s, "ignore"))
+			new_use = HSTATUS_IGNORE;
+		else if (!strcmp(s, "message"))
+			new_use = HSTATUS_MESSAGE;
+		else if (!strcmp(args[0], "string")) {
+			if (!args[1]) {
+				char buf[256];
+				AddXChars(buf, ARRAY_SIZE(buf), hstatusstring);
+				OutputMsg(0, "hardstatus string is '%s'", buf);
+				return;
+			}
+		} else {
+			OutputMsg(0, "%s: usage: hardstatus [always]lastline|ignore|message|string [string]",
+				  rc_name);
+			return;
+		}
+		if (new_use != -1) {
+			hardstatusemu = new_use | (s == args[0] ? 0 : HSTATUS_ALWAYS);
+			for (display = displays; display; display = display->d_next) {
+				RemoveStatus();
+				new_use = hardstatusemu & ~HSTATUS_ALWAYS;
+				if (D_HS && s == args[0])
+					new_use = HSTATUS_HS;
+				ShowHStatus((char *)0);
+				old_use = D_has_hstatus;
+				D_has_hstatus = new_use;
+				if ((new_use == HSTATUS_LASTLINE && old_use != HSTATUS_LASTLINE)
+				    || (new_use != HSTATUS_LASTLINE && old_use == HSTATUS_LASTLINE))
+					ChangeScreenSize(D_width, D_height, 1);
+				if ((new_use == HSTATUS_FIRSTLINE && old_use != HSTATUS_FIRSTLINE)
+				    || (new_use != HSTATUS_FIRSTLINE && old_use == HSTATUS_FIRSTLINE))
+					ChangeScreenSize(D_width, D_height, 1);
+				RefreshHStatus();
+			}
+		}
+		if (args[1]) {
+			if (hstatusstring)
+				free(hstatusstring);
+			hstatusstring = SaveStr(args[1]);
+			for (display = displays; display; display = display->d_next)
+				RefreshHStatus();
+		}
+		display = olddisplay;
+		return;
+	}
+	(void)ParseSwitch(act, &use_hardstatus);
+	if (msgok)
+		OutputMsg(0, "messages displayed on %s", use_hardstatus ? "hardstatus line" : "window");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3362,69 +3435,7 @@ void DoAction(struct action *act, int key)
 		DoCommandVerbose(act, key);
 		break;
 	case RC_HARDSTATUS:
-		if (display) {
-			OutputMsg(0, "%s", "");	/* wait till mintime (keep gcc quiet) */
-			RemoveStatus();
-		}
-		if (args[0] && strcmp(args[0], "on") && strcmp(args[0], "off")) {
-			Display *olddisplay = display;
-			int old_use, new_use = -1;
-
-			s = args[0];
-			if (!strncmp(s, "always", 6))
-				s += 6;
-			if (!strcmp(s, "firstline"))
-				new_use = HSTATUS_FIRSTLINE;
-			else if (!strcmp(s, "lastline"))
-				new_use = HSTATUS_LASTLINE;
-			else if (!strcmp(s, "ignore"))
-				new_use = HSTATUS_IGNORE;
-			else if (!strcmp(s, "message"))
-				new_use = HSTATUS_MESSAGE;
-			else if (!strcmp(args[0], "string")) {
-				if (!args[1]) {
-					char buf[256];
-					AddXChars(buf, ARRAY_SIZE(buf), hstatusstring);
-					OutputMsg(0, "hardstatus string is '%s'", buf);
-					break;
-				}
-			} else {
-				OutputMsg(0, "%s: usage: hardstatus [always]lastline|ignore|message|string [string]",
-					  rc_name);
-				break;
-			}
-			if (new_use != -1) {
-				hardstatusemu = new_use | (s == args[0] ? 0 : HSTATUS_ALWAYS);
-				for (display = displays; display; display = display->d_next) {
-					RemoveStatus();
-					new_use = hardstatusemu & ~HSTATUS_ALWAYS;
-					if (D_HS && s == args[0])
-						new_use = HSTATUS_HS;
-					ShowHStatus((char *)0);
-					old_use = D_has_hstatus;
-					D_has_hstatus = new_use;
-					if ((new_use == HSTATUS_LASTLINE && old_use != HSTATUS_LASTLINE)
-					    || (new_use != HSTATUS_LASTLINE && old_use == HSTATUS_LASTLINE))
-						ChangeScreenSize(D_width, D_height, 1);
-					if ((new_use == HSTATUS_FIRSTLINE && old_use != HSTATUS_FIRSTLINE)
-					    || (new_use != HSTATUS_FIRSTLINE && old_use == HSTATUS_FIRSTLINE))
-						ChangeScreenSize(D_width, D_height, 1);
-					RefreshHStatus();
-				}
-			}
-			if (args[1]) {
-				if (hstatusstring)
-					free(hstatusstring);
-				hstatusstring = SaveStr(args[1]);
-				for (display = displays; display; display = display->d_next)
-					RefreshHStatus();
-			}
-			display = olddisplay;
-			break;
-		}
-		(void)ParseSwitch(act, &use_hardstatus);
-		if (msgok)
-			OutputMsg(0, "messages displayed on %s", use_hardstatus ? "hardstatus line" : "window");
+		DoCommandHardstatus(act, key);
 		break;
 	case RC_STATUS:
 		if (display) {
