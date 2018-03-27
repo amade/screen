@@ -2930,6 +2930,13 @@ static void DoCommandDefwrap(struct action *act, int key)
 	(void)ParseOnOff(act, &nwin_default.wrap);
 }
 
+static void DoCommandDefc1(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseOnOff(act, &nwin_default.c1);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3254,7 +3261,7 @@ void DoAction(struct action *act, int key)
 		DoCommandDefwrap(act, key);
 		break;
 	case RC_DEFC1:
-		(void)ParseOnOff(act, &nwin_default.c1);
+		DoCommandDefc1(act, key);
 		break;
 	case RC_DEFBCE:
 		{
