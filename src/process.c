@@ -3939,6 +3939,21 @@ static void DoCommandAclumask(struct action *act, int key)
 	}
 }
 
+static void DoCommandMultiuser(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+	bool b;
+
+	(void)key; /* unused */
+
+	if (ParseOnOff(act, &b))
+		return;
+	multi = b ? "" : 0;
+	chsock();
+	if (msgok)
+		OutputMsg(0, "Multiuser mode %s", multi ? "enabled" : "disabled");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4420,16 +4435,8 @@ void DoAction(struct action *act, int key)
 		DoCommandAclumask(act, key);
 		break;
 	case RC_MULTIUSER:
-		{
-			bool b;
-			if (ParseOnOff(act, &b))
-				break;
-			multi = b ? "" : 0;
-			chsock();
-			if (msgok)
-				OutputMsg(0, "Multiuser mode %s", multi ? "enabled" : "disabled");
-			break;
-		}
+		DoCommandMultiuser(act, key);
+		break;
 	case RC_EXEC:
 		winexec(args);
 		break;
