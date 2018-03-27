@@ -3604,6 +3604,13 @@ static void DoCommandDefmode(struct action *act, int key)
 		OutputMsg(0, "Ttymode set to %03o", TtyMode);
 }
 
+static void DoCommandAutodetach(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseOnOff(act, &auto_detach);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4048,7 +4055,7 @@ void DoAction(struct action *act, int key)
 		DoCommandDefmode(act, key);
 		break;
 	case RC_AUTODETACH:
-		(void)ParseOnOff(act, &auto_detach);
+		DoCommandAutodetach(act, key);
 		break;
 	case RC_STARTUP_MESSAGE:
 		(void)ParseOnOff(act, &default_startup);
