@@ -2956,6 +2956,16 @@ static void DoCommandDefgr(struct action *act, int key)
 		nwin_default.gr = b ? 1 : 0;
 }
 
+static void DoCommandDefmonitor(struct action *act, int key)
+{
+	bool b;
+
+	(void)key; /* unused */
+
+	if (ParseOnOff(act, &b) == 0)
+		nwin_default.monitor = b ? MON_ON : MON_OFF;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3289,12 +3299,8 @@ void DoAction(struct action *act, int key)
 		DoCommandDefgr(act, key);
 		break;
 	case RC_DEFMONITOR:
-		{
-			bool b;
-			if (ParseOnOff(act, &b) == 0)
-				nwin_default.monitor = b ? MON_ON : MON_OFF;
-			break;
-		}
+		DoCommandDefmonitor(act, key);
+		break;
 	case RC_DEFMOUSETRACK:
 		{
 			bool b;
