@@ -2731,6 +2731,13 @@ static void DoCommandLogtstamp(struct action *act, int key)
 		OutputMsg(0, "usage: logtstamp [after [n]|string [str]|on|off]");
 }
 
+static void DoCommandShelltitle(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseSaveStr(act, &nwin_default.aka);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3011,7 +3018,7 @@ void DoAction(struct action *act, int key)
 		DoCommandLogtstamp(act, key);
 		break;
 	case RC_SHELLTITLE:
-		(void)ParseSaveStr(act, &nwin_default.aka);
+		DoCommandShelltitle(act, key);
 		break;
 	case RC_TERMCAP:
 	case RC_TERMCAPINFO:
