@@ -3202,6 +3202,21 @@ static void DoCommandPartial(struct action *act, int key)
 	fore->w_norefresh = b;
 }
 
+
+static void DoCommandVbell(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseSwitch(act, &visual_bell) || !msgok)
+		return;
+	if (visual_bell == 0)
+		OutputMsg(0, "switched to audible bell.");
+	else
+		OutputMsg(0, "switched to visual bell.");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3568,12 +3583,7 @@ void DoAction(struct action *act, int key)
 		DoCommandPartial(act, key);
 		break;
 	case RC_VBELL:
-		if (ParseSwitch(act, &visual_bell) || !msgok)
-			break;
-		if (visual_bell == 0)
-			OutputMsg(0, "switched to audible bell.");
-		else
-			OutputMsg(0, "switched to visual bell.");
+		DoCommandVbell(act, key);
 		break;
 	case RC_VBELLWAIT:
 		if (ParseNum1000(act, &VBellWait) == 0 && msgok)
