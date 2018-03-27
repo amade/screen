@@ -2747,6 +2747,12 @@ static void DoCommandTerminfo(struct action *act, int key)
 		OutputMsg(0, "Sorry, too late now. Place that in your .screenrc file.");
 }
 
+static void DoCommandSleep(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3035,7 +3041,8 @@ void DoAction(struct action *act, int key)
 		DoCommandTerminfo(act, key);
 		break;
 	case RC_SLEEP:
-		break;		/* Already handled */
+		DoCommandSleep(act, key);
+		break;
 	case RC_TERM:
 		s = NULL;
 		if (ParseSaveStr(act, &s))
