@@ -2966,6 +2966,32 @@ static void DoCommandDefmonitor(struct action *act, int key)
 		nwin_default.monitor = b ? MON_ON : MON_OFF;
 }
 
+static void DoCommandDefmousetrack(struct action *act, int key)
+{
+	bool b;
+
+	(void)key; /* unused */
+
+	if (ParseOnOff(act, &b) == 0)
+		defmousetrack = b ? 1000 : 0;
+}
+
+static void DoCommandMousetrack(struct action *act, int key)
+{
+	char **args = act->args;
+	bool b;
+
+	(void)key; /* unused */
+
+	if (!args[0]) {
+		OutputMsg(0, "Mouse tracking for this display is turned %s", D_mousetrack ? "on" : "off");
+	} else if (ParseOnOff(act, &b) == 0) {
+		D_mousetrack = b ? 1000 : 0;
+		if (D_fore)
+			MouseMode(D_fore->w_mouse);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3302,24 +3328,11 @@ void DoAction(struct action *act, int key)
 		DoCommandDefmonitor(act, key);
 		break;
 	case RC_DEFMOUSETRACK:
-		{
-			bool b;
-			if (ParseOnOff(act, &b) == 0)
-				defmousetrack = b ? 1000 : 0;
-			break;
-		}
+		DoCommandDefmousetrack(act, key);
+		break;
 	case RC_MOUSETRACK:
-		{
-			bool b;
-			if (!args[0]) {
-				OutputMsg(0, "Mouse tracking for this display is turned %s", D_mousetrack ? "on" : "off");
-			} else if (ParseOnOff(act, &b) == 0) {
-				D_mousetrack = b ? 1000 : 0;
-				if (D_fore)
-					MouseMode(D_fore->w_mouse);
-			}
-			break;
-		}
+		DoCommandMousetrack(act, key);
+		break;
 	case RC_DEFSILENCE:
 		{
 			bool b;
