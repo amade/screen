@@ -3416,6 +3416,30 @@ static void DoCommandSilence(struct action *act, int key)
 	}
 }
 
+static void DoCommandDefscrollback(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseNum(act, &nwin_default.histheight);
+}
+
+static void DoCommandScrollback(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+	int n = 0;
+
+	(void)key; /* unused */
+
+	if (flayer->l_layfn == &MarkLf) {
+		OutputMsg(0, "Cannot resize scrollback buffer in copy/scrollback mode.");
+		return;
+	}
+	(void)ParseNum(act, &n);
+	ChangeWindowSize(fore, fore->w_width, fore->w_height, n);
+	if (msgok)
+		OutputMsg(0, "scrollback set to %d", fore->w_histheight);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3818,17 +3842,10 @@ void DoAction(struct action *act, int key)
 		DoCommandSilence(act, key);
 		break;
 	case RC_DEFSCROLLBACK:
-		(void)ParseNum(act, &nwin_default.histheight);
+		DoCommandDefscrollback(act, key);
 		break;
 	case RC_SCROLLBACK:
-		if (flayer->l_layfn == &MarkLf) {
-			OutputMsg(0, "Cannot resize scrollback buffer in copy/scrollback mode.");
-			break;
-		}
-		(void)ParseNum(act, &n);
-		ChangeWindowSize(fore, fore->w_width, fore->w_height, n);
-		if (msgok)
-			OutputMsg(0, "scrollback set to %d", fore->w_histheight);
+		DoCommandScrollback(act, key);
 		break;
 	case RC_SESSIONNAME:
 		if (*args == 0)
