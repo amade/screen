@@ -2753,6 +2753,25 @@ static void DoCommandSleep(struct action *act, int key)
 	(void)key; /* unused */
 }
 
+static void DoCommandTerm(struct action *act, int key)
+{
+	char *s = NULL;
+
+	(void)key; /* unused */
+
+	if (ParseSaveStr(act, &s))
+		return;
+	if (strlen(s) > MAXTERMLEN) {
+		OutputMsg(0, "%s: term: argument too long ( < %d)", rc_name, MAXTERMLEN);
+		free(s);
+		return;
+	}
+	strncpy(screenterm, s, MAXTERMLEN);
+	screenterm[MAXTERMLEN] = '\0';
+	free(s);
+	MakeTermcap((display == 0));
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3044,18 +3063,7 @@ void DoAction(struct action *act, int key)
 		DoCommandSleep(act, key);
 		break;
 	case RC_TERM:
-		s = NULL;
-		if (ParseSaveStr(act, &s))
-			break;
-		if (strlen(s) > MAXTERMLEN) {
-			OutputMsg(0, "%s: term: argument too long ( < %d)", rc_name, MAXTERMLEN);
-			free(s);
-			break;
-		}
-		strncpy(screenterm, s, MAXTERMLEN);
-		screenterm[MAXTERMLEN] = '\0';
-		free(s);
-		MakeTermcap((display == 0));
+		DoCommandTerm(act, key);
 		break;
 	case RC_ECHO:
 		if (!msgok && (!rc_name || strcmp(rc_name, "-X")))
