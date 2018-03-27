@@ -2992,6 +2992,16 @@ static void DoCommandMousetrack(struct action *act, int key)
 	}
 }
 
+static void DoCommandDefsilence(struct action *act, int key)
+{
+	bool b;
+
+	(void)key; /* unused */
+
+	if (ParseOnOff(act, &b) == 0)
+		nwin_default.silence = b ? SILENCE_ON : SILENCE_OFF;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3334,12 +3344,8 @@ void DoAction(struct action *act, int key)
 		DoCommandMousetrack(act, key);
 		break;
 	case RC_DEFSILENCE:
-		{
-			bool b;
-			if (ParseOnOff(act, &b) == 0)
-				nwin_default.silence = b ? SILENCE_ON : SILENCE_OFF;
-			break;
-		}
+		DoCommandDefsilence(act, key);
+		break;
 	case RC_VERBOSE:
 		if (!*args)
 			OutputMsg(0, "W%s echo command when creating windows.", VerboseCreate ? "ill" : "on't");
