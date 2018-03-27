@@ -3367,6 +3367,55 @@ static void DoCommandSort(struct action *act, int key)
 	WindowChanged((Window *)0, 0);
 }
 
+static void DoCommandSilence(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+	bool b = fore->w_silence != 0;
+	int i = fore->w_silencewait;
+
+	(void)key; /* unused */
+
+	if (args[0] && (args[0][0] == '-' || (args[0][0] >= '0' && args[0][0] <= '9'))) {
+		if (ParseNum(act, &i))
+			return;
+		b = i > 0;
+	} else if (ParseSwitch(act, &b))
+		return;
+	if (b) {
+		if (display)	/* we tell only this user */
+			ACLBYTE(fore->w_lio_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
+		else
+			for (int n = 0; n < maxusercount; n++)
+				ACLBYTE(fore->w_lio_notify, n) |= ACLBIT(n);
+		fore->w_silencewait = i;
+		fore->w_silence = SILENCE_ON;
+		SetTimeout(&fore->w_silenceev, fore->w_silencewait * 1000);
+		evenq(&fore->w_silenceev);
+
+		if (!msgok)
+			return;
+		OutputMsg(0, "The window is now being monitored for %d sec. silence.", fore->w_silencewait);
+	} else {
+		if (display)	/* we remove only this user */
+			ACLBYTE(fore->w_lio_notify, D_user->u_id)
+			    &= ~ACLBIT(D_user->u_id);
+		else
+			for (int n = 0; n < maxusercount; n++)
+				ACLBYTE(fore->w_lio_notify, n) &= ~ACLBIT(n);
+		for (i = maxusercount - 1; i >= 0; i--)
+			if (ACLBYTE(fore->w_lio_notify, i))
+				break;
+		if (i < 0) {
+			fore->w_silence = SILENCE_OFF;
+			evdeq(&fore->w_silenceev);
+		}
+		if (!msgok)
+			return;
+		OutputMsg(0, "The window is no longer being monitored for silence.");
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3766,50 +3815,8 @@ void DoAction(struct action *act, int key)
 		DoCommandSort(act, key);
 		break;
 	case RC_SILENCE:
-		{
-			bool b = fore->w_silence != 0;
-			j = fore->w_silencewait;
-			if (args[0] && (args[0][0] == '-' || (args[0][0] >= '0' && args[0][0] <= '9'))) {
-				if (ParseNum(act, &j))
-					break;
-				n = j > 0;
-			} else if (ParseSwitch(act, &b))
-				break;
-			if (b) {
-				if (display)	/* we tell only this user */
-					ACLBYTE(fore->w_lio_notify, D_user->u_id) |= ACLBIT(D_user->u_id);
-				else
-					for (n = 0; n < maxusercount; n++)
-						ACLBYTE(fore->w_lio_notify, n) |= ACLBIT(n);
-				fore->w_silencewait = j;
-				fore->w_silence = SILENCE_ON;
-				SetTimeout(&fore->w_silenceev, fore->w_silencewait * 1000);
-				evenq(&fore->w_silenceev);
-
-				if (!msgok)
-					break;
-				OutputMsg(0, "The window is now being monitored for %d sec. silence.", fore->w_silencewait);
-			} else {
-				int i;
-				if (display)	/* we remove only this user */
-					ACLBYTE(fore->w_lio_notify, D_user->u_id)
-					    &= ~ACLBIT(D_user->u_id);
-				else
-					for (n = 0; n < maxusercount; n++)
-						ACLBYTE(fore->w_lio_notify, n) &= ~ACLBIT(n);
-				for (i = maxusercount - 1; i >= 0; i--)
-					if (ACLBYTE(fore->w_lio_notify, i))
-						break;
-				if (i < 0) {
-					fore->w_silence = SILENCE_OFF;
-					evdeq(&fore->w_silenceev);
-				}
-				if (!msgok)
-					break;
-				OutputMsg(0, "The window is no longer being monitored for silence.");
-			}
-			break;
-		}
+		DoCommandSilence(act, key);
+		break;
 	case RC_DEFSCROLLBACK:
 		(void)ParseNum(act, &nwin_default.histheight);
 		break;
