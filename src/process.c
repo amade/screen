@@ -3440,6 +3440,42 @@ static void DoCommandScrollback(struct action *act, int key)
 		OutputMsg(0, "scrollback set to %d", fore->w_histheight);
 }
 
+static void DoCommandSessionname(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (*args == 0)
+		OutputMsg(0, "This session is named '%s'\n", SocketName);
+	else {
+		char buf[MAXPATHLEN];
+		char *s = NULL;
+
+		if (ParseSaveStr(act, &s))
+			return;
+		if (!*s || strlen(s) + (SocketName - SocketPath) > MAXPATHLEN - 13 || strchr(s, '/')) {
+			OutputMsg(0, "%s: bad session name '%s'\n", rc_name, s);
+			free(s);
+			return;
+		}
+		strncpy(buf, SocketPath, SocketName - SocketPath);
+		sprintf(buf + (SocketName - SocketPath), "%d.%s", (int)getpid(), s);
+		free(s);
+		if ((access(buf, F_OK) == 0) || (errno != ENOENT)) {
+			OutputMsg(0, "%s: inappropriate path: '%s'.", rc_name, buf);
+			return;
+		}
+		if (rename(SocketPath, buf)) {
+			OutputMsg(errno, "%s: failed to rename(%s, %s)", rc_name, SocketPath, buf);
+			return;
+		}
+		strncpy(SocketPath, buf, ARRAY_SIZE(SocketPath));
+		MakeNewEnv();
+		WindowChanged((Window *)0, WINESC_SESS_NAME);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3848,34 +3884,7 @@ void DoAction(struct action *act, int key)
 		DoCommandScrollback(act, key);
 		break;
 	case RC_SESSIONNAME:
-		if (*args == 0)
-			OutputMsg(0, "This session is named '%s'\n", SocketName);
-		else {
-			char buf[MAXPATHLEN];
-
-			s = 0;
-			if (ParseSaveStr(act, &s))
-				break;
-			if (!*s || strlen(s) + (SocketName - SocketPath) > MAXPATHLEN - 13 || strchr(s, '/')) {
-				OutputMsg(0, "%s: bad session name '%s'\n", rc_name, s);
-				free(s);
-				break;
-			}
-			strncpy(buf, SocketPath, SocketName - SocketPath);
-			sprintf(buf + (SocketName - SocketPath), "%d.%s", (int)getpid(), s);
-			free(s);
-			if ((access(buf, F_OK) == 0) || (errno != ENOENT)) {
-				OutputMsg(0, "%s: inappropriate path: '%s'.", rc_name, buf);
-				break;
-			}
-			if (rename(SocketPath, buf)) {
-				OutputMsg(errno, "%s: failed to rename(%s, %s)", rc_name, SocketPath, buf);
-				break;
-			}
-			strncpy(SocketPath, buf, ARRAY_SIZE(SocketPath));
-			MakeNewEnv();
-			WindowChanged((Window *)0, WINESC_SESS_NAME);
-		}
+		DoCommandSessionname(act, key);
 		break;
 	case RC_SETENV:
 		if (!args[0] || !args[1]) {
