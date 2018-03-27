@@ -2859,6 +2859,47 @@ static void DoCommandPow_detach_msg(struct action *act, int key)
 	(void)ParseSaveStr(act, &PowDetachString);
 }
 
+#if defined(ENABLE_UTMP) && defined(LOGOUTOK)
+static void DoCommandLogin(struct action *act, int key)
+{
+	char **args = act->args;
+	bool b = fore->w_slot != (slot_t)(-1);
+
+	(void)key; /* unused */
+
+	if (*args && !strcmp(*args, "always")) {
+		fore->w_lflag = 3;
+		if (!displays && b)
+			SlotToggle(b);
+		return;
+	}
+	if (*args && !strcmp(*args, "attached")) {
+		fore->w_lflag = 1;
+		if (!displays && b)
+			SlotToggle(0);
+		return;
+	}
+	if (ParseSwitch(act, &b) == 0)
+		SlotToggle(b);
+}
+
+static void DoCommandDeflogin(struct action *act, int key)
+{
+	char **args = act->args;
+	bool b;
+
+	(void)key; /* unused */
+
+	if (!strcmp(*args, "always"))
+		nwin_default.lflag |= 2;
+	else if (!strcmp(*args, "attached"))
+		nwin_default.lflag &= ~2;
+	else if (ParseOnOff(act, &b) == 0)
+		nwin_default.lflag = b ? 1 : 0;
+}
+
+#endif
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3170,35 +3211,11 @@ void DoAction(struct action *act, int key)
 		break;
 #if defined(ENABLE_UTMP) && defined(LOGOUTOK)
 	case RC_LOGIN:
-		{
-			bool b = fore->w_slot != (slot_t)(-1);
-			if (*args && !strcmp(*args, "always")) {
-				fore->w_lflag = 3;
-				if (!displays && b)
-					SlotToggle(b);
-				break;
-			}
-			if (*args && !strcmp(*args, "attached")) {
-				fore->w_lflag = 1;
-				if (!displays && b)
-					SlotToggle(0);
-				break;
-			}
-			if (ParseSwitch(act, &b) == 0)
-				SlotToggle(b);
-			break;
-		}
+		DoCommandLogin(act, key);
+		break;
 	case RC_DEFLOGIN:
-		{
-			bool b;
-			if (!strcmp(*args, "always"))
-				nwin_default.lflag |= 2;
-			else if (!strcmp(*args, "attached"))
-				nwin_default.lflag &= ~2;
-			else if (ParseOnOff(act, &b) == 0)
-				nwin_default.lflag = b ? 1 : 0;
-			break;
-		}
+		DoCommandDeflogin(act, key);
+		break;
 #endif
 	case RC_DEFFLOW:
 		{
