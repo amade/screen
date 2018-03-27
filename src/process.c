@@ -3117,6 +3117,47 @@ static void DoCommandStatus(struct action *act, int key)
 	}
 }
 
+static void DoCommandCaption(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (!*args)
+		return;
+	if (strcmp(args[0], "top") == 0) {
+		captiontop = 1;
+		args++;
+	} else if(strcmp(args[0], "bottom") == 0) {
+		captiontop = 0;
+		args++;
+	}
+	if (strcmp(args[0], "always") == 0 || strcmp(args[0], "splitonly") == 0) {
+		Display *olddisplay = display;
+
+		captionalways = args[0][0] == 'a';
+		for (display = displays; display; display = display->d_next)
+			ChangeScreenSize(D_width, D_height, 1);
+		display = olddisplay;
+	} else if (strcmp(args[0], "string") == 0) {
+		if (!args[1]) {
+			char buf[256];
+			AddXChars(buf, ARRAY_SIZE(buf), captionstring);
+			OutputMsg(0, "caption string is '%s'", buf);
+			return;
+		}
+	} else {
+		OutputMsg(0, "%s: usage: caption [ top | bottom ] always|splitonly|string <string>", rc_name);
+		return;
+	}
+	if (!args[1])
+		return;
+	if (captionstring)
+		free(captionstring);
+	captionstring = SaveStr(args[1]);
+	RedisplayDisplays(0);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3471,39 +3512,7 @@ void DoAction(struct action *act, int key)
 		DoCommandStatus(act, key);
 		break;
 	case RC_CAPTION:
-		if (!*args)
-			break;
-		if (strcmp(args[0], "top") == 0) {
-			captiontop = 1;
-			args++;
-		} else if(strcmp(args[0], "bottom") == 0) {
-			captiontop = 0;
-			args++;
-		}
-		if (strcmp(args[0], "always") == 0 || strcmp(args[0], "splitonly") == 0) {
-			Display *olddisplay = display;
-
-			captionalways = args[0][0] == 'a';
-			for (display = displays; display; display = display->d_next)
-				ChangeScreenSize(D_width, D_height, 1);
-			display = olddisplay;
-		} else if (strcmp(args[0], "string") == 0) {
-			if (!args[1]) {
-				char buf[256];
-				AddXChars(buf, ARRAY_SIZE(buf), captionstring);
-				OutputMsg(0, "caption string is '%s'", buf);
-				break;
-			}
-		} else {
-			OutputMsg(0, "%s: usage: caption [ top | bottom ] always|splitonly|string <string>", rc_name);
-			break;
-		}
-		if (!args[1])
-			break;
-		if (captionstring)
-			free(captionstring);
-		captionstring = SaveStr(args[1]);
-		RedisplayDisplays(0);
+		DoCommandCaption(act, key);
 		break;
 	case RC_CONSOLE:
 		{
