@@ -3546,6 +3546,13 @@ static void DoCommandPastefont(struct action *act, int key)
 		OutputMsg(0, "Will %spaste font settings", pastefont ? "" : "not ");
 }
 
+static void DoCommandCrlf(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseSwitch(act, &join_with_cr);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3975,7 +3982,7 @@ void DoAction(struct action *act, int key)
 		DoCommandPastefont(act, key);
 		break;
 	case RC_CRLF:
-		(void)ParseSwitch(act, &join_with_cr);
+		DoCommandCrlf(act, key);
 		break;
 	case RC_COMPACTHIST:
 		if (ParseSwitch(act, &compacthist) == 0 && msgok)
