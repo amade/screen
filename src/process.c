@@ -3618,6 +3618,63 @@ static void DoCommandStartup_message(struct action *act, int key)
 	(void)ParseOnOff(act, &default_startup);
 }
 
+static void DoCommandBind(struct action *act, int key)
+{
+	char **args = act->args;
+	int argc = CheckArgNum(act->nr, args);
+	int *argl = act->argl;
+	int n = 0;
+	struct action *ktabp = ktab;
+	int kflag = 0;
+
+	(void)key; /* unused */
+
+	for (;;) {
+		if (argc > 2 && !strcmp(*args, "-c")) {
+			ktabp = FindKtab(args[1], 1);
+			if (ktabp == 0)
+				break;
+			args += 2;
+			argl += 2;
+			argc -= 2;
+		} else if (argc > 1 && !strcmp(*args, "-k")) {
+			kflag = 1;
+			args++;
+			argl++;
+			argc--;
+		} else
+			break;
+	}
+	if (kflag) {
+		for (n = 0; n < KMAP_KEYS; n++)
+			if (strcmp(term[n + T_CAPS].tcname, *args) == 0)
+				break;
+		if (n == KMAP_KEYS) {
+			OutputMsg(0, "%s: bind: unknown key '%s'", rc_name, *args);
+			return;
+		}
+		n += 256;
+	} else if (*argl != 1) {
+		OutputMsg(0, "%s: bind: character, ^x, or (octal) \\032 expected.", rc_name);
+		return;
+	} else
+		n = (unsigned char)args[0][0];
+
+	if (args[1]) {
+		int i;
+		if ((i = FindCommnr(args[1])) == RC_ILLEGAL) {
+			OutputMsg(0, "%s: bind: unknown command '%s'", rc_name, args[1]);
+			return;
+		}
+		if (CheckArgNum(i, args + 2) < 0)
+			return;
+		ClearAction(&ktabp[n]);
+		SaveAction(ktabp + n, i, args + 2, argl + 2);
+	} else
+		ClearAction(&ktabp[n]);
+}
+
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4068,54 +4125,7 @@ void DoAction(struct action *act, int key)
 		DoCommandStartup_message(act, key);
 		break;
 	case RC_BIND:
-		{
-			struct action *ktabp = ktab;
-			int kflag = 0;
-
-			for (;;) {
-				if (argc > 2 && !strcmp(*args, "-c")) {
-					ktabp = FindKtab(args[1], 1);
-					if (ktabp == 0)
-						break;
-					args += 2;
-					argl += 2;
-					argc -= 2;
-				} else if (argc > 1 && !strcmp(*args, "-k")) {
-					kflag = 1;
-					args++;
-					argl++;
-					argc--;
-				} else
-					break;
-			}
-			if (kflag) {
-				for (n = 0; n < KMAP_KEYS; n++)
-					if (strcmp(term[n + T_CAPS].tcname, *args) == 0)
-						break;
-				if (n == KMAP_KEYS) {
-					OutputMsg(0, "%s: bind: unknown key '%s'", rc_name, *args);
-					break;
-				}
-				n += 256;
-			} else if (*argl != 1) {
-				OutputMsg(0, "%s: bind: character, ^x, or (octal) \\032 expected.", rc_name);
-				break;
-			} else
-				n = (unsigned char)args[0][0];
-
-			if (args[1]) {
-				int i;
-				if ((i = FindCommnr(args[1])) == RC_ILLEGAL) {
-					OutputMsg(0, "%s: bind: unknown command '%s'", rc_name, args[1]);
-					break;
-				}
-				if (CheckArgNum(i, args + 2) < 0)
-					break;
-				ClearAction(&ktabp[n]);
-				SaveAction(ktabp + n, i, args + 2, argl + 2);
-			} else
-				ClearAction(&ktabp[n]);
-		}
+		DoCommandBind(act, key);
 		break;
 	case RC_BINDKEY:
 		{
