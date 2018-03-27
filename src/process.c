@@ -2663,6 +2663,19 @@ static void DoCommandShell(struct action *act, int key)
 		ShellArgs[0] = ShellProg;
 }
 
+static void DoCommandHardcopydir(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (*args)
+		(void)ParseSaveStr(act, &hardcopydir);
+	if (msgok)
+		OutputMsg(0, "hardcopydir is %s\n", hardcopydir && *hardcopydir ? hardcopydir : "<cwd>");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -2934,10 +2947,7 @@ void DoAction(struct action *act, int key)
 		DoCommandShell(act, key);
 		break;
 	case RC_HARDCOPYDIR:
-		if (*args)
-			(void)ParseSaveStr(act, &hardcopydir);
-		if (msgok)
-			OutputMsg(0, "hardcopydir is %s\n", hardcopydir && *hardcopydir ? hardcopydir : "<cwd>");
+		DoCommandHardcopydir(act, key);
 		break;
 	case RC_LOGFILE:
 		if (*args) {
