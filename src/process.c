@@ -3585,6 +3585,25 @@ static void DoCommandVbell_msg(struct action *act, int key)
 	(void)ParseSaveStr(act, &VisualBellString);
 }
 
+static void DoCommandDefmode(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+	int n = 0;
+
+	(void)key; /* unused */
+
+	if (ParseBase(act, *args, &n, 8, "octal"))
+		return;
+	if (n < 0 || n > 0777) {
+		OutputMsg(0, "%s: mode: Invalid tty mode %o", rc_name, n);
+		return;
+	}
+	TtyMode = n;
+	if (msgok)
+		OutputMsg(0, "Ttymode set to %03o", TtyMode);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4026,15 +4045,7 @@ void DoAction(struct action *act, int key)
 		DoCommandVbell_msg(act, key);
 		break;
 	case RC_DEFMODE:
-		if (ParseBase(act, *args, &n, 8, "octal"))
-			break;
-		if (n < 0 || n > 0777) {
-			OutputMsg(0, "%s: mode: Invalid tty mode %o", rc_name, n);
-			break;
-		}
-		TtyMode = n;
-		if (msgok)
-			OutputMsg(0, "Ttymode set to %03o", TtyMode);
+		DoCommandDefmode(act, key);
 		break;
 	case RC_AUTODETACH:
 		(void)ParseOnOff(act, &auto_detach);
