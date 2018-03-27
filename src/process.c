@@ -3553,6 +3553,16 @@ static void DoCommandCrlf(struct action *act, int key)
 	(void)ParseSwitch(act, &join_with_cr);
 }
 
+static void DoCommandCompacthist(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseSwitch(act, &compacthist) == 0 && msgok)
+		OutputMsg(0, "%scompacting history lines", compacthist ? "" : "not ");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3985,8 +3995,7 @@ void DoAction(struct action *act, int key)
 		DoCommandCrlf(act, key);
 		break;
 	case RC_COMPACTHIST:
-		if (ParseSwitch(act, &compacthist) == 0 && msgok)
-			OutputMsg(0, "%scompacting history lines", compacthist ? "" : "not ");
+		DoCommandCompacthist(act, key);
 		break;
 	case RC_HARDCOPY_APPEND:
 		(void)ParseOnOff(act, &hardcopy_append);
