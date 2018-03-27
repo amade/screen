@@ -2738,6 +2738,15 @@ static void DoCommandShelltitle(struct action *act, int key)
 	(void)ParseSaveStr(act, &nwin_default.aka);
 }
 
+static void DoCommandTerminfo(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	if (!rc_name || !*rc_name)
+		OutputMsg(0, "Sorry, too late now. Place that in your .screenrc file.");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3023,8 +3032,7 @@ void DoAction(struct action *act, int key)
 	case RC_TERMCAP:
 	case RC_TERMCAPINFO:
 	case RC_TERMINFO:
-		if (!rc_name || !*rc_name)
-			OutputMsg(0, "Sorry, too late now. Place that in your .screenrc file.");
+		DoCommandTerminfo(act, key);
 		break;
 	case RC_SLEEP:
 		break;		/* Already handled */
