@@ -3536,6 +3536,16 @@ static void DoCommandMarkkeys(struct action *act, int key)
 		OutputMsg(0, "%s: markkeys: syntax error.", rc_name);
 }
 
+static void DoCommandPastefont(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseSwitch(act, &pastefont) == 0 && msgok)
+		OutputMsg(0, "Will %spaste font settings", pastefont ? "" : "not ");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3962,8 +3972,7 @@ void DoAction(struct action *act, int key)
 		DoCommandMarkkeys(act, key);
 		break;
 	case RC_PASTEFONT:
-		if (ParseSwitch(act, &pastefont) == 0 && msgok)
-			OutputMsg(0, "Will %spaste font settings", pastefont ? "" : "not ");
+		DoCommandPastefont(act, key);
 		break;
 	case RC_CRLF:
 		(void)ParseSwitch(act, &join_with_cr);
