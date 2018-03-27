@@ -3158,6 +3158,26 @@ static void DoCommandCaption(struct action *act, int key)
 	RedisplayDisplays(0);
 }
 
+static void DoCommandConsole(struct action *act, int key)
+{
+	bool b = (console_window != 0);
+
+	(void)key; /* unused */
+
+	if (ParseSwitch(act, &b))
+		return;
+	if (TtyGrabConsole(fore->w_ptyfd, b, rc_name))
+		return;
+	if (b == 0)
+		OutputMsg(0, "%s: releasing console %s", rc_name, HostName);
+	else if (console_window)
+		OutputMsg(0, "%s: stealing console %s from window %d (%s)", rc_name,
+			  HostName, console_window->w_number, console_window->w_title);
+	else
+		OutputMsg(0, "%s: grabbing console %s", rc_name, HostName);
+	console_window = b ? fore : 0;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3515,22 +3535,8 @@ void DoAction(struct action *act, int key)
 		DoCommandCaption(act, key);
 		break;
 	case RC_CONSOLE:
-		{
-			bool b = (console_window != 0);
-			if (ParseSwitch(act, &b))
-				break;
-			if (TtyGrabConsole(fore->w_ptyfd, b, rc_name))
-				break;
-			if (b == 0)
-				OutputMsg(0, "%s: releasing console %s", rc_name, HostName);
-			else if (console_window)
-				OutputMsg(0, "%s: stealing console %s from window %d (%s)", rc_name,
-					  HostName, console_window->w_number, console_window->w_title);
-			else
-				OutputMsg(0, "%s: grabbing console %s", rc_name, HostName);
-			console_window = b ? fore : 0;
-			break;
-		}
+		DoCommandConsole(act, key);
+		break;
 	case RC_ALLPARTIAL:
 		if (ParseOnOff(act, &all_norefresh))
 			break;
