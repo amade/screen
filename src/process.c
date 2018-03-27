@@ -3087,6 +3087,36 @@ static void DoCommandHardstatus(struct action *act, int key)
 		OutputMsg(0, "messages displayed on %s", use_hardstatus ? "hardstatus line" : "window");
 }
 
+static void DoCommandStatus(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (display) {
+		Msg(0, "%s", "");	/* wait till mintime (keep gcc quiet) */
+		RemoveStatus();
+	}
+	{
+		int i = 0;
+		while ((i <= 1) && args[i]) {
+			if ((strcmp(args[i], "top") == 0) || (strcmp(args[i], "up") == 0)) {
+				statuspos.row = STATUS_TOP;
+			} else if ((strcmp(args[i], "bottom") == 0) || (strcmp(args[i], "down") == 0)) {
+				statuspos.row = STATUS_BOTTOM;
+			} else if (strcmp(args[i], "left") == 0) {
+				statuspos.col = STATUS_LEFT;
+			} else if (strcmp(args[i], "right") == 0) {
+				statuspos.col = STATUS_RIGHT;
+			} else {
+				Msg(0, "%s: usage: status [top|up|down|bottom] [left|right]", rc_name);
+				break;
+			}
+			i++;
+		}
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3438,28 +3468,7 @@ void DoAction(struct action *act, int key)
 		DoCommandHardstatus(act, key);
 		break;
 	case RC_STATUS:
-		if (display) {
-			Msg(0, "%s", "");	/* wait till mintime (keep gcc quiet) */
-			RemoveStatus();
-		}
-		{
-			int i = 0;
-			while ( (i <= 1) && args[i]) {
-				if ( (strcmp(args[i], "top") == 0) || (strcmp(args[i], "up") == 0) ) {
-					statuspos.row = STATUS_TOP;
-				} else if ( (strcmp(args[i], "bottom") == 0) || (strcmp(args[i], "down") == 0) ) {
-					statuspos.row = STATUS_BOTTOM;
-				} else if (strcmp(args[i], "left") == 0) {
-					statuspos.col = STATUS_LEFT;
-				} else if (strcmp(args[i], "right") == 0) {
-					statuspos.col = STATUS_RIGHT;
-				} else {
-					Msg(0, "%s: usage: status [top|up|down|bottom] [left|right]", rc_name);
-					break;
-				}
-				i++;
-			}
-		}
+		DoCommandStatus(act, key);
 		break;
 	case RC_CAPTION:
 		if (!*args)
