@@ -2772,6 +2772,41 @@ static void DoCommandTerm(struct action *act, int key)
 	MakeTermcap((display == 0));
 }
 
+static void DoCommandEcho(struct action *act, int key)
+{
+	char **args = act->args;
+	int argc = CheckArgNum(act->nr, args);
+	int msgok = display && !*rc_name;
+	char *s = NULL;
+
+	(void)key; /* unused */
+
+	if (!msgok && (!rc_name || strcmp(rc_name, "-X")))
+		return;
+	/*
+	 * user typed ^A:echo... well, echo isn't FinishRc's job,
+	 * but as he wanted to test us, we show good will
+	 */
+	if (argc > 1 && !strcmp(*args, "-n")) {
+		args++;
+		argc--;
+	}
+	s = *args;
+	if (argc > 1 && !strcmp(*args, "-p")) {
+		args++;
+		argc--;
+		s = *args;
+		if (s)
+			s = MakeWinMsg(s, fore, '%');
+	}
+	if (s)
+		OutputMsg(0, "%s", s);
+	else {
+		OutputMsg(0, "%s: 'echo [-n] [-p] \"string\"' expected.", rc_name);
+		queryflag = -1;
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3066,30 +3101,7 @@ void DoAction(struct action *act, int key)
 		DoCommandTerm(act, key);
 		break;
 	case RC_ECHO:
-		if (!msgok && (!rc_name || strcmp(rc_name, "-X")))
-			break;
-		/*
-		 * user typed ^A:echo... well, echo isn't FinishRc's job,
-		 * but as he wanted to test us, we show good will
-		 */
-		if (argc > 1 && !strcmp(*args, "-n")) {
-			args++;
-			argc--;
-		}
-		s = *args;
-		if (argc > 1 && !strcmp(*args, "-p")) {
-			args++;
-			argc--;
-			s = *args;
-			if (s)
-				s = MakeWinMsg(s, fore, '%');
-		}
-		if (s)
-			OutputMsg(0, "%s", s);
-		else {
-			OutputMsg(0, "%s: 'echo [-n] [-p] \"string\"' expected.", rc_name);
-			queryflag = -1;
-		}
+		DoCommandEcho(act, key);
 		break;
 	case RC_BELL:
 	case RC_BELL_MSG:
