@@ -3289,6 +3289,42 @@ static void DoCommandCollapse(struct action *act, int key)
 	CollapseWindowlist();
 }
 
+static void DoCommandNumber(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (*args == 0)
+		OutputMsg(0, queryflag >= 0 ? "%d (%s)" : "This is window %d (%s).", fore->w_number,
+			  fore->w_title);
+	else {
+		int old = fore->w_number;
+		int rel = 0, parse;
+		int n = 0;
+		if (args[0][0] == '+')
+			rel = 1;
+		else if (args[0][0] == '-')
+			rel = -1;
+		if (rel)
+			++act->args[0];
+		parse = ParseNum(act, &n);
+		if (rel)
+			--act->args[0];
+		if (parse)
+			return;
+		if (rel > 0)
+			n += old;
+		else if (rel < 0)
+			n = old - n;
+		if (!SwapWindows(old, n)) {
+			/* Window number could not be changed. */
+			queryflag = -1;
+			return;
+		}
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -3679,35 +3715,8 @@ void DoAction(struct action *act, int key)
 		DoCommandCollapse(act, key);
 		break;
 	case RC_NUMBER:
-		if (*args == 0)
-			OutputMsg(0, queryflag >= 0 ? "%d (%s)" : "This is window %d (%s).", fore->w_number,
-				  fore->w_title);
-		else {
-			int old = fore->w_number;
-			int rel = 0, parse;
-			if (args[0][0] == '+')
-				rel = 1;
-			else if (args[0][0] == '-')
-				rel = -1;
-			if (rel)
-				++act->args[0];
-			parse = ParseNum(act, &n);
-			if (rel)
-				--act->args[0];
-			if (parse)
-				break;
-			if (rel > 0)
-				n += old;
-			else if (rel < 0)
-				n = old - n;
-			if (!SwapWindows(old, n)) {
-				/* Window number could not be changed. */
-				queryflag = -1;
-				return;
-			}
-		}
+		DoCommandNumber(act, key);
 		break;
-
 	case RC_ZOMBIE_TIMEOUT:
 		if (argc != 1) {
 			Msg(0, "Setting zombie polling needs a timeout arg\n");
