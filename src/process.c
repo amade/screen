@@ -3674,6 +3674,137 @@ static void DoCommandBind(struct action *act, int key)
 		ClearAction(&ktabp[n]);
 }
 
+static void DoCommandBindkey(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+	struct action *newact;
+	int newnr, fl = 0, kf = 0, af = 0, df = 0, mf = 0;
+	Display *olddisplay = display;
+	int used = 0;
+	struct kmap_ext *kme = NULL;
+	int i;
+
+	(void)key; /* unused */
+
+	for (; *args && **args == '-'; args++, argl++) {
+		if (strcmp(*args, "-t") == 0)
+			fl = KMAP_NOTIMEOUT;
+		else if (strcmp(*args, "-k") == 0)
+			kf = 1;
+		else if (strcmp(*args, "-a") == 0)
+			af = 1;
+		else if (strcmp(*args, "-d") == 0)
+			df = 1;
+		else if (strcmp(*args, "-m") == 0)
+			mf = 1;
+		else if (strcmp(*args, "--") == 0) {
+			args++;
+			argl++;
+			break;
+		} else {
+			OutputMsg(0, "%s: bindkey: invalid option %s", rc_name, *args);
+			return;
+		}
+	}
+	if (df && mf) {
+		OutputMsg(0, "%s: bindkey: -d does not work with -m", rc_name);
+		return;
+	}
+	if (*args == 0) {
+		if (mf)
+			display_bindkey("Edit mode", mmtab);
+		else if (df)
+			display_bindkey("Default", dmtab);
+		else
+			display_bindkey("User", umtab);
+		return;
+	}
+	if (kf == 0) {
+		if (af) {
+			OutputMsg(0, "%s: bindkey: -a only works with -k", rc_name);
+			return;
+		}
+		if (*argl == 0) {
+			OutputMsg(0, "%s: bindkey: empty string makes no sense", rc_name);
+			return;
+		}
+		for (i = 0, kme = kmap_exts; i < kmap_extn; i++, kme++)
+			if (kme->str == 0) {
+				if (args[1])
+					break;
+			} else
+			    if (*argl == (kme->fl & ~KMAP_NOTIMEOUT)
+				&& memcmp(kme->str, *args, *argl) == 0)
+				break;
+		if (i == kmap_extn) {
+			if (!args[1]) {
+				OutputMsg(0, "%s: bindkey: keybinding not found", rc_name);
+				return;
+			}
+			kmap_extn += 8;
+			kmap_exts = xrealloc((char *)kmap_exts, kmap_extn * sizeof(struct kmap_ext));
+			kme = kmap_exts + i;
+			memset((char *)kme, 0, 8 * sizeof(struct kmap_ext));
+			for (; i < kmap_extn; i++, kme++) {
+				kme->str = 0;
+				kme->dm.nr = kme->mm.nr = kme->um.nr = RC_ILLEGAL;
+				kme->dm.args = kme->mm.args = kme->um.args = noargs;
+				kme->dm.argl = kme->mm.argl = kme->um.argl = 0;
+			}
+			i -= 8;
+			kme -= 8;
+		}
+		if (df == 0 && kme->dm.nr != RC_ILLEGAL)
+			used = 1;
+		if (mf == 0 && kme->mm.nr != RC_ILLEGAL)
+			used = 1;
+		if ((df || mf) && kme->um.nr != RC_ILLEGAL)
+			used = 1;
+		i += KMAP_KEYS + KMAP_AKEYS;
+		newact = df ? &kme->dm : mf ? &kme->mm : &kme->um;
+	} else {
+		for (i = T_CAPS; i < T_OCAPS; i++)
+			if (strcmp(term[i].tcname, *args) == 0)
+				break;
+		if (i == T_OCAPS) {
+			OutputMsg(0, "%s: bindkey: unknown key '%s'", rc_name, *args);
+			return;
+		}
+		if (af && i >= T_CURSOR && i < T_OCAPS)
+			i -= T_CURSOR - KMAP_KEYS;
+		else
+			i -= T_CAPS;
+		newact = df ? &dmtab[i] : mf ? &mmtab[i] : &umtab[i];
+	}
+	if (args[1]) {
+		if ((newnr = FindCommnr(args[1])) == RC_ILLEGAL) {
+			OutputMsg(0, "%s: bindkey: unknown command '%s'", rc_name, args[1]);
+			return;
+		}
+		if (CheckArgNum(newnr, args + 2) < 0)
+			return;
+		ClearAction(newact);
+		SaveAction(newact, newnr, args + 2, argl + 2);
+		if (kf == 0 && args[1]) {
+			if (kme->str)
+				free(kme->str);
+			kme->str = SaveStrn(*args, *argl);
+			kme->fl = fl | *argl;
+		}
+	} else
+		ClearAction(newact);
+	for (display = displays; display; display = display->d_next)
+		remap(i, args[1] ? 1 : 0);
+	if (kf == 0 && !args[1]) {
+		if (!used && kme->str) {
+			free(kme->str);
+			kme->str = 0;
+			kme->fl = 0;
+		}
+	}
+	display = olddisplay;
+}
 
 void DoAction(struct action *act, int key)
 {
@@ -4128,132 +4259,7 @@ void DoAction(struct action *act, int key)
 		DoCommandBind(act, key);
 		break;
 	case RC_BINDKEY:
-		{
-			struct action *newact;
-			int newnr, fl = 0, kf = 0, af = 0, df = 0, mf = 0;
-			Display *odisp = display;
-			int used = 0;
-			struct kmap_ext *kme = NULL;
-			int i;
-
-			for (; *args && **args == '-'; args++, argl++) {
-				if (strcmp(*args, "-t") == 0)
-					fl = KMAP_NOTIMEOUT;
-				else if (strcmp(*args, "-k") == 0)
-					kf = 1;
-				else if (strcmp(*args, "-a") == 0)
-					af = 1;
-				else if (strcmp(*args, "-d") == 0)
-					df = 1;
-				else if (strcmp(*args, "-m") == 0)
-					mf = 1;
-				else if (strcmp(*args, "--") == 0) {
-					args++;
-					argl++;
-					break;
-				} else {
-					OutputMsg(0, "%s: bindkey: invalid option %s", rc_name, *args);
-					return;
-				}
-			}
-			if (df && mf) {
-				OutputMsg(0, "%s: bindkey: -d does not work with -m", rc_name);
-				break;
-			}
-			if (*args == 0) {
-				if (mf)
-					display_bindkey("Edit mode", mmtab);
-				else if (df)
-					display_bindkey("Default", dmtab);
-				else
-					display_bindkey("User", umtab);
-				break;
-			}
-			if (kf == 0) {
-				if (af) {
-					OutputMsg(0, "%s: bindkey: -a only works with -k", rc_name);
-					break;
-				}
-				if (*argl == 0) {
-					OutputMsg(0, "%s: bindkey: empty string makes no sense", rc_name);
-					break;
-				}
-				for (i = 0, kme = kmap_exts; i < kmap_extn; i++, kme++)
-					if (kme->str == 0) {
-						if (args[1])
-							break;
-					} else
-					    if (*argl == (kme->fl & ~KMAP_NOTIMEOUT)
-						&& memcmp(kme->str, *args, *argl) == 0)
-						break;
-				if (i == kmap_extn) {
-					if (!args[1]) {
-						OutputMsg(0, "%s: bindkey: keybinding not found", rc_name);
-						break;
-					}
-					kmap_extn += 8;
-					kmap_exts = xrealloc((char *)kmap_exts, kmap_extn * sizeof(struct kmap_ext));
-					kme = kmap_exts + i;
-					memset((char *)kme, 0, 8 * sizeof(struct kmap_ext));
-					for (; i < kmap_extn; i++, kme++) {
-						kme->str = 0;
-						kme->dm.nr = kme->mm.nr = kme->um.nr = RC_ILLEGAL;
-						kme->dm.args = kme->mm.args = kme->um.args = noargs;
-						kme->dm.argl = kme->mm.argl = kme->um.argl = 0;
-					}
-					i -= 8;
-					kme -= 8;
-				}
-				if (df == 0 && kme->dm.nr != RC_ILLEGAL)
-					used = 1;
-				if (mf == 0 && kme->mm.nr != RC_ILLEGAL)
-					used = 1;
-				if ((df || mf) && kme->um.nr != RC_ILLEGAL)
-					used = 1;
-				i += KMAP_KEYS + KMAP_AKEYS;
-				newact = df ? &kme->dm : mf ? &kme->mm : &kme->um;
-			} else {
-				for (i = T_CAPS; i < T_OCAPS; i++)
-					if (strcmp(term[i].tcname, *args) == 0)
-						break;
-				if (i == T_OCAPS) {
-					OutputMsg(0, "%s: bindkey: unknown key '%s'", rc_name, *args);
-					break;
-				}
-				if (af && i >= T_CURSOR && i < T_OCAPS)
-					i -= T_CURSOR - KMAP_KEYS;
-				else
-					i -= T_CAPS;
-				newact = df ? &dmtab[i] : mf ? &mmtab[i] : &umtab[i];
-			}
-			if (args[1]) {
-				if ((newnr = FindCommnr(args[1])) == RC_ILLEGAL) {
-					OutputMsg(0, "%s: bindkey: unknown command '%s'", rc_name, args[1]);
-					break;
-				}
-				if (CheckArgNum(newnr, args + 2) < 0)
-					break;
-				ClearAction(newact);
-				SaveAction(newact, newnr, args + 2, argl + 2);
-				if (kf == 0 && args[1]) {
-					if (kme->str)
-						free(kme->str);
-					kme->str = SaveStrn(*args, *argl);
-					kme->fl = fl | *argl;
-				}
-			} else
-				ClearAction(newact);
-			for (display = displays; display; display = display->d_next)
-				remap(i, args[1] ? 1 : 0);
-			if (kf == 0 && !args[1]) {
-				if (!used && kme->str) {
-					free(kme->str);
-					kme->str = 0;
-					kme->fl = 0;
-				}
-			}
-			display = odisp;
-		}
+		DoCommandBindkey(act, key);
 		break;
 	case RC_MAPTIMEOUT:
 		if (*args) {
