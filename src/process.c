@@ -4145,6 +4145,29 @@ static void DoCommandUtf8(struct action *act, int key)
 	}
 }
 
+static void DoCommandPrintcmd(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (*args) {
+		if (printcmd)
+			free(printcmd);
+		printcmd = 0;
+		if (**args)
+			printcmd = SaveStr(*args);
+	}
+	if (*args == 0 || msgok) {
+		if (printcmd)
+			OutputMsg(0, "using '%s' as print command", printcmd);
+		else
+			OutputMsg(0, "using termcap entries for printing");
+		return;
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4658,22 +4681,8 @@ void DoAction(struct action *act, int key)
 		DoCommandUtf8(act, key);
 		break;
 	case RC_PRINTCMD:
-		if (*args) {
-			if (printcmd)
-				free(printcmd);
-			printcmd = 0;
-			if (**args)
-				printcmd = SaveStr(*args);
-		}
-		if (*args == 0 || msgok) {
-			if (printcmd)
-				OutputMsg(0, "using '%s' as print command", printcmd);
-			else
-				OutputMsg(0, "using termcap entries for printing");
-			break;
-		}
+		DoCommandPrintcmd(act, key);
 		break;
-
 	case RC_DIGRAPH:
 		if (argl && argl[0] > 0 && args[1] && argl[1] > 0) {
 			int i;
