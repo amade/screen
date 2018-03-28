@@ -4303,6 +4303,73 @@ static void DoCommandCharset(struct action *act, int key)
 	SetCharsets(fore, *args);
 }
 
+static void DoCommandRendition(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+	int msgok = display && !*rc_name;
+	int i = -1;
+
+	(void)key; /* unused */
+
+	if (!*args)
+		return;
+
+	if (strcmp(args[0], "bell") == 0) {
+		i = REND_BELL;
+	} else if (strcmp(args[0], "monitor") == 0) {
+		i = REND_MONITOR;
+	} else if (strcmp(args[0], "silence") == 0) {
+		i = REND_SILENCE;
+	} else if (strcmp(args[0], "so") != 0) {
+		OutputMsg(0, "Invalid option '%s' for rendition", args[0]);
+		return;
+	}
+
+	++args;
+	++argl;
+
+	if (i != -1) {
+		renditions[i] = ParseAttrColor(args[0], 1);
+		WindowChanged((Window *)0, WINESC_WIN_NAMES);
+		WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
+		WindowChanged((Window *)0, 0);
+		return;
+	}
+
+	/* sorendition */
+	if (args[0]) {
+		int i = ParseAttrColor(args[0], 1);
+		if (i == 0)
+			return;
+		ApplyAttrColor(i, &mchar_so);
+		WindowChanged((Window *)0, 0);
+	}
+	if (msgok)
+		OutputMsg(0, "Standout attributes 0x%02x  colorbg 0x%02x  colorfg 0x%02x", (unsigned char)mchar_so.attr,
+			  (unsigned char)mchar_so.colorbg, (unsigned char)mchar_so.colorfg);
+
+}
+
+static void DoCommandSorendition(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (args[0]) {
+		int i = ParseAttrColor(args[0], 1);
+		if (i == 0)
+			return;
+		ApplyAttrColor(i, &mchar_so);
+		WindowChanged((Window *)0, 0);
+	}
+	if (msgok)
+		OutputMsg(0, "Standout attributes 0x%02x  colorbg 0x%02x  colorfg 0x%02x", (unsigned char)mchar_so.attr,
+			  (unsigned char)mchar_so.colorbg, (unsigned char)mchar_so.colorfg);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4834,49 +4901,11 @@ void DoAction(struct action *act, int key)
 		DoCommandCharset(act, key);
 		break;
 	case RC_RENDITION:
-		{
-			int i;
-			if (!*args)
-				break;
-			i = -1;
-			if (strcmp(args[0], "bell") == 0) {
-				i = REND_BELL;
-			} else if (strcmp(args[0], "monitor") == 0) {
-				i = REND_MONITOR;
-			} else if (strcmp(args[0], "silence") == 0) {
-				i = REND_SILENCE;
-			} else if (strcmp(args[0], "so") != 0) {
-				OutputMsg(0, "Invalid option '%s' for rendition", args[0]);
-				break;
-			}
-	
-			++args;
-			++argl;
-	
-			if (i != -1) {
-				renditions[i] = ParseAttrColor(args[0], 1);
-				WindowChanged((Window *)0, WINESC_WIN_NAMES);
-				WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
-				WindowChanged((Window *)0, 0);
-				break;
-			}
-		}
-	
-		/* We are here, means we want to set the sorendition. */
-		/* FALLTHROUGH */
-	case RC_SORENDITION:
-		if (args[0]) {
-			int i = ParseAttrColor(args[0], 1);
-			if (i == 0)
-				break;
-			ApplyAttrColor(i, &mchar_so);
-			WindowChanged((Window *)0, 0);
-		}
-		if (msgok)
-			OutputMsg(0, "Standout attributes 0x%02x  colorbg 0x%02x  colorfg 0x%02x", (unsigned char)mchar_so.attr,
-				  (unsigned char)mchar_so.colorbg, (unsigned char)mchar_so.colorfg);
+		DoCommandRendition(act, key);
 		break;
-
+	case RC_SORENDITION:
+		DoCommandSorendition(act, key);
+		break;
 	case RC_SOURCE:
 		do_source(*args);
 		break;
