@@ -4370,6 +4370,15 @@ static void DoCommandSorendition(struct action *act, int key)
 			  (unsigned char)mchar_so.colorbg, (unsigned char)mchar_so.colorfg);
 }
 
+static void DoCommandSource(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	do_source(*args);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4907,9 +4916,8 @@ void DoAction(struct action *act, int key)
 		DoCommandSorendition(act, key);
 		break;
 	case RC_SOURCE:
-		do_source(*args);
+		DoCommandSource(act, key);
 		break;
-
 	case RC_SU:
 		s = NULL;
 		if (!*args) {
