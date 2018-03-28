@@ -4215,6 +4215,38 @@ static void DoCommandDigraph(struct action *act, int key)
 	}
 }
 
+static void DoCommandDefhstatus(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (*args == 0) {
+		char buf[256] = { 0 };
+		if (nwin_default.hstatus)
+			AddXChars(buf, ARRAY_SIZE(buf), nwin_default.hstatus);
+		OutputMsg(0, "default hstatus is '%s'", buf);
+		return;
+	}
+	(void)ParseSaveStr(act, &nwin_default.hstatus);
+	if (*nwin_default.hstatus == 0) {
+		free(nwin_default.hstatus);
+		nwin_default.hstatus = 0;
+	}
+}
+
+static void DoCommandHstatus(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseSaveStr(act, &fore->w_hstatus);
+	if (*fore->w_hstatus == 0) {
+		free(fore->w_hstatus);
+		fore->w_hstatus = 0;
+	}
+	WindowChanged(fore, WINESC_HSTATUS);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4734,29 +4766,11 @@ void DoAction(struct action *act, int key)
 		DoCommandDigraph(act, key);
 		break;
 	case RC_DEFHSTATUS:
-		if (*args == 0) {
-			char buf[256];
-			*buf = 0;
-			if (nwin_default.hstatus)
-				AddXChars(buf, ARRAY_SIZE(buf), nwin_default.hstatus);
-			OutputMsg(0, "default hstatus is '%s'", buf);
-			break;
-		}
-		(void)ParseSaveStr(act, &nwin_default.hstatus);
-		if (*nwin_default.hstatus == 0) {
-			free(nwin_default.hstatus);
-			nwin_default.hstatus = 0;
-		}
+		DoCommandDefhstatus(act, key);
 		break;
 	case RC_HSTATUS:
-		(void)ParseSaveStr(act, &fore->w_hstatus);
-		if (*fore->w_hstatus == 0) {
-			free(fore->w_hstatus);
-			fore->w_hstatus = 0;
-		}
-		WindowChanged(fore, WINESC_HSTATUS);
+		DoCommandHstatus(act, key);
 		break;
-
 	case RC_DEFCHARSET:
 	case RC_CHARSET:
 		if (*args == 0) {
