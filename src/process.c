@@ -4029,6 +4029,16 @@ static void DoCommandGr(struct action *act, int key)
 		fore->w_gr = 2;
 }
 
+static void DoCommandC1(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseSwitch(act, &fore->w_c1) == 0 && msgok)
+		OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4525,8 +4535,7 @@ void DoAction(struct action *act, int key)
 		DoCommandGr(act, key);
 		break;
 	case RC_C1:
-		if (ParseSwitch(act, &fore->w_c1) == 0 && msgok)
-			OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
+		DoCommandC1(act, key);
 		break;
 	case RC_KANJI:
 	case RC_ENCODING:
