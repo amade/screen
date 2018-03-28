@@ -4168,6 +4168,53 @@ static void DoCommandPrintcmd(struct action *act, int key)
 	}
 }
 
+static void DoCommandDigraph(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+
+	(void)key; /* unused */
+
+	if (argl && argl[0] > 0 && args[1] && argl[1] > 0) {
+		int i;
+		if (argl[0] != 2) {
+			OutputMsg(0, "Two characters expected to define a digraph");
+			return;
+		}
+		i = digraph_find(args[0]);
+		digraphs[i].d[0] = args[0][0];
+		digraphs[i].d[1] = args[0][1];
+		if (!parse_input_int(args[1], argl[1], &digraphs[i].value)) {
+			if (!(digraphs[i].value = atoi(args[1]))) {
+				if (!args[1][1])
+					digraphs[i].value = (int)args[1][0];
+				else {
+					int t;
+					unsigned char *s = (unsigned char *)args[1];
+					digraphs[i].value = 0;
+					while (*s) {
+						t = FromUtf8(*s++, &digraphs[i].value);
+						if (t == -1)
+							continue;
+						if (t == -2)
+							digraphs[i].value = 0;
+						else
+							digraphs[i].value = t;
+						break;
+					}
+				}
+			}
+		}
+		return;
+	}
+	Input("Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL, 0);
+	if (*args && **args) {
+		char *s = *args;
+		size_t len = strlen(s);
+		LayProcess(&s, &len);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4684,46 +4731,8 @@ void DoAction(struct action *act, int key)
 		DoCommandPrintcmd(act, key);
 		break;
 	case RC_DIGRAPH:
-		if (argl && argl[0] > 0 && args[1] && argl[1] > 0) {
-			int i;
-			if (argl[0] != 2) {
-				OutputMsg(0, "Two characters expected to define a digraph");
-				break;
-			}
-			i = digraph_find(args[0]);
-			digraphs[i].d[0] = args[0][0];
-			digraphs[i].d[1] = args[0][1];
-			if (!parse_input_int(args[1], argl[1], &digraphs[i].value)) {
-				if (!(digraphs[i].value = atoi(args[1]))) {
-					if (!args[1][1])
-						digraphs[i].value = (int)args[1][0];
-					else {
-						int t;
-						unsigned char *s = (unsigned char *)args[1];
-						digraphs[i].value = 0;
-						while (*s) {
-							t = FromUtf8(*s++, &digraphs[i].value);
-							if (t == -1)
-								continue;
-							if (t == -2)
-								digraphs[i].value = 0;
-							else
-								digraphs[i].value = t;
-							break;
-						}
-					}
-				}
-			}
-			break;
-		}
-		Input("Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL, 0);
-		if (*args && **args) {
-			s = *args;
-			len = strlen(s);
-			LayProcess(&s, &len);
-		}
+		DoCommandDigraph(act, key);
 		break;
-
 	case RC_DEFHSTATUS:
 		if (*args == 0) {
 			char buf[256];
