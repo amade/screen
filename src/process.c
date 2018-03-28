@@ -4011,6 +4011,24 @@ static void DoCommandDefnonblock(struct action *act, int key)
 	}
 }
 
+static void DoCommandGr(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+	bool b;
+
+	(void)key; /* unused */
+
+	if (fore->w_gr == 2)
+		fore->w_gr = 0;
+	b = fore->w_gr;
+	if (ParseSwitch(act, &b) == 0 && msgok) {
+		fore->w_gr = b ? 1 : 0;
+		OutputMsg(0, "Will %suse GR", fore->w_gr ? "" : "not ");
+	}
+	if (fore->w_gr == 0 && fore->w_FontE)
+		fore->w_gr = 2;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4504,19 +4522,8 @@ void DoAction(struct action *act, int key)
 		DoCommandDefnonblock(act, key);
 		break;
 	case RC_GR:
-		{
-			bool b;
-			if (fore->w_gr == 2)
-				fore->w_gr = 0;
-			b = fore->w_gr;
-			if (ParseSwitch(act, &b) == 0 && msgok) {
-				fore->w_gr = b ? 1 : 0;
-				OutputMsg(0, "Will %suse GR", fore->w_gr ? "" : "not ");
-			}
-			if (fore->w_gr == 0 && fore->w_FontE)
-				fore->w_gr = 2;
-			break;
-		}
+		DoCommandGr(act, key);
+		break;
 	case RC_C1:
 		if (ParseSwitch(act, &fore->w_c1) == 0 && msgok)
 			OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
