@@ -4099,6 +4099,52 @@ static void DoCommandDefencoding(struct action *act, int key)
 	nwin_default.encoding = n;
 }
 
+static void DoCommandDefutf8(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+	bool b = nwin_default.encoding == UTF8;
+
+	(void)key; /* unused */
+
+	if (ParseSwitch(act, &b) == 0) {
+		nwin_default.encoding = b ? UTF8 : 0;
+		if (msgok)
+			OutputMsg(0, "Will %suse UTF-8 encoding for new windows", b ? "" : "not ");
+	}
+}
+
+static void DoCommandUtf8(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	for (int i = 0; i < 2; i++) {
+		int n;
+		if (i && args[i] == 0)
+			break;
+		if (args[i] == 0)
+			n = fore->w_encoding != UTF8;
+		else if (strcmp(args[i], "off") == 0)
+			n = 0;
+		else if (strcmp(args[i], "on") == 0)
+			n = 1;
+		else {
+			OutputMsg(0, "utf8: illegal argument (%s)", args[i]);
+			break;
+		}
+		if (i == 0) {
+			WinSwitchEncoding(fore, n ? UTF8 : 0);
+			if (msgok)
+				OutputMsg(0, "Will %suse UTF-8 encoding", n ? "" : "not ");
+		} else if (display)
+			D_encoding = n ? UTF8 : 0;
+		if (args[i] == 0)
+			break;
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4606,38 +4652,10 @@ void DoAction(struct action *act, int key)
 		DoCommandDefencoding(act, key);
 		break;
 	case RC_DEFUTF8:
-		{
-			bool b = nwin_default.encoding == UTF8;
-			if (ParseSwitch(act, &b) == 0) {
-				nwin_default.encoding = b ? UTF8 : 0;
-				if (msgok)
-					OutputMsg(0, "Will %suse UTF-8 encoding for new windows", b ? "" : "not ");
-			}
-			break;
-		}
+		DoCommandDefutf8(act, key);
+		break;
 	case RC_UTF8:
-		for (int i = 0; i < 2; i++) {
-			if (i && args[i] == 0)
-				break;
-			if (args[i] == 0)
-				n = fore->w_encoding != UTF8;
-			else if (strcmp(args[i], "off") == 0)
-				n = 0;
-			else if (strcmp(args[i], "on") == 0)
-				n = 1;
-			else {
-				OutputMsg(0, "utf8: illegal argument (%s)", args[i]);
-				break;
-			}
-			if (i == 0) {
-				WinSwitchEncoding(fore, n ? UTF8 : 0);
-				if (msgok)
-					OutputMsg(0, "Will %suse UTF-8 encoding", n ? "" : "not ");
-			} else if (display)
-				D_encoding = n ? UTF8 : 0;
-			if (args[i] == 0)
-				break;
-		}
+		DoCommandUtf8(act, key);
 		break;
 	case RC_PRINTCMD:
 		if (*args) {
