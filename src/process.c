@@ -4247,6 +4247,62 @@ static void DoCommandHstatus(struct action *act, int key)
 	WindowChanged(fore, WINESC_HSTATUS);
 }
 
+static void DoCommandDefcharset(struct action *act, int key)
+{
+	char **args = act->args;
+	size_t len;
+
+	(void)key; /* unused */
+
+	if (*args == 0) {
+		char buf[256] = { 0 };
+		if (nwin_default.charset)
+			AddXChars(buf, ARRAY_SIZE(buf), nwin_default.charset);
+		OutputMsg(0, "default charset is '%s'", buf);
+		return;
+	}
+	len = strlen(*args);
+	if (len == 0 || len > 6) {
+		OutputMsg(0, "%s: defcharset: string has illegal size.", rc_name);
+		return;
+	}
+	if (len > 4 && (((args[0][4] < '0' || args[0][4] > '3') && args[0][4] != '.') ||
+		        ((args[0][5] < '0' || args[0][5] > '3') && args[0][5] && args[0][5] != '.'))) {
+		OutputMsg(0, "%s: defcharset: illegal mapping number.", rc_name);
+		return;
+	}
+	if (nwin_default.charset)
+		free(nwin_default.charset);
+	nwin_default.charset = SaveStr(*args);
+}
+
+static void DoCommandCharset(struct action *act, int key)
+{
+	char **args = act->args;
+	size_t len;
+
+	(void)key; /* unused */
+
+	if (*args == 0) {
+		char buf[256] = { 0 };
+		if (nwin_default.charset)
+			AddXChars(buf, ARRAY_SIZE(buf), nwin_default.charset);
+		OutputMsg(0, "default charset is '%s'", buf);
+		return;
+	}
+	len = strlen(*args);
+	if (len == 0 || len > 6) {
+		OutputMsg(0, "%s: charset: string has illegal size.", rc_name);
+		return;
+	}
+	if (len > 4 && (((args[0][4] < '0' || args[0][4] > '3') && args[0][4] != '.') ||
+		        ((args[0][5] < '0' || args[0][5] > '3') && args[0][5] && args[0][5] != '.'))) {
+		OutputMsg(0, "%s: charset: illegal mapping number.", rc_name);
+		return;
+	}
+	SetCharsets(fore, *args);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4772,32 +4828,10 @@ void DoAction(struct action *act, int key)
 		DoCommandHstatus(act, key);
 		break;
 	case RC_DEFCHARSET:
+		DoCommandDefcharset(act, key);
+		break;
 	case RC_CHARSET:
-		if (*args == 0) {
-			char buf[256];
-			*buf = 0;
-			if (nwin_default.charset)
-				AddXChars(buf, ARRAY_SIZE(buf), nwin_default.charset);
-			OutputMsg(0, "default charset is '%s'", buf);
-			break;
-		}
-		n = strlen(*args);
-		if (n == 0 || n > 6) {
-			OutputMsg(0, "%s: %s: string has illegal size.", rc_name, comms[nr].name);
-			break;
-		}
-		if (n > 4 && (((args[0][4] < '0' || args[0][4] > '3') && args[0][4] != '.') ||
-			      ((args[0][5] < '0' || args[0][5] > '3') && args[0][5] && args[0][5] != '.'))) {
-			OutputMsg(0, "%s: %s: illegal mapping number.", rc_name, comms[nr].name);
-			break;
-		}
-		if (nr == RC_CHARSET) {
-			SetCharsets(fore, *args);
-			break;
-		}
-		if (nwin_default.charset)
-			free(nwin_default.charset);
-		nwin_default.charset = SaveStr(*args);
+		DoCommandCharset(act, key);
 		break;
 	case RC_RENDITION:
 		{
