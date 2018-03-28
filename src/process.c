@@ -4039,6 +4039,66 @@ static void DoCommandC1(struct action *act, int key)
 		OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
 }
 
+static void DoCommandEncoding(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (*args && !strcmp(args[0], "-d")) {
+		if (!args[1])
+			OutputMsg(0, "encodings directory is %s",
+				  screenencodings ? screenencodings : "<unset>");
+		else {
+			free(screenencodings);
+			screenencodings = SaveStr(args[1]);
+		}
+		return;
+	}
+	if (*args && !strcmp(args[0], "-l")) {
+		if (!args[1])
+			OutputMsg(0, "encoding: -l: argument required");
+		else if (LoadFontTranslation(-1, args[1]))
+			OutputMsg(0, "encoding: could not load utf8 encoding file");
+		else if (msgok)
+			OutputMsg(0, "encoding: utf8 encoding file loaded");
+		return;
+	}
+	for (int i = 0; i < 2; i++) {
+		int n;
+		if (args[i] == 0)
+			break;
+		if (!strcmp(args[i], "."))
+			continue;
+		n = FindEncoding(args[i]);
+		if (n == -1) {
+			OutputMsg(0, "encoding: unknown encoding '%s'", args[i]);
+			break;
+		}
+		if (i == 0 && fore) {
+			WinSwitchEncoding(fore, n);
+			ResetCharsets(fore);
+		} else if (i && display)
+			D_encoding = n;
+	}
+}
+
+static void DoCommandDefencoding(struct action *act, int key)
+{
+	char **args = act->args;
+	int n;
+
+	(void)key; /* unused */
+
+	n = FindEncoding(*args);
+	if (n == -1) {
+		OutputMsg(0, "defencoding: unknown encoding '%s'", *args);
+		return;
+	}
+	nwin_default.encoding = n;
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4539,50 +4599,11 @@ void DoAction(struct action *act, int key)
 		break;
 	case RC_KANJI:
 	case RC_ENCODING:
-		if (*args && !strcmp(args[0], "-d")) {
-			if (!args[1])
-				OutputMsg(0, "encodings directory is %s",
-					  screenencodings ? screenencodings : "<unset>");
-			else {
-				free(screenencodings);
-				screenencodings = SaveStr(args[1]);
-			}
-			break;
-		}
-		if (*args && !strcmp(args[0], "-l")) {
-			if (!args[1])
-				OutputMsg(0, "encoding: -l: argument required");
-			else if (LoadFontTranslation(-1, args[1]))
-				OutputMsg(0, "encoding: could not load utf8 encoding file");
-			else if (msgok)
-				OutputMsg(0, "encoding: utf8 encoding file loaded");
-			break;
-		}
-		for (int i = 0; i < 2; i++) {
-			if (args[i] == 0)
-				break;
-			if (!strcmp(args[i], "."))
-				continue;
-			n = FindEncoding(args[i]);
-			if (n == -1) {
-				OutputMsg(0, "encoding: unknown encoding '%s'", args[i]);
-				break;
-			}
-			if (i == 0 && fore) {
-				WinSwitchEncoding(fore, n);
-				ResetCharsets(fore);
-			} else if (i && display)
-				D_encoding = n;
-		}
+		DoCommandEncoding(act, key);
 		break;
 	case RC_DEFKANJI:
 	case RC_DEFENCODING:
-		n = FindEncoding(*args);
-		if (n == -1) {
-			OutputMsg(0, "defencoding: unknown encoding '%s'", *args);
-			break;
-		}
-		nwin_default.encoding = n;
+		DoCommandDefencoding(act, key);
 		break;
 	case RC_DEFUTF8:
 		{
