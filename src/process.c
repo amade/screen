@@ -4476,6 +4476,41 @@ static void DoCommandFocus(struct action *act, int key)
 	SetForeCanvas(display, cv);
 }
 
+static void DoCommandResize(struct action *act, int key)
+{
+	char **args = act->args;
+	int i = 0;
+
+	(void)key; /* unused */
+
+	if (D_forecv->c_slorient == SLICE_UNKN) {
+		OutputMsg(0, "resize: need more than one region");
+		return;
+	}
+	for (; *args; args++) {
+		if (!strcmp(*args, "-h"))
+			i |= RESIZE_FLAG_H;
+		else if (!strcmp(*args, "-v"))
+			i |= RESIZE_FLAG_V;
+		else if (!strcmp(*args, "-b"))
+			i |= RESIZE_FLAG_H | RESIZE_FLAG_V;
+		else if (!strcmp(*args, "-p"))
+			i |= D_forecv->c_slorient == SLICE_VERT ? RESIZE_FLAG_H : RESIZE_FLAG_V;
+		else if (!strcmp(*args, "-l"))
+			i |= RESIZE_FLAG_L;
+		else
+			break;
+	}
+	if (*args && args[1]) {
+		OutputMsg(0, "%s: usage: resize [-h] [-v] [-l] [num]\n", rc_name);
+		return;
+	}
+	if (*args)
+		ResizeRegions(*args, i);
+	else
+		Input(resizeprompts[i], 20, INP_EVERY, ResizeFin, (char *)0, i);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5034,36 +5069,8 @@ void DoAction(struct action *act, int key)
 		DoCommandFocus(act, key);
 		break;
 	case RC_RESIZE:
-		{
-			int i = 0;
-			if (D_forecv->c_slorient == SLICE_UNKN) {
-				OutputMsg(0, "resize: need more than one region");
-				break;
-			}
-			for (; *args; args++) {
-				if (!strcmp(*args, "-h"))
-					i |= RESIZE_FLAG_H;
-				else if (!strcmp(*args, "-v"))
-					i |= RESIZE_FLAG_V;
-				else if (!strcmp(*args, "-b"))
-					i |= RESIZE_FLAG_H | RESIZE_FLAG_V;
-				else if (!strcmp(*args, "-p"))
-					i |= D_forecv->c_slorient == SLICE_VERT ? RESIZE_FLAG_H : RESIZE_FLAG_V;
-				else if (!strcmp(*args, "-l"))
-					i |= RESIZE_FLAG_L;
-				else
-					break;
-			}
-			if (*args && args[1]) {
-				OutputMsg(0, "%s: usage: resize [-h] [-v] [-l] [num]\n", rc_name);
-				break;
-			}
-			if (*args)
-				ResizeRegions(*args, i);
-			else
-				Input(resizeprompts[i], 20, INP_EVERY, ResizeFin, (char *)0, i);
-			break;
-		}
+		DoCommandResize(act, key);
+		break;
 	case RC_SETSID:
 		(void)ParseSwitch(act, &separate_sids);
 		break;
