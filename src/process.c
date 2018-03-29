@@ -4414,6 +4414,15 @@ static void DoCommandSplit(struct action *act, int key)
 	Activate(-1);
 }
 
+static void DoCommandRemove(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	RemCanvas();
+	Activate(-1);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4960,8 +4969,7 @@ void DoAction(struct action *act, int key)
 		DoCommandSplit(act, key);
 		break;
 	case RC_REMOVE:
-		RemCanvas();
-		Activate(-1);
+		DoCommandRemove(act, key);
 		break;
 	case RC_ONLY:
 		OneCanvas();
