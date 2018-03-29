@@ -4399,6 +4399,21 @@ static void DoCommandSu(struct action *act, int key)
 		OutputMsg(0, "%s", s);
 }
 
+static void DoCommandSplit(struct action *act, int key)
+{
+	char **args = act->args;
+	char *s = NULL;
+
+	(void)key; /* unused */
+
+	s = args[0];
+	if (s && !strcmp(s, "-v"))
+		AddCanvas(SLICE_HORI);
+	else
+		AddCanvas(SLICE_VERT);
+	Activate(-1);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4942,12 +4957,7 @@ void DoAction(struct action *act, int key)
 		DoCommandSu(act, key);
 		break;
 	case RC_SPLIT:
-		s = args[0];
-		if (s && !strcmp(s, "-v"))
-			AddCanvas(SLICE_HORI);
-		else
-			AddCanvas(SLICE_VERT);
-		Activate(-1);
+		DoCommandSplit(act, key);
 		break;
 	case RC_REMOVE:
 		RemCanvas();
