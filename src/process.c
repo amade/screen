@@ -4518,6 +4518,21 @@ static void DoCommandSetsid(struct action *act, int key)
 	(void)ParseSwitch(act, &separate_sids);
 }
 
+static void DoCommandEval(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	args = SaveArgs(args);
+	for (int i = 0; args[i]; i++) {
+		if (args[i][0])
+			ColonFin(args[i], strlen(args[i]), (char *)0);
+		free(args[i]);
+	}
+	free(args);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5082,13 +5097,7 @@ void DoAction(struct action *act, int key)
 		DoCommandSetsid(act, key);
 		break;
 	case RC_EVAL:
-		args = SaveArgs(args);
-		for (int i = 0; args[i]; i++) {
-			if (args[i][0])
-				ColonFin(args[i], strlen(args[i]), (char *)0);
-			free(args[i]);
-		}
-		free(args);
+		DoCommandEval(act, key);
 		break;
 	case RC_ALTSCREEN:
 		(void)ParseSwitch(act, &use_altscreen);
