@@ -4922,6 +4922,14 @@ static void DoCommandCjkwidth(struct action *act, int key)
 	}
 }
 
+static void DoCommandTruecolor(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	ParseOnOff(act, &hastruecolor);
+	Activate(-1);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5516,8 +5524,7 @@ void DoAction(struct action *act, int key)
 		DoCommandCjkwidth(act, key);
 		break;
 	case RC_TRUECOLOR:
-		ParseOnOff(act, &hastruecolor);
-		Activate(-1); /* redisplay (check RC_REDISPLAY) */
+		DoCommandTruecolor(act, key);
 		break;
 	default:
 		break;
