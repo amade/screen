@@ -4652,6 +4652,37 @@ static void DoCommandIdle(struct action *act, int key)
 	}
 }
 
+static void DoCommandFocusminsize(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+	int n = 0;
+
+	(void)key; /* unused */
+
+	for (int i = 0; i < 2 && args[i]; i++) {
+		if (!strcmp(args[i], "max") || !strcmp(args[i], "_"))
+			n = -1;
+		else
+			n = atoi(args[i]);
+		if (i == 0)
+			focusminwidth = n;
+		else
+			focusminheight = n;
+	}
+	if (msgok) {
+		char b[2][20];
+		for (int i = 0; i < 2; i++) {
+			n = i == 0 ? focusminwidth : focusminheight;
+			if (n == -1)
+				strncpy(b[i], "max", 20);
+			else
+				sprintf(b[i], "%d", n);
+		}
+		OutputMsg(0, "focus min size is %s %s\n", b[0], b[1]);
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5234,27 +5265,7 @@ void DoAction(struct action *act, int key)
 		DoCommandIdle(act, key);
 		break;
 	case RC_FOCUSMINSIZE:
-		for (int i = 0; i < 2 && args[i]; i++) {
-			if (!strcmp(args[i], "max") || !strcmp(args[i], "_"))
-				n = -1;
-			else
-				n = atoi(args[i]);
-			if (i == 0)
-				focusminwidth = n;
-			else
-				focusminheight = n;
-		}
-		if (msgok) {
-			char b[2][20];
-			for (int i = 0; i < 2; i++) {
-				n = i == 0 ? focusminwidth : focusminheight;
-				if (n == -1)
-					strncpy(b[i], "max", 20);
-				else
-					sprintf(b[i], "%d", n);
-			}
-			OutputMsg(0, "focus min size is %s %s\n", b[0], b[1]);
-		}
+		DoCommandFocusminsize(act, key);
 		break;
 	case RC_GROUP:
 		if (*args) {
