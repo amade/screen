@@ -4511,6 +4511,13 @@ static void DoCommandResize(struct action *act, int key)
 		Input(resizeprompts[i], 20, INP_EVERY, ResizeFin, (char *)0, i);
 }
 
+static void DoCommandSetsid(struct action *act, int key)
+{
+	(void)key; /* unused */
+
+	(void)ParseSwitch(act, &separate_sids);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5072,7 +5079,7 @@ void DoAction(struct action *act, int key)
 		DoCommandResize(act, key);
 		break;
 	case RC_SETSID:
-		(void)ParseSwitch(act, &separate_sids);
+		DoCommandSetsid(act, key);
 		break;
 	case RC_EVAL:
 		args = SaveArgs(args);
