@@ -4544,6 +4544,33 @@ static void DoCommandAltscreen(struct action *act, int key)
 		OutputMsg(0, "Will %sdo alternate screen switching", use_altscreen ? "" : "not ");
 }
 
+static void DoCommandBacktick(struct action *act, int key)
+{
+	char **args = act->args;
+	int argc = CheckArgNum(act->nr, args);
+	int n = 0;
+
+	(void)key; /* unused */
+
+	if (ParseBase(act, *args, &n, 10, "decimal"))
+		return;
+	if (!args[1])
+		setbacktick(n, 0, 0, (char **)0);
+	else {
+		int lifespan, tick;
+		if (argc < 4) {
+			OutputMsg(0, "%s: usage: backtick num [lifespan tick cmd args...]", rc_name);
+			return;
+		}
+		if (ParseBase(act, args[1], &lifespan, 10, "decimal"))
+			return;
+		if (ParseBase(act, args[2], &tick, 10, "decimal"))
+			return;
+		setbacktick(n, lifespan, tick, SaveArgs(args + 3));
+	}
+	WindowChanged(0, WINESC_BACKTICK);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5114,23 +5141,7 @@ void DoAction(struct action *act, int key)
 		DoCommandAltscreen(act, key);
 		break;
 	case RC_BACKTICK:
-		if (ParseBase(act, *args, &n, 10, "decimal"))
-			break;
-		if (!args[1])
-			setbacktick(n, 0, 0, (char **)0);
-		else {
-			int lifespan, tick;
-			if (argc < 4) {
-				OutputMsg(0, "%s: usage: backtick num [lifespan tick cmd args...]", rc_name);
-				break;
-			}
-			if (ParseBase(act, args[1], &lifespan, 10, "decimal"))
-				break;
-			if (ParseBase(act, args[2], &tick, 10, "decimal"))
-				break;
-			setbacktick(n, lifespan, tick, SaveArgs(args + 3));
-		}
-		WindowChanged(0, WINESC_BACKTICK);
+		DoCommandBacktick(act, key);
 		break;
 	case RC_BLANKER:
 		if (blankerprg) {
