@@ -4533,6 +4533,17 @@ static void DoCommandEval(struct action *act, int key)
 	free(args);
 }
 
+static void DoCommandAltscreen(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	(void)ParseSwitch(act, &use_altscreen);
+	if (msgok)
+		OutputMsg(0, "Will %sdo alternate screen switching", use_altscreen ? "" : "not ");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5100,9 +5111,7 @@ void DoAction(struct action *act, int key)
 		DoCommandEval(act, key);
 		break;
 	case RC_ALTSCREEN:
-		(void)ParseSwitch(act, &use_altscreen);
-		if (msgok)
-			OutputMsg(0, "Will %sdo alternate screen switching", use_altscreen ? "" : "not ");
+		DoCommandAltscreen(act, key);
 		break;
 	case RC_BACKTICK:
 		if (ParseBase(act, *args, &n, 10, "decimal"))
