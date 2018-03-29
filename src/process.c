@@ -4432,6 +4432,20 @@ static void DoCommandOnly(struct action *act, int key)
 	Activate(-1);
 }
 
+static void DoCommandFit(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	D_forecv->c_xoff = D_forecv->c_xs;
+	D_forecv->c_yoff = D_forecv->c_ys;
+	RethinkViewportOffsets(D_forecv);
+	ResizeLayer(D_forecv->c_layer, D_forecv->c_xe - D_forecv->c_xs + 1, D_forecv->c_ye - D_forecv->c_ys + 1,
+		    0);
+	flayer = D_forecv->c_layer;
+	LaySetCursor();
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4984,13 +4998,7 @@ void DoAction(struct action *act, int key)
 		DoCommandOnly(act, key);
 		break;
 	case RC_FIT:
-		D_forecv->c_xoff = D_forecv->c_xs;
-		D_forecv->c_yoff = D_forecv->c_ys;
-		RethinkViewportOffsets(D_forecv);
-		ResizeLayer(D_forecv->c_layer, D_forecv->c_xe - D_forecv->c_xs + 1, D_forecv->c_ye - D_forecv->c_ys + 1,
-			    0);
-		flayer = D_forecv->c_layer;
-		LaySetCursor();
+		DoCommandFit(act, key);
 		break;
 	case RC_FOCUS:
 		{
