@@ -4446,6 +4446,36 @@ static void DoCommandFit(struct action *act, int key)
 	LaySetCursor();
 }
 
+static void DoCommandFocus(struct action *act, int key)
+{
+	char **args = act->args;
+	Canvas *cv = 0;
+
+	(void)key; /* unused */
+
+	if (!*args || !strcmp(*args, "next"))
+		cv = D_forecv->c_next ? D_forecv->c_next : D_cvlist;
+	else if (!strcmp(*args, "prev")) {
+		for (cv = D_cvlist; cv->c_next && cv->c_next != D_forecv; cv = cv->c_next) ;
+	} else if (!strcmp(*args, "top"))
+		cv = D_cvlist;
+	else if (!strcmp(*args, "bottom")) {
+		for (cv = D_cvlist; cv->c_next; cv = cv->c_next) ;
+	} else if (!strcmp(*args, "up"))
+		cv = FindCanvas(D_forecv->c_xs, D_forecv->c_ys - 1);
+	else if (!strcmp(*args, "down"))
+		cv = FindCanvas(D_forecv->c_xs, D_forecv->c_ye + 2);
+	else if (!strcmp(*args, "left"))
+		cv = FindCanvas(D_forecv->c_xs - 1, D_forecv->c_ys);
+	else if (!strcmp(*args, "right"))
+		cv = FindCanvas(D_forecv->c_xe + 1, D_forecv->c_ys);
+	else {
+		OutputMsg(0, "%s: usage: focus [next|prev|up|down|left|right|top|bottom]", rc_name);
+		return;
+	}
+	SetForeCanvas(display, cv);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5001,30 +5031,7 @@ void DoAction(struct action *act, int key)
 		DoCommandFit(act, key);
 		break;
 	case RC_FOCUS:
-		{
-			Canvas *cv = 0;
-			if (!*args || !strcmp(*args, "next"))
-				cv = D_forecv->c_next ? D_forecv->c_next : D_cvlist;
-			else if (!strcmp(*args, "prev")) {
-				for (cv = D_cvlist; cv->c_next && cv->c_next != D_forecv; cv = cv->c_next) ;
-			} else if (!strcmp(*args, "top"))
-				cv = D_cvlist;
-			else if (!strcmp(*args, "bottom")) {
-				for (cv = D_cvlist; cv->c_next; cv = cv->c_next) ;
-			} else if (!strcmp(*args, "up"))
-				cv = FindCanvas(D_forecv->c_xs, D_forecv->c_ys - 1);
-			else if (!strcmp(*args, "down"))
-				cv = FindCanvas(D_forecv->c_xs, D_forecv->c_ye + 2);
-			else if (!strcmp(*args, "left"))
-				cv = FindCanvas(D_forecv->c_xs - 1, D_forecv->c_ys);
-			else if (!strcmp(*args, "right"))
-				cv = FindCanvas(D_forecv->c_xe + 1, D_forecv->c_ys);
-			else {
-				OutputMsg(0, "%s: usage: focus [next|prev|up|down|left|right|top|bottom]", rc_name);
-				break;
-			}
-			SetForeCanvas(display, cv);
-		}
+		DoCommandFocus(act, key);
 		break;
 	case RC_RESIZE:
 		{
