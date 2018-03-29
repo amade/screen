@@ -4710,6 +4710,205 @@ static void DoCommandGroup(struct action *act, int key)
 	}
 }
 
+static void DoCommandLayout(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (!*args)
+		return;
+	// A number of the subcommands for "layout" are ignored, or not processed correctly when there
+	// is no attached display.
+
+	if (!strcmp(args[0], "title")) {
+		if (!display) {
+			if (!args[1])	// There is no display, and there is no new title. Ignore.
+				return;
+			if (!layout_attach || layout_attach == &layout_last_marker)
+				layout_attach = CreateLayout(args[1], 0);
+			else
+				RenameLayout(layout_attach, args[1]);
+			return;
+		}
+
+		if (!D_layout) {
+			OutputMsg(0, "not on a layout");
+			return;
+		}
+		if (!args[1]) {
+			OutputMsg(0, "current layout is %d (%s)", D_layout->lay_number, D_layout->lay_title);
+			return;
+		}
+		RenameLayout(D_layout, args[1]);
+	} else if (!strcmp(args[0], "number")) {
+		if (!display) {
+			if (args[1] && layout_attach && layout_attach != &layout_last_marker)
+				RenumberLayout(layout_attach, atoi(args[1]));
+			return;
+		}
+
+		if (!D_layout) {
+			OutputMsg(0, "not on a layout");
+			return;
+		}
+		if (!args[1]) {
+			OutputMsg(0, "This is layout %d (%s).\n", D_layout->lay_number, D_layout->lay_title);
+			return;
+		}
+		RenumberLayout(D_layout, atoi(args[1]));
+		return;
+	} else if (!strcmp(args[0], "autosave")) {
+		if (!display) {
+			if (args[1] && layout_attach && layout_attach != &layout_last_marker) {
+				if (!strcmp(args[1], "on"))
+					layout_attach->lay_autosave = 1;
+				else if (!strcmp(args[1], "off"))
+					layout_attach->lay_autosave = 0;
+			}
+			return;
+		}
+
+		if (!D_layout) {
+			OutputMsg(0, "not on a layout");
+			return;
+		}
+		if (args[1]) {
+			if (!strcmp(args[1], "on"))
+				D_layout->lay_autosave = 1;
+			else if (!strcmp(args[1], "off"))
+				D_layout->lay_autosave = 0;
+			else {
+				OutputMsg(0, "invalid argument. Give 'on' or 'off");
+				return;
+			}
+		}
+		if (msgok)
+			OutputMsg(0, "autosave is %s", D_layout->lay_autosave ? "on" : "off");
+	} else if (!strcmp(args[0], "new")) {
+		char *t = args[1];
+		int n = 0;
+		if (t) {
+			while (*t >= '0' && *t <= '9')
+				t++;
+			if (t != args[1] && (!*t || *t == ':')) {
+				n = atoi(args[1]);
+				if (*t)
+					t++;
+			} else
+				t = args[1];
+		}
+		if (!t || !*t)
+			t = "layout";
+		NewLayout(t, n);
+		Activate(-1);
+	} else if (!strcmp(args[0], "save")) {
+		if (!args[1]) {
+			OutputMsg(0, "usage: layout save <name>");
+			return;
+		}
+		if (display)
+			SaveLayout(args[1], &D_canvas);
+	} else if (!strcmp(args[0], "select")) {
+		if (!display) {
+			if (args[1])
+				layout_attach = FindLayout(args[1]);
+			return;
+		}
+		if (!args[1]) {
+			Input("Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
+			return;
+		}
+		SelectLayoutFin(args[1], strlen(args[1]), (char *)0);
+	} else if (!strcmp(args[0], "next")) {
+		if (!display) {
+			if (layout_attach && layout_attach != &layout_last_marker)
+				layout_attach = layout_attach->lay_next ? layout_attach->lay_next : layouts;;
+			return;
+		}
+		Layout *lay = D_layout;
+		if (lay)
+			lay = lay->lay_next ? lay->lay_next : layouts;
+		else
+			lay = layouts;
+		if (!lay) {
+			OutputMsg(0, "no layout defined");
+			return;
+		}
+		if (lay == D_layout)
+			return;
+		LoadLayout(lay);
+		Activate(-1);
+	} else if (!strcmp(args[0], "prev")) {
+		Layout *lay = display ? D_layout : layout_attach;
+		Layout *target = lay;
+		if (lay) {
+			for (lay = layouts; lay->lay_next && lay->lay_next != target; lay = lay->lay_next) ;
+		} else
+			lay = layouts;
+
+		if (!display) {
+			layout_attach = lay;
+			return;
+		}
+
+		if (!lay) {
+			OutputMsg(0, "no layout defined");
+			return;
+		}
+		if (lay == D_layout)
+			return;
+		LoadLayout(lay);
+		Activate(-1);
+	} else if (!strcmp(args[0], "attach")) {
+		if (!args[1]) {
+			if (!layout_attach)
+				OutputMsg(0, "no attach layout set");
+			else if (layout_attach == &layout_last_marker)
+				OutputMsg(0, "will attach to last layout");
+			else
+				OutputMsg(0, "will attach to layout %d (%s)", layout_attach->lay_number,
+					  layout_attach->lay_title);
+			return;
+		}
+		if (!strcmp(args[1], ":last"))
+			layout_attach = &layout_last_marker;
+		else if (!args[1][0])
+			layout_attach = 0;
+		else {
+			Layout *lay;
+			lay = FindLayout(args[1]);
+			if (!lay) {
+				OutputMsg(0, "unknown layout '%s'", args[1]);
+				return;
+			}
+			layout_attach = lay;
+		}
+	} else if (!strcmp(args[0], "show")) {
+		ShowLayouts(-1);
+	} else if (!strcmp(args[0], "remove")) {
+		Layout *lay = display ? D_layout : layouts;
+		if (args[1]) {
+			lay = layouts ? FindLayout(args[1]) : (Layout *)0;
+			if (!lay) {
+				OutputMsg(0, "unknown layout '%s'", args[1]);
+				return;
+			}
+		}
+		if (lay)
+			RemoveLayout(lay);
+	} else if (!strcmp(args[0], "dump")) {
+		if (!display)
+			OutputMsg(0, "Must have a display for 'layout dump'.");
+		else if (!LayoutDumpCanvas(&D_canvas, args[1] ? args[1] : "layout-dump"))
+			OutputMsg(errno, "Error dumping layout.");
+		else
+			OutputMsg(0, "Layout dumped to \"%s\"", args[1] ? args[1] : "layout-dump");
+	} else
+		OutputMsg(0, "unknown layout subcommand");
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5298,196 +5497,7 @@ void DoAction(struct action *act, int key)
 		DoCommandGroup(act, key);
 		break;
 	case RC_LAYOUT:
-		if (!*args)
-			break;
-		// A number of the subcommands for "layout" are ignored, or not processed correctly when there
-		// is no attached display.
-
-		if (!strcmp(args[0], "title")) {
-			if (!display) {
-				if (!args[1])	// There is no display, and there is no new title. Ignore.
-					break;
-				if (!layout_attach || layout_attach == &layout_last_marker)
-					layout_attach = CreateLayout(args[1], 0);
-				else
-					RenameLayout(layout_attach, args[1]);
-				break;
-			}
-
-			if (!D_layout) {
-				OutputMsg(0, "not on a layout");
-				break;
-			}
-			if (!args[1]) {
-				OutputMsg(0, "current layout is %d (%s)", D_layout->lay_number, D_layout->lay_title);
-				break;
-			}
-			RenameLayout(D_layout, args[1]);
-		} else if (!strcmp(args[0], "number")) {
-			if (!display) {
-				if (args[1] && layout_attach && layout_attach != &layout_last_marker)
-					RenumberLayout(layout_attach, atoi(args[1]));
-				break;
-			}
-
-			if (!D_layout) {
-				OutputMsg(0, "not on a layout");
-				break;
-			}
-			if (!args[1]) {
-				OutputMsg(0, "This is layout %d (%s).\n", D_layout->lay_number, D_layout->lay_title);
-				break;
-			}
-			RenumberLayout(D_layout, atoi(args[1]));
-			break;
-		} else if (!strcmp(args[0], "autosave")) {
-			if (!display) {
-				if (args[1] && layout_attach && layout_attach != &layout_last_marker) {
-					if (!strcmp(args[1], "on"))
-						layout_attach->lay_autosave = 1;
-					else if (!strcmp(args[1], "off"))
-						layout_attach->lay_autosave = 0;
-				}
-				break;
-			}
-
-			if (!D_layout) {
-				OutputMsg(0, "not on a layout");
-				break;
-			}
-			if (args[1]) {
-				if (!strcmp(args[1], "on"))
-					D_layout->lay_autosave = 1;
-				else if (!strcmp(args[1], "off"))
-					D_layout->lay_autosave = 0;
-				else {
-					OutputMsg(0, "invalid argument. Give 'on' or 'off");
-					break;
-				}
-			}
-			if (msgok)
-				OutputMsg(0, "autosave is %s", D_layout->lay_autosave ? "on" : "off");
-		} else if (!strcmp(args[0], "new")) {
-			char *t = args[1];
-			n = 0;
-			if (t) {
-				while (*t >= '0' && *t <= '9')
-					t++;
-				if (t != args[1] && (!*t || *t == ':')) {
-					n = atoi(args[1]);
-					if (*t)
-						t++;
-				} else
-					t = args[1];
-			}
-			if (!t || !*t)
-				t = "layout";
-			NewLayout(t, n);
-			Activate(-1);
-		} else if (!strcmp(args[0], "save")) {
-			if (!args[1]) {
-				OutputMsg(0, "usage: layout save <name>");
-				break;
-			}
-			if (display)
-				SaveLayout(args[1], &D_canvas);
-		} else if (!strcmp(args[0], "select")) {
-			if (!display) {
-				if (args[1])
-					layout_attach = FindLayout(args[1]);
-				break;
-			}
-			if (!args[1]) {
-				Input("Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
-				break;
-			}
-			SelectLayoutFin(args[1], strlen(args[1]), (char *)0);
-		} else if (!strcmp(args[0], "next")) {
-			if (!display) {
-				if (layout_attach && layout_attach != &layout_last_marker)
-					layout_attach = layout_attach->lay_next ? layout_attach->lay_next : layouts;;
-				break;
-			}
-			Layout *lay = D_layout;
-			if (lay)
-				lay = lay->lay_next ? lay->lay_next : layouts;
-			else
-				lay = layouts;
-			if (!lay) {
-				OutputMsg(0, "no layout defined");
-				break;
-			}
-			if (lay == D_layout)
-				break;
-			LoadLayout(lay);
-			Activate(-1);
-		} else if (!strcmp(args[0], "prev")) {
-			Layout *lay = display ? D_layout : layout_attach;
-			Layout *target = lay;
-			if (lay) {
-				for (lay = layouts; lay->lay_next && lay->lay_next != target; lay = lay->lay_next) ;
-			} else
-				lay = layouts;
-
-			if (!display) {
-				layout_attach = lay;
-				break;
-			}
-
-			if (!lay) {
-				OutputMsg(0, "no layout defined");
-				break;
-			}
-			if (lay == D_layout)
-				break;
-			LoadLayout(lay);
-			Activate(-1);
-		} else if (!strcmp(args[0], "attach")) {
-			if (!args[1]) {
-				if (!layout_attach)
-					OutputMsg(0, "no attach layout set");
-				else if (layout_attach == &layout_last_marker)
-					OutputMsg(0, "will attach to last layout");
-				else
-					OutputMsg(0, "will attach to layout %d (%s)", layout_attach->lay_number,
-						  layout_attach->lay_title);
-				break;
-			}
-			if (!strcmp(args[1], ":last"))
-				layout_attach = &layout_last_marker;
-			else if (!args[1][0])
-				layout_attach = 0;
-			else {
-				Layout *lay;
-				lay = FindLayout(args[1]);
-				if (!lay) {
-					OutputMsg(0, "unknown layout '%s'", args[1]);
-					break;
-				}
-				layout_attach = lay;
-			}
-		} else if (!strcmp(args[0], "show")) {
-			ShowLayouts(-1);
-		} else if (!strcmp(args[0], "remove")) {
-			Layout *lay = display ? D_layout : layouts;
-			if (args[1]) {
-				lay = layouts ? FindLayout(args[1]) : (Layout *)0;
-				if (!lay) {
-					OutputMsg(0, "unknown layout '%s'", args[1]);
-					break;
-				}
-			}
-			if (lay)
-				RemoveLayout(lay);
-		} else if (!strcmp(args[0], "dump")) {
-			if (!display)
-				OutputMsg(0, "Must have a display for 'layout dump'.");
-			else if (!LayoutDumpCanvas(&D_canvas, args[1] ? args[1] : "layout-dump"))
-				OutputMsg(errno, "Error dumping layout.");
-			else
-				OutputMsg(0, "Layout dumped to \"%s\"", args[1] ? args[1] : "layout-dump");
-		} else
-			OutputMsg(0, "unknown layout subcommand");
+		DoCommandLayout(act, key);
 		break;
 	case RC_CJKWIDTH:
 		if (ParseSwitch(act, &cjkwidth) == 0) {
