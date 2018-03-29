@@ -4909,6 +4909,19 @@ static void DoCommandLayout(struct action *act, int key)
 		OutputMsg(0, "unknown layout subcommand");
 }
 
+static void DoCommandCjkwidth(struct action *act, int key)
+{
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (ParseSwitch(act, &cjkwidth) == 0) {
+		if (msgok)
+			OutputMsg(0, "Treat ambiguous width characters as %s width",
+				  cjkwidth ? "full" : "half");
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5500,11 +5513,7 @@ void DoAction(struct action *act, int key)
 		DoCommandLayout(act, key);
 		break;
 	case RC_CJKWIDTH:
-		if (ParseSwitch(act, &cjkwidth) == 0) {
-			if (msgok)
-				OutputMsg(0, "Treat ambiguous width characters as %s width",
-					  cjkwidth ? "full" : "half");
-		}
+		DoCommandCjkwidth(act, key);
 		break;
 	case RC_TRUECOLOR:
 		ParseOnOff(act, &hastruecolor);
