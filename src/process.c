@@ -4614,6 +4614,44 @@ static void DoCommandBlankerprg(struct action *act, int key)
 		blankerprg = SaveArgs(args);
 }
 
+static void DoCommandIdle(struct action *act, int key)
+{
+	char **args = act->args;
+	int *argl = act->argl;
+	int argc = CheckArgNum(act->nr, args);
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (*args) {
+		Display *olddisplay = display;
+		if (!strcmp(*args, "off"))
+			idletimo = 0;
+		else if (args[0][0])
+			idletimo = atoi(*args) * 1000;
+		if (argc > 1) {
+			int i;
+			if ((i = FindCommnr(args[1])) == RC_ILLEGAL) {
+				OutputMsg(0, "%s: idle: unknown command '%s'", rc_name, args[1]);
+				return;
+			}
+			if (CheckArgNum(i, args + 2) < 0)
+				return;
+			ClearAction(&idleaction);
+			SaveAction(&idleaction, i, args + 2, argl + 2);
+		}
+		for (display = displays; display; display = display->d_next)
+			ResetIdle();
+		display = olddisplay;
+	}
+	if (msgok) {
+		if (idletimo)
+			OutputMsg(0, "idle timeout %ds, %s", idletimo / 1000, comms[idleaction.nr].name);
+		else
+			OutputMsg(0, "idle off");
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5193,33 +5231,7 @@ void DoAction(struct action *act, int key)
 		DoCommandBlankerprg(act, key);
 		break;
 	case RC_IDLE:
-		if (*args) {
-			Display *olddisplay = display;
-			if (!strcmp(*args, "off"))
-				idletimo = 0;
-			else if (args[0][0])
-				idletimo = atoi(*args) * 1000;
-			if (argc > 1) {
-				int i;
-				if ((i = FindCommnr(args[1])) == RC_ILLEGAL) {
-					OutputMsg(0, "%s: idle: unknown command '%s'", rc_name, args[1]);
-					break;
-				}
-				if (CheckArgNum(i, args + 2) < 0)
-					break;
-				ClearAction(&idleaction);
-				SaveAction(&idleaction, i, args + 2, argl + 2);
-			}
-			for (display = displays; display; display = display->d_next)
-				ResetIdle();
-			display = olddisplay;
-		}
-		if (msgok) {
-			if (idletimo)
-				OutputMsg(0, "idle timeout %ds, %s", idletimo / 1000, comms[idleaction.nr].name);
-			else
-				OutputMsg(0, "idle off");
-		}
+		DoCommandIdle(act, key);
 		break;
 	case RC_FOCUSMINSIZE:
 		for (int i = 0; i < 2 && args[i]; i++) {
