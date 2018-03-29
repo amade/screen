@@ -4934,16 +4934,9 @@ void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
 	char **args = act->args;
-	int *argl = act->argl;
-	int argc, n, msgok;
-	int j;
-	char *s = NULL;
-	char ch;
+	int argc, n;
 	Display *odisplay = display;
-	struct acluser *user;
-	size_t len;
 
-	user = display ? D_user : users;
 	if (nr == RC_ILLEGAL) {
 		return;
 	}
@@ -4986,7 +4979,6 @@ void DoAction(struct action *act, int key)
 		}
 	}
 
-	msgok = display && !*rc_name;
 	switch (nr) {
 	case RC_SELECT:
 		DoCommandSelect(act, key);
