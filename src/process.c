@@ -4379,6 +4379,26 @@ static void DoCommandSource(struct action *act, int key)
 	do_source(*args);
 }
 
+static void DoCommandSu(struct action *act, int key)
+{
+	char **args = act->args;
+	char *s = NULL;
+
+	(void)key; /* unused */
+
+	if (!*args) {
+		OutputMsg(0, "%s:%s screen login", HostName, SocketPath);
+		InputSu(&D_user, NULL);
+	} else if (!args[1])
+		InputSu(&D_user, args[0]);
+	else if (!args[2])
+		s = DoSu(&D_user, args[0], args[1], "\377");
+	else
+		s = DoSu(&D_user, args[0], args[1], args[2]);
+	if (s)
+		OutputMsg(0, "%s", s);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4919,18 +4939,7 @@ void DoAction(struct action *act, int key)
 		DoCommandSource(act, key);
 		break;
 	case RC_SU:
-		s = NULL;
-		if (!*args) {
-			OutputMsg(0, "%s:%s screen login", HostName, SocketPath);
-			InputSu(&D_user, NULL);
-		} else if (!args[1])
-			InputSu(&D_user, args[0]);
-		else if (!args[2])
-			s = DoSu(&D_user, args[0], args[1], "\377");
-		else
-			s = DoSu(&D_user, args[0], args[1], args[2]);
-		if (s)
-			OutputMsg(0, "%s", s);
+		DoCommandSu(act, key);
 		break;
 	case RC_SPLIT:
 		s = args[0];
