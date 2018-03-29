@@ -4423,6 +4423,15 @@ static void DoCommandRemove(struct action *act, int key)
 	Activate(-1);
 }
 
+static void DoCommandOnly(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	OneCanvas();
+	Activate(-1);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -4972,8 +4981,7 @@ void DoAction(struct action *act, int key)
 		DoCommandRemove(act, key);
 		break;
 	case RC_ONLY:
-		OneCanvas();
-		Activate(-1);
+		DoCommandOnly(act, key);
 		break;
 	case RC_FIT:
 		D_forecv->c_xoff = D_forecv->c_xs;
