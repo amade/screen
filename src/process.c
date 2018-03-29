@@ -4683,6 +4683,33 @@ static void DoCommandFocusminsize(struct action *act, int key)
 	}
 }
 
+static void DoCommandGroup(struct action *act, int key)
+{
+	char **args = act->args;
+	int msgok = display && !*rc_name;
+
+	(void)key; /* unused */
+
+	if (*args) {
+		fore->w_group = 0;
+		if (args[0][0]) {
+			fore->w_group = WindowByName(*args);
+			if (fore->w_group == fore || (fore->w_group && fore->w_group->w_type != W_TYPE_GROUP))
+				fore->w_group = 0;
+		}
+		WindowChanged((Window *)0, WINESC_WIN_NAMES);
+		WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
+		WindowChanged((Window *)0, 0);
+	}
+	if (msgok) {
+		if (fore->w_group)
+			OutputMsg(0, "window group is %d (%s)\n", fore->w_group->w_number,
+				  fore->w_group->w_title);
+		else
+			OutputMsg(0, "window belongs to no group");
+	}
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5268,24 +5295,7 @@ void DoAction(struct action *act, int key)
 		DoCommandFocusminsize(act, key);
 		break;
 	case RC_GROUP:
-		if (*args) {
-			fore->w_group = 0;
-			if (args[0][0]) {
-				fore->w_group = WindowByName(*args);
-				if (fore->w_group == fore || (fore->w_group && fore->w_group->w_type != W_TYPE_GROUP))
-					fore->w_group = 0;
-			}
-			WindowChanged((Window *)0, WINESC_WIN_NAMES);
-			WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
-			WindowChanged((Window *)0, 0);
-		}
-		if (msgok) {
-			if (fore->w_group)
-				OutputMsg(0, "window group is %d (%s)\n", fore->w_group->w_number,
-					  fore->w_group->w_title);
-			else
-				OutputMsg(0, "window belongs to no group");
-		}
+		DoCommandGroup(act, key);
 		break;
 	case RC_LAYOUT:
 		if (!*args)
