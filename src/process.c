@@ -4571,6 +4571,49 @@ static void DoCommandBacktick(struct action *act, int key)
 	WindowChanged(0, WINESC_BACKTICK);
 }
 
+static void DoCommandBlanker(struct action *act, int key)
+{
+	(void)act; /* unused */
+	(void)key; /* unused */
+
+	if (blankerprg) {
+		RunBlanker(blankerprg);
+		return;
+	}
+	ClearAll();
+	CursorVisibility(-1);
+	D_blocked = 4;
+}
+
+static void DoCommandBlankerprg(struct action *act, int key)
+{
+	char **args = act->args;
+
+	(void)key; /* unused */
+
+	if (!args[0]) {
+		if (blankerprg) {
+			char path[MAXPATHLEN];
+			char *p = path, **pp;
+			for (pp = blankerprg; *pp; pp++)
+				p += snprintf(p, ARRAY_SIZE(path) - (p - path) - 1, "%s ", *pp);
+			*(p - 1) = '\0';
+			OutputMsg(0, "blankerprg: %s", path);
+		} else
+			OutputMsg(0, "No blankerprg set.");
+		return;
+	}
+	if (blankerprg) {
+		char **pp;
+		for (pp = blankerprg; *pp; pp++)
+			free(*pp);
+		free(blankerprg);
+		blankerprg = 0;
+	}
+	if (args[0][0])
+		blankerprg = SaveArgs(args);
+}
+
 void DoAction(struct action *act, int key)
 {
 	int nr = act->nr;
@@ -5144,36 +5187,10 @@ void DoAction(struct action *act, int key)
 		DoCommandBacktick(act, key);
 		break;
 	case RC_BLANKER:
-		if (blankerprg) {
-			RunBlanker(blankerprg);
-			break;
-		}
-		ClearAll();
-		CursorVisibility(-1);
-		D_blocked = 4;
+		DoCommandBlanker(act, key);
 		break;
 	case RC_BLANKERPRG:
-		if (!args[0]) {
-			if (blankerprg) {
-				char path[MAXPATHLEN];
-				char *p = path, **pp;
-				for (pp = blankerprg; *pp; pp++)
-					p += snprintf(p, ARRAY_SIZE(path) - (p - path) - 1, "%s ", *pp);
-				*(p - 1) = '\0';
-				OutputMsg(0, "blankerprg: %s", path);
-			} else
-				OutputMsg(0, "No blankerprg set.");
-			break;
-		}
-		if (blankerprg) {
-			char **pp;
-			for (pp = blankerprg; *pp; pp++)
-				free(*pp);
-			free(blankerprg);
-			blankerprg = 0;
-		}
-		if (args[0][0])
-			blankerprg = SaveArgs(args);
+		DoCommandBlankerprg(act, key);
 		break;
 	case RC_IDLE:
 		if (*args) {
