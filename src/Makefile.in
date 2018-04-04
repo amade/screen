@@ -250,7 +250,7 @@ backtick.o: backtick.c backtick.h screen.h os.h ansi.h sched.h acls.h \
 sched.o: sched.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
  layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h
-telnet.o: telnet.c config.h
+telnet.o: telnet.c config.h comm.h
 encoding.o: encoding.c config.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
  window.h logfile.h encoding.h fileio.h
@@ -273,4 +273,4 @@ list_window.o: list_window.c config.h screen.h os.h ansi.h sched.h acls.h \
  comm.h layer.h term.h image.h canvas.h display.h layout.h viewport.h \
  window.h logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h input.h \
  list_generic.h misc.h process.h
-list_license.o: list_license.c list_generic.h misc.h
+list_license.o: list_license.c list_generic.h misc.h comm.h
