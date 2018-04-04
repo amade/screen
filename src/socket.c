@@ -1017,7 +1017,7 @@ static void FinishAttach(Message *m)
 			newscreen.nr = RC_SCREEN;
 			newscreen.args = &na;
 			newscreen.quiet = 0;
-			DoAction(&newscreen, -1);
+			DoAction(&newscreen);
 		} else
 			fore = FindNiceWindow(fore, m->m.attach.preselect);
 	} else
