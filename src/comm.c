@@ -163,7 +163,7 @@ struct comm comms[RC_LAST + 1] =
   { "paste",		NEED_LAYER|ARGS_012,		{NULL} },
   { "pastefont",	ARGS_01,			{NULL} },
   { "pow_break",	NEED_FORE|ARGS_01,		{NULL} },
-  { "pow_detach",	NEED_DISPLAY|ARGS_0,		{NULL} },
+  { "pow_detach",	NEED_DISPLAY|ARGS_01,		{NULL} },
   { "pow_detach_msg",	ARGS_01,			{NULL} },
   { "prev",		ARGS_0,				{NULL} },
   { "printcmd",		ARGS_01,			{NULL} },
