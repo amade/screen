@@ -168,7 +168,7 @@ struct comm comms[RC_LAST + 1] =
   { "prev",		ARGS_0,				{NULL} },
   { "printcmd",		ARGS_01,			{NULL} },
   { "process",		NEED_DISPLAY|ARGS_01,		{NULL} },
-  { "quit",		ARGS_0,				{NULL} },
+  { "quit",		ARGS_01,			{NULL} },
   { "readbuf",		ARGS_0123,			{NULL} },
   { "readreg",          ARGS_0|ARGS_ORMORE,		{NULL} },
   { "redisplay",	NEED_DISPLAY|ARGS_0,		{NULL} },
