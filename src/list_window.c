@@ -56,27 +56,23 @@ struct gl_Window_Data {
 #define WLIST_FOR_GROUP(wdate)	((wdata)->group && !(wdata)->onblank && Layer2Window(flayer) && Layer2Window(flayer)->w_type == W_TYPE_GROUP)
 
 /* This macro should not be used if 'fn' is expected to update the window list */
-#define FOR_EACH_WINDOW(_wdata, _w, fn) do {	\
-    if ((_wdata)->order == WLIST_MRU)	\
-      {	\
-	Window *_ww;	\
-	for (_ww = windows; _ww; _ww = _ww->w_next)	\
-	  {	\
-	    _w = _ww;	\
-	    fn	\
-	  }	\
-      }	\
-    else	\
-      {	\
-	Window **_ww, *_witer;	\
-	for (_ww = wtab, _witer = windows; _witer && _ww - wtab < maxwin; _ww++)	\
-	  {	\
-	    if (!(_w = *_ww))	continue;	\
-	    fn	\
-	    _witer = _witer->w_next;	\
-	  }	\
-      }	\
-  } while (0)
+#define FOR_EACH_WINDOW(_wdata, _w, fn) do {					\
+	if ((_wdata)->order == WLIST_MRU) {					\
+		Window *_ww;							\
+		for (_ww = windows; _ww; _ww = _ww->w_next) {			\
+			_w = _ww;						\
+			fn							\
+		}								\
+	} else {								\
+		Window **_ww, *_witer;						\
+		for (_ww = wtab, _witer = windows; _witer && _ww - wtab < maxwin; _ww++) {	\
+			if (!(_w = *_ww))					\
+				continue;					\
+			fn							\
+			_witer = _witer->w_next;				\
+		}								\
+	}									\
+} while (0)
 
 /* Is 'a' an ancestor of 'd'? */
 static int window_ancestor(Window *a, Window *d)
