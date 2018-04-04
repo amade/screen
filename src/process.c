@@ -768,7 +768,7 @@ void ProcessInput2(char *ibuf, size_t ilen)
 			ch = DefaultMetaEsc;
 
 		if (ch >= 0)
-			DoAction(&ktabp[ch], ch);
+			DoAction(&ktabp[ch]);
 		ibuf = (char *)(s + 1);
 		ilen--;
 	}
@@ -4648,7 +4648,7 @@ static void DoCommandTruecolor(struct action *act)
 	Activate(-1);
 }
 
-void DoAction(struct action *act, int key)
+void DoAction(struct action *act)
 {
 	int nr = act->nr;
 	char **args = act->args;
@@ -5286,7 +5286,7 @@ void DoCommand(char **argv, int *argl)
 	}
 	act.args = argv + 1;
 	act.argl = argl + 1;
-	DoAction(&act, -1);
+	DoAction(&act);
 }
 
 static void SaveAction(struct action *act, int nr, char **args, int *argl)
@@ -6683,7 +6683,7 @@ static void confirm_fn(char *buf, size_t len, void *data)
 	act.args = noargs;
 	act.argl = 0;
 	act.quiet = 0;
-	DoAction(&act, -1);
+	DoAction(&act);
 }
 
 struct inputsu {
@@ -6818,7 +6818,7 @@ int StuffKey(int i)
 		if (act->nr != RC_ILLEGAL) {
 			D_ESCseen = 0;
 			WindowChanged(fore, WINESC_ESC_SEEN);
-			DoAction(act, i + 256);
+			DoAction(act);
 			return 0;
 		}
 		discard = 1;
@@ -6852,7 +6852,7 @@ int StuffKey(int i)
 
 	if (act == 0 || act->nr == RC_ILLEGAL)
 		return -1;
-	DoAction(act, 0);
+	DoAction(act);
 	return 0;
 }
 

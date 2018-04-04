@@ -2865,7 +2865,7 @@ static void disp_idle_fn(Event *event, void *data)
 	olddisplay = display;
 	flayer = D_forecv->c_layer;
 	fore = D_fore;
-	DoAction(&idleaction, -1);
+	DoAction(&idleaction);
 	if (idleaction.nr == RC_BLANKER)
 		return;
 	for (display = displays; display; display = display->d_next)
