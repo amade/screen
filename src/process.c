@@ -100,7 +100,6 @@ static void AKAFin(char *, size_t, void *);
 static void copy_reg_fn(char *, size_t, void *);
 static void ins_reg_fn(char *, size_t, void *);
 static void process_fn(char *, size_t, void *);
-static void pow_detach_fn(char *, size_t, void *);
 static void digraph_fn(char *, size_t, void *);
 static int digraph_find(const char *buf);
 static void confirm_fn(char *, size_t, void *);
@@ -468,7 +467,12 @@ void InitKeytab()
 		SaveAction(ktab + Ctrl('\\'), RC_QUIT, args, 0);
 	}
 	ktab['d'].nr = ktab[Ctrl('d')].nr = RC_DETACH;
-	ktab['D'].nr = RC_POW_DETACH;
+	{
+		char *args[2];
+		args[0] = "--confirm";
+		args[1] = NULL;
+		SaveAction(ktab + 'D', RC_POW_DETACH, args, 0);
+	}
 	ktab['r'].nr = ktab[Ctrl('r')].nr = RC_WRAP;
 	ktab['f'].nr = ktab[Ctrl('f')].nr = RC_FLOW;
 	ktab['C'].nr = RC_CLEAR;
@@ -512,7 +516,6 @@ void InitKeytab()
 	ktab['>'].nr = RC_WRITEBUF;
 	ktab['<'].nr = RC_READBUF;
 	ktab['='].nr = RC_REMOVEBUF;
-	ktab['D'].nr = RC_POW_DETACH;
 	ktab['x'].nr = ktab[Ctrl('x')].nr = RC_LOCKSCREEN;
 	ktab['b'].nr = ktab[Ctrl('b')].nr = RC_BREAK;
 	ktab['B'].nr = RC_POW_BREAK;
@@ -1159,15 +1162,21 @@ static void DoCommandDetach(struct action *act, int key)
 
 static void DoCommandPow_detach(struct action *act, int key)
 {
-	(void)act; /* unused */
+	char **args = act->args;
 
-	if (key >= 0) {
-		static char buf[2];
+	(void)key; /* unused */
 
-		buf[0] = key;
-		Input(buf, 1, INP_RAW, pow_detach_fn, NULL, 0);
-	} else
-		Detach(D_POWER);	/* detach and kill Attacher's parent */
+	if (*args) {
+		if (!strcmp(*args, "--confirm")) {
+			Input("Really detach and send HANGUP to parent process [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_POW_DETACH);
+			return;
+		} else {
+			OutputMsg(0, "usage: pow_detach [--confirm]");
+			return;
+		}
+	}
+
+	Detach(D_POWER);	/* detach and kill Attacher's parent */
 }
 
 static void DoCommandZmodem(struct action *act, int key)
@@ -6912,23 +6921,6 @@ int CompileKeys(char *s, int sl, unsigned char *array)
 /*
  *  Asynchronous input functions
  */
-
-static void pow_detach_fn(char *buf, size_t len, void *data)
-{
-	(void)data; /* unused */
-
-	if (len) {
-		*buf = 0;
-		return;
-	}
-	if (ktab[(int)(unsigned char)*buf].nr != RC_POW_DETACH) {
-		if (display)
-			if (write(D_userfd, "\007", 1) < 0)
-				Panic(0, "Can't write to D_userfd");
-		Msg(0, "Detach aborted.");
-	} else
-		Detach(D_POWER);
-}
 
 static void copy_reg_fn(char *buf, size_t len, void *data)
 {
