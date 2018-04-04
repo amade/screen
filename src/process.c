@@ -461,7 +461,12 @@ void InitKeytab()
 	ktab[','].nr = RC_LICENSE;
 	ktab['W'].nr = RC_WIDTH;
 	ktab['.'].nr = RC_DUMPTERMCAP;
-	ktab[Ctrl('\\')].nr = RC_QUIT;
+	{
+		char *args[2];
+		args[0] = "--confirm";
+		args[1] = NULL;
+		SaveAction(ktab + Ctrl('\\'), RC_QUIT, args, 0);
+	}
 	ktab['d'].nr = ktab[Ctrl('d')].nr = RC_DETACH;
 	ktab['D'].nr = RC_POW_DETACH;
 	ktab['r'].nr = ktab[Ctrl('r')].nr = RC_WRAP;
@@ -1123,11 +1128,18 @@ static void DoCommandKill(struct action *act, int key)
 
 static void DoCommandQuit(struct action *act, int key)
 {
-	(void)act; /* unused */
+	char **args = act->args;
 
-	if (key >= 0) {
-		Input("Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
-		return;
+	(void)key; /* unused */
+
+	if (*args) {
+		if (!strcmp(*args, "--confirm")) {
+			Input("Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
+			return;
+		} else {
+			OutputMsg(0, "usage: quit [--confirm]");
+			return;
+		}
 	}
 	Finit(0);
 	/* does not return */
