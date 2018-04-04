@@ -439,7 +439,13 @@ void InitKeytab()
 	ktab[' '].nr = ktab[Ctrl(' ')].nr = ktab['n'].nr = ktab[Ctrl('n')].nr = RC_NEXT;
 	ktab['N'].nr = RC_NUMBER;
 	ktab[Ctrl('h')].nr = ktab[0177].nr = ktab['p'].nr = ktab[Ctrl('p')].nr = RC_PREV;
-	ktab['k'].nr = ktab[Ctrl('k')].nr = RC_KILL;
+	{
+		char *args[2];
+		args[0] = "--confirm";
+		args[1] = NULL;
+		SaveAction(ktab + 'k', RC_KILL, args, 0);
+		SaveAction(ktab + Ctrl('k'), RC_KILL, args, 0);
+	}
 	ktab['l'].nr = ktab[Ctrl('l')].nr = RC_REDISPLAY;
 	ktab['w'].nr = ktab[Ctrl('w')].nr = RC_WINDOWS;
 	ktab['v'].nr = RC_VERSION;
@@ -1086,15 +1092,21 @@ static void DoCommandPrev(struct action *act, int key)
 
 static void DoCommandKill(struct action *act, int key)
 {
+	char **args = act->args;
 	char *name;
 	int n;
 
-	(void)act; /* unused */
+	(void)key; /* unused */
 
-	if (key >= 0) {
-		Input(fore->w_pwin ? "Really kill this filter [y/n]" : "Really kill this window [y/n]",
-		      1, INP_RAW, confirm_fn, NULL, RC_KILL);
-		return;
+	if (*args) {
+		if (!strcmp(*args, "--confirm")) {
+			Input(fore->w_pwin ? "Really kill this filter [y/n]" : "Really kill this window [y/n]",
+			      1, INP_RAW, confirm_fn, NULL, RC_KILL);
+			return;
+		} else {
+			OutputMsg(0, "usage: kill [--confirm]");
+			return;
+		}
 	}
 	n = fore->w_number;
 	if (fore->w_pwin) {

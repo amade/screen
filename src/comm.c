@@ -131,7 +131,7 @@ struct comm comms[RC_LAST + 1] =
   { "ignorecase",	ARGS_01,			{NULL} },
   { "info",		CAN_QUERY|NEED_LAYER|ARGS_0,	{NULL} },
   { "kanji",		NEED_FORE|ARGS_12,		{NULL} },
-  { "kill",		NEED_FORE|ARGS_0,		{NULL} },
+  { "kill",		NEED_FORE|ARGS_01,		{NULL} },
   { "lastmsg",		CAN_QUERY|NEED_DISPLAY|ARGS_0,	{NULL} },
   { "layout",           ARGS_1|ARGS_ORMORE,		{NULL} },
   { "license",		NEED_LAYER|ARGS_0,		{NULL} },
