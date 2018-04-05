@@ -1121,7 +1121,7 @@ static void AskPassword(Message *m)
 }
 
 #if ENABLE_PAM
-int screen_conv(int num_msg, const struct pam_message **msg,
+static int screen_conv(int num_msg, const struct pam_message **msg,
 		struct pam_response **resp, void *data)
 {
 	(void)num_msg;	/* unused */
