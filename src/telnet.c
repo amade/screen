@@ -445,9 +445,9 @@ void TelWindowSize(Window *win)
 	t = trepl;
 	for (size_t i = 0; i < 9; i++)
 		if ((unsigned char)(*t++ = s[i]) == TC_IAC)
-			*t++ = TC_IAC;
-	trepl[0] = TC_IAC;
-	t[-2] = TC_IAC;
+			*t++ = (char)TC_IAC;
+	trepl[0] = (char)TC_IAC;
+	t[-2] = (char)TC_IAC;
 	TelReply(win, trepl, t - trepl);
 }
 
