@@ -1851,7 +1851,7 @@ static int ParseEscape(char *p)
 	return 0;
 }
 
-void SetTtyname(bool fatal, struct stat *st)
+static void SetTtyname(bool fatal, struct stat *st)
 {
 	int ret;
 	int saved_errno = 0;
