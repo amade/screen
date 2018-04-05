@@ -753,11 +753,6 @@ Send a ^S (ASCII XOFF) to the current window.  @xref{XON/XOFF}.
 (split)@*
 Split the current region horizontally into two new ones.  @xref{Regions}.
 
-@item @kbd{C-a t}
-@itemx @kbd{C-a C-t}
-(time)@*
-Show the load average and xref.  @xref{Time}.
-
 @item @kbd{C-a v}
 (version)@*
 Display the version and compilation date.  @xref{Version}.
@@ -1111,8 +1106,6 @@ Set minimum message wait.  @xref{Message Wait}.
 Set default message wait.  @xref{Message Wait}.
 @item multiuser @var{state}
 Go into single or multi user mode. @xref{Multiuser Session}.
-@item nethack @var{state}
-Use @code{nethack}-like error messages.  @xref{Nethack}.
 @item next
 Switch to the next window.  @xref{Selecting}.
 @item nonblock [@var{state}|@var{numsecs}]
@@ -5119,10 +5112,8 @@ categories.
 * Bumpright::			Swaps window with next one on window list.
 * Collapse::			Collapses window list.
 * License::                     Display the disclaimer page.
-* Nethack::                     Use @code{nethack}-like error messages.
 * Nonblock::			Disable flow-control to a display.
 * Number::                      Change the current window's number.
-* Time::                        Display the time and load average.
 * Verbose::                     Display window creation commands.
 * Version::                     Display the version of @code{screen}.
 * Zombie::                      Keep dead windows.
@@ -5238,7 +5229,7 @@ Exchanges windows positions on window list, with window having bigger number
 Changes windows numbers, so there is no gaps between them.
 @end deffn
 
-@node License, Nethack, Collapse, Miscellaneous
+@node License, Collapse, Miscellaneous
 @section License
 @kindex ,
 @deffn Command license
@@ -5247,23 +5238,7 @@ Display the disclaimer page. This is done whenever @code{screen} is
 started without options, which should be often enough.
 @end deffn
 
-@node Nethack, Nonblock, License, Miscellaneous
-@section Nethack
-@deffn Command nethack state
-(none)@*
-Changes the kind of error messages used by @code{screen}.  When you are
-familiar with the game @code{nethack}, you may enjoy the nethack-style
-messages which will often blur the facts a little, but are much funnier
-to read. Anyway, standard messages often tend to be unclear as well.
-
-This option is only available if @code{screen} was compiled with the
-NETHACK flag defined (@pxref{Installation}). The default setting is then
-determined by the presence of the environment variable
-@code{$NETHACKOPTIONS} and the file @code{~/.nethackrc} - if either one is
-present, the default is @code{on}.
-@end deffn
-
-@node Nonblock, Number, Nethack, Miscellaneous
+@node Nonblock, Number, Miscellaneous
 @section Nonblock
 @deffn Command nonblock [@var{state}|@var{numsecs}]
 Tell screen how to deal with user interfaces (displays) that cease to
@@ -5283,7 +5258,7 @@ Same as the @code{nonblock} command except that the default setting for
 displays is changed. Initial setting is @code{off}.
 @end deffn
 
-@node Number, Time, Nonblock, Miscellaneous
+@node Number, Nonblock, Miscellaneous
 @section Number
 @kindex N
 @deffn Command number [[+|-]@var{n}]
@@ -5295,7 +5270,7 @@ plus (`+') or minus (`-') will change the window's number by the relative
 amount specified.
 @end deffn
 
-@node Verbose, Version, Time, Miscellaneous
+@node Verbose, Version, Miscellaneous
 @section Verbose
 @deffn Command verbose [on|off]
 If verbose is switched on, the command name is echoed, whenever a window
