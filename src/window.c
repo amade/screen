@@ -116,9 +116,9 @@ struct NewWindow nwin_undef = {
 
 struct NewWindow nwin_default = {
 	.StartAt    = 0,
-	.aka        = 0,
+	.aka        = NULL,
 	.args       = ShellArgs,
-	.dir        = 0,
+	.dir        = NULL,
 	.term       = screenterm,
 	.aflag      = false,
 	.dynamicaka = true,
@@ -180,12 +180,12 @@ void nwin_compose(struct NewWindow *def, struct NewWindow *new, struct NewWindow
 
 const struct LayFuncs WinLf = {
 	WinProcess,
-	0,
+	NULL,
 	WinRedisplayLine,
 	WinClearLine,
 	WinResize,
 	WinRestore,
-	0
+	NULL
 };
 
 static int DoAutolf(char *buf, size_t *lenp, int fr)
@@ -414,7 +414,7 @@ int MakeWindow(struct NewWindow *newwin)
 	pp = wtab + startat;
 
 	do {
-		if (*pp == 0)
+		if (*pp == NULL)
 			break;
 		if (++pp == wtab + maxwin)
 			pp = wtab;
@@ -444,7 +444,7 @@ int MakeWindow(struct NewWindow *newwin)
 	if (type == W_TYPE_GROUP)
 		f = -1;
 
-	if ((p = calloc(1, sizeof(Window))) == 0) {
+	if ((p = calloc(1, sizeof(Window))) == NULL) {
 		close(f);
 		Msg(0, "%s", strnomem);
 		return -1;
@@ -459,14 +459,14 @@ int MakeWindow(struct NewWindow *newwin)
 	/* save the command line so that zombies can be resurrected */
 	for (i = 0; nwin.args[i] && i < MAXARGS - 1; i++)
 		p->w_cmdargs[i] = SaveStr(nwin.args[i]);
-	p->w_cmdargs[i] = 0;
+	p->w_cmdargs[i] = NULL;
 	if (nwin.dir)
 		p->w_dir = SaveStr(nwin.dir);
 	if (nwin.term)
 		p->w_term = SaveStr(nwin.term);
 
 	p->w_number = n;
-	p->w_group = 0;
+	p->w_group = NULL;
 	if (fore && fore->w_type == W_TYPE_GROUP)
 		p->w_group = fore;
 	else if (fore && fore->w_group)
@@ -482,13 +482,13 @@ int MakeWindow(struct NewWindow *newwin)
 		Msg(0, "%s", strnomem);
 		return -1;
 	}
-	p->w_layer.l_next = 0;
+	p->w_layer.l_next = NULL;
 	p->w_layer.l_bottom = &p->w_layer;
 	p->w_layer.l_layfn = &WinLf;
 	p->w_layer.l_data = (char *)p;
 	p->w_savelayer = &p->w_layer;
-	p->w_pdisplay = 0;
-	p->w_lastdisp = 0;
+	p->w_pdisplay = NULL;
+	p->w_lastdisp = NULL;
 
 	if (display && !AclCheckPermWin(D_user, ACL_WRITE, p))
 		p->w_wlockuser = D_user;
@@ -558,7 +558,7 @@ int MakeWindow(struct NewWindow *newwin)
 
 	p->w_deadpid = 0;
 	p->w_pid = 0;
-	p->w_pwin = 0;
+	p->w_pwin = NULL;
 
 #ifdef ENABLE_TELNET
 	if (type == W_TYPE_TELNET) {
@@ -640,7 +640,7 @@ int MakeWindow(struct NewWindow *newwin)
 		evenq(&p->w_silenceev);
 	}
 	p->w_destroyev.type = EV_TIMEOUT;
-	p->w_destroyev.data = 0;
+	p->w_destroyev.data = NULL;
 	p->w_destroyev.handler = win_destroyev_fn;
 
 	SetForeWindow(p);
@@ -754,7 +754,7 @@ void FreeWindow(Window *window)
 
 	if (window == console_window) {
 		TtyGrabConsole(-1, false, "free");
-		console_window = 0;
+		console_window = NULL;
 	}
 	if (window->w_log != NULL)
 		logfclose(window->w_log);
@@ -789,7 +789,7 @@ void FreeWindow(Window *window)
 			if ((Window *)layer->l_data != window)
 				continue;
 			if (canvas->c_layer == window->w_savelayer)
-				window->w_savelayer = 0;
+				window->w_savelayer = NULL;
 			KillLayerChain(canvas->c_layer);
 		}
 	}
@@ -798,14 +798,14 @@ void FreeWindow(Window *window)
 	for (Canvas *canvas = window->w_layer.l_cvlist; canvas; canvas = canvas->c_lnext) {
 		canvas->c_layer = &canvas->c_blank;
 		canvas->c_blank.l_cvlist = canvas;
-		canvas->c_lnext = 0;
+		canvas->c_lnext = NULL;
 		canvas->c_xoff = canvas->c_xs;
 		canvas->c_yoff = canvas->c_ys;
 		RethinkViewportOffsets(canvas);
 	}
-	window->w_layer.l_cvlist = 0;
+	window->w_layer.l_cvlist = NULL;
 	if (flayer == &window->w_layer)
-		flayer = 0;
+		flayer = NULL;
 	LayerCleanupMemory(&window->w_layer);
 
 	FreeWindowAcl(window);
@@ -946,7 +946,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 	}
 #endif
 	proc = *args;
-	if (proc == 0) {
+	if (proc == NULL) {
 		args = ShellArgs;
 		proc = *args;
 	}
@@ -967,7 +967,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 		xsignal(SIGXFSZ, SIG_DFL);
 #endif
 
-		displays = 0;	/* beware of Panic() */
+		displays = NULL;	/* beware of Panic() */
 		if (setgid(real_gid) || setuid(real_uid))
 			Panic(errno, "Setuid/gid");
 		eff_uid = real_uid;
@@ -1056,7 +1056,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 			/* Always turn off nonblocking mode */
 			(void)fcntl(newfd, F_SETFL, 0);
 		}
-		NewEnv[2] = MakeTermcap(display == 0 || win->w_aflag);
+		NewEnv[2] = MakeTermcap(display == NULL || win->w_aflag);
 		strcpy(shellbuf, "SHELL=");
 		strncpy(shellbuf + 6, ShellProg + (*ShellProg == '-'), ARRAY_SIZE(shellbuf) - 7);
 		shellbuf[ARRAY_SIZE(shellbuf) - 1] = 0;
@@ -1284,7 +1284,7 @@ void FreePseudowin(Window *w)
 	evdeq(&pwin->p_readev);
 	evdeq(&pwin->p_writeev);
 	if (w->w_readev.condneg == (int *)&pwin->p_inlen)
-		w->w_readev.condpos = w->w_readev.condneg = 0;
+		w->w_readev.condpos = w->w_readev.condneg = NULL;
 	evenq(&w->w_readev);
 	free((char *)pwin);
 	w->w_pwin = NULL;
@@ -1402,7 +1402,7 @@ static void win_readev_fn(Event *event, void *data)
 			return;
 		}
 	if (event->condpos)
-		event->condpos = event->condneg = 0;
+		event->condpos = event->condneg = NULL;
 
 	if ((len = p->w_outlen)) {
 		p->w_outlen = 0;
@@ -1517,7 +1517,7 @@ static void pseu_readev_fn(Event *event, void *data)
 		return;
 	}
 	if (event->condpos)
-		event->condpos = event->condneg = 0;
+		event->condpos = event->condneg = NULL;
 
 	if ((len = p->w_outlen)) {
 		p->w_outlen = 0;
@@ -1620,9 +1620,9 @@ static int zmodem_parse(Window *p, char *bp, size_t len)
 					if (*b2 == se)
 						break;
 				if (i < len) {
-					zmodem_abort(p, 0);
+					zmodem_abort(p, NULL);
 					D_blocked = 0;
-					D_readev.condpos = D_readev.condneg = 0;
+					D_readev.condpos = D_readev.condneg = NULL;
 					while (len-- > 0)
 						AddChar(*bp++);
 					Flush(0);
@@ -1726,14 +1726,14 @@ void zmodem_abort(Window *p, Display *d)
 			flayer = p->w_savelayer;
 			ExitOverlayPage();
 		}
-		p->w_zdisplay = 0;
+		p->w_zdisplay = NULL;
 		p->w_zauto = 0;
 		LRefreshAll(&p->w_layer, 0);
 	}
 	if (d) {
 		display = d;
 		D_blocked = 0;
-		D_readev.condpos = D_readev.condneg = 0;
+		D_readev.condpos = D_readev.condneg = NULL;
 		Activate(D_fore ? D_fore->w_norefresh : 0);
 	}
 	display = olddisplay;
@@ -1764,7 +1764,7 @@ int SwapWindows(int old, int dest)
 		SetUtmp(win_old);
 	}
 	if (p && (p->w_slot != (slot_t) - 1) && (p->w_slot != (slot_t) 0)) {
-		display = win_old->w_layer.l_cvlist ? win_old->w_layer.l_cvlist->c_display : 0;
+		display = win_old->w_layer.l_cvlist ? win_old->w_layer.l_cvlist->c_display : NULL;
 		RemoveUtmp(p);
 		SetUtmp(p);
 	}
@@ -1785,7 +1785,7 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 		wstat = p->w_exitstatus;
 		wstat_valid = 1;
 		evdeq(&p->w_destroyev);
-		p->w_destroyev.data = 0;
+		p->w_destroyev.data = NULL;
 	}
 	if (!wstat_valid && p->w_pid > 0) {
 		/* EOF on file descriptor. The process is probably also dead.
@@ -1825,7 +1825,7 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 #ifdef ENABLE_UTMP
 		if (p->w_slot != (slot_t) 0 && p->w_slot != (slot_t) - 1) {
 			RemoveUtmp(p);
-			p->w_slot = 0;	/* "detached" */
+			p->w_slot = NULL;	/* "detached" */
 		}
 #endif
 		CloseDevice(p);

@@ -365,7 +365,7 @@ winmsg_esc_ex(TruncPos, uint8_t perc, bool ellip)
 
 winmsg_esc_ex(WinNames, const bool hide_cur, Window *win)
 {
-	Window *oldfore = 0;
+	Window *oldfore = NULL;
 	size_t max = wmbc_bytesleft(wmbc);
 
 	if (display) {
@@ -736,7 +736,7 @@ void WindowChanged(Window *win, WinMsgEscapeChar what)
 		inlstr = 1;
 	}
 
-	if (win == 0) {
+	if (win == NULL) {
 		for (display = displays; display; display = display->d_next) {
 			ox = D_x;
 			oy = D_y;

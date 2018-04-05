@@ -54,28 +54,28 @@ struct encoding {
 /* CP1251 font: 96 ? */
 
 struct encoding encodings[] = {
-	{"C", 0, 0, 0, 0, 0},
+	{"C", NULL, 0, 0, 0, NULL},
 	{"eucJP", "B\002I\00401", 0, 1, 0, "\002\004I"},
 	{"SJIS", "BIBB01", 0, 1, 1, "\002I"},
 	{"eucKR", "B\003BB01", 0, 1, 0, "\003"},
 	{"eucCN", "B\001BB01", 0, 1, 0, "\001"},
 	{"Big5", "B\030BB01", 0, 1, 0, "\030"},
-	{"KOI8-R", 0, 0x80 | '!', 0, 1, 0},
-	{"CP1251", 0, 0x80 | '?', 0, 1, 0},
-	{"UTF-8", 0, -1, 0, 0, 0},
-	{"ISO8859-2", 0, 0x80 | 'B', 0, 0, 0},
-	{"ISO8859-3", 0, 0x80 | 'C', 0, 0, 0},
-	{"ISO8859-4", 0, 0x80 | 'D', 0, 0, 0},
-	{"ISO8859-5", 0, 0x80 | 'L', 0, 0, 0},
-	{"ISO8859-6", 0, 0x80 | 'G', 0, 0, 0},
-	{"ISO8859-7", 0, 0x80 | 'F', 0, 0, 0},
-	{"ISO8859-8", 0, 0x80 | 'H', 0, 0, 0},
-	{"ISO8859-9", 0, 0x80 | 'M', 0, 0, 0},
-	{"ISO8859-10", 0, 0x80 | 'V', 0, 0, 0},
-	{"ISO8859-15", 0, 0x80 | 'b', 0, 0, 0},
-	{"jis", 0, 0, 0, 0, "\002\004I"},
+	{"KOI8-R", NULL, 0x80 | '!', 0, 1, NULL},
+	{"CP1251", NULL, 0x80 | '?', 0, 1, NULL},
+	{"UTF-8", NULL, -1, 0, 0, NULL},
+	{"ISO8859-2", NULL, 0x80 | 'B', 0, 0, NULL},
+	{"ISO8859-3", NULL, 0x80 | 'C', 0, 0, NULL},
+	{"ISO8859-4", NULL, 0x80 | 'D', 0, 0, NULL},
+	{"ISO8859-5", NULL, 0x80 | 'L', 0, 0, NULL},
+	{"ISO8859-6", NULL, 0x80 | 'G', 0, 0, NULL},
+	{"ISO8859-7", NULL, 0x80 | 'F', 0, 0, NULL},
+	{"ISO8859-8", NULL, 0x80 | 'H', 0, 0, NULL},
+	{"ISO8859-9", NULL, 0x80 | 'M', 0, 0, NULL},
+	{"ISO8859-10", NULL, 0x80 | 'V', 0, 0, NULL},
+	{"ISO8859-15", NULL, 0x80 | 'b', 0, 0, NULL},
+	{"jis", NULL, 0, 0, 0, "\002\004I"},
 	{"GBK", "B\031BB01", 0x80 | 'b', 1, 1, "\031"},
-	{"KOI8-U", 0, 0x80 | '#', 0, 1, 0}
+	{"KOI8-U", NULL, 0x80 | '#', 0, 1, NULL}
 };
 
 static unsigned short builtin_tabs[][2] = {
@@ -315,8 +315,8 @@ static int recode_char(int c, int to_utf, int font)
 			break;
 		}
 		p = recodetabs[f].tab;
-		if (p == 0 && recodetabs[f].flags == 0) {
-			LoadFontTranslation(f, 0);
+		if (p == NULL && recodetabs[f].flags == 0) {
+			LoadFontTranslation(f, NULL);
 			p = recodetabs[f].tab;
 		}
 		if (p)
@@ -347,8 +347,8 @@ static int recode_char(int c, int to_utf, int font)
 		return c;
 	if (font >= 32) {
 		p = recodetabs[font].tab;
-		if (p == 0 && recodetabs[font].flags == 0) {
-			LoadFontTranslation(font, 0);
+		if (p == NULL && recodetabs[font].flags == 0) {
+			LoadFontTranslation(font, NULL);
 			p = recodetabs[font].tab;
 		}
 		if (p)
@@ -372,8 +372,8 @@ static int recode_char_dw(int c, int *c2p, int to_utf, int font)
 		c = (c & 255) << 8 | (*c2p & 255);
 		*c2p = 0xffff;
 		p = recodetabs[f].tab;
-		if (p == 0 && recodetabs[f].flags == 0) {
-			LoadFontTranslation(f, 0);
+		if (p == NULL && recodetabs[f].flags == 0) {
+			LoadFontTranslation(f, NULL);
 			p = recodetabs[f].tab;
 		}
 		if (p)
@@ -400,8 +400,8 @@ static int recode_char_dw(int c, int *c2p, int to_utf, int font)
 	}
 	if (font < 32) {
 		p = recodetabs[font].tab;
-		if (p == 0 && recodetabs[font].flags == 0) {
-			LoadFontTranslation(font, 0);
+		if (p == NULL && recodetabs[font].flags == 0) {
+			LoadFontTranslation(font, NULL);
 			p = recodetabs[font].tab;
 		}
 		if (p)
@@ -421,7 +421,7 @@ static int recode_char_to_encoding(int c, int encoding)
 
 	if (encoding == UTF8)
 		return recode_char(c, 1, -1);
-	if ((fp = encodings[encoding].fontlist) != 0)
+	if ((fp = encodings[encoding].fontlist) != NULL)
 		while (*fp)
 			if ((x = recode_char(c, 0, (unsigned char)*fp++)) != -1)
 				return x;
@@ -438,7 +438,7 @@ static int recode_char_dw_to_encoding(int c, int *c2p, int encoding)
 
 	if (encoding == UTF8)
 		return recode_char_dw(c, c2p, 1, -1);
-	if ((fp = encodings[encoding].fontlist) != 0)
+	if ((fp = encodings[encoding].fontlist) != NULL)
 		while (*fp)
 			if ((x = recode_char_dw(c, c2p, 0, (unsigned char)*fp++)) != -1)
 				return x;
@@ -485,15 +485,15 @@ struct mline *recode_mline(struct mline *ml, int w, int from, int to)
 		return ml;
 	if (w > maxlen) {
 		for (i = 0; i < 2; i++) {
-			if (rml[i].image == 0)
+			if (rml[i].image == NULL)
 				rml[i].image = malloc(w * 4);
 			else
 				rml[i].image = realloc(rml[i].image, w * 4);
-			if (rml[i].font == 0)
+			if (rml[i].font == NULL)
 				rml[i].font = malloc(w * 4);
 			else
 				rml[i].font = realloc(rml[i].font, w * 4);
-			if (rml[i].image == 0 || rml[i].font == 0) {
+			if (rml[i].image == NULL || rml[i].font == NULL) {
 				maxlen = 0;
 				return ml;	/* sorry */
 			}
@@ -565,7 +565,7 @@ size_t ToUtf8_comb(char *p, uint32_t c)
 
 	if (c >= 0xd800 && c < 0xe000 && combchars && combchars[c - 0xd800]) {
 		l = ToUtf8_comb(p, combchars[c - 0xd800]->c1);
-		return l + ToUtf8(p ? p + l : 0, combchars[c - 0xd800]->c2);
+		return l + ToUtf8(p ? p + l : NULL, combchars[c - 0xd800]->c2);
 	}
 	return ToUtf8(p, c);
 }
@@ -686,7 +686,7 @@ void WinSwitchEncoding(Window *p, int encoding)
 			if (c < 256)
 				continue;
 			if (ml->font == null) {
-				if ((ml->font = calloc(p->w_width + 1, 4)) == 0) {
+				if ((ml->font = calloc(p->w_width + 1, 4)) == NULL) {
 					ml->font = null;
 					break;
 				}
@@ -1209,7 +1209,7 @@ int FindEncoding(char *name)
 {
 	int encoding;
 
-	if (name == 0 || *name == 0)
+	if (name == NULL || *name == 0)
 		return 0;
 	if (encmatch(name, "euc"))
 		name = "eucJP";
@@ -1226,7 +1226,7 @@ int FindEncoding(char *name)
 char *EncodingName(int encoding)
 {
 	if (encoding >= (int)(ARRAY_SIZE(encodings)))
-		return 0;
+		return NULL;
 	return encodings[encoding].name;
 }
 
@@ -1561,9 +1561,9 @@ int RecodeBuf(unsigned char *fbuf, int flen, int fenc, int tenc, unsigned char *
 			i--;
 		if (c < 0)
 			continue;
-		j += EncodeChar(tbuf ? (char *)tbuf + j : 0, c, tenc, &font);
+		j += EncodeChar(tbuf ? (char *)tbuf + j : NULL, c, tenc, &font);
 	}
-	j += EncodeChar(tbuf ? (char *)tbuf + j : 0, -1, tenc, &font);
+	j += EncodeChar(tbuf ? (char *)tbuf + j : NULL, -1, tenc, &font);
 	return j;
 }
 
@@ -1599,15 +1599,15 @@ int LoadFontTranslation(int font, char *file)
 	unsigned short (*p)[2], (*tab)[2];
 
 	myfile = file;
-	if (myfile == 0) {
-		if (font == 0 || screenencodings == 0)
+	if (myfile == NULL) {
+		if (font == 0 || screenencodings == NULL)
 			return -1;
 		if (strlen(screenencodings) > ARRAY_SIZE(buf) - 10)
 			return -1;
 		sprintf(buf, "%s/%02x", screenencodings, font & 0xff);
 		myfile = buf;
 	}
-	if ((f = secfopen(myfile, "r")) == 0)
+	if ((f = secfopen(myfile, "r")) == NULL)
 		return -1;
 	i = ok = 0;
 	for (;;) {
@@ -1629,7 +1629,7 @@ int LoadFontTranslation(int font, char *file)
 		getc(f);
 		while ((x = getc(f)) && x != EOF)
 			getc(f);	/* skip font name (padded to 2 bytes) */
-		if ((p = malloc(sizeof(*p) * (i + 1) * 4)) == 0)
+		if ((p = malloc(sizeof(*p) * (i + 1) * 4)) == NULL)
 			break;
 		tab = p;
 		while (i > 0) {
@@ -1665,7 +1665,7 @@ int LoadFontTranslation(int font, char *file)
 		i = 1;
 	}
 	fclose(f);
-	if (font != -1 && file == 0 && recodetabs[font].flags == 0)
+	if (font != -1 && file == NULL && recodetabs[font].flags == 0)
 		recodetabs[font].flags = RECODETAB_TRIED;
 	return ok ? 0 : -1;
 }
@@ -1675,11 +1675,11 @@ void LoadFontTranslationsForEncoding(int encoding)
 	char *c;
 	int f;
 
-	if ((c = encodings[encoding].fontlist) != 0)
+	if ((c = encodings[encoding].fontlist) != NULL)
 		while ((f = (unsigned char)*c++) != 0)
 			if (recodetabs[f].flags == 0)
-				LoadFontTranslation(f, 0);
+				LoadFontTranslation(f, NULL);
 	f = encodings[encoding].deffont;
 	if (f > 0 && recodetabs[f].flags == 0)
-		LoadFontTranslation(f, 0);
+		LoadFontTranslation(f, NULL);
 }

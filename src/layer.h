@@ -127,7 +127,7 @@ struct Layer {
 	      for (cv = D_cvlist; cv; cv = cv->c_next)	\
 		if (cv->c_layer == l)			\
 		  break;				\
-	      if (cv == 0)				\
+	      if (cv == NULL)				\
 		continue;				\
 	      fn;					\
 	    }						\

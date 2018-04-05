@@ -54,7 +54,7 @@ bool use_altscreen = false;	/* enable alternate screen support? */
 bool use_hardstatus = true;	/* display status line in hs */
 bool visual_bell = 0;
 
-char *printcmd = 0;
+char *printcmd = NULL;
 
 uint32_t *blank;		/* line filled with spaces */
 uint32_t *null;			/* line filled with '\0' */
@@ -290,7 +290,7 @@ void WriteString(Window *win, char *buf, size_t len)
 						close(win->w_pdisplay->d_printfd);
 						win->w_pdisplay->d_printfd = -1;
 					}
-					win->w_pdisplay = 0;
+					win->w_pdisplay = NULL;
 					break;
 				default:
 					PrintChar(win, '\033');
@@ -666,7 +666,7 @@ static void WLogString(Window *win, char *buf, size_t len)
 	if (logfwrite(win->w_log, buf, len) < 1) {
 		WMsg(win, errno, "Error writing logfile");
 		logfclose(win->w_log);
-		win->w_log = 0;
+		win->w_log = NULL;
 	}
 	if (!log_flush)
 		logfflush(win->w_log);
@@ -1234,7 +1234,7 @@ static int StringEnd(Window *win)
 	*win->w_stringp = '\0';
 	switch (win->w_StringType) {
 	case OSC:		/* special xterm compatibility hack */
-		if (win->w_string[0] == ';' || (p = strchr(win->w_string, ';')) == 0)
+		if (win->w_string[0] == ';' || (p = strchr(win->w_string, ';')) == NULL)
 			break;
 		typ = atoi(win->w_string);
 		p++;
@@ -1249,17 +1249,17 @@ static int StringEnd(Window *win)
 				for (display = displays; display; display = display->d_next)
 					if (D_forecv->c_layer->l_bottom == &win->w_layer)
 						break;	/* found it */
-				if (display == 0 && win->w_layer.l_cvlist)
+				if (display == NULL && win->w_layer.l_cvlist)
 					display = win->w_layer.l_cvlist->c_display;
-				if (display == 0)
+				if (display == NULL)
 					display = displays;
 				EffectiveAclUser = windowuser;
 				fore = win;
 				flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
 				DoCommand(args, argl);
-				EffectiveAclUser = 0;
-				fore = 0;
-				flayer = 0;
+				EffectiveAclUser = NULL;
+				fore = NULL;
+				flayer = NULL;
 			}
 			break;
 		}
@@ -1297,7 +1297,7 @@ static int StringEnd(Window *win)
 			if (strcmp(win->w_hstatus, win->w_string) == 0)
 				break;	/* not changed */
 			free(win->w_hstatus);
-			win->w_hstatus = 0;
+			win->w_hstatus = NULL;
 		}
 		if (win->w_string != win->w_stringp)
 			win->w_hstatus = SaveStr(win->w_string);
@@ -1332,7 +1332,7 @@ static int StringEnd(Window *win)
 
 static void PrintStart(Window *win)
 {
-	win->w_pdisplay = 0;
+	win->w_pdisplay = NULL;
 
 	/* find us a nice display to print on, fore prefered */
 	display = win->w_lastdisp;
@@ -1909,14 +1909,14 @@ static void MFixLine(Window *win, int y, struct mchar *mc)
 {
 	struct mline *ml = &win->w_mlines[y];
 	if (mc->attr && ml->attr == null) {
-		if ((ml->attr = calloc(win->w_width + 1, 4)) == 0) {
+		if ((ml->attr = calloc(win->w_width + 1, 4)) == NULL) {
 			ml->attr = null;
 			mc->attr = win->w_rend.attr = 0;
 			WMsg(win, 0, "Warning: no space for attr - turned off");
 		}
 	}
 	if (mc->font && ml->font == null) {
-		if ((ml->font = calloc(win->w_width + 1, 4)) == 0) {
+		if ((ml->font = calloc(win->w_width + 1, 4)) == NULL) {
 			ml->font = null;
 			win->w_FontL = win->w_charsets[win->w_ss ? win->w_ss : win->w_Charset] = 0;
 			win->w_FontR = win->w_charsets[win->w_ss ? win->w_ss : win->w_CharsetR] = 0;
@@ -1925,14 +1925,14 @@ static void MFixLine(Window *win, int y, struct mchar *mc)
 		}
 	}
 	if (mc->colorbg && ml->colorbg == null) {
-		if ((ml->colorbg = calloc(win->w_width + 1, 4)) == 0) {
+		if ((ml->colorbg = calloc(win->w_width + 1, 4)) == NULL) {
 			ml->colorbg = null;
 			mc->colorbg = win->w_rend.colorbg = 0;
 			WMsg(win, 0, "Warning: no space for color background - turned off");
 		}
 	}
 	if (mc->colorfg && ml->colorfg == null) {
-		if ((ml->colorfg = calloc(win->w_width + 1, 4)) == 0) {
+		if ((ml->colorfg = calloc(win->w_width + 1, 4)) == NULL) {
 			ml->colorfg = null;
 			mc->colorfg = win->w_rend.colorfg = 0;
 			WMsg(win, 0, "Warning: no space for color foreground - turned off");
@@ -2334,7 +2334,7 @@ static void WChangeSize(Window *win, int w, int h)
 	int wok = 0;
 	Canvas *cv;
 
-	if (win->w_layer.l_cvlist == 0) {
+	if (win->w_layer.l_cvlist == NULL) {
 		/* window not displayed -> works always */
 		ChangeWindowSize(win, w, h, win->w_histheight);
 		return;
@@ -2348,14 +2348,14 @@ static void WChangeSize(Window *win, int w, int h)
 		if (D_CZ0 && (w == Z0width || w == Z1width))
 			wok = 1;
 	}
-	if (cv == 0 && wok == 0)	/* can't change any display */
+	if (cv == NULL && wok == 0)	/* can't change any display */
 		return;
 	if (!D_CWS)
 		h = win->w_height;
 	ChangeWindowSize(win, w, h, win->w_histheight);
 	for (display = displays; display; display = display->d_next) {
 		if (win == D_fore) {
-			if (D_cvlist && D_cvlist->c_next == 0)
+			if (D_cvlist && D_cvlist->c_next == NULL)
 				ResizeDisplay(w, h);
 			else
 				ResizeDisplay(w, D_height);

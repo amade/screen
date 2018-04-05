@@ -107,7 +107,7 @@ static void window_kill_confirm(char *buf, size_t len, void *data)
 	fore = w;
 	act.nr = RC_KILL;
 	act.args = noargs;
-	act.argl = 0;
+	act.argl = NULL;
 	act.quiet = 0;
 	DoAction(&act);
 }
@@ -620,7 +620,7 @@ void WListLinkChanged(void)
 			wdata = ldata->data;
 			if (!(wdata->order & WLIST_MRU))
 				continue;
-			CV_CALL(cv, WListUpdate(0, ldata));
+			CV_CALL(cv, WListUpdate(NULL, ldata));
 		}
 	display = olddisplay;
 }

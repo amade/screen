@@ -75,7 +75,7 @@ void CheckScreenSize(int change_flag)
 {
 	int wi, he;
 
-	if (display == 0) {
+	if (display == NULL) {
 		return;
 	}
 
@@ -116,7 +116,7 @@ void ChangeScreenSize(int wi, int he, int change_fore)
 		RecreateCanvasChain();
 		RethinkDisplayViewports();
 	}
-	if (D_forecv == 0)
+	if (D_forecv == NULL)
 		D_forecv = D_cvlist;
 	if (D_forecv)
 		D_fore = Layer2Window(D_forecv->c_layer);
@@ -137,12 +137,12 @@ void ChangeScreenSize(int wi, int he, int change_fore)
 	}
 	if (change_fore)
 		ResizeLayersToCanvases();
-	if (change_fore == 2 && D_CWS == NULL && displays->d_next == 0) {
+	if (change_fore == 2 && D_CWS == NULL && displays->d_next == NULL) {
 		/* adapt all windows  -  to be removed ? */
 		for (p = windows; p; p = p->w_next) {
 			wwi = wi;
-			if (p->w_savelayer && p->w_savelayer->l_cvlist == 0)
-				ResizeLayer(p->w_savelayer, wwi, he, 0);
+			if (p->w_savelayer && p->w_savelayer->l_cvlist == NULL)
+				ResizeLayer(p->w_savelayer, wwi, he, NULL);
 		}
 	}
 }
@@ -156,7 +156,7 @@ void ResizeLayersToCanvases(void)
 	D_kaablamm = 0;
 	for (cv = D_cvlist; cv; cv = cv->c_next) {
 		l = cv->c_layer;
-		if (l == 0)
+		if (l == NULL)
 			continue;
 		if (l->l_width == cv->c_xe - cv->c_xs + 1 && l->l_height == cv->c_ye - cv->c_ys + 1) {
 			continue;
@@ -328,7 +328,7 @@ static int AllocMline(struct mline *ml, int w)
 	ml->font = null;
 	ml->colorbg = null;
 	ml->colorfg = null;
-	if (ml->image == 0)
+	if (ml->image == NULL)
 		return -1;
 	return 0;
 }
@@ -339,25 +339,25 @@ static int BcopyMline(struct mline *mlf, int xf, struct mline *mlt, int xt, int 
 
 	memmove(mlt->image + xt, mlf->image + xf, l * 4);
 	if (mlf->attr != null && mlt->attr == null) {
-		if ((mlt->attr = calloc(w, 4)) == 0)
+		if ((mlt->attr = calloc(w, 4)) == NULL)
 			mlt->attr = null, r = -1;
 	}
 	if (mlt->attr != null)
 		memmove(mlt->attr + xt, mlf->attr + xf, l * 4);
 	if (mlf->font != null && mlt->font == null) {
-		if ((mlt->font = calloc(w, 4)) == 0)
+		if ((mlt->font = calloc(w, 4)) == NULL)
 			mlt->font = null, r = -1;
 	}
 	if (mlt->font != null)
 		memmove(mlt->font + xt, mlf->font + xf, l * 4);
 	if (mlf->colorbg != null && mlt->colorbg == null) {
-		if ((mlt->colorbg = calloc(w, 4)) == 0)
+		if ((mlt->colorbg = calloc(w, 4)) == NULL)
 			mlt->colorbg = null, r = -1;
 	}
 	if (mlt->colorbg != null)
 		memmove(mlt->colorbg + xt, mlf->colorbg + xf, l * 4);
 	if (mlf->colorfg != null && mlt->colorfg == null) {
-		if ((mlt->colorfg = calloc(w, 4)) == 0)
+		if ((mlt->colorfg = calloc(w, 4)) == NULL)
 			mlt->colorfg = null, r = -1;
 	}
 	if (mlt->colorfg != null)
@@ -436,7 +436,7 @@ void *xrealloc(void *mem, size_t len)
 {
 	char *nmem;
 
-	if (mem == 0)
+	if (mem == NULL)
 		return malloc(len);
 	if ((nmem = realloc(mem, len)))
 		return nmem;
@@ -458,7 +458,7 @@ static void MakeBlankLine(uint32_t *p, int n)
 
 int ChangeWindowSize(Window *p, int wi, int he, int hi)
 {
-	struct mline *mlf = 0, *mlt = 0, *ml, *nmlines, *nhlines;
+	struct mline *mlf = NULL, *mlt = NULL, *ml, *nmlines, *nhlines;
 	int fy, ty, l, lx, lf, lt, yy, oty, addone;
 	int ncx, ncy, naka, t;
 	int y, shift;
@@ -488,14 +488,14 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 	fy = p->w_histheight + p->w_height - 1;
 	ty = hi + he - 1;
 
-	nmlines = nhlines = 0;
+	nmlines = nhlines = NULL;
 	ncx = 0;
 	ncy = 0;
 	naka = 0;
 
 	if (wi) {
 		if (wi != p->w_width || he != p->w_height) {
-			if ((nmlines = calloc(he, sizeof(struct mline))) == 0) {
+			if ((nmlines = calloc(he, sizeof(struct mline))) == NULL) {
 				KillWindow(p);
 				Msg(0, "%s", strnomem);
 				return -1;
@@ -510,7 +510,7 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 		}
 	}
 	if (hi) {
-		if ((nhlines = calloc(hi, sizeof(struct mline))) == 0) {
+		if ((nhlines = calloc(hi, sizeof(struct mline))) == NULL) {
 			Msg(0, "No memory for history buffer - turned off");
 			hi = 0;
 			ty = he - 1;
@@ -591,7 +591,7 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 		oty = ty;
 		while (l > 0 && fy >= 0 && ty >= 0) {
 			lx = lt > lf ? lf : lt;
-			if (mlt->image == 0) {
+			if (mlt->image == NULL) {
 				if (AllocMline(mlt, wi + 1))
 					goto nomem;
 				MakeBlankLine(mlt->image + lt, wi - lt);
@@ -669,7 +669,7 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 		if (wi) {
 			t = p->w_tabs ? p->w_width : 0;
 			p->w_tabs = xrealloc(p->w_tabs, (wi + 1) * 4);
-			if (p->w_tabs == 0) {
+			if (p->w_tabs == NULL) {
  nomem:
 				if (nmlines) {
 					for (ty = he + hi - 1; ty >= 0; ty--) {
@@ -695,7 +695,7 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 		} else {
 			if (p->w_tabs)
 				free(p->w_tabs);
-			p->w_tabs = 0;
+			p->w_tabs = NULL;
 		}
 	}
 
@@ -762,7 +762,7 @@ void FreeAltScreen(Window *p)
 			FreeMline(p->w_alt.mlines + i);
 		free(p->w_alt.mlines);
 	}
-	p->w_alt.mlines = 0;
+	p->w_alt.mlines = NULL;
 	p->w_alt.width = 0;
 	p->w_alt.height = 0;
 	if (p->w_alt.hlines) {
@@ -770,7 +770,7 @@ void FreeAltScreen(Window *p)
 			FreeMline(p->w_alt.hlines + i);
 		free(p->w_alt.hlines);
 	}
-	p->w_alt.hlines = 0;
+	p->w_alt.hlines = NULL;
 	p->w_alt.histidx = 0;
 	p->w_alt.histheight = 0;
 }

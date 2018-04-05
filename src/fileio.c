@@ -210,7 +210,7 @@ int StartRc(char *rcfilename, int nopanic)
 				continue;
 			}
 			for (p = args[1]; p && *p; p = cp) {
-				if ((cp = strchr(p, '|')) != 0)
+				if ((cp = strchr(p, '|')) != NULL)
 					*cp++ = '\0';
 				len = strlen(p);
 				if (p[len - 1] == '*') {
@@ -297,7 +297,7 @@ void RcLine(char *ubuf, int ubufl)
 		fore = D_fore;
 		flayer = D_forecv->c_layer;
 	} else
-		flayer = fore ? fore->w_savelayer : 0;
+		flayer = fore ? fore->w_savelayer : NULL;
 	if (Parse(ubuf, ubufl, args, argl) <= 0)
 		return;
 	if (!display) {
@@ -305,7 +305,7 @@ void RcLine(char *ubuf, int ubufl)
 		EffectiveAclUser = users;
 	}
 	DoCommand(args, argl);
-	EffectiveAclUser = 0;
+	EffectiveAclUser = NULL;
 }
 
 
@@ -344,7 +344,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 
 	switch (dump) {
 	case DUMP_TERMCAP:
-		if (fn == 0) {
+		if (fn == NULL) {
 			i = SocketName - SocketPath;
 			if (i > (int)ARRAY_SIZE(fnbuf) - 9)
 				i = 0;
@@ -355,8 +355,8 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 		break;
 	case DUMP_HARDCOPY:
 	case DUMP_SCROLLBACK:
-		if (fn == 0) {
-			if (fore == 0)
+		if (fn == NULL) {
+			if (fore == NULL)
 				return;
 			if (hardcopydir && *hardcopydir && strlen(hardcopydir) < ARRAY_SIZE(fnbuf) - 21)
 				sprintf(fnbuf, "%s/hardcopy.%d", hardcopydir, fore->w_number);
@@ -368,7 +368,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 			mode = "a";
 		break;
 	case DUMP_EXCHANGE:
-		if (fn == 0) {
+		if (fn == NULL) {
 			strncpy(fnbuf, BufferFile, ARRAY_SIZE(fnbuf) - 1);
 			fnbuf[ARRAY_SIZE(fnbuf) - 1] = 0;
 			fn = fnbuf;
@@ -400,7 +400,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 				}
 			} else
 				fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0666);
-			f = fd >= 0 ? fdopen(fd, mode) : 0;
+			f = fd >= 0 ? fdopen(fd, mode) : NULL;
 		} else
 			f = fopen(fn, mode);
 		if (f == NULL) {
@@ -555,7 +555,7 @@ int printpipe(Window *p, char *cmd)
 		return -1;
 	case 0:
 		display = p->w_pdisplay;
-		displays = 0;
+		displays = NULL;
 		close(0);
 		if (dup(pi[0]) < 0)
 			Panic(errno, "printpipe dup");
@@ -587,7 +587,7 @@ int readpipe(char **cmdv)
 		Msg(errno, "fork");
 		return -1;
 	case 0:
-		displays = 0;
+		displays = NULL;
 		close(1);
 		if (dup(pi[1]) != 1) {
 			close(pi[1]);

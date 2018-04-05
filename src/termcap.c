@@ -71,15 +71,15 @@ char *gettermcapstring(char *s)
 {
 	int i;
 
-	if (display == 0 || s == 0)
-		return 0;
+	if (display == NULL || s == NULL)
+		return NULL;
 	for (i = 0; i < T_N; i++) {
 		if (term[i].type != T_STR)
 			continue;
 		if (strcmp(term[i].tcname, s) == 0)
 			return D_tcs[i].str;
 	}
-	return 0;
+	return NULL;
 }
 
 /*
@@ -100,7 +100,7 @@ int InitTermcap(int width, int height)
 		return -1;
 	}
 
-	if ((D_tentry = malloc(TERMCAP_BUFSIZE + (extra_incap ? strlen(extra_incap) + 1 : 0))) == 0) {
+	if ((D_tentry = malloc(TERMCAP_BUFSIZE + (extra_incap ? strlen(extra_incap) + 1 : 0))) == NULL) {
 		Msg(0, "%s", strnomem);
 		return -1;
 	}
@@ -121,7 +121,7 @@ int InitTermcap(int width, int height)
 			D_tcs[i].str = e_tgetstr(term[i].tcname, &tp);
 			/* no empty strings, please */
 			if (D_tcs[i].str && *D_tcs[i].str == 0)
-				D_tcs[i].str = 0;
+				D_tcs[i].str = NULL;
 			break;
 		default:
 			Panic(0, "Illegal tc type in entry #%d", i);
@@ -170,7 +170,7 @@ int InitTermcap(int width, int height)
 		if (D_OP && strstr(D_OP, "\033[39;49m"))
 			D_CAX = 1;
 		if (D_OP && (strstr(D_OP, "\033[m") || strstr(D_OP, "\033[0m")))
-			D_OP = 0;
+			D_OP = NULL;
 		/* ISO2022 */
 		if ((D_EA && strstr(D_EA, "\033(B")) || (D_AS && strstr(D_AS, "\033(0")))
 			D_CG0 = 1;
@@ -203,36 +203,36 @@ int InitTermcap(int width, int height)
 	 */
 
 	if (D_UG > 0)
-		D_US = D_UE = 0;
+		D_US = D_UE = NULL;
 	if (D_SG > 0)
-		D_SO = D_SE = 0;
+		D_SO = D_SE = NULL;
 	/* Unfortunately there is no 'mg' capability.
 	 * For now we think that mg > 0 if sg and ug > 0.
 	 */
 	if (D_UG > 0 && D_SG > 0)
-		D_MH = D_MD = D_MR = D_MB = D_ME = 0;
+		D_MH = D_MD = D_MR = D_MB = D_ME = NULL;
 
 	xue = ATYP_U;
 	xse = ATYP_S;
 	xme = ATYP_M;
 
-	if (D_SO && D_SE == 0) {
+	if (D_SO && D_SE == NULL) {
 		Msg(0, "Warning: 'so' but no 'se' capability.");
 		if (D_ME)
 			xse = xme;
 		else
-			D_SO = 0;
+			D_SO = NULL;
 	}
-	if (D_US && D_UE == 0) {
+	if (D_US && D_UE == NULL) {
 		Msg(0, "Warning: 'us' but no 'ue' capability.");
 		if (D_ME)
 			xue = xme;
 		else
-			D_US = 0;
+			D_US = NULL;
 	}
-	if ((D_MH || D_MD || D_MR || D_MB) && D_ME == 0) {
+	if ((D_MH || D_MD || D_MR || D_MB) && D_ME == NULL) {
 		Msg(0, "Warning: 'm?' but no 'me' capability.");
-		D_MH = D_MD = D_MR = D_MB = 0;
+		D_MH = D_MD = D_MR = D_MB = NULL;
 	}
 	/*
 	 * Does ME also reverse the effect of SO and/or US?  This is not
@@ -252,7 +252,7 @@ int InitTermcap(int width, int height)
 	}
 
 	/* Set up missing entries (attributes are priority ordered) */
-	s = 0;
+	s = NULL;
 	t = 0;
 	for (i = 0; i < NATTR; i++)
 		if ((s = D_attrtab[i])) {
@@ -260,7 +260,7 @@ int InitTermcap(int width, int height)
 			break;
 		}
 	for (i = 0; i < NATTR; i++) {
-		if (D_attrtab[i] == 0) {
+		if (D_attrtab[i] == NULL) {
 			D_attrtab[i] = s;
 			D_attrtyp[i] = t;
 		} else {
@@ -278,35 +278,35 @@ int InitTermcap(int width, int height)
 	if (!D_SF)
 		D_SF = D_NL;
 	if (D_IN)
-		D_IC = D_IM = 0;
-	if (D_EI == 0)
-		D_IM = 0;
+		D_IC = D_IM = NULL;
+	if (D_EI == NULL)
+		D_IM = NULL;
 	/* some strange termcap entries have IC == IM */
 	if (D_IC && D_IM && strcmp(D_IC, D_IM) == 0)
-		D_IC = 0;
-	if (D_KE == 0)
-		D_KS = 0;
-	if (D_CVN == 0)
-		D_CVR = 0;
-	if (D_VE == 0)
-		D_VI = D_VS = 0;
-	if (D_CCE == 0)
-		D_CCS = 0;
+		D_IC = NULL;
+	if (D_KE == NULL)
+		D_KS = NULL;
+	if (D_CVN == NULL)
+		D_CVR = NULL;
+	if (D_VE == NULL)
+		D_VI = D_VS = NULL;
+	if (D_CCE == NULL)
+		D_CCS = NULL;
 
 	if (D_CG0) {
-		if (D_CS0 == 0)
+		if (D_CS0 == NULL)
 			D_CS0 = "\033(%p1%c";
-		if (D_CE0 == 0)
+		if (D_CE0 == NULL)
 			D_CE0 = "\033(B";
-		D_AC = 0;
-		D_EA = 0;
+		D_AC = NULL;
+		D_EA = NULL;
 	} else if (D_AC || (D_AS && D_AE)) {	/* some kind of graphics */
 		D_CS0 = (D_AS && D_AE) ? D_AS : "";
 		D_CE0 = (D_AS && D_AE) ? D_AE : "";
 		D_CC0 = D_AC;
 	} else {
 		D_CS0 = D_CE0 = "";
-		D_CC0 = 0;
+		D_CC0 = NULL;
 		D_AC = "";	/* enable default string */
 	}
 
@@ -321,20 +321,20 @@ int InitTermcap(int width, int height)
 	if (D_CC0)
 		for (i = (strlen(D_CC0) - 2) & ~1; i >= 0; i -= 2)
 			D_c0_tab[(int)(unsigned char)D_CC0[i]] = D_CC0[i + 1];
-	if (D_PF == 0)
-		D_PO = 0;
+	if (D_PF == NULL)
+		D_PO = NULL;
 
 	if (D_CXC)
 		if (CreateTransTable(D_CXC))
 			return -1;
 
 	/* Termcap fields Z0 & Z1 contain width-changing sequences. */
-	if (D_CZ1 == 0)
-		D_CZ0 = 0;
+	if (D_CZ1 == NULL)
+		D_CZ0 = NULL;
 
 	CheckScreenSize(0);
 
-	if (D_TS == 0 || D_FS == 0 || D_DS == 0)
+	if (D_TS == NULL || D_FS == NULL || D_DS == NULL)
 		D_HS = 0;
 	if (D_HS) {
 		if (D_WS < 0)
@@ -373,13 +373,13 @@ int InitTermcap(int width, int height)
 
 	/* Some xterm entries set F0 and F10 to the same string. Nuke F0. */
 	if (D_tcs[T_CAPS].str && D_tcs[T_CAPS + 10].str && !strcmp(D_tcs[T_CAPS].str, D_tcs[T_CAPS + 10].str))
-		D_tcs[T_CAPS].str = 0;
+		D_tcs[T_CAPS].str = NULL;
 	/* Some xterm entries set kD to ^?. Nuke it. */
 	if (D_tcs[T_NAVIGATE_DELETE].str && !strcmp(D_tcs[T_NAVIGATE_DELETE].str, "\0177"))
-		D_tcs[T_NAVIGATE_DELETE].str = 0;
+		D_tcs[T_NAVIGATE_DELETE].str = NULL;
 	/* wyse52 entries have kcub1 == kb == ^H. Nuke... */
 	if (D_tcs[T_CURSOR + 3].str && !strcmp(D_tcs[T_CURSOR + 3].str, "\008"))
-		D_tcs[T_CURSOR + 3].str = 0;
+		D_tcs[T_CURSOR + 3].str = NULL;
 
 	D_nseqs = 0;
 	for (i = 0; i < T_OCAPS - T_CAPS; i++)
@@ -388,7 +388,7 @@ int InitTermcap(int width, int height)
 		remap(i + (KMAP_KEYS + KMAP_AKEYS), 1);
 	D_seqp = D_kmaps + 3;
 	D_seql = 0;
-	D_seqh = 0;
+	D_seqh = NULL;
 
 	D_tcinited = 1;
 	MakeTermcap(0);
@@ -400,13 +400,13 @@ int InitTermcap(int width, int height)
 
 int remap(int n, int map)
 {
-	char *s = 0;
+	char *s = NULL;
 	int fl = 0, domap = 0;
 	struct action *a1, *a2, *tab;
 	int l = 0;
-	struct kmap_ext *kme = 0;
+	struct kmap_ext *kme = NULL;
 
-	a1 = 0;
+	a1 = NULL;
 	if (n >= KMAP_KEYS + KMAP_AKEYS) {
 		kme = kmap_exts + (n - (KMAP_KEYS + KMAP_AKEYS));
 		s = kme->str;
@@ -416,7 +416,7 @@ int remap(int n, int map)
 	}
 	tab = umtab;
 	for (;;) {
-		a2 = 0;
+		a2 = NULL;
 		if (n < KMAP_KEYS + KMAP_AKEYS) {
 			a1 = &tab[n];
 			if (n >= KMAP_KEYS)
@@ -426,23 +426,23 @@ int remap(int n, int map)
 			if (n >= T_CURSOR - T_CAPS)
 				a2 = &tab[n + (T_OCAPS - T_CURSOR)];
 		}
-		if (s == 0 || l == 0)
+		if (s == NULL || l == 0)
 			return 0;
 		if (a1 && a1->nr == RC_ILLEGAL)
-			a1 = 0;
+			a1 = NULL;
 		if (a2 && a2->nr == RC_ILLEGAL)
-			a2 = 0;
+			a2 = NULL;
 		if (a1 && a1->nr == RC_STUFF && a1->args[0] && strcmp(a1->args[0], s) == 0)
-			a1 = 0;
+			a1 = NULL;
 		if (a2 && a2->nr == RC_STUFF && a2->args[0] && strcmp(a2->args[0], s) == 0)
-			a2 = 0;
+			a2 = NULL;
 		domap |= (a1 || a2);
 		if (tab == umtab) {
 			tab = dmtab;
-			a1 = kme ? &kme->dm : 0;
+			a1 = kme ? &kme->dm : NULL;
 		} else if (tab == dmtab) {
 			tab = mmtab;
-			a1 = kme ? &kme->mm : 0;
+			a1 = kme ? &kme->mm : NULL;
 		} else
 			break;
 	}
@@ -484,7 +484,7 @@ void CheckEscape(void)
 			}
 		}
 	}
-	if (display == 0) {
+	if (display == NULL) {
 		display = odisplay;
 		return;
 	}
@@ -493,7 +493,7 @@ void CheckEscape(void)
 		odisplay->d_user->u_Esc = DefaultEsc;
 	if (odisplay->d_user->u_MetaEsc == -1)
 		odisplay->d_user->u_MetaEsc = DefaultMetaEsc;
-	display = 0;
+	display = NULL;
 	Msg(0, "Warning: escape char set back to ^A");
 	display = odisplay;
 }
@@ -567,7 +567,7 @@ static int addmapseq(char *seq, int k, int nr)
 	}
 	D_seqp = D_kmaps + 3;
 	D_seql = 0;
-	D_seqh = 0;
+	D_seqh = NULL;
 	evdeq(&D_mapev);
 	if (j > 0)
 		memmove((char *)p + 2 * k + 4, (char *)p, D_nseqs - i);
@@ -625,7 +625,7 @@ static int remmapseq(char *seq, int k)
 	D_nseqs -= 2 * k + 4;
 	D_seqp = D_kmaps + 3;
 	D_seql = 0;
-	D_seqh = 0;
+	D_seqh = NULL;
 	evdeq(&D_mapev);
 	return 0;
 }
@@ -828,11 +828,11 @@ char *MakeTermcap(bool aflag)
 				continue;
 			}
 		}
-		if (display == 0)
+		if (display == NULL)
 			continue;
 		switch (term[i].type) {
 		case T_STR:
-			if (D_tcs[i].str == 0)
+			if (D_tcs[i].str == NULL)
 				break;
 			MakeString(term[i].tcname, buf, ARRAY_SIZE(buf), D_tcs[i].str);
 			AddCap(buf);
@@ -904,7 +904,7 @@ int CreateTransTable(char *s)
 	char **ctable;
 	int l, c;
 
-	if ((D_xtable = calloc(256, sizeof(char **))) == 0) {
+	if ((D_xtable = calloc(256, sizeof(char **))) == NULL) {
 		Msg(0, "%s", strnomem);
 		return -1;
 	}
@@ -918,8 +918,8 @@ int CreateTransTable(char *s)
 		templ = s;
 		templlen = 0;
 		templnsub = 0;
-		if (D_xtable[curchar] == 0) {
-			if ((D_xtable[curchar] = calloc(257, sizeof(char *))) == 0) {
+		if (D_xtable[curchar] == NULL) {
+			if ((D_xtable[curchar] = calloc(257, sizeof(char *))) == NULL) {
 				Msg(0, "%s", strnomem);
 				FreeTransTable();
 				return -1;
@@ -949,7 +949,7 @@ int CreateTransTable(char *s)
 			l = copyarg(&s, (char *)0);
 			if (c != 256)
 				l = l * templnsub + templlen;
-			if ((ctable[c] = malloc(l + 1)) == 0) {
+			if ((ctable[c] = malloc(l + 1)) == NULL) {
 				Msg(0, "%s", strnomem);
 				FreeTransTable();
 				return -1;
@@ -978,10 +978,10 @@ void FreeTransTable(void)
 	char ***p, **q;
 	int i, j;
 
-	if ((p = D_xtable) == 0)
+	if ((p = D_xtable) == NULL)
 		return;
 	for (i = 0; i < 256; i++, p++) {
-		if (*p == 0)
+		if (*p == NULL)
 			continue;
 		q = *p;
 		for (j = 0; j < 257; j++, q++)
@@ -1043,10 +1043,10 @@ static char *findcap(char *cap, char **tepp, int n)
 	int num = 0, capl;
 
 	if (!extra_incap)
-		return 0;
+		return NULL;
 	tep = *tepp;
 	capl = strlen(cap);
-	cp = 0;
+	cp = NULL;
 	mode = 0;
 	for (p = extra_incap; *p;) {
 		if (strncmp(p, cap, capl) == 0) {
@@ -1126,14 +1126,14 @@ static char *findcap(char *cap, char **tepp, int n)
 			return tep;
 		}
 	}
-	return 0;
+	return NULL;
 }
 
 static char *e_tgetstr(char *cap, char **tepp)
 {
 	char *tep;
 	if ((tep = findcap(cap, tepp, 0)))
-		return (*tep == '@') ? 0 : tep;
+		return (*tep == '@') ? NULL : tep;
 	return tgetstr(cap, tepp);
 }
 

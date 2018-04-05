@@ -776,7 +776,7 @@ int TtyGrabConsole(int fd, bool on, char *rc_name)
 	(void)fd;		/* unused */
 
 	if (on) {
-		if (displays == 0) {
+		if (displays == NULL) {
 			Msg(0, "I need a display");
 			return -1;
 		}

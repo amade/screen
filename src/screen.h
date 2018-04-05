@@ -37,7 +37,7 @@
 #include "os.h"
 
 /* here comes my own Free: jw. */
-#define Free(a) {if ((a) == 0) abort(); else free((void *)(a)); (a)=0;}
+#define Free(a) {if ((a) == NULL) abort(); else free((void *)(a)); (a)=NULL;}
 
 #define Ctrl(c) ((c)&037)
 

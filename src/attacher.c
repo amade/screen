@@ -433,7 +433,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 	char *p;
 	int n;
 
-	if (sty == 0) {
+	if (sty == NULL) {
 		i = FindSocket(&s, (int *)0, (int *)0, match);
 		if (i == 0)
 			Panic(0, "No screen session found.");

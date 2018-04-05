@@ -40,13 +40,13 @@ int RethinkDisplayViewports(void) {
 			memset((char *)viewport, 0, sizeof(Viewport));
 			free(viewport);
 		}
-		canvas->c_vplist = 0;
+		canvas->c_vplist = NULL;
 	}
 	display->d_vpxmin = -1;
 	display->d_vpxmax = -1;
 
 	for (Canvas *canvas = display->d_cvlist; canvas; canvas = canvas->c_next) {
-		if ((viewport = malloc(sizeof(Viewport))) == 0) {
+		if ((viewport = malloc(sizeof(Viewport))) == NULL) {
 			return -1;
 		}
 		viewport->v_canvas = canvas;

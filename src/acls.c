@@ -338,7 +338,7 @@ int UserFreeCopyBuffer(struct acluser *u)
 	}
 	free((char *)u->u_plop.buf);
 	u->u_plop.len = 0;
-	u->u_plop.buf = 0;
+	u->u_plop.buf = NULL;
 	return 0;
 }
 

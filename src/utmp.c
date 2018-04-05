@@ -194,16 +194,16 @@ void RemoveLoginSlot(void)
 	if (!utmpok)
 #endif
 	{
-		D_loginslot = 0;
+		D_loginslot = NULL;
 	} else {
-		if ((uu = getutslot(D_loginslot)) == 0) {
-			D_loginslot = 0;
+		if ((uu = getutslot(D_loginslot)) == NULL) {
+			D_loginslot = NULL;
 		} else {
 			D_utmp_logintty = *uu;
 			u = *uu;
 			makedead(&u);
 			if (pututslot(D_loginslot, &u, (char *)0, (Window *)0) == 0)
-				D_loginslot = 0;
+				D_loginslot = NULL;
 		}
 	}
 	if (D_loginslot == (slot_t) 0) {
@@ -333,7 +333,7 @@ int RemoveUtmp(Window *win)
 		return 0;
 	}
 	memset((char *)&u, 0, sizeof(struct utmpx));
-	if ((uu = getutslot(slot)) == 0) {
+	if ((uu = getutslot(slot)) == NULL) {
 		Msg(0, "Utmp slot not found -> not removed");
 		return -1;
 	}
@@ -382,7 +382,7 @@ static int pututslot(slot_t slot, struct utmpx *u, char *host, Window *win)
 #endif
 
 	setutxent();
-	return pututxline(u) != 0;
+	return pututxline(u) != NULL;
 }
 
 static void makedead(struct utmpx *u)

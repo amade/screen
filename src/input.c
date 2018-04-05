@@ -74,7 +74,7 @@ static const struct LayFuncs InpLf = {
 	DefClearLine,
 	DefResize,
 	DefRestore,
-	0
+	NULL
 };
 
 /*
@@ -188,7 +188,7 @@ static void InpProcess(char **ppbuf, size_t *plen)
 #define RESET_SEARCH do { if (inpdata->search) Free(inpdata->search); } while (0)
 
 	LGotoPos(flayer, inpdata->inpstringlen + (inpdata->inpmode & INP_NOECHO ? 0 : inpdata->inp.pos), INPUTLINE);
-	if (ppbuf == 0) {
+	if (ppbuf == NULL) {
 		InpAbort();
 		return;
 	}
@@ -364,7 +364,7 @@ static void InpProcess(char **ppbuf, size_t *plen)
 				inphist.prev = store;
 			}
 
-			flayer->l_data = 0;	/* so inpdata does not get freed */
+			flayer->l_data = NULL;	/* so inpdata does not get freed */
 			InpAbort();	/* redisplays... */
 			*ppbuf = pbuf;
 			*plen = len;

@@ -52,10 +52,10 @@ void FreeLayoutCv(Canvas *cv)
 		if (cv->c_slperp) {
 			FreeLayoutCv(cv->c_slperp);
 			free(cv->c_slperp);
-			cv->c_slperp = 0;
+			cv->c_slperp = NULL;
 		}
 		cnext = cv->c_slnext;
-		cv->c_slnext = 0;
+		cv->c_slnext = NULL;
 		if (cv != c)
 			free(cv);
 	}
@@ -75,7 +75,7 @@ Layout *CreateLayout(char *title, int startat)
 			i = 0;
 		if (i == startat) {
 			Msg(0, "No more layouts\n");
-			return 0;
+			return NULL;
 		}
 	}
 	lay = calloc(1, sizeof(Layout));
@@ -83,7 +83,7 @@ Layout *CreateLayout(char *title, int startat)
 	lay->lay_autosave = 1;
 	lay->lay_number = i;
 	laytab[i] = lay;
-	lay->lay_next = 0;
+	lay->lay_next = NULL;
 
 	pl = &layouts;
 	while (*pl)
@@ -149,13 +149,13 @@ void LoadLayout(Layout *lay)
 		while (D_canvas.c_slperp)
 			FreeCanvas(D_canvas.c_slperp);
 		MakeDefaultCanvas();
-		SetCanvasWindow(D_forecv, 0);
-		D_layout = 0;
+		SetCanvasWindow(D_forecv, NULL);
+		D_layout = NULL;
 		return;
 	}
 	while (D_canvas.c_slperp)
 		FreeCanvas(D_canvas.c_slperp);
-	D_cvlist = 0;
+	D_cvlist = NULL;
 	D_forecv = lay->lay_forecv;
 	if (!D_forecv)
 		MakeDefaultCanvas();
@@ -181,7 +181,7 @@ void NewLayout(char *title, int startat)
 		return;
 
 	if (display) {
-		LoadLayout(0);
+		LoadLayout(NULL);
 		fcv = D_forecv;
 		DupLayoutCv(&D_canvas, &lay->lay_canvas, true);
 		lay->lay_forecv = D_forecv;
@@ -203,7 +203,7 @@ static char *AddLayoutsInfo(char *buf, int len, int where)
 	for (pp = laytab; pp < laytab + MAXLAY; pp++) {
 		if (pp - laytab == where && ss == buf)
 			ss = s;
-		if ((p = *pp) == 0)
+		if ((p = *pp) == NULL)
 			continue;
 		t = p->lay_title;
 		l = strlen(t);
@@ -288,11 +288,11 @@ void UpdateLayoutCanvas(Canvas *cv, Window *wi)
 		if (cv->c_layer && Layer2Window(cv->c_layer) == wi) {
 			/* A simplistic version of SetCanvasWindow(cv, 0) */
 			Layer *l = cv->c_layer;
-			cv->c_layer = 0;
-			if (l->l_cvlist == 0 && (wi == 0 || l != wi->w_savelayer))
+			cv->c_layer = NULL;
+			if (l->l_cvlist == NULL && (wi == NULL || l != wi->w_savelayer))
 				KillLayerChain(l);
 			l = &cv->c_blank;
-			l->l_data = 0;
+			l->l_data = NULL;
 			if (l->l_cvlist != cv) {
 				cv->c_lnext = l->l_cvlist;
 				l->l_cvlist = cv;

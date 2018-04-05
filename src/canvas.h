@@ -95,7 +95,7 @@ void  PutWindowCv (Canvas *);
   Canvas *cvlnext = cv->c_lnext;	\
   flayer = l;				\
   l->l_cvlist = cv;			\
-  cv->c_lnext = 0;			\
+  cv->c_lnext = NULL;			\
   cmd;					\
   flayer = oldflayer;			\
   l->l_cvlist = cvlist;			\

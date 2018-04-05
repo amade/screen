@@ -204,7 +204,7 @@ int AddXChars(char *buf, int len, char *str)
 {
 	char *p;
 
-	if (str == 0) {
+	if (str == NULL) {
 		*buf = 0;
 		return 0;
 	}

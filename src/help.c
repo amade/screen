@@ -78,7 +78,7 @@ static const struct LayFuncs HelpLf = {
 	DefClearLine,
 	DefResize,
 	DefRestore,
-	0
+	NULL
 };
 
 void display_help(char *class, struct action *ktabp)
@@ -384,7 +384,7 @@ static const struct LayFuncs BindkeyLf = {
 	DefClearLine,
 	DefResize,
 	DefRestore,
-	0
+	NULL
 };
 
 void display_bindkey(char *title, struct action *tab)
@@ -547,12 +547,12 @@ static int ZmodemResize(int, int);
 
 static const struct LayFuncs ZmodemLf = {
 	DefProcess,
-	0,
+	NULL,
 	ZmodemRedisplayLine,
 	DefClearLine,
 	ZmodemResize,
 	DefRestore,
-	0
+	NULL
 };
 
 static int ZmodemResize(int wi, int he)

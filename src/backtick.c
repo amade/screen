@@ -80,7 +80,7 @@ static void backtick_fn(Event *ev, void *data)
 		memmove(bt->result, bt->buf + k, i - j - k);
 		bt->result[i - j - k - 1] = 0;
 		backtick_filter(bt);
-		WindowChanged(0, WINESC_BACKTICK);
+		WindowChanged(NULL, WINESC_BACKTICK);
 	}
 	if (j == l && i == MAXSTR) {
 		j = MAXSTR / 2;
@@ -99,7 +99,7 @@ void setbacktick(int num, int lifespan, int tick, char **cmdv)
 	struct backtick **btp, *bt;
 	char **v;
 
-	for (btp = &backticks; (bt = *btp) != 0; btp = &bt->next)
+	for (btp = &backticks; (bt = *btp) != NULL; btp = &bt->next)
 		if (bt->num == num)
 			break;
 	if (!bt && !cmdv)
@@ -126,7 +126,7 @@ void setbacktick(int num, int lifespan, int tick, char **cmdv)
 			return;
 		}
 		memset(bt, 0, sizeof(struct backtick));
-		bt->next = 0;
+		bt->next = NULL;
 		*btp = bt;
 	}
 	bt->num = num;
@@ -134,13 +134,13 @@ void setbacktick(int num, int lifespan, int tick, char **cmdv)
 	bt->lifespan = lifespan;
 	bt->bestbefore = 0;
 	bt->result[0] = 0;
-	bt->buf = 0;
+	bt->buf = NULL;
 	bt->bufi = 0;
 	bt->cmdv = cmdv;
 	bt->ev.fd = -1;
 	if (bt->tick == 0 && bt->lifespan == 0) {
 		bt->buf = malloc(MAXSTR);
-		if (bt->buf == 0) {
+		if (bt->buf == NULL) {
 			Msg(0, "%s", strnomem);
 			setbacktick(num, 0, 0, (char **)0);
 			return;

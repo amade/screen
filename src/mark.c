@@ -77,7 +77,7 @@ const struct LayFuncs MarkLf = {
 	DefClearLine,
 	DefResize,
 	DefRestore,
-	0
+	NULL
 };
 
 unsigned char mark_key_tab[256];	/* this array must be initialised first! */
@@ -258,12 +258,12 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
 	ry = y1 - markdata->hist_offset;
 
 	i = y1;
-	if (redisplay != 2 && pt == 0 && ry < 0) {
+	if (redisplay != 2 && pt == NULL && ry < 0) {
 		i -= ry;
 		ry = 0;
 	}
 	for (; i <= y2; i++, ry++) {
-		if (redisplay != 2 && pt == 0 && ry > yend)
+		if (redisplay != 2 && pt == NULL && ry > yend)
 			break;
 		ml = WIN(i);
 		from = (i == y1) ? x1 : 0;
@@ -278,7 +278,7 @@ static int rem(int x1, int y1, int x2, int y2, int redisplay, char *pt, int yend
 			to = markdata->right_mar;
 		if (redisplay == 1 && from <= to && ry >= 0 && ry <= yend)
 			MarkRedisplayLine(ry, from, to, 0);
-		if (redisplay != 2 && pt == 0)	/* don't count/copy */
+		if (redisplay != 2 && pt == NULL)	/* don't count/copy */
 			continue;
 		j = from;
 		if (dw_right(ml, j, fore->w_encoding))
@@ -463,7 +463,7 @@ static void MarkProcess(char **inbufp, size_t *inlenp)
 	markdata = (struct markdata *)flayer->l_data;
 	fore = markdata->md_window;
 	md_user = markdata->md_user;
-	if (inbufp == 0) {
+	if (inbufp == NULL) {
 		MarkAbort();
 		return;
 	}
@@ -885,7 +885,7 @@ static void MarkProcess(char **inbufp, size_t *inlenp)
 						in_mark = 0;
 						LMsg(0, "Not enough memory... Sorry.");
 						md_user->u_plop.len = 0;
-						md_user->u_plop.buf = 0;
+						md_user->u_plop.buf = NULL;
 						break;
 					}
 					if (append_mode) {
@@ -1261,9 +1261,9 @@ void FreePaster(struct paster *pa)
 {
 	if (pa->pa_pastebuf)
 		free(pa->pa_pastebuf);
-	pa->pa_pastebuf = 0;
-	pa->pa_pasteptr = 0;
+	pa->pa_pastebuf = NULL;
+	pa->pa_pasteptr = NULL;
 	pa->pa_pastelen = 0;
-	pa->pa_pastelayer = 0;
+	pa->pa_pastelayer = NULL;
 	evdeq(&pa->pa_slowev);
 }

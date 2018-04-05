@@ -43,8 +43,8 @@ static void CanvasInitBlank(Canvas *cv)
 	cv->c_blank.l_height = cv->c_ye - cv->c_ys + 1;
 	cv->c_blank.l_x = cv->c_blank.l_y = 0;
 	cv->c_blank.l_layfn = &BlankLf;
-	cv->c_blank.l_data = 0;
-	cv->c_blank.l_next = 0;
+	cv->c_blank.l_data = NULL;
+	cv->c_blank.l_next = NULL;
 	cv->c_blank.l_bottom = &cv->c_blank;
 	cv->c_blank.l_blocking = 0;
 	cv->c_layer = &cv->c_blank;
@@ -100,7 +100,7 @@ void FreeCanvas(Canvas *cv)
 
 	if (display) {
 		if (D_forecv == cv)
-			D_forecv = 0;
+			D_forecv = NULL;
 		/* remove from canvas chain as SetCanvasWindow might call
 		 * some layer function */
 		for (cvp = &D_cvlist; *cvp; cvp = &(*cvp)->c_next)
@@ -109,16 +109,16 @@ void FreeCanvas(Canvas *cv)
 				break;
 			}
 	}
-	p = cv->c_layer ? Layer2Window(cv->c_layer) : 0;
-	SetCanvasWindow(cv, 0);
+	p = cv->c_layer ? Layer2Window(cv->c_layer) : NULL;
+	SetCanvasWindow(cv, NULL);
 	if (p)
 		WindowChanged(p, 'u');
 	if (flayer == cv->c_layer)
-		flayer = 0;
+		flayer = NULL;
 	for (vp = cv->c_vplist; vp; vp = nvp) {
-		vp->v_canvas = 0;
+		vp->v_canvas = NULL;
 		nvp = vp->v_next;
-		vp->v_next = 0;
+		vp->v_next = NULL;
 		free(vp);
 	}
 	evdeq(&cv->c_captev);
@@ -161,7 +161,7 @@ int CountCanvasPerp(Canvas *cv)
 
 Canvas *FindCanvas(int x, int y)
 {
-	Canvas *cv, *mcv = 0;
+	Canvas *cv, *mcv = NULL;
 	int m, mm = 0;
 
 	for (cv = D_cvlist; cv; cv = cv->c_next) {
@@ -210,7 +210,7 @@ Canvas *FindCanvas(int x, int y)
 
 void SetCanvasWindow(Canvas *cv, Window *window)
 {
-	Window *p = 0, **pp;
+	Window *p = NULL, **pp;
 	Layer *l;
 	Canvas *cvp, **cvpp;
 
@@ -226,7 +226,7 @@ void SetCanvasWindow(Canvas *cv, Window *window)
 
 		p = Layer2Window(l);
 		l = cv->c_layer;
-		cv->c_layer = 0;
+		cv->c_layer = NULL;
 
 		if (p && cv == D_forecv) {
 			ReleaseAutoWritelock(display, p);
@@ -235,23 +235,23 @@ void SetCanvasWindow(Canvas *cv, Window *window)
 				evenq(&p->w_silenceev);
 			}
 			D_other = fore;
-			D_fore = 0;
+			D_fore = NULL;
 		}
-		if (l->l_cvlist == 0 && (p == 0 || l != p->w_savelayer))
+		if (l->l_cvlist == NULL && (p == NULL || l != p->w_savelayer))
 			KillLayerChain(l);
 	}
 
 	/* find right layer to display on canvas */
 	if (window && window->w_type != W_TYPE_GROUP) {
 		l = &window->w_layer;
-		if (window->w_savelayer && (window->w_blocked || window->w_savelayer->l_cvlist == 0))
+		if (window->w_savelayer && (window->w_blocked || window->w_savelayer->l_cvlist == NULL))
 			l = window->w_savelayer;
 	} else {
 		l = &cv->c_blank;
 		if (window)
 			l->l_data = (char *)window;
 		else
-			l->l_data = 0;
+			l->l_data = NULL;
 	}
 
 	/* add our canvas to the layer's canvaslist */
@@ -262,7 +262,7 @@ void SetCanvasWindow(Canvas *cv, Window *window)
 	cv->c_yoff = cv->c_ys;
 	RethinkViewportOffsets(cv);
 
-	if (flayer == 0)
+	if (flayer == NULL)
 		flayer = l;
 
 	if (window && window->w_type == W_TYPE_GROUP) {
@@ -321,7 +321,7 @@ int MakeDefaultCanvas(void)
 {
 	Canvas *cv;
 
-	if ((cv = calloc(1, sizeof(Canvas))) == 0)
+	if ((cv = calloc(1, sizeof(Canvas))) == NULL)
 		return -1;
 	cv->c_xs = 0;
 	cv->c_xe = D_width - 1;
@@ -329,12 +329,12 @@ int MakeDefaultCanvas(void)
 	cv->c_ye = D_height - 1 - (D_has_hstatus == HSTATUS_LASTLINE) - captionalways * !captiontop;
 	cv->c_xoff = 0;
 	cv->c_yoff = 0;
-	cv->c_next = 0;
+	cv->c_next = NULL;
 	cv->c_display = display;
-	cv->c_vplist = 0;
-	cv->c_slnext = 0;
-	cv->c_slprev = 0;
-	cv->c_slperp = 0;
+	cv->c_vplist = NULL;
+	cv->c_slnext = NULL;
+	cv->c_slprev = NULL;
+	cv->c_slperp = NULL;
 	cv->c_slweight = 1;
 	cv->c_slback = &D_canvas;
 	D_canvas.c_slperp = cv;
@@ -348,7 +348,7 @@ int MakeDefaultCanvas(void)
 	cv->c_captev.handler = cv_winid_fn;
 
 	CanvasInitBlank(cv);
-	cv->c_lnext = 0;
+	cv->c_lnext = NULL;
 
 	D_cvlist = cv;
 	RethinkDisplayViewports();
@@ -373,7 +373,7 @@ void RecreateCanvasChain(void)
 {
 	Canvas **cvp;
 	cvp = CreateCanvasChainRec(D_canvas.c_slperp, &D_cvlist);
-	*cvp = 0;
+	*cvp = NULL;
 }
 
 void EqualizeCanvas(Canvas *cv, bool gflag)
@@ -403,7 +403,7 @@ void ResizeCanvas(Canvas *cv)
 	xe = cv->c_xe;
 	ye = cv->c_ye;
 	cv = cv->c_slperp;
-	if (cv == 0)
+	if (cv == NULL)
 		return;
 	if (cv->c_slorient == SLICE_UNKN) {
 		cv->c_xs = xs;
@@ -417,7 +417,7 @@ void ResizeCanvas(Canvas *cv)
 		return;
 	}
 
-	fcv = 0;
+	fcv = NULL;
 	if (focusminwidth || focusminheight) {
 		cv2 = D_forecv;
 		while (cv2->c_slback) {
@@ -488,7 +488,7 @@ void ResizeCanvas(Canvas *cv)
 					}
 				}
 			}
-			SetCanvasWindow(cv, 0);
+			SetCanvasWindow(cv, NULL);
 			FreeCanvas(cv);
 			continue;
 		}
@@ -547,9 +547,9 @@ static Canvas *AddPerp(Canvas *cv)
 {
 	Canvas *pcv;
 
-	if ((pcv = calloc(1, sizeof(Canvas))) == 0)
-		return 0;
-	pcv->c_next = 0;
+	if ((pcv = calloc(1, sizeof(Canvas))) == NULL)
+		return NULL;
+	pcv->c_next = NULL;
 	pcv->c_display = cv->c_display;
 	pcv->c_slnext = cv->c_slnext;
 	pcv->c_slprev = cv->c_slprev;
@@ -571,9 +571,9 @@ static Canvas *AddPerp(Canvas *cv)
 	pcv->c_slweight = cv->c_slweight;
 	CanvasInitBlank(pcv);
 	cv->c_slweight = 1;
-	cv->c_slnext = 0;
-	cv->c_slprev = 0;
-	cv->c_slperp = 0;
+	cv->c_slnext = NULL;
+	cv->c_slprev = NULL;
+	cv->c_slperp = NULL;
 	cv->c_slback = pcv;
 	cv->c_slorient = SLICE_UNKN;
 	return pcv;
@@ -613,7 +613,7 @@ int AddCanvas(int orient)
 	if (h < 0)
 		return -1;	/* can't fit in */
 
-	if ((cv = calloc(1, sizeof(Canvas))) == 0)
+	if ((cv = calloc(1, sizeof(Canvas))) == NULL)
 		return -1;
 
 	D_forecv->c_slback->c_ys = ys;	/* in case we modified it above */
@@ -634,15 +634,15 @@ int AddCanvas(int orient)
 	cv->c_xoff = 0;
 	cv->c_yoff = 0;
 	cv->c_display = display;
-	cv->c_vplist = 0;
+	cv->c_vplist = NULL;
 	cv->c_captev.type = EV_TIMEOUT;
 	cv->c_captev.data = (char *)cv;
 	cv->c_captev.handler = cv_winid_fn;
 
 	CanvasInitBlank(cv);
-	cv->c_lnext = 0;
+	cv->c_lnext = NULL;
 
-	cv->c_next = 0;
+	cv->c_next = NULL;
 
 	cv = cv->c_slback;
 	EqualizeCanvas(cv->c_slperp, 0);
@@ -710,7 +710,7 @@ void RemCanvas(void)
 
 void OneCanvas(void)
 {
-	Canvas *cv = D_forecv, *ocv = 0;
+	Canvas *cv = D_forecv, *ocv = NULL;
 
 	if (cv->c_slprev) {
 		ocv = cv->c_slprev;
@@ -730,8 +730,8 @@ void OneCanvas(void)
 	cv = D_forecv;
 	D_canvas.c_slperp = cv;
 	cv->c_slback = &D_canvas;
-	cv->c_slnext = 0;
-	cv->c_slprev = 0;
+	cv->c_slnext = NULL;
+	cv->c_slprev = NULL;
 	if (!captionalways) {
 		if (captiontop)
 			D_canvas.c_ys--;	/* caption line no longer needed */
@@ -757,14 +757,14 @@ void DupLayoutCv(Canvas *cvf, Canvas *cvt, bool save)
 				cvt->c_captev.type = EV_TIMEOUT;
 				cvt->c_captev.data = (char *)cvt;
 				cvt->c_captev.handler = cv_winid_fn;
-				cvt->c_blank.l_cvlist = 0;
+				cvt->c_blank.l_cvlist = NULL;
 				cvt->c_blank.l_layfn = &BlankLf;
 				cvt->c_blank.l_bottom = &cvt->c_blank;
 			}
 			cvt->c_layer = cvf->c_layer;
 		} else {
-			Window *p = cvf->c_layer ? Layer2Window(cvf->c_layer) : 0;
-			cvt->c_layer = p ? &p->w_layer : 0;
+			Window *p = cvf->c_layer ? Layer2Window(cvf->c_layer) : NULL;
+			cvt->c_layer = p ? &p->w_layer : NULL;
 		}
 		if (cvf->c_slperp) {
 			cvt->c_slperp = calloc(1, sizeof(Canvas));
@@ -791,8 +791,8 @@ void PutWindowCv(Canvas *cv)
 			PutWindowCv(cv->c_slperp);
 			continue;
 		}
-		p = cv->c_layer ? (Window *)cv->c_layer->l_data : 0;
-		cv->c_layer = 0;
+		p = cv->c_layer ? (Window *)cv->c_layer->l_data : NULL;
+		cv->c_layer = NULL;
 		SetCanvasWindow(cv, p);
 	}
 }

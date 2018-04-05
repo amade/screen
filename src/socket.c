@@ -144,10 +144,10 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 	xseteuid(real_uid);
 	xsetegid(real_gid);
 
-	if ((dirp = opendir(SocketPath)) == 0)
+	if ((dirp = opendir(SocketPath)) == NULL)
 		Panic(errno, "Cannot opendir %s", SocketPath);
 
-	slist = 0;
+	slist = NULL;
 	slisttail = &slist;
 	while ((dp = readdir(dirp))) {
 		int cmatch = 0;
@@ -198,9 +198,9 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 			} else {
 			}
 		}
-		if ((sent = malloc(sizeof(struct sent))) == 0)
+		if ((sent = malloc(sizeof(struct sent))) == NULL)
 			continue;
-		sent->next = 0;
+		sent->next = NULL;
 		sent->name = SaveStr(name);
 		sent->mode = mode;
 		*slisttail = sent;
@@ -463,7 +463,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	m.m.create.flowflag = nwin->flowflag;
 	m.m.create.lflag = nwin->lflag;
 	m.m.create.hheight = nwin->histheight;
-	if (getcwd(m.m.create.dir, ARRAY_SIZE(m.m.create.dir)) == 0) {
+	if (getcwd(m.m.create.dir, ARRAY_SIZE(m.m.create.dir)) == NULL) {
 		Msg(errno, "getcwd");
 		return;
 	}
@@ -529,7 +529,7 @@ static void ExecCreate(Message *mp)
 		*pp++ = p;
 		p += strlen(p) + 1;
 	}
-	*pp = 0;
+	*pp = NULL;
 	if (*p)
 		nwin.aka = p;
 	if (*args)
@@ -621,7 +621,7 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 			 */
 			strncpy(m->m_tty, myttyname, ARRAY_SIZE(m->m_tty) - 1);
 			m->m_tty[ARRAY_SIZE(m->m_tty) - 1] = 0;
-		} else if (myttyname == 0 || strcmp(myttyname, m->m_tty)) {
+		} else if (myttyname == NULL || strcmp(myttyname, m->m_tty)) {
 			Msg(errno,
 			    "Attach: passed fd does not match tty: %s - %s!",
 			    m->m_tty, myttyname ? myttyname : "NULL");
@@ -649,7 +649,7 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 		}
 
 		if (strcmp(user, LoginName))
-			if (*FindUserPtr(user) == 0) {
+			if (*FindUserPtr(user) == NULL) {
 				int unused_result = write(i, "Access to session denied.\n", 26);
 				(void)unused_result; /* unused */
 				close(i);
@@ -661,7 +661,7 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 
 	/* create new display */
 	GetTTY(i, &Mode);
-	if (MakeDisplay(user, m->m_tty, attach ? m->m.attach.envterm : "", i, pid, &Mode) == 0) {
+	if (MakeDisplay(user, m->m_tty, attach ? m->m.attach.envterm : "", i, pid, &Mode) == NULL) {
 		int unused_result = write(i, "Could not make display.\n", 24);
 		(void)unused_result; /* unused */
 		close(i);
@@ -792,7 +792,7 @@ void ReceiveMsg(void)
 		for (win = windows; win; win = win->w_next)
 			if (!strcmp(m.m_tty, win->w_tty)) {
 				/* XXX: hmmm, rework this? */
-				display = win->w_layer.l_cvlist ? win->w_layer.l_cvlist->c_display : 0;
+				display = win->w_layer.l_cvlist ? win->w_layer.l_cvlist->c_display : NULL;
 				break;
 			}
 	}
@@ -839,7 +839,7 @@ void ReceiveMsg(void)
 		break;
 	case MSG_DETACH:
 	case MSG_POW_DETACH:
-		if (CreateTempDisplay(&m, recvfd, 0))
+		if (CreateTempDisplay(&m, recvfd, NULL))
 			break;
 		AskPassword(&m);
 		break;
@@ -952,7 +952,7 @@ static void FinishAttach(Message *m)
 		free(extra_outcap);
 	if (extra_incap)
 		free(extra_incap);
-	extra_incap = extra_outcap = 0;
+	extra_incap = extra_outcap = NULL;
 	StartRc(SYSTEM_SCREENRC, 1);
 	StartRc(RcFileName, 1);
 	if (InitTermcap(m->m.attach.columns, m->m.attach.lines)) {
@@ -962,7 +962,7 @@ static void FinishAttach(Message *m)
 	}
 	MakeDefaultCanvas();
 	InitTerm(m->m.attach.adaptflag);	/* write init string on fd */
-	if (displays->d_next == 0)
+	if (displays->d_next == NULL)
 		(void)chsock();
 	xsignal(SIGHUP, SigHup);
 	if (m->m.attach.esc != -1 && m->m.attach.meta_esc != -1) {
@@ -976,7 +976,7 @@ static void FinishAttach(Message *m)
 	 * don't log zomies back in!
 	 */
 	RemoveLoginSlot();
-	if (displays->d_next == 0)
+	if (displays->d_next == NULL)
 		for (Window *win = windows; win; win = win->w_next)
 			if (win->w_ptyfd >= 0 && win->w_slot != (slot_t) - 1)
 				SetUtmp(win);
@@ -989,7 +989,7 @@ static void FinishAttach(Message *m)
 			lay = layout_last;
 		if (lay) {
 			LoadLayout(lay);
-			SetCanvasWindow(D_forecv, 0);
+			SetCanvasWindow(D_forecv, NULL);
 		}
 	}
 	/*
@@ -998,7 +998,7 @@ static void FinishAttach(Message *m)
 	if (D_user->u_detachwin >= 0)
 		fore = wtab[D_user->u_detachwin];
 	else
-		fore = 0;
+		fore = NULL;
 
 	/* Wayne wants us to restore the other window too. */
 	if (D_user->u_detachotherwin >= 0)
@@ -1007,13 +1007,13 @@ static void FinishAttach(Message *m)
 	noshowwin = 0;
 	if (*m->m.attach.preselect) {
 		if (!strcmp(m->m.attach.preselect, "="))
-			fore = 0;
+			fore = NULL;
 		else if (!strcmp(m->m.attach.preselect, "-")) {
-			fore = 0;
+			fore = NULL;
 			noshowwin = 1;
 		} else if (!strcmp(m->m.attach.preselect, "+")) {
 			struct action newscreen;
-			char *na = 0;
+			char *na = NULL;
 			newscreen.nr = RC_SCREEN;
 			newscreen.args = &na;
 			newscreen.quiet = 0;
@@ -1021,7 +1021,7 @@ static void FinishAttach(Message *m)
 		} else
 			fore = FindNiceWindow(fore, m->m.attach.preselect);
 	} else
-		fore = FindNiceWindow(fore, 0);
+		fore = FindNiceWindow(fore, NULL);
 	if (fore)
 		SetForeWindow(fore);
 	else if (!noshowwin) {
@@ -1037,7 +1037,7 @@ static void FinishAttach(Message *m)
 	ResetIdle();
 	if (!D_fore && !noshowwin)
 		ShowWindows(-1);
-	if (displays->d_next == 0 && console_window) {
+	if (displays->d_next == NULL && console_window) {
 		if (TtyGrabConsole(console_window->w_ptyfd, true, "reattach") == 0)
 			Msg(0, "console %s is on window %d", HostName, console_window->w_number);
 	}
@@ -1060,7 +1060,7 @@ static void FinishDetach(Message *m)
 	}
 	if (det) {
 		*d = det->d_next;
-		det->d_next = 0;
+		det->d_next = NULL;
 	}
 
 	for (display = displays; display; display = next) {
@@ -1136,7 +1136,7 @@ static bool CheckPassword(const char *password) {
 
 	struct pam_response *reply;
 
-	pam_handle_t *pamh = 0;
+	pam_handle_t *pamh = NULL;
 	struct pam_conv pamc;
 	int pam_ret;
 	char *tty_name;
@@ -1225,7 +1225,7 @@ static void PasswordProcessInput(char *ibuf, size_t ilen)
 				/* uh oh, user failed */
 				memset(pwdata->buf, 0, sizeof(pwdata->buf));
 				AddStr("\r\nPassword incorrect.\r\n");
-				D_processinputdata = 0; /* otherwise freed by FreeDis */
+				D_processinputdata = NULL; /* otherwise freed by FreeDis */
 				FreeDisplay();
 				Msg(0, "Illegal reattach attempt from terminal %s.", pwdata->m.m_tty);
 				free(pwdata);
@@ -1237,7 +1237,7 @@ static void PasswordProcessInput(char *ibuf, size_t ilen)
 			memset(pwdata->buf, 0, sizeof(pwdata->buf));
 			AddStr("\r\n");
 
-			D_processinputdata = 0;
+			D_processinputdata = NULL;
 			D_processinput = ProcessInput;
 			if (pwdata->m.type == MSG_DETACH || pwdata->m.type == MSG_POW_DETACH)
 				FinishDetach(&pwdata->m);
@@ -1322,7 +1322,7 @@ static void DoCommandMsg(Message *mp)
 		return;
 	}
 	user = *FindUserPtr(mp->m.attach.auser);
-	if (user == 0) {
+	if (user == NULL) {
 		Msg(0, "Unknown user %s tried to send a command!", mp->m.attach.auser);
 		queryflag = -1;
 		return;
@@ -1340,7 +1340,7 @@ static void DoCommandMsg(Message *mp)
 	for (fore = windows; fore; fore = fore->w_next)
 		if (!strcmp(mp->m_tty, fore->w_tty)) {
 			if (!display)
-				display = fore->w_layer.l_cvlist ? fore->w_layer.l_cvlist->c_display : 0;
+				display = fore->w_layer.l_cvlist ? fore->w_layer.l_cvlist->c_display : NULL;
 
 			/* If the window is not visibile in any display, then do not use the originating window as
 			 * the foreground window for the command. This way, if there is an existing display, then
@@ -1362,13 +1362,13 @@ static void DoCommandMsg(Message *mp)
 				return;
 			}
 		}
-		fore = i >= 0 ? wtab[i] : 0;
+		fore = i >= 0 ? wtab[i] : NULL;
 	} else if (!fore) {
 		if (display && D_user == user)
 			fore = Layer2Window(display->d_forecv->c_layer);
 		if (!fore) {
-			fore = user->u_detachwin >= 0 ? wtab[user->u_detachwin] : 0;
-			fore = FindNiceWindow(fore, 0);
+			fore = user->u_detachwin >= 0 ? wtab[user->u_detachwin] : NULL;
+			fore = FindNiceWindow(fore, NULL);
 		}
 	}
 	if (!fore)
@@ -1377,13 +1377,13 @@ static void DoCommandMsg(Message *mp)
 	if (*args) {
 		char *oldrcname = rc_name;
 		rc_name = "-X";
-		flayer = fore ? &fore->w_layer : 0;
-		if (fore && fore->w_savelayer && (fore->w_blocked || fore->w_savelayer->l_cvlist == 0))
+		flayer = fore ? &fore->w_layer : NULL;
+		if (fore && fore->w_savelayer && (fore->w_blocked || fore->w_savelayer->l_cvlist == NULL))
 			flayer = fore->w_savelayer;
 		DoCommand(args, argl);
 		rc_name = oldrcname;
 	}
-	EffectiveAclUser = 0;
+	EffectiveAclUser = NULL;
 }
 
 int SendAttachMsg(int s, Message *m, int fd)
@@ -1396,7 +1396,7 @@ int SendAttachMsg(int s, Message *m, int fd)
 	iov.iov_base = (char *)m;
 	iov.iov_len = sizeof(Message);
 	memset(&msg, 0, sizeof(struct msghdr));
-	msg.msg_name = 0;
+	msg.msg_name = NULL;
 	msg.msg_namelen = 0;
 	msg.msg_iov = &iov;
 	msg.msg_iovlen = 1;

@@ -112,7 +112,7 @@ static int gl_License_row(ListData *ldata, ListRow *lrow)
 	}
 	strncpy(line, start, linelen);
 
-	leftline(line, lrow->y, 0);
+	leftline(line, lrow->y, NULL);
 	free(line);
 
 	return 1;

@@ -145,12 +145,12 @@ void DefRestore(void)
 
 const struct LayFuncs BlankLf = {
 	DefProcess,
-	0,
+	NULL,
 	DefRedisplayLine,
 	DefClearLine,
 	BlankResize,
 	DefRestore,
-	0
+	NULL
 };
 
 static int BlankResize(int wi, int he)
@@ -171,10 +171,10 @@ Display *MakeDisplay(char *uname, char *utty, char *term, int fd, pid_t pid, str
 	struct acluser **u;
 
 	if (!*(u = FindUserPtr(uname)) && UserAdd(uname, u))
-		return 0;	/* could not find or add user */
+		return NULL;	/* could not find or add user */
 
-	if ((display = calloc(1, sizeof(Display))) == 0)
-		return 0;
+	if ((display = calloc(1, sizeof(Display))) == NULL)
+		return NULL;
 	display->d_next = displays;
 	displays = display;
 	D_flow = 1;
@@ -248,10 +248,10 @@ void FreeDisplay(void)
 	freetty();
 	if (D_tentry)
 		free(D_tentry);
-	D_tentry = 0;
+	D_tentry = NULL;
 	if (D_processinputdata)
 		free(D_processinputdata);
-	D_processinputdata = 0;
+	D_processinputdata = NULL;
 	D_tcinited = 0;
 	evdeq(&D_hstatusev);
 	evdeq(&D_statusev);
@@ -261,12 +261,12 @@ void FreeDisplay(void)
 	evdeq(&D_mapev);
 	if (D_kmaps) {
 		free(D_kmaps);
-		D_kmaps = 0;
+		D_kmaps = NULL;
 		D_aseqs = 0;
 		D_nseqs = 0;
-		D_seqp = 0;
+		D_seqp = NULL;
 		D_seql = 0;
-		D_seqh = 0;
+		D_seqh = NULL;
 	}
 	evdeq(&D_idleev);
 	evdeq(&D_blankerev);
@@ -282,26 +282,26 @@ void FreeDisplay(void)
 
 	while (D_canvas.c_slperp)
 		FreeCanvas(D_canvas.c_slperp);
-	D_cvlist = 0;
+	D_cvlist = NULL;
 
 	for (Window *p = windows; p; p = p->w_next) {
 		if (p->w_pdisplay == display)
-			p->w_pdisplay = 0;
+			p->w_pdisplay = NULL;
 		if (p->w_lastdisp == display)
-			p->w_lastdisp = 0;
+			p->w_lastdisp = NULL;
 		if (p->w_readev.condneg == (int *)&D_status || p->w_readev.condneg == &D_obuflenmax)
-			p->w_readev.condpos = p->w_readev.condneg = 0;
+			p->w_readev.condpos = p->w_readev.condneg = NULL;
 	}
 	for (Window *p = windows; p; p = p->w_next)
 		if (p->w_zdisplay == display)
-			zmodem_abort(p, 0);
+			zmodem_abort(p, NULL);
 	if (D_mousetrack) {
 		D_mousetrack = 0;
 		MouseMode(0);
 		ExtMouseMode(0);
 	}
 	free((char *)display);
-	display = 0;
+	display = NULL;
 }
 
 /*
@@ -899,7 +899,7 @@ void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int usel
 			continue;
 		}
 		if (uselayfn) {
-			vp = 0;
+			vp = NULL;
 			for (cv = D_cvlist; cv; cv = cv->c_next) {
 				if (y < cv->c_ys || y > cv->c_ye || xxe < cv->c_xs || x1 > cv->c_xe)
 					continue;
@@ -918,7 +918,7 @@ void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int usel
 				cvlist = flayer->l_cvlist;
 				cvlnext = cv->c_lnext;
 				flayer->l_cvlist = cv;
-				cv->c_lnext = 0;
+				cv->c_lnext = NULL;
 				LayClearLine(y - vp->v_yoff, x1 - vp->v_xoff, xxe - vp->v_xoff, bce);
 				flayer->l_cvlist = cvlist;
 				cv->c_lnext = cvlnext;
@@ -1517,7 +1517,7 @@ void MakeStatus(char *msg)
 		GotoPos(STATCOL(D_width, D_status_len), STATLINE());
 		RefreshLine(STATLINE(), STATCOL(D_width, D_status_len), STATCOL(D_width, D_status_len) + D_status_len - 1, 0);
 		GotoPos(D_status_lastx, D_status_lasty);
-		flayer = D_forecv ? D_forecv->c_layer : 0;
+		flayer = D_forecv ? D_forecv->c_layer : NULL;
 		if (flayer)
 			LaySetCursor();
 		display = olddisplay;
@@ -1556,7 +1556,7 @@ void RemoveStatus(void)
 		}
 	} else
 		RefreshHStatus();
-	flayer = D_forecv ? D_forecv->c_layer : 0;
+	flayer = D_forecv ? D_forecv->c_layer : NULL;
 	if (flayer)
 		LaySetCursor();
 	display = olddisplay;
@@ -1630,14 +1630,14 @@ void ShowHStatus(char *str)
 		return;
 
 	if (D_HS && D_has_hstatus == HSTATUS_HS) {
-		if (!D_hstatus && (str == 0 || *str == 0))
+		if (!D_hstatus && (str == NULL || *str == 0))
 			return;
 		SetRendition(&mchar_null);
 		InsertMode(false);
 		if (D_hstatus)
 			AddCStr(D_DS);
 		D_hstatus = false;
-		if (str == 0 || *str == 0)
+		if (str == NULL || *str == 0)
 			return;
 		AddCStr2(D_TS, 0);
 		max = D_WS > 0 ? D_WS : (D_width - !D_CLP);
@@ -1764,8 +1764,8 @@ void RefreshLine(int y, int from, int to, int isblank)
 	}
 
 	while (from <= to) {
-		lcv = 0;
-		lvp = 0;
+		lcv = NULL;
+		lvp = NULL;
 		for (cv = display->d_cvlist; cv; cv = cv->c_next) {
 			if (y == (captiontop ? cv->c_ys - 1 : cv->c_ye + 1) && from >= cv->c_xs && from <= cv->c_xe) {
 				int extrabytes = strlen(captionstring) - strlen_onscreen(captionstring, NULL);
@@ -1800,7 +1800,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 			for (vp = cv->c_vplist; vp; vp = vp->v_next) {
 				/* find leftmost overlapping vp */
 				if (y >= vp->v_ys && y <= vp->v_ye && from <= vp->v_xe && to >= vp->v_xs
-				    && (lvp == 0 || lvp->v_xs > vp->v_xs)) {
+				    && (lvp == NULL || lvp->v_xs > vp->v_xs)) {
 					lcv = cv;
 					lvp = vp;
 				}
@@ -1808,7 +1808,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 		}
 		if (cv)
 			continue;	/* we advanced from */
-		if (lvp == 0)
+		if (lvp == NULL)
 			break;
 		if (from < lvp->v_xs) {
 			if (!isblank)
@@ -1836,7 +1836,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 			if (from >= lvp->v_xe + 1)
 				continue;
 		}
-		if (lcv->c_layer == 0 || yy >= lcv->c_layer->l_height || from - lvp->v_xoff >= lcv->c_layer->l_width) {
+		if (lcv->c_layer == NULL || yy >= lcv->c_layer->l_height || from - lvp->v_xoff >= lcv->c_layer->l_width) {
 			if (!isblank)
 				DisplayLine(&mline_null, &mline_blank, y, from, lvp->v_xe);
 			from = lvp->v_xe + 1;
@@ -1850,7 +1850,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 		cvlist = flayer->l_cvlist;
 		cvlnext = lcv->c_lnext;
 		flayer->l_cvlist = lcv;
-		lcv->c_lnext = 0;
+		lcv->c_lnext = NULL;
 		LayRedisplayLine(yy, from - lvp->v_xoff, xx - lvp->v_xoff, isblank);
 		flayer->l_cvlist = cvlist;
 		lcv->c_lnext = cvlnext;
@@ -1907,7 +1907,7 @@ void ClearLine(struct mline *oml, int y, int from, int to, int bce)
 		AddCStr(D_CE);
 		return;
 	}
-	if (oml == 0)
+	if (oml == NULL)
 		oml = &mline_null;
 	if (!bce) {
 		DisplayLine(oml, &mline_blank, y, from, to);
@@ -2054,7 +2054,7 @@ void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, boo
 		else if (y < D_height - 1)
 			y++;
 		if (ins)
-			InsChar(c, xs, xe, y, 0);
+			InsChar(c, xs, xe, y, NULL);
 		else
 			PutChar(c, xs, y);
 		return;
@@ -2081,7 +2081,7 @@ void WrapChar(struct mchar *c, int x, int y, int xs, int ys, int xe, int ye, boo
 	if (ins != D_insert)
 		InsertMode(ins);
 	if (ins && !D_insert) {
-		InsChar(c, 0, xe, y, 0);
+		InsChar(c, 0, xe, y, NULL);
 		return;
 	}
 	D_y = y;
@@ -2115,7 +2115,7 @@ int ResizeDisplay(int wi, int he)
 
 void ChangeScrollRegion(int newtop, int newbot)
 {
-	if (display == 0)
+	if (display == NULL)
 		return;
 	if (newtop == newbot)
 		return;		/* xterm etc can't do it */
@@ -2123,7 +2123,7 @@ void ChangeScrollRegion(int newtop, int newbot)
 		newtop = 0;
 	if (newbot == -1)
 		newbot = D_height - 1;
-	if (D_CS == 0) {
+	if (D_CS == NULL) {
 		D_top = 0;
 		D_bot = D_height - 1;
 		return;
@@ -2168,7 +2168,7 @@ void SetXtermOSC(int i, char *s, char *t)
 void ClearAllXtermOSC(void)
 {
 	for (int i = 4; i >= 0; i--)
-		SetXtermOSC(i, 0, "\a");
+		SetXtermOSC(i, NULL, "\a");
 	if (D_xtermosc[0])
 		AddStr("\033[23;" WT_FLAG "t");	/* unstack titles (xterm patch #251) */
 }
@@ -2268,11 +2268,11 @@ void freetty(void)
 	if (D_userfd >= 0)
 		close(D_userfd);
 	D_userfd = -1;
-	D_obufp = 0;
+	D_obufp = NULL;
 	D_obuffree = 0;
 	if (D_obuf)
 		free(D_obuf);
-	D_obuf = 0;
+	D_obuf = NULL;
 	D_obuflen = 0;
 	D_obuflenmax = -D_obufmax;
 	D_blocked = 0;
@@ -2511,7 +2511,7 @@ static void disp_readev_fn(Event *event, void *data)
 		}
 
 	display = (Display *)data;
-	if (D_fore == 0)
+	if (D_fore == NULL)
 		size = IOSIZE;
 	else {
 		if (W_UWP(D_fore))
@@ -2549,7 +2549,7 @@ static void disp_readev_fn(Event *event, void *data)
 		return;
 	}
 	if (D_blocked > 1) {	/* 2, 3 */
-		flayer = 0;
+		flayer = NULL;
 		for (Window *p = windows; p; p = p->w_next)
 			if (p->w_zdisplay == display) {
 				char *bufp = (char *)buf;
@@ -2558,7 +2558,7 @@ static void disp_readev_fn(Event *event, void *data)
 					LayProcess(&bufp, (size_t*)&size);
 				return;
 			}
-		zmodem_abort(0, display);
+		zmodem_abort(NULL, display);
 	}
 	if (idletimo > 0)
 		ResetIdle();
@@ -2779,7 +2779,7 @@ static void disp_processinput(Display * display, unsigned char *buf, size_t size
 				j += EncodeChar(buf2 + j, c, enc, &font);
 				j += EncodeChar(buf2 + j, -1, enc, &font);
 			} else
-				j += EncodeChar(buf2 + j, c, enc, 0);
+				j += EncodeChar(buf2 + j, c, enc, NULL);
 			if (j > (int)ARRAY_SIZE(buf2) - 10)	/* just in case... */
 				break;
 		}
@@ -2819,7 +2819,7 @@ static void disp_blocked_fn(Event *event, void *data)
 		/* re-enable all windows */
 		for (Window *p = windows; p; p = p->w_next)
 			if (p->w_readev.condneg == &D_obuflenmax) {
-				p->w_readev.condpos = p->w_readev.condneg = 0;
+				p->w_readev.condpos = p->w_readev.condneg = NULL;
 			}
 	}
 }
@@ -2838,13 +2838,13 @@ static void disp_map_fn(Event *event, void *data)
 	p = (char *)D_seqp - l;
 	D_seqp = D_kmaps + 3;
 	D_seql = 0;
-	if ((q = D_seqh) != 0) {
-		D_seqh = 0;
+	if ((q = D_seqh) != NULL) {
+		D_seqh = NULL;
 		i = q[0] << 8 | q[1];
 		i &= ~KMAP_NOTIMEOUT;
 		if (StuffKey(i))
 			ProcessInput2((char *)q + 3, q[2]);
-		if (display == 0)
+		if (display == NULL)
 			return;
 		l -= q[2];
 		p += q[2];
@@ -2975,7 +2975,7 @@ void RunBlanker(char **cmdv)
 			close(slave);
 		return;
 	case 0:
-		displays = 0;
+		displays = NULL;
 		if (setgid(real_gid) || setuid(real_uid))
 			Panic(errno, "setuid/setgid");
 		brktty(D_userfd);
@@ -2999,7 +2999,7 @@ void RunBlanker(char **cmdv)
 		glwz.ws_col = D_width;
 		glwz.ws_row = D_height;
 		(void)ioctl(0, TIOCSWINSZ, (char *)&glwz);
-		display = 0;
+		display = NULL;
 		execvpe(*cmdv, cmdv, NewEnv + 3);
 		Panic(errno, "%s", *cmdv);
 	default:

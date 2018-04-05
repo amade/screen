@@ -49,8 +49,8 @@ static struct mline *mlineoffset(const struct mline *ml, const int offset)
 {
 	static struct mline mml;
 
-	if (ml == 0)
-		return 0;
+	if (ml == NULL)
+		return NULL;
 	mml.image = ml->image + offset;
 	mml.attr = ml->attr + offset;
 	mml.font = ml->font + offset;
@@ -124,7 +124,7 @@ void LScrollH(Layer *l, int n, int y, int xs, int xe, int bce, struct mline *ol)
 			display = cv->c_display;
 			if (D_blocked)
 				continue;
-			ScrollH(y2, xs2, xe2, n, bce, ol ? mlineoffset(ol, -vp->v_xoff) : 0);
+			ScrollH(y2, xs2, xe2, n, bce, ol ? mlineoffset(ol, -vp->v_xoff) : NULL);
 			if (xe2 - xs2 == xe - xs)
 				continue;
 			if (n > 0) {
@@ -538,7 +538,7 @@ void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, bool ins)
 				    && vp->v_xoff <= vp->v_xe)
 					break;
 			}
-			if (vp == 0)
+			if (vp == NULL)
 				continue;	/* nothing to do, character not visible */
 			/* find the viewport of the character at the end of the line */
 			for (evp = cv->c_vplist; evp; evp = evp->v_next)
@@ -546,14 +546,14 @@ void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, bool ins)
 				    && evp->v_xoff + l->l_width - 1 >= evp->v_xs
 				    && evp->v_xoff + l->l_width - 1 <= evp->v_xe)
 					break;	/* gotcha! */
-			if (evp == 0 || (ins && vp->v_xoff + l->l_width - 1 > vp->v_ye)) {
+			if (evp == NULL || (ins && vp->v_xoff + l->l_width - 1 > vp->v_ye)) {
 				/* no wrapping possible */
 				cvlist = l->l_cvlist;
 				cvlnext = cv->c_lnext;
 				l->l_cvlist = cv;
-				cv->c_lnext = 0;
+				cv->c_lnext = NULL;
 				if (ins)
-					LInsChar(l, c, 0, yy, 0);
+					LInsChar(l, c, 0, yy, NULL);
 				else
 					LPutChar(l, c, 0, yy);
 				l->l_cvlist = cvlist;
@@ -590,11 +590,11 @@ void LWrapChar(Layer *l, struct mchar *c, int y, int top, int bot, bool ins)
 				cvlist = l->l_cvlist;
 				cvlnext = cv->c_lnext;
 				l->l_cvlist = cv;
-				cv->c_lnext = 0;
+				cv->c_lnext = NULL;
 				LScrollV(l, 1, top, bot, bce);
 				if (!vp) {
 					if (ins)
-						LInsChar(l, c, 0, bot, 0);
+						LInsChar(l, c, 0, bot, NULL);
 					else
 						LPutChar(l, c, 0, bot);
 				}
@@ -750,7 +750,7 @@ void LMsg(int err, const char *fmt, ...)
 		for (cv = D_cvlist; cv; cv = cv->c_next)
 			if (cv->c_layer == flayer)
 				break;
-		if (cv == 0)
+		if (cv == NULL)
 			continue;
 		MakeStatus(buf);
 	}
@@ -773,11 +773,11 @@ void KillLayerChain(Layer *lay)
 		if (l->l_layfn == &WinLf || l->l_layfn == &BlankLf)
 			break;
 		if (oldflayer == l)
-			oldflayer = 0;
+			oldflayer = NULL;
 		for (cv = l->l_cvlist; cv; cv = ncv) {
 			ncv = cv->c_lnext;
-			cv->c_layer = 0;
-			cv->c_lnext = 0;
+			cv->c_layer = NULL;
+			cv->c_lnext = NULL;
 		}
 	}
 	flayer = lay;
@@ -793,17 +793,17 @@ int InitOverlayPage(int datasize, const struct LayFuncs *lf, int block)
 	Canvas *cv, *cvp, **cvpp;
 	Window *win;
 
-	cv = 0;
+	cv = NULL;
 	if (display && D_forecv->c_layer == flayer)
 		cv = D_forecv;	/* work only on this cv! */
 
-	if ((newlay = calloc(1, sizeof(Layer))) == 0) {
+	if ((newlay = calloc(1, sizeof(Layer))) == NULL) {
 		Msg(0, "No memory for layer struct");
 		return -1;
 	}
-	data = 0;
+	data = NULL;
 	if (datasize) {
-		if ((data = calloc(1, datasize)) == 0) {
+		if ((data = calloc(1, datasize)) == NULL) {
 			free((char *)newlay);
 			Msg(0, "No memory for layer data");
 			return -1;
@@ -812,13 +812,13 @@ int InitOverlayPage(int datasize, const struct LayFuncs *lf, int block)
 
 	win = Layer2Window(flayer);
 
-	if (win && (win->w_savelayer == flayer || (block && flayer->l_next == 0))) {
-		if (win->w_savelayer && win->w_savelayer != flayer && win->w_savelayer->l_cvlist == 0)
+	if (win && (win->w_savelayer == flayer || (block && flayer->l_next == NULL))) {
+		if (win->w_savelayer && win->w_savelayer != flayer && win->w_savelayer->l_cvlist == NULL)
 			KillLayerChain(win->w_savelayer);
 		win->w_savelayer = newlay;
 	}
 
-	if (cv && flayer->l_next == 0 && !block) {
+	if (cv && flayer->l_next == NULL && !block) {
 		Display *olddisplay = display;
 		display = cv->c_display;
 		RemoveStatus();
@@ -830,7 +830,7 @@ int InitOverlayPage(int datasize, const struct LayFuncs *lf, int block)
 				break;
 		*cvpp = cv->c_lnext;
 		newlay->l_cvlist = cv;
-		cv->c_lnext = 0;
+		cv->c_lnext = NULL;
 		cv->c_layer = newlay;
 	} else {
 		LAY_DISPLAYS(flayer, RemoveStatus());
@@ -843,7 +843,7 @@ int InitOverlayPage(int datasize, const struct LayFuncs *lf, int block)
 		newlay->l_cvlist = flayer->l_cvlist;
 		for (cvp = newlay->l_cvlist; cvp; cvp = cvp->c_lnext)
 			cvp->c_layer = newlay;
-		flayer->l_cvlist = 0;
+		flayer->l_cvlist = NULL;
 	}
 	newlay->l_width = flayer->l_width;
 	newlay->l_height = flayer->l_height;
@@ -889,7 +889,7 @@ void ExitOverlayPage(void)
 	if (p && p->w_savelayer == oldlay)
 		p->w_savelayer = flayer;
 	if (p && oldlay == p->w_paster.pa_pastelayer)
-		p->w_paster.pa_pastelayer = 0;
+		p->w_paster.pa_pastelayer = NULL;
 
 	for (lay = layouts; lay; lay = lay->lay_next)
 		for (cv = lay->lay_cvlist; cv; cv = cv->c_next)
@@ -897,20 +897,20 @@ void ExitOverlayPage(void)
 				cv->c_layer = flayer;
 
 	/* add all canvases back into next layer's canvas list */
-	for (ocv = 0, cv = oldlay->l_cvlist; cv; cv = cv->c_lnext) {
+	for (ocv = NULL, cv = oldlay->l_cvlist; cv; cv = cv->c_lnext) {
 		cv->c_layer = flayer;
 		ocv = cv;
 	}
 	if (ocv) {
 		cv = flayer->l_cvlist;
-		ocv->c_lnext = 0;
+		ocv->c_lnext = NULL;
 		flayer->l_cvlist = oldlay->l_cvlist;
 		/* redisplay only the warped cvs */
 		if (doredisplay)
 			LRefreshAll(flayer, 0);
 		ocv->c_lnext = cv;
 	}
-	oldlay->l_cvlist = 0;
+	oldlay->l_cvlist = NULL;
 	LayerCleanupMemory(oldlay);
 	free((char *)oldlay);
 	LayRestore();

@@ -202,7 +202,7 @@ static struct passwd *getpwbyname(char *name, struct passwd *ppp)
 	}
 
 	if (n < 13)
-		ppp->pw_passwd = 0;
+		ppp->pw_passwd = NULL;
 	if (ppp->pw_passwd && strlen(ppp->pw_passwd) == 13 + 11)
 		ppp->pw_passwd[13] = 0;	/* beware of linux's long passwords */
 
@@ -287,7 +287,7 @@ int main(int argc, char **argv)
 	struct NewWindow nwin;
 	bool detached = false;	/* start up detached */
 	char *sockp;
-	char *sty = 0;
+	char *sty = NULL;
 
 	/*
 	 *  First, close all unused descriptors
@@ -308,7 +308,7 @@ int main(int argc, char **argv)
 	wliststr = SaveStr("%4n %t%=%f");
 	BufferFile = SaveStr(DEFAULT_BUFFERFILE);
 	ShellProg = NULL;
-	PowDetachString = 0;
+	PowDetachString = NULL;
 	default_startup = (argc > 1) ? false : true;
 	adaptflag = false;
 	VBellWait = VBELLWAIT * 1000;
@@ -642,7 +642,7 @@ int main(int argc, char **argv)
 	if (!mflag && !SocketMatch) {
 		sty = getenv("STY");
 		if (sty && *sty == 0)
-			sty = 0;
+			sty = NULL;
 	}
 
 	own_uid = multi_uid = real_uid;
@@ -669,15 +669,15 @@ int main(int argc, char **argv)
 			Panic(0, "Must run suid root for multiuser support.");
 	}
 	if (SocketMatch && *SocketMatch == 0)
-		SocketMatch = 0;
+		SocketMatch = NULL;
 
 	if ((LoginName = getlogin()) != NULL) {
 		if ((ppp = getpwnam(LoginName)) != (struct passwd *)0)
 			if (ppp->pw_uid != real_uid)
 				ppp = (struct passwd *)0;
 	}
-	if (ppp == 0) {
-		if ((ppp = getpwuid(real_uid)) == 0) {
+	if (ppp == NULL) {
+		if ((ppp = getpwuid(real_uid)) == NULL) {
 			Panic(0, "getpwuid() can't identify your account!");
 			exit(1);
 		}
@@ -704,7 +704,7 @@ int main(int argc, char **argv)
     eff_gid = real_gid; \
   } while (0)
 
-	if (home == 0 || *home == '\0')
+	if (home == NULL || *home == '\0')
 		home = ppp->pw_dir;
 	if (strlen(LoginName) > MAXLOGINLEN)
 		Panic(0, "LoginName too long - sorry.");
@@ -741,7 +741,7 @@ int main(int argc, char **argv)
 				close(n);
 		}
 
-		if ((attach_term = getenv("TERM")) == 0 || *attach_term == 0)
+		if ((attach_term = getenv("TERM")) == NULL || *attach_term == 0)
 			Panic(0, "Please set a terminal type.");
 		if (strlen(attach_term) > MAXTERMLEN)
 			Panic(0, "$TERM too long - sorry.");
@@ -766,7 +766,7 @@ int main(int argc, char **argv)
 #endif
 	} else {
 #ifndef SOCKET_DIR
-		if (SocketDir == 0) {
+		if (SocketDir == NULL) {
 			sprintf(SocketPath, "%s/.screen", home);
 			SocketDir = SocketPath;
 		}
@@ -965,7 +965,7 @@ int main(int argc, char **argv)
 	if (UserAdd(LoginName, (struct acluser **)0) < 0)
 		Panic(0, "Could not create user info");
 	if (!detached) {
-		if (MakeDisplay(LoginName, attach_tty, attach_term, n, getppid(), &attach_Mode) == 0)
+		if (MakeDisplay(LoginName, attach_tty, attach_term, n, getppid(), &attach_Mode) == NULL)
 			Panic(0, "Could not alloc display");
 		PanicPid = 0;
 		D_encoding = nwin_options.encoding > 0 ? nwin_options.encoding : 0;
@@ -1099,7 +1099,7 @@ void SigHup(int sigsig)
 {
 	(void)sigsig; /* unused */
 	/* Hangup all displays */
-	while ((display = displays) != 0)
+	while ((display = displays))
 		Hangup();
 }
 
@@ -1260,7 +1260,7 @@ void eexit(int e)
 
 void Hangup(void)
 {
-	if (display == 0)
+	if (display == NULL)
 		return;
 	if (D_userfd >= 0) {
 		close(D_userfd);
@@ -1292,7 +1292,7 @@ void Detach(int mode)
 	Canvas *cv;
 	Window *p;
 
-	if (display == 0)
+	if (display == NULL)
 		return;
 
 #define AddStrSocket(msg) do { \
@@ -1351,7 +1351,7 @@ void Detach(int mode)
 		break;
 	}
 #ifdef ENABLE_UTMP
-	if (displays->d_next == 0) {
+	if (displays->d_next == NULL) {
 		for (p = windows; p; p = p->w_next) {
 			if (p->w_slot != (slot_t) - 1 && !(p->w_lflag & 2)) {
 				RemoveUtmp(p);
@@ -1366,7 +1366,7 @@ void Detach(int mode)
 	if (mode != D_HANGUP)
 		RestoreLoginSlot();
 #endif
-	if (displays->d_next == 0 && console_window) {
+	if (displays->d_next == NULL && console_window) {
 		if (TtyGrabConsole(console_window->w_ptyfd, false, "detach")) {
 			KillWindow(console_window);
 			display = displays;	/* restore display */
@@ -1381,14 +1381,14 @@ void Detach(int mode)
 	layout_last = D_layout;
 	for (cv = D_cvlist; cv; cv = cv->c_next) {
 		p = Layer2Window(cv->c_layer);
-		SetCanvasWindow(cv, 0);
+		SetCanvasWindow(cv, NULL);
 		if (p)
 			WindowChanged(p, 'u');
 	}
 
 	pid = D_userpid;
 	FreeDisplay();
-	if (displays == 0)
+	if (displays == NULL)
 		/* Flag detached-ness */
 		(void)chsock();
 	/*
@@ -1434,7 +1434,7 @@ void MakeNewEnv(void)
 		    )
 			*np++ = *op;
 	}
-	*np = 0;
+	*np = NULL;
 }
 
 #define	PROCESS_MESSAGE(B) do { \
@@ -1469,7 +1469,7 @@ void Msg(int err, const char *fmt, ...)
 		 */
 		char *tty = D_usertty;
 		Display *olddisplay = display;
-		display = 0;	/* only send once */
+		display = NULL;	/* only send once */
 		SendErrorMsg(tty, buf);
 		display = olddisplay;
 	} else
@@ -1487,16 +1487,16 @@ void Panic(int err, const char *fmt, ...)
 	char buf[MAXPATHLEN * 2];
 	PROCESS_MESSAGE(buf);
 
-	if (displays == 0 && display == 0) {
+	if (displays == NULL && display == NULL) {
 		printf("%s\r\n", buf);
 		if (PanicPid)
 			Kill(PanicPid, SIG_BYE);
-	} else if (displays == 0) {
+	} else if (displays == NULL) {
 		/* no displays but a display - must have forked.
 		 * send message to backend!
 		 */
 		char *tty = D_usertty;
-		display = 0;
+		display = NULL;
 		SendErrorMsg(tty, buf);
 		sleep(2);
 		_exit(1);
@@ -1655,7 +1655,7 @@ static void serv_select_fn(Event *event, void *data)
 				for (cv = D_cvlist; cv; cv = cv->c_next)
 					if (cv->c_layer->l_bottom == &p->w_layer)
 						break;
-				if (cv == 0) {
+				if (cv == NULL) {
 					p->w_bell = BELL_DONE;
 					Msg(0, "%s", MakeWinMsg(BellString, p, '%'));
 				} else if (visual && !D_VB && (!D_status || !D_status_bell)) {
@@ -1745,7 +1745,7 @@ static void serv_select_fn(Event *event, void *data)
 				if (n > cv->c_layer->l_width)
 					n = cv->c_layer->l_width;
 				CV_CALL(cv, LayRedisplayLine(-1, -1, -1, 1); for (i = 0; i < flayer->l_height; i++) {
-					LScrollH(flayer, -n, i, 0, flayer->l_width - 1, 0, 0);
+					LScrollH(flayer, -n, i, 0, flayer->l_width - 1, 0, NULL);
 					LayRedisplayLine(i, 0, n - 1, 1);}
 					if (cv == cv->c_display->d_forecv)
 					LaySetCursor();) ;
@@ -1760,7 +1760,7 @@ static void serv_select_fn(Event *event, void *data)
 				if (n > cv->c_layer->l_width)
 					n = cv->c_layer->l_width;
 				CV_CALL(cv, LayRedisplayLine(-1, -1, -1, 1); for (i = 0; i < flayer->l_height; i++) {
-					LScrollH(flayer, n, i, 0, flayer->l_width - 1, 0, 0);
+					LScrollH(flayer, n, i, 0, flayer->l_width - 1, 0, NULL);
 					LayRedisplayLine(i, flayer->l_width - n, flayer->l_width - 1, 1);}
 					if (cv == cv->c_display->d_forecv)
 					LaySetCursor();) ;
@@ -1769,7 +1769,7 @@ static void serv_select_fn(Event *event, void *data)
 	}
 
 	for (display = displays; display; display = display->d_next) {
-		if (D_status == STATUS_ON_WIN || D_cvlist == 0 || D_cvlist->c_next == 0)
+		if (D_status == STATUS_ON_WIN || D_cvlist == NULL || D_cvlist->c_next == NULL)
 			continue;
 		CV_CALL(D_forecv, LayRestore();
 			LaySetCursor());
@@ -1818,14 +1818,14 @@ static void logflush_fn(Event *event, void *data)
 static char *ParseChar(char *p, char *cp)
 {
 	if (*p == 0)
-		return 0;
+		return NULL;
 	if (*p == '^' && p[1]) {
 		if (*++p == '?')
 			*cp = '\177';
 		else if (*p >= '@')
 			*cp = Ctrl(*p);
 		else
-			return 0;
+			return NULL;
 		++p;
 	} else if (*p == '\\' && *++p <= '7' && *p >= '0') {
 		*cp = 0;

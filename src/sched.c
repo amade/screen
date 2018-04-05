@@ -86,8 +86,8 @@ static Event *calctimo(void)
 	Event *ev, *min;
 	long mins;
 
-	if ((min = tevs) == 0)
-		return 0;
+	if ((min = tevs) == NULL)
+		return NULL;
 	mins = min->timeout.tv_sec;
 	for (ev = tevs->next; ev; ev = ev->next) {
 		if (mins < ev->timeout.tv_sec)
@@ -104,7 +104,7 @@ void sched(void)
 {
 	Event *ev;
 	fd_set r, w, *set;
-	Event *timeoutev = 0;
+	Event *timeoutev = NULL;
 	struct timeval timeout;
 	int nsel;
 

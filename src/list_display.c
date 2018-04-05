@@ -69,8 +69,8 @@ static int gl_Display_header(ListData *ldata)
 {
 	(void)ldata; /* unused */
 
-	leftline("term-type   size         user interface           window       Perms", 0, 0);
-	leftline("---------- ------- ---------- ----------------- ----------     -----", 1, 0);
+	leftline("term-type   size         user interface           window       Perms", 0, NULL);
+	leftline("---------- ------- ---------- ----------------- ----------     -----", 1, NULL);
 	return 2;
 }
 
@@ -118,7 +118,7 @@ static int gl_Display_row(ListData *ldata, ListRow *lrow)
 			(AclCheckPermWin(d->d_user, ACL_READ, w) ? '-' : 'x')
 		    );
 	}
-	leftline(tbuf, lrow->y, lrow == ldata->selected ? &mchar_so : d == display ? &m_current : 0);
+	leftline(tbuf, lrow->y, lrow == ldata->selected ? &mchar_so : d == display ? &m_current : NULL);
 
 	return 1;
 }

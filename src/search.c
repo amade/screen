@@ -55,9 +55,9 @@ void Search(int dir)
 	if (dir == 0) {
 		markdata = (struct markdata *)flayer->l_data;
 		if (markdata->isdir > 0)
-			searchend(0, 0, 0);
+			searchend(NULL, 0, NULL);
 		else if (markdata->isdir < 0)
-			backsearchend(0, 0, 0);
+			backsearchend(NULL, 0, NULL);
 		else
 			LMsg(0, "No previous pattern");
 	} else
