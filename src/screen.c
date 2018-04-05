@@ -126,13 +126,12 @@ char *captionstring;
 char *wliststr;
 char *wlisttit;
 bool auto_detach = true;
-bool adaptflag, cmdflag, iflag, lsflag, quietflag, wipeflag, xflag;
+bool adaptflag, iflag, lsflag, quietflag, wipeflag, xflag;
 int rflag, dflag;
 int queryflag = -1;
 bool hastruecolor = false;
 
 char *multi;
-char *multi_home;
 int multiattach;
 int tty_mode;
 int tty_oldmode = -1;
@@ -288,6 +287,8 @@ int main(int argc, char **argv)
 	bool detached = false;	/* start up detached */
 	char *sockp;
 	char *sty = NULL;
+	char *multi_home = NULL;
+	bool cmdflag = 0;
 
 	/*
 	 *  First, close all unused descriptors
