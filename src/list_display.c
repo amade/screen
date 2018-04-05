@@ -212,7 +212,7 @@ static const GenericList gl_Display = {
 	NULL			/* We do not allow searching in the display list, at the moment */
 };
 
-void display_displays()
+void display_displays(void)
 {
 	ListData *ldata;
 	if (flayer->l_width < 10 || flayer->l_height < 5) {

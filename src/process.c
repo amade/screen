@@ -378,7 +378,7 @@ char *noargs[1];
 
 int enter_window_name_mode = 0;
 
-void InitKeytab()
+void InitKeytab(void)
 {
 	unsigned int i;
 	char *argarr[2];
@@ -5248,7 +5248,7 @@ void DoAction(struct action *act)
 
 #undef OutputMsg
 
-void CollapseWindowlist()
+void CollapseWindowlist(void)
 /* renumber windows from 0, leaving no gaps */
 {
 	int pos, moveto = 0;
@@ -5826,7 +5826,7 @@ void Activate(int norefresh)
 	Redisplay(norefresh + all_norefresh);
 }
 
-static uint16_t NextWindow()
+static uint16_t NextWindow(void)
 {
 	Window **pp;
 	int n = fore ? fore->w_number : maxwin;
@@ -5845,7 +5845,7 @@ static uint16_t NextWindow()
 	return pp - wtab;
 }
 
-static uint16_t PreviousWindow()
+static uint16_t PreviousWindow(void)
 {
 	Window **pp;
 	int n = fore ? fore->w_number : 0;
@@ -5864,7 +5864,7 @@ static uint16_t PreviousWindow()
 	return pp - wtab;
 }
 
-static int MoreWindows()
+static int MoreWindows(void)
 {
 	char *m = "No other window.";
 	if (windows && (fore == 0 || windows->w_next))
@@ -6135,8 +6135,7 @@ void ShowWindows(int where)
 * String Escape based windows listing
 * mls: currently does a Msg() call for each(!) window, dunno why
 */
-static void ShowWindowsX(str)
-char *str;
+static void ShowWindowsX(char *str)
 {
 	int i;
 	for (i = 0; i < maxwin; i++) {
@@ -6146,7 +6145,7 @@ char *str;
 	}
 }
 
-static void ShowInfo()
+static void ShowInfo(void)
 {
 	char buf[512], *p;
 	Window *wp = fore;
@@ -6236,7 +6235,7 @@ static void ShowInfo()
 	Msg(0, "%s %d(%s)", buf, wp->w_number, wp->w_title);
 }
 
-static void ShowDInfo()
+static void ShowDInfo(void)
 {
 	char buf[128], *p;
 	int l;
@@ -6279,7 +6278,7 @@ static void AKAFin(char *buf, size_t len, void *data)
 	enter_window_name_mode = 0;
 }
 
-static void InputAKA()
+static void InputAKA(void)
 {
 	char *s, *ss;
 	size_t len;
@@ -6409,7 +6408,7 @@ static void SelectLayoutFin(char *buf, size_t len, void *data)
 	}
 }
 
-static void InputSelect()
+static void InputSelect(void)
 {
 	Input("Switch to window: ", 20, INP_COOKED, SelectFin, NULL, 0);
 }
@@ -7167,7 +7166,7 @@ void SetForeCanvas(Display *d, Canvas *cv)
 	display = odisplay;
 }
 
-void RefreshXtermOSC()
+void RefreshXtermOSC(void)
 {
 	int i;
 	Window *p;

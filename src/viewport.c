@@ -30,7 +30,7 @@
 
 #include "screen.h"
 
-int RethinkDisplayViewports() {
+int RethinkDisplayViewports(void) {
 	Viewport *viewport, *viewport_next;
 
 	/* free old viewports */

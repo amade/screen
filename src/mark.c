@@ -372,7 +372,7 @@ static bool eq(int a, int b)
 
 /**********************************************************************/
 
-int GetHistory()
+int GetHistory(void)
 {				/* return value 1 if copybuffer changed */
 	int i = 0, q = 0, xx, yy, x, y;
 	uint32_t *linep;
@@ -413,7 +413,7 @@ int GetHistory()
 
 /**********************************************************************/
 
-void MarkRoutine()
+void MarkRoutine(void)
 {
 	int x, y;
 
@@ -1115,7 +1115,7 @@ void revto_line(int tx, int ty, int line)
 	LGotoPos(flayer, tx, W2D(ty));
 }
 
-static void MarkAbort()
+static void MarkAbort(void)
 {
 	int yend, redisp;
 

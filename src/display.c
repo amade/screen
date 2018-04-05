@@ -124,7 +124,7 @@ int DefResize(int width, int height)
 	return -1;
 }
 
-void DefRestore()
+void DefRestore(void)
 {
 	LAY_DISPLAYS(flayer, InsertMode(false));
 	/* ChangeScrollRegion(0, D_height - 1); */
@@ -232,7 +232,7 @@ Display *MakeDisplay(char *uname, char *utty, char *term, int fd, pid_t pid, str
 	return display;
 }
 
-void FreeDisplay()
+void FreeDisplay(void)
 {
 	Display *d, **dp;
 
@@ -336,7 +336,7 @@ void InitTerm(int adapt)
 	CheckScreenSize((adapt) ? 2 : 0);
 }
 
-void FinitTerm()
+void FinitTerm(void)
 {
 	KillBlanker();
 	if (D_tcinited) {
@@ -834,7 +834,7 @@ void GotoPos(int x2, int y2)
 	D_y = y2;
 }
 
-void ClearAll()
+void ClearAll(void)
 {
 	ClearArea(0, 0, 0, D_width - 1, D_width - 1, D_height - 1, 0, 0);
 }
@@ -1526,7 +1526,7 @@ void MakeStatus(char *msg)
 	}
 }
 
-void RemoveStatus()
+void RemoveStatus(void)
 {
 	Display *olddisplay;
 	Layer *oldflayer;
@@ -1564,7 +1564,7 @@ void RemoveStatus()
 }
 
 /* Remove the status but make sure that it is seen for MsgMinWait ms */
-static void RemoveStatusMinWait()
+static void RemoveStatusMinWait(void)
 {
 	/* XXX: should flush output first if D_status_obufpos is set */
 	if (!D_status_bell && !D_status_obufpos) {
@@ -1693,7 +1693,7 @@ void ShowHStatus(char *str)
 /*
  *  Refreshes the harstatus of the fore window. Shouldn't be here...
  */
-void RefreshHStatus()
+void RefreshHStatus(void)
 {
 	char *buf;
 	int extrabytes = strlen(hstatusstring) - strlen_onscreen(hstatusstring, NULL);
@@ -2165,7 +2165,7 @@ void SetXtermOSC(int i, char *s, char *t)
 	AddStr(t);
 }
 
-void ClearAllXtermOSC()
+void ClearAllXtermOSC(void)
 {
 	for (int i = 4; i >= 0; i--)
 		SetXtermOSC(i, 0, "\a");
@@ -2263,7 +2263,7 @@ void Flush(int progress)
 	D_blocked_fuzz = 0;
 }
 
-void freetty()
+void freetty(void)
 {
 	if (D_userfd >= 0)
 		close(D_userfd);
@@ -2284,7 +2284,7 @@ void freetty()
  *  Tim MacKenzie (tym@dibbler.cs.monash.edu.au)
  */
 
-void Resize_obuf()
+void Resize_obuf(void)
 {
 	int ind;
 
@@ -2332,7 +2332,7 @@ void DisplaySleep1000(int n, int eat)
 	}
 }
 
-void NukePending()
+void NukePending(void)
 {				/* Nuke pending output in current display, clear screen */
 	int len;
 	int oldtop = D_top, oldbot = D_bot;
@@ -2875,7 +2875,7 @@ static void disp_idle_fn(Event *event, void *data)
 		ResetIdle();
 }
 
-void ResetIdle()
+void ResetIdle(void)
 {
 	if (idletimo > 0) {
 		SetTimeout(&D_idleev, idletimo);
@@ -2904,7 +2904,7 @@ static void disp_blanker_fn(Event *event, void *data)
 		AddChar(*b++);
 }
 
-void KillBlanker()
+void KillBlanker(void)
 {
 	int oldtop = D_top, oldbot = D_bot;
 	struct mchar oldrend;
@@ -3013,7 +3013,7 @@ void RunBlanker(char **cmdv)
 		close(slave);
 }
 
-void ClearScrollbackBuffer()
+void ClearScrollbackBuffer(void)
 {
 	if (D_CE3)
 		AddCStr(D_CE3);

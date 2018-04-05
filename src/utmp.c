@@ -162,7 +162,7 @@ void CarefulUtmp()
 }
 #endif				/* CAREFULUTMP */
 
-void InitUtmp()
+void InitUtmp(void)
 {
 #ifndef UTMP_HELPER
 	if ((utmpfd = open(UtmpName, O_RDWR)) == -1) {
@@ -181,7 +181,7 @@ void InitUtmp()
  * the utmp entry for tty is located and removed.
  * it is stored in D_utmp_logintty.
  */
-void RemoveLoginSlot()
+void RemoveLoginSlot(void)
 {
 	struct utmpx u, *uu;
 
@@ -222,7 +222,7 @@ void RemoveLoginSlot()
 /*
  * D_utmp_logintty is reinserted into utmp
  */
-void RestoreLoginSlot()
+void RestoreLoginSlot(void)
 {
 	char *tty;
 

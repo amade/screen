@@ -317,7 +317,7 @@ static void cv_winid_fn(Event *ev, void *data)
 		GotoPos(ox, oy);
 }
 
-int MakeDefaultCanvas()
+int MakeDefaultCanvas(void)
 {
 	Canvas *cv;
 
@@ -369,7 +369,7 @@ static Canvas **CreateCanvasChainRec(Canvas *cv, Canvas **cvp)
 	return cvp;
 }
 
-void RecreateCanvasChain()
+void RecreateCanvasChain(void)
 {
 	Canvas **cvp;
 	cvp = CreateCanvasChainRec(D_canvas.c_slperp, &D_cvlist);
@@ -653,7 +653,7 @@ int AddCanvas(int orient)
 	return 0;
 }
 
-void RemCanvas()
+void RemCanvas(void)
 {
 	Canvas *cv;
 	int ys, ye;
@@ -708,7 +708,7 @@ void RemCanvas()
 	ResizeLayersToCanvases();
 }
 
-void OneCanvas()
+void OneCanvas(void)
 {
 	Canvas *cv = D_forecv, *ocv = 0;
 

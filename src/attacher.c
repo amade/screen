@@ -383,7 +383,7 @@ static void AttacherWinch(int sigsig)
  *  Attacher loop - no return
  */
 
-void Attacher()
+void Attacher(void)
 {
 	xsignal(SIGHUP, AttacherFinit);
 	xsignal(SIG_BYE, AttacherFinit);

@@ -278,7 +278,7 @@ struct recodetab {
 
 static struct recodetab recodetabs[256];
 
-void InitBuiltinTabs()
+void InitBuiltinTabs(void)
 {
 	unsigned short (*p)[2];
 	for (p = builtin_tabs; (*p)[0]; p++) {

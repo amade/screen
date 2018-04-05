@@ -211,7 +211,7 @@ static const GenericList gl_License = {
 	NULL			/* We do not allow searching in the license page, at the moment */
 };
 
-void display_license()
+void display_license(void)
 {
 	ListData *ldata;
 	if (flayer->l_width < 40 || flayer->l_height < 5) {

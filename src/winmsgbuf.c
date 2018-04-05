@@ -31,7 +31,7 @@
 
 /* Allocate and initialize to the empty string a new window message buffer. The
  * return value must be freed using wmbc_free. */
-WinMsgBuf *wmb_create()
+WinMsgBuf *wmb_create(void)
 {
 	WinMsgBuf *w = malloc(sizeof(WinMsgBuf));
 	if (w == NULL)

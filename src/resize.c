@@ -147,7 +147,7 @@ void ChangeScreenSize(int wi, int he, int change_fore)
 	}
 }
 
-void ResizeLayersToCanvases()
+void ResizeLayersToCanvases(void)
 {
 	Canvas *cv;
 	Layer *l;
@@ -219,7 +219,7 @@ int MayResizeLayer(Layer *l)
  *  This is a lot harder if done the right way...
  */
 
-static void kaablamm()
+static void kaablamm(void)
 {
 	Msg(0, "Aborted because of window size change.");
 }

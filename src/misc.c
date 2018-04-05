@@ -164,7 +164,7 @@ void closeallfiles(int except)
 
 static int UserSTAT;
 
-int UserContext()
+int UserContext(void)
 {
 	xseteuid(real_uid);
 	xsetegid(real_gid);
@@ -178,7 +178,7 @@ void UserReturn(int val)
 	UserSTAT = val;
 }
 
-int UserStatus()
+int UserStatus(void)
 {
 	return UserSTAT;
 }

@@ -344,7 +344,7 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 **
 */
 
-int MakeServerSocket()
+int MakeServerSocket(void)
 {
 	int s;
 	struct sockaddr_un a;
@@ -688,7 +688,7 @@ static int CreateTempDisplay(Message *m, int recvfd, Window *win)
 	return 0;
 }
 
-void ReceiveMsg()
+void ReceiveMsg(void)
 {
 	int left, len;
 	static Message m;
@@ -889,7 +889,7 @@ void ReceiveRaw(int s)
 /*
  * Set the mode bits of the socket to the current status
  */
-int chsock()
+int chsock(void)
 {
 	int ret;
 	uid_t euid = geteuid();
@@ -913,7 +913,7 @@ int chsock()
 /*
  * Try to recreate the socket/pipe
  */
-int RecoverSocket()
+int RecoverSocket(void)
 {
 	close(ServerSocket);
 	if (geteuid() != real_uid) {

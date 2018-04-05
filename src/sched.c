@@ -81,7 +81,7 @@ void evdeq(Event *ev)
 		nextev = nextev->next;
 }
 
-static Event *calctimo()
+static Event *calctimo(void)
 {
 	Event *ev, *min;
 	long mins;
@@ -100,7 +100,7 @@ static Event *calctimo()
 	return min;
 }
 
-void sched()
+void sched(void)
 {
 	Event *ev;
 	fd_set r, w, *set;

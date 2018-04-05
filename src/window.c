@@ -335,7 +335,7 @@ static int WinResize(int wi, int he)
 	return 0;
 }
 
-static void WinRestore()
+static void WinRestore(void)
 {
 	fore = (Window *)flayer->l_data;
 	for (Canvas *cv = flayer->l_cvlist; cv; cv = cv->c_next) {

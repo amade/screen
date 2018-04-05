@@ -857,7 +857,7 @@ int InitOverlayPage(int datasize, const struct LayFuncs *lf, int block)
 	return 0;
 }
 
-void ExitOverlayPage()
+void ExitOverlayPage(void)
 {
 	Layer *oldlay;
 	Window *p;

@@ -506,7 +506,7 @@ char *ReadFile(char *filename, int *lenp)
 	return buf;
 }
 
-void KillBuffers()
+void KillBuffers(void)
 {
 	if (UserContext() > 0)
 		UserReturn(unlink(BufferFile) ? errno : 0);

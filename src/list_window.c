@@ -603,7 +603,7 @@ void WListUpdatecv(Canvas *cv, Window *p)
 	CV_CALL(cv, WListUpdate(p, ldata));
 }
 
-void WListLinkChanged()
+void WListLinkChanged(void)
 {
 	Display *olddisplay = display;
 	Canvas *cv;

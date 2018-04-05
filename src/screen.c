@@ -1075,7 +1075,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-static void SigChldHandler()
+static void SigChldHandler(void)
 {
 	struct stat st;
 	while (GotSigChld) {
@@ -1148,7 +1148,7 @@ static void CoreDump(int sigsig)
 	abort();
 }
 
-static void DoWait()
+static void DoWait(void)
 {
 	pid_t pid;
 	Window *win;
@@ -1258,7 +1258,7 @@ void eexit(int e)
 	exit(e);
 }
 
-void Hangup()
+void Hangup(void)
 {
 	if (display == 0)
 		return;
@@ -1409,7 +1409,7 @@ static int IsSymbol(char *e, char *s)
 	return strncmp(e, s, l) == 0 && e[l] == '=';
 }
 
-void MakeNewEnv()
+void MakeNewEnv(void)
 {
 	char **op, **np;
 	static char stybuf[MAXSTR];

@@ -391,7 +391,7 @@ static void InpProcess(char **ppbuf, size_t *plen)
 	*plen = len;
 }
 
-static void InpAbort()
+static void InpAbort(void)
 {
 	LAY_CALL_UP(LayRedisplayLine(INPUTLINE, 0, flayer->l_width - 1, 0));
 	ExitOverlayPage();

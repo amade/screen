@@ -458,7 +458,7 @@ int remap(int n, int map)
 		return remmapseq(s, l);
 }
 
-void CheckEscape()
+void CheckEscape(void)
 {
 	Display *odisplay;
 	int i, nr;
@@ -973,7 +973,7 @@ int CreateTransTable(char *s)
 	return 0;
 }
 
-void FreeTransTable()
+void FreeTransTable(void)
 {
 	char ***p, **q;
 	int i, j;

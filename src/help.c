@@ -176,13 +176,13 @@ static void HelpProcess(char **ppbuf, size_t *plen)
 		HelpAbort();
 }
 
-static void HelpAbort()
+static void HelpAbort(void)
 {
 	LAY_CALL_UP(LRefreshAll(flayer, 0));
 	ExitOverlayPage();
 }
 
-static int helppage()
+static int helppage(void)
 {
 	struct helpdata *helpdata;
 	int col, crow, n, key, x;
@@ -418,13 +418,13 @@ void display_bindkey(char *title, struct action *tab)
 	bindkeypage();
 }
 
-static void BindkeyAbort()
+static void BindkeyAbort(void)
 {
 	LAY_CALL_UP(LRefreshAll(flayer, 0));
 	ExitOverlayPage();
 }
 
-static void bindkeypage()
+static void bindkeypage(void)
 {
 	struct bindkeydata *bindkeydata;
 	struct kmap_ext *kme;
@@ -571,7 +571,7 @@ static void ZmodemRedisplayLine(int y, int xs, int xe, int isblank)
 			&mchar_blank, 0, 0);
 }
 
-void ZmodemPage()
+void ZmodemPage(void)
 {
 	if (InitOverlayPage(1, &ZmodemLf, 1))
 		return;
