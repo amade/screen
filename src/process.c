@@ -7168,11 +7168,9 @@ void SetForeCanvas(Display *d, Canvas *cv)
 
 void RefreshXtermOSC(void)
 {
-	int i;
-	Window *p;
+	Window *p = Layer2Window(D_forecv->c_layer);
 
-	p = Layer2Window(D_forecv->c_layer);
-	for (i = 4; i >= 0; i--)
+	for (int i = 4; i >= 0; i--)
 		SetXtermOSC(i, p ? p->w_xtermosc[i] : NULL, "\a");
 }
 
