@@ -81,8 +81,7 @@ static void FreePerp(Canvas *pcv)
 void FreeCanvas(Canvas *cv)
 {
 	Viewport *vp, *nvp;
-	Canvas **cvp;
-	Window *p;
+	Window *win;
 
 	if (cv->c_slprev)
 		cv->c_slprev->c_slnext = cv->c_slnext;
@@ -103,16 +102,16 @@ void FreeCanvas(Canvas *cv)
 			D_forecv = NULL;
 		/* remove from canvas chain as SetCanvasWindow might call
 		 * some layer function */
-		for (cvp = &D_cvlist; *cvp; cvp = &(*cvp)->c_next)
+		for (Canvas **cvp = &D_cvlist; *cvp; cvp = &(*cvp)->c_next)
 			if (*cvp == cv) {
 				*cvp = cv->c_next;
 				break;
 			}
 	}
-	p = cv->c_layer ? Layer2Window(cv->c_layer) : NULL;
+	win = cv->c_layer ? Layer2Window(cv->c_layer) : NULL;
 	SetCanvasWindow(cv, NULL);
-	if (p)
-		WindowChanged(p, 'u');
+	if (win)
+		WindowChanged(win, 'u');
 	if (flayer == cv->c_layer)
 		flayer = NULL;
 	for (vp = cv->c_vplist; vp; vp = nvp) {
@@ -131,11 +130,10 @@ int CountCanvas(Canvas *cv)
 	int num = 0;
 	for (; cv; cv = cv->c_slnext) {
 		if (cv->c_slperp) {
-			Canvas *cvp;
-			int nump = 1, n;
-			for (cvp = cv->c_slperp; cvp; cvp = cvp->c_slnext)
+			int nump = 1;
+			for (Canvas *cvp = cv->c_slperp; cvp; cvp = cvp->c_slnext)
 				if (cvp->c_slperp) {
-					n = CountCanvas(cvp->c_slperp);
+					int n = CountCanvas(cvp->c_slperp);
 					if (n > nump)
 						nump = n;
 				}
@@ -148,11 +146,10 @@ int CountCanvas(Canvas *cv)
 
 int CountCanvasPerp(Canvas *cv)
 {
-	Canvas *cvp;
-	int num = 1, n;
-	for (cvp = cv->c_slperp; cvp; cvp = cvp->c_slnext)
+	int num = 1;
+	for (Canvas *cvp = cv->c_slperp; cvp; cvp = cvp->c_slnext)
 		if (cvp->c_slperp) {
-			n = CountCanvas(cvp->c_slperp);
+			int n = CountCanvas(cvp->c_slperp);
 			if (n > num)
 				num = n;
 		}
@@ -161,10 +158,10 @@ int CountCanvasPerp(Canvas *cv)
 
 Canvas *FindCanvas(int x, int y)
 {
-	Canvas *cv, *mcv = NULL;
+	Canvas *mcv = NULL;
 	int m, mm = 0;
 
-	for (cv = D_cvlist; cv; cv = cv->c_next) {
+	for (Canvas *cv = D_cvlist; cv; cv = cv->c_next) {
 		if (x >= cv->c_xs && x <= cv->c_xe) {
 			if (y >= cv->c_ys && y <= cv->c_ye)
 				return cv;
@@ -378,11 +375,10 @@ void RecreateCanvasChain(void)
 
 void EqualizeCanvas(Canvas *cv, bool gflag)
 {
-	Canvas *cv2;
 	for (; cv; cv = cv->c_slnext) {
 		if (cv->c_slperp && gflag) {
 			cv->c_slweight = CountCanvasPerp(cv);
-			for (cv2 = cv->c_slperp; cv2; cv2 = cv2->c_slnext)
+			for (Canvas *cv2 = cv->c_slperp; cv2; cv2 = cv2->c_slnext)
 				if (cv2->c_slperp)
 					EqualizeCanvas(cv2->c_slperp, gflag);
 		} else
