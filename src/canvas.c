@@ -130,14 +130,7 @@ int CountCanvas(Canvas *cv)
 	int num = 0;
 	for (; cv; cv = cv->c_slnext) {
 		if (cv->c_slperp) {
-			int nump = 1;
-			for (Canvas *cvp = cv->c_slperp; cvp; cvp = cvp->c_slnext)
-				if (cvp->c_slperp) {
-					int n = CountCanvas(cvp->c_slperp);
-					if (n > nump)
-						nump = n;
-				}
-			num += nump;
+			num += CountCanvasPerp(cv);
 		} else
 			num++;
 	}
