@@ -150,7 +150,7 @@ int Attach(int how)
 			Panic(0, "Sorry, cannot contact session \"%s\" again.\r\n", SocketName);
 		}
 	} else {
-		n = FindSocket(&lasts, (int *)0, (int *)0, SocketMatch);
+		n = FindSocket(&lasts, NULL, NULL, SocketMatch);
 		switch (n) {
 		case 0:
 			if (rflag && (rflag & 1) == 0)
@@ -434,7 +434,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 	int n;
 
 	if (sty == NULL) {
-		i = FindSocket(&s, (int *)0, (int *)0, match);
+		i = FindSocket(&s, NULL, NULL, match);
 		if (i == 0)
 			Panic(0, "No screen session found.");
 		if (i != 1)

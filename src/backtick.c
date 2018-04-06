@@ -142,7 +142,7 @@ void setbacktick(int num, int lifespan, int tick, char **cmdv)
 		bt->buf = malloc(MAXSTR);
 		if (bt->buf == NULL) {
 			Msg(0, "%s", strnomem);
-			setbacktick(num, 0, 0, (char **)0);
+			setbacktick(num, 0, 0, NULL);
 			return;
 		}
 		bt->ev.type = EV_READ;

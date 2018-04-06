@@ -266,10 +266,10 @@ void RemoveLayout(Layout *lay)
 			break;
 		}
 	}
-	laytab[lay->lay_number] = (Layout *)0;
+	laytab[lay->lay_number] = NULL;
 
 	if (display && D_layout == lay)
-		D_layout = (Layout *)0;
+		D_layout = NULL;
 
 	FreeLayoutCv(&lay->lay_canvas);
 

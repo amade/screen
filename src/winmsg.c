@@ -683,7 +683,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 
 char *MakeWinMsg(char *s, Window *win, int esc)
 {
-	return MakeWinMsgEv(NULL, s, win, esc, 0, (Event *)0, 0);
+	return MakeWinMsgEv(NULL, s, win, esc, 0, NULL, 0);
 }
 
 static int WindowChangedCheck(char *s, WinMsgEscapeChar what, int *hp)
@@ -723,8 +723,8 @@ void WindowChanged(Window *win, WinMsgEscapeChar what)
 	Canvas *cv;
 
 	if (what == WINESC_WFLAGS) {
-		WindowChanged((Window *)0, WINESC_WIN_NAMES | 0x100);
-		WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR | 0x100);
+		WindowChanged(NULL, WINESC_WIN_NAMES | 0x100);
+		WindowChanged(NULL, WINESC_WIN_NAMES_NOCUR | 0x100);
 	}
 
 	if (what) {
@@ -743,12 +743,12 @@ void WindowChanged(Window *win, WinMsgEscapeChar what)
 			for (cv = D_cvlist; cv; cv = cv->c_next) {
 				if (inlstr
 				    || (inlstrh && win && win->w_hstatus && *win->w_hstatus
-					&& WindowChangedCheck(win->w_hstatus, what, (int *)0)))
-					WListUpdatecv(cv, (Window *)0);
+					&& WindowChangedCheck(win->w_hstatus, what, NULL)))
+					WListUpdatecv(cv, NULL);
 				win = Layer2Window(cv->c_layer);
 				if (inwstr
 				    || (inwstrh && win && win->w_hstatus && *win->w_hstatus
-					&& WindowChangedCheck(win->w_hstatus, what, (int *)0))) {
+					&& WindowChangedCheck(win->w_hstatus, what, NULL))) {
 					if (captiontop) {
 						if (cv->c_ys - 1 >= 0)
 							RefreshLine(cv->c_ys - 1, 0, D_width -1 , 0);
@@ -761,7 +761,7 @@ void WindowChanged(Window *win, WinMsgEscapeChar what)
 			win = D_fore;
 			if (inhstr
 			    || (inhstrh && win && win->w_hstatus && *win->w_hstatus
-				&& WindowChangedCheck(win->w_hstatus, what, (int *)0)))
+				&& WindowChangedCheck(win->w_hstatus, what, NULL)))
 				RefreshHStatus();
 			if (ox != -1 && oy != -1)
 				GotoPos(ox, oy);
@@ -771,7 +771,7 @@ void WindowChanged(Window *win, WinMsgEscapeChar what)
 	}
 
 	if (win->w_hstatus && *win->w_hstatus && (inwstrh || inhstrh || inlstrh)
-	    && WindowChangedCheck(win->w_hstatus, what, (int *)0)) {
+	    && WindowChangedCheck(win->w_hstatus, what, NULL)) {
 		inwstr |= inwstrh;
 		inhstr |= inhstrh;
 		inlstr |= inlstrh;

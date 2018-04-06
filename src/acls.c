@@ -92,7 +92,7 @@ static int GrowBitfield(AclBits * bfp, int len, int delta, int defaultbit)
 {
 	AclBits n, o = *bfp;
 
-	if (!(n = (AclBits) calloc(1, (unsigned long)(&ACLBYTE((char *)0, len + delta + 1)))))
+	if (!(n = (AclBits) calloc(1, (unsigned long)(&ACLBYTE(NULL, len + delta + 1)))))
 		return -1;
 	for (int i = 0; i < (len + delta); i++) {
 		if (((i < len) && (ACLBIT(i) & ACLBYTE(o, i))) || ((i >= len) && (defaultbit)))
@@ -627,12 +627,12 @@ int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
 				AclSetPermWin(uu, u, mode, (Window *)1);
 			else	/* .. or all windows */
 				for (Window *w = windows; w; w = w->w_next)
-					AclSetPermWin((struct acluser *)0, u, mode, w);
+					AclSetPermWin(NULL, u, mode, w);
 			s++;
 			break;
 		case '?':
 			if (uu)	/* command umask or .. */
-				AclSetPermWin(uu, u, mode, (Window *)0);
+				AclSetPermWin(uu, u, mode, NULL);
 			else	/* .. or all commands */
 				for (i = 0; i <= RC_LAST; i++)
 					AclSetPermCmd(u, mode, &comms[i]);
@@ -645,7 +645,7 @@ int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
 			if ((i = FindCommnr(s)) != RC_ILLEGAL)
 				AclSetPermCmd(u, mode, &comms[i]);
 			else if (((i = WindowByNoN(s)) >= 0) && wtab[i])
-				AclSetPermWin((struct acluser *)0, u, mode, wtab[i]);
+				AclSetPermWin(NULL, u, mode, wtab[i]);
 			else
 				/* checking group name */
 				return -1;

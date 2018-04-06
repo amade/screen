@@ -72,7 +72,7 @@ static int utmpfd = -1;
 #define D_loginhost D_utmp_logintty.ut_host
 #if !defined(HAVE_UT_HOST)
 #undef  D_loginhost
-#define D_loginhost ((char *)0)
+#define D_loginhost (NULL)
 #endif
 
 #endif				/* ENABLE_UTMP */
@@ -202,7 +202,7 @@ void RemoveLoginSlot(void)
 			D_utmp_logintty = *uu;
 			u = *uu;
 			makedead(&u);
-			if (pututslot(D_loginslot, &u, (char *)0, (Window *)0) == 0)
+			if (pututslot(D_loginslot, &u, NULL, NULL) == 0)
 				D_loginslot = NULL;
 		}
 	}
@@ -227,7 +227,7 @@ void RestoreLoginSlot(void)
 	char *tty;
 
 	if (utmpok && D_loginslot != (slot_t) 0 && D_loginslot != (slot_t) - 1) {
-		if (pututslot(D_loginslot, &D_utmp_logintty, D_loginhost, (Window *)0) == 0)
+		if (pututslot(D_loginslot, &D_utmp_logintty, D_loginhost, NULL) == 0)
 			Msg(errno, "Could not write %s", UtmpName);
 	}
 	D_loginslot = (slot_t) 0;
@@ -340,7 +340,7 @@ int RemoveUtmp(Window *win)
 	memmove((char *)&win->w_savut, (char *)uu, sizeof(struct utmpx));
 	u = *uu;
 	makedead(&u);
-	if (pututslot(slot, &u, (char *)0, win) == 0) {
+	if (pututslot(slot, &u, NULL, win) == 0) {
 		Msg(errno, "Could not write %s", UtmpName);
 		return -1;
 	}

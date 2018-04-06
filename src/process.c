@@ -921,7 +921,7 @@ static void DoCommandSelect(struct action *act)
 	if (!*args)
 		InputSelect();
 	else if (args[0][0] == '-' && !args[0][1]) {
-		SetForeWindow((Window *)0);
+		SetForeWindow(NULL);
 		Activate(0);
 	} else if (args[0][0] == '.' && !args[0][1]) {
 		if (!fore) {
@@ -1011,7 +1011,7 @@ static void DoCommandDumptermcap(struct action *act)
 
 	struct acluser *user = display ? D_user : users;
 
-	WriteFile(user, (char *)0, DUMP_TERMCAP);
+	WriteFile(user, NULL, DUMP_TERMCAP);
 }
 
 
@@ -1774,7 +1774,7 @@ static void DoCommandWidth(struct action *act)
 	if (what == 1) {
 		if (flayer->l_width == w && flayer->l_height == h)
 			return;
-		ResizeLayer(flayer, w, h, (Display *)0);
+		ResizeLayer(flayer, w, h, NULL);
 		return;
 	}
 	if (D_width == w && D_height == h)
@@ -1868,7 +1868,7 @@ static void DoCommandHeight(struct action *act)
 	if (what == 1) {
 		if (flayer->l_width == w && flayer->l_height == h)
 			return;
-		ResizeLayer(flayer, w, h, (Display *)0);
+		ResizeLayer(flayer, w, h, NULL);
 		return;
 	}
 	if (D_width == w && D_height == h)
@@ -2095,7 +2095,7 @@ static void DoCommandWindowlist(struct action *act)
 	int msgok = display && !*rc_name;
 
 	if (!*args)
-		display_windows(0, WLIST_NUM, (Window *)0);
+		display_windows(0, WLIST_NUM, NULL);
 	else if (!strcmp(*args, "string")) {
 		if (args[1]) {
 			if (wliststr)
@@ -2131,7 +2131,7 @@ static void DoCommandWindowlist(struct action *act)
 				return;
 			}
 		if (i == argc)
-			display_windows(blank, flag, (Window *)0);
+			display_windows(blank, flag, NULL);
 	}
 }
 
@@ -2148,7 +2148,7 @@ static void DoCommandHelp(struct action *act)
 		}
 		display_help(args[1], ktabp);
 	} else
-		display_help((char *)0, ktab);
+		display_help(NULL, ktab);
 }
 
 static void DoCommandLicense(struct action *act)
@@ -2224,7 +2224,7 @@ static void DoCommandHistory(struct action *act)
 				enc = user->u_plop.enc;
 			if (enc != user->u_plop.enc)
 				l += RecodeBuf((unsigned char *)user->u_plop.buf, user->u_plop.len,
-					       user->u_plop.enc, enc, (unsigned char *)0);
+					       user->u_plop.enc, enc, NULL);
 			else
 				l += user->u_plop.len;
 		} else {
@@ -2234,7 +2234,7 @@ static void DoCommandHistory(struct action *act)
 				l += RecodeBuf((unsigned char *)plop_tab[(int)(unsigned char)ch].buf,
 					       plop_tab[(int)(unsigned char)ch].len,
 					       plop_tab[(int)(unsigned char)ch].enc, enc,
-					       (unsigned char *)0);
+					       NULL);
 			else
 				l += plop_tab[(int)(unsigned char)ch].len;
 		}
@@ -2344,7 +2344,7 @@ static void DoCommandPaste(struct action *act)
 				enc = user->u_plop.enc;
 			if (enc != user->u_plop.enc)
 				l += RecodeBuf((unsigned char *)user->u_plop.buf, user->u_plop.len,
-					       user->u_plop.enc, enc, (unsigned char *)0);
+					       user->u_plop.enc, enc, NULL);
 			else
 				l += user->u_plop.len;
 		} else {
@@ -2354,7 +2354,7 @@ static void DoCommandPaste(struct action *act)
 				l += RecodeBuf((unsigned char *)plop_tab[(int)(unsigned char)ch].buf,
 					       plop_tab[(int)(unsigned char)ch].len,
 					       plop_tab[(int)(unsigned char)ch].enc, enc,
-					       (unsigned char *)0);
+					       NULL);
 			else
 				l += plop_tab[(int)(unsigned char)ch].len;
 		}
@@ -2448,7 +2448,7 @@ static void DoCommandWritebuf(struct action *act)
 		}
 		if (enc != oldplop.enc) {
 			l = RecodeBuf((unsigned char *)oldplop.buf, oldplop.len, oldplop.enc, enc,
-				      (unsigned char *)0);
+				      NULL);
 			newbuf = malloc(l + 1);
 			if (!newbuf) {
 				OutputMsg(0, "%s", strnomem);
@@ -2927,7 +2927,7 @@ static void DoCommandHardstatus(struct action *act)
 				new_use = hardstatusemu & ~HSTATUS_ALWAYS;
 				if (D_HS && s == args[0])
 					new_use = HSTATUS_HS;
-				ShowHStatus((char *)0);
+				ShowHStatus(NULL);
 				old_use = D_has_hstatus;
 				D_has_hstatus = new_use;
 				if ((new_use == HSTATUS_LASTLINE && old_use != HSTATUS_LASTLINE)
@@ -3203,7 +3203,7 @@ static void DoCommandSort(struct action *act)
 			SwapWindows(nr, i);
 		}
 	}
-	WindowChanged((Window *)0, 0);
+	WindowChanged(NULL, 0);
 }
 
 static void DoCommandSilence(struct action *act)
@@ -3303,7 +3303,7 @@ static void DoCommandSessionname(struct action *act)
 		}
 		strncpy(SocketPath, buf, ARRAY_SIZE(SocketPath));
 		MakeNewEnv();
-		WindowChanged((Window *)0, WINESC_SESS_NAME);
+		WindowChanged(NULL, WINESC_SESS_NAME);
 	}
 }
 
@@ -4086,9 +4086,9 @@ static void DoCommandRendition(struct action *act)
 
 	if (i != -1) {
 		renditions[i] = ParseAttrColor(args[0], 1);
-		WindowChanged((Window *)0, WINESC_WIN_NAMES);
-		WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
-		WindowChanged((Window *)0, 0);
+		WindowChanged(NULL, WINESC_WIN_NAMES);
+		WindowChanged(NULL, WINESC_WIN_NAMES_NOCUR);
+		WindowChanged(NULL, 0);
 		return;
 	}
 
@@ -4098,7 +4098,7 @@ static void DoCommandRendition(struct action *act)
 		if (i == 0)
 			return;
 		ApplyAttrColor(i, &mchar_so);
-		WindowChanged((Window *)0, 0);
+		WindowChanged(NULL, 0);
 	}
 	if (msgok)
 		OutputMsg(0, "Standout attributes 0x%02x  colorbg 0x%02x  colorfg 0x%02x", (unsigned char)mchar_so.attr,
@@ -4116,7 +4116,7 @@ static void DoCommandSorendition(struct action *act)
 		if (i == 0)
 			return;
 		ApplyAttrColor(i, &mchar_so);
-		WindowChanged((Window *)0, 0);
+		WindowChanged(NULL, 0);
 	}
 	if (msgok)
 		OutputMsg(0, "Standout attributes 0x%02x  colorbg 0x%02x  colorfg 0x%02x", (unsigned char)mchar_so.attr,
@@ -4248,7 +4248,7 @@ static void DoCommandResize(struct action *act)
 	if (*args)
 		ResizeRegions(*args, i);
 	else
-		Input(resizeprompts[i], 20, INP_EVERY, ResizeFin, (char *)0, i);
+		Input(resizeprompts[i], 20, INP_EVERY, ResizeFin, NULL, i);
 }
 
 static void DoCommandSetsid(struct action *act)
@@ -4263,7 +4263,7 @@ static void DoCommandEval(struct action *act)
 	args = SaveArgs(args);
 	for (int i = 0; args[i]; i++) {
 		if (args[i][0])
-			ColonFin(args[i], strlen(args[i]), (char *)0);
+			ColonFin(args[i], strlen(args[i]), NULL);
 		free(args[i]);
 	}
 	free(args);
@@ -4288,7 +4288,7 @@ static void DoCommandBacktick(struct action *act)
 	if (ParseBase(act, *args, &n, 10, "decimal"))
 		return;
 	if (!args[1])
-		setbacktick(n, 0, 0, (char **)0);
+		setbacktick(n, 0, 0, NULL);
 	else {
 		int lifespan, tick;
 		if (argc < 4) {
@@ -4421,9 +4421,9 @@ static void DoCommandGroup(struct action *act)
 			if (fore->w_group == fore || (fore->w_group && fore->w_group->w_type != W_TYPE_GROUP))
 				fore->w_group = NULL;
 		}
-		WindowChanged((Window *)0, WINESC_WIN_NAMES);
-		WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
-		WindowChanged((Window *)0, 0);
+		WindowChanged(NULL, WINESC_WIN_NAMES);
+		WindowChanged(NULL, WINESC_WIN_NAMES_NOCUR);
+		WindowChanged(NULL, 0);
 	}
 	if (msgok) {
 		if (fore->w_group)
@@ -4542,7 +4542,7 @@ static void DoCommandLayout(struct action *act)
 			Input("Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
 			return;
 		}
-		SelectLayoutFin(args[1], strlen(args[1]), (char *)0);
+		SelectLayoutFin(args[1], strlen(args[1]), NULL);
 	} else if (!strcmp(args[0], "next")) {
 		if (!display) {
 			if (layout_attach && layout_attach != &layout_last_marker)
@@ -4612,7 +4612,7 @@ static void DoCommandLayout(struct action *act)
 	} else if (!strcmp(args[0], "remove")) {
 		Layout *lay = display ? D_layout : layouts;
 		if (args[1]) {
-			lay = layouts ? FindLayout(args[1]) : (Layout *)0;
+			lay = layouts ? FindLayout(args[1]) : NULL;
 			if (!lay) {
 				OutputMsg(0, "unknown layout '%s'", args[1]);
 				return;
@@ -5925,9 +5925,9 @@ void KillWindow(Window *window)
 		UpdateLayoutCanvas(&lay->lay_canvas, window);
 
 	FreeWindow(window);
-	WindowChanged((Window *)0, WINESC_WIN_NAMES);
-	WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
-	WindowChanged((Window *)0, 0);
+	WindowChanged(NULL, WINESC_WIN_NAMES);
+	WindowChanged(NULL, WINESC_WIN_NAMES_NOCUR);
+	WindowChanged(NULL, 0);
 }
 
 static void LogToggle(bool on)
@@ -6375,7 +6375,7 @@ static void SelectFin(char *buf, size_t len, void *data)
 	if (!len || !display)
 		return;
 	if (len == 1 && *buf == '-') {
-		SetForeWindow((Window *)0);
+		SetForeWindow(NULL);
 		Activate(0);
 		return;
 	}
@@ -6393,7 +6393,7 @@ static void SelectLayoutFin(char *buf, size_t len, void *data)
 	if (!len || !display)
 		return;
 	if (len == 1 && *buf == '-') {
-		LoadLayout((Layout *)0);
+		LoadLayout(NULL);
 		Activate(0);
 		return;
 	}
@@ -6734,7 +6734,7 @@ static int InputSu(struct acluser **up, char *name)
 	if (name && *name)
 		suFin(name, (int)strlen(name), (char *)i);	/* can also initialise stuff */
 	else
-		suFin((char *)0, 0, (char *)i);
+		suFin(NULL, 0, (char *)i);
 	return 0;
 }
 

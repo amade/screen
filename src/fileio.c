@@ -565,7 +565,7 @@ int printpipe(Window *p, char *cmd)
 #ifdef SIGPIPE
 		xsignal(SIGPIPE, SIG_DFL);
 #endif
-		execl("/bin/sh", "sh", "-c", cmd, (char *)0);
+		execl("/bin/sh", "sh", "-c", cmd, NULL);
 		Panic(errno, "/bin/sh");
 	default:
 		break;

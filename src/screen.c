@@ -319,7 +319,7 @@ int main(int argc, char **argv)
 	zmodem_sendcmd = SaveStr("!!! sz -vv -b ");
 	zmodem_recvcmd = SaveStr("!!! rz -vv -b -E");
 
-	CompileKeys((char *)0, 0, mark_key_tab);
+	CompileKeys(NULL, 0, mark_key_tab);
 	InitBuiltinTabs();
 	screenencodings = SaveStr(SCREENENCODINGS);
 	cjkwidth = 0;
@@ -653,7 +653,7 @@ int main(int argc, char **argv)
 		SocketMatch = sockp + 1;
 		if (*multi) {
 			struct passwd *mppp;
-			if ((mppp = getpwnam(multi)) == (struct passwd *)0)
+			if ((mppp = getpwnam(multi)) == NULL)
 				Panic(0, "Cannot identify account '%s'.", multi);
 			multi_uid = mppp->pw_uid;
 			multi_home = SaveStr(mppp->pw_dir);
@@ -673,9 +673,9 @@ int main(int argc, char **argv)
 		SocketMatch = NULL;
 
 	if ((LoginName = getlogin()) != NULL) {
-		if ((ppp = getpwnam(LoginName)) != (struct passwd *)0)
+		if ((ppp = getpwnam(LoginName)) != NULL)
 			if (ppp->pw_uid != real_uid)
-				ppp = (struct passwd *)0;
+				ppp = NULL;
 	}
 	if (ppp == NULL) {
 		if ((ppp = getpwuid(real_uid)) == NULL) {
@@ -963,7 +963,7 @@ int main(int argc, char **argv)
 	 * start detached. From now on we should not refer to 'LoginName'
 	 * any more, use users->u_name instead.
 	 */
-	if (UserAdd(LoginName, (struct acluser **)0) < 0)
+	if (UserAdd(LoginName, NULL) < 0)
 		Panic(0, "Could not create user info");
 	if (!detached) {
 		if (MakeDisplay(LoginName, attach_tty, attach_term, n, getppid(), &attach_Mode) == NULL)
@@ -1843,11 +1843,11 @@ static int ParseEscape(char *p)
 	unsigned char buf[2];
 
 	if (*p == 0)
-		SetEscape((struct acluser *)0, -1, -1);
+		SetEscape(NULL, -1, -1);
 	else {
 		if ((p = ParseChar(p, (char *)buf)) == NULL || (p = ParseChar(p, (char *)buf + 1)) == NULL || *p)
 			return -1;
-		SetEscape((struct acluser *)0, buf[0], buf[1]);
+		SetEscape(NULL, buf[0], buf[1]);
 	}
 	return 0;
 }

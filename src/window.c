@@ -90,10 +90,10 @@ static char DefaultPath[] = ":/usr/ucb:/bin:/usr/bin";
 
 struct NewWindow nwin_undef = {
 	.StartAt             = -1,
-	.aka                 = (char *)0,
-	.args                = (char **)0,
-	.dir                 = (char *)0,
-	.term                = (char *)0,
+	.aka                 = NULL,
+	.args                = NULL,
+	.dir                 = NULL,
+	.term                = NULL,
 	.aflag               = false,
 	.dynamicaka          = false,
 	.flowflag            = -1,
@@ -109,8 +109,8 @@ struct NewWindow nwin_undef = {
 	.c1                  = false,
 	.bce                 = -1,
 	.encoding            = -1,
-	.hstatus             = (char *)0,
-	.charset             = (char *)0,
+	.hstatus             = NULL,
+	.charset             = NULL,
 	.poll_zombie_timeout = 0
 };
 
@@ -135,8 +135,8 @@ struct NewWindow nwin_default = {
 	.c1         = true,
 	.bce        = 0,
 	.encoding   = 0,
-	.hstatus    = (char *)0,
-	.charset    = (char *)0
+	.hstatus    = NULL,
+	.charset    = NULL
 };
 
 struct NewWindow nwin_options;
@@ -588,9 +588,9 @@ int MakeWindow(struct NewWindow *newwin)
 	if (type == W_TYPE_GROUP) {
 		SetForeWindow(p);
 		Activate(p->w_norefresh);
-		WindowChanged((Window *)0, WINESC_WIN_NAMES);
-		WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
-		WindowChanged((Window *)0, 0);
+		WindowChanged(NULL, WINESC_WIN_NAMES);
+		WindowChanged(NULL, WINESC_WIN_NAMES_NOCUR);
+		WindowChanged(NULL, 0);
 		return n;
 	}
 
@@ -645,9 +645,9 @@ int MakeWindow(struct NewWindow *newwin)
 
 	SetForeWindow(p);
 	Activate(p->w_norefresh);
-	WindowChanged((Window *)0, WINESC_WIN_NAMES);
-	WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
-	WindowChanged((Window *)0, 0);
+	WindowChanged(NULL, WINESC_WIN_NAMES);
+	WindowChanged(NULL, WINESC_WIN_NAMES_NOCUR);
+	WindowChanged(NULL, 0);
 	return n;
 }
 
@@ -1771,9 +1771,9 @@ int SwapWindows(int old, int dest)
 #endif
 
 	WindowChanged(win_old, WINESC_WIN_NUM);
-	WindowChanged((Window *)0, WINESC_WIN_NAMES);
-	WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
-	WindowChanged((Window *)0, 0);
+	WindowChanged(NULL, WINESC_WIN_NAMES);
+	WindowChanged(NULL, WINESC_WIN_NAMES_NOCUR);
+	WindowChanged(NULL, 0);
 	return 1;
 }
 

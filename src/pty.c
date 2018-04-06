@@ -59,7 +59,7 @@ int OpenPTY(char **ttyn)
 
 	tcflush(f, TCIOFLUSH);
 #ifdef LOCKPTY
-	(void)ioctl(f, TIOCEXCL, (char *)0);
+	(void)ioctl(f, TIOCEXCL, NULL);
 #endif
 
 	pty_preopen = 1;

@@ -488,7 +488,7 @@ void CheckEscape(void)
 		display = odisplay;
 		return;
 	}
-	SetEscape((struct acluser *)0, Ctrl('a'), 'a');
+	SetEscape(NULL, Ctrl('a'), 'a');
 	if (odisplay->d_user->u_Esc == -1)
 		odisplay->d_user->u_Esc = DefaultEsc;
 	if (odisplay->d_user->u_MetaEsc == -1)
@@ -946,7 +946,7 @@ int CreateTransTable(char *s)
 			if (ctable[c])
 				free(ctable[c]);
 			arg = s;
-			l = copyarg(&s, (char *)0);
+			l = copyarg(&s, NULL);
 			if (c != 256)
 				l = l * templnsub + templlen;
 			if ((ctable[c] = malloc(l + 1)) == NULL) {

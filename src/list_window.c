@@ -190,7 +190,7 @@ static int gl_Window_header(ListData *ldata)
 		LPutWinMsg(flayer, wdata->group->w_title, strlen(wdata->group->w_title), &mchar_blank, 7, 0);
 	}
 
-	str = MakeWinMsgEv(NULL, wlisttit, (Window *)0, '%', flayer->l_width, (Event *)0, 0);
+	str = MakeWinMsgEv(NULL, wlisttit, NULL, '%', flayer->l_width, NULL, 0);
 
 	LPutWinMsg(flayer, str, strlen(str), &mchar_blank, 0, g);
 	return 2 + g;
@@ -470,7 +470,7 @@ void display_windows(int onblank, int order, Window *group)
 		}
 		p = D_fore;
 		if (p) {
-			SetForeWindow((Window *)0);
+			SetForeWindow(NULL);
 			if (p->w_group) {
 				D_fore = p->w_group;
 				flayer->l_data = (char *)p->w_group;

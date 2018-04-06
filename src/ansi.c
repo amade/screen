@@ -1823,8 +1823,8 @@ void ChangeAKA(Window *win, char *s, size_t len)
 		if (win->w_akachange[0] == 0 || win->w_akachange[-1] == ':')
 			win->w_title = win->w_akabuf + strlen(win->w_akabuf) + 1;
 	WindowChanged(win, WINESC_WIN_TITLE);
-	WindowChanged((Window *)0, WINESC_WIN_NAMES);
-	WindowChanged((Window *)0, WINESC_WIN_NAMES_NOCUR);
+	WindowChanged(NULL, WINESC_WIN_NAMES);
+	WindowChanged(NULL, WINESC_WIN_NAMES_NOCUR);
 }
 
 static void FindAKA(Window *win)

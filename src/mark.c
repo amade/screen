@@ -748,7 +748,7 @@ static void MarkProcess(char **inbufp, size_t *inlenp)
 		case 'C':
 			/* set start column (c) and end column (C) */
 			if (markdata->second) {
-				rem(markdata->x1, markdata->y1, cx, cy, 1, (char *)0, fore->w_height - 1);	/* Hack */
+				rem(markdata->x1, markdata->y1, cx, cy, 1, NULL, fore->w_height - 1);	/* Hack */
 				markdata->second = 1;	/* rem turns off second */
 			}
 			rep_cnt--;
@@ -862,7 +862,7 @@ static void MarkProcess(char **inbufp, size_t *inlenp)
 
 				x2 = cx;
 				y2 = cy;
-				newcopylen = rem(markdata->x1, markdata->y1, x2, y2, 2, (char *)0, 0);	/* count */
+				newcopylen = rem(markdata->x1, markdata->y1, x2, y2, 2, NULL, 0);	/* count */
 				if (md_user->u_plop.buf && !append_mode)
 					UserFreeCopyBuffer(md_user);
 				yend = fore->w_height - 1;
@@ -928,7 +928,7 @@ static void MarkProcess(char **inbufp, size_t *inlenp)
 				else
 					LMsg(0, "Copied %zu characters into buffer", md_user->u_plop.len);
 				if (write_buffer)
-					WriteFile(md_user, (char *)0, DUMP_EXCHANGE);
+					WriteFile(md_user, NULL, DUMP_EXCHANGE);
 				in_mark = 0;
 				break;
 			}
@@ -1130,7 +1130,7 @@ static void MarkAbort(void)
 	if (markdata->hist_offset != fore->w_histheight) {
 		LAY_CALL_UP(LRefreshAll(flayer, 0));
 	} else {
-		rem(markdata->x1, markdata->y1, markdata->cx, markdata->cy, redisp, (char *)0, yend);
+		rem(markdata->x1, markdata->y1, markdata->cx, markdata->cy, redisp, NULL, yend);
 	}
 	ExitOverlayPage();
 	WindowChanged(fore, WINESC_COPY_MODE);

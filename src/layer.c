@@ -389,7 +389,7 @@ void LClearLine(Layer *l, int y, int xs, int xe, int bce, struct mline *ol)
 			display = cv->c_display;
 			if (D_blocked)
 				continue;
-			ClearLine(ol ? mlineoffset(RECODE_MLINE(ol), -vp->v_xoff) : (struct mline *)0, y2, xs2, xe2,
+			ClearLine(ol ? mlineoffset(RECODE_MLINE(ol), -vp->v_xoff) : NULL, y2, xs2, xe2,
 				  bce);
 		}
 	}

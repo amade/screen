@@ -1028,7 +1028,7 @@ static void FinishAttach(Message *m)
 		if (!AclCheckPermCmd(D_user, ACL_EXEC, &comms[RC_WINDOWLIST])) {
 			Display *olddisplay = display;
 			flayer = D_forecv->c_layer;
-			display_windows(1, WLIST_NUM, (Window *)0);
+			display_windows(1, WLIST_NUM, NULL);
 			noshowwin = 1;
 			display = olddisplay;	/* display_windows can change display */
 		}

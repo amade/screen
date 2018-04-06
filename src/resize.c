@@ -55,11 +55,11 @@ static void SwapAltScreen(Window *);
 struct winsize glwz;
 
 static struct mline mline_zero = {
-	.image   = (uint32_t *)0,
-	.attr    = (uint32_t *)0,
-	.font    = (uint32_t *)0,
-	.colorbg = (uint32_t *)0,
-	.colorfg = (uint32_t *)0
+	.image   = NULL,
+	.attr    = NULL,
+	.font    = NULL,
+	.colorbg = NULL,
+	.colorfg = NULL
 };
 
 /*
@@ -441,7 +441,7 @@ void *xrealloc(void *mem, size_t len)
 	if ((nmem = realloc(mem, len)))
 		return nmem;
 	free(mem);
-	return (void *)0;
+	return NULL;
 }
 
 static void MakeBlankLine(uint32_t *p, int n)

@@ -114,7 +114,7 @@ void DefRedisplayLine(int y, int xs, int xe, int isblank)
 
 void DefClearLine(int y, int xs, int xe, int bce)
 {
-	LClearLine(flayer, y, xs, xe, bce, (struct mline *)0);
+	LClearLine(flayer, y, xs, xe, bce, NULL);
 }
 
 int DefResize(int width, int height)
@@ -357,7 +357,7 @@ void FinitTerm(void)
 		AddCStr(D_KE);
 		AddCStr(D_CCE);
 		if (D_hstatus)
-			ShowHStatus((char *)0);
+			ShowHStatus(NULL);
 		ClearAllXtermOSC();
 		D_x = D_y = -1;
 		GotoPos(0, D_height - 1);
@@ -926,7 +926,7 @@ void ClearArea(int x1, int y1, int xs, int xe, int x2, int y2, int bce, int usel
 				continue;
 			}
 		}
-		ClearLine((struct mline *)0, y, x1, xxe, bce);
+		ClearLine(NULL, y, x1, xxe, bce);
 	}
 }
 
@@ -1029,9 +1029,9 @@ void ScrollH(int y, int xs, int xe, int n, int bce, struct mline *oml)
 	}
 	if (bce && !D_BE) {
 		if (n > 0)
-			ClearLine((struct mline *)0, y, xe - n + 1, xe, bce);
+			ClearLine(NULL, y, xe - n + 1, xe, bce);
 		else
-			ClearLine((struct mline *)0, y, xs, xs - n - 1, bce);
+			ClearLine(NULL, y, xs, xs - n - 1, bce);
 	}
 	if (D_lp_missing && y == D_bot) {
 		if (n > 0)
@@ -1093,7 +1093,7 @@ void ScrollV(int xs, int ys, int xe, int ye, int n, int bce)
 	      ChangeScrollRegion(oldtop, oldbot);
 */
 				if (bce && !D_BE)
-					ClearLine((struct mline *)0, ye, xs, xe, bce);
+					ClearLine(NULL, ye, xs, xe, bce);
 				return;
 			}
 		}
@@ -1708,7 +1708,7 @@ void RefreshHStatus(void)
 		if (D_has_hstatus != HSTATUS_IGNORE && D_hstatusev.timeout.tv_sec)
 			evenq(&D_hstatusev);
 	} else
-		ShowHStatus((char *)0);
+		ShowHStatus(NULL);
 }
 
 /*********************************************************************/

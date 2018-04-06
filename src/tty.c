@@ -124,7 +124,7 @@ int OpenTTY(char *line, char *opt)
 	 */
 #ifdef TIOCEXCL
 	errno = 0;
-	if (ioctl(f, TIOCEXCL, (char *)0) < 0)
+	if (ioctl(f, TIOCEXCL, NULL) < 0)
 		Msg(errno, "%s: ioctl TIOCEXCL failed", line);
 #endif				/* TIOCEXCL */
 	/*
@@ -658,7 +658,7 @@ static void DoSendBreak(int fd, int n, int type)
 		 * perform long breaks. But for SOLARIS, this is not true, of course.
 		 */
 		for (int i = 0; i < n; i++)
-			if (ioctl(fd, TCSBRK, (char *)0) < 0) {
+			if (ioctl(fd, TCSBRK, NULL) < 0) {
 				Msg(errno, "Cannot send BREAK (TCSBRK)");
 				return;
 			}
@@ -673,12 +673,12 @@ static void DoSendBreak(int fd, int n, int type)
 		 * This is very rude. Screen actively celebrates the break.
 		 * But it may be the only save way to issue long breaks.
 		 */
-		if (ioctl(fd, TIOCSBRK, (char *)0) < 0) {
+		if (ioctl(fd, TIOCSBRK, NULL) < 0) {
 			Msg(errno, "Can't send BREAK (TIOCSBRK)");
 			return;
 		}
 		usleep(1000 * (n ? n * 250 : 250));
-		if (ioctl(fd, TIOCCBRK, (char *)0) < 0) {
+		if (ioctl(fd, TIOCCBRK, NULL) < 0) {
 			Msg(errno, "BREAK stuck!!! -- HELP! (TIOCCBRK)");
 			return;
 		}
