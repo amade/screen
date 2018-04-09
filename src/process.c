@@ -1322,7 +1322,6 @@ static void DoCommandAt(struct action *act)
 		/* FALLTHROUGH */
 	default:
 		{
-			Window *nw;
 			int ch;
 			int i;
 
@@ -1332,8 +1331,7 @@ static void DoCommandAt(struct action *act)
 			if (!*args[0] || (i = WindowByNumber(args[0])) < 0) {
 				args[0][n] = ch;	/* must restore string in case of bind */
 				/* try looping over titles */
-				for (fore = windows; fore; fore = nw) {
-					nw = fore->w_next;
+				for (fore = windows; fore; fore = fore->w_next) {
 					if (strncmp(args[0], fore->w_title, n))
 						continue;
 					/*
