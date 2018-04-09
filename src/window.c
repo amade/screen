@@ -582,8 +582,8 @@ int MakeWindow(struct NewWindow *newwin)
 	if (display && D_fore)
 		D_other = D_fore;
 	*pp = p;
-	p->w_next = windows;
-	windows = p;
+	p->w_prev_mru = mru_window;
+	mru_window = p;
 
 	if (type == W_TYPE_GROUP) {
 		SetForeWindow(p);
@@ -761,7 +761,7 @@ void FreeWindow(Window *window)
 	ChangeWindowSize(window, 0, 0, 0);
 
 	if (window->w_type == W_TYPE_GROUP) {
-		for (Window *win = windows; win; win = win->w_next)
+		for (Window *win = mru_window; win; win = win->w_prev_mru)
 			if (win->w_group == window)
 				win->w_group = window->w_group;
 	}
@@ -776,7 +776,7 @@ void FreeWindow(Window *window)
 		free(window->w_term);
 	for (Display *display = displays; display; display = display->d_next) {
 		if (display->d_other == window)
-			display->d_other = display->d_fore && display->d_fore->w_next != window ? display->d_fore->w_next : window->w_next;
+			display->d_other = display->d_fore && display->d_fore->w_prev_mru != window ? display->d_fore->w_prev_mru : window->w_prev_mru;
 		if (display->d_fore == window)
 			display->d_fore = NULL;
 		for (Canvas *canvas = display->d_cvlist; canvas; canvas = canvas->c_next) {
@@ -1145,7 +1145,7 @@ int winexec(char **av)
 	struct pseudowin *pwin;
 	int type;
 
-	if ((w = display ? fore : windows) == NULL)
+	if ((w = display ? fore : mru_window) == NULL)
 		return -1;
 	if (!*av || w->w_pwin) {
 		Msg(0, "Filter running: %s", w->w_pwin ? w->w_pwin->p_cmd : "(none)");
@@ -1474,7 +1474,7 @@ static void win_writeev_fn(Event *event, void *data)
 			len = p->w_inlen;	/* dead window */
 
 		if (p->w_miflag) { /* don't loop if not needed */
-			for (Window *win = windows; win; win = win->w_next) {
+			for (Window *win = mru_window; win; win = win->w_prev_mru) {
 				if (win != p && win->w_miflag)
 					write(win->w_ptyfd, p->w_inbuf, p->w_inlen);
 			}
