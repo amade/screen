@@ -139,7 +139,7 @@ void ChangeScreenSize(int wi, int he, int change_fore)
 		ResizeLayersToCanvases();
 	if (change_fore == 2 && D_CWS == NULL && displays->d_next == NULL) {
 		/* adapt all windows  -  to be removed ? */
-		for (p = windows; p; p = p->w_next) {
+		for (p = mru_window; p; p = p->w_prev_mru) {
 			wwi = wi;
 			if (p->w_savelayer && p->w_savelayer->l_cvlist == NULL)
 				ResizeLayer(p->w_savelayer, wwi, he, NULL);
@@ -422,7 +422,7 @@ static void CheckMaxSize(int wi)
 	/* We have to run through all windows to substitute
 	 * the null and blank references.
 	 */
-	for (p = windows; p; p = p->w_next) {
+	for (p = mru_window; p; p = p->w_prev_mru) {
 		RESET_LINES(p->w_mlines, p->w_height);
 
 		RESET_LINES(p->w_hlines, p->w_histheight);

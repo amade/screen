@@ -204,7 +204,7 @@ int UserAdd(char *name, struct acluser **up)
 
 		/* fifth, the bits for each window */
 		/* keep these in sync with NewWindowAcl() */
-		for (Window *w = windows; w; w = w->w_next) {
+		for (Window *w = mru_window; w; w = w->w_prev_mru) {
 			/* five a: the access control list */
 			for (int j = 0; j < ACL_BITS_PER_WIN; j++)
 				if (GrowBitfield(&w->w_userbits[j], maxusercount, USER_CHUNK, default_w_bit[j])) {
@@ -331,7 +331,7 @@ int UserFreeCopyBuffer(struct acluser *u)
 {
 	if (!u->u_plop.buf)
 		return -1;
-	for (Window *w = windows; w; w = w->w_next) {
+	for (Window *w = mru_window; w; w = w->w_prev_mru) {
 		struct paster *pa = &w->w_paster;
 		if (pa->pa_pasteptr >= u->u_plop.buf && pa->pa_pasteptr - u->u_plop.buf < (ptrdiff_t)u->u_plop.len)
 			FreePaster(pa);
@@ -626,7 +626,7 @@ int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
 			if (uu)	/* window umask or .. */
 				AclSetPermWin(uu, u, mode, (Window *)1);
 			else	/* .. or all windows */
-				for (Window *w = windows; w; w = w->w_next)
+				for (Window *w = mru_window; w; w = w->w_prev_mru)
 					AclSetPermWin(NULL, u, mode, w);
 			s++;
 			break;
@@ -690,7 +690,7 @@ static int UserAclCopy(struct acluser **to_up, struct acluser **from_up)
 		return -1;
 	if ((to_id = (*to_up)->u_id) == (from_id = (*from_up)->u_id))
 		return -1;
-	for (Window *w = windows; w; w = w->w_next) {
+	for (Window *w = mru_window; w; w = w->w_prev_mru) {
 		for (int i = 0; i < ACL_BITS_PER_WIN; i++) {
 			if (ACLBYTE(w->w_userbits[i], from_id) & ACLBIT(from_id))
 				ACLBYTE(w->w_userbits[i], to_id) |= ACLBIT(to_id);

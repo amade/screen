@@ -284,7 +284,7 @@ void FreeDisplay(void)
 		FreeCanvas(D_canvas.c_slperp);
 	D_cvlist = NULL;
 
-	for (Window *p = windows; p; p = p->w_next) {
+	for (Window *p = mru_window; p; p = p->w_prev_mru) {
 		if (p->w_pdisplay == display)
 			p->w_pdisplay = NULL;
 		if (p->w_lastdisp == display)
@@ -292,7 +292,7 @@ void FreeDisplay(void)
 		if (p->w_readev.condneg == (int *)&D_status || p->w_readev.condneg == &D_obuflenmax)
 			p->w_readev.condpos = p->w_readev.condneg = NULL;
 	}
-	for (Window *p = windows; p; p = p->w_next)
+	for (Window *p = mru_window; p; p = p->w_prev_mru)
 		if (p->w_zdisplay == display)
 			zmodem_abort(p, NULL);
 	if (D_mousetrack) {
@@ -2550,7 +2550,7 @@ static void disp_readev_fn(Event *event, void *data)
 	}
 	if (D_blocked > 1) {	/* 2, 3 */
 		flayer = NULL;
-		for (Window *p = windows; p; p = p->w_next)
+		for (Window *p = mru_window; p; p = p->w_prev_mru)
 			if (p->w_zdisplay == display) {
 				char *bufp = (char *)buf;
 				flayer = &p->w_layer;
@@ -2817,7 +2817,7 @@ static void disp_blocked_fn(Event *event, void *data)
 	if (D_obufp - D_obuf > D_obufmax + D_blocked_fuzz) {
 		D_blocked = 1;
 		/* re-enable all windows */
-		for (Window *p = windows; p; p = p->w_next)
+		for (Window *p = mru_window; p; p = p->w_prev_mru)
 			if (p->w_readev.condneg == &D_obuflenmax) {
 				p->w_readev.condpos = p->w_readev.condneg = NULL;
 			}

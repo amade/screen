@@ -146,13 +146,13 @@ void CarefulUtmp()
 {
 	Window *p;
 
-	if (!windows)		/* hopeless */
+	if (!mru_window)		/* hopeless */
 		return;
-	for (p = windows; p; p = p->w_next)
+	for (p = mru_window; p; p = p->w_prev_mru)
 		if (p->w_ptyfd >= 0 && p->w_slot != (slot_t)-1)
 			return;	/* found one, nothing to do */
 
-	for (p = windows; p; p = p->w_next)
+	for (p = mru_window; p; p = p->w_prev_mru)
 		if (p->w_ptyfd >= 0)	/* no zombies please */
 			break;
 	if (!p)

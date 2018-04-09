@@ -266,7 +266,7 @@ void SetCanvasWindow(Canvas *cv, Window *window)
 	}
 
 	if (window && D_other == window)
-		D_other = window->w_next;	/* Might be 0, but that's OK. */
+		D_other = window->w_prev_mru;	/* Might be 0, but that's OK. */
 	if (cv == D_forecv) {
 		D_fore = window;
 		fore = D_fore;	/* XXX ? */
@@ -275,13 +275,13 @@ void SetCanvasWindow(Canvas *cv, Window *window)
 			/*
 			 * Place the window at the head of the most-recently-used list
 			 */
-			if (windows != window) {
-				for (pp = &windows; (p = *pp); pp = &p->w_next)
+			if (mru_window != window) {
+				for (pp = &mru_window; (p = *pp); pp = &p->w_prev_mru)
 					if (p == window)
 						break;
-				*pp = p->w_next;
-				p->w_next = windows;
-				windows = p;
+				*pp = p->w_prev_mru;
+				p->w_prev_mru = mru_window;
+				mru_window = p;
 				WListLinkChanged();
 			}
 		}

@@ -1331,7 +1331,7 @@ static void DoCommandAt(struct action *act)
 			if (!*args[0] || (i = WindowByNumber(args[0])) < 0) {
 				args[0][n] = ch;	/* must restore string in case of bind */
 				/* try looping over titles */
-				for (fore = windows; fore; fore = fore->w_next) {
+				for (fore = mru_window; fore; fore = fore->w_prev_mru) {
 					if (strncmp(args[0], fore->w_title, n))
 						continue;
 					/*
@@ -3102,7 +3102,7 @@ static void DoCommandSilencewait(struct action *act)
 		return;
 	if (SilenceWait < 1)
 		SilenceWait = 1;
-	for (Window *win = windows; win; win = win->w_next)
+	for (Window *win = mru_window; win; win = win->w_prev_mru)
 		win->w_silencewait = SilenceWait;
 	if (msgok)
 		OutputMsg(0, "silencewait set to %d seconds", SilenceWait);
@@ -5640,10 +5640,10 @@ static Window *WindowByName(char *s)
 {
 	Window *window;
 
-	for (window = windows; window; window = window->w_next)
+	for (window = mru_window; window; window = window->w_prev_mru)
 		if (!strcmp(window->w_title, s))
 			return window;
-	for (window = windows; window; window = window->w_next)
+	for (window = mru_window; window; window = window->w_prev_mru)
 		if (!strncmp(window->w_title, s, strlen(s)))
 			return window;
 	return NULL;
@@ -5865,7 +5865,7 @@ static uint16_t PreviousWindow(void)
 static int MoreWindows(void)
 {
 	char *m = "No other window.";
-	if (windows && (fore == NULL || windows->w_next))
+	if (mru_window && (fore == NULL || mru_window->w_prev_mru))
 		return 1;
 	if (fore == NULL) {
 		Msg(0, "No window available");
@@ -5885,14 +5885,14 @@ void KillWindow(Window *window)
 	/*
 	 * Remove window from linked list.
 	 */
-	for (pp = &windows; (p = *pp); pp = &p->w_next)
+	for (pp = &mru_window; (p = *pp); pp = &p->w_prev_mru)
 		if (p == window)
 			break;
-	*pp = p->w_next;
+	*pp = p->w_prev_mru;
 	window->w_inlen = 0;
 	wtab[window->w_number] = NULL;
 
-	if (windows == NULL) {
+	if (mru_window == NULL) {
 		FreeWindow(window);
 		Finit(0);
 	}
@@ -6878,29 +6878,29 @@ Window *FindNiceWindow(Window *win, char *presel)
 	if (!win || (IsOnDisplay(win) && !presel)) {
 		/* try to get another window */
 		win = NULL;
-		for (win = windows; win; win = win->w_next)
+		for (win = mru_window; win; win = win->w_prev_mru)
 			if (!win->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_WRITE, win))
 				break;
 		if (!win)
-			for (win = windows; win; win = win->w_next)
+			for (win = mru_window; win; win = win->w_prev_mru)
 				if (win->w_layer.l_cvlist && !IsOnDisplay(win)
 				    && !AclCheckPermWin(D_user, ACL_WRITE, win))
 					break;
 		if (!win)
-			for (win = windows; win; win = win->w_next)
+			for (win = mru_window; win; win = win->w_prev_mru)
 				if (!win->w_layer.l_cvlist && !AclCheckPermWin(D_user, ACL_READ, win))
 					break;
 		if (!win)
-			for (win = windows; win; win = win->w_next)
+			for (win = mru_window; win; win = win->w_prev_mru)
 				if (win->w_layer.l_cvlist && !IsOnDisplay(win)
 				    && !AclCheckPermWin(D_user, ACL_READ, win))
 					break;
 		if (!win)
-			for (win = windows; win; win = win->w_next)
+			for (win = mru_window; win; win = win->w_prev_mru)
 				if (!win->w_layer.l_cvlist)
 					break;
 		if (!win)
-			for (win = windows; win; win = win->w_next)
+			for (win = mru_window; win; win = win->w_prev_mru)
 				if (win->w_layer.l_cvlist && !IsOnDisplay(win))
 					break;
 	}

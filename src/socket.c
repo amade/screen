@@ -789,7 +789,7 @@ void ReceiveMsg(void)
 		if (strcmp(D_usertty, m.m_tty) == 0)
 			break;
 	if (!display) {
-		for (win = windows; win; win = win->w_next)
+		for (win = mru_window; win; win = win->w_prev_mru)
 			if (!strcmp(m.m_tty, win->w_tty)) {
 				/* XXX: hmmm, rework this? */
 				display = win->w_layer.l_cvlist ? win->w_layer.l_cvlist->c_display : NULL;
@@ -977,7 +977,7 @@ static void FinishAttach(Message *m)
 	 */
 	RemoveLoginSlot();
 	if (displays->d_next == NULL)
-		for (Window *win = windows; win; win = win->w_next)
+		for (Window *win = mru_window; win; win = win->w_prev_mru)
 			if (win->w_ptyfd >= 0 && win->w_slot != (slot_t) - 1)
 				SetUtmp(win);
 #endif
@@ -1337,7 +1337,7 @@ static void DoCommandMsg(Message *mp)
 		for (display = displays; display; display = display->d_next)
 			if (D_user == user)
 				break;
-	for (fore = windows; fore; fore = fore->w_next)
+	for (fore = mru_window; fore; fore = fore->w_prev_mru)
 		if (!strcmp(mp->m_tty, fore->w_tty)) {
 			if (!display)
 				display = fore->w_layer.l_cvlist ? fore->w_layer.l_cvlist->c_display : NULL;
@@ -1372,7 +1372,7 @@ static void DoCommandMsg(Message *mp)
 		}
 	}
 	if (!fore)
-		fore = windows;	/* sigh */
+		fore = mru_window;	/* sigh */
 	EffectiveAclUser = user;
 	if (*args) {
 		char *oldrcname = rc_name;

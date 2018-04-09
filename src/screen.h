@@ -303,7 +303,7 @@ extern int ZombieKey_resurrect;
 
 extern Window *console_window;
 extern Window *fore;
-extern Window *windows;
+extern Window *mru_window;
 
 extern Layer *flayer;
 

@@ -154,7 +154,7 @@ uint16_t maxwin;
 
 Layer *flayer;
 Window *fore;
-Window *windows;
+Window *mru_window;
 Window *console_window;
 
 #ifdef ENABLE_TELNET
@@ -1033,7 +1033,7 @@ int main(int argc, char **argv)
 #endif
 	FinishRc(RcFileName);
 
-	if (windows == NULL) {
+	if (mru_window == NULL) {
 		if (MakeWindow(&nwin) == -1) {
 			fd_set rfd;
 			FD_ZERO(&rfd);
@@ -1157,7 +1157,7 @@ static void DoWait(void)
 
 	while ((pid = waitpid(-1, &wstat, WNOHANG | WUNTRACED)) > 0)
 	{
-		for (win = windows; win; win = win->w_next) {
+		for (win = mru_window; win; win = win->w_prev_mru) {
 			if ((win->w_pid && pid == win->w_pid) || (win->w_deadpid && pid == win->w_deadpid)) {
 				/* child has ceased to exist */
 				win->w_pid = 0;
@@ -1213,9 +1213,9 @@ void Finit(int i)
 	xsignal(SIGCHLD, SIG_DFL);
 	xsignal(SIGHUP, SIG_IGN);
 
-	while (windows) {
-		Window *p = windows;
-		windows = windows->w_next;
+	while (mru_window) {
+		Window *p = mru_window;
+		mru_window = mru_window->w_prev_mru;
 		FreeWindow(p);
 	}
 	if (ServerSocket != -1) {
@@ -1353,7 +1353,7 @@ void Detach(int mode)
 	}
 #ifdef ENABLE_UTMP
 	if (displays->d_next == NULL) {
-		for (p = windows; p; p = p->w_next) {
+		for (p = mru_window; p; p = p->w_prev_mru) {
 			if (p->w_slot != (slot_t) - 1 && !(p->w_lflag & 2)) {
 				RemoveUtmp(p);
 				/*
@@ -1647,7 +1647,7 @@ static void serv_select_fn(Event *event, void *data)
 		InterruptPlease = 0;
 	}
 
-	for (p = windows; p; p = p->w_next) {
+	for (p = mru_window; p; p = p->w_prev_mru) {
 		if (p->w_bell == BELL_FOUND || p->w_bell == BELL_VISUAL) {
 			Canvas *cv;
 			int visual = p->w_bell == BELL_VISUAL || visual_bell;
@@ -1796,7 +1796,7 @@ static void logflush_fn(Event *event, void *data)
 	if (!logtstamp_on)
 		return;
 	/* write fancy time-stamp */
-	for (p = windows; p; p = p->w_next) {
+	for (p = mru_window; p; p = p->w_prev_mru) {
 		if (!p->w_log)
 			continue;
 		p->w_logsilence += n;

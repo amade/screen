@@ -59,17 +59,17 @@ struct gl_Window_Data {
 #define FOR_EACH_WINDOW(_wdata, _w, fn) do {					\
 	if ((_wdata)->order == WLIST_MRU) {					\
 		Window *_ww;							\
-		for (_ww = windows; _ww; _ww = _ww->w_next) {			\
+		for (_ww = mru_window; _ww; _ww = _ww->w_prev_mru) {			\
 			_w = _ww;						\
 			fn							\
 		}								\
 	} else {								\
 		Window **_ww, *_witer;						\
-		for (_ww = wtab, _witer = windows; _witer && _ww - wtab < maxwin; _ww++) {	\
+		for (_ww = wtab, _witer = mru_window; _witer && _ww - wtab < maxwin; _ww++) {	\
 			if (!(_w = *_ww))					\
 				continue;					\
 			fn							\
-			_witer = _witer->w_next;				\
+			_witer = _witer->w_prev_mru;				\
 		}								\
 	}									\
 } while (0)
@@ -87,7 +87,7 @@ static int window_ancestor(Window *a, Window *d)
 
 static void window_kill_confirm(char *buf, size_t len, void *data)
 {
-	Window *w = windows;
+	Window *w = mru_window;
 	struct action act;
 
 	if (len || (*buf != 'y' && *buf != 'Y')) {
@@ -96,7 +96,7 @@ static void window_kill_confirm(char *buf, size_t len, void *data)
 	}
 
 	/* Loop over the windows to make sure that the window actually still exists. */
-	for (; w; w = w->w_next)
+	for (; w; w = w->w_prev_mru)
 		if (w == (Window *)data)
 			break;
 
@@ -503,9 +503,9 @@ void display_windows(int onblank, int order, Window *group)
 	wdata->onblank = onblank;
 
 	/* Set the most recent window as selected. */
-	wdata->fore = windows;
+	wdata->fore = mru_window;
 	while (wdata->fore && wdata->fore->w_group != group)
-		wdata->fore = wdata->fore->w_next;
+		wdata->fore = wdata->fore->w_prev_mru;
 
 	ldata->data = wdata;
 
@@ -550,9 +550,9 @@ static void WListUpdate(Window *p, ListData *ldata)
 	 * correct place. */
 	before = NULL;
 	if (wdata->order == WLIST_MRU) {
-		if (windows != p)
-			for (before = windows; before; before = before->w_next)
-				if (before->w_next == p)
+		if (mru_window != p)
+			for (before = mru_window; before; before = before->w_prev_mru)
+				if (before->w_prev_mru == p)
 					break;
 	} else if (wdata->order == WLIST_NUM) {
 		if (p->w_number != 0) {
