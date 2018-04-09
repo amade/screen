@@ -5889,6 +5889,20 @@ void KillWindow(Window *window)
 		if (p == window)
 			break;
 	*pp = p->w_prev_mru;
+
+	if (first_window == last_window) {
+		/* we remove last element, so we can do nothing here */
+	} else if (window == first_window) {
+		window->w_next->w_prev = NULL;
+		first_window = window->w_next;
+	} else if (window == last_window) {
+		window->w_prev->w_next = NULL;
+		last_window = window->w_prev;
+	} else {
+		window->w_next->w_prev = window->w_prev;
+		window->w_prev->w_next = window->w_next;
+	}
+
 	window->w_inlen = 0;
 	wtab[window->w_number] = NULL;
 

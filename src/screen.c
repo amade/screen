@@ -155,6 +155,8 @@ uint16_t maxwin;
 Layer *flayer;
 Window *fore;
 Window *mru_window;
+Window *first_window;
+Window *last_window;
 Window *console_window;
 
 #ifdef ENABLE_TELNET
