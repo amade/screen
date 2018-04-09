@@ -644,8 +644,8 @@ int AclSetPerm(struct acluser *uu, struct acluser *u, char *mode, char *s)
 				*p++ = '\0';
 			if ((i = FindCommnr(s)) != RC_ILLEGAL)
 				AclSetPermCmd(u, mode, &comms[i]);
-			else if (((i = WindowByNoN(s)) >= 0) && wtab[i])
-				AclSetPermWin(NULL, u, mode, wtab[i]);
+			else if (((i = WindowByNoN(s)) >= 0) && GetWindowByNumber(i))
+				AclSetPermWin(NULL, u, mode, GetWindowByNumber(i));
 			else
 				/* checking group name */
 				return -1;
