@@ -64,12 +64,10 @@ struct gl_Window_Data {
 			fn							\
 		}								\
 	} else {								\
-		Window **_ww, *_witer;						\
-		for (_ww = wtab, _witer = mru_window; _witer && _ww - wtab < maxwin; _ww++) {	\
-			if (!(_w = *_ww))					\
-				continue;					\
+		Window *_ww;							\
+		for (_ww = first_window; _ww; _ww = _ww->w_next) {			\
+			_w = _ww;						\
 			fn							\
-			_witer = _witer->w_prev_mru;				\
 		}								\
 	}									\
 } while (0)
