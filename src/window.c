@@ -1922,3 +1922,26 @@ void ResetWindow(Window *win)
 	win->w_rend = mchar_null;
 	ResetCharsets(win);
 }
+
+Window *GetWindowByNumber(uint16_t n)
+{
+	if (first_window->w_number <= n &&
+	    n <= last_window->w_number)
+	{
+		Window *w;
+		if ((first_window->w_number + (last_window->w_number - first_window->w_number) / 2) > n) {
+			/* look from the start */
+			w = first_window;
+			while (w && w->w_number < n)
+				w = w->w_next;
+		} else {
+			/* look from the end */
+			w = last_window;
+			while (w && w->w_number > n)
+				w = w->w_prev;
+		}
+		if (w->w_number == n)
+			return w;
+	}
+	return NULL;
+}

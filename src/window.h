@@ -331,6 +331,7 @@ void  CloseDevice (Window *);
 void  zmodem_abort(Window *, Display *);
 void  WindowDied (Window *, int, int);
 void  ResetWindow (Window *);
+Window *GetWindowByNumber(uint16_t);
 #ifndef HAVE_EXECVPE
 #include <unistd.h>
 void execvpe(char *, char **, char **);
