@@ -518,7 +518,7 @@ static void ExecCreate(Message *mp)
 			if (*buf)
 				nwin.aka = buf;
 			num = atoi(p);
-			if (num < 0 || num > maxwin - 1)
+			if (num < 0 || num > last_window->w_number)
 				num = 0;
 			nwin.StartAt = num;
 			p += l + 1;

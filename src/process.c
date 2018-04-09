@@ -950,9 +950,7 @@ static void DoCommandMultiinput(struct action *act)
 	} else {
 		int n;
 		if (ParseWinNum(act, &n) == 0) {
-			Window *p = NULL;
-			if (n < maxwin)
-				p = GetWindowByNumber(n);
+			Window *p = GetWindowByNumber(n);
 			if (p)
 				p->w_miflag = p->w_miflag ? 0 : 1;
 			else
@@ -1358,7 +1356,7 @@ static void DoCommandAt(struct action *act)
 				if (i < 0)
 					OutputMsg(0, "%s: at '%s': no such window.\n", rc_name, args[0]);
 				return;
-			} else if (i < maxwin && (fore = GetWindowByNumber(i))) {
+			} else if ((fore = GetWindowByNumber(i))) {
 				args[0][n] = ch;	/* must restore string in case of bind */
 				if (fore->w_layer.l_cvlist)
 					display = fore->w_layer.l_cvlist->c_display;
@@ -5672,7 +5670,7 @@ int WindowByNoN(char *string)
 	int i;
 	Window *window;
 
-	if ((i = WindowByNumber(string)) < 0 || i >= maxwin) {
+	if ((i = WindowByNumber(string)) < 0 || i > last_window->w_number) {
 		if ((window = WindowByName(string)))
 			return window->w_number;
 		return -1;
@@ -5748,7 +5746,7 @@ void SwitchWindow(int n)
 {
 	Window *window;
 
-	if (n < 0 || n >= maxwin) {
+	if (n < 0 || n >= last_window->w_number) {
 		ShowWindows(-1);
 		return;
 	}
@@ -5827,7 +5825,7 @@ void Activate(int norefresh)
 static uint16_t NextWindow(void)
 {
 	Window **pp;
-	int n = fore ? fore->w_number : maxwin;
+	int n = fore ? fore->w_number : last_window->w_number;
 	Window *group = fore ? fore->w_group : NULL;
 
 	for (pp = fore ? wtab + n + 1 : wtab; pp != wtab + n; pp++) {
@@ -6555,7 +6553,7 @@ void DoScreen(char *fn, char **av)
 		if (*buf != '\0')
 			nwin.aka = buf;
 		num = atoi(*av);
-		if (num < 0 || (num > maxwin - 1)) {
+		if (num < 0) {
 			Msg(0, "%s: illegal screen number %d.", fn, num);
 			num = 0;
 		}
