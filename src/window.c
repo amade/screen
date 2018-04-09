@@ -433,6 +433,18 @@ int MakeWindow(struct NewWindow *newwin)
 	}
 	n = pp - wtab;
 
+	Window *win = first_window;
+
+	startat = nwin.StartAt;
+	/* skip windows with lower number */
+	while (win && win->w_number < startat)
+		win = win->w_next;
+	/* if there is no free spot, look for one (we can reach end of list) */
+	while (win && win->w_number == startat) {
+		win = win->w_next;
+		startat++;
+	}
+
 #ifdef ENABLE_TELNET
 	if (!strcmp(nwin.args[0], "//telnet")) {
 		type = W_TYPE_TELNET;
@@ -584,6 +596,41 @@ int MakeWindow(struct NewWindow *newwin)
 	*pp = p;
 	p->w_prev_mru = mru_window;
 	mru_window = p;
+
+	/*
+	 * place the new window in proper place on window list
+	 */
+
+	if (win) {
+		/* if we are not at the end of list, we point after insertion point */
+		if (win == first_window) {
+			/* we insert at the beginning! */
+			first_window->w_prev = p;
+			p->w_next = first_window;
+			first_window = p;
+		} else {
+			/* we insert in the middle */
+			p->w_next = win->w_prev->w_next;
+			p->w_prev = win->w_prev;
+			win->w_prev->w_next = p;
+			win->w_prev = p;
+		}
+	} else {
+		/* if win is NULL, then we are either at the end of the list or there are no windows */
+		win = last_window;
+		if (win) {
+			/* we have last window, so add new window at the end of list */
+			last_window->w_next = p;
+			p->w_prev = last_window;
+			last_window = p;
+		} else {
+			/* there are no windows */
+			first_window = p;
+			last_window = p;
+			p->w_next = NULL;
+			p->w_prev = NULL;
+		}
+	}
 
 	if (type == W_TYPE_GROUP) {
 		SetForeWindow(p);

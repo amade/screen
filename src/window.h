@@ -135,6 +135,8 @@ struct paster {
 
 typedef struct Window Window;
 struct Window {
+	Window *w_prev;			/* previous window */
+	Window *w_next;			/* next window */
 	Window *w_prev_mru;		/* previous most recently used window */
 	int	w_type;			/* type of window */
 	Layer w_layer;			/* our layer */
