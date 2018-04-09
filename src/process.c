@@ -952,7 +952,7 @@ static void DoCommandMultiinput(struct action *act)
 		if (ParseWinNum(act, &n) == 0) {
 			Window *p = NULL;
 			if (n < maxwin)
-				p = wtab[n];
+				p = GetWindowByNumber(n);
 			if (p)
 				p->w_miflag = p->w_miflag ? 0 : 1;
 			else
@@ -1358,7 +1358,7 @@ static void DoCommandAt(struct action *act)
 				if (i < 0)
 					OutputMsg(0, "%s: at '%s': no such window.\n", rc_name, args[0]);
 				return;
-			} else if (i < maxwin && (fore = wtab[i])) {
+			} else if (i < maxwin && (fore = GetWindowByNumber(i))) {
 				args[0][n] = ch;	/* must restore string in case of bind */
 				if (fore->w_layer.l_cvlist)
 					display = fore->w_layer.l_cvlist->c_display;
@@ -3187,13 +3187,13 @@ static void DoCommandSort(struct action *act)
 
 	(void)act; /* unused */
 
-	if (!wtab[i] || !wtab[i + 1]) {
+	if (!GetWindowByNumber(i) || !GetWindowByNumber(i + 1)) {
 		Msg(0, "Less than two windows, sorting makes no sense.\n");
 		return;
 	}
-	for (i = 0; wtab[i + 1] != NULL; i++) {
-		for (int n = i, nr = i; wtab[n + 1] != NULL; n++) {
-			if (strcmp(wtab[nr]->w_title, wtab[n + 1]->w_title) > 0) {
+	for (i = 0; GetWindowByNumber(i + 1) != NULL; i++) {
+		for (int n = i, nr = i; GetWindowByNumber(n + 1) != NULL; n++) {
+			if (strcmp(GetWindowByNumber(nr)->w_title, GetWindowByNumber(n + 1)->w_title) > 0) {
 				nr = n + 1;
 			}
 		}
@@ -5252,9 +5252,9 @@ void CollapseWindowlist(void)
 	int pos, moveto = 0;
 
 	for (pos = 1; pos < maxwin ; pos++)
-		if (wtab[pos])
+		if (GetWindowByNumber(pos))
 			for (; moveto < pos; moveto++)
-				if (!wtab[moveto]) {
+				if (!GetWindowByNumber(moveto)) {
 					SwapWindows(pos, moveto);
 					break;
 				}
@@ -5752,7 +5752,7 @@ void SwitchWindow(int n)
 		ShowWindows(-1);
 		return;
 	}
-	if ((window = wtab[n]) == NULL) {
+	if ((window = GetWindowByNumber(n)) == NULL) {
 		ShowWindows(n);
 		return;
 	}
@@ -6879,7 +6879,7 @@ Window *FindNiceWindow(Window *win, char *presel)
 	if (presel) {
 		i = WindowByNoN(presel);
 		if (i >= 0)
-			win = wtab[i];
+			win = GetWindowByNumber(i);
 	}
 	if (!display)
 		return win;

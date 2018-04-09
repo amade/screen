@@ -996,13 +996,13 @@ static void FinishAttach(Message *m)
 	 * there may be a window that we remember from last detach:
 	 */
 	if (D_user->u_detachwin >= 0)
-		fore = wtab[D_user->u_detachwin];
+		fore = GetWindowByNumber(D_user->u_detachwin);
 	else
 		fore = NULL;
 
 	/* Wayne wants us to restore the other window too. */
 	if (D_user->u_detachotherwin >= 0)
-		D_other = wtab[D_user->u_detachotherwin];
+		D_other = GetWindowByNumber(D_user->u_detachotherwin);
 
 	noshowwin = 0;
 	if (*m->m.attach.preselect) {
@@ -1356,18 +1356,18 @@ static void DoCommandMsg(Message *mp)
 		int i = -1;
 		if (strcmp(mp->m.command.preselect, "-")) {
 			i = WindowByNoN(mp->m.command.preselect);
-			if (i < 0 || !wtab[i]) {
+			if (i < 0 || !GetWindowByNumber(i)) {
 				Msg(0, "Could not find pre-select window.");
 				queryflag = -1;
 				return;
 			}
 		}
-		fore = i >= 0 ? wtab[i] : NULL;
+		fore = i >= 0 ? GetWindowByNumber(i) : NULL;
 	} else if (!fore) {
 		if (display && D_user == user)
 			fore = Layer2Window(display->d_forecv->c_layer);
 		if (!fore) {
-			fore = user->u_detachwin >= 0 ? wtab[user->u_detachwin] : NULL;
+			fore = user->u_detachwin >= 0 ? GetWindowByNumber(user->u_detachwin) : NULL;
 			fore = FindNiceWindow(fore, NULL);
 		}
 	}
