@@ -6149,12 +6149,8 @@ void ShowWindows(int where)
 */
 static void ShowWindowsX(char *str)
 {
-	int i;
-	for (i = 0; i < maxwin; i++) {
-		if (!wtab[i])
-			continue;
-		Msg(0, "%s", MakeWinMsg(str, wtab[i], '%'));
-	}
+	for (Window *w = first_window; w; w = w->w_next)
+		Msg(0, "%s", MakeWinMsg(str, w, '%'));
 }
 
 static void ShowInfo(void)
