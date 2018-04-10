@@ -22,11 +22,6 @@
 
 /* Deals with the list of windows */
 
-/* NOTE: A 'Window *' is used as the 'data' for each row. It might make more sense
- * to use 'Window* ->w_number' as the 'data', instead, because that way, we can
- * verify that the window does exist (by looking at wtab[]).
- */
-
 #include "config.h"
 
 #include "list_generic.h"
@@ -553,15 +548,10 @@ static void WListUpdate(Window *p, ListData *ldata)
 				if (before->w_prev_mru == p)
 					break;
 	} else if (wdata->order == WLIST_NUM) {
-		if (p->w_number != 0) {
-			Window **w = wtab + p->w_number - 1;
-			for (; w >= wtab; w--) {
-				if (*w && (*w)->w_group == wdata->group) {
-					before = *w;
+		if (first_window != p)
+			for (before = first_window; before; before = before->w_next)
+				if (before->w_next== p)
 					break;
-				}
-			}
-		}
 	}
 
 	/* Now, find the row belonging to 'before' */
