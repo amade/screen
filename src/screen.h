@@ -282,7 +282,6 @@ extern int dflag;
 extern int force_vt;
 extern int log_flush;
 extern int logtstamp_after;
-extern uint16_t maxwin;
 extern uid_t multi_uid;
 extern int multiattach;
 extern int nversion;

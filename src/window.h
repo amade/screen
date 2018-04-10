@@ -346,6 +346,4 @@ extern bool VerboseCreate;
 extern const struct LayFuncs WinLf;
 extern struct NewWindow nwin_undef, nwin_default, nwin_options;
 
-extern Window **wtab;
-
 #endif /* SCREEN_WINDOW_H */
