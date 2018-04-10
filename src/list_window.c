@@ -269,13 +269,13 @@ static int gl_Window_input(ListData *ldata, char **inp, size_t *len)
 		if (display && AclCheckPermWin(D_user, ACL_READ, win))
 			return 0;	/* Not allowed to switch to this window. */
 		if (WLIST_FOR_GROUP(wdata))
-			SwitchWindow(win->w_number);
+			SwitchWindow(win);
 		else {
 			/* Abort list only when not in a group window. */
 			glist_abort();
 			display = cd;
 			if (D_fore != win)
-				SwitchWindow(win->w_number);
+				SwitchWindow(win);
 		}
 		*len = 0;
 		break;
@@ -370,11 +370,11 @@ static int gl_Window_input(ListData *ldata, char **inp, size_t *len)
 	case 033:		/* escape */
 	case 007:		/* ^G */
 		if (!WLIST_FOR_GROUP(wdata)) {
-			int fnumber = wdata->onblank ? wdata->fore->w_number : -1;
+			Window * w = wdata->onblank ? wdata->fore : NULL;
 			glist_abort();
 			display = cd;
-			if (fnumber >= 0)
-				SwitchWindow(fnumber);
+			if (w)
+				SwitchWindow(w);
 			*len = 0;
 		}
 		break;

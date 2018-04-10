@@ -27,7 +27,7 @@ int   CompileKeys (char *, int, unsigned char *);
 void  RefreshXtermOSC (void);
 uint64_t ParseAttrColor (char *, int);
 void  ApplyAttrColor (uint64_t, struct mchar *);
-void  SwitchWindow (int);
+void  SwitchWindow (Window *);
 int   StuffKey (int);
 
 /* global variables */
