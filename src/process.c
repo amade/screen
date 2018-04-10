@@ -5251,15 +5251,10 @@ void DoAction(struct action *act)
 void CollapseWindowlist(void)
 /* renumber windows from 0, leaving no gaps */
 {
-	int pos, moveto = 0;
+	int n = 0;
 
-	for (pos = 1; pos < maxwin ; pos++)
-		if (GetWindowByNumber(pos))
-			for (; moveto < pos; moveto++)
-				if (!GetWindowByNumber(moveto)) {
-					SwapWindows(pos, moveto);
-					break;
-				}
+	for (Window *w = first_window; w; w = w->w_next)
+		w->w_number = n++;
 }
 
 void DoCommand(char **argv, int *argl)
