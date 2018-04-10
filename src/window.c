@@ -79,8 +79,6 @@ static void zmodem_found(Window *, int, char *, size_t);
 static void zmodemFin(char *, size_t, void *);
 static int zmodem_parse(Window *, char *, size_t);
 
-Window **wtab;		/* window table */
-
 bool VerboseCreate = false;		/* XXX move this to user.h */
 
 char DefaultShell[] = "/bin/sh";
@@ -476,46 +474,15 @@ static void add_window_to_list(Window *p, Window *win)
  */
 int MakeWindow(struct NewWindow *newwin)
 {
-	Window **pp, *p;
-	int n, i;
+	Window *p;
+	int i;
 	int f = -1;
 	struct NewWindow nwin;
 	int type, startat;
 	char *TtyName;
-
-	if (!wtab) {
-		if (!maxwin)
-			maxwin = 16;
-		wtab = calloc(maxwin, sizeof(Window *));
-	}
+	Window *win = first_window;
 
 	nwin_compose(&nwin_default, newwin, &nwin);
-
-	/* search for free spot in the list */
-	startat = nwin.StartAt < maxwin ? nwin.StartAt : 0;
-	pp = wtab + startat;
-
-	do {
-		if (*pp == NULL)
-			break;
-		if (++pp == wtab + maxwin)
-			pp = wtab;
-	}
-	while (pp != wtab + startat);
-
-	/* no free spots, let's make one */
-	if (*pp) {
-		Window **newwtab = calloc(maxwin * 2, sizeof(Window *));
-		Window **oldwtab = wtab;
-		memmove(newwtab, oldwtab, maxwin * sizeof(Window *));
-		wtab = newwtab;
-		free(oldwtab);
-		pp = wtab + maxwin;
-		maxwin *= 2;
-	}
-	n = pp - wtab;
-
-	Window *win = first_window;
 
 	startat = nwin.StartAt;
 	/* skip windows with lower number */
@@ -559,7 +526,7 @@ int MakeWindow(struct NewWindow *newwin)
 	if (nwin.term)
 		p->w_term = SaveStr(nwin.term);
 
-	p->w_number = n;
+	p->w_number = startat;
 	p->w_group = NULL;
 	if (fore && fore->w_type == W_TYPE_GROUP)
 		p->w_group = fore;
@@ -675,7 +642,6 @@ int MakeWindow(struct NewWindow *newwin)
 	 */
 	if (display && D_fore)
 		D_other = D_fore;
-	*pp = p;
 
 	add_window_to_list(p, win);
 
@@ -685,7 +651,7 @@ int MakeWindow(struct NewWindow *newwin)
 		WindowChanged(NULL, WINESC_WIN_NAMES);
 		WindowChanged(NULL, WINESC_WIN_NAMES_NOCUR);
 		WindowChanged(NULL, 0);
-		return n;
+		return startat;
 	}
 
 #ifdef ENABLE_UTMP
@@ -742,7 +708,7 @@ int MakeWindow(struct NewWindow *newwin)
 	WindowChanged(NULL, WINESC_WIN_NAMES);
 	WindowChanged(NULL, WINESC_WIN_NAMES_NOCUR);
 	WindowChanged(NULL, 0);
-	return n;
+	return startat;
 }
 
 /*

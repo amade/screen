@@ -150,8 +150,6 @@ char *screenencodings;
 
 bool cjkwidth;
 
-uint16_t maxwin;
-
 Layer *flayer;
 Window *fore;
 Window *mru_window;

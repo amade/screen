@@ -5885,7 +5885,6 @@ void KillWindow(Window *window)
 	}
 
 	window->w_inlen = 0;
-	wtab[window->w_number] = NULL;
 
 	if (mru_window == NULL) {
 		FreeWindow(window);
