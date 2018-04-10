@@ -388,6 +388,88 @@ int DoStartLog(Window *window, char *buf, int bufsize)
 	return 0;
 }
 
+static void remove_window_from_list(Window *win)
+{
+	if (win) {
+		Window *tmp = win->w_next;
+		if (win->w_prev) {
+			win->w_prev->w_next = tmp;
+		} else {
+			first_window = tmp;
+		}
+		if (tmp) {
+			tmp->w_prev = win->w_prev;
+		} else {
+			last_window = win->w_prev;
+		}
+		win->w_next = NULL;
+		win->w_prev = NULL;
+
+		if (win == mru_window) {
+			mru_window = win->w_prev_mru;
+		} else {
+			for (Window *w = mru_window; w; w = w->w_prev_mru) {
+				if (w->w_prev_mru == win) {
+					w->w_prev_mru = w->w_prev_mru->w_prev_mru;
+					break;
+				}
+			}
+		}
+		win->w_prev_mru = NULL;
+	}
+}
+
+/*
+ * helper function to insert window into window list
+ * we insert p before win, if win == NULL we are either at the end of list or list is empty
+ */
+static void add_window_to_list(Window *p, Window *win)
+{
+	if (!p)
+		return; /* maybe we should just Panic? but we should always get window to place */
+
+	/* most recently used list */
+
+	p->w_prev_mru = mru_window;
+	mru_window = p;
+	/*
+	 * place the new window in proper place on window list
+	 */
+
+	if (win) {
+		/* if we are not at the end of list, we point after insertion point */
+		if (win == first_window) {
+			/* we insert at the beginning! */
+			first_window->w_prev = p;
+			p->w_next = first_window;
+			p->w_prev = NULL;
+			first_window = p;
+		} else {
+			/* we insert in the middle */
+			p->w_next = win->w_prev->w_next;
+			p->w_prev = win->w_prev;
+			win->w_prev->w_next = p;
+			win->w_prev = p;
+		}
+	} else {
+		/* if win is NULL, then we are either at the end of the list or there are no windows */
+		win = last_window;
+		if (win) {
+			/* we have last window, so add new window at the end of list */
+			last_window->w_next = p;
+			p->w_prev = last_window;
+			p->w_next = NULL;
+			last_window = p;
+		} else {
+			/* there are no windows */
+			first_window = p;
+			last_window = p;
+			p->w_next = NULL;
+			p->w_prev = NULL;
+		}
+	}
+}
+
 /*
  * Umask & wlock are set for the user of the display,
  * The display d (if specified) switches to that window.
@@ -594,43 +676,8 @@ int MakeWindow(struct NewWindow *newwin)
 	if (display && D_fore)
 		D_other = D_fore;
 	*pp = p;
-	p->w_prev_mru = mru_window;
-	mru_window = p;
 
-	/*
-	 * place the new window in proper place on window list
-	 */
-
-	if (win) {
-		/* if we are not at the end of list, we point after insertion point */
-		if (win == first_window) {
-			/* we insert at the beginning! */
-			first_window->w_prev = p;
-			p->w_next = first_window;
-			first_window = p;
-		} else {
-			/* we insert in the middle */
-			p->w_next = win->w_prev->w_next;
-			p->w_prev = win->w_prev;
-			win->w_prev->w_next = p;
-			win->w_prev = p;
-		}
-	} else {
-		/* if win is NULL, then we are either at the end of the list or there are no windows */
-		win = last_window;
-		if (win) {
-			/* we have last window, so add new window at the end of list */
-			last_window->w_next = p;
-			p->w_prev = last_window;
-			last_window = p;
-		} else {
-			/* there are no windows */
-			first_window = p;
-			last_window = p;
-			p->w_next = NULL;
-			p->w_prev = NULL;
-		}
-	}
+	add_window_to_list(p, win);
 
 	if (type == W_TYPE_GROUP) {
 		SetForeWindow(p);
@@ -1789,35 +1836,51 @@ void zmodem_abort(Window *p, Display *d)
 
 int SwapWindows(int old, int dest)
 {
-	Window *p, *win_old;
+	Window *win_a, *win_b;
+	Window *tmp;
 
-	if (dest < 0 || dest >= maxwin) {
+	if (dest < 0) {
 		Msg(0, "Given window position is invalid.");
 		return 0;
 	}
 
-	win_old = wtab[old];
-	p = wtab[dest];
-	wtab[dest] = win_old;
-	win_old->w_number = dest;
-	wtab[old] = p;
-	if (p)
-		p->w_number = old;
+	win_a = GetWindowByNumber(old);
+	win_b = GetWindowByNumber(dest);
+
+	remove_window_from_list(win_a);
+	win_a->w_number = dest;
+	if (win_b) {
+		remove_window_from_list(win_b);
+		win_b->w_number = old;
+	}
+
+	tmp = first_window;
+	while (tmp && tmp->w_number < win_a->w_number)
+		tmp = tmp->w_next;
+	add_window_to_list(win_a, tmp);
+
+	if (win_b) {
+		tmp = first_window;
+		while (tmp && tmp->w_number < win_b->w_number)
+			tmp = tmp->w_next;
+		add_window_to_list(win_b, tmp);
+	}
+
 	/* exchange the acls for these windows. */
 #ifdef ENABLE_UTMP
 	/* exchange the utmp-slots for these windows */
-	if ((win_old->w_slot != (slot_t) - 1) && (win_old->w_slot != (slot_t) 0)) {
-		RemoveUtmp(win_old);
-		SetUtmp(win_old);
+	if ((win_a->w_slot != (slot_t) - 1) && (win_a->w_slot != (slot_t) 0)) {
+		RemoveUtmp(win_a);
+		SetUtmp(win_a);
 	}
-	if (p && (p->w_slot != (slot_t) - 1) && (p->w_slot != (slot_t) 0)) {
-		display = win_old->w_layer.l_cvlist ? win_old->w_layer.l_cvlist->c_display : NULL;
-		RemoveUtmp(p);
-		SetUtmp(p);
+	if (win_b && (win_b->w_slot != (slot_t) - 1) && (win_b->w_slot != (slot_t) 0)) {
+		display = win_a->w_layer.l_cvlist ? win_a->w_layer.l_cvlist->c_display : NULL;
+		RemoveUtmp(win_b);
+		SetUtmp(win_b);
 	}
 #endif
 
-	WindowChanged(win_old, WINESC_WIN_NUM);
+	WindowChanged(win_a, WINESC_WIN_NUM);
 	WindowChanged(NULL, WINESC_WIN_NAMES);
 	WindowChanged(NULL, WINESC_WIN_NAMES_NOCUR);
 	WindowChanged(NULL, 0);
@@ -1826,7 +1889,7 @@ int SwapWindows(int old, int dest)
 
 void WindowDied(Window *p, int wstat, int wstat_valid)
 {
-	int killit = 0;
+	int killit = 1;
 
 	if (p->w_destroyev.data == (char *)p) {
 		wstat = p->w_exitstatus;
