@@ -72,8 +72,8 @@
 static int CheckArgNum(int, char **);
 static void ClearAction(struct action *);
 static void SaveAction(struct action *, int, char **, int *);
-static uint16_t NextWindow(void);
-static uint16_t PreviousWindow(void);
+static Window *NextWindow(void);
+static Window *PreviousWindow(void);
 static int MoreWindows(void);
 static void CollapseWindowlist(void);
 static void LogToggle(bool);
@@ -1063,7 +1063,7 @@ static void DoCommandNext(struct action *act)
 	(void)act; /* unused */
 
 	if (MoreWindows())
-		SwitchWindow(GetWindowByNumber(NextWindow()));
+		SwitchWindow(NextWindow());
 }
 
 static void DoCommandPrev(struct action *act)
@@ -1071,7 +1071,7 @@ static void DoCommandPrev(struct action *act)
 	(void)act; /* unused */
 
 	if (MoreWindows())
-		SwitchWindow(GetWindowByNumber(PreviousWindow()));
+		SwitchWindow(PreviousWindow());
 }
 
 static void DoCommandKill(struct action *act)
@@ -1602,7 +1602,7 @@ static void DoCommandCommand(struct action *act)
 		WindowChanged(fore, WINESC_ESC_SEEN);
 	}
 	if (MoreWindows())
-		SwitchWindow(display && D_other ? D_other : GetWindowByNumber(NextWindow()));
+		SwitchWindow(display && D_other ? D_other : NextWindow());
 }
 
 static void DoCommandOther(struct action *act)
@@ -1610,7 +1610,7 @@ static void DoCommandOther(struct action *act)
 	(void)act; /* unused */
 
 	if (MoreWindows())
-		SwitchWindow(display && D_other ? D_other : GetWindowByNumber(NextWindow()));
+		SwitchWindow(display && D_other ? D_other : NextWindow());
 }
 
 
@@ -3108,18 +3108,22 @@ static void DoCommandSilencewait(struct action *act)
 
 static void DoCommandBumpright(struct action *act)
 {
+	Window *win = NextWindow();
+
 	(void)act; /* unused */
 
-	if (fore->w_number < NextWindow())
-		SwapWindows(fore->w_number, NextWindow());
+	if (fore->w_number < win->w_number)
+		SwapWindows(fore->w_number, win->w_number);
 }
 
 static void DoCommandBumpleft(struct action *act)
 {
+	Window *win = PreviousWindow();
+
 	(void)act; /* unused */
 
-	if (fore->w_number > PreviousWindow())
-		SwapWindows(fore->w_number, PreviousWindow());
+	if (fore->w_number > win->w_number)
+		SwapWindows(fore->w_number, win->w_number);
 }
 
 static void DoCommandCollapse(struct action *act)
@@ -5816,42 +5820,32 @@ void Activate(int norefresh)
 	Redisplay(norefresh + all_norefresh);
 }
 
-static uint16_t NextWindow(void)
+static Window *NextWindow(void)
 {
-	Window **pp;
-	int n = fore ? fore->w_number : last_window->w_number;
+	Window *w;
 	Window *group = fore ? fore->w_group : NULL;
 
-	for (pp = fore ? wtab + n + 1 : wtab; pp != wtab + n; pp++) {
-		if (pp == wtab + maxwin)
-			pp = wtab;
-		if (*pp) {
-			if (!fore || group == (*pp)->w_group)
-				break;
-		}
+	for (w = fore ? fore->w_next : first_window; w != fore; w = w->w_next) {
+		if (w == NULL)
+			w = first_window;
+		if (!fore || group == w->w_group)
+			break;
 	}
-	if (pp == wtab + n)
-		return -1;
-	return pp - wtab;
+	return w;
 }
 
-static uint16_t PreviousWindow(void)
+static Window *PreviousWindow(void)
 {
-	Window **pp;
-	int n = fore ? fore->w_number : 0;
+	Window *w;
 	Window *group = fore ? fore->w_group : NULL;
 
-	for (pp = wtab + n - 1; pp != wtab + n; pp--) {
-		if (pp == wtab - 1)
-			pp = wtab + maxwin - 1;
-		if (*pp) {
-			if (!fore || group == (*pp)->w_group)
-				break;
-		}
+	for (w = fore ? fore->w_prev : last_window; w != fore; w = w->w_prev) {
+		if (w == NULL)
+			w = last_window;
+		if (!fore || group == w->w_group)
+			break;
 	}
-	if (pp == wtab + n)
-		return 0;
-	return pp - wtab;
+	return w;
 }
 
 static int MoreWindows(void)
