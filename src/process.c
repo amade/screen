@@ -5956,32 +5956,36 @@ static void LogToggle(bool on)
 }
 
 /* TODO: wmb encapsulation; flags enum; update all callers */
+/* also maybe give window pointer instead of number in 'where'? */
 char *AddWindows(WinMsgBufContext *wmbc, int len, int flags, int where)
 {
 	char *s, *ss;
-	Window **pp, *p;
+	Window *win;
 	char *cmd;
 	char *buf = wmbc->p;
 	int l;
+	Window *cur;
 
 	s = ss = buf;
-	if ((flags & 8) && where < 0) {
+	if (where < 0) {
 		*s = 0;
 		return ss;
 	}
 
-	for (pp = ((flags & 4) && where >= 0) ? wtab + where + 1 : wtab; pp < wtab + maxwin; pp++) {
+	cur = GetWindowByNumber(where);
+
+	for (win = (flags & 4) ? cur->w_next : first_window; win; win = win->w_next) {
 		int rend = -1;
-		if (pp - wtab == where && ss == buf)
+		if (win == cur && ss == buf)
 			ss = s;
-		if ((p = *pp) == NULL)
+		if (win == NULL)
 			continue;
-		if ((flags & 1) && display && p == D_fore)
+		if ((flags & 1) && display && win == D_fore)
 			continue;
-		if (display && D_fore && D_fore->w_group != p->w_group)
+		if (display && D_fore && D_fore->w_group != win->w_group)
 			continue;
 
-		cmd = p->w_title;
+		cmd = win->w_title;
 		l = strlen(cmd);
 		if (l > 20)
 			l = 20;
@@ -5991,26 +5995,24 @@ char *AddWindows(WinMsgBufContext *wmbc, int len, int flags, int where)
 			*s++ = ' ';
 			*s++ = ' ';
 		}
-		if (p->w_number == where) {
+		if (win == cur) {
 			ss = s;
 			if (flags & 8)
 				break;
 		}
-		if (!(flags & 4) || where < 0 || ((flags & 4) && where < p->w_number)) {
-			if (p->w_monitor == MON_DONE && renditions[REND_MONITOR] != 0)
-				rend = renditions[REND_MONITOR];
-			else if ((p->w_bell == BELL_DONE || p->w_bell == BELL_FOUND) && renditions[REND_BELL] != 0)
-				rend = renditions[REND_BELL];
-			else if ((p->w_silence == SILENCE_FOUND || p->w_silence == SILENCE_DONE)
-				 && renditions[REND_SILENCE] != 0)
-				rend = renditions[REND_SILENCE];
-		}
+		if (win->w_monitor == MON_DONE && renditions[REND_MONITOR] != 0)
+			rend = renditions[REND_MONITOR];
+		else if ((win->w_bell == BELL_DONE || win->w_bell == BELL_FOUND) && renditions[REND_BELL] != 0)
+			rend = renditions[REND_BELL];
+		else if ((win->w_silence == SILENCE_FOUND || win->w_silence == SILENCE_DONE)
+			 && renditions[REND_SILENCE] != 0)
+			rend = renditions[REND_SILENCE];
 		if (rend != -1)
 			AddWinMsgRend(wmbc->buf, s, rend);
-		sprintf(s, "%d", p->w_number);
+		sprintf(s, "%d", win->w_number);
 		s += strlen(s);
 		if (!(flags & 2)) {
-			s = AddWindowFlags(s, len, p);
+			s = AddWindowFlags(s, len, win);
 		}
 		*s++ = ' ';
 		strncpy(s, cmd, l);
