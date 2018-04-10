@@ -932,7 +932,7 @@ static void DoCommandSelect(struct action *act)
 			Activate(0);
 		}
 	} else if (ParseWinNum(act, &n) == 0)
-		SwitchWindow(n);
+		SwitchWindow(GetWindowByNumber(n));
 	else if (queryflag >= 0)
 		queryflag = -1;	/* ParseWinNum already prints out an appropriate error message. */
 
@@ -1063,7 +1063,7 @@ static void DoCommandNext(struct action *act)
 	(void)act; /* unused */
 
 	if (MoreWindows())
-		SwitchWindow(NextWindow());
+		SwitchWindow(GetWindowByNumber(NextWindow()));
 }
 
 static void DoCommandPrev(struct action *act)
@@ -1071,7 +1071,7 @@ static void DoCommandPrev(struct action *act)
 	(void)act; /* unused */
 
 	if (MoreWindows())
-		SwitchWindow(PreviousWindow());
+		SwitchWindow(GetWindowByNumber(PreviousWindow()));
 }
 
 static void DoCommandKill(struct action *act)
@@ -1602,7 +1602,7 @@ static void DoCommandCommand(struct action *act)
 		WindowChanged(fore, WINESC_ESC_SEEN);
 	}
 	if (MoreWindows())
-		SwitchWindow(display && D_other ? D_other->w_number : NextWindow());
+		SwitchWindow(display && D_other ? D_other : GetWindowByNumber(NextWindow()));
 }
 
 static void DoCommandOther(struct action *act)
@@ -1610,7 +1610,7 @@ static void DoCommandOther(struct action *act)
 	(void)act; /* unused */
 
 	if (MoreWindows())
-		SwitchWindow(display && D_other ? D_other->w_number : NextWindow());
+		SwitchWindow(display && D_other ? D_other : GetWindowByNumber(NextWindow()));
 }
 
 
@@ -5742,16 +5742,10 @@ int IsNumColon(char *s, char *p, int psize)
 	return IsNum(s);
 }
 
-void SwitchWindow(int n)
+void SwitchWindow(Window *window)
 {
-	Window *window;
-
-	if (n < 0 || n >= last_window->w_number) {
+	if (window == NULL) {
 		ShowWindows(-1);
-		return;
-	}
-	if ((window = GetWindowByNumber(n)) == NULL) {
-		ShowWindows(n);
 		return;
 	}
 	if (display == NULL) {
@@ -5759,7 +5753,7 @@ void SwitchWindow(int n)
 		return;
 	}
 	if (window == D_fore) {
-		Msg(0, "This IS window %d (%s).", n, window->w_title);
+		Msg(0, "This IS window %d (%s).", window->w_number, window->w_title);
 		return;
 	}
 	if (AclCheckPermWin(D_user, ACL_READ, window)) {
@@ -6387,7 +6381,7 @@ static void SelectFin(char *buf, size_t len, void *data)
 	}
 	if ((n = WindowByNoN(buf)) < 0)
 		return;
-	SwitchWindow(n);
+	SwitchWindow(GetWindowByNumber(n));
 }
 
 static void SelectLayoutFin(char *buf, size_t len, void *data)
