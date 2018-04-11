@@ -3184,25 +3184,26 @@ static void DoCommandZombie_timeout(struct action *act)
 
 static void DoCommandSort(struct action *act)
 {
-	int i = 0;
-	int nr = 0;
-
 	(void)act; /* unused */
 
-	if (!GetWindowByNumber(i) || !GetWindowByNumber(i + 1)) {
+	if (first_window == last_window) {
 		Msg(0, "Less than two windows, sorting makes no sense.\n");
 		return;
 	}
-	for (i = 0; GetWindowByNumber(i + 1) != NULL; i++) {
-		for (int n = i, nr = i; GetWindowByNumber(n + 1) != NULL; n++) {
-			if (strcmp(GetWindowByNumber(nr)->w_title, GetWindowByNumber(n + 1)->w_title) > 0) {
-				nr = n + 1;
+
+	for (Window *w1 = first_window; w1; w1 = w1->w_next) {
+		for (Window *w2 = w1; w2; w2 = w2->w_next) {
+			if (strcmp(w2->w_title, w1->w_title) < 0) {
+				Window *tmp;
+				SwapWindows(w1->w_number, w2->w_number);
+				/* swap pointers back, to continue looping correctly */
+				tmp = w1;
+				w1 = w2;
+				w2 = tmp;
 			}
 		}
-		if (nr != i) {
-			SwapWindows(nr, i);
-		}
 	}
+
 	WindowChanged(NULL, 0);
 }
 
