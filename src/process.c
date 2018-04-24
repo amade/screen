@@ -4094,6 +4094,7 @@ int key;
       else
         AddCanvas(SLICE_VERT);
       Activate(-1);
+      WindowChanged((struct win *)0, 'Z');
       break;
     case RC_REMOVE:
       RemCanvas();

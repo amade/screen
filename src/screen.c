@@ -2962,6 +2962,15 @@ char *MakeWinMsgEv(char *str, struct win *win, int esc, int padlen, struct event
       }
 	  break;
 
+    case 'Z':
+      if (display && D_forecv) {
+        struct canvas *cv = D_forecv;
+        p--;
+        if (cv->c_slnext || cv->c_slprev)
+          qmflag = 1;
+      }
+      break;
+
     case 'n':
       s++;
       /* FALLTHROUGH */
