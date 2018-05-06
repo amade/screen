@@ -5,6 +5,7 @@
 .if t .ds Q ``
 .if t .ds U ''
 .UC 4
+.schar \[u2026] ...
 .SH NAME
 screen \- screen manager with VT100/ANSI terminal emulation
 
@@ -892,7 +893,7 @@ If set to on, "alternate screen" support is enabled in virtual terminals,
 just like in xterm.  Initial setting is `off'.
 .RE
 .TP
-.BR "at " "[\fIidentifier\fP][" "#\fP|\fP*\fP|\fP%\fP] " "command " [ \fIargs\fP " … ]"
+.BR "at " "[\fIidentifier\fP][" "#\fP|\fP*\fP|\fP%\fP] " "command " [ \fIargs\fP " \[u2026] ]"
 .RS 0
 .PP
 Execute a command at other displays or windows as if it had been entered there.
@@ -980,7 +981,7 @@ that has not been written to the terminal. See also
 \*Qobuflimit\*U.
 .RE
 .TP
-.BI "backtick " "id lifespan autorefresh cmd args…"
+.BI "backtick " "id lifespan autorefresh cmd args\[u2026]"
 .TP
 .BI "backtick " id
 .RS 0
@@ -1311,7 +1312,7 @@ Change the \fIcurrent directory\fP of
 to the specified directory or, if called without an argument,
 to your home directory (the value of the environment variable $HOME).
 All windows that are created by means of the \*Qscreen\*U command
-from within \*Q.screenrc\*U or by means of \*QC-a : screen …\*U
+from within \*Q.screenrc\*U or by means of \*QC-a : screen \[u2026]\*U
 or \*QC-a c\*U use this as their default directory.
 Without a chdir command, this would be the directory from which
 .I screen
@@ -1351,7 +1352,7 @@ for on-the-fly modification of key bindings,
 specific window creation and changing settings. Note that the \*Qset\*U
 keyword no longer exists! Usually commands affect the current window rather 
 than default settings for future windows. Change defaults with commands
-starting with 'def…'.
+starting with 'def\[u2026]'.
 .PP
 If you consider this as the `Ex command mode' of 
 .IR screen ,
@@ -1996,13 +1997,13 @@ by a second character, such as \*Q\e^\*U or \*Q\e\e\*U.
 The default is \*Q^Aa\*U.
 .RE
 .TP
-.RI "\fBeval\fP " command1 [ "command2 …" ]
+.RI "\fBeval\fP " command1 [ "command2 \[u2026]" ]
 .RS 0
 .PP
 Parses and executes each argument as separate command.
 .RE
 .TP
-.IR "\fBexec\fP " [[ fdpat ] "newcommand " [ "args …" ]]
+.IR "\fBexec\fP " [[ fdpat ] "newcommand " [ "args \[u2026]" ]]
 .RS 0
 .PP
 Run a unix subprocess (specified by an executable path \fInewcommand\fP and its 
@@ -2046,7 +2047,7 @@ by `!'.
 Examples:
 .RS
 .TP
-exec … /bin/sh
+exec \[u2026] /bin/sh
 .TP
 exec /bin/sh
 .TP
@@ -2305,7 +2306,7 @@ Usually users work with a shell that allows easy access to previous commands.
 For example csh has the command \*Q!!\*U to repeat the last command executed. 
 .I Screen
 allows you to have a primitive way of re-calling \*Qthe command that
-started …\*U: You just type the first letter of that command, then hit
+started \[u2026]\*U: You just type the first letter of that command, then hit
 `C-a {' and
 .I screen
 tries to find a previous line that matches with the `prompt character' 
@@ -3840,7 +3841,7 @@ to be used efficiently as a console multiplexer with 100 or more windows.
 The normal window contains a shell (default, if no parameter is given) or any
 other system command that could be executed from a shell (e.g.  
 .BR slogin ,
-etc…)
+etc\[u2026])
 
 .IP \(bu
 If a tty (character special device) name (e.g. \*Q/dev/ttya\*U)
@@ -3998,7 +3999,7 @@ the marked position gets moved to the specified percentage of
 the output area. (The area starts from the last absolute pad
 position and ends with the position specified by the truncation
 operator.) The 'L' qualifier tells screen to mark the truncated
-parts with '…'.
+parts with '\[u2026]'.
 .IP {
 attribute/color modifier string terminated by the next \*Q}\*U
 .IP `
@@ -4625,7 +4626,7 @@ same as above
 .B "ESC [ \fPPn\fB d"
 Cursor vertical position
 .TP 27
-.B "ESC [ \fPPs\fB ;\fP…\fB; \fPPs\fB m"
+.B "ESC [ \fPPs\fB ;\fP\[u2026]\fB; \fPPs\fB m"
 Select Graphic Rendition
 .RS
 .TP 27
@@ -4695,8 +4696,8 @@ Foreground Default
 Ps = \fB40\fP	(A)
 Background Black
 .TP 27
-Ps = \fB…\fP
-…
+Ps = \fB\[u2026]\fP
+\[u2026]
 .TP 27
 Ps = \fB49\fP	(A)
 Background Default
@@ -4743,10 +4744,10 @@ Scroll Scrolling Region Down
 .B "ESC [ \fPPn\fB ^"
 same as above
 .TP 27
-.B "ESC [ \fPPs\fB ;\fP…\fB; \fPPs\fB h"
+.B "ESC [ \fPPs\fB ;\fP\[u2026]\fB; \fPPs\fB h"
 Set Mode
 .TP 27
-.B "ESC [ \fPPs\fB ;\fP…\fB; \fPPs\fB l"
+.B "ESC [ \fPPs\fB ;\fP\[u2026]\fB; \fPPs\fB l"
 Reset Mode
 .RS
 .TP 27
@@ -5073,8 +5074,8 @@ Window number of a window (at creation time).
 
 .SH FILES
 .PD 0
-.IP …/screen-4.?.??/etc/screenrc 34
-.IP …/screen-4.?.??/etc/etcscreenrc
+.IP \[u2026]/screen-4.?.??/etc/screenrc 34
+.IP \[u2026]/screen-4.?.??/etc/etcscreenrc
 Examples in the 
 .I screen
 distribution package for private and global initialization files.
