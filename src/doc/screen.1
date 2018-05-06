@@ -1862,41 +1862,43 @@ xterm 80x42 jnhollma@/dev/ttyp5     0(m11)   &R.x
 The legend is as follows:
 .IP
 (A) The terminal type known by screen for this display.
-.PP
+.IP
 (B) Displays geometry as width x height.
-.PP
+.IP
 (C) Username who is logged in at the display.
-.PP
+.IP
 (D) Device name of the display or the attached device
-.PP
+.IP
 (E) Display is in blocking or nonblocking mode.
 The available modes are "nb", "NB", "Z<", "Z>", and "BL".
-.PP
+.IP
 (F) Number of the window
-.PP
+.IP
 (G) Name/title of window
-.PP
+.IP
 (H) Whether the window is shared
-.PP
+.IP
 (I) Window permissions. Made up of three characters:
 .PP
 .RS
 .nf
       (1st character)
-         ‘\-’ : no read
-         ‘r’ : read
-         ‘R’ : read only due to foreign wlock
+         \fB\-\fR : no read
+         \fBr\fR : read
+         \fBR\fR : read only due to foreign wlock
       (2nd character)
-         ‘\-’ : no write
-         ‘.’ : write suppressed by foreign wlock
-         ‘w’ : write
-         ‘W’ : own wlock
+         \fB\-\fR : no write
+         \fB.\fR : write suppressed by foreign wlock
+         \fBw\fR : write
+         \fBW\fR : own wlock
       (3rd character)
-         ‘\-’ : no execute
-         ‘x’ : execute
+         \fB\-\fR : no execute
+         \fBx\fR : execute
 .fi
+.RE
+.PP
 .RS
-\*QDisplays\*U needs a region size of at least 10 characters wide and 5 characters high in
+\*Qdisplays\*U needs a region size of at least 10 characters wide and 5 characters high in
 order to display.
 .RE
 .TP
