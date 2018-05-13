@@ -6228,7 +6228,7 @@ static void ShowInfo(void)
 
 static void ShowDInfo(void)
 {
-	char buf[128], *p;
+	char buf[512], *p;
 	int l;
 	if (display == NULL)
 		return;
