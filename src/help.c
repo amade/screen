@@ -186,7 +186,7 @@ static int helppage(void)
 {
 	struct helpdata *helpdata;
 	int col, crow, n, key, x;
-	char buf[MAXKLEN], Esc_buf[5], cbuf[256];
+	char buf[MAXKLEN], Esc_buf[5], cbuf[512];
 	struct action *ktabp;
 
 	helpdata = (struct helpdata *)flayer->l_data;
