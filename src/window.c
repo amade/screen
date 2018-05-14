@@ -506,7 +506,10 @@ int MakeWindow(struct NewWindow *newwin)
 		f = -1;
 
 	if ((p = calloc(1, sizeof(Window))) == NULL) {
-		close(f);
+		if (type == W_TYPE_PTY)
+			ClosePTY(f);
+		else
+			close(f);
 		Msg(0, "%s", strnomem);
 		return -1;
 	}
@@ -539,7 +542,10 @@ int MakeWindow(struct NewWindow *newwin)
 	 */
 	if (NewWindowAcl(p, display ? D_user : users)) {
 		free((char *)p);
-		close(f);
+		if (type == W_TYPE_PTY)
+			ClosePTY(f);
+		else
+			close(f);
 		Msg(0, "%s", strnomem);
 		return -1;
 	}
@@ -791,8 +797,9 @@ void CloseDevice(Window *window)
 		/* pty 4 SALE */
 		(void)chmod(window->w_tty, 0666);
 		(void)chown(window->w_tty, 0, 0);
-	}
-	close(window->w_ptyfd);
+		ClosePTY(window->w_ptyfd);
+	} else
+		close(window->w_ptyfd);
 	window->w_ptyfd = -1;
 	window->w_tty[0] = 0;
 	evdeq(&window->w_readev);
@@ -922,7 +929,7 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 			int flag = 1;
 			if (ioctl(fd, TIOCPKT, (char *)&flag)) {
 				Msg(errno, "TIOCPKT ioctl");
-				close(fd);
+				ClosePTY(fd);
 				return -1;
 			}
 		}
@@ -959,7 +966,10 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 #endif
 	{
 		Msg(errno, "chown tty");
-		close(fd);
+		if (*typep == W_TYPE_PTY)
+			ClosePTY(fd);
+		else
+			close(fd);
 		return -1;
 	}
 #ifdef ENABLE_UTMP
@@ -969,7 +979,10 @@ static int OpenDevice(char **args, int lflag, int *typep, char **namep)
 #endif
 	{
 		Msg(errno, "chmod tty");
-		close(fd);
+		if (*typep == W_TYPE_PTY)
+			ClosePTY(fd);
+		else
+			close(fd);
 		return -1;
 	}
 #endif
@@ -1339,8 +1352,12 @@ void FreePseudowin(Window *w)
 	/* should be able to use CloseDevice() here */
 	(void)chmod(pwin->p_tty, 0666);
 	(void)chown(pwin->p_tty, 0, 0);
-	if (pwin->p_ptyfd >= 0)
-		close(pwin->p_ptyfd);
+	if (pwin->p_ptyfd >= 0) {
+		if (w->w_type == W_TYPE_PTY)
+			ClosePTY(pwin->p_ptyfd);
+		else
+			close(pwin->p_ptyfd);
+	}
 	evdeq(&pwin->p_readev);
 	evdeq(&pwin->p_writeev);
 	if (w->w_readev.condneg == (int *)&pwin->p_inlen)

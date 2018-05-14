@@ -2,6 +2,7 @@
 #define SCREEN_PTY_H
 
 int   OpenPTY (char **);
+int  ClosePTY (int);
 
 /* global variables */
 

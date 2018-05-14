@@ -58,11 +58,20 @@ int OpenPTY(char **ttyn)
 	close(s);
 
 	tcflush(f, TCIOFLUSH);
-#ifdef LOCKPTY
+#if defined(LOCKPTY) && defined(TIOCEXCL) && defined(TIOCNXCL)
 	(void)ioctl(f, TIOCEXCL, NULL);
 #endif
 
 	pty_preopen = 1;
 	*ttyn = TtyName;
 	return f;
+}
+
+int ClosePTY(int fd)
+{
+#if defined(LOCKPTY) && defined(TIOCEXCL) && defined(TIOCNXCL)
+	(void)ioctl(fd, TIOCNXCL, NULL);
+#endif
+
+	return close(fd);
 }

@@ -2896,7 +2896,7 @@ static void disp_blanker_fn(Event *event, void *data)
 	size = read(D_blankerev.fd, buf, IOSIZE);
 	if (size <= 0) {
 		evdeq(&D_blankerev);
-		close(D_blankerev.fd);
+		ClosePTY(D_blankerev.fd);
 		D_blankerev.fd = -1;
 		return;
 	}
@@ -2914,7 +2914,7 @@ void KillBlanker(void)
 	if (D_blocked == 4)
 		D_blocked = 0;
 	evdeq(&D_blankerev);
-	close(D_blankerev.fd);
+	ClosePTY(D_blankerev.fd);
 	D_blankerev.fd = -1;
 	Kill(D_blankerpid, SIGHUP);
 	D_top = D_bot = -1;
@@ -2960,7 +2960,7 @@ void RunBlanker(char **cmdv)
 	if (pty_preopen) {
 		if ((slave = open(m, O_RDWR | O_NOCTTY)) == -1) {
 			Msg(errno, "%s", m);
-			close(D_blankerev.fd);
+			ClosePTY(D_blankerev.fd);
 			D_blankerev.fd = -1;
 			return;
 		}
@@ -2969,7 +2969,7 @@ void RunBlanker(char **cmdv)
 	switch (pid = fork()) {
 	case -1:
 		Msg(errno, "fork");
-		close(D_blankerev.fd);
+		ClosePTY(D_blankerev.fd);
 		D_blankerev.fd = -1;
 		if (slave != -1)
 			close(slave);
