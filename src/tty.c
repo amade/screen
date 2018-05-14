@@ -122,11 +122,11 @@ int OpenTTY(char *line, char *opt)
 	 * accessing the same tty line.
 	 * Perhaps we should better create a lock in some /usr/spool/locks directory?
 	 */
-#ifdef TIOCEXCL
+#if defined(TIOCEXCL) && defined(TIOCNXCL)
 	errno = 0;
 	if (ioctl(f, TIOCEXCL, NULL) < 0)
 		Msg(errno, "%s: ioctl TIOCEXCL failed", line);
-#endif				/* TIOCEXCL */
+#endif	/* TIOCEXCL && TIOCNXCL */
 	/*
 	 * We create a sane tty mode. We do not copy things from the display tty
 	 */
@@ -713,7 +713,14 @@ void SendBreak(Window * wp, int n, int closeopen)
 	(void)tcflush(wp->w_ptyfd, TCIOFLUSH);
 
 	if (closeopen) {
+		/* if we got exclusive access on tty, remove it */
+#if defined(TIOCEXCL) && defined(TIOCNXCL)
+		errno = 0;
+		if (ioctl(wp->w_ptyfd, TIOCNXCL, NULL) < 0)
+			Msg(errno, "%s: ioctl TIOCNXCL failed", wp->w_tty);
+#endif	/* TIOCEXCL && TIOCNXCL */
 		close(wp->w_ptyfd);
+
 		usleep(1000 * (n ? n * 250 : 250));
 		if ((wp->w_ptyfd = OpenTTY(wp->w_tty, wp->w_cmdargs[1])) < 1) {
 			Msg(0, "Ouch, cannot reopen line %s, please try harder", wp->w_tty);
