@@ -1090,6 +1090,8 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 					if (dup(newfd) < 0)
 						Panic(errno, "Cannot duplicate file descriptor");
 				}
+				if (fgtty(newfd))
+					Msg(errno, "fgtty");
 			} else {
 				if(dup(win->w_ptyfd) < 0)
 					Panic(errno, "Cannot duplicate file descriptor");

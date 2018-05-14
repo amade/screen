@@ -13,6 +13,7 @@ void  SendBreak (Window *, int, int);
 int   TtyGrabConsole (int, bool, char *);
 char *TtyGetModemStatus (int, char *);
 void  brktty (int);
+int fgtty(int fd);
 int   CheckTtyname (char *);
 char  *GetPtsPathOrSymlink (int);
 

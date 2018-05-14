@@ -596,9 +596,24 @@ static int SttyMode(struct mode *m, char *opt)
 
 void brktty(int fd)
 {
-	(void)fd;		/* unused */
 	if (separate_sids)
 		setsid();	/* will break terminal affiliation */
+
+	ioctl(fd, TIOCSCTTY, NULL);
+}
+
+int fgtty(int fd)
+{
+	int mypid;
+
+	mypid = getpid();
+
+	ioctl(fd, TIOCSCTTY, NULL);
+
+	if (separate_sids)
+		if (tcsetpgrp(fd, mypid))
+			return -1;
+	return 0;
 }
 
 /*

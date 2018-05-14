@@ -2992,6 +2992,7 @@ void RunBlanker(char **cmdv)
 			Panic(errno, "Cannot dup() %s", m);
 		if (slave != -1)
 			close(slave);
+		fgtty(0);
 		SetTTY(0, &D_OldMode);
 		np = NewEnv + 3;
 		*np++ = NewEnv[0];
