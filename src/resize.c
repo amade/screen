@@ -225,32 +225,28 @@ static void kaablamm(void)
 }
 
 /* Kills non-resizable layers. */
-#define RESIZE_OR_KILL_LAYERS(l, wi, he) do \
-  {	\
-    Layer *_last = NULL;	\
-    flayer = (l);	\
-    while (flayer->l_next)	\
-      {	\
-	if (LayResize(wi, he) == 0)	\
-	  {	\
-	    _last = flayer;	\
-	    flayer = flayer->l_next;	\
-	  }	\
-	else	\
-	  {	\
-	    Canvas *_cv;	\
-	    for (_cv = flayer->l_cvlist; _cv; _cv = _cv->c_lnext)	\
-	      _cv->c_display->d_kaablamm = 1;	\
-	    ExitOverlayPage();	\
-	    if (_last)	\
-	      _last->l_next = flayer;	\
-	  }	\
-      }	\
-    /* We assume that the bottom-most layer, i.e. when flayer->l_next == 0,	\
-     * is always resizable. Currently, WinLf and BlankLf can be the bottom-most layers.	\
-     */	\
-    LayResize(wi, he);	\
-  } while (0)
+#define RESIZE_OR_KILL_LAYERS(l, wi, he)							\
+do {												\
+	Layer *_last = NULL;									\
+	flayer = (l);										\
+	while (flayer->l_next) {								\
+		if (LayResize(wi, he) == 0) {							\
+			_last = flayer;								\
+			flayer = flayer->l_next;						\
+		} else {									\
+			Canvas *_cv;								\
+			for (_cv = flayer->l_cvlist; _cv; _cv = _cv->c_lnext)			\
+				_cv->c_display->d_kaablamm = 1;					\
+			ExitOverlayPage();							\
+			if (_last)								\
+				_last->l_next = flayer;						\
+		}										\
+	}											\
+	/* We assume that the bottom-most layer, i.e. when flayer->l_next == 0,			\
+	 * is always resizable. Currently, WinLf and BlankLf can be the bottom-most layers.	\
+	 */											\
+	LayResize(wi, he);									\
+} while (0)
 
 void ResizeLayer(Layer *l, int wi, int he, Display *norefdisp)
 {
@@ -404,20 +400,23 @@ static void CheckMaxSize(int wi)
 	mline_blank.colorfg = null;
 	mline_null.colorfg = null;
 
-#define RESET_AFC(x, bl) do { if (x == old##bl) x = bl; } while (0)
+#define RESET_AFC(x, bl)	\
+do {				\
+	if (x == old##bl)	\
+		x = bl;		\
+} while (0)
 
-#define RESET_LINES(lines, count) \
-  do { \
-    ml = lines; \
-    for (i = 0; i < count; i++, ml++) \
-      { \
-	RESET_AFC(ml->image, blank); \
-	RESET_AFC(ml->attr, null); \
-	RESET_AFC(ml->font, null); \
-	RESET_AFC(ml->colorbg, null); \
-	RESET_AFC(ml->colorfg, null); \
-      } \
-  } while (0)
+#define RESET_LINES(lines, count)		\
+do {						\
+	ml = lines;				\
+	for (i = 0; i < count; i++, ml++) {	\
+		RESET_AFC(ml->image, blank);	\
+		RESET_AFC(ml->attr, null);	\
+		RESET_AFC(ml->font, null);	\
+		RESET_AFC(ml->colorbg, null);	\
+		RESET_AFC(ml->colorfg, null);	\
+	}					\
+} while (0)
 
 	/* We have to run through all windows to substitute
 	 * the null and blank references.
@@ -780,7 +779,12 @@ static void SwapAltScreen(Window *p)
 	struct mline *ml;
 	int t;
 
-#define SWAP(item, t) do { (t) = p->w_alt. item; p->w_alt. item = p->w_##item; p->w_##item = (t); } while (0)
+#define SWAP(item, t)			\
+do {					\
+	(t) = p->w_alt. item;		\
+	p->w_alt. item = p->w_##item;	\
+	p->w_##item = (t);		\
+} while (0)
 
 	SWAP(mlines, ml);
 	SWAP(width, t);
