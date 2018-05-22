@@ -250,11 +250,10 @@ int SetUtmp(Window *win)
 	struct utmpx u;
 	int saved_ut;
 #if defined(HAVE_UT_HOST)
-	char *p;
-	char host[ARRAY_SIZE(D_loginhost) + 15];
+	char host[ARRAY_SIZE(u.ut_host)];
 #else
-	char *host = 0;
-#endif/* HAVE_UT_HOST */
+	char *host = NULL;
+#endif
 
 	win->w_slot = (slot_t) 0;
 	if (!utmpok || win->w_type != W_TYPE_PTY)
@@ -272,39 +271,17 @@ int SetUtmp(Window *win)
 		makeuser(&u, stripdev(win->w_tty), LoginName, win->w_pid);
 
 #if defined(HAVE_UT_HOST)
-	host[ARRAY_SIZE(host) - 15] = '\0';
 	if (display) {
-		strncpy(host, D_loginhost, ARRAY_SIZE(host) - 15);
-		if (D_loginslot != (slot_t) 0 && D_loginslot != (slot_t) - 1 && host[0] != '\0') {
-			/*
-			 * we want to set our ut_host field to something like
-			 * ":ttyhf:s.0" or
-			 * "faui45:s.0" or
-			 * "132.199.81.4:s.0" (even this may hurt..), but not
-			 * "faui45.informati"......:s.0
-			 * HPUX uses host:0.0, so chop at "." and ":" (Eric Backus)
-			 */
-			for (p = host; *p; p++)
-				if ((*p < '0' || *p > '9') && (*p != '.'))
-					break;
-			if (*p) {
-				for (p = host; *p; p++)
-					if (*p == '.' || (*p == ':' && p != host)) {
-						*p = '\0';
-						break;
-					}
-			}
-		} else {
-			strncpy(host + 1, stripdev(D_usertty), ARRAY_SIZE(host) - 15 - 1);
-			host[0] = ':';
-		}
+		snprintf(host, ARRAY_SIZE(host), "%s", D_loginhost);
+		if (D_loginslot == (slot_t)0 || D_loginslot == (slot_t)-1 || host[0] == '\0')
+			snprintf(host, ARRAY_SIZE(host), ":%s", stripdev(D_usertty));
 	} else
-		strncpy(host, "local", ARRAY_SIZE(host) - 15);
+		snprintf(host, ARRAY_SIZE(host), "local");
 
-	sprintf(host + strlen(host), ":S.%d", win->w_number);
+	snprintf(host + strlen(host), ARRAY_SIZE(host) - strlen(host), ":S.%d", win->w_number);
 
 	strncpy(u.ut_host, host, ARRAY_SIZE(u.ut_host));
-#endif				/* UTHOST */
+#endif
 
 	if (pututslot(slot, &u, host, win) == 0) {
 		Msg(errno, "Could not write %s", UtmpName);
