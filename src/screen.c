@@ -953,10 +953,6 @@ int main(int argc, char **argv)
 			n = dup(attach_fd);
 	} else
 		n = -1;
-	if (!freopen("/dev/null", "r", stdin) ||
-	    !freopen("/dev/null", "w", stdout) ||
-	    !freopen("/dev/null", "w", stderr))
-		Panic(0, "Cannot reassociate std streams");
 
 	/*
 	 * This guarantees that the session owner is listed, even when we
@@ -971,6 +967,11 @@ int main(int argc, char **argv)
 		PanicPid = 0;
 		D_encoding = nwin_options.encoding > 0 ? nwin_options.encoding : 0;
 	}
+
+	if (!freopen("/dev/null", "r", stdin) ||
+	    !freopen("/dev/null", "w", stdout) ||
+	    !freopen("/dev/null", "w", stderr))
+		Panic(0, "Cannot reassociate std streams");
 
 	if (SocketMatch) {
 		/* user started us with -S option */
