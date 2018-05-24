@@ -132,7 +132,14 @@ int OpenTTY(char *line, char *opt)
 	 */
 	InitTTY(&Mode, W_TYPE_PLAIN);
 
-	SttyMode(&Mode, opt);
+
+	if (SttyMode(&Mode, opt)) {
+		Msg(errno, "%s: stty failed - invalid option?", line);
+		alarm(0);
+		xsignal(SIGALRM, sigalrm);
+		close(f);
+		return -1;
+	}
 	SetTTY(f, &Mode);
 
 #if defined(TIOCMSET)
