@@ -2441,15 +2441,16 @@ the cursor position in the form \*Q(column,row)\*U starting with \*Q(1,1)\*U,
 the terminal width and height plus the size of the scrollback buffer in lines, 
 like in \*Q(80,24)+50\*U, the current state of window XON/XOFF flow control
 is shown like this (See also section FLOW CONTROL):
-
-.nf
-  +flow     automatic flow control, currently on.
-  \-flow     automatic flow control, currently off.
-  +(+)flow  flow control enabled. Agrees with automatic control.
-  \-(+)flow  flow control disabled. Disagrees with automatic control.
-  +(\-)flow  flow control enabled. Disagrees with automatic control.
-  \-(\-)flow  flow control disabled. Agrees with automatic control.
-.fi
+.TS
+allbox tab(@);
+l l.
++flow@automatic flow control, currently on.
+\-flow@automatic flow control, currently off.
++(+)flow@flow control enabled. Agrees with automatic control.
+\-(+)flow@flow control disabled. Disagrees with automatic control.
++(\-)flow@flow control enabled. Disagrees with automatic control.
+\-(\-)flow@flow control disabled. Agrees with automatic control.
+.TE
 
 The current line wrap setting (`+wrap' indicates enabled, `\-wrap' not) is
 also shown. The flags `ins', `org', `app', `log', `mon' or `nored' are 
