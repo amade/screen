@@ -68,6 +68,7 @@ struct mode {
 #include "image.h"
 #include "layer.h"
 #include "sched.h"
+#include "session.h"
 #include "term.h"
 #include "window.h"
 
@@ -232,10 +233,11 @@ void  setbacktick (int, int, int, char **);
 
 /* global variables */
 
+extern Session *g_session;
+
 /* Content of the tty symlink when attach_tty_is_in_new_ns == true. */
 extern char attach_tty_name_in_ns[];
 extern char strnomem[];
-extern char HostName[];
 extern char SocketPath[MAXPATHLEN];
 extern char *attach_tty;
 extern char *attach_term;

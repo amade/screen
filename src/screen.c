@@ -55,6 +55,7 @@
 #include "fileio.h"
 #include "list_generic.h"
 #include "mark.h"
+#include "session.h"
 #include "utmp.h"
 #include "winmsg.h"
 
@@ -84,6 +85,8 @@ static int ParseEscape(char *);
 static void SetTtyname(bool fatal, struct stat *st);
 
 int nversion;			/* numerical version, used for secondary DA */
+
+Session *g_session;
 
 /* the attacher */
 struct passwd *ppp;
@@ -136,7 +139,6 @@ int multiattach;
 int tty_mode;
 int tty_oldmode = -1;
 
-char HostName[MAXSTR];
 pid_t MasterPid, PanicPid;
 uid_t real_uid, eff_uid;
 uid_t multi_uid;
@@ -840,10 +842,7 @@ int main(int argc, char **argv)
 	*SocketName = 0;
 	(void)umask(oumask);
 
-	(void)gethostname(HostName, MAXSTR);
-	HostName[MAXSTR - 1] = '\0';
-	if ((ap = strchr(HostName, '.')) != NULL)
-		*ap = '\0';
+	g_session = MakeSession();
 
 	if (lsflag) {
 		int i, fo, oth;
@@ -914,7 +913,7 @@ int main(int argc, char **argv)
 		if (SocketMatch)
 			sprintf(socknamebuf, "%d.%s", MasterPid, SocketMatch);
 		else
-			sprintf(socknamebuf, "%d.%s.%s", MasterPid, stripdev(attach_tty), HostName);
+			sprintf(socknamebuf, "%d.%s.%s", MasterPid, stripdev(attach_tty), g_session->s_hostname);
 		for (ap = socknamebuf; *ap; ap++)
 			if (*ap == '/')
 				*ap = '-';
@@ -977,7 +976,7 @@ int main(int argc, char **argv)
 		/* user started us with -S option */
 		sprintf(socknamebuf, "%d.%s", (int)getpid(), SocketMatch);
 	} else {
-		sprintf(socknamebuf, "%d.%s.%s", (int)getpid(), stripdev(attach_tty), HostName);
+		sprintf(socknamebuf, "%d.%s.%s", (int)getpid(), stripdev(attach_tty), g_session->s_hostname);
 	}
 	for (ap = socknamebuf; *ap; ap++)
 		if (*ap == '/')

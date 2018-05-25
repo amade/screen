@@ -219,7 +219,7 @@ int FindSocket(int *fdp, int *nfoundp, int *notherp, char *match)
 			n = name + strlen(name) - 1;
 			while (n != name && *n != '.')
 				n--;
-			if (matchlen == 0 && !(*n == '.' && n[1] && strncmp(HostName, n + 1, strlen(n + 1)) == 0)) {
+			if (matchlen == 0 && !(*n == '.' && n[1] && strncmp(g_session->s_hostname, n + 1, strlen(n + 1)) == 0)) {
 				npriv++;	/* a good socket that was not for us */
 				continue;
 			}
@@ -1040,7 +1040,7 @@ static void FinishAttach(Message *m)
 		ShowWindows(-1);
 	if (displays->d_next == NULL && console_window) {
 		if (TtyGrabConsole(console_window->w_ptyfd, true, "reattach") == 0)
-			Msg(0, "console %s is on window %d", HostName, console_window->w_number);
+			Msg(0, "console %s is on window %d", g_session->s_hostname, console_window->w_number);
 	}
 }
 
@@ -1115,7 +1115,7 @@ static void AskPassword(Message *m)
 
 	snprintf(prompt, sizeof(prompt), "\ascreen used by %s%s<%s> on %s.\r\nPassword: ",
 		 gecos_comma ? realname : ppp->pw_gecos,
-		 ppp->pw_gecos[0] ? " " : "", ppp->pw_name, HostName);
+		 ppp->pw_gecos[0] ? " " : "", ppp->pw_name, g_session->s_hostname);
 
 	free(realname);
 	AddStr(prompt);

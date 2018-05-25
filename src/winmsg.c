@@ -176,7 +176,7 @@ winmsg_esc_ex(Focus, Window *win, Event *ev)
 
 winmsg_esc(HostName)
 {
-	if (*wmbc_strcpy(wmbc, HostName))
+	if (*wmbc_strcpy(wmbc, g_session->s_hostname))
 		wmc_set(cond);
 }
 

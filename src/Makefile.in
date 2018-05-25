@@ -45,7 +45,7 @@ CFILES=	screen.c \
 	acls.c ansi.c attacher.c backtick.c canvas.c comm.c \
 	display.c encoding.c fileio.c help.c input.c kmapdef.c layer.c \
 	layout.c list_display.c list_generic.c list_license.o list_window.c logfile.c mark.c \
-	misc.c process.c pty.c resize.c sched.c search.c socket.c telnet.c \
+	misc.c process.c pty.c resize.c sched.c search.c session.c socket.c telnet.c \
 	term.c termcap.c tty.c utmp.c viewport.c window.c winmsg.c \
 	winmsgbuf.c winmsgcond.c
 OFILES=$(CFILES:c=o)
@@ -164,7 +164,7 @@ screen.o: screen.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
  layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h \
  fileio.h mark.h attacher.h encoding.h help.h misc.h process.h socket.h \
- termcap.h tty.h utmp.h
+ termcap.h tty.h utmp.h session.h
 ansi.o: ansi.c config.h screen.h os.h ansi.h sched.h acls.h comm.h \
  layer.h term.h image.h canvas.h display.h layout.h viewport.h window.h \
  logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h encoding.h \
@@ -274,3 +274,4 @@ list_window.o: list_window.c config.h screen.h os.h ansi.h sched.h acls.h \
  window.h logfile.h winmsg.h winmsgbuf.h winmsgcond.h backtick.h input.h \
  list_generic.h misc.h process.h
 list_license.o: list_license.c list_generic.h misc.h comm.h
+session.o: session.c session.h config.h

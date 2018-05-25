@@ -3041,12 +3041,12 @@ static void DoCommandConsole(struct action *act)
 	if (TtyGrabConsole(fore->w_ptyfd, b, rc_name))
 		return;
 	if (b == 0)
-		OutputMsg(0, "%s: releasing console %s", rc_name, HostName);
+		OutputMsg(0, "%s: releasing console %s", rc_name, g_session->s_hostname);
 	else if (console_window)
 		OutputMsg(0, "%s: stealing console %s from window %d (%s)", rc_name,
-			  HostName, console_window->w_number, console_window->w_title);
+			  g_session->s_hostname, console_window->w_number, console_window->w_title);
 	else
-		OutputMsg(0, "%s: grabbing console %s", rc_name, HostName);
+		OutputMsg(0, "%s: grabbing console %s", rc_name, g_session->s_hostname);
 	console_window = b ? fore : NULL;
 }
 
@@ -4152,7 +4152,7 @@ static void DoCommandSu(struct action *act)
 	char *s = NULL;
 
 	if (!*args) {
-		OutputMsg(0, "%s:%s screen login", HostName, SocketPath);
+		OutputMsg(0, "%s:%s screen login", g_session->s_hostname, SocketPath);
 		InputSu(&D_user, NULL);
 	} else if (!args[1])
 		InputSu(&D_user, args[0]);
