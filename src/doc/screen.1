@@ -1153,23 +1153,27 @@ Here are some examples of keyboard bindings:
 .nf
         bindkey \-d
 .fi
+.sp
 Show all of the default key bindings. The application mode entries
 are marked with [A].
 .sp
 .nf
         bindkey \-k k1 select 1
 .fi
+.sp
 Make the "F1" key switch to window one.
 .sp
 .nf
         bindkey \-t foo stuff barfoo
 .fi
+.sp
 Make "foo" an abbreviation of the word "barfoo". Timeout is disabled
 so that users can type slowly.
 .sp
 .nf
         bindkey "\e024" mapdefault
 .fi
+.sp
 This key-binding makes \*Q^T\*U an escape character for key-bindings. If
 you did the above \*Qstuff barfoo\*U binding, you can enter the word
 \*Qfoo\*U by typing \*Q^Tfoo\*U. If you want to insert a \*Q^T\*U
@@ -1178,6 +1182,7 @@ you have to press the key twice (i.e., escape the escape binding).
 .nf
         bindkey \-k F1 command
 .fi
+.sp
 Make the F11 (not F1!) key an alternative screen
 escape (besides ^A).
 .RE
