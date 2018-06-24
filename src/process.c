@@ -386,18 +386,14 @@ void InitKeytab(void)
 	for (i = 0; i < ARRAY_SIZE(ktab); i++) {
 		ktab[i].nr = RC_ILLEGAL;
 		ktab[i].args = noargs;
-		ktab[i].argl = NULL;
 	}
 	for (i = 0; i < KMAP_KEYS + KMAP_AKEYS; i++) {
 		umtab[i].nr = RC_ILLEGAL;
 		umtab[i].args = noargs;
-		umtab[i].argl = NULL;
 		dmtab[i].nr = RC_ILLEGAL;
 		dmtab[i].args = noargs;
-		dmtab[i].argl = NULL;
 		mmtab[i].nr = RC_ILLEGAL;
 		mmtab[i].args = noargs;
-		mmtab[i].argl = NULL;
 	}
 	argarr[1] = NULL;
 	for (i = 0; i < NKMAPDEF; i++) {
@@ -549,7 +545,6 @@ void InitKeytab(void)
 
 	idleaction.nr = RC_BLANKER;
 	idleaction.args = noargs;
-	idleaction.argl = NULL;
 }
 
 static struct action *FindKtab(char *class, int create)
@@ -578,7 +573,6 @@ static struct action *FindKtab(char *class, int create)
 		for (i = 0; i < (int)(ARRAY_SIZE(kp->ktab)); i++) {
 			kp->ktab[i].nr = RC_ILLEGAL;
 			kp->ktab[i].args = noargs;
-			kp->ktab[i].argl = NULL;
 			kp->ktab[i].quiet = 0;
 		}
 		kp->next = NULL;
@@ -600,7 +594,6 @@ static void ClearAction(struct action *act)
 		free(*p);
 	free((char *)act->args);
 	act->args = noargs;
-	act->argl = NULL;
 }
 
 /*
@@ -1199,14 +1192,14 @@ static void DoCommandUnbindall(struct action *act)
 static void DoCommandZombie(struct action *act)
 {
 	char **args = act->args;
-	int *argl = act->argl;
+	int argl = strlen(args[0]);
 	char *s = NULL;
 
 	if (!(s = *args)) {
 		ZombieKey_destroy = 0;
 		return;
 	}
-	if (*argl == 0 || *argl > 2) {
+	if (argl == 0 || argl > 2) {
 		OutputMsg(0, "%s:zombie: one or two characters expected.", rc_name);
 		return;
 	}
@@ -1220,7 +1213,7 @@ static void DoCommandZombie(struct action *act)
 	} else
 		ZombieKey_onerror = 0;
 	ZombieKey_destroy = args[0][0];
-	ZombieKey_resurrect = *argl == 2 ? args[0][1] : 0;
+	ZombieKey_resurrect = argl == 2 ? args[0][1] : 0;
 }
 
 static void DoCommandWall(struct action *act)
@@ -1234,7 +1227,6 @@ static void DoCommandWall(struct action *act)
 static void DoCommandAt(struct action *act)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	struct acluser *user = display ? D_user : users;
 	char *s;
 	size_t n;
@@ -1280,7 +1272,7 @@ static void DoCommandAt(struct action *act)
 				fore = D_fore;
 				if (D_user != u)
 					continue;
-				DoCommand(args + 1, argl + 1);
+				DoCommand(args + 1, 0);
 				if (display)
 					OutputMsg(0, "command from %s: %s %s",
 						  s, args[1], args[2] ? args[2] : "");
@@ -1305,7 +1297,7 @@ static void DoCommandAt(struct action *act)
 				     strncmp(args[0], D_usertty + 5, n)) &&
 				    (strncmp("/dev/tty", D_usertty, 8) || strncmp(args[0], D_usertty + 8, n)))
 					continue;
-				DoCommand(args + 1, argl + 1);
+				DoCommand(args + 1, 0);
 				if (display)
 					OutputMsg(0, "command from %s: %s %s",
 						  s, args[1], args[2] ? args[2] : "");
@@ -1344,7 +1336,7 @@ static void DoCommandAt(struct action *act)
 					if (fore->w_layer.l_cvlist)
 						display = fore->w_layer.l_cvlist->c_display;
 					flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
-					DoCommand(args + 1, argl + 1);	/* may destroy our display */
+					DoCommand(args + 1, 0);	/* may destroy our display */
 					if (fore && fore->w_layer.l_cvlist) {
 						display = fore->w_layer.l_cvlist->c_display;
 						OutputMsg(0, "command from %s: %s %s",
@@ -1361,7 +1353,7 @@ static void DoCommandAt(struct action *act)
 				if (fore->w_layer.l_cvlist)
 					display = fore->w_layer.l_cvlist->c_display;
 				flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
-				DoCommand(args + 1, argl + 1);
+				DoCommand(args + 1, 0);
 				if (fore && fore->w_layer.l_cvlist) {
 					display = fore->w_layer.l_cvlist->c_display;
 					OutputMsg(0, "command from %s: %s %s",
@@ -1405,7 +1397,7 @@ static void DoCommandReadreg(struct action *act)
 		Input("Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
 		return;
 	}
-	if (*argl != 1) {
+	if (strlen(args) != 1) {
 		OutputMsg(0, "%s: copyreg: character, ^x, or (octal) \\032 expected.", rc_name);
 		return;
 	}
@@ -1440,7 +1432,6 @@ static void DoCommandReadreg(struct action *act)
 static void DoCommandRegister(struct action *act)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
 	struct acluser *user = display ? D_user : users;
 	int argc = CheckArgNum(act->nr, args);
@@ -1459,7 +1450,7 @@ static void DoCommandRegister(struct action *act)
 		OutputMsg(0, "%s: register: illegal number of arguments.", rc_name);
 		return;
 	}
-	if (*argl != 1) {
+	if (strlen(args) != 1) {
 		OutputMsg(0, "%s: register: character, ^x, or (octal) \\032 expected.", rc_name);
 		return;
 	}
@@ -1468,8 +1459,8 @@ static void DoCommandRegister(struct action *act)
 		if (user->u_plop.buf != NULL)
 			UserFreeCopyBuffer(user);
 		if (args[1] && args[1][0]) {
-			user->u_plop.buf = SaveStrn(args[1], argl[1]);
-			user->u_plop.len = argl[1];
+			user->u_plop.buf = SaveStrn(args[1], strlen(args[1]);
+			user->u_plop.len = strlen(args[1]);
 			user->u_plop.enc = i;
 		}
 	} else {
@@ -1477,8 +1468,8 @@ static void DoCommandRegister(struct action *act)
 
 		if (plp->buf)
 			free(plp->buf);
-		plp->buf = SaveStrn(args[1], argl[1]);
-		plp->len = argl[1];
+		plp->buf = SaveStrn(args[1], strlen(args[1]));
+		plp->len = strlen(args[1]);
 		plp->enc = i;
 	}
 }
@@ -1486,14 +1477,13 @@ static void DoCommandRegister(struct action *act)
 static void DoCommandProcess(struct action *act)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	char ch;
 
 	if (*args == NULL) {
 		Input("Process register:", 1, INP_RAW, process_fn, NULL, 0);
 		return;
 	}
-	if (*argl != 1) {
+	if (strlen(args[0]) != 1) {
 		OutputMsg(0, "%s: process: character, ^x, or (octal) \\032 expected.", rc_name);
 		return;
 	}
@@ -1505,7 +1495,6 @@ static void DoCommandProcess(struct action *act)
 static void DoCommandStuff(struct action *act)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	char *s;
 	size_t len;
 
@@ -1514,7 +1503,7 @@ static void DoCommandStuff(struct action *act)
 		Input("Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
 		return;
 	}
-	len = *argl;
+	len = strlen(args[0]);
 	if (args[1]) {
 		int i;
 		if (strcmp(s, "-k")) {
@@ -2170,10 +2159,8 @@ static void DoCommandCopy(struct action *act)
 static void DoCommandHistory(struct action *act)
 {
 	static char *pasteargs[] = { ".", NULL };
-	static int pasteargl[] = { 1 };
 	struct acluser *user = display ? D_user : users;
 	char **args;
-	int *argl;
 	int enc = -1;
 	size_t l = 0;
 	char *s, *ss, *dbuf;
@@ -2189,7 +2176,6 @@ static void DoCommandHistory(struct action *act)
 		return;
 
 	args = pasteargs;
-	argl = pasteargl;
 
 	/*
 	 * without args we prompt for one(!) register to be pasted in the window
@@ -2204,7 +2190,7 @@ static void DoCommandHistory(struct action *act)
 	 * with two arguments we paste into a destination register
 	 * (no window needed here).
 	 */
-	if (args[1] && argl[1] != 1) {
+	if (args[1] && strlen(args[1]) != 1) {
 		OutputMsg(0, "%s: paste destination: character, ^x, or (octal) \\032 expected.",
 			  rc_name);
 		return;
@@ -2305,7 +2291,6 @@ static void DoCommandPaste(struct action *act)
 {
 	struct acluser *user = display ? D_user : users;
 	char **args = act->args;
-	int *argl = act->argl;
 	int enc = -1;
 	size_t l = 0;
 	char *s, *ss, *dbuf;
@@ -2324,7 +2309,7 @@ static void DoCommandPaste(struct action *act)
 	 * with two arguments we paste into a destination register
 	 * (no window needed here).
 	 */
-	if (args[1] && argl[1] != 1) {
+	if (args[1] && strlen(args[1]) != 1) {
 		OutputMsg(0, "%s: paste destination: character, ^x, or (octal) \\032 expected.",
 			  rc_name);
 		return;
@@ -2518,12 +2503,11 @@ static void DoCommandIgnorecase(struct action *act)
 static void DoCommandEscape(struct action *act)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	struct acluser *user = display ? D_user : users;
 
-	if (*argl == 0)
+	if (strlen(args[0]) == 0)
 		SetEscape(user, -1, -1);
-	else if (*argl == 2)
+	else if (strlen(args[0]) == 2)
 		SetEscape(user, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
 	else {
 		OutputMsg(0, "%s: two characters required after escape.", rc_name);
@@ -2534,9 +2518,9 @@ static void DoCommandEscape(struct action *act)
 	 */
 	if (display && user != users)
 		return;
-	if (*argl == 0)
+	if (strlen(args[0]) == 0)
 		SetEscape(NULL, -1, -1);
-	else if (*argl == 2)
+	else if (strlen(args[0]) == 2)
 		SetEscape(NULL, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
 	CheckEscape();
 }
@@ -2544,11 +2528,10 @@ static void DoCommandEscape(struct action *act)
 static void DoCommandDefescape(struct action *act)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 
-	if (*argl == 0)
+	if (strlen(args[0]) == 0)
 		SetEscape(NULL, -1, -1);
-	else if (*argl == 2)
+	else if (strlen(args[0]) == 2)
 		SetEscape(NULL, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
 	else {
 		OutputMsg(0, "%s: two characters required after defescape.", rc_name);
@@ -3352,9 +3335,8 @@ static void DoCommandSlowpaste(struct action *act)
 static void DoCommandMarkkeys(struct action *act)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 
-	if (CompileKeys(*args, *argl, mark_key_tab))
+	if (CompileKeys(*args, strlen(*args), mark_key_tab))
 		OutputMsg(0, "%s: markkeys: syntax error.", rc_name);
 }
 
@@ -3428,7 +3410,6 @@ static void DoCommandBind(struct action *act)
 {
 	char **args = act->args;
 	int argc = CheckArgNum(act->nr, args);
-	int *argl = act->argl;
 	int n = 0;
 	struct action *ktabp = ktab;
 	int kflag = 0;
@@ -3439,12 +3420,10 @@ static void DoCommandBind(struct action *act)
 			if (ktabp == NULL)
 				break;
 			args += 2;
-			argl += 2;
 			argc -= 2;
 		} else if (argc > 1 && !strcmp(*args, "-k")) {
 			kflag = 1;
 			args++;
-			argl++;
 			argc--;
 		} else
 			break;
@@ -3458,7 +3437,7 @@ static void DoCommandBind(struct action *act)
 			return;
 		}
 		n += 256;
-	} else if (*argl != 1) {
+	} else if (strlen(*args) != 1) {
 		OutputMsg(0, "%s: bind: character, ^x, or (octal) \\032 expected.", rc_name);
 		return;
 	} else
@@ -3481,7 +3460,6 @@ static void DoCommandBind(struct action *act)
 static void DoCommandBindkey(struct action *act)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	struct action *newact;
 	int newnr, fl = 0, kf = 0, af = 0, df = 0, mf = 0;
 	Display *olddisplay = display;
@@ -3489,7 +3467,7 @@ static void DoCommandBindkey(struct action *act)
 	struct kmap_ext *kme = NULL;
 	int i;
 
-	for (; *args && **args == '-'; args++, argl++) {
+	for (; *args && **args == '-'; args++) {
 		if (strcmp(*args, "-t") == 0)
 			fl = KMAP_NOTIMEOUT;
 		else if (strcmp(*args, "-k") == 0)
@@ -3502,7 +3480,6 @@ static void DoCommandBindkey(struct action *act)
 			mf = 1;
 		else if (strcmp(*args, "--") == 0) {
 			args++;
-			argl++;
 			break;
 		} else {
 			OutputMsg(0, "%s: bindkey: invalid option %s", rc_name, *args);
@@ -3527,7 +3504,7 @@ static void DoCommandBindkey(struct action *act)
 			OutputMsg(0, "%s: bindkey: -a only works with -k", rc_name);
 			return;
 		}
-		if (*argl == 0) {
+		if (strlen(*args) == 0) {
 			OutputMsg(0, "%s: bindkey: empty string makes no sense", rc_name);
 			return;
 		}
@@ -3536,8 +3513,8 @@ static void DoCommandBindkey(struct action *act)
 				if (args[1])
 					break;
 			} else
-			    if (*argl == (kme->fl & ~KMAP_NOTIMEOUT)
-				&& memcmp(kme->str, *args, *argl) == 0)
+			    if (strlen(*args) == (kme->fl & ~KMAP_NOTIMEOUT)
+				&& memcmp(kme->str, *args, strlen(*args)) == 0)
 				break;
 		if (i == kmap_extn) {
 			if (!args[1]) {
@@ -3552,7 +3529,7 @@ static void DoCommandBindkey(struct action *act)
 				kme->str = NULL;
 				kme->dm.nr = kme->mm.nr = kme->um.nr = RC_ILLEGAL;
 				kme->dm.args = kme->mm.args = kme->um.args = noargs;
-				kme->dm.argl = kme->mm.argl = kme->um.argl = NULL;
+				//kme->dm.argl = kme->mm.argl = kme->um.argl = NULL;
 			}
 			i -= 8;
 			kme -= 8;
@@ -3591,8 +3568,8 @@ static void DoCommandBindkey(struct action *act)
 		if (kf == 0 && args[1]) {
 			if (kme->str)
 				free(kme->str);
-			kme->str = SaveStrn(*args, *argl);
-			kme->fl = fl | *argl;
+			kme->str = SaveStrn(*args, strlen(*args));
+			kme->fl = fl | strlen(*args);
 		}
 	} else
 		ClearAction(newact);
@@ -4064,7 +4041,6 @@ static void DoCommandCharset(struct action *act)
 static void DoCommandRendition(struct action *act)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	int msgok = display && !*rc_name;
 	int i = -1;
 
@@ -4083,7 +4059,6 @@ static void DoCommandRendition(struct action *act)
 	}
 
 	++args;
-	++argl;
 
 	if (i != -1) {
 		renditions[i] = ParseAttrColor(args[0], 1);
@@ -4348,7 +4323,6 @@ static void DoCommandBlankerprg(struct action *act)
 static void DoCommandIdle(struct action *act)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	int argc = CheckArgNum(act->nr, args);
 	int msgok = display && !*rc_name;
 
@@ -4367,7 +4341,7 @@ static void DoCommandIdle(struct action *act)
 			if (CheckArgNum(i, args + 2) < 0)
 				return;
 			ClearAction(&idleaction);
-			SaveAction(&idleaction, i, args + 2, argl + 2);
+			SaveAction(&idleaction, i, args + 2, strlen(args + 2));
 		}
 		for (display = displays; display; display = display->d_next)
 			ResetIdle();
@@ -5258,7 +5232,7 @@ void CollapseWindowlist(void)
 		w->w_number = n++;
 }
 
-void DoCommand(char **argv, int *argl)
+void DoCommand(char **argv)
 {
 	struct action act;
 	const char *cmd = *argv;
@@ -5281,7 +5255,6 @@ void DoCommand(char **argv, int *argl)
 		return;
 	}
 	act.args = argv + 1;
-	act.argl = argl + 1;
 	DoAction(&act);
 }
 
@@ -6671,7 +6644,6 @@ static void confirm_fn(char *buf, size_t len, void *data)
 	}
 	act.nr = *(int *)data;
 	act.args = noargs;
-	act.argl = NULL;
 	act.quiet = 0;
 	DoAction(&act);
 }
