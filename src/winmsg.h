@@ -72,6 +72,7 @@ typedef enum {
 	WINESC_PAD             = '=',
 	WINESC_TRUNC           = '<',
 	WINESC_TRUNC_POS       = '>',
+	WINESC_WIN_TTY         = 'T',
 } WinMsgEscapeChar;
 
 /* escape sequence */

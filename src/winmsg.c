@@ -427,6 +427,13 @@ winmsg_esc_ex(WinLogName, Window *win)
 
 }
 
+winmsg_esc_ex(WinTty, Window *win)
+{
+	if (win && win->w_tty && win->w_tty[0])
+		wmbc_printf(wmbc, "%s", win->w_tty);
+
+}
+
 winmsg_esc_ex(WinSize, Window *win)
 {
 	if (!win)
@@ -650,6 +657,9 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 			break;
 		case WINESC_WIN_LOGNAME:
 			WinMsgDoEscEx(WinLogName, win);
+			break;
+		case WINESC_WIN_TTY:
+			WinMsgDoEscEx(WinTty, win);
 			break;
 		}
 	}
