@@ -3071,7 +3071,7 @@ See also \*Qbufferfile\*U command.
 .RS 0
 .PP
 Does one of two things, dependent on number of arguments: with zero or one
-arguments it it duplicates the paste buffer contents into the register specified
+arguments it duplicates the paste buffer contents into the register specified
 or entered at the prompt. With two arguments it reads the contents of the named 
 file into the register, just as \fIreadbuf\fP reads the screen-exchange file
 into the paste buffer.
@@ -3502,7 +3502,7 @@ Plus, you can optionally customize the termcap generated for the windows.
 You have to place these commands in one of the screenrc startup files, as
 they are meaningless once the terminal emulator is booted.  
 .PP
-If your system works uses the terminfo database rather than termcap, 
+If your system uses the terminfo database rather than termcap,
 .I screen 
 will understand the `terminfo' command, which has the same effects as the
 `termcap' command.  Two separate commands are provided, as there are subtle
@@ -4131,7 +4131,7 @@ a length qualifier (e.g. '%3n'), 'D' and 'M' can be prefixed with 'L'
 to generate long names, 'w' and 'W' also show the window flags
 if 'L' is given.
 .PP
-An attribute/color modifier is is used to change the attributes or the
+An attribute/color modifier is used to change the attributes or the
 color settings. Its format
 is \*Q[attribute modifier] [color description]\*U. The attribute modifier
 must be prefixed by a change type indicator if it can be confused with
@@ -4304,7 +4304,7 @@ Interactively, there is the title-string escape-sequence
 The former can be output from an application to control the window's name
 under software control, and the latter will prompt for a name when typed.
 You can also bind pre-defined names to keys with the \*Qtitle\*U command
-to set things quickly without prompting. Changing title bythis escape sequence
+to set things quickly without prompting. Changing title by this escape sequence
 can be controlled by \fBdefdynamictitle\fP and \fBdynamictitle\fP commands. 
 .PP
 Finally,
@@ -4387,7 +4387,7 @@ of the command, and revert to simply \*Qroot:\*U at its completion.
 .fi
 .sp
 The first binding doesn't have any arguments, so it would prompt you
-for a title. when you type \*QC-a o\*U.
+for a title when you type \*QC-a o\*U.
 The second binding would clear an auto-title's current setting (C-a E).
 The third binding would set the current window's title to \*Q(unknown)\*U
 (C-a u).
@@ -4488,7 +4488,7 @@ Also, you can customize the $TERMCAP value used by
 .I screen
 by using the \*Qtermcap\*U .screenrc command, or
 by defining the variable $SCREENCAP prior to startup.
-When the is latter defined, its value will be copied verbatim into each
+When the latter is defined, its value will be copied verbatim into each
 window's $TERMCAP variable.
 This can either be the full terminal definition, or a filename where the
 terminal \*Qscreen\*U (and/or \*Qscreen\-w\*U) is defined.

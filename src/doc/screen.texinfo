@@ -3897,7 +3897,7 @@ amounts of text.
 @deffn Command readreg [-e encoding] [register [filename]]
 (none)@*
 Does one of two things, dependent on number of arguments: with zero or one
-arguments it it duplicates the paste buffer contents into the register specified
+arguments it duplicates the paste buffer contents into the register specified
 or entered at the prompt. With two arguments it reads the contents of the named
 file into the register, just as @code{readbuf} reads the screen-exchange file
 into the paste buffer.
@@ -5646,7 +5646,7 @@ a length qualifier (e.g. @code{%3n}), @code{D} and @code{M} can be
 prefixed with @code{L} to generate long names, @code{w} and
 @code{W} also show the window flags if @code{L} is given.
 
-An attribute/color modifier is is used to change the attributes or the
+An attribute/color modifier is used to change the attributes or the
 color settings. Its format
 is @samp{[attribute modifier] [color description]}. The attribute modifier
 must be prefixed by a change type indicator if it can be confused with
