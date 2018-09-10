@@ -308,7 +308,7 @@ extern void  NukePending __P((void));
 #endif
 #ifdef RXVT_OSC
 extern void  ClearAllXtermOSC __P((void));
-extern void  SetXtermOSC __P((int, char *));
+extern void  SetXtermOSC __P((int, char *, char *));
 #endif
 #ifdef COLOR
 extern int   color256to16 __P((int));

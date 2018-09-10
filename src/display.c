@@ -2933,9 +2933,10 @@ int newtop, newbot;
 #define WT_FLAG "2"	/* change to "0" to set both title and icon */
 
 void
-SetXtermOSC(i, s)
+SetXtermOSC(i, s, t)
 int i;
 char *s;
+char *t;
 {
   static char *oscs[][2] = {
     { WT_FLAG ";", "screen" }, /* set window title */
@@ -2960,7 +2961,7 @@ char *s;
   AddStr("\033]");
   AddStr(oscs[i][0]);
   AddStr(s);
-  AddChar(7);
+  AddStr(t);
 }
 
 void
@@ -2968,7 +2969,7 @@ ClearAllXtermOSC()
 {
   int i;
   for (i = 4; i >= 0; i--)
-    SetXtermOSC(i, 0);
+    SetXtermOSC(i, 0, "\a");
   if (D_xtermosc[0])
     AddStr("\033[23;" WT_FLAG "t");	/* unstack titles (xterm patch #251) */
 }

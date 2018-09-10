@@ -1522,6 +1522,11 @@ StringEnd()
   struct canvas *cv;
   char *p;
   int typ;
+  char *t;
+
+  /* There's two ways to terminate an OSC. If we've seen an ESC
+   * then it's been ST otherwise it's BEL. */
+  t = curr->w_state == STRESC ? "\033\\" : "\a";
 
   curr->w_state = LIT;
   *curr->w_stringp = '\0';
@@ -1579,7 +1584,7 @@ StringEnd()
 		  if (!D_CXT)
 		    continue;
 		  if (D_forecv->c_layer->l_bottom == &curr->w_layer)
-		    SetXtermOSC(typ2, p);
+		    SetXtermOSC(typ2, p, t);
 		  if ((typ2 == 3 || typ2 == 4) && D_xtermosc[typ2])
 		    Redisplay(0);
 		  if (typ == 11 && !strcmp("?", p))
