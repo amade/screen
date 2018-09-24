@@ -6229,28 +6229,33 @@ static void ShowInfo(void)
 static void ShowDInfo(void)
 {
 	char buf[512], *p;
-	int l;
+	int l, w;
 	if (display == NULL)
 		return;
 	p = buf;
 	l = 512;
-	sprintf(p, "(%d,%d)", D_width, D_height), l -= strlen(p);
-	p += l;
+	sprintf(p, "(%d,%d)", D_width, D_height);
+	w = strlen(p);
+	l -= w;
+	p += w;
 	if (D_encoding) {
 		*p++ = ' ';
 		strncpy(p, EncodingName(D_encoding), l);
-		l -= strlen(p);
-		p += l;
+		w = strlen(p);
+		l -= w;
+		p += w;
 	}
 	if (D_CXT) {
 		strncpy(p, " xterm", l);
-		l -= strlen(p);
-		p += l;
+		w = strlen(p);
+		l -= w;
+		p += w;
 	}
 	if (D_hascolor) {
 		strncpy(p, " color", l);
-		l -= strlen(p);
-		p += l;
+		w = strlen(p);
+		l -= w;
+		p += w;
 	}
 	if (D_CG0)
 		strncpy(p, " iso2022", l);
