@@ -278,6 +278,8 @@ static int gl_Window_input(ListData *ldata, char **inp, size_t *len)
 	case 'm':
 		/* Toggle MRU-ness */
 		wdata->order = wdata->order == WLIST_MRU ? WLIST_NUM : WLIST_MRU;
+		if (wdata->group)
+			wdata->group->w_list_order = wdata->order;
 		glist_remove_rows(ldata);
 		gl_Window_rebuild(ldata);
 		break;
@@ -285,6 +287,8 @@ static int gl_Window_input(ListData *ldata, char **inp, size_t *len)
 	case 'g':
 		/* Toggle nestedness */
 		wdata->nested = !wdata->nested;
+		if (wdata->group)
+			wdata->group->w_list_nested = wdata->nested ? true : false;
 		glist_remove_rows(ldata);
 		gl_Window_rebuild(ldata);
 		break;
@@ -453,8 +457,11 @@ void display_windows(int onblank, int order, Window *group)
 		return;
 	}
 
-	if (group)
+	if (group) {
 		onblank = 0;	/* When drawing a group window, ignore 'onblank' */
+		order = (group->w_list_nested ? WLIST_NESTED : 0) +
+			(group->w_list_order ? WLIST_MRU : WLIST_NUM); /* restore windowlist order flags */
+	}
 
 	if (onblank) {
 		if (!display) {

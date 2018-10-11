@@ -50,6 +50,8 @@ struct NewWindow {
 	bool	aflag;
 	bool	dynamicaka;
 	int	flowflag;
+	bool	list_order;	/* list order for window groups */
+	bool	list_nested;	/* show nested children in window groups */
 	int	lflag;
 	int	histheight;
 	int	monitor;
@@ -139,6 +141,8 @@ struct Window {
 	Window *w_next;			/* next window */
 	Window *w_prev_mru;		/* previous most recently used window */
 	int	w_type;			/* type of window */
+	bool w_list_order;		/* MRU list order for window groups */
+	bool w_list_nested;		/* show nested children in window groups */
 	Layer w_layer;			/* our layer */
 	Layer *w_savelayer;		/* the layer to keep */
 	int    w_blocked;		/* block input */

@@ -95,6 +95,8 @@ struct NewWindow nwin_undef = {
 	.aflag               = false,
 	.dynamicaka          = false,
 	.flowflag            = -1,
+	.list_order          = false,
+	.list_nested         = false,
 	.lflag               = -1,
 	.histheight          = -1,
 	.monitor             = -1,
@@ -121,6 +123,8 @@ struct NewWindow nwin_default = {
 	.aflag      = false,
 	.dynamicaka = true,
 	.flowflag   = FLOW_ON,
+	.list_order   = false,
+	.list_nested = false,
 	.lflag      = 1,
 	.histheight = DEFAULTHISTHEIGHT,
 	.monitor    = MON_OFF,
@@ -153,6 +157,8 @@ void nwin_compose(struct NewWindow *def, struct NewWindow *new, struct NewWindow
 	COMPOSE(aflag);
 	COMPOSE(dynamicaka);
 	COMPOSE(flowflag);
+	COMPOSE(list_order);
+	COMPOSE(list_nested);
 	COMPOSE(lflag);
 	COMPOSE(histheight);
 	COMPOSE(monitor);
@@ -556,6 +562,8 @@ int MakeWindow(struct NewWindow *newwin)
 	p->w_savelayer = &p->w_layer;
 	p->w_pdisplay = NULL;
 	p->w_lastdisp = NULL;
+	p->w_list_order = nwin.list_order;
+	p->w_list_nested = nwin.list_nested;
 
 	if (display && !AclCheckPermWin(D_user, ACL_WRITE, p))
 		p->w_wlockuser = D_user;
