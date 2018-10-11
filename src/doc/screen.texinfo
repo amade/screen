@@ -754,6 +754,12 @@ Send a ^S (ASCII XOFF) to the current window.  @xref{XON/XOFF}.
 (split)@*
 Split the current region horizontally into two new ones.  @xref{Regions}.
 
+@item @kbd{C-a u}
+@itemx @kbd{C-a C-u}
+(parent)@*
+Switch to the parent window.
+@xref{Selecting}.
+
 @item @kbd{C-a v}
 (version)@*
 Display the version and compilation date.  @xref{Version}.
@@ -1119,6 +1125,8 @@ Select output buffer limit.  @xref{Obuflimit}.
 Kill all other regions.  @xref{Regions}.
 @item other
 Switch to the window you were in last.  @xref{Selecting}.
+@item parent
+Switch to the parent window.  @xref{Selecting}.
 @item partial @var{state}
 Set window to partial refresh.  @xref{Redisplay}.
 @item password [@var{crypted_pw}]
@@ -1546,6 +1554,13 @@ pressing space.)
 @deffn Command prev
 (@kbd{C-a p}, @kbd{C-a C-p}, @kbd{C-a C-h}, @kbd{C-a @key{Backspace}})@*
 Switch to the previous window (the opposite of @kbd{C-a n}).
+@end deffn
+
+@kindex u
+@kindex C-u
+@deffn Command parent
+(@kbd{C-a u}, @kbd{C-a C-u})@*
+Switch to the parent window.
 @end deffn
 
 @node Other Window, Select, Next and Previous, Selecting
