@@ -74,6 +74,7 @@ static void ClearAction(struct action *);
 static void SaveAction(struct action *, int, char **, int *);
 static Window *NextWindow(void);
 static Window *PreviousWindow(void);
+static Window *ParentWindow(void);
 static int MoreWindows(void);
 static void CollapseWindowlist(void);
 static void LogToggle(bool);
@@ -438,6 +439,7 @@ void InitKeytab(void)
 	ktab[' '].nr = ktab[Ctrl(' ')].nr = ktab['n'].nr = ktab[Ctrl('n')].nr = RC_NEXT;
 	ktab['N'].nr = RC_NUMBER;
 	ktab[Ctrl('h')].nr = ktab[0177].nr = ktab['p'].nr = ktab[Ctrl('p')].nr = RC_PREV;
+	ktab['u'].nr = ktab[Ctrl('u')].nr = RC_PARENT;
 	{
 		char *args[2];
 		args[0] = "--confirm";
@@ -1072,6 +1074,19 @@ static void DoCommandPrev(struct action *act)
 
 	if (MoreWindows())
 		SwitchWindow(PreviousWindow());
+}
+
+static void DoCommandParent(struct action *act)
+{
+	(void)act; /* unused */
+
+	if (MoreWindows()) {
+		Window *w = ParentWindow();
+		if (w == NULL && fore != NULL)
+			Msg(0, "Window has no parent.");
+		else
+			SwitchWindow(w);
+	}
 }
 
 static void DoCommandKill(struct action *act)
@@ -4738,6 +4753,9 @@ void DoAction(struct action *act)
 	case RC_PREV:
 		DoCommandPrev(act);
 		break;
+	case RC_PARENT:
+		DoCommandParent(act);
+		break;
 	case RC_KILL:
 		DoCommandKill(act);
 		break;
@@ -5841,6 +5859,12 @@ static Window *PreviousWindow(void)
 		if (!fore || group == w->w_group)
 			break;
 	}
+	return w;
+}
+
+static Window *ParentWindow(void)
+{
+	Window *w = fore ? fore->w_group : NULL;
 	return w;
 }
 
