@@ -1,6 +1,7 @@
 \input texinfo @c -*-texinfo-*-
 @c %**start of header
 @c vi:set wm=5
+@documentencoding ISO-8859-15
 @setfilename screen.info
 @settitle Screen User's Manual
 @dircategory General Commands
@@ -3042,7 +3043,6 @@ for the @var{unicode-value}.
 
 The following table is the builtin sequences.
 
-@documentencoding ISO-8859-1
 @example
      Sequence   Octal   Digraph   Unicode Equivalent
      -----------------------------------------------
@@ -3251,8 +3251,8 @@ Sets or toggles the visual bell setting for the current window. If
 terminal does not support a visual bell, the visual bell message is
 displayed in the status line when the bell character is received. 
 Visual bell support of a terminal is 
-defined by the termcap variable @code{vb}. @xref{Bell, , Visual Bell, 
-termcap, The Termcap Manual}, for more information on visual bells. 
+defined by the termcap variable @code{vb}. @xref{Bell},
+for more information on visual bells.
 The equivalent terminfo capability is @code{flash}.
 
 Per  default, @code{vbell} is @samp{off}, thus the audible bell is used.
@@ -4673,8 +4673,8 @@ pretending it doesn't support character deletion).
 If you would like to fully specify each window's termcap entry, you
 should instead set the @code{$SCREENCAP} variable prior to running
 @code{screen}.  @xref{Virtual Terminal}, for the details of the
-@code{screen} terminal emulation.  @xref{Top, , Termcap, termcap, The
-Termcap Manual}, for more information on termcap definitions.
+@code{screen} terminal emulation.  @xref{Termcap},
+for more information on termcap definitions.
 
 @node Special Capabilities, Autonuke, Termcap Examples, Termcap
 @section Special Terminal Capabilities
@@ -4682,7 +4682,7 @@ Termcap Manual}, for more information on termcap definitions.
 @cindex capabilities 
 The following table describes all terminal capabilities that are
 recognized by @code{screen} and are not in the termcap manual
-(@pxref{Top, , Termcap, termcap, The Termcap Manual}).
+(@pxref{Termcap}).
 You can place these capabilities in your termcap entries (in
 @file{/etc/termcap}) or use them with the commands @code{termcap},
 @code{terminfo} and @code{termcapinfo} in your @code{screenrc} files. It is
