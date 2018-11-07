@@ -928,6 +928,7 @@ int wi, he, hi;
     free((char *)p->w_hlines);
   p->w_hlines = nhlines;
 #endif
+  nmlines = nhlines = 0;
 
   /* change tabs */
   if (p->w_width != wi)
@@ -955,10 +956,6 @@ int wi, he, hi;
 		}
 	      KillWindow(p);
 	      Msg(0, "%s", strnomem);
-	      if (nmlines)
-	        free(nmlines);
-	      if (nhlines)
-	        free(nhlines);
 	      return -1;
 	    }
 	  for (; t < wi; t++)
