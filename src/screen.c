@@ -1271,7 +1271,7 @@ int main(int ac, char** av)
   ap = av0 + strlen(av0) - 1;
   while (ap >= av0) {
     if (!strncmp("screen", ap, 6)) {
-      strncpy(ap, "SCREEN", 6); /* name this process "SCREEN-BACKEND" */
+      memcpy(ap, "SCREEN", 6); /* name this process "SCREEN-BACKEND" */
       break;
     }
     ap--;
