@@ -465,7 +465,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	m.m.create.hheight = nwin->histheight;
 	if (getcwd(m.m.create.dir, ARRAY_SIZE(m.m.create.dir)) == NULL) {
 		Msg(errno, "getcwd");
-		return;
+		goto end;
 	}
 	if (nwin->term != nwin_undef.term)
 		strncpy(m.m.create.screenterm, nwin->term, MAXTERMLEN);
@@ -473,6 +473,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	m.protocol_revision = MSG_REVISION;
 	if (write(s, (char *)&m, sizeof(Message)) != sizeof(Message))
 		Msg(errno, "write");
+end:
 	close(s);
 }
 
