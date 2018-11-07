@@ -720,7 +720,7 @@ struct NewWindow *nwin;
   if (getcwd(m.m.create.dir, sizeof(m.m.create.dir)) == 0)
     {
       Msg(errno, "getcwd");
-      return;
+      goto end;
     }
   if (nwin->term != nwin_undef.term)
     strncpy(m.m.create.screenterm, nwin->term, MAXTERMLEN);
@@ -729,6 +729,8 @@ struct NewWindow *nwin;
   debug1("SendCreateMsg writing '%s'\n", m.m.create.line);
   if (write(s, (char *) &m, sizeof m) != sizeof m)
     Msg(errno, "write");
+
+end:
   close(s);
 }
 
