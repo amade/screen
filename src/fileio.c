@@ -493,7 +493,7 @@ void WriteFile(struct acluser *user, char *fn, int dump) {
                   putc('\n', f);
                 else
                   putc(*p, f);
-                break;
+              break;
 #endif
         }
         (void) fclose(f);

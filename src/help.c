@@ -807,9 +807,9 @@ static void bindkeypage() {
       sl = kme->fl & ~KMAP_NOTIMEOUT;
       if ((kme->fl & KMAP_NOTIMEOUT) != 0)
         xch = "[T]";
-        act = bindkeydata->tab == dmtab ? &kme->dm : bindkeydata->tab == mmtab ? &kme->mm : &kme->um;
-        if (act->nr == RC_ILLEGAL)
-          continue;
+      act = bindkeydata->tab == dmtab ? &kme->dm : bindkeydata->tab == mmtab ? &kme->mm : &kme->um;
+      if (act->nr == RC_ILLEGAL)
+        continue;
     }
 
     while (sl-- > 0)
