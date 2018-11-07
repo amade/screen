@@ -669,22 +669,8 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 		if (wi) {
 			t = p->w_tabs ? p->w_width : 0;
 			p->w_tabs = xrealloc(p->w_tabs, (wi + 1) * 4);
-			if (p->w_tabs == NULL) {
- nomem:
-				if (nmlines) {
-					for (ty = he + hi - 1; ty >= 0; ty--) {
-						mlt = NEWWIN(ty);
-						FreeMline(mlt);
-					}
-					if (nmlines && p->w_mlines != nmlines)
-						free((char *)nmlines);
-					if (nhlines && p->w_hlines != nhlines)
-						free((char *)nhlines);
-				}
-				KillWindow(p);
-				Msg(0, "%s", strnomem);
-				return -1;
-			}
+			if (p->w_tabs == NULL)
+				goto nomem;
 			for (; t < wi; t++)
 				p->w_tabs[t] = t && !(t & 7) ? 1 : 0;
 			p->w_tabs[wi] = 0;
@@ -747,6 +733,21 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 #endif
 
 	return 0;
+
+nomem:
+	if (nmlines) {
+		for (ty = he + hi - 1; ty >= 0; ty--) {
+			mlt = NEWWIN(ty);
+			FreeMline(mlt);
+		}
+		if (nmlines && p->w_mlines != nmlines)
+			free((char *)nmlines);
+		if (nhlines && p->w_hlines != nhlines)
+			free((char *)nhlines);
+	}
+	KillWindow(p);
+	Msg(0, "%s", strnomem);
+	return -1;
 }
 
 void FreeAltScreen(Window *p)
