@@ -938,26 +938,7 @@ int wi, he, hi;
 	  t = p->w_tabs ? p->w_width : 0;
 	  p->w_tabs = xrealloc(p->w_tabs, wi + 1);
 	  if (p->w_tabs == 0)
-	    {
-	    nomem:
-	      if (nmlines)
-		{
-		  for (ty = he + hi - 1; ty >= 0; ty--)
-		    {
-		      mlt = NEWWIN(ty);
-		      FreeMline(mlt);
-		    }
-		  if (nmlines && p->w_mlines != nmlines)
-		    free((char *)nmlines);
-#ifdef COPY_PASTE
-		  if (nhlines && p->w_hlines != nhlines)
-		    free((char *)nhlines);
-#endif
-		}
-	      KillWindow(p);
-	      Msg(0, "%s", strnomem);
-	      return -1;
-	    }
+            goto nomem;
 	  for (; t < wi; t++)
 	    p->w_tabs[t] = t && !(t & 7) ? 1 : 0; 
 	  p->w_tabs[wi] = 0; 
@@ -1047,6 +1028,25 @@ int wi, he, hi;
     }
 #endif
   return 0;
+
+nomem:
+  if (nmlines || nhlines)
+    {
+      for (ty = he + hi - 1; ty >= 0; ty--)
+        {
+          mlt = NEWWIN(ty);
+          FreeMline(mlt);
+        }
+      if (nmlines && p->w_mlines != nmlines)
+        free((char *)nmlines);
+#ifdef COPY_PASTE
+      if (nhlines && p->w_hlines != nhlines)
+        free((char *)nhlines);
+#endif
+    }
+  KillWindow(p);
+  Msg(0, "%s", strnomem);
+  return -1;
 }
 
 void
