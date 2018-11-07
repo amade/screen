@@ -662,6 +662,7 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 	if (p->w_hlines && p->w_hlines != nhlines)
 		free((char *)p->w_hlines);
 	p->w_hlines = nhlines;
+	nmlines = nhlines = 0;
 
 	/* change tabs */
 	if (p->w_width != wi) {
@@ -682,10 +683,6 @@ int ChangeWindowSize(Window *p, int wi, int he, int hi)
 				}
 				KillWindow(p);
 				Msg(0, "%s", strnomem);
-				if (nmlines)
-					free(nmlines);
-				if (nhlines)
-					free(nhlines);
 				return -1;
 			}
 			for (; t < wi; t++)
