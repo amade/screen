@@ -429,7 +429,7 @@ winmsg_esc_ex(WinLogName, Window *win)
 
 winmsg_esc_ex(WinTty, Window *win)
 {
-	if (win && win->w_tty && win->w_tty[0])
+	if (win && win->w_tty[0])
 		wmbc_printf(wmbc, "%s", win->w_tty);
 
 }
