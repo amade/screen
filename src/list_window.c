@@ -102,7 +102,7 @@ static void window_kill_confirm(char *buf, size_t len, void *data)
 	act.args = noargs;
 	act.argl = NULL;
 	act.quiet = 0;
-	DoAction(&act);
+	DoAction(&act, 0);
 }
 
 static ListRow *gl_Window_add_group(ListData *ldata, ListRow *row)

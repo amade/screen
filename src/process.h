@@ -7,7 +7,7 @@ void  InitKeytab (void);
 void  ProcessInput (char *, size_t);
 void  ProcessInput2 (char *, size_t);
 void  DoProcess (Window *, char **, size_t *, struct paster *);
-void  DoAction  (struct action *);
+void  DoAction  (struct action *, int);
 int   FindCommnr (const char *);
 void  DoCommand (char **, int *);
 void  Activate (int);
