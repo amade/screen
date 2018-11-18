@@ -916,6 +916,38 @@ static void StuffFin(char *buf, size_t len, void *data)
  */
 #define OutputMsg	(!quiet ? Msg : queryflag >= 0 ? QueryMsg : Dummy)
 
+static bool block_query(char *command, int quiet) {
+	if (queryflag >= 0) {
+		OutputMsg(0, "%s command cannot be queried.", command);
+		return true;
+	}
+	return false;
+}
+
+static bool need_display(char *command, int quiet) {
+	if (display == NULL) {
+		OutputMsg(0, "%s%s%s: display required", rc_name, rc_name ? ": " : "", command);
+		return true;
+	}
+	return false;
+}
+
+static bool need_fore(char *command, int quiet) {
+	if (fore == NULL) {
+		OutputMsg(0, "%s: %s: window required", rc_name, command);
+		return true;
+	}
+	return false;
+}
+
+static bool need_layer(char *command, int quiet) {
+	if (flayer == NULL) {
+		OutputMsg(0, "%s: %s: display or window required", rc_name, command);
+		return true;
+	}
+	return false;
+}
+
 static void DoCommandSelect(struct action *act, int quiet)
 {
 	char **args = act->args;
