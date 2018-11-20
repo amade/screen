@@ -1902,7 +1902,7 @@ void WindowDied(Window *p, int wstat, int wstat_valid)
 		killit = 1;
 
 	if (ZombieKey_destroy && !killit) {
-		char buf[100], *s, reason[100];
+		char buf[100], *s, reason[60];
 		time_t now;
 
 		if (wstat_valid) {
