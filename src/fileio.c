@@ -488,14 +488,30 @@ char *ReadFile(char *filename, int *lenp)
 		Msg(errno, "no %s -- no slurp", filename);
 		return NULL;
 	}
-	fseek(file, 0L, SEEK_END);
+
+	if (fseek(file, 0L, SEEK_END) < 0) {
+		fclose(file);
+		Msg(errno, "fseek %s", filename);
+		return NULL;
+	}
+
 	size = ftell(file);
+	if (size < 0) {
+		fclose(file);
+		Msg(errno, "ftell %s", filename);
+		return NULL;
+	}
 	if ((buf = malloc(size)) == NULL) {
 		fclose(file);
 		Msg(0, "%s", strnomem);
 		return NULL;
 	}
-	fseek(file, 0L, SEEK_SET);
+	if (fseek(file, 0L, SEEK_SET) < 0) {
+		free(buf);
+		fclose(file);
+		Msg(errno, "fseek %s", filename);
+		return NULL;
+	}
 	errno = 0;
 
 	if ((l = fread(buf, sizeof(char), size, file)) != size) {
