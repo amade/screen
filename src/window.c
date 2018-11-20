@@ -1882,7 +1882,7 @@ int SwapWindows(int old, int dest)
 
 void WindowDied(Window *p, int wstat, int wstat_valid)
 {
-	int killit = 1;
+	int killit = 0;
 
 	if (p->w_destroyev.data == (char *)p) {
 		wstat = p->w_exitstatus;
