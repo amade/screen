@@ -977,6 +977,9 @@ static void DoCommandMultiinput(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("multiinput", quiet))
+		return;
+
 	if (!*args) {
 		if (!fore)
 			OutputMsg(0, "multiinput needs a window");
@@ -999,6 +1002,9 @@ static void DoCommandDefautonuke(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
 
+	if (block_query("defautonuke", quiet))
+		return;
+
 	if (ParseOnOff(act, &defautonuke) == 0 && msgok)
 		OutputMsg(0, "Default autonuke turned %s", defautonuke ? "on" : "off");
 	if (display && *rc_name)
@@ -1010,6 +1016,9 @@ static void DoCommandAutonuke(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
 
+	if (block_query("autonuke", quiet) || need_display("autonuke", quiet))
+		return;
+
 	if (ParseOnOff(act, &D_auto_nuke) == 0 && msgok)
 		OutputMsg(0, "Autonuke turned %s", D_auto_nuke ? "on" : "off");
 }
@@ -1017,6 +1026,9 @@ static void DoCommandAutonuke(struct action *act, int quiet)
 static void DoCommandDefobuflimit(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
+
+	if (block_query("defobuflimit", quiet))
+		return;
 
 	if (ParseNum(act, &defobuflimit) == 0 && msgok)
 		OutputMsg(0, "Default limit set to %d", defobuflimit);
@@ -1031,6 +1043,9 @@ static void DoCommandObuflimit(struct action *act, int quiet)
 	int msgok = display && !*rc_name;
 	char **args = act->args;
 
+	if (block_query("obuflimit", quiet) || need_display("obuflimit", quiet))
+		return;
+
 	if (*args == NULL)
 		OutputMsg(0, "Limit is %d, current buffer size is %d", D_obufmax, D_obuflen);
 	else if (ParseNum(act, &D_obufmax) == 0 && msgok)
@@ -1044,6 +1059,9 @@ static void DoCommandDumptermcap(struct action *act, int quiet)
 
 	struct acluser *user = display ? D_user : users;
 
+	if (block_query("dumptermcap", quiet) || need_fore("dumptermcap", quiet))
+		return;
+
 	WriteFile(user, NULL, DUMP_TERMCAP);
 }
 
@@ -1054,6 +1072,9 @@ static void DoCommandHardcopy(struct action *act, int quiet)
 	int mode = DUMP_HARDCOPY;
 	char *file = NULL;
 	struct acluser *user = display ? D_user : users;
+
+	if (block_query("hardcopy", quiet) || need_fore("hardcopy", quiet))
+		return;
 
 	if (args[0]) {
 		if (!strcmp(*args, "-h")) {
@@ -1074,12 +1095,20 @@ static void DoCommandHardcopy(struct action *act, int quiet)
 
 static void DoCommandDeflog(struct action *act, int quiet)
 {
+	if (block_query("deflog", quiet))
+		return;
+
 	(void)ParseOnOff(act, &nwin_default.Lflag);
 }
 
 static void DoCommandLog(struct action *act, int quiet)
 {
-	bool b = fore->w_log ? true : false;
+	bool b;
+
+	if (block_query("log", quiet) || need_fore("log", quiet))
+		return;
+
+	b = fore->w_log ? true : false;
 
 	if (ParseSwitch(act, &b) == 0)
 		LogToggle(b);
@@ -1090,12 +1119,18 @@ static void DoCommandSuspend(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("suspend", quiet) || need_display("suspend", quiet))
+		return;
+
 	Detach(D_STOP);
 }
 
 static void DoCommandNext(struct action *act, int quiet)
 {
 	(void)act; /* unused */
+
+	if (block_query("next", quiet))
+		return;
 
 	if (MoreWindows())
 		SwitchWindow(NextWindow());
@@ -1105,6 +1140,9 @@ static void DoCommandPrev(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("prev", quiet))
+		return;
+
 	if (MoreWindows())
 		SwitchWindow(PreviousWindow());
 }
@@ -1112,6 +1150,9 @@ static void DoCommandPrev(struct action *act, int quiet)
 static void DoCommandParent(struct action *act, int quiet)
 {
 	(void)act; /* unused */
+
+	if (block_query("parent", quiet))
+		return;
 
 	if (MoreWindows()) {
 		Window *w = ParentWindow();
@@ -1127,6 +1168,9 @@ static void DoCommandKill(struct action *act, int quiet)
 	char **args = act->args;
 	char *name;
 	int n;
+
+	if (block_query("kill", quiet) || need_fore("kill", quiet))
+		return;
 
 	if (*args) {
 		if (!strcmp(*args, "--confirm")) {
@@ -1155,6 +1199,9 @@ static void DoCommandQuit(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("quit", quiet))
+		return;
+
 	if (*args) {
 		if (!strcmp(*args, "--confirm")) {
 			Input("Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
@@ -1172,6 +1219,9 @@ static void DoCommandDetach(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("detach", quiet) || need_display("detach", quiet))
+		return;
+
 	if (*args && !strcmp(*args, "-h"))
 		Hangup();
 	else
@@ -1181,6 +1231,9 @@ static void DoCommandDetach(struct action *act, int quiet)
 static void DoCommandPow_detach(struct action *act, int quiet)
 {
 	char **args = act->args;
+
+	if (block_query("pow_detach", quiet))
+		return;
 
 	if (*args) {
 		if (!strcmp(*args, "--confirm")) {
@@ -1199,6 +1252,9 @@ static void DoCommandZmodem(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int msgok = display && !*rc_name;
+
+	if (block_query("zmodem", quiet))
+		return;
 
 	if (*args && !strcmp(*args, "sendcmd")) {
 		if (args[1]) {
@@ -1239,6 +1295,9 @@ static void DoCommandUnbindall(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("unbindall", quiet))
+		return;
+
 	for (size_t i = 0; i < ARRAY_SIZE(ktab); i++)
 		ClearAction(&ktab[i]);
 	OutputMsg(0, "Unbound all keys.");
@@ -1249,6 +1308,9 @@ static void DoCommandZombie(struct action *act, int quiet)
 	char **args = act->args;
 	int *argl = act->argl;
 	char *s = NULL;
+
+	if (block_query("zombie", quiet))
+		return;
 
 	if (!(s = *args)) {
 		ZombieKey_destroy = 0;
@@ -1274,7 +1336,12 @@ static void DoCommandZombie(struct action *act, int quiet)
 static void DoCommandWall(struct action *act, int quiet)
 {
 	char **args = act->args;
-	char *s = D_user->u_name;
+	char *s;
+
+	if (block_query("wall", quiet) || need_display("wall", quiet))
+		return;
+
+	s = D_user->u_name;
 
 	OutputMsg(0, "%s: %s", s, *args);
 }
@@ -1286,6 +1353,9 @@ static void DoCommandAt(struct action *act, int quiet)
 	struct acluser *user = display ? D_user : users;
 	char *s;
 	size_t n;
+
+	if (block_query("at", quiet))
+		return;
 
 	/* where this AT command comes from: */
 	if (!user)
@@ -1435,6 +1505,9 @@ static void DoCommandReadreg(struct action *act, int quiet)
 	char *s;
 	int n;
 
+	if (block_query("readreg", quiet))
+		return;
+
 	if (args[0] && args[1] && !strcmp(args[0], "-e")) {
 		i = FindEncoding(args[1]);
 		if (i == -1) {
@@ -1494,6 +1567,9 @@ static void DoCommandRegister(struct action *act, int quiet)
 	int argc = CheckArgNum(act->nr, args);
 	char ch;
 
+	if (block_query("register", quiet))
+		return;
+
 	if (args[0] && args[1] && !strcmp(args[0], "-e")) {
 		i = FindEncoding(args[1]);
 		if (i == -1) {
@@ -1537,6 +1613,9 @@ static void DoCommandProcess(struct action *act, int quiet)
 	int *argl = act->argl;
 	char ch;
 
+	if (block_query("register", quiet) || need_display("process", quiet))
+		return;
+
 	if (*args == NULL) {
 		Input("Process register:", 1, INP_RAW, process_fn, NULL, 0);
 		return;
@@ -1556,6 +1635,9 @@ static void DoCommandStuff(struct action *act, int quiet)
 	int *argl = act->argl;
 	char *s;
 	size_t len;
+
+	if (block_query("stuff", quiet) || need_layer("stuff", quiet))
+		return;
 
 	s = *args;
 	if (!args[0]) {
@@ -1592,12 +1674,17 @@ static void DoCommandRedisplay(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("redisplay", quiet) || need_display("redisplay", quiet))
+		return;
+
 	Activate(-1);
 }
 
 static void DoCommandWindows(struct action *act, int quiet)
 {
 	char **args = act->args;
+
+	(void)quiet; /* unused */
 
 	if (args[0])
 		ShowWindowsX(args[0]);
@@ -1609,6 +1696,9 @@ static void DoCommandVersion(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("version", quiet))
+		return;
+
 	OutputMsg(0, "screen %s", version);
 }
 
@@ -1616,12 +1706,18 @@ static void DoCommandInfo(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (need_layer("info", quiet))
+		return;
+
 	ShowInfo();
 }
 
 static void DoCommandDinfo(struct action *act, int quiet)
 {
 	(void)act; /* unused */
+
+	if (block_query("dinfo", quiet) || need_display("dinfo", quiet))
+		return;
 
 	ShowDInfo();
 }
@@ -1631,6 +1727,9 @@ static void DoCommandCommand(struct action *act, int quiet)
 	char **args = act->args;
 	int argc = CheckArgNum(act->nr, args);
 	struct action *ktabp = ktab;
+
+	if (block_query("command", quiet) || need_display("command", quiet))
+		return;
 
 	if (argc == 2 && !strcmp(*args, "-c")) {
 		if ((ktabp = FindKtab(args[1], 0)) == NULL) {
@@ -1657,6 +1756,9 @@ static void DoCommandOther(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("other", quiet))
+		return;
+
 	if (MoreWindows())
 		SwitchWindow(display && D_other ? D_other : NextWindow());
 }
@@ -1671,6 +1773,9 @@ static void DoCommandMeta(struct action *act, int quiet)
 
 	(void)act; /* unused */
 
+	if (block_query("meta", quiet) || need_layer("meta", quiet))
+		return;
+
 	if (ch != -1)
 		LayProcess(&s, &len);
 }
@@ -1680,6 +1785,9 @@ static void DoCommandXon(struct action *act, int quiet)
 	char ch = Ctrl('q');
 	char *s = &ch;
 	size_t len = 1;
+
+	if (block_query("xon", quiet) || need_layer("xon", quiet))
+		return;
 
 	(void)act; /* unused */
 
@@ -1694,6 +1802,9 @@ static void DoCommandXoff(struct action *act, int quiet)
 
 	(void)act; /* unused */
 
+	if (block_query("xoff", quiet) || need_layer("xoff", quiet))
+		return;
+
 	LayProcess(&s, &len);
 }
 
@@ -1703,6 +1814,9 @@ static void DoCommandBreaktype(struct action *act, int quiet)
 	char **args = act->args;
 	char ch;
 	int n;
+
+	if (block_query("breaktype", quiet) || need_fore("breaktype", quiet))
+		return;
 
 	if (*args) {
 		if (ParseNum(act, &n))
@@ -1734,6 +1848,9 @@ static void DoCommandPow_break(struct action *act, int quiet)
 	char **args = act->args;
 	int n = 0;
 
+	if (block_query("pow_break", quiet) || need_fore("pow_break", quiet))
+		return;
+
 	if (*args && ParseNum(act, &n))
 		return;
 	SendBreak(fore, n, true);
@@ -1744,6 +1861,9 @@ static void DoCommandBreak(struct action *act, int quiet)
 	char **args = act->args;
 	int n = 0;
 
+	if (block_query("break", quiet) || need_fore("break", quiet))
+		return;
+
 	if (*args && ParseNum(act, &n))
 		return;
 	SendBreak(fore, n, false);
@@ -1753,6 +1873,9 @@ static void DoCommandLockscreen(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("lockscreen", quiet) || need_display("lockscreen", quiet))
+		return;
+
 	Detach(D_LOCK);
 }
 
@@ -1761,6 +1884,9 @@ static void DoCommandWidth(struct action *act, int quiet)
 	char **args = act->args;
 	int w, h;
 	int what = 0;
+
+	if (block_query("width", quiet))
+		return;
 
 	if (*args && !strcmp(*args, "-w"))
 		what = 1;
@@ -1853,6 +1979,9 @@ static void DoCommandHeight(struct action *act, int quiet)
 	char **args = act->args;
 	int w, h;
 	int what = 0;
+
+	if (block_query("height", quiet))
+		return;
 
 	if (*args && !strcmp(*args, "-w"))
 		what = 1;
@@ -1947,6 +2076,9 @@ static void DoCommandDefdynamictitle(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("defdynamictitle", quiet))
+		return;
+
 	(void)ParseOnOff(act, &nwin_default.dynamicaka);
 }
 
@@ -1954,12 +2086,18 @@ static void DoCommandDynamictitle(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("dynamictitle", quiet))
+		return;
+
 	(void)ParseOnOff(act, &fore->w_dynamicaka);
 }
 
 static void DoCommandTitle(struct action *act, int quiet)
 {
 	char **args = act->args;
+
+	if (need_fore("title", quiet))
+		return;
 
 	if (queryflag >= 0) {
 		if (fore)
@@ -1978,6 +2116,9 @@ static void DoCommandColon(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("colon", quiet) || need_layer("colon", quiet))
+		return;
+
 	Input(":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
 	if (*args && **args) {
 		char *s = *args;
@@ -1990,6 +2131,9 @@ static void DoCommandLastmsg(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (need_display("lastmsg", quiet))
+		return;
+
 	if (D_status_lastmsg)
 		OutputMsg(0, "%s", D_status_lastmsg);
 }
@@ -1998,6 +2142,9 @@ static void DoCommandScreen(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("screen", quiet))
+		return;
+
 	DoScreen("key", args);
 }
 
@@ -2005,6 +2152,9 @@ static void DoCommandScreen(struct action *act, int quiet)
 static void DoCommandWrap(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
+
+	if (block_query("wrap", quiet) || need_fore("wrap", quiet))
+		return;
 
 	if (ParseSwitch(act, &fore->w_wrap) == 0 && msgok)
 		OutputMsg(0, "%cwrap", fore->w_wrap ? '+' : '-');
@@ -2015,6 +2165,9 @@ static void DoCommandFlow(struct action *act, int quiet)
 	char **args = act->args;
 	int msgok = display && !*rc_name;
 	bool b;
+
+	if (block_query("flow", quiet) || need_fore("flow", quiet))
+		return;
 
 	if (*args) {
 		if (args[0][0] == 'a') {
@@ -2041,6 +2194,9 @@ static void DoCommandDefwritelock(struct action *act, int quiet)
 	char **args = act->args;
 	bool b;
 
+	if (block_query("defwritelock", quiet))
+		return;
+
 	if (args[0][0] == 'a')
 		nwin_default.wlock = WLOCK_AUTO;
 	else if (ParseOnOff(act, &b) == 0)
@@ -2051,6 +2207,9 @@ static void DoCommandWritelock(struct action *act, int quiet)
 {
 	char **args = act->args;
 	bool b;
+
+	if (block_query("writelock", quiet) || need_fore("writelock", quiet))
+		return;
 
 	if (*args) {
 		if (args[0][0] == 'a') {
@@ -2075,6 +2234,9 @@ static void DoCommandClear(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("clear", quiet) || need_fore("clear", quiet))
+		return;
+
 	ResetAnsiState(fore);
 	WriteString(fore, "\033[H\033[J", 6);
 }
@@ -2082,6 +2244,9 @@ static void DoCommandClear(struct action *act, int quiet)
 static void DoCommandReset(struct action *act, int quiet)
 {
 	(void)act; /* unused */
+
+	if (block_query("reset", quiet) || need_fore("reset", quiet))
+		return;
 
 	ResetAnsiState(fore);
 	if (fore->w_zdisplay)
@@ -2091,8 +2256,13 @@ static void DoCommandReset(struct action *act, int quiet)
 
 static void DoCommandMonitor(struct action *act, int quiet)
 {
-	bool b = fore->w_monitor != MON_OFF;
+	bool b;
 	int i;
+
+	if (block_query("monitor", quiet) || need_fore("monitor", quiet))
+		return;
+
+	b = fore->w_monitor != MON_OFF;
 
 	if (display)
 		b = b && (ACLBYTE(fore->w_mon_notify, D_user->u_id) & ACLBIT(D_user->u_id));
@@ -2129,6 +2299,9 @@ static void DoCommandDisplays(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("displays", quiet) || need_layer("displays", quiet))
+		return;
+
 	display_displays();
 }
 
@@ -2137,6 +2310,9 @@ static void DoCommandWindowlist(struct action *act, int quiet)
 	char **args = act->args;
 	int argc = CheckArgNum(act->nr, args);
 	int msgok = display && !*rc_name;
+
+	if (block_query("windowlist", quiet))
+		return;
 
 	if (!*args)
 		display_windows(0, WLIST_NUM, NULL);
@@ -2184,6 +2360,9 @@ static void DoCommandHelp(struct action *act, int quiet)
 	char **args = act->args;
 	int argc = CheckArgNum(act->nr, args);
 
+	if (block_query("help", quiet) || need_layer("help", quiet))
+		return;
+
 	if (argc == 2 && !strcmp(*args, "-c")) {
 		struct action *ktabp;
 		if ((ktabp = FindKtab(args[1], 0)) == NULL) {
@@ -2199,6 +2378,9 @@ static void DoCommandLicense(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("license", quiet) || need_layer("license", quiet))
+		return;
+
 	display_license();
 }
 
@@ -2206,6 +2388,9 @@ static void DoCommandLicense(struct action *act, int quiet)
 static void DoCommandCopy(struct action *act, int quiet)
 {
 	(void)act; /* unused */
+
+	if (block_query("copy", quiet) || need_display("copy", quiet) || need_fore("copy", quiet))
+		return;
 
 	if (flayer->l_layfn != &WinLf) {
 		OutputMsg(0, "Must be on a window layer");
@@ -2226,6 +2411,11 @@ static void DoCommandHistory(struct action *act, int quiet)
 	size_t l = 0;
 	char *s, *ss, *dbuf;
 	char ch, dch;
+
+	(void)act; /* unused */
+
+	if (block_query("history", quiet) || need_display("history", quiet) || need_fore("history", quiet))
+		return;
 
 	if (flayer->l_layfn != &WinLf) {
 		OutputMsg(0, "Must be on a window layer");
@@ -2359,6 +2549,9 @@ static void DoCommandPaste(struct action *act, int quiet)
 	char *s, *ss, *dbuf;
 	char ch, dch;
 
+	if (block_query("paste", quiet))
+		return;
+
 	/*
 	 * without args we prompt for one(!) register to be pasted in the window
 	 */
@@ -2478,6 +2671,9 @@ static void DoCommandWritebuf(struct action *act, int quiet)
 	char *newbuf;
 	struct plop oldplop;
 
+	if (block_query("writebuf", quiet))
+		return;
+
 	if (!user->u_plop.buf) {
 		OutputMsg(0, "empty buffer");
 		return;
@@ -2523,6 +2719,9 @@ static void DoCommandReadbuf(struct action *act, int quiet)
 	int i;
 	int l = 0;
 
+	if (block_query("readbuf", quiet))
+		return;
+
 	i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
 	if (args[0] && args[1] && !strcmp(args[0], "-e")) {
 		i = FindEncoding(args[1]);
@@ -2551,12 +2750,18 @@ static void DoCommandRemovebuf(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("removebuf", quiet))
+		return;
+
 	KillBuffers();
 }
 
 static void DoCommandIgnorecase(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
+
+	if (block_query("ignorecase", quiet))
+		return;
 
 	(void)ParseSwitch(act, &search_ic);
 	if (msgok)
@@ -2568,6 +2773,9 @@ static void DoCommandEscape(struct action *act, int quiet)
 	char **args = act->args;
 	int *argl = act->argl;
 	struct acluser *user = display ? D_user : users;
+
+	if (block_query("escape", quiet))
+		return;
 
 	if (*argl == 0)
 		SetEscape(user, -1, -1);
@@ -2594,6 +2802,9 @@ static void DoCommandDefescape(struct action *act, int quiet)
 	char **args = act->args;
 	int *argl = act->argl;
 
+	if (block_query("defescape", quiet))
+		return;
+
 	if (*argl == 0)
 		SetEscape(NULL, -1, -1);
 	else if (*argl == 2)
@@ -2610,6 +2821,9 @@ static void DoCommandChdir(struct action *act, int quiet)
 	char **args = act->args;
 	char *s;
 
+	if (block_query("chdir", quiet))
+		return;
+
 	s = *args ? *args : home;
 	if (chdir(s) == -1)
 		OutputMsg(errno, "%s", s);
@@ -2617,6 +2831,9 @@ static void DoCommandChdir(struct action *act, int quiet)
 
 static void DoCommandShell(struct action *act, int quiet)
 {
+	if (block_query("shell", quiet))
+		return;
+
 	if (ParseSaveStr(act, &ShellProg) == 0)
 		ShellArgs[0] = ShellProg;
 }
@@ -2625,6 +2842,9 @@ static void DoCommandHardcopydir(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int msgok = display && !*rc_name;
+
+	if (block_query("hardcopydir", quiet))
+		return;
 
 	if (*args)
 		(void)ParseSaveStr(act, &hardcopydir);
@@ -2636,6 +2856,9 @@ static void DoCommandLogfile(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int msgok = display && !*rc_name;
+
+	if (block_query("logfile", quiet))
+		return;
 
 	if (*args) {
 		char buf[MAXPATHLEN];
@@ -2661,6 +2884,9 @@ static void DoCommandLogtstamp(struct action *act, int quiet)
 	char **args = act->args;
 	int msgok = display && !*rc_name;
 
+	if (block_query("logtstamp", quiet))
+		return;
+
 	if (!*args || !strcmp(*args, "on") || !strcmp(*args, "off")) {
 		if (ParseSwitch(act, &logtstamp_on) == 0 && msgok)
 			OutputMsg(0, "timestamps turned %s", logtstamp_on ? "on" : "off");
@@ -2685,12 +2911,18 @@ static void DoCommandLogtstamp(struct action *act, int quiet)
 
 static void DoCommandShelltitle(struct action *act, int quiet)
 {
+	if (block_query("shelltitle", quiet))
+		return;
+
 	(void)ParseSaveStr(act, &nwin_default.aka);
 }
 
 static void DoCommandTerminfo(struct action *act, int quiet)
 {
 	(void)act; /* unused */
+
+	if (block_query("terminfo", quiet))
+		return;
 
 	if (!rc_name || !*rc_name)
 		OutputMsg(0, "Sorry, too late now. Place that in your .screenrc file.");
@@ -2699,11 +2931,17 @@ static void DoCommandTerminfo(struct action *act, int quiet)
 static void DoCommandSleep(struct action *act, int quiet)
 {
 	(void)act; /* unused */
+
+	if (block_query("sleep", quiet))
+		return;
 }
 
 static void DoCommandTerm(struct action *act, int quiet)
 {
 	char *s = NULL;
+
+	if (block_query("term", quiet))
+		return;
 
 	if (ParseSaveStr(act, &s))
 		return;
@@ -2755,6 +2993,9 @@ static void DoCommandBell(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("bell", quiet))
+		return;
+
 	if (*args == NULL) {
 		char buf[256];
 		AddXChars(buf, ARRAY_SIZE(buf), BellString);
@@ -2769,6 +3010,9 @@ static void DoCommandBufferfile(struct action *act, int quiet)
 	char **args = act->args;
 	int msgok = display && !*rc_name;
 
+	if (block_query("bufferfile", quiet))
+		return;
+
 	if (*args == NULL)
 		BufferFile = SaveStr(DEFAULT_BUFFERFILE);
 	else if (ParseSaveStr(act, &BufferFile))
@@ -2779,12 +3023,18 @@ static void DoCommandBufferfile(struct action *act, int quiet)
 
 static void DoCommandActivity(struct action *act, int quiet)
 {
+	if (block_query("activity", quiet))
+		return;
+
 	(void)ParseSaveStr(act, &ActivityString);
 }
 
 static void DoCommandPow_detach_msg(struct action *act, int quiet)
 {
 	char **args = act->args;
+
+	if (block_query("pow_detach_msg", quiet) || need_display("pow_detach_msg", quiet))
+		return;
 
 	if (*args == NULL) {
 		char buf[256];
@@ -2799,8 +3049,13 @@ static void DoCommandPow_detach_msg(struct action *act, int quiet)
 static void DoCommandLogin(struct action *act, int quiet)
 {
 	char **args = act->args;
-	bool b = fore->w_slot != (slot_t)(-1);
+	bool b;
 
+	if (block_query("login", quiet) || need_fore("login", quiet))
+		return;
+
+	b = fore->w_slot != (slot_t)(-1);
+;
 	if (*args && !strcmp(*args, "always")) {
 		fore->w_lflag = 3;
 		if (!displays && b)
@@ -2822,6 +3077,9 @@ static void DoCommandDeflogin(struct action *act, int quiet)
 	char **args = act->args;
 	bool b;
 
+	if (block_query("deflogin", quiet))
+		return;
+
 	if (!strcmp(*args, "always"))
 		nwin_default.lflag |= 2;
 	else if (!strcmp(*args, "attached"))
@@ -2836,6 +3094,9 @@ static void DoCommandDefflow(struct action *act, int quiet)
 {
 	char **args = act->args;
 	bool b;
+
+	if (block_query("defflow", quiet))
+		return;
 
 	if (args[0] && args[1] && args[1][0] == 'i') {
 		iflag = true;
@@ -2855,17 +3116,26 @@ static void DoCommandDefflow(struct action *act, int quiet)
 
 static void DoCommandDefwrap(struct action *act, int quiet)
 {
+	if (block_query("defwrap", quiet))
+		return;
+
 	(void)ParseOnOff(act, &nwin_default.wrap);
 }
 
 static void DoCommandDefc1(struct action *act, int quiet)
 {
+	if (block_query("defc1", quiet))
+		return;
+
 	(void)ParseOnOff(act, &nwin_default.c1);
 }
 
 static void DoCommandDefbce(struct action *act, int quiet)
 {
 	bool b;
+
+	if (block_query("defbce", quiet))
+		return;
 
 	if (ParseOnOff(act, &b) == 0)
 		nwin_default.bce = b ? 1 : 0;
@@ -2875,6 +3145,9 @@ static void DoCommandDefgr(struct action *act, int quiet)
 {
 	bool b;
 
+	if (block_query("defgr", quiet))
+		return;
+
 	if (ParseOnOff(act, &b) == 0)
 		nwin_default.gr = b ? 1 : 0;
 }
@@ -2882,6 +3155,9 @@ static void DoCommandDefgr(struct action *act, int quiet)
 static void DoCommandDefmonitor(struct action *act, int quiet)
 {
 	bool b;
+
+	if (block_query("defmonitor", quiet))
+		return;
 
 	if (ParseOnOff(act, &b) == 0)
 		nwin_default.monitor = b ? MON_ON : MON_OFF;
@@ -2891,6 +3167,9 @@ static void DoCommandDefmousetrack(struct action *act, int quiet)
 {
 	bool b;
 
+	if (block_query("defmousetrack", quiet))
+		return;
+
 	if (ParseOnOff(act, &b) == 0)
 		defmousetrack = b ? 1000 : 0;
 }
@@ -2899,6 +3178,9 @@ static void DoCommandMousetrack(struct action *act, int quiet)
 {
 	char **args = act->args;
 	bool b;
+
+	if (block_query("mousetrack", quiet) || need_display("mousetrack", quiet))
+		return;
 
 	if (!args[0]) {
 		OutputMsg(0, "Mouse tracking for this display is turned %s", D_mousetrack ? "on" : "off");
@@ -2913,6 +3195,9 @@ static void DoCommandDefsilence(struct action *act, int quiet)
 {
 	bool b;
 
+	if (block_query("defsilence", quiet))
+		return;
+
 	if (ParseOnOff(act, &b) == 0)
 		nwin_default.silence = b ? SILENCE_ON : SILENCE_OFF;
 }
@@ -2920,6 +3205,9 @@ static void DoCommandDefsilence(struct action *act, int quiet)
 static void DoCommandVerbose(struct action *act, int quiet)
 {
 	char **args = act->args;
+
+	if (block_query("verbose", quiet))
+		return;
 
 	if (!*args)
 		OutputMsg(0, "W%s echo command when creating windows.", VerboseCreate ? "ill" : "on't");
@@ -2932,6 +3220,9 @@ static void DoCommandHardstatus(struct action *act, int quiet)
 	char **args = act->args;
 	int msgok = display && !*rc_name;
 	char *s = NULL;
+
+	if (block_query("hardstatus", quiet))
+		return;
 
 	if (display) {
 		OutputMsg(0, "%s", "");	/* wait till mintime (keep gcc quiet) */
@@ -3002,6 +3293,9 @@ static void DoCommandStatus(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("status", quiet))
+		return;
+
 	if (display) {
 		Msg(0, "%s", "");	/* wait till mintime (keep gcc quiet) */
 		RemoveStatus();
@@ -3029,6 +3323,9 @@ static void DoCommandStatus(struct action *act, int quiet)
 static void DoCommandCaption(struct action *act, int quiet)
 {
 	char **args = act->args;
+
+	if (block_query("caption", quiet))
+		return;
 
 	if (!*args)
 		return;
@@ -3069,6 +3366,9 @@ static void DoCommandConsole(struct action *act, int quiet)
 {
 	bool b = (console_window != NULL);
 
+	if (block_query("console", quiet) || need_fore("console", quiet))
+		return;
+
 	if (ParseSwitch(act, &b))
 		return;
 	if (TtyGrabConsole(fore->w_ptyfd, b, rc_name))
@@ -3087,6 +3387,9 @@ static void DoCommandAllpartial(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
 
+	if (block_query("allpartial", quiet) || need_display("allpartial", quiet))
+		return;
+
 	if (ParseOnOff(act, &all_norefresh))
 		return;
 	if (!all_norefresh && fore)
@@ -3097,7 +3400,12 @@ static void DoCommandAllpartial(struct action *act, int quiet)
 
 static void DoCommandPartial(struct action *act, int quiet)
 {
-	bool b = fore->w_norefresh;
+	bool b;
+
+	if (block_query("partial", quiet) || need_fore("partial", quiet))
+		return;
+
+	b = fore->w_norefresh;
 
 	(void)ParseSwitch(act, &b);
 	fore->w_norefresh = b;
@@ -3107,6 +3415,9 @@ static void DoCommandPartial(struct action *act, int quiet)
 static void DoCommandVbell(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
+
+	if (block_query("vbell", quiet))
+		return;
 
 	if (ParseSwitch(act, &visual_bell) || !msgok)
 		return;
@@ -3120,6 +3431,9 @@ static void DoCommandVbellwait(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
 
+	if (block_query("vbellwait", quiet))
+		return;
+
 	if (ParseNum1000(act, &VBellWait) == 0 && msgok)
 		OutputMsg(0, "vbellwait set to %.10g seconds", VBellWait / 1000.);
 }
@@ -3127,6 +3441,9 @@ static void DoCommandVbellwait(struct action *act, int quiet)
 static void DoCommandMsgwait(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
+
+	if (block_query("msgwait", quiet))
+		return;
 
 	if (ParseNum1000(act, &MsgWait) == 0 && msgok)
 		OutputMsg(0, "msgwait set to %.10g seconds", MsgWait / 1000.);
@@ -3136,6 +3453,9 @@ static void DoCommandMsgminwait(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
 
+	if (block_query("msgminwait", quiet))
+		return;
+
 	if (ParseNum1000(act, &MsgMinWait) == 0 && msgok)
 		OutputMsg(0, "msgminwait set to %.10g seconds", MsgMinWait / 1000.);
 }
@@ -3143,6 +3463,9 @@ static void DoCommandMsgminwait(struct action *act, int quiet)
 static void DoCommandSilencewait(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
+
+	if (block_query("silencewait", quiet))
+		return;
 
 	if (ParseNum(act, &SilenceWait))
 		return;
@@ -3160,6 +3483,9 @@ static void DoCommandBumpright(struct action *act, int quiet)
 
 	(void)act; /* unused */
 
+	if (block_query("bumpright", quiet) || need_fore("bumpright", quiet))
+		return;
+
 	if (fore->w_number < win->w_number)
 		SwapWindows(fore->w_number, win->w_number);
 }
@@ -3170,6 +3496,9 @@ static void DoCommandBumpleft(struct action *act, int quiet)
 
 	(void)act; /* unused */
 
+	if (block_query("bumpleft", quiet) || need_fore("bumpright", quiet))
+		return;
+
 	if (fore->w_number > win->w_number)
 		SwapWindows(fore->w_number, win->w_number);
 }
@@ -3178,12 +3507,18 @@ static void DoCommandCollapse(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("collapse", quiet))
+		return;
+
 	CollapseWindowlist();
 }
 
 static void DoCommandNumber(struct action *act, int quiet)
 {
 	char **args = act->args;
+
+	if (need_fore("number", quiet))
+		return;
 
 	if (*args == NULL)
 		OutputMsg(0, queryflag >= 0 ? "%d (%s)" : "This is window %d (%s).", fore->w_number,
@@ -3220,6 +3555,9 @@ static void DoCommandZombie_timeout(struct action *act, int quiet)
 	char **args = act->args;
 	int argc = CheckArgNum(act->nr, args);
 
+	if (block_query("zombie_timeout", quiet))
+		return;
+
 	if (argc != 1) {
 		Msg(0, "Setting zombie polling needs a timeout arg\n");
 		return;
@@ -3233,6 +3571,9 @@ static void DoCommandZombie_timeout(struct action *act, int quiet)
 static void DoCommandSort(struct action *act, int quiet)
 {
 	(void)act; /* unused */
+
+	if (block_query("sort", quiet))
+		return;
 
 	if (first_window == last_window) {
 		Msg(0, "Less than two windows, sorting makes no sense.\n");
@@ -3259,8 +3600,14 @@ static void DoCommandSilence(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int msgok = display && !*rc_name;
-	bool b = fore->w_silence != 0;
-	int i = fore->w_silencewait;
+	bool b;
+	int i;
+
+	if (block_query("silence", quiet) || need_fore("silence", quiet))
+		return;
+
+	b = fore->w_silence != 0;
+	i = fore->w_silencewait;
 
 	if (args[0] && (args[0][0] == '-' || (args[0][0] >= '0' && args[0][0] <= '9'))) {
 		if (ParseNum(act, &i))
@@ -3304,6 +3651,9 @@ static void DoCommandSilence(struct action *act, int quiet)
 
 static void DoCommandDefscrollback(struct action *act, int quiet)
 {
+	if (block_query("defscrollback", quiet))
+		return;
+
 	(void)ParseNum(act, &nwin_default.histheight);
 }
 
@@ -3311,6 +3661,9 @@ static void DoCommandScrollback(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
 	int n = 0;
+
+	if (block_query("scrollback", quiet) || need_fore("scrollback", quiet))
+		return;
 
 	if (flayer->l_layfn == &MarkLf) {
 		OutputMsg(0, "Cannot resize scrollback buffer in copy/scrollback mode.");
@@ -3325,6 +3678,9 @@ static void DoCommandScrollback(struct action *act, int quiet)
 static void DoCommandSessionname(struct action *act, int quiet)
 {
 	char **args = act->args;
+
+	if (block_query("sessionname", quiet))
+		return;
 
 	if (*args == NULL)
 		OutputMsg(0, "This session is named '%s'\n", SocketName);
@@ -3360,6 +3716,9 @@ static void DoCommandSetenv(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("setenv", quiet))
+		return;
+
 	if (!args[0] || !args[1]) {
 		InputSetenv(args[0]);
 	} else {
@@ -3372,6 +3731,9 @@ static void DoCommandUnsetenv(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("unsetenv", quiet))
+		return;
+
 	if (*args)
 		unsetenv(*args);
 	MakeNewEnv();
@@ -3379,6 +3741,9 @@ static void DoCommandUnsetenv(struct action *act, int quiet)
 
 static void DoCommandDefslowpaste(struct action *act, int quiet)
 {
+	if (block_query("defslowpaste", quiet))
+		return;
+
 	(void)ParseNum(act, &nwin_default.slow);
 }
 
@@ -3386,6 +3751,9 @@ static void DoCommandSlowpaste(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int msgok = display && !*rc_name;
+
+	if (block_query("slowpaste", quiet) || need_fore("slowpaste", quiet))
+		return;
 
 	if (*args == NULL)
 		OutputMsg(0, fore->w_slowpaste ?
@@ -3402,6 +3770,9 @@ static void DoCommandMarkkeys(struct action *act, int quiet)
 	char **args = act->args;
 	int *argl = act->argl;
 
+	if (block_query("markkeys", quiet))
+		return;
+
 	if (CompileKeys(*args, *argl, mark_key_tab))
 		OutputMsg(0, "%s: markkeys: syntax error.", rc_name);
 }
@@ -3410,12 +3781,18 @@ static void DoCommandPastefont(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
 
+	if (block_query("pastefont", quiet) || need_layer("pastefont", quiet))
+		return;
+
 	if (ParseSwitch(act, &pastefont) == 0 && msgok)
 		OutputMsg(0, "Will %spaste font settings", pastefont ? "" : "not ");
 }
 
 static void DoCommandCrlf(struct action *act, int quiet)
 {
+	if (block_query("crlf", quiet))
+		return;
+
 	(void)ParseSwitch(act, &join_with_cr);
 }
 
@@ -3423,18 +3800,27 @@ static void DoCommandCompacthist(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
 
+	if (block_query("compacthist", quiet))
+		return;
+
 	if (ParseSwitch(act, &compacthist) == 0 && msgok)
 		OutputMsg(0, "%scompacting history lines", compacthist ? "" : "not ");
 }
 
 static void DoCommandHardcopy_append(struct action *act, int quiet)
 {
+	if (block_query("hardcopy_append", quiet))
+		return;
+
 	(void)ParseOnOff(act, &hardcopy_append);
 }
 
 static void DoCommandVbell_msg(struct action *act, int quiet)
 {
 	char **args = act->args;
+
+	if (block_query("vbell_msg", quiet))
+		return;
 
 	if (*args == NULL) {
 		char buf[256];
@@ -3451,6 +3837,9 @@ static void DoCommandDefmode(struct action *act, int quiet)
 	int msgok = display && !*rc_name;
 	int n = 0;
 
+	if (block_query("defmode", quiet))
+		return;
+
 	if (ParseBase(act, *args, &n, 8, "octal"))
 		return;
 	if (n < 0 || n > 0777) {
@@ -3464,11 +3853,17 @@ static void DoCommandDefmode(struct action *act, int quiet)
 
 static void DoCommandAutodetach(struct action *act, int quiet)
 {
+	if (block_query("autodetach", quiet))
+		return;
+
 	(void)ParseOnOff(act, &auto_detach);
 }
 
 static void DoCommandStartup_message(struct action *act, int quiet)
 {
+	if (block_query("startup_message", quiet))
+		return;
+
 	(void)ParseOnOff(act, &default_startup);
 }
 
@@ -3480,6 +3875,9 @@ static void DoCommandBind(struct action *act, int quiet)
 	int n = 0;
 	struct action *ktabp = ktab;
 	int kflag = 0;
+
+	if (block_query("bind", quiet))
+		return;
 
 	for (;;) {
 		if (argc > 2 && !strcmp(*args, "-c")) {
@@ -3536,6 +3934,9 @@ static void DoCommandBindkey(struct action *act, int quiet)
 	int used = 0;
 	struct kmap_ext *kme = NULL;
 	int i;
+
+	if (block_query("bindkey", quiet))
+		return;
 
 	for (; *args && **args == '-'; args++, argl++) {
 		if (strcmp(*args, "-t") == 0)
@@ -3662,6 +4063,9 @@ static void DoCommandMaptimeout(struct action *act, int quiet)
 	int msgok = display && !*rc_name;
 	int n = 0;
 
+	if (block_query("maptimeout", quiet))
+		return;
+
 	if (*args) {
 		if (ParseNum(act, &n))
 			return;
@@ -3679,12 +4083,18 @@ static void DoCommandMapnotnext(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("mapnotnext", quiet) || need_display("mapnotnext", quiet))
+		return;
+
 	D_dontmap = 1;
 }
 
 static void DoCommandMapdefault(struct action *act, int quiet)
 {
 	(void)act; /* unused */
+
+	if (block_query("mapdefault", quiet) || need_display("mapdefault", quiet))
+		return;
 
 	D_mapdefault = 1;
 }
@@ -3694,6 +4104,9 @@ static void DoCommandAclchg(struct action *act, int quiet)
 	char **args = act->args;
 	int argc = CheckArgNum(act->nr, args);
 
+	if (block_query("aclchg", quiet))
+		return;
+
 	UsersAcl(NULL, argc, args);
 }
 
@@ -3701,6 +4114,9 @@ static void DoCommandAcldel(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int msgok = display && !*rc_name;
+
+	if (block_query("acldel", quiet))
+		return;
 
 	if (UserDel(args[0], NULL))
 		return;
@@ -3712,6 +4128,9 @@ static void DoCommandAclgrp(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int msgok = display && !*rc_name;
+
+	if (block_query("aclgrp", quiet))
+		return;
 
 	/*
 	 * modify a user to gain or lose rights granted to a group.
@@ -3769,6 +4188,9 @@ static void DoCommandAclumask(struct action *act, int quiet)
 	char **args = act->args;
 	char *s = NULL;
 
+	if (block_query("aclumask", quiet))
+		return;
+
 	while ((s = *args++)) {
 		char *err = NULL;
 
@@ -3782,6 +4204,9 @@ static void DoCommandMultiuser(struct action *act, int quiet)
 	int msgok = display && !*rc_name;
 	bool b;
 
+	if (block_query("multiuser", quiet))
+		return;
+
 	if (ParseOnOff(act, &b))
 		return;
 	multi = b ? "" : NULL;
@@ -3794,6 +4219,9 @@ static void DoCommandExec(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("exec", quiet))
+		return;
+
 	winexec(args);
 }
 
@@ -3801,8 +4229,13 @@ static void DoCommandNonblock(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int msgok = display && !*rc_name;
-	bool b = D_nonblock >= 0;
 	int n = 0;
+	bool b;
+
+	if (block_query("nonblock", quiet) || need_display("nonblock", quiet))
+		return;
+
+	b = D_nonblock >= 0;
 
 	if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
 		if (ParseNum1000(act, &n))
@@ -3827,6 +4260,9 @@ static void DoCommandDefnonblock(struct action *act, int quiet)
 	char **args = act->args;
 	bool b;
 
+	if (block_query("defnonblock", quiet))
+		return;
+
 	if (*args && ((args[0][0] >= '0' && args[0][0] <= '9') || args[0][0] == '.')) {
 		if (ParseNum1000(act, &defnonblock))
 			return;
@@ -3846,6 +4282,9 @@ static void DoCommandGr(struct action *act, int quiet)
 	int msgok = display && !*rc_name;
 	bool b;
 
+	if (block_query("gr", quiet) || need_fore("gr", quiet))
+		return;
+
 	if (fore->w_gr == 2)
 		fore->w_gr = 0;
 	b = fore->w_gr;
@@ -3861,6 +4300,9 @@ static void DoCommandC1(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
 
+	if (block_query("c1", quiet) || need_fore("c1", quiet))
+		return;
+
 	if (ParseSwitch(act, &fore->w_c1) == 0 && msgok)
 		OutputMsg(0, "Will %suse C1", fore->w_c1 ? "" : "not ");
 }
@@ -3869,6 +4311,9 @@ static void DoCommandEncoding(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int msgok = display && !*rc_name;
+
+	if (block_query("encoding", quiet))
+		return;
 
 	if (*args && !strcmp(args[0], "-d")) {
 		if (!args[1])
@@ -3913,6 +4358,9 @@ static void DoCommandDefencoding(struct action *act, int quiet)
 	char **args = act->args;
 	int n;
 
+	if (block_query("defencoding", quiet))
+		return;
+
 	n = FindEncoding(*args);
 	if (n == -1) {
 		OutputMsg(0, "defencoding: unknown encoding '%s'", *args);
@@ -3926,6 +4374,9 @@ static void DoCommandDefutf8(struct action *act, int quiet)
 	int msgok = display && !*rc_name;
 	bool b = nwin_default.encoding == UTF8;
 
+	if (block_query("defutf8", quiet))
+		return;
+
 	if (ParseSwitch(act, &b) == 0) {
 		nwin_default.encoding = b ? UTF8 : 0;
 		if (msgok)
@@ -3937,6 +4388,9 @@ static void DoCommandUtf8(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int msgok = display && !*rc_name;
+
+	if (block_query("utf8", quiet) || need_fore("utf8", quiet))
+		return;
 
 	for (int i = 0; i < 2; i++) {
 		int n;
@@ -3968,6 +4422,9 @@ static void DoCommandPrintcmd(struct action *act, int quiet)
 	char **args = act->args;
 	int msgok = display && !*rc_name;
 
+	if (block_query("printcmd", quiet))
+		return;
+
 	if (*args) {
 		if (printcmd)
 			free(printcmd);
@@ -3988,6 +4445,9 @@ static void DoCommandDigraph(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int *argl = act->argl;
+
+	if (block_query("digraph", quiet) || need_layer("digraph", quiet))
+		return;
 
 	if (argl && argl[0] > 0 && args[1] && argl[1] > 0) {
 		int i;
@@ -4033,6 +4493,9 @@ static void DoCommandDefhstatus(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("defhstatus", quiet))
+		return;
+
 	if (*args == NULL) {
 		char buf[256] = { 0 };
 		if (nwin_default.hstatus)
@@ -4049,6 +4512,9 @@ static void DoCommandDefhstatus(struct action *act, int quiet)
 
 static void DoCommandHstatus(struct action *act, int quiet)
 {
+	if (block_query("hstatus", quiet) || need_fore("hstatus", quiet))
+		return;
+
 	(void)ParseSaveStr(act, &fore->w_hstatus);
 	if (*fore->w_hstatus == 0) {
 		free(fore->w_hstatus);
@@ -4061,6 +4527,9 @@ static void DoCommandDefcharset(struct action *act, int quiet)
 {
 	char **args = act->args;
 	size_t len;
+
+	if (block_query("defcharset", quiet))
+		return;
 
 	if (*args == NULL) {
 		char buf[256] = { 0 };
@@ -4089,6 +4558,9 @@ static void DoCommandCharset(struct action *act, int quiet)
 	char **args = act->args;
 	size_t len;
 
+	if (block_query("charset", quiet) ||  need_fore("charset", quiet))
+		return;
+
 	if (*args == NULL) {
 		char buf[256] = { 0 };
 		if (nwin_default.charset)
@@ -4115,6 +4587,9 @@ static void DoCommandRendition(struct action *act, int quiet)
 	int *argl = act->argl;
 	int msgok = display && !*rc_name;
 	int i = -1;
+
+	if (block_query("rendition", quiet))
+		return;
 
 	if (!*args)
 		return;
@@ -4160,6 +4635,9 @@ static void DoCommandSorendition(struct action *act, int quiet)
 	char **args = act->args;
 	int msgok = display && !*rc_name;
 
+	if (block_query("sorendition", quiet))
+		return;
+
 	if (args[0]) {
 		int i = ParseAttrColor(args[0], 1);
 		if (i == 0)
@@ -4176,6 +4654,9 @@ static void DoCommandSource(struct action *act, int quiet)
 {
 	char **args = act->args;
 
+	if (block_query("source", quiet))
+		return;
+
 	do_source(*args);
 }
 
@@ -4183,6 +4664,9 @@ static void DoCommandSu(struct action *act, int quiet)
 {
 	char **args = act->args;
 	char *s = NULL;
+
+	if (block_query("su", quiet) || need_display("su", quiet))
+		return;
 
 	if (!*args) {
 		OutputMsg(0, "%s:%s screen login", HostName, SocketPath);
@@ -4202,6 +4686,9 @@ static void DoCommandSplit(struct action *act, int quiet)
 	char **args = act->args;
 	char *s = NULL;
 
+	if (block_query("split", quiet) || need_display("split", quiet))
+		return;
+
 	s = args[0];
 	if (s && !strcmp(s, "-v"))
 		AddCanvas(SLICE_HORI);
@@ -4214,6 +4701,9 @@ static void DoCommandRemove(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("remove", quiet) || need_display("remove", quiet))
+		return;
+
 	RemCanvas();
 	Activate(-1);
 }
@@ -4222,6 +4712,9 @@ static void DoCommandOnly(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("only", quiet) || need_display("only", quiet))
+		return;
+
 	OneCanvas();
 	Activate(-1);
 }
@@ -4229,6 +4722,9 @@ static void DoCommandOnly(struct action *act, int quiet)
 static void DoCommandFit(struct action *act, int quiet)
 {
 	(void)act; /* unused */
+
+	if (block_query("fit", quiet) || need_display("fit", quiet))
+		return;
 
 	D_forecv->c_xoff = D_forecv->c_xs;
 	D_forecv->c_yoff = D_forecv->c_ys;
@@ -4243,6 +4739,9 @@ static void DoCommandFocus(struct action *act, int quiet)
 {
 	char **args = act->args;
 	Canvas *cv = NULL;
+
+	if (block_query("focus", quiet) || need_display("focus", quiet))
+		return;
 
 	if (!*args || !strcmp(*args, "next"))
 		cv = D_forecv->c_next ? D_forecv->c_next : D_cvlist;
@@ -4271,6 +4770,9 @@ static void DoCommandResize(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int i = 0;
+
+	if (block_query("resize", quiet) || need_display("resize", quiet))
+		return;
 
 	if (D_forecv->c_slorient == SLICE_UNKN) {
 		OutputMsg(0, "resize: need more than one region");
@@ -4302,12 +4804,18 @@ static void DoCommandResize(struct action *act, int quiet)
 
 static void DoCommandSetsid(struct action *act, int quiet)
 {
+	if (block_query("setsid", quiet))
+		return;
+
 	(void)ParseSwitch(act, &separate_sids);
 }
 
 static void DoCommandEval(struct action *act, int quiet)
 {
 	char **args = act->args;
+
+	if (block_query("eval", quiet))
+		return;
 
 	args = SaveArgs(args);
 	for (int i = 0; args[i]; i++) {
@@ -4322,6 +4830,8 @@ static void DoCommandAltscreen(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
 
+	if (block_query("altscreen", quiet))
+		return;
 
 	(void)ParseSwitch(act, &use_altscreen);
 	if (msgok)
@@ -4333,6 +4843,9 @@ static void DoCommandBacktick(struct action *act, int quiet)
 	char **args = act->args;
 	int argc = CheckArgNum(act->nr, args);
 	int n = 0;
+
+	if (block_query("backtick", quiet))
+		return;
 
 	if (ParseBase(act, *args, &n, 10, "decimal"))
 		return;
@@ -4357,6 +4870,9 @@ static void DoCommandBlanker(struct action *act, int quiet)
 {
 	(void)act; /* unused */
 
+	if (block_query("blanker", quiet) || need_display("blanker", quiet))
+		return;
+
 	if (blankerprg) {
 		RunBlanker(blankerprg);
 		return;
@@ -4369,6 +4885,9 @@ static void DoCommandBlanker(struct action *act, int quiet)
 static void DoCommandBlankerprg(struct action *act, int quiet)
 {
 	char **args = act->args;
+
+	if (block_query("blankerprg", quiet))
+		return;
 
 	if (!args[0]) {
 		if (blankerprg) {
@@ -4399,6 +4918,9 @@ static void DoCommandIdle(struct action *act, int quiet)
 	int *argl = act->argl;
 	int argc = CheckArgNum(act->nr, args);
 	int msgok = display && !*rc_name;
+
+	if (block_query("commandidle", quiet))
+		return;
 
 	if (*args) {
 		Display *olddisplay = display;
@@ -4435,6 +4957,9 @@ static void DoCommandFocusminsize(struct action *act, int quiet)
 	int msgok = display && !*rc_name;
 	int n = 0;
 
+	if (block_query("focusminsize", quiet))
+		return;
+
 	for (int i = 0; i < 2 && args[i]; i++) {
 		if (!strcmp(args[i], "max") || !strcmp(args[i], "_"))
 			n = -1;
@@ -4463,6 +4988,9 @@ static void DoCommandGroup(struct action *act, int quiet)
 	char **args = act->args;
 	int msgok = display && !*rc_name;
 
+	if (block_query("group", quiet) || need_fore("group", quiet))
+		return;
+
 	if (*args) {
 		fore->w_group = NULL;
 		if (args[0][0]) {
@@ -4487,6 +5015,9 @@ static void DoCommandLayout(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int msgok = display && !*rc_name;
+
+	if (block_query("layout", quiet))
+		return;
 
 	if (!*args)
 		return;
@@ -4684,6 +5215,9 @@ static void DoCommandCjkwidth(struct action *act, int quiet)
 {
 	int msgok = display && !*rc_name;
 
+	if (block_query("cjkwidth", quiet))
+		return;
+
 	if (ParseSwitch(act, &cjkwidth) == 0) {
 		if (msgok)
 			OutputMsg(0, "Treat ambiguous width characters as %s width",
@@ -4693,6 +5227,9 @@ static void DoCommandCjkwidth(struct action *act, int quiet)
 
 static void DoCommandTruecolor(struct action *act, int quiet)
 {
+	if (block_query("truecolor", quiet))
+		return;
+
 	if (ParseOnOff(act, &hastruecolor) == 0)
 		Activate(-1);
 }
