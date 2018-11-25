@@ -5238,38 +5238,10 @@ void DoAction(struct action *act, int quiet)
 {
 	int nr = act->nr;
 	char **args = act->args;
-	int argc, n;
+	int argc;
 	Display *odisplay = display;
 
 	if (nr == RC_ILLEGAL) {
-		return;
-	}
-	n = comms[nr].flags;
-	/* Commands will have a CAN_QUERY flag, depending on whether they have
-	 * something to return on a query. For example, 'windows' can return a result,
-	 * but 'other' cannot.
-	 * If some command causes an error, then it should reset queryflag to -1, so that
-	 * the process requesting the query can be notified that an error happened.
-	 */
-	if (!(n & CAN_QUERY) && queryflag >= 0) {
-		/* Query flag is set, but this command cannot be queried. */
-		OutputMsg(0, "%s command cannot be queried.", comms[nr].name);
-		queryflag = -1;
-		return;
-	}
-	if ((n & NEED_DISPLAY) && display == NULL) {
-		OutputMsg(0, "%s: %s: display required", rc_name, comms[nr].name);
-		queryflag = -1;
-		return;
-	}
-	if ((n & NEED_FORE) && fore == NULL) {
-		OutputMsg(0, "%s: %s: window required", rc_name, comms[nr].name);
-		queryflag = -1;
-		return;
-	}
-	if ((n & NEED_LAYER) && flayer == NULL) {
-		OutputMsg(0, "%s: %s: display or window required", rc_name, comms[nr].name);
-		queryflag = -1;
 		return;
 	}
 	if ((argc = CheckArgNum(nr, args)) < 0)
