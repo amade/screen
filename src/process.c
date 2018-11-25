@@ -4660,8 +4660,8 @@ static void DoCommandCjkwidth(struct action *act)
 
 static void DoCommandTruecolor(struct action *act)
 {
-	ParseOnOff(act, &hastruecolor);
-	Activate(-1);
+	if (ParseOnOff(act, &hastruecolor) == 0)
+		Activate(-1);
 }
 
 void DoAction(struct action *act)
