@@ -1048,8 +1048,8 @@ static void DoCommandLog(struct action *act)
 {
 	bool b = fore->w_log ? true : false;
 
-	ParseSwitch(act, &b);
-	LogToggle(b);
+	if (ParseSwitch(act, &b) == 0)
+		LogToggle(b);
 }
 
 
