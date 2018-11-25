@@ -2891,7 +2891,7 @@ static void DoCommandVerbose(struct action *act)
 	if (!*args)
 		OutputMsg(0, "W%s echo command when creating windows.", VerboseCreate ? "ill" : "on't");
 	else
-		ParseOnOff(act, &VerboseCreate);
+		(void)ParseOnOff(act, &VerboseCreate);
 }
 
 static void DoCommandHardstatus(struct action *act)
