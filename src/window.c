@@ -1837,6 +1837,9 @@ int SwapWindows(int old, int dest)
 		return 0;
 	}
 
+	if (old == dest)
+		return 1;
+
 	win_a = GetWindowByNumber(old);
 	win_b = GetWindowByNumber(dest);
 
