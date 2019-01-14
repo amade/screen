@@ -538,11 +538,14 @@ AC_TRY_RUN([
 
 char *nam = "/tmp/conftest$$";
 
+#ifdef NAMEDPIPE
+
 #ifndef O_NONBLOCK
 #define O_NONBLOCK O_NDELAY
+#endif
 #ifndef S_IFIFO
 #define S_IFIFO 0010000
-
+#endif
 
 main()
 {
