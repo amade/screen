@@ -73,7 +73,6 @@ static void pseu_writeev_fn(Event *, void *);
 static void win_silenceev_fn(Event *, void *);
 static void win_destroyev_fn(Event *, void *);
 
-static int OpenDevice(char **, int, int *, char **);
 static int ForkWindow(Window *, char **, char *);
 static void zmodem_found(Window *, int, char *, size_t);
 static void zmodemFin(char *, size_t, void *);
@@ -893,7 +892,7 @@ void FreeWindow(Window *window)
 	free((char *)window);
 }
 
-static int OpenDevice(char **args, int lflag, int *typep, char **namep)
+int OpenDevice(char **args, int lflag, int *typep, char **namep)
 {
 	char *arg = args[0];
 	struct stat st;

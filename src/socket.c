@@ -832,7 +832,13 @@ void ReceiveMsg(void)
 		AskPassword(&m);
 		break;
 	case MSG_ERROR:
-		Msg(0, "%s", m.m.message);
+		{
+			int blocked = D_blocked;
+			if (D_blocked == 4)	/* allow error messages while in blanker mode */
+				D_blocked = 0;	/* likely they're from failed blanker */
+			Msg(0, "%s", m.m.message);
+			D_blocked = blocked;
+		}
 		break;
 	case MSG_HANGUP:
 		if (!win)	/* ignore hangups from inside */

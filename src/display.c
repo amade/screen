@@ -2944,6 +2944,7 @@ void RunBlanker(char **cmdv)
 	char *m;
 	pid_t pid;
 	int slave = -1;
+	int ptype = 0;
 	char termname[MAXTERMLEN + 6];
 	char **np;
 
@@ -2952,8 +2953,8 @@ void RunBlanker(char **cmdv)
 	termname[ARRAY_SIZE(termname) - 1] = 0;
 	KillBlanker();
 	D_blankerpid = -1;
-	if ((D_blankerev.fd = OpenPTY(&m)) == -1) {
-		Msg(0, "OpenPty failed");
+	if ((D_blankerev.fd = OpenDevice(cmdv, 0, &ptype, &m)) == -1) {
+		Msg(0, "OpenDevice failed");
 		return;
 	}
 #ifdef O_NOCTTY
@@ -2983,10 +2984,17 @@ void RunBlanker(char **cmdv)
 		eff_gid = real_gid;
 		brktty(D_userfd);
 		freetty();
+		if (slave != -1) {
+			close(0);
+			dup(slave);
+			close(slave);
+			closeallfiles(D_blankerev.fd);
+			slave = dup(0);
+		} else
+			closeallfiles(D_blankerev.fd);
 		close(0);
 		close(1);
 		close(2);
-		closeallfiles(slave);
 		if (open(m, O_RDWR))
 			Panic(errno, "Cannot open %s", m);
 		if (dup(0) < 0)
@@ -2995,6 +3003,7 @@ void RunBlanker(char **cmdv)
 			Panic(errno, "Cannot dup() %s", m);
 		if (slave != -1)
 			close(slave);
+		close(D_blankerev.fd);
 		fgtty(0);
 		SetTTY(0, &D_OldMode);
 		np = NewEnv + 3;
@@ -3005,7 +3014,7 @@ void RunBlanker(char **cmdv)
 		(void)ioctl(0, TIOCSWINSZ, (char *)&glwz);
 		display = NULL;
 		execvpe(*cmdv, cmdv, NewEnv + 3);
-		Panic(errno, "%s", *cmdv);
+		Panic(errno, "Cannot exec '%s'", *cmdv);
 	default:
 		break;
 	}

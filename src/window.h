@@ -331,6 +331,7 @@ void  nwin_compose (struct NewWindow *, struct NewWindow *, struct NewWindow *);
 int   DoStartLog (Window *, char *, int);
 int   ReleaseAutoWritelock (Display *, Window *);
 int   ObtainAutoWritelock (Display *, Window *);
+int   OpenDevice(char **, int, int *, char **);
 void  CloseDevice (Window *);
 void  zmodem_abort(Window *, Display *);
 void  WindowDied (Window *, int, int);
