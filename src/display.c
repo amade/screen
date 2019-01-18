@@ -3959,6 +3959,7 @@ char **cmdv;
   char *m;
   int pid;
   int slave = -1;
+  int ptype = 0;
   char termname[MAXTERMLEN + 6];
 #ifndef TIOCSWINSZ
   char libuf[20], cobuf[20];
@@ -3970,9 +3971,9 @@ char **cmdv;
   termname[sizeof(termname) - 1] = 0;
   KillBlanker();
   D_blankerpid = -1;
-  if ((D_blankerev.fd = OpenPTY(&m)) == -1)
+  if ((D_blankerev.fd = OpenDevice(cmdv, 0, &ptype, &m)) == -1)
     {
-      Msg(0, "OpenPty failed");
+      Msg(0, "OpenDevice failed");
       return;
     }
 #ifdef O_NOCTTY
@@ -3998,12 +3999,8 @@ char **cmdv;
     case 0:
       displays = 0;
       ServerSocket = -1;
-#ifdef DEBUG
-      if (dfp && dfp != stderr)
-	{
-	  fclose(dfp);
-	  dfp = 0;
-	}
+#ifdef SIGPIPE
+      signal(SIGPIPE, SIG_DFL);
 #endif
       if (setgid(real_gid) || setuid(real_uid))
         Panic(errno, "setuid/setgid");
@@ -4011,14 +4008,41 @@ char **cmdv;
       eff_gid = real_gid;
       brktty(D_userfd);
       freetty();
+#ifdef DEBUG
+      if (dfp && dfp != stderr)
+	  fclose(dfp);
+#endif
+      if (slave != -1)
+	{
+	  close(0);
+	  dup(slave);
+	  close(slave);
+	  closeallfiles(D_blankerev.fd);
+	  slave = dup(0);
+	}
+      else
+        closeallfiles(D_blankerev.fd);
+#ifdef DEBUG
+      if (dfp)
+        {
+          char buf[256];
+
+	  sprintf(buf, "%s/screen.blanker", DEBUGDIR);
+	  if ((dfp = fopen(buf, "a")) == 0)
+	    dfp = stderr;
+	  else
+	    (void) chmod(buf, 0666);
+	}
+      debug1("=== RunBlanker: pid %d\n", (int)getpid());
+#endif
       close(0);
       close(1);
       close(2);
-      closeallfiles(slave);
       if (open(m, O_RDWR))
 	Panic(errno, "Cannot open %s", m);
       dup(0);
       dup(0);
+      close(D_blankerev.fd);
       if (slave != -1)
 	close(slave);
       InitPTY(0);
@@ -4032,17 +4056,17 @@ char **cmdv;
       glwz.ws_row = D_height;
       (void)ioctl(0, TIOCSWINSZ, (char *)&glwz);
 #else
+      /* Always turn off nonblocking mode */
+      (void)fcntl(0, F_SETFL, 0);
       sprintf(libuf, "LINES=%d", D_height);
       sprintf(cobuf, "COLUMNS=%d", D_width);
       *np++ = libuf;
       *np++ = cobuf;
 #endif
-#ifdef SIGPIPE
-      signal(SIGPIPE, SIG_DFL);
-#endif
-      display = 0;
+      debug1("calling execvpe %s\n", *cmdv);
       execvpe(*cmdv, cmdv, NewEnv + 3);
-      Panic(errno, "%s", *cmdv);
+      debug1("exec error: %d\n", errno);
+      Panic(errno, "Cannot exec '%s'", *cmdv);
     default:
       break;
     }

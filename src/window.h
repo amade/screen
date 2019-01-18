@@ -351,6 +351,7 @@ struct win
 #define Layer2Window(l) ((struct win *)(l)->l_bottom->l_data)
 
 int WindowChangeNumber __P((int, int));
+int OpenDevice __P((char **, int, int *, char **));
 
 #endif /* SCREEN_WINDOW_H */
 

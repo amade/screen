@@ -742,6 +742,7 @@ char *tty, *buf;
   struct msg m;
   bool is_socket;
 
+  debug2("SendErrorMsg: %s %s\n", tty, buf);
   strncpy(m.m.message, buf, sizeof(m.m.message) - 1);
   m.m.message[sizeof(m.m.message) - 1] = 0;
   is_socket = IsSocket(SockPath);
@@ -1237,7 +1238,13 @@ ReceiveMsg()
           FinishAttach(&m);
         break;
       case MSG_ERROR:
+      {
+        int blocked=D_blocked;
+        if(D_blocked == 4) /* allow error messages while in blanker mode */
+          D_blocked=0; /* likely they're from failed blanker */
         Msg(0, "%s", m.m.message);
+        D_blocked=blocked;
+      }
         break;
       case MSG_HANGUP:
         if (!wi) /* ignore hangups from inside */
