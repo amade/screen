@@ -572,12 +572,15 @@ int printpipe(Window *p, char *cmd)
 	case 0:
 		display = p->w_pdisplay;
 		displays = NULL;
+		ServerSocket = -1;
 		close(0);
 		if (dup(pi[0]) < 0)
 			Panic(errno, "printpipe dup");
 		closeallfiles(0);
 		if (setgid(real_gid) || setuid(real_uid))
 			Panic(errno, "printpipe setuid");
+		eff_uid = real_uid;
+		eff_gid = real_gid;
 #ifdef SIGPIPE
 		xsignal(SIGPIPE, SIG_DFL);
 #endif
@@ -604,6 +607,7 @@ int readpipe(char **cmdv)
 		return -1;
 	case 0:
 		displays = NULL;
+		ServerSocket = -1;
 		close(1);
 		if (dup(pi[1]) != 1) {
 			close(pi[1]);
@@ -614,6 +618,8 @@ int readpipe(char **cmdv)
 			close(1);
 			Panic(errno, "setuid/setgid");
 		}
+		eff_uid = real_uid;
+		eff_gid = real_gid;
 		execvp(*cmdv, cmdv);
 		close(1);
 		Panic(errno, "%s", *cmdv);

@@ -1049,6 +1049,7 @@ static int ForkWindow(Window *win, char **args, char *ttyn)
 #endif
 
 		displays = NULL;	/* beware of Panic() */
+		ServerSocket = -1;
 		if (setgid(real_gid) || setuid(real_uid))
 			Panic(errno, "Setuid/gid");
 		eff_uid = real_uid;

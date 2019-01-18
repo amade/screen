@@ -189,9 +189,9 @@ int Attach(int how)
 		/* This call to xsetuid should also set the saved uid */
 		xseteuid(real_uid);	/* multi_uid, allow backend to send signals */
 	}
+	eff_uid = real_uid;
 	if (setgid(real_gid))
 		Panic(errno, "setgid");
-	eff_uid = real_uid;
 	eff_gid = real_gid;
 
 	MasterPid = 0;
