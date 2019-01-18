@@ -52,6 +52,7 @@ extern char *screenlogfile;
 extern char HostName[];
 extern int TtyMode;
 extern int SilenceWait;
+extern int ServerSocket;
 extern int real_uid, real_gid, eff_uid, eff_gid;
 extern char Termcap[];
 extern char **NewEnv;
@@ -1269,6 +1270,7 @@ char **args, *ttyn;
 #endif
 
       displays = 0;		/* beware of Panic() */
+      ServerSocket = -1;
       if (setgid(real_gid) || setuid(real_uid))
 	Panic(errno, "Setuid/gid");
       eff_uid = real_uid;
