@@ -714,7 +714,7 @@ char *MakeTermcap(bool aflag)
 		tcLineLen = 100;	/* Force NL */
 	}
 	if (Termcaplen + strlen(TermcapConst) < TERMCAP_BUFSIZE) {
-		strcpy(Termcap + Termcaplen, (char *)TermcapConst);
+		strcpy(Termcap + Termcaplen, TermcapConst);
 		Termcaplen += strlen(TermcapConst);
 	}
 	sprintf(buf, "li#%d:co#%d:", height, width);
