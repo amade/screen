@@ -57,6 +57,6 @@ struct Event {
 void evenq (Event *);
 void evdeq (Event *);
 void SetTimeout (Event *, int);
-void sched (void);
+void sched (void) __attribute__((__noreturn__));
 
 #endif /* SCREEN_SCHED_H */
