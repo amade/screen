@@ -1279,12 +1279,12 @@ static void DoCommandAt(struct action *act)
 			else {
 				for (u = users; u; u = u->u_next) {
 					if (!strncmp(*args, u->u_name, n))
-						return;
+						goto out;
 				}
 				if (!u) {
 					args[0][n] = '\0';
 					OutputMsg(0, "Did not find any user matching '%s'", args[0]);
-					return;
+					goto out;
 				}
 			}
 			for (display = displays; display; display = nd) {
@@ -1303,8 +1303,8 @@ static void DoCommandAt(struct action *act)
 				flayer = NULL;
 				fore = NULL;
 			}
-			return;
 		}
+		break;
 	case '%':	/* display */
 		{
 			Display *nd;
@@ -1328,8 +1328,8 @@ static void DoCommandAt(struct action *act)
 				fore = NULL;
 				flayer = NULL;
 			}
-			return;
 		}
+		break;
 	case '#':	/* window */
 		n--;
 		/* FALLTHROUGH */
@@ -1370,7 +1370,7 @@ static void DoCommandAt(struct action *act)
 				fore = NULL;
 				if (i < 0)
 					OutputMsg(0, "%s: at '%s': no such window.\n", rc_name, args[0]);
-				return;
+				goto out;
 			} else if ((fore = GetWindowByNumber(i))) {
 				args[0][n] = ch;	/* must restore string in case of bind */
 				if (fore->w_layer.l_cvlist)
@@ -1386,9 +1386,9 @@ static void DoCommandAt(struct action *act)
 				fore = NULL;
 			} else
 				OutputMsg(0, "%s: at [identifier][%%|*|#] command [args]", rc_name);
-			return;
 		}
 	}
+out:
 	free(s);
 	EffectiveAclUser = NULL;
 }
