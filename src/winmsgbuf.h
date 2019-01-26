@@ -60,7 +60,7 @@ typedef struct {
 } WinMsgBufContext;
 
 
-WinMsgBuf *wmb_create();
+WinMsgBuf *wmb_create(void);
 void wmb_reset(WinMsgBuf *);
 size_t wmb_expand(WinMsgBuf *, size_t);
 void wmb_rendadd(WinMsgBuf *, uint64_t, int);
