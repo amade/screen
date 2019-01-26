@@ -38,7 +38,7 @@
 #include "winmsg.h"
 
 /* TODO: get rid of global var */
-Backtick *backticks;
+static Backtick *backticks;
 
 static void backtick_filter(struct backtick *bt)
 {
