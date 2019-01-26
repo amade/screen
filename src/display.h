@@ -372,6 +372,7 @@ void  NukePending (void);
 void  ClearAllXtermOSC (void);
 void  SetXtermOSC (int, char *, char *);
 void  ResetIdle (void);
+void  RunBlanker (char **);
 void  KillBlanker (void);
 void  DisplaySleep1000 (int, int);
 void  ClearScrollbackBuffer (void);
