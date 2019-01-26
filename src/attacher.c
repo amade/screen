@@ -54,6 +54,7 @@ static void AttacherSigInt(int);
 static void AttacherWinch(int);
 static void DoLock(int);
 static void AttachSigCont(int);
+static void AttacherFinitBye(int sigsig) __attribute__((__noreturn__));
 
 static bool AttacherPanic = false;
 static bool ContinuePlease = false;
