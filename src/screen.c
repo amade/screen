@@ -295,7 +295,7 @@ int main(int argc, char **argv)
 	 *  (otherwise, we might have problems with the select() call)
 	 */
 	closeallfiles(0);
-	snprintf(version, 59, "%d.%d.%d (build on %s %s) ", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, __DATE__, __TIME__);
+	snprintf(version, 59, "%d.%d.%d (build on %s) ", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, BUILD_DATE);
 	nversion = VERSION_MAJOR * 10000 + VERSION_MINOR * 100 + VERSION_REVISION;
 
 	BellString = SaveStr("Bell in window %n");

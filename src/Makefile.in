@@ -22,11 +22,18 @@ bindir  = $(exec_prefix)/bin
 VERSION = @PACKAGE_VERSION@
 SCREEN = screen-$(VERSION)
 
+DATE_FMT = %Y-%m-%d %H:%m:%S
+ifdef SOURCE_DATE_EPOCH
+    BUILD_DATE := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "+$(DATE_FMT)"  2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "+$(DATE_FMT)" 2>/dev/null || date -u "+$(DATE_FMT)")
+else
+    BUILD_DATE := $(shell date "+$(DATE_FMT)")
+endif
+
 SCREENENCODINGS = $(datadir)/screen/utf8encodings
 
 CC = @CC@
 CFLAGS = @CFLAGS@ -Wall -Wextra -std=c11
-CPPFLAGS = @CPPFLAGS@ -iquote. -DSCREENENCODINGS='"$(SCREENENCODINGS)"'
+CPPFLAGS = @CPPFLAGS@ -iquote. -DSCREENENCODINGS='"$(SCREENENCODINGS)"' -DBUILD_DATE='"$(BUILD_DATE)"'
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 
