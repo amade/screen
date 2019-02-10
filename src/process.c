@@ -746,8 +746,9 @@ void ProcessInput2(char *ibuf, size_t ilen)
 			if (ilen == 1) {
 				D_ESCseen = ktab;
 				WindowChanged(fore, WINESC_ESC_SEEN);
-				ilen--;
 			}
+			if (ilen > 0)
+				ilen--;
 		}
 		if (ilen == 0)
 			return;
