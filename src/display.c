@@ -626,10 +626,10 @@ void BracketedPasteMode(bool mode)
 		if (!D_CXT)
 			return;
 		if (D_bracketed) {
-			AddStr("\033[?2004l\a");
+			AddStr("\033[?2004l");
 		}
 		if (mode) {
-			AddStr("\033[?2004h\a");
+			AddStr("\033[?2004h");
 		}
 		D_bracketed = mode;
 	}
