@@ -431,7 +431,6 @@ static void RAW_PUTCHAR(uint32_t c)
 {
 
 	if (D_encoding == UTF8) {
-		c = (c & 255) | (unsigned char)D_rend.font << 8;
 		if (D_mbcs) {
 			c = D_mbcs;
 			if (D_x == D_width)
