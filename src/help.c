@@ -468,7 +468,7 @@ static const char cpmsg[] = "\
 \n\
 GNU Screen version %v\n\
 \n\
-Copyright (c) 2018  Alexander Naumov, Amadeusz Slawinski\n\
+Copyright (c) 2018-2019 Alexander Naumov, Amadeusz Slawinski\n\
 Copyright (c) 2015-2017 Juergen Weigert, Alexander Naumov, Amadeusz Slawinski\n\
 Copyright (c) 2010-2014 Juergen Weigert, Sadrul Habib Chowdhury\n\
 Copyright (c) 2008-2009 Juergen Weigert, Michael Schroeder, Micah Cowan, Sadrul Habib Chowdhury\n\
