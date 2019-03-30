@@ -1111,7 +1111,7 @@ static void AskPassword(Message *m)
 	pwdata->len = 0;
 	pwdata->m = *m;
 
-	D_processinputdata = (char *)pwdata;
+	D_processinputdata = pwdata;
 	D_processinput = PasswordProcessInput;
 
 	/* if GECOS data is CSV, we only want the text before the first comma */
@@ -1221,7 +1221,7 @@ static void PasswordProcessInput(char *ibuf, size_t ilen)
 	size_t len;
 	int pid = D_userpid;
 
-	pwdata = (struct pwdata *)D_processinputdata;
+	pwdata = D_processinputdata;
 	len = pwdata->len;
 	while (ilen-- > 0) {
 		c = *(unsigned char *)ibuf++;
