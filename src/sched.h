@@ -44,7 +44,7 @@ typedef struct Event Event;
 struct Event {
 	Event *next;
 	void (*handler) (Event *, void *);
-	char *data;
+	void *data;
 	int fd;
 	EventType type;
 	int priority;
