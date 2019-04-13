@@ -513,6 +513,7 @@ void SendCmdMessage(char *sty, char *match, char **av, int query)
 
 		/* Read the result and spit it out to stdout */
 		ReceiveRaw(r);
+		close(r);
 		unlink(SocketPath);
 		if (QueryResult == 2)	/* An error happened */
 			exit(1);
