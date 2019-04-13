@@ -462,6 +462,7 @@ void SendCreateMsg(char *sty, struct NewWindow *nwin)
 	m.m.create.aflag = nwin->aflag;
 	m.m.create.flowflag = nwin->flowflag;
 	m.m.create.lflag = nwin->lflag;
+	m.m.create.Lflag = nwin->Lflag;
 	m.m.create.hheight = nwin->histheight;
 	if (getcwd(m.m.create.dir, ARRAY_SIZE(m.m.create.dir)) == NULL) {
 		Msg(errno, "getcwd");
@@ -540,6 +541,7 @@ static void ExecCreate(Message *mp)
 	if (*mp->m.create.dir)
 		nwin.dir = mp->m.create.dir;
 	nwin.lflag = mp->m.create.lflag;
+	nwin.Lflag = mp->m.create.Lflag;
 	nwin.histheight = mp->m.create.hheight;
 	if (*mp->m.create.screenterm)
 		nwin.term = mp->m.create.screenterm;
