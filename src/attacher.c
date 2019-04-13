@@ -235,8 +235,6 @@ int Attach(int how)
 			pause();	/* wait for SIGCONT */
 		xsignal(SIGCONT, SIG_DFL);
 		ContinuePlease = false;
-		if (how != MSG_ATTACH)
-			return 0;	/* we detached it. jw. */
 		sleep(1);	/* we dont want to overrun our poor backend. jw. */
 		if ((lasts = MakeClientSocket(0)) == -1)
 			Panic(0, "Cannot contact screen again. Sigh.");
