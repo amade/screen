@@ -1390,7 +1390,7 @@ static void DoCommandMsg(Message *mp)
 		flayer = fore ? &fore->w_layer : NULL;
 		if (fore && fore->w_savelayer && (fore->w_blocked || fore->w_savelayer->l_cvlist == NULL))
 			flayer = fore->w_savelayer;
-		DoCommand(args, argl);
+		DoCommand(argc, args, argl);
 		rc_name = oldrcname;
 	}
 	EffectiveAclUser = NULL;

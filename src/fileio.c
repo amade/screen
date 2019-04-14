@@ -305,7 +305,7 @@ void RcLine(char *ubuf, int ubufl)
 		/* the session owner does it, when there is no display here */
 		EffectiveAclUser = users;
 	}
-	DoCommand(args, argl);
+	DoCommand(argc, args, argl);
 	EffectiveAclUser = NULL;
 }
 

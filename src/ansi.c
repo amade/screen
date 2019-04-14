@@ -1257,7 +1257,7 @@ static int StringEnd(Window *win)
 				EffectiveAclUser = windowuser;
 				fore = win;
 				flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
-				DoCommand(args, argl);
+				DoCommand(argc, args, argl);
 				EffectiveAclUser = NULL;
 				fore = NULL;
 				flayer = NULL;

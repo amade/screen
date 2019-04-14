@@ -1350,6 +1350,7 @@ static void DoCommandAt(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int *argl = act->argl;
+	int argc = act->argc;
 	struct acluser *user = display ? D_user : users;
 	char *s;
 	size_t n;
@@ -1398,7 +1399,7 @@ static void DoCommandAt(struct action *act, int quiet)
 				fore = D_fore;
 				if (D_user != u)
 					continue;
-				DoCommand(args + 1, argl + 1);
+				DoCommand(argc, args + 1, argl + 1);
 				if (display)
 					OutputMsg(0, "command from %s: %s %s",
 						  s, args[1], args[2] ? args[2] : "");
@@ -1423,7 +1424,7 @@ static void DoCommandAt(struct action *act, int quiet)
 				     strncmp(args[0], D_usertty + 5, n)) &&
 				    (strncmp("/dev/tty", D_usertty, 8) || strncmp(args[0], D_usertty + 8, n)))
 					continue;
-				DoCommand(args + 1, argl + 1);
+				DoCommand(argc, args + 1, argl + 1);
 				if (display)
 					OutputMsg(0, "command from %s: %s %s",
 						  s, args[1], args[2] ? args[2] : "");
@@ -1462,7 +1463,7 @@ static void DoCommandAt(struct action *act, int quiet)
 					if (fore->w_layer.l_cvlist)
 						display = fore->w_layer.l_cvlist->c_display;
 					flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
-					DoCommand(args + 1, argl + 1);	/* may destroy our display */
+					DoCommand(argc, args + 1, argl + 1);	/* may destroy our display */
 					if (fore && fore->w_layer.l_cvlist) {
 						display = fore->w_layer.l_cvlist->c_display;
 						OutputMsg(0, "command from %s: %s %s",
@@ -1479,7 +1480,7 @@ static void DoCommandAt(struct action *act, int quiet)
 				if (fore->w_layer.l_cvlist)
 					display = fore->w_layer.l_cvlist->c_display;
 				flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
-				DoCommand(args + 1, argl + 1);
+				DoCommand(argc, args + 1, argl + 1);
 				if (fore && fore->w_layer.l_cvlist) {
 					display = fore->w_layer.l_cvlist->c_display;
 					OutputMsg(0, "command from %s: %s %s",
@@ -5818,7 +5819,7 @@ void CollapseWindowlist(void)
 		w->w_number = n++;
 }
 
-void DoCommand(char **argv, int *argl)
+void DoCommand(int argc, char **argv, int *argl)
 {
 	struct action act;
 	const char *cmd = *argv;
@@ -5840,6 +5841,7 @@ void DoCommand(char **argv, int *argl)
 		Msg(0, "%s: unknown command '%s'", rc_name, cmd);
 		return;
 	}
+	act.argc = argc - 1;
 	act.args = argv + 1;
 	act.argl = argl + 1;
 	DoAction(&act, quiet);

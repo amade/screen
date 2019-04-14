@@ -66,6 +66,7 @@ extern struct comm comms[];
 struct action
 {
   int nr;
+  int argc;
   char **args;
   int *argl;
   int quiet;	/* Suppress (currently unused)

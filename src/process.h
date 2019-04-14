@@ -9,7 +9,7 @@ void  ProcessInput2 (char *, size_t);
 void  DoProcess (Window *, char **, size_t *, struct paster *);
 void  DoAction  (struct action *, int);
 int   FindCommnr (const char *);
-void  DoCommand (char **, int *);
+void  DoCommand (int, char **, int *);
 void  Activate (int);
 void  KillWindow (Window *);
 void  SetForeWindow (Window *);
