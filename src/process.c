@@ -5898,32 +5898,32 @@ static char **SaveArgs(char **args)
  *
  * argc is returned.
  */
-int Parse(char *buf, int bufl, char **args, int *argl)
+int Parse(char *buf, int bufl, int *argc, char **args, int *argl)
 {
 	char *p = buf, **ap = args, *pp;
-	int delim, argc;
+	int delim;
 	int *lp = argl;
 
-	argc = 0;
+	*argc = 0;
 	pp = buf;
 	delim = 0;
 	for (;;) {
 		*lp = 0;
 		while (*p && (*p == ' ' || *p == '\t'))
 			++p;
-		if (argc == 0 && *p == '!') {
+		if (*argc == 0 && *p == '!') {
 			*ap++ = "exec";
 			*lp++ = 4;
 			p++;
-			argc++;
+			(*argc)++;
 			continue;
 		}
 		if (*p == '\0' || *p == '#' || *p == '\n') {
 			*p = '\0';
-			args[argc] = NULL;
-			return argc;
+			args[*argc] = NULL;
+			return *argc;
 		}
-		if (++argc >= MAXARGS) {
+		if (++(*argc) >= MAXARGS) {
 			Msg(0, "%s: too many tokens.", rc_name);
 			return 0;
 		}

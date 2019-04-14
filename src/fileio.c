@@ -178,7 +178,7 @@ int StartRc(char *rcfilename, int nopanic)
 	while (fgets(buf, ARRAY_SIZE(buf), fp) != NULL) {
 		if ((p = strrchr(buf, '\n')) != NULL)
 			*p = '\0';
-		if ((argc = Parse(buf, ARRAY_SIZE(buf), args, argl)) == 0)
+		if (Parse(buf, ARRAY_SIZE(buf), &argc, args, argl) == 0)
 			continue;
 		if (strcmp(args[0], "echo") == 0) {
 			if (!display)
@@ -292,13 +292,14 @@ void RcLine(char *ubuf, int ubufl)
 {
 	char *args[MAXARGS];
 	int argl[MAXARGS];
+	int argc;
 
 	if (display) {
 		fore = D_fore;
 		flayer = D_forecv->c_layer;
 	} else
 		flayer = fore ? fore->w_savelayer : NULL;
-	if (Parse(ubuf, ubufl, args, argl) <= 0)
+	if (Parse(ubuf, ubufl, &argc, args, argl) <= 0)
 		return;
 	if (!display) {
 		/* the session owner does it, when there is no display here */

@@ -1303,6 +1303,7 @@ static void DoCommandMsg(Message *mp)
 {
 	char *args[MAXARGS];
 	int argl[MAXARGS];
+	int argc;
 	char fullcmd[MAXSTR];
 	char *fc;
 	int n;
@@ -1326,7 +1327,7 @@ static void DoCommandMsg(Message *mp)
 	}
 	if (fc != fullcmd)
 		*--fc = 0;
-	if (Parse(fullcmd, ARRAY_SIZE(fullcmd), args, argl) <= 0) {
+	if (Parse(fullcmd, ARRAY_SIZE(fullcmd), &argc, args, argl) <= 0) {
 		queryflag = -1;
 		return;
 	}

@@ -1240,12 +1240,13 @@ static int StringEnd(Window *win)
 		p++;
 		if (typ == 83) {	/* 83 = 'S' */
 			/* special execute commands sequence */
+			int argc;
 			char *args[MAXARGS];
 			int argl[MAXARGS];
 			struct acluser *windowuser;
 
 			windowuser = *FindUserPtr(":window:");
-			if (windowuser && Parse(p, ARRAY_SIZE(win->w_string) - (p - win->w_string), args, argl)) {
+			if (windowuser && Parse(p, ARRAY_SIZE(win->w_string) - (p - win->w_string), &argc, args, argl)) {
 				for (display = displays; display; display = display->d_next)
 					if (D_forecv->c_layer->l_bottom == &win->w_layer)
 						break;	/* found it */

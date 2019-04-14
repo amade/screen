@@ -13,7 +13,7 @@ void  DoCommand (char **, int *);
 void  Activate (int);
 void  KillWindow (Window *);
 void  SetForeWindow (Window *);
-int   Parse (char *, int, char **, int *);
+int   Parse (char *, int, int *, char **, int *);
 void  SetEscape (struct acluser *, int, int);
 void  DoScreen (char *, char **);
 int   IsNumColon (char *, char *, int);
