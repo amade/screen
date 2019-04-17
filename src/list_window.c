@@ -84,7 +84,7 @@ static void window_kill_confirm(char *buf, size_t len, void *data)
 	struct action act;
 
 	if (len || (*buf != 'y' && *buf != 'Y')) {
-		*buf = 0;
+		memset(buf, 0, len);
 		return;
 	}
 

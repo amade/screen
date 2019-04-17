@@ -6634,7 +6634,7 @@ static void copy_reg_fn(char *buf, size_t len, void *data)
 	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
 	if (len) {
-		*buf = 0;
+		memset(buf, 0, len);
 		return;
 	}
 	if (pp->buf)
@@ -6660,7 +6660,7 @@ static void ins_reg_fn(char *buf, size_t len, void *data)
 	struct plop *pp = plop_tab + (int)(unsigned char)*buf;
 
 	if (len) {
-		*buf = 0;
+		memset(buf, 0, len);
 		return;
 	}
 	if (!fore)
@@ -6681,7 +6681,7 @@ static void process_fn(char *buf, size_t len, void *data)
 	(void)data; /* unused */
 
 	if (len) {
-		*buf = 0;
+		memset(buf, 0, len);
 		return;
 	}
 	if (pp->buf) {
@@ -6696,7 +6696,7 @@ static void confirm_fn(char *buf, size_t len, void *data)
 	struct action act;
 
 	if (len || (*buf != 'y' && *buf != 'Y')) {
-		*buf = 0;
+		memset(buf, 0, len);
 		return;
 	}
 	act.nr = *(int *)data;
