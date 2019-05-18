@@ -247,7 +247,7 @@ void RestoreLoginSlot(void)
 int SetUtmp(Window *win)
 {
 	slot_t slot;
-	struct utmpx u;
+	struct utmpx u = { 0 };
 	int saved_ut;
 #if defined(HAVE_UT_HOST)
 	char host[ARRAY_SIZE(u.ut_host)];
@@ -262,7 +262,6 @@ int SetUtmp(Window *win)
 		return -1;
 	}
 
-	memset((char *)&u, 0, sizeof(struct utmpx));
 	if ((saved_ut = memcmp((char *)&win->w_savut, (char *)&u, sizeof(struct utmpx))))
 		/* restore original, of which we will adopt all fields but ut_host */
 		memmove((char *)&u, (char *)&win->w_savut, sizeof(struct utmpx));
@@ -280,7 +279,7 @@ int SetUtmp(Window *win)
 
 	snprintf(host + strlen(host), ARRAY_SIZE(host) - strlen(host), ":S.%d", win->w_number);
 
-	strncpy(u.ut_host, host, ARRAY_SIZE(u.ut_host));
+	memcpy(u.ut_host, host, ARRAY_SIZE(u.ut_host));
 #endif
 
 	if (pututslot(slot, &u, host, win) == 0) {
@@ -299,7 +298,8 @@ int SetUtmp(Window *win)
 
 int RemoveUtmp(Window *win)
 {
-	struct utmpx u, *uu;
+	struct utmpx u = { 0 };
+	struct utmpx *uu;
 	slot_t slot;
 
 	slot = win->w_slot;
@@ -309,7 +309,6 @@ int RemoveUtmp(Window *win)
 		win->w_slot = (slot_t)-1;
 		return 0;
 	}
-	memset((char *)&u, 0, sizeof(struct utmpx));
 	if ((uu = getutslot(slot)) == NULL) {
 		Msg(0, "Utmp slot not found -> not removed");
 		return -1;
@@ -334,9 +333,8 @@ int RemoveUtmp(Window *win)
 
 static struct utmpx *getutslot(slot_t slot)
 {
-	struct utmpx u;
-	memset((char *)&u, 0, sizeof(struct utmpx));
-	strncpy(u.ut_line, (char *)slot, ARRAY_SIZE(u.ut_line));
+	struct utmpx u = { 0 };
+	memcpy(u.ut_line, (char *)slot, ARRAY_SIZE(u.ut_line));
 	setutxent();
 	return getutxline(&u);
 }
@@ -376,10 +374,10 @@ static void makeuser(struct utmpx *u, char *line, char *user, pid_t pid)
 {
 	time_t now;
 	u->ut_type = USER_PROCESS;
-	strncpy(u->ut_user, user, ARRAY_SIZE(u->ut_user));
+	memcpy(u->ut_user, user, ARRAY_SIZE(u->ut_user));
 	/* Now the tricky part... guess ut_id */
-	strncpy(u->ut_id, line + 3, ARRAY_SIZE(u->ut_id));
-	strncpy(u->ut_line, line, ARRAY_SIZE(u->ut_line));
+	memcpy(u->ut_id, line + 3, ARRAY_SIZE(u->ut_id));
+	memcpy(u->ut_line, line, ARRAY_SIZE(u->ut_line));
 	u->ut_pid = pid;
 	/* must use temp variable because of NetBSD/sparc64, where
 	 * ut_xtime is long(64) but time_t is int(32) */
