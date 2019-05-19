@@ -1242,11 +1242,10 @@ static int StringEnd(Window *win)
 			/* special execute commands sequence */
 			int argc;
 			char *args[MAXARGS];
-			int argl[MAXARGS];
 			struct acluser *windowuser;
 
 			windowuser = *FindUserPtr(":window:");
-			if (windowuser && Parse(p, ARRAY_SIZE(win->w_string) - (p - win->w_string), &argc, args, argl)) {
+			if (windowuser && Parse(p, ARRAY_SIZE(win->w_string) - (p - win->w_string), &argc, args)) {
 				for (display = displays; display; display = display->d_next)
 					if (D_forecv->c_layer->l_bottom == &win->w_layer)
 						break;	/* found it */
@@ -1257,7 +1256,7 @@ static int StringEnd(Window *win)
 				EffectiveAclUser = windowuser;
 				fore = win;
 				flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
-				DoCommand(argc, args, argl);
+				DoCommand(argc, args);
 				EffectiveAclUser = NULL;
 				fore = NULL;
 				flayer = NULL;

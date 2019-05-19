@@ -319,7 +319,7 @@ int main(int argc, char **argv)
 	zmodem_sendcmd = SaveStr("!!! sz -vv -b ");
 	zmodem_recvcmd = SaveStr("!!! rz -vv -b -E");
 
-	CompileKeys(NULL, 0, mark_key_tab);
+	CompileKeys(NULL, mark_key_tab);
 	InitBuiltinTabs();
 	screenencodings = SaveStr(SCREENENCODINGS);
 	cjkwidth = 0;

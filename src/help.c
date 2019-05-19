@@ -270,7 +270,7 @@ static void AddAction(struct action *act, int x, int y)
 	char buf[256];
 	int del, l;
 	char *bp, *cp, **pp;
-	int *lp, ll;
+	int ll;
 	int fr;
 	struct mchar mchar_dol;
 
@@ -290,11 +290,10 @@ static void AddAction(struct action *act, int x, int y)
 	LPutChar(flayer, fr ? &mchar_blank : &mchar_dol, x++, y);
 
 	pp = act->args;
-	lp = act->argl;
 	while (pp && (cp = *pp) != NULL) {
+		ll = strlen(*pp);
 		del = 0;
 		bp = buf;
-		ll = *lp++;
 		if (!ll || (strchr(cp, ' ') != NULL)) {
 			if (strchr(cp, '\'') != NULL)
 				*bp++ = del = '"';

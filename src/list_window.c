@@ -100,7 +100,6 @@ static void window_kill_confirm(char *buf, size_t len, void *data)
 	fore = w;
 	act.nr = RC_KILL;
 	act.args = noargs;
-	act.argl = NULL;
 	act.quiet = 0;
 	DoAction(&act, 0);
 }

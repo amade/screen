@@ -71,7 +71,7 @@
 
 static int CheckArgNum(int, char **);
 static void ClearAction(struct action *);
-static void SaveAction(struct action *, int, char **, int *);
+static void SaveAction(struct action *, int, char **);
 static Window *NextWindow(void);
 static Window *PreviousWindow(void);
 static Window *ParentWindow(void);
@@ -387,18 +387,14 @@ void InitKeytab(void)
 	for (i = 0; i < ARRAY_SIZE(ktab); i++) {
 		ktab[i].nr = RC_ILLEGAL;
 		ktab[i].args = noargs;
-		ktab[i].argl = NULL;
 	}
 	for (i = 0; i < KMAP_KEYS + KMAP_AKEYS; i++) {
 		umtab[i].nr = RC_ILLEGAL;
 		umtab[i].args = noargs;
-		umtab[i].argl = NULL;
 		dmtab[i].nr = RC_ILLEGAL;
 		dmtab[i].args = noargs;
-		dmtab[i].argl = NULL;
 		mmtab[i].nr = RC_ILLEGAL;
 		mmtab[i].args = noargs;
-		mmtab[i].argl = NULL;
 	}
 	argarr[1] = NULL;
 	for (i = 0; i < NKMAPDEF; i++) {
@@ -409,7 +405,7 @@ void InitKeytab(void)
 		if (kmapdef[i] == NULL)
 			continue;
 		argarr[0] = kmapdef[i];
-		SaveAction(dmtab + i + (KMAPDEFSTART - T_CAPS), RC_STUFF, argarr, NULL);
+		SaveAction(dmtab + i + (KMAPDEFSTART - T_CAPS), RC_STUFF, argarr);
 	}
 	for (i = 0; i < NKMAPADEF; i++) {
 		if (i + KMAPADEFSTART < T_CURSOR)
@@ -419,7 +415,7 @@ void InitKeytab(void)
 		if (kmapadef[i] == NULL)
 			continue;
 		argarr[0] = kmapadef[i];
-		SaveAction(dmtab + i + (KMAPADEFSTART - T_CURSOR + KMAP_KEYS), RC_STUFF, argarr, NULL);
+		SaveAction(dmtab + i + (KMAPADEFSTART - T_CURSOR + KMAP_KEYS), RC_STUFF, argarr);
 	}
 	for (i = 0; i < NKMAPMDEF; i++) {
 		if (i + KMAPMDEFSTART < T_CAPS)
@@ -430,7 +426,7 @@ void InitKeytab(void)
 			continue;
 		argarr[0] = kmapmdef[i];
 		argarr[1] = NULL;
-		SaveAction(mmtab + i + (KMAPMDEFSTART - T_CAPS), RC_STUFF, argarr, NULL);
+		SaveAction(mmtab + i + (KMAPMDEFSTART - T_CAPS), RC_STUFF, argarr);
 	}
 
 	ktab['h'].nr = RC_HARDCOPY;
@@ -444,8 +440,8 @@ void InitKeytab(void)
 		char *args[2];
 		args[0] = "--confirm";
 		args[1] = NULL;
-		SaveAction(ktab + 'k', RC_KILL, args, NULL);
-		SaveAction(ktab + Ctrl('k'), RC_KILL, args, NULL);
+		SaveAction(ktab + 'k', RC_KILL, args);
+		SaveAction(ktab + Ctrl('k'), RC_KILL, args);
 	}
 	ktab['l'].nr = ktab[Ctrl('l')].nr = RC_REDISPLAY;
 	ktab['w'].nr = ktab[Ctrl('w')].nr = RC_WINDOWS;
@@ -466,14 +462,14 @@ void InitKeytab(void)
 		char *args[2];
 		args[0] = "--confirm";
 		args[1] = NULL;
-		SaveAction(ktab + Ctrl('\\'), RC_QUIT, args, NULL);
+		SaveAction(ktab + Ctrl('\\'), RC_QUIT, args);
 	}
 	ktab['d'].nr = ktab[Ctrl('d')].nr = RC_DETACH;
 	{
 		char *args[2];
 		args[0] = "--confirm";
 		args[1] = NULL;
-		SaveAction(ktab + 'D', RC_POW_DETACH, args, NULL);
+		SaveAction(ktab + 'D', RC_POW_DETACH, args);
 	}
 	ktab['r'].nr = ktab[Ctrl('r')].nr = RC_WRAP;
 	ktab['f'].nr = ktab[Ctrl('f')].nr = RC_FLOW;
@@ -487,21 +483,21 @@ void InitKeytab(void)
 		char *args[2];
 		args[0] = "-";
 		args[1] = NULL;
-		SaveAction(ktab + '-', RC_SELECT, args, NULL);
+		SaveAction(ktab + '-', RC_SELECT, args);
 	}
 	for (i = 0; i < 10; i++) {
 		char *args[2], arg1[10];
 		args[0] = arg1;
 		args[1] = NULL;
 		sprintf(arg1, "%d", i);
-		SaveAction(ktab + '0' + i, RC_SELECT, args, NULL);
+		SaveAction(ktab + '0' + i, RC_SELECT, args);
 	}
 	ktab['\''].nr = RC_SELECT;	/* calling a window by name */
 	{
 		char *args[2];
 		args[0] = "-b";
 		args[1] = NULL;
-		SaveAction(ktab + '"', RC_WINDOWLIST, args, NULL);
+		SaveAction(ktab + '"', RC_WINDOWLIST, args);
 	}
 	ktab[Ctrl('G')].nr = RC_VBELL;
 	ktab[':'].nr = RC_COLON;
@@ -510,8 +506,8 @@ void InitKeytab(void)
 		char *args[2];
 		args[0] = ".";
 		args[1] = NULL;
-		SaveAction(ktab + ']', RC_PASTE, args, NULL);
-		SaveAction(ktab + Ctrl(']'), RC_PASTE, args, NULL);
+		SaveAction(ktab + ']', RC_PASTE, args);
+		SaveAction(ktab + Ctrl(']'), RC_PASTE, args);
 	}
 	ktab['{'].nr = RC_HISTORY;
 	ktab['}'].nr = RC_HISTORY;
@@ -531,13 +527,13 @@ void InitKeytab(void)
 		char *args[2];
 		args[0] = "prev";
 		args[1] = NULL;
-		SaveAction(ktab + T_BACKTAB - T_CAPS + 256, RC_FOCUS, args, NULL);
+		SaveAction(ktab + T_BACKTAB - T_CAPS + 256, RC_FOCUS, args);
 	}
 	{
 		char *args[2];
 		args[0] = "-v";
 		args[1] = NULL;
-		SaveAction(ktab + '|', RC_SPLIT, args, NULL);
+		SaveAction(ktab + '|', RC_SPLIT, args);
 	}
 	/* These come last; they may want overwrite others: */
 	if (DefaultEsc >= 0) {
@@ -551,7 +547,6 @@ void InitKeytab(void)
 
 	idleaction.nr = RC_BLANKER;
 	idleaction.args = noargs;
-	idleaction.argl = NULL;
 }
 
 static struct action *FindKtab(char *class, int create)
@@ -580,7 +575,6 @@ static struct action *FindKtab(char *class, int create)
 		for (i = 0; i < (int)(ARRAY_SIZE(kp->ktab)); i++) {
 			kp->ktab[i].nr = RC_ILLEGAL;
 			kp->ktab[i].args = noargs;
-			kp->ktab[i].argl = NULL;
 			kp->ktab[i].quiet = 0;
 		}
 		kp->next = NULL;
@@ -602,7 +596,6 @@ static void ClearAction(struct action *act)
 		free(*p);
 	free((char *)act->args);
 	act->args = noargs;
-	act->argl = NULL;
 }
 
 /*
@@ -1306,7 +1299,7 @@ static void DoCommandUnbindall(struct action *act, int quiet)
 static void DoCommandZombie(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
+	int len;
 	char *s = NULL;
 
 	if (block_query("zombie", quiet))
@@ -1316,7 +1309,8 @@ static void DoCommandZombie(struct action *act, int quiet)
 		ZombieKey_destroy = 0;
 		return;
 	}
-	if (*argl == 0 || *argl > 2) {
+	len = strlen(args[0]);
+	if (len == 0 || len > 2) {
 		OutputMsg(0, "%s:zombie: one or two characters expected.", rc_name);
 		return;
 	}
@@ -1330,7 +1324,7 @@ static void DoCommandZombie(struct action *act, int quiet)
 	} else
 		ZombieKey_onerror = 0;
 	ZombieKey_destroy = args[0][0];
-	ZombieKey_resurrect = *argl == 2 ? args[0][1] : 0;
+	ZombieKey_resurrect = len == 2 ? args[0][1] : 0;
 }
 
 static void DoCommandWall(struct action *act, int quiet)
@@ -1349,7 +1343,6 @@ static void DoCommandWall(struct action *act, int quiet)
 static void DoCommandAt(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	int argc = act->argc;
 	struct acluser *user = display ? D_user : users;
 	char *s;
@@ -1399,7 +1392,7 @@ static void DoCommandAt(struct action *act, int quiet)
 				fore = D_fore;
 				if (D_user != u)
 					continue;
-				DoCommand(argc, args + 1, argl + 1);
+				DoCommand(argc, args + 1);
 				if (display)
 					OutputMsg(0, "command from %s: %s %s",
 						  s, args[1], args[2] ? args[2] : "");
@@ -1424,7 +1417,7 @@ static void DoCommandAt(struct action *act, int quiet)
 				     strncmp(args[0], D_usertty + 5, n)) &&
 				    (strncmp("/dev/tty", D_usertty, 8) || strncmp(args[0], D_usertty + 8, n)))
 					continue;
-				DoCommand(argc, args + 1, argl + 1);
+				DoCommand(argc, args + 1);
 				if (display)
 					OutputMsg(0, "command from %s: %s %s",
 						  s, args[1], args[2] ? args[2] : "");
@@ -1463,7 +1456,7 @@ static void DoCommandAt(struct action *act, int quiet)
 					if (fore->w_layer.l_cvlist)
 						display = fore->w_layer.l_cvlist->c_display;
 					flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
-					DoCommand(argc, args + 1, argl + 1);	/* may destroy our display */
+					DoCommand(argc, args + 1);	/* may destroy our display */
 					if (fore && fore->w_layer.l_cvlist) {
 						display = fore->w_layer.l_cvlist->c_display;
 						OutputMsg(0, "command from %s: %s %s",
@@ -1480,7 +1473,7 @@ static void DoCommandAt(struct action *act, int quiet)
 				if (fore->w_layer.l_cvlist)
 					display = fore->w_layer.l_cvlist->c_display;
 				flayer = fore->w_savelayer ? fore->w_savelayer : &fore->w_layer;
-				DoCommand(argc, args + 1, argl + 1);
+				DoCommand(argc, args + 1);
 				if (fore && fore->w_layer.l_cvlist) {
 					display = fore->w_layer.l_cvlist->c_display;
 					OutputMsg(0, "command from %s: %s %s",
@@ -1500,7 +1493,6 @@ out:
 static void DoCommandReadreg(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
 	char ch;
 	char *s;
@@ -1527,7 +1519,7 @@ static void DoCommandReadreg(struct action *act, int quiet)
 		Input("Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
 		return;
 	}
-	if (*argl != 1) {
+	if (strlen(args[0]) != 1) {
 		OutputMsg(0, "%s: copyreg: character, ^x, or (octal) \\032 expected.", rc_name);
 		return;
 	}
@@ -1562,7 +1554,6 @@ static void DoCommandReadreg(struct action *act, int quiet)
 static void DoCommandRegister(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
 	struct acluser *user = display ? D_user : users;
 	int argc = CheckArgNum(act->nr, args);
@@ -1584,7 +1575,7 @@ static void DoCommandRegister(struct action *act, int quiet)
 		OutputMsg(0, "%s: register: illegal number of arguments.", rc_name);
 		return;
 	}
-	if (*argl != 1) {
+	if (strlen(*args) != 1) {
 		OutputMsg(0, "%s: register: character, ^x, or (octal) \\032 expected.", rc_name);
 		return;
 	}
@@ -1593,8 +1584,8 @@ static void DoCommandRegister(struct action *act, int quiet)
 		if (user->u_plop.buf != NULL)
 			UserFreeCopyBuffer(user);
 		if (args[1] && args[1][0]) {
-			user->u_plop.buf = SaveStrn(args[1], argl[1]);
-			user->u_plop.len = argl[1];
+			user->u_plop.buf = SaveStr(args[1]);
+			user->u_plop.len = strlen(args[1]);
 			user->u_plop.enc = i;
 		}
 	} else {
@@ -1602,8 +1593,8 @@ static void DoCommandRegister(struct action *act, int quiet)
 
 		if (plp->buf)
 			free(plp->buf);
-		plp->buf = SaveStrn(args[1], argl[1]);
-		plp->len = argl[1];
+		plp->buf = SaveStr(args[1]);
+		plp->len = strlen(args[1]);
 		plp->enc = i;
 	}
 }
@@ -1611,7 +1602,6 @@ static void DoCommandRegister(struct action *act, int quiet)
 static void DoCommandProcess(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	char ch;
 
 	if (block_query("register", quiet) || need_display("process", quiet))
@@ -1621,7 +1611,7 @@ static void DoCommandProcess(struct action *act, int quiet)
 		Input("Process register:", 1, INP_RAW, process_fn, NULL, 0);
 		return;
 	}
-	if (*argl != 1) {
+	if (strlen(args[0]) != 1) {
 		OutputMsg(0, "%s: process: character, ^x, or (octal) \\032 expected.", rc_name);
 		return;
 	}
@@ -1633,7 +1623,6 @@ static void DoCommandProcess(struct action *act, int quiet)
 static void DoCommandStuff(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	char *s;
 	size_t len;
 
@@ -1645,7 +1634,7 @@ static void DoCommandStuff(struct action *act, int quiet)
 		Input("Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
 		return;
 	}
-	len = *argl;
+	len = strlen(args[0]);
 	if (args[1]) {
 		int i;
 		if (strcmp(s, "-k")) {
@@ -2544,7 +2533,6 @@ static void DoCommandPaste(struct action *act, int quiet)
 {
 	struct acluser *user = display ? D_user : users;
 	char **args = act->args;
-	int *argl = act->argl;
 	int enc = -1;
 	size_t l = 0;
 	char *s, *ss, *dbuf;
@@ -2566,7 +2554,7 @@ static void DoCommandPaste(struct action *act, int quiet)
 	 * with two arguments we paste into a destination register
 	 * (no window needed here).
 	 */
-	if (args[1] && argl[1] != 1) {
+	if (args[1] && strlen(args[1]) != 1) {
 		OutputMsg(0, "%s: paste destination: character, ^x, or (octal) \\032 expected.",
 			  rc_name);
 		return;
@@ -2772,15 +2760,16 @@ static void DoCommandIgnorecase(struct action *act, int quiet)
 static void DoCommandEscape(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	struct acluser *user = display ? D_user : users;
+	int len;
 
 	if (block_query("escape", quiet))
 		return;
 
-	if (*argl == 0)
+	len = strlen(args[0]);
+	if (len == 0)
 		SetEscape(user, -1, -1);
-	else if (*argl == 2)
+	else if (len == 2)
 		SetEscape(user, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
 	else {
 		OutputMsg(0, "%s: two characters required after escape.", rc_name);
@@ -2791,9 +2780,9 @@ static void DoCommandEscape(struct action *act, int quiet)
 	 */
 	if (display && user != users)
 		return;
-	if (*argl == 0)
+	if (len == 0)
 		SetEscape(NULL, -1, -1);
-	else if (*argl == 2)
+	else if (len == 2)
 		SetEscape(NULL, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
 	CheckEscape();
 }
@@ -2801,14 +2790,15 @@ static void DoCommandEscape(struct action *act, int quiet)
 static void DoCommandDefescape(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
+	int len;
 
 	if (block_query("defescape", quiet))
 		return;
 
-	if (*argl == 0)
+	len = strlen(args[0]);
+	if (len == 0)
 		SetEscape(NULL, -1, -1);
-	else if (*argl == 2)
+	else if (len == 2)
 		SetEscape(NULL, (int)(unsigned char)args[0][0], (int)(unsigned char)args[0][1]);
 	else {
 		OutputMsg(0, "%s: two characters required after defescape.", rc_name);
@@ -3769,12 +3759,11 @@ static void DoCommandSlowpaste(struct action *act, int quiet)
 static void DoCommandMarkkeys(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 
 	if (block_query("markkeys", quiet))
 		return;
 
-	if (CompileKeys(*args, *argl, mark_key_tab))
+	if (CompileKeys(*args, mark_key_tab))
 		OutputMsg(0, "%s: markkeys: syntax error.", rc_name);
 }
 
@@ -3872,7 +3861,6 @@ static void DoCommandBind(struct action *act, int quiet)
 {
 	char **args = act->args;
 	int argc = CheckArgNum(act->nr, args);
-	int *argl = act->argl;
 	int n = 0;
 	struct action *ktabp = ktab;
 	int kflag = 0;
@@ -3886,12 +3874,10 @@ static void DoCommandBind(struct action *act, int quiet)
 			if (ktabp == NULL)
 				break;
 			args += 2;
-			argl += 2;
 			argc -= 2;
 		} else if (argc > 1 && !strcmp(*args, "-k")) {
 			kflag = 1;
 			args++;
-			argl++;
 			argc--;
 		} else
 			break;
@@ -3905,7 +3891,7 @@ static void DoCommandBind(struct action *act, int quiet)
 			return;
 		}
 		n += 256;
-	} else if (*argl != 1) {
+	} else if (strlen(*args) != 1) {
 		OutputMsg(0, "%s: bind: character, ^x, or (octal) \\032 expected.", rc_name);
 		return;
 	} else
@@ -3920,7 +3906,7 @@ static void DoCommandBind(struct action *act, int quiet)
 		if (CheckArgNum(i, args + 2) < 0)
 			return;
 		ClearAction(&ktabp[n]);
-		SaveAction(ktabp + n, i, args + 2, argl + 2);
+		SaveAction(ktabp + n, i, args + 2);
 	} else
 		ClearAction(&ktabp[n]);
 }
@@ -3928,7 +3914,6 @@ static void DoCommandBind(struct action *act, int quiet)
 static void DoCommandBindkey(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	struct action *newact;
 	int newnr, fl = 0, kf = 0, af = 0, df = 0, mf = 0;
 	Display *olddisplay = display;
@@ -3939,7 +3924,7 @@ static void DoCommandBindkey(struct action *act, int quiet)
 	if (block_query("bindkey", quiet))
 		return;
 
-	for (; *args && **args == '-'; args++, argl++) {
+	for (; *args && **args == '-'; args++) {
 		if (strcmp(*args, "-t") == 0)
 			fl = KMAP_NOTIMEOUT;
 		else if (strcmp(*args, "-k") == 0)
@@ -3952,7 +3937,6 @@ static void DoCommandBindkey(struct action *act, int quiet)
 			mf = 1;
 		else if (strcmp(*args, "--") == 0) {
 			args++;
-			argl++;
 			break;
 		} else {
 			OutputMsg(0, "%s: bindkey: invalid option %s", rc_name, *args);
@@ -3977,7 +3961,7 @@ static void DoCommandBindkey(struct action *act, int quiet)
 			OutputMsg(0, "%s: bindkey: -a only works with -k", rc_name);
 			return;
 		}
-		if (*argl == 0) {
+		if (strlen(*args) == 0) {
 			OutputMsg(0, "%s: bindkey: empty string makes no sense", rc_name);
 			return;
 		}
@@ -3986,8 +3970,8 @@ static void DoCommandBindkey(struct action *act, int quiet)
 				if (args[1])
 					break;
 			} else
-			    if (*argl == (kme->fl & ~KMAP_NOTIMEOUT)
-				&& memcmp(kme->str, *args, *argl) == 0)
+			    if (strlen(*args) == (size_t)(kme->fl & ~KMAP_NOTIMEOUT)
+				&& memcmp(kme->str, *args, strlen(*args)) == 0)
 				break;
 		if (i == kmap_extn) {
 			if (!args[1]) {
@@ -4002,7 +3986,6 @@ static void DoCommandBindkey(struct action *act, int quiet)
 				kme->str = NULL;
 				kme->dm.nr = kme->mm.nr = kme->um.nr = RC_ILLEGAL;
 				kme->dm.args = kme->mm.args = kme->um.args = noargs;
-				kme->dm.argl = kme->mm.argl = kme->um.argl = NULL;
 			}
 			i -= 8;
 			kme -= 8;
@@ -4037,12 +4020,12 @@ static void DoCommandBindkey(struct action *act, int quiet)
 		if (CheckArgNum(newnr, args + 2) < 0)
 			return;
 		ClearAction(newact);
-		SaveAction(newact, newnr, args + 2, argl + 2);
+		SaveAction(newact, newnr, args + 2);
 		if (kf == 0 && args[1]) {
 			if (kme->str)
 				free(kme->str);
-			kme->str = SaveStrn(*args, *argl);
-			kme->fl = fl | *argl;
+			kme->str = SaveStr(*args);
+			kme->fl = fl | strlen(*args);
 		}
 	} else
 		ClearAction(newact);
@@ -4445,21 +4428,20 @@ static void DoCommandPrintcmd(struct action *act, int quiet)
 static void DoCommandDigraph(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 
 	if (block_query("digraph", quiet) || need_layer("digraph", quiet))
 		return;
 
-	if (argl && argl[0] > 0 && args[1] && argl[1] > 0) {
+	if (args[0] && strlen(args[0]) > 0 && args[1] && strlen(args[1]) > 0) {
 		int i;
-		if (argl[0] != 2) {
+		if (strlen(args[0]) != 2) {
 			OutputMsg(0, "Two characters expected to define a digraph");
 			return;
 		}
 		i = digraph_find(args[0]);
 		digraphs[i].d[0] = args[0][0];
 		digraphs[i].d[1] = args[0][1];
-		if (!parse_input_int(args[1], argl[1], &digraphs[i].value)) {
+		if (!parse_input_int(args[1], strlen(args[1]), &digraphs[i].value)) {
 			if (!(digraphs[i].value = atoi(args[1]))) {
 				if (!args[1][1])
 					digraphs[i].value = (int)args[1][0];
@@ -4585,7 +4567,6 @@ static void DoCommandCharset(struct action *act, int quiet)
 static void DoCommandRendition(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	int msgok = display && !*rc_name;
 	int i = -1;
 
@@ -4607,7 +4588,6 @@ static void DoCommandRendition(struct action *act, int quiet)
 	}
 
 	++args;
-	++argl;
 
 	if (i != -1) {
 		renditions[i] = ParseAttrColor(args[0], 1);
@@ -4916,7 +4896,6 @@ static void DoCommandBlankerprg(struct action *act, int quiet)
 static void DoCommandIdle(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int *argl = act->argl;
 	int argc = CheckArgNum(act->nr, args);
 	int msgok = display && !*rc_name;
 
@@ -4938,7 +4917,7 @@ static void DoCommandIdle(struct action *act, int quiet)
 			if (CheckArgNum(i, args + 2) < 0)
 				return;
 			ClearAction(&idleaction);
-			SaveAction(&idleaction, i, args + 2, argl + 2);
+			SaveAction(&idleaction, i, args + 2);
 		}
 		for (display = displays; display; display = display->d_next)
 			ResetIdle();
@@ -5819,7 +5798,7 @@ void CollapseWindowlist(void)
 		w->w_number = n++;
 }
 
-void DoCommand(int argc, char **argv, int *argl)
+void DoCommand(int argc, char **argv)
 {
 	struct action act;
 	const char *cmd = *argv;
@@ -5843,15 +5822,13 @@ void DoCommand(int argc, char **argv, int *argl)
 	}
 	act.argc = argc - 1;
 	act.args = argv + 1;
-	act.argl = argl + 1;
 	DoAction(&act, quiet);
 }
 
-static void SaveAction(struct action *act, int nr, char **args, int *argl)
+static void SaveAction(struct action *act, int nr, char **args)
 {
 	int argc = 0;
 	char **pp;
-	int *lp;
 
 	if (args)
 		while (args[argc])
@@ -5859,20 +5836,14 @@ static void SaveAction(struct action *act, int nr, char **args, int *argl)
 	if (argc == 0) {
 		act->nr = nr;
 		act->args = noargs;
-		act->argl = NULL;
 		return;
 	}
 	if ((pp = malloc((unsigned)(argc + 1) * sizeof(char *))) == NULL)
 		Panic(0, "%s", strnomem);
-	if ((lp = malloc((unsigned)(argc) * sizeof(int))) == NULL)
-		Panic(0, "%s", strnomem);
 	act->nr = nr;
 	act->args = pp;
-	act->argl = lp;
-	while (argc--) {
-		*lp = argl ? *argl++ : (int)strlen(*args);
-		*pp++ = SaveStrn(*args++, *lp++);
-	}
+	while (argc--)
+		*pp++ = SaveStr(*args++);
 	*pp = NULL;
 }
 
@@ -5900,22 +5871,19 @@ static char **SaveArgs(char **args)
  *
  * argc is returned.
  */
-int Parse(char *buf, int bufl, int *argc, char **args, int *argl)
+int Parse(char *buf, int bufl, int *argc, char **args)
 {
 	char *p = buf, **ap = args, *pp;
 	int delim;
-	int *lp = argl;
 
 	*argc = 0;
 	pp = buf;
 	delim = 0;
 	for (;;) {
-		*lp = 0;
 		while (*p && (*p == ' ' || *p == '\t'))
 			++p;
 		if (*argc == 0 && *p == '!') {
 			*ap++ = "exec";
-			*lp++ = 4;
 			p++;
 			(*argc)++;
 			continue;
@@ -6060,7 +6028,6 @@ int Parse(char *buf, int bufl, int *argc, char **args, int *argl)
 		if (*p)
 			p++;
 		*pp = 0;
-		*lp++ = pp - ap[-1];
 		pp++;
 	}
 }
@@ -7135,16 +7102,18 @@ void DoScreen(char *fn, char **av)
  * this example rebinds the cursormovement to the keys u (up), d (down),
  * l (left), r (right). placing a mark will now be done with ".".
  */
-int CompileKeys(char *s, int sl, unsigned char *array)
+int CompileKeys(char *s, unsigned char *array)
 {
 	int i;
 	unsigned char key, value;
+	int sl;
 
-	if (sl == 0) {
+	if (!s) {
 		for (i = 0; i < 256; i++)
 			array[i] = i;
 		return 0;
 	}
+	sl = strlen(s);
 	while (sl) {
 		key = *(unsigned char *)s++;
 		if (*s != '=' || sl < 3)
@@ -7244,7 +7213,6 @@ static void confirm_fn(char *buf, size_t len, void *data)
 	}
 	act.nr = *(int *)data;
 	act.args = noargs;
-	act.argl = NULL;
 	DoAction(&act, 0);
 }
 

@@ -68,7 +68,6 @@ struct action
   int nr;
   int argc;
   char **args;
-  int *argl;
   int quiet;	/* Suppress (currently unused)
 		   0x01 - Error message
 		   0x02 - Normal message

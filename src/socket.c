@@ -1302,7 +1302,6 @@ static char *strncpy_escape_quote(char *dst, const char *src, const char *end)
 static void DoCommandMsg(Message *mp)
 {
 	char *args[MAXARGS];
-	int argl[MAXARGS];
 	int argc;
 	char fullcmd[MAXSTR];
 	char *fc;
@@ -1327,7 +1326,7 @@ static void DoCommandMsg(Message *mp)
 	}
 	if (fc != fullcmd)
 		*--fc = 0;
-	if (Parse(fullcmd, ARRAY_SIZE(fullcmd), &argc, args, argl) <= 0) {
+	if (Parse(fullcmd, ARRAY_SIZE(fullcmd), &argc, args) <= 0) {
 		queryflag = -1;
 		return;
 	}
@@ -1390,7 +1389,7 @@ static void DoCommandMsg(Message *mp)
 		flayer = fore ? &fore->w_layer : NULL;
 		if (fore && fore->w_savelayer && (fore->w_blocked || fore->w_savelayer->l_cvlist == NULL))
 			flayer = fore->w_savelayer;
-		DoCommand(argc, args, argl);
+		DoCommand(argc, args);
 		rc_name = oldrcname;
 	}
 	EffectiveAclUser = NULL;
