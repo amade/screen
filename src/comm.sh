@@ -27,7 +27,6 @@ cat << EOF > comm.h
 struct comm
 {
   char *name;
-  int flags;
   AclBits userbits[ACL_BITS_PER_CMD];
 };
 

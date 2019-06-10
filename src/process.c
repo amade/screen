@@ -69,7 +69,6 @@
 #include "winmsg.h"
 
 
-static int CheckArgNum(int, char **);
 static void ClearAction(struct action *);
 static void SaveAction(struct action *, int, char **);
 static Window *NextWindow(void);
@@ -827,68 +826,6 @@ int FindCommnr(const char *str)
 	return RC_ILLEGAL;
 }
 
-static int CheckArgNum(int nr, char **args)
-{
-	int i, n;
-	static char *argss[] = { "no", "one", "two", "three", "four", "OOPS" };
-	static char *orformat[] = {
-		"%s: %s: %s argument%s required",
-		"%s: %s: %s or %s argument%s required",
-		"%s: %s: %s, %s or %s argument%s required",
-		"%s: %s: %s, %s, %s or %s argument%s required"
-	};
-
-	n = comms[nr].flags & ARGS_MASK;
-	for (i = 0; args[i]; i++) ;
-	if (comms[nr].flags & ARGS_ORMORE) {
-		if (i < n) {
-			Msg(0, "%s: %s: at least %s argument%s required",
-			    rc_name, comms[nr].name, argss[n], n != 1 ? "s" : "");
-			return -1;
-		}
-	} else if ((comms[nr].flags & ARGS_PLUS1) && (comms[nr].flags & ARGS_PLUS2) && (comms[nr].flags & ARGS_PLUS3)) {
-		if (i != n && i != n + 1 && i != n + 2 && i != n + 3) {
-			Msg(0, orformat[3], rc_name, comms[nr].name, argss[n],
-			    argss[n + 1], argss[n + 2], argss[n + 3], "");
-			return -1;
-		}
-	} else if ((comms[nr].flags & ARGS_PLUS1) && (comms[nr].flags & ARGS_PLUS2)) {
-		if (i != n && i != n + 1 && i != n + 2) {
-			Msg(0, orformat[2], rc_name, comms[nr].name, argss[n], argss[n + 1], argss[n + 2], "");
-			return -1;
-		}
-	} else if ((comms[nr].flags & ARGS_PLUS1) && (comms[nr].flags & ARGS_PLUS3)) {
-		if (i != n && i != n + 1 && i != n + 3) {
-			Msg(0, orformat[2], rc_name, comms[nr].name, argss[n], argss[n + 1], argss[n + 3], "");
-			return -1;
-		}
-	} else if ((comms[nr].flags & ARGS_PLUS2) && (comms[nr].flags & ARGS_PLUS3)) {
-		if (i != n && i != n + 2 && i != n + 3) {
-			Msg(0, orformat[2], rc_name, comms[nr].name, argss[n], argss[n + 2], argss[n + 3], "");
-			return -1;
-		}
-	} else if (comms[nr].flags & ARGS_PLUS1) {
-		if (i != n && i != n + 1) {
-			Msg(0, orformat[1], rc_name, comms[nr].name, argss[n], argss[n + 1], n != 0 ? "s" : "");
-			return -1;
-		}
-	} else if (comms[nr].flags & ARGS_PLUS2) {
-		if (i != n && i != n + 2) {
-			Msg(0, orformat[1], rc_name, comms[nr].name, argss[n], argss[n + 2], "s");
-			return -1;
-		}
-	} else if (comms[nr].flags & ARGS_PLUS3) {
-		if (i != n && i != n + 3) {
-			Msg(0, orformat[1], rc_name, comms[nr].name, argss[n], argss[n + 3], "");
-			return -1;
-		}
-	} else if (i != n) {
-		Msg(0, orformat[0], rc_name, comms[nr].name, argss[n], n != 1 ? "s" : "");
-		return -1;
-	}
-	return i;
-}
-
 static void StuffFin(char *buf, size_t len, void *data)
 {
 	(void)data; /* unused */
@@ -1556,7 +1493,7 @@ static void DoCommandRegister(struct action *act, int quiet)
 	char **args = act->args;
 	int i = fore ? fore->w_encoding : display ? display->d_encoding : 0;
 	struct acluser *user = display ? D_user : users;
-	int argc = CheckArgNum(act->nr, args);
+	int argc = act->argc;
 	char ch;
 
 	if (block_query("register", quiet))
@@ -1715,7 +1652,7 @@ static void DoCommandDinfo(struct action *act, int quiet)
 static void DoCommandCommand(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int argc = CheckArgNum(act->nr, args);
+	int argc = act->argc;
 	struct action *ktabp = ktab;
 
 	if (block_query("command", quiet) || need_display("command", quiet))
@@ -2298,7 +2235,7 @@ static void DoCommandDisplays(struct action *act, int quiet)
 static void DoCommandWindowlist(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int argc = CheckArgNum(act->nr, args);
+	int argc = act->argc;
 	int msgok = display && !*rc_name;
 
 	if (block_query("windowlist", quiet))
@@ -2348,7 +2285,7 @@ static void DoCommandWindowlist(struct action *act, int quiet)
 static void DoCommandHelp(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int argc = CheckArgNum(act->nr, args);
+	int argc = act->argc;
 
 	if (block_query("help", quiet) || need_layer("help", quiet))
 		return;
@@ -2950,7 +2887,7 @@ static void DoCommandTerm(struct action *act, int quiet)
 static void DoCommandEcho(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int argc = CheckArgNum(act->nr, args);
+	int argc = act->argc;
 	int msgok = display && !*rc_name;
 	char *s = NULL;
 
@@ -3544,7 +3481,7 @@ static void DoCommandNumber(struct action *act, int quiet)
 static void DoCommandZombie_timeout(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int argc = CheckArgNum(act->nr, args);
+	int argc = act->argc;
 
 	if (block_query("zombie_timeout", quiet))
 		return;
@@ -3860,7 +3797,7 @@ static void DoCommandStartup_message(struct action *act, int quiet)
 static void DoCommandBind(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int argc = CheckArgNum(act->nr, args);
+	int argc = act->argc;
 	int n = 0;
 	struct action *ktabp = ktab;
 	int kflag = 0;
@@ -3903,7 +3840,7 @@ static void DoCommandBind(struct action *act, int quiet)
 			OutputMsg(0, "%s: bind: unknown command '%s'", rc_name, args[1]);
 			return;
 		}
-		if (CheckArgNum(i, args + 2) < 0)
+		if (((ssize_t)act->args - 2) < 0)
 			return;
 		ClearAction(&ktabp[n]);
 		SaveAction(ktabp + n, i, args + 2);
@@ -4017,7 +3954,7 @@ static void DoCommandBindkey(struct action *act, int quiet)
 			OutputMsg(0, "%s: bindkey: unknown command '%s'", rc_name, args[1]);
 			return;
 		}
-		if (CheckArgNum(newnr, args + 2) < 0)
+		if (((ssize_t)act->argc - 2) < 0)
 			return;
 		ClearAction(newact);
 		SaveAction(newact, newnr, args + 2);
@@ -4086,7 +4023,7 @@ static void DoCommandMapdefault(struct action *act, int quiet)
 static void DoCommandAclchg(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int argc = CheckArgNum(act->nr, args);
+	int argc = act->argc;
 
 	if (block_query("aclchg", quiet))
 		return;
@@ -4822,7 +4759,7 @@ static void DoCommandAltscreen(struct action *act, int quiet)
 static void DoCommandBacktick(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int argc = CheckArgNum(act->nr, args);
+	int argc = act->argc;
 	int n = 0;
 
 	if (block_query("backtick", quiet))
@@ -4896,7 +4833,7 @@ static void DoCommandBlankerprg(struct action *act, int quiet)
 static void DoCommandIdle(struct action *act, int quiet)
 {
 	char **args = act->args;
-	int argc = CheckArgNum(act->nr, args);
+	int argc = act->argc;
 	int msgok = display && !*rc_name;
 
 	if (block_query("commandidle", quiet))
@@ -4914,7 +4851,7 @@ static void DoCommandIdle(struct action *act, int quiet)
 				OutputMsg(0, "%s: idle: unknown command '%s'", rc_name, args[1]);
 				return;
 			}
-			if (CheckArgNum(i, args + 2) < 0)
+			if (((ssize_t)args - 2) < 0)
 				return;
 			ClearAction(&idleaction);
 			SaveAction(&idleaction, i, args + 2);
@@ -5224,7 +5161,7 @@ void DoAction(struct action *act, int quiet)
 	if (nr == RC_ILLEGAL) {
 		return;
 	}
-	if ((argc = CheckArgNum(nr, args)) < 0)
+	if ((argc = act->argc) < 0)
 		return;
 	if (display) {
 		if (AclCheckPermCmd(D_user, ACL_EXEC, &comms[nr])) {
