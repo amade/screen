@@ -1021,12 +1021,8 @@ static void FinishAttach(Message *m)
 			fore = NULL;
 			noshowwin = 1;
 		} else if (!strcmp(m->m.attach.preselect, "+")) {
-			struct action newscreen;
-			char *na = NULL;
-			newscreen.nr = RC_SCREEN;
-			newscreen.args = &na;
-			newscreen.quiet = 0;
-			DoAction(&newscreen, 0);
+			char *newscreen[] = {"screen", NULL};
+			DoCommand(1, newscreen);
 		} else
 			fore = FindNiceWindow(fore, m->m.attach.preselect);
 	} else
