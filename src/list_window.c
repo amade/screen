@@ -81,12 +81,17 @@ static int window_ancestor(Window *a, Window *d)
 static void window_kill_confirm(char *buf, size_t len, void *data)
 {
 	Window *w = mru_window;
-	struct action act;
+	char killcmd[MAXSTR] = "kill";
+	char *args[MAXARGS];
+	int argc;
 
 	if (len || (*buf != 'y' && *buf != 'Y')) {
 		memset(buf, 0, len);
 		return;
 	}
+
+	if (Parse(killcmd, ARRAY_SIZE(killcmd), &argc, args) <= 0)
+		return;
 
 	/* Loop over the windows to make sure that the window actually still exists. */
 	for (; w; w = w->w_prev_mru)
@@ -98,10 +103,7 @@ static void window_kill_confirm(char *buf, size_t len, void *data)
 
 	/* Pretend the selected window is the foreground window. Then trigger a non-interactive 'kill' */
 	fore = w;
-	act.nr = RC_KILL;
-	act.args = noargs;
-	act.quiet = 0;
-	DoAction(&act, 0);
+	DoCommand(argc, args);
 }
 
 static ListRow *gl_Window_add_group(ListData *ldata, ListRow *row)
