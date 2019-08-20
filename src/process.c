@@ -88,6 +88,8 @@ static int ParseBase(struct action *, char *, int *, int, char *);
 static int ParseSaveStr(struct action *, char **);
 static int ParseNum(struct action *, int *);
 static int ParseNum1000(struct action *, int *);
+static char **SaveCommand(char *cmd);
+static void FreeCommand(char **cmd);
 static char **SaveArgs(char **);
 static void FreeArgs(char **);
 static bool IsNum(char *);
@@ -5778,6 +5780,26 @@ static void SaveAction(struct action *act, int nr, char **args)
 	while (argc--)
 		*pp++ = SaveStr(*args++);
 	*pp = NULL;
+}
+
+static char **SaveCommand(char *cmd) {
+	char fullcmd[MAXARGS];
+	char *args[MAXARGS];
+	int argc;
+
+	/* we need to copy because Parse sets args to point into values from
+	 * fullcmd and it's on stack, so it leads to crashes */
+	strncpy(fullcmd, cmd, ARRAY_SIZE(fullcmd));
+
+	if (Parse(fullcmd, ARRAY_SIZE(fullcmd), &argc, args) <= 0)
+		return NULL;
+
+	return SaveArgs(args);
+}
+
+static void FreeCommand(char **cmd) {
+	FreeArgs(cmd);
+	cmd = NULL;
 }
 
 static char **SaveArgs(char **args)
