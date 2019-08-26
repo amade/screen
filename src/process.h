@@ -38,13 +38,13 @@ extern char *noargs[];
 extern char NullStr[];
 extern char *zmodem_recvcmd;
 extern char *zmodem_sendcmd;
+extern char **idleaction;
 
 extern int idletimo;
 extern int kmap_extn;
 extern int zmodem_mode;
 extern int TtyMode;
 
-extern struct action idleaction;
 extern struct action dmtab[];
 extern struct action ktab[];
 extern struct action mmtab[];

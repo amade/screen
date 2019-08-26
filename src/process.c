@@ -131,7 +131,7 @@ char *zmodem_recvcmd;
 static char *zmodes[4] = { "off", "auto", "catch", "pass" };
 
 int idletimo;
-struct action idleaction;
+char **idleaction;
 char **blankerprg;
 
 struct action ktab[256 + KMAP_KEYS];	/* command key translation table */
@@ -547,8 +547,7 @@ void InitKeytab(void)
 		ktab[DefaultMetaEsc].nr = RC_META;
 	}
 
-	idleaction.nr = RC_BLANKER;
-	idleaction.args = noargs;
+	idleaction = SaveCommand("blanker");
 }
 
 static struct action *FindKtab(char *class, int create)
@@ -4820,10 +4819,8 @@ static void DoCommandBlankerprg(struct action *act, int quiet)
 			OutputMsg(0, "No blankerprg set.");
 		return;
 	}
-	if (blankerprg) {
-		FreeArgs(blankerprg);
-		blankerprg = NULL;
-	}
+	if (blankerprg)
+		FreeCommand(blankerprg);
 	if (args[0][0])
 		blankerprg = SaveArgs(args);
 }
@@ -4851,8 +4848,8 @@ static void DoCommandIdle(struct action *act, int quiet)
 			}
 			if (((ssize_t)args - 2) < 0)
 				return;
-			ClearAction(&idleaction);
-			SaveAction(&idleaction, i, args + 2);
+			FreeArgs(idleaction);
+			idleaction = SaveArgs(args + 1);
 		}
 		for (display = displays; display; display = display->d_next)
 			ResetIdle();
@@ -4860,7 +4857,7 @@ static void DoCommandIdle(struct action *act, int quiet)
 	}
 	if (msgok) {
 		if (idletimo)
-			OutputMsg(0, "idle timeout %ds, %s", idletimo / 1000, comms[idleaction.nr].name);
+			OutputMsg(0, "idle timeout %ds, %s", idletimo / 1000, idleaction[0]);
 		else
 			OutputMsg(0, "idle off");
 	}

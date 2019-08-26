@@ -2855,17 +2855,20 @@ static void disp_map_fn(Event *event, void *data)
 static void disp_idle_fn(Event *event, void *data)
 {
 	Display *olddisplay;
+	int i;
 
 	(void)event; /* unused */
 
 	display = (Display *)data;
-	if (idletimo <= 0 || idleaction.nr == RC_ILLEGAL)
+	if (idletimo <= 0)
 		return;
 	olddisplay = display;
 	flayer = D_forecv->c_layer;
 	fore = D_fore;
-	DoAction(&idleaction, 0);
-	if (idleaction.nr == RC_BLANKER)
+	for (i = 0; idleaction[i]; i++)
+		/* do nothing, loops counts what we need */;
+	DoCommand(i, idleaction);
+	if (!strcmp(idleaction[0], "blanker"))
 		return;
 	for (display = displays; display; display = display->d_next)
 		if (olddisplay == display)
