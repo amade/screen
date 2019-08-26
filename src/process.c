@@ -89,6 +89,7 @@ static int ParseSaveStr(struct action *, char **);
 static int ParseNum(struct action *, int *);
 static int ParseNum1000(struct action *, int *);
 static char **SaveArgs(char **);
+static void FreeArgs(char **);
 static bool IsNum(char *);
 static void ColonFin(char *, size_t, void *);
 static void InputSelect(void);
@@ -4736,12 +4737,10 @@ static void DoCommandEval(struct action *act, int quiet)
 		return;
 
 	args = SaveArgs(args);
-	for (int i = 0; args[i]; i++) {
+	for (int i = 0; args[i]; i++)
 		if (args[i][0])
 			ColonFin(args[i], strlen(args[i]), NULL);
-		free(args[i]);
-	}
-	free(args);
+	FreeArgs(args);
 }
 
 static void DoCommandAltscreen(struct action *act, int quiet)
@@ -4820,10 +4819,7 @@ static void DoCommandBlankerprg(struct action *act, int quiet)
 		return;
 	}
 	if (blankerprg) {
-		char **pp;
-		for (pp = blankerprg; *pp; pp++)
-			free(*pp);
-		free(blankerprg);
+		FreeArgs(blankerprg);
 		blankerprg = NULL;
 	}
 	if (args[0][0])
@@ -5797,6 +5793,13 @@ static char **SaveArgs(char **args)
 		*pp++ = SaveStr(*args++);
 	*pp = NULL;
 	return ap;
+}
+
+static void FreeArgs(char **args)
+{
+	for (int i = 0; args[i]; i++)
+		free(args[i]);
+	free(args);
 }
 
 /*
