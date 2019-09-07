@@ -1351,7 +1351,6 @@ int main(int ac, char** av)
    * new ones.
    */
   ServerSocket = MakeServerSocket(true);
-  InitKeytab();
 
 #ifdef ETCSCREENRC
 # ifdef ALLOW_SYSSCREENRC
@@ -1389,6 +1388,7 @@ int main(int ac, char** av)
   InitLoadav();
 #endif /* LOADAV */
 
+  InitKeytab();
   MakeNewEnv();
   signal(SIGHUP, SigHup);
   signal(SIGINT, FinitHandler);
