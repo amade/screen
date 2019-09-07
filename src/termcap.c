@@ -36,6 +36,7 @@
 #include "screen.h"
 
 #include "encoding.h"
+#include "kmapdef.h"
 #include "misc.h"
 #include "process.h"
 #include "resize.h"
@@ -174,8 +175,11 @@ int InitTermcap(int width, int height)
 		/* ISO2022 */
 		if ((D_EA && strstr(D_EA, "\033(B")) || (D_AS && strstr(D_AS, "\033(0")))
 			D_CG0 = 1;
-		if (strstr(D_termname, "xterm") || strstr(D_termname, "rxvt") || (D_CKM && strstr(D_CKM, "\033[M")))
+		if (strstr(D_termname, "xterm") || strstr(D_termname, "rxvt") || (D_CKM &&
+					(strstr(D_CKM, "\033[M") || strstr(D_CKM, "\033[<")))) {
 			D_CXT = 1;
+			kmapdef[0] = SaveStr(D_CKM);
+		}
 		/* "be" seems to be standard for xterms... */
 		if (D_CXT)
 			D_BE = 1;

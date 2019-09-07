@@ -988,7 +988,6 @@ int main(int argc, char **argv)
 	sprintf(SocketPath + strlen(SocketPath), "/%s", socknamebuf);
 
 	ServerSocket = MakeServerSocket();
-	InitKeytab();
 #ifdef SYSTEM_SCREENRC
 	(void)StartRc(SYSTEM_SCREENRC, 0);
 #endif
@@ -1011,6 +1010,7 @@ int main(int argc, char **argv)
 #endif
 	} else
 		MakeTermcap(1);
+	InitKeytab();
 	MakeNewEnv();
 	xsignal(SIGHUP, SigHup);
 	xsignal(SIGINT, FinitHandler);
