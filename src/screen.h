@@ -278,6 +278,7 @@ extern bool xflag;
 /* Indicator whether the current tty exists in another namespace. */
 extern bool attach_tty_is_in_new_ns;
 
+extern int af;
 extern int attach_fd;
 extern int dflag;
 extern int force_vt;

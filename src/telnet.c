@@ -40,13 +40,9 @@
 
 #include "screen.h"
 
+#include "ansi.h"
 #include "misc.h"
-
-extern Window *fore;
-extern Layer *flayer;
-extern bool visual_bell;
-extern char screenterm[];
-extern int af;
+#include "termcap.h"
 
 static void TelReply(Window *, char *, size_t);
 static void TelDocmd(Window *, int, int);
