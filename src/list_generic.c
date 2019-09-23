@@ -229,7 +229,7 @@ static void ListProcess(char **ppbuf, size_t *plen)
 		case '/':	/* start searching */
 			if (ldata->list_fn->gl_matchrow) {
 				char *s;
-				Input("Search: ", 80, INP_COOKED, glist_search, (char *)ldata, 0);
+				Input("Search: ", 80, INP_COOKED, glist_search, ldata);
 				if ((s = ldata->search)) {
 					for (; *s; s++) {
 						char *ss = s;

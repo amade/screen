@@ -1108,7 +1108,7 @@ void DoCommandKill(struct action *act, int quiet)
 	if (*args) {
 		if (!strcmp(*args, "--confirm")) {
 			Input(fore->w_pwin ? "Really kill this filter [y/n]" : "Really kill this window [y/n]",
-			      1, INP_RAW, confirm_fn, NULL, RC_KILL);
+			      1, INP_RAW, confirm_fn, "kill");
 			return;
 		} else {
 			OutputMsg(0, "usage: kill [--confirm]");
@@ -1137,7 +1137,7 @@ void DoCommandQuit(struct action *act, int quiet)
 
 	if (*args) {
 		if (!strcmp(*args, "--confirm")) {
-			Input("Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_QUIT);
+			Input("Really quit and kill all your windows [y/n]", 1, INP_RAW, confirm_fn, "quit");
 			return;
 		} else {
 			OutputMsg(0, "usage: quit [--confirm]");
@@ -1170,7 +1170,7 @@ void DoCommandPow_detach(struct action *act, int quiet)
 
 	if (*args) {
 		if (!strcmp(*args, "--confirm")) {
-			Input("Really detach and send HANGUP to parent process [y/n]", 1, INP_RAW, confirm_fn, NULL, RC_POW_DETACH);
+			Input("Really detach and send HANGUP to parent process [y/n]", 1, INP_RAW, confirm_fn, "pow_detach");
 			return;
 		} else {
 			OutputMsg(0, "usage: pow_detach [--confirm]");
@@ -1456,7 +1456,7 @@ void DoCommandReadreg(struct action *act, int quiet)
 	 * (not dest) there.
 	 */
 	if (*args == NULL) {
-		Input("Copy to register:", 1, INP_RAW, copy_reg_fn, NULL, 0);
+		Input("Copy to register:", 1, INP_RAW, copy_reg_fn, NULL);
 		return;
 	}
 	if (strlen(args[0]) != 1) {
@@ -1548,7 +1548,7 @@ void DoCommandProcess(struct action *act, int quiet)
 		return;
 
 	if (*args == NULL) {
-		Input("Process register:", 1, INP_RAW, process_fn, NULL, 0);
+		Input("Process register:", 1, INP_RAW, process_fn, NULL);
 		return;
 	}
 	if (strlen(args[0]) != 1) {
@@ -1571,7 +1571,7 @@ void DoCommandStuff(struct action *act, int quiet)
 
 	s = *args;
 	if (!args[0]) {
-		Input("Stuff:", 100, INP_COOKED, StuffFin, NULL, 0);
+		Input("Stuff:", 100, INP_COOKED, StuffFin, NULL);
 		return;
 	}
 	len = strlen(args[0]);
@@ -2049,7 +2049,7 @@ void DoCommandColon(struct action *act, int quiet)
 	if (block_query("colon", quiet) || need_layer("colon", quiet))
 		return;
 
-	Input(":", MAXSTR, INP_EVERY, ColonFin, NULL, 0);
+	Input(":", MAXSTR, INP_EVERY, ColonFin, NULL);
 	if (*args && **args) {
 		char *s = *args;
 		size_t len = strlen(s);
@@ -2363,7 +2363,7 @@ void DoCommandHistory(struct action *act, int quiet)
 	 * without args we prompt for one(!) register to be pasted in the window
 	 */
 	if ((s = *args) == NULL) {
-		Input("Paste from register:", 1, INP_RAW, ins_reg_fn, NULL, 0);
+		Input("Paste from register:", 1, INP_RAW, ins_reg_fn, NULL);
 		return;
 	}
 	if (args[1] == NULL && !fore)	/* no window? */
@@ -2485,7 +2485,7 @@ void DoCommandPaste(struct action *act, int quiet)
 	 * without args we prompt for one(!) register to be pasted in the window
 	 */
 	if ((s = *args) == NULL) {
-		Input("Paste from register:", 1, INP_RAW, ins_reg_fn, NULL, 0);
+		Input("Paste from register:", 1, INP_RAW, ins_reg_fn, NULL);
 		return;
 	}
 	if (args[1] == NULL && !fore)	/* no window? */
@@ -4398,7 +4398,7 @@ void DoCommandDigraph(struct action *act, int quiet)
 		}
 		return;
 	}
-	Input("Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL, 0);
+	Input("Enter digraph: ", 10, INP_EVERY, digraph_fn, NULL);
 	if (*args && **args) {
 		char *s = *args;
 		size_t len = strlen(s);
@@ -4714,7 +4714,7 @@ void DoCommandResize(struct action *act, int quiet)
 	if (*args)
 		ResizeRegions(*args, i);
 	else
-		Input(resizeprompts[i], 20, INP_EVERY, ResizeFin, NULL, i);
+		Input(resizeprompts[i], 20, INP_EVERY, ResizeFin, &i);
 }
 
 void DoCommandSetsid(struct action *act, int quiet)
@@ -5026,7 +5026,7 @@ void DoCommandLayout(struct action *act, int quiet)
 			return;
 		}
 		if (!args[1]) {
-			Input("Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL, 0);
+			Input("Switch to layout: ", 20, INP_COOKED, SelectLayoutFin, NULL);
 			return;
 		}
 		SelectLayoutFin(args[1], strlen(args[1]), NULL);
@@ -6779,7 +6779,7 @@ static void InputAKA(void)
 
 	enter_window_name_mode = 1;
 
-	Input("Set window's title to: ", ARRAY_SIZE(fore->w_akabuf) - 1, INP_COOKED, AKAFin, NULL, 0);
+	Input("Set window's title to: ", ARRAY_SIZE(fore->w_akabuf) - 1, INP_COOKED, AKAFin, NULL);
 	s = fore->w_title;
 	if (!s)
 		return;
@@ -6901,7 +6901,7 @@ static void SelectLayoutFin(char *buf, size_t len, void *data)
 
 static void InputSelect(void)
 {
-	Input("Switch to window: ", 20, INP_COOKED, SelectFin, NULL, 0);
+	Input("Switch to window: ", 20, INP_COOKED, SelectFin, NULL);
 }
 
 static char setenv_var[31];
@@ -6932,9 +6932,9 @@ static void InputSetenv(char *arg)
 	if (arg) {
 		strncpy(setenv_var, arg, ARRAY_SIZE(setenv_var) - 1);
 		sprintf(setenv_buf, "Enter value for %s: ", setenv_var);
-		Input(setenv_buf, 30, INP_COOKED, SetenvFin2, NULL, 0);
+		Input(setenv_buf, 30, INP_COOKED, SetenvFin2, NULL);
 	} else
-		Input("Setenv: Enter variable name: ", 30, INP_COOKED, SetenvFin1, NULL, 0);
+		Input("Setenv: Enter variable name: ", 30, INP_COOKED, SetenvFin1, NULL);
 }
 
 /*
@@ -7165,15 +7165,18 @@ static void process_fn(char *buf, size_t len, void *data)
 
 static void confirm_fn(char *buf, size_t len, void *data)
 {
-	struct action act;
+	char **cmd;
+	int i;
 
 	if (len || (*buf != 'y' && *buf != 'Y')) {
 		memset(buf, 0, len);
 		return;
 	}
-	act.nr = *(int *)data;
-	act.args = noargs;
-	DoAction(&act, 0);
+	cmd = SaveCommand((char *)data);
+	for (i = 0; cmd[i]; i++)
+		; /* do nothing, loop counts argument count */
+
+	DoCommand(i, cmd);
 }
 
 struct inputsu {
@@ -7202,11 +7205,11 @@ static void suFin(char *buf, size_t len, void *data)
 	if (buf && len)
 		strncpy(p, buf, 1 + ((l < len) ? l : len));
 	if (!*i->name)
-		Input("Screen User: ", ARRAY_SIZE(i->name) - 1, INP_COOKED, suFin, (char *)i, 0);
+		Input("Screen User: ", ARRAY_SIZE(i->name) - 1, INP_COOKED, suFin, i);
 	else if (!*i->pw1)
-		Input("User's UNIX Password: ", ARRAY_SIZE(i->pw1) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
+		Input("User's UNIX Password: ", ARRAY_SIZE(i->pw1) - 1, INP_COOKED | INP_NOECHO, suFin, i);
 	else if (!*i->pw2)
-		Input("User's Screen Password: ", ARRAY_SIZE(i->pw2) - 1, INP_COOKED | INP_NOECHO, suFin, (char *)i, 0);
+		Input("User's Screen Password: ", ARRAY_SIZE(i->pw2) - 1, INP_COOKED | INP_NOECHO, suFin, i);
 	else {
 		if ((p = DoSu(i->up, i->name, i->pw2, i->pw1)))
 			Msg(0, "%s", p);

@@ -62,7 +62,7 @@ void Search(int dir)
 			LMsg(0, "No previous pattern");
 	} else
 		Input((dir > 0 ? "/" : "?"), ARRAY_SIZE(markdata->isstr) - 1, INP_COOKED,
-		      (dir > 0 ? searchend : backsearchend), NULL, 0);
+		      (dir > 0 ? searchend : backsearchend), NULL);
 }
 
 static void searchend(char *buf, size_t len, void *data)
@@ -340,7 +340,7 @@ void ISearch(int dir)
 	markdata->isistrl = markdata->isstrl = 0;
 	if (W2D(markdata->cy) == INPUTLINE)
 		revto_line(markdata->cx, markdata->cy, INPUTLINE > 0 ? INPUTLINE - 1 : 1);
-	Input(isprompts[dir + 1], ARRAY_SIZE(markdata->isstr) - 1, INP_RAW, is_process, NULL, 0);
+	Input(isprompts[dir + 1], ARRAY_SIZE(markdata->isstr) - 1, INP_RAW, is_process, NULL);
 	LGotoPos(flayer, markdata->cx, W2D(markdata->cy));
 	flayer->l_x = markdata->cx;
 	flayer->l_y = W2D(markdata->cy);

@@ -1796,7 +1796,7 @@ static void zmodem_found(Window *p, int send, char *bp, size_t len)
 		return;
 	}
 	flayer = &p->w_layer;
-	Input(":", MAXSTR, INP_COOKED, zmodemFin, NULL, 0);
+	Input(":", MAXSTR, INP_COOKED, zmodemFin, NULL);
 	s = send ? zmodem_sendcmd : zmodem_recvcmd;
 	n = strlen(s);
 	LayProcess(&s, &n);
