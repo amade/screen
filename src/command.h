@@ -201,3 +201,9 @@ void DoCommandXon(struct action *act, int quiet);
 void DoCommandZmodem(struct action *act, int quiet);
 void DoCommandZombie(struct action *act, int quiet);
 void DoCommandZombie_timeout(struct action *act, int quiet);
+
+
+int FindCommand(const char *command);
+
+
+Command Commands[];

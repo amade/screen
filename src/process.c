@@ -47,6 +47,7 @@
 
 #include "screen.h"
 
+#include "command.h"
 #include "display.h"
 #include "encoding.h"
 #include "fileio.h"
@@ -5729,6 +5730,7 @@ void DoCommand(int argc, char **argv)
 	struct action act;
 	const char *cmd = *argv;
 	int quiet = 0;
+	int c;
 
 	/* For now, we actually treat both 'supress error' and 'suppress normal message' as the
 	 * same, and ignore all messages on either flag. If we wanted to do otherwise, we would
@@ -5742,13 +5744,18 @@ void DoCommand(int argc, char **argv)
 		cmd++;
 	}
 
+	if ((c = FindCommand(cmd)) < 0) {
+		Msg(0, "%s: unknown command '%s'", rc_name, cmd);
+		return;
+	}
+
 	if ((act.nr = FindCommnr(cmd)) == RC_ILLEGAL) {
 		Msg(0, "%s: unknown command '%s'", rc_name, cmd);
 		return;
 	}
 	act.argc = argc - 1;
 	act.args = argv + 1;
-	DoAction(&act, quiet);
+	Commands[c].handler(&act, quiet);
 }
 
 static void SaveAction(struct action *act, int nr, char **args)

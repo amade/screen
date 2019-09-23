@@ -21,6 +21,8 @@
 
 #include "screen.h"
 
+#include "misc.h"
+
 /* Command array, should be kept alphabetically sorted */
 Command Commands[] = {
 	{ "aclchg",		DoCommandAclchg },
@@ -204,5 +206,21 @@ Command Commands[] = {
 	{ "zombie",		DoCommandZombie },
 	{ "zombie_timeout",	DoCommandZombie_timeout },
 };
+
+int FindCommand(const char *command)
+{
+	int x, m, l = 0, r = ARRAY_SIZE(Commands);
+	while (l <= r) {
+		m = (l + r) / 2;
+		x = strcmp(command, Commands[m].name);
+		if (x > 0)
+			l = m + 1;
+		else if (x < 0)
+			r = m - 1;
+		else
+			return m;
+	}
+	return -1;
+}
 
 
