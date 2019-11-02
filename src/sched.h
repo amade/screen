@@ -48,7 +48,7 @@ struct Event {
 	int fd;
 	EventType type;
 	int priority;
-	struct timeval timeout;
+	int timeout;		/* timeout in milliseconds */
 	bool queued;		/* in evs queue */
 	int *condpos;		/* only active if condpos - condneg > 0 */
 	int *condneg;

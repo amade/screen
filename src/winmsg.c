@@ -674,8 +674,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 	}
 	if (ev) {
 		evdeq(ev);	/* just in case */
-		ev->timeout.tv_sec = 0;
-		ev->timeout.tv_usec = 0;
+		ev->timeout = 0;
 	}
 	if (ev && tick) {
 		now.tv_usec = 100000;
@@ -683,7 +682,7 @@ char *MakeWinMsgEv(WinMsgBuf *winmsg, char *str, Window *win,
 			now.tv_sec++;
 		else
 			now.tv_sec += tick - (now.tv_sec % tick);
-		ev->timeout = now;
+		ev->timeout = (now.tv_sec * 1000 + now.tv_usec / 1000);
 	}
 
 	free(cond);

@@ -1705,7 +1705,7 @@ void RefreshHStatus(void)
 			 (D_HS && D_has_hstatus == HSTATUS_HS && D_WS > 0) ? D_WS : D_width - !D_CLP + extrabytes, &D_hstatusev, 0);
 	if (buf && *buf) {
 		ShowHStatus(buf);
-		if (D_has_hstatus != HSTATUS_IGNORE && D_hstatusev.timeout.tv_sec)
+		if (D_has_hstatus != HSTATUS_IGNORE && D_hstatusev.timeout)
 			evenq(&D_hstatusev);
 	} else
 		ShowHStatus(NULL);
@@ -1774,7 +1774,7 @@ void RefreshLine(int y, int from, int to, int isblank)
 				    MakeWinMsgEv(NULL, captionstring, p, '%',
 						 cv->c_xe - cv->c_xs + (cv->c_xe + 1 < D_width
 									|| D_CLP) + extrabytes, &cv->c_captev, 0);
-				if (cv->c_captev.timeout.tv_sec)
+				if (cv->c_captev.timeout)
 					evenq(&cv->c_captev);
 				xx = to > cv->c_xe ? cv->c_xe : to;
 				l = strlen(buf);

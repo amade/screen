@@ -110,13 +110,11 @@ static Event *calctimo(void)
 
 	if ((min = tevs) == NULL)
 		return NULL;
-	mins = min->timeout.tv_sec;
+	mins = min->timeout;
 	for (ev = tevs->next; ev; ev = ev->next) {
-		if (mins < ev->timeout.tv_sec)
-			continue;
-		if (mins > ev->timeout.tv_sec || min->timeout.tv_usec > ev->timeout.tv_usec) {
+		if (mins > ev->timeout) {
 			min = ev;
-			mins = ev->timeout.tv_sec;
+			mins = ev->timeout;
 		}
 	}
 	return min;
@@ -126,25 +124,19 @@ void sched(void)
 {
 	Event *ev;
 	Event *timeoutev = NULL;
-	struct timeval timeout;
+	int timeout;
 	int i, n;
 
 	for (;;) {
 		if (calctimeout)
 			timeoutev = calctimo();
 		if (timeoutev) {
-			gettimeofday(&timeout, NULL);
+			struct timeval now;
+			gettimeofday(&now, NULL);
 			/* tp - timeout */
-			timeout.tv_sec = timeoutev->timeout.tv_sec - timeout.tv_sec;
-			timeout.tv_usec = timeoutev->timeout.tv_usec - timeout.tv_usec;
-			if (timeout.tv_usec < 0) {
-				timeout.tv_usec += 1000000;
-				timeout.tv_sec--;
-			}
-			if (timeout.tv_sec < 0) {
-				timeout.tv_usec = 0;
-				timeout.tv_sec = 0;
-			}
+			timeout = timeoutev->timeout - (now.tv_sec * 1000 + now.tv_usec / 1000);
+			if (timeout < 0)
+				timeout = 0;
 		}
 
 		memset(pfd, 0, sizeof(struct pollfd) * pfd_cnt);
@@ -164,7 +156,7 @@ skip:
 				i++;
 		}
 
-		n = poll(pfd, i, timeoutev ? (timeout.tv_sec * 1000 + timeout.tv_usec / 1000) : 0);
+		n = poll(pfd, i, timeoutev ? timeout : 0);
 		if (n < 0) {
 			if (errno != EINTR) {
 				Panic(errno, "poll");
@@ -213,13 +205,11 @@ skip:
 
 void SetTimeout(Event *ev, int timo)
 {
-	gettimeofday(&ev->timeout, NULL);
-	ev->timeout.tv_sec += timo / 1000;
-	ev->timeout.tv_usec += (timo % 1000) * 1000;
-	if (ev->timeout.tv_usec > 1000000) {
-		ev->timeout.tv_usec -= 1000000;
-		ev->timeout.tv_sec++;
-	}
+	struct timeval now;
+	gettimeofday(&now, NULL);
+
+	ev->timeout = (now.tv_sec * 1000 + now.tv_usec / 1000) + timo;
+
 	if (ev->queued)
 		calctimeout = 1;
 }
