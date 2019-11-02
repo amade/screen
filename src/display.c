@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <sys/ioctl.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -2225,13 +2226,13 @@ void Flush(int progress)
 	}
 	while (l) {
 		if (progress) {
-			fd_set w;
-			FD_ZERO(&w);
-			FD_SET(D_userfd, &w);
-			struct timeval t;
-			t.tv_sec = progress;
-			t.tv_usec = 0;
-			wr = select(FD_SETSIZE, (fd_set *) 0, &w, (fd_set *) 0, &t);
+			struct pollfd pfd[1];
+
+			pfd[0].fd = D_userfd;
+			pfd[0].events = POLLOUT;
+
+			wr = poll(pfd, ARRAY_SIZE(pfd), progress / 1000);
+
 			if (wr == -1) {
 				if (errno == EINTR)
 					continue;
@@ -2311,9 +2312,8 @@ void Resize_obuf(void)
 
 void DisplaySleep1000(int n, int eat)
 {
+	struct pollfd pfd[1];
 	char buf;
-	fd_set r;
-	struct timeval t;
 
 	if (n <= 0)
 		return;
@@ -2321,11 +2321,11 @@ void DisplaySleep1000(int n, int eat)
 		usleep(1000 * n);
 		return;
 	}
-	t.tv_usec = (n % 1000) * 1000;
-	t.tv_sec = n / 1000;
-	FD_ZERO(&r);
-	FD_SET(D_userfd, &r);
-	if (select(FD_SETSIZE, &r, (fd_set *) 0, (fd_set *) 0, &t) > 0) {
+
+	pfd[0].fd = D_userfd;
+	pfd[0].events = POLLIN;
+
+	if (poll(pfd, ARRAY_SIZE(pfd), n) > 0) {
 		if (eat)
 			read(D_userfd, &buf, 1);
 	}
