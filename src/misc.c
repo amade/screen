@@ -26,6 +26,7 @@
  ****************************************************************
  */
 
+#include <poll.h>
 #include <sys/types.h>
 #include <sys/stat.h>	/* mkdir() declaration */
 #include <signal.h>
@@ -379,12 +380,38 @@ int except;
 #endif /* SVR4 */
 #if defined(SYSV) && defined(NOFILE) && !defined(ISC)
   f = NOFILE;
-#else /* SYSV && !ISC */
-  f = getdtablesize();
-#endif /* SYSV && !ISC */
   while (--f > 2)
     if (f != except)
       close(f);
+#else /* SYSV && !ISC */
+  {
+    struct pollfd pfd[1024];
+    int maxfd, i, ret, z;
+
+    i = 3; /* skip stdin, stdout and stderr */
+    maxfd = getdtablesize();
+
+    while (i < maxfd)
+      {
+        memset(pfd, 0, sizeof(pfd));
+
+        z = 0;
+        for (f = i; f < maxfd && f < i + 1024; f++)
+          pfd[z++].fd = f;
+
+        ret = poll(pfd, f - i, 0);
+        if (ret < 0)
+          Panic(errno, "poll");
+
+        z = 0;
+        for (f = i; f < maxfd && f < i + 1024; f++)
+          if (!(pfd[z++].revents & POLLNVAL) && f != except)
+            close(f);
+
+        i = f;
+      }
+  }
+#endif /* SYSV && !ISC */
 }
 
 #endif /* HAVE_FDWALK */
