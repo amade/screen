@@ -34,6 +34,7 @@
 
 #include <ctype.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdint.h>
@@ -1036,14 +1037,14 @@ int main(int argc, char **argv)
 
 	if (mru_window == NULL) {
 		if (MakeWindow(&nwin) == -1) {
-			fd_set rfd;
-			FD_ZERO(&rfd);
-			struct timeval tv = { MsgWait / 1000, 1000 * (MsgWait % 1000) };
-			FD_SET(0, &rfd);
+			struct pollfd pfd[1];
+
+			pfd[0].fd = 0;
+			pfd[0].events = POLLIN;
 
 			Msg(0, "Sorry, could not find a PTY or TTY.");
 			/* allow user to exit early by pressing any key. */
-			select(1, &rfd, NULL, NULL, &tv);
+			poll(pfd, ARRAY_SIZE(pfd), MsgWait);
 			Finit(0);
 			/* NOTREACHED */
 		}
