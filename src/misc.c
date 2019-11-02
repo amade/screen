@@ -30,6 +30,7 @@
 
 #include "misc.h"
 
+#include <poll.h>
 #include <sys/types.h>
 #include <sys/stat.h>		/* mkdir() declaration */
 #include <signal.h>
@@ -151,11 +152,30 @@ void Kill(pid_t pid, int sig)
 
 void closeallfiles(int except)
 {
-	int f;
-	f = getdtablesize();
-	while (--f > 2)
-		if (f != except)
-			close(f);
+	struct pollfd pfd[1024];
+	int maxfd, i, fd, ret, z;
+
+	i = 3; /* skip stdin, stdout and stderr */
+	maxfd = getdtablesize();
+
+	while (i < maxfd) {
+		memset(pfd, 0, sizeof(pfd));
+
+		z = 0;
+		for (fd = i; fd < maxfd && fd < i + 1024; fd++)
+			pfd[z++].fd = fd;
+
+		ret = poll(pfd, fd - i, 0);
+		if (ret < 0)
+			Panic(errno, "poll");
+
+		z = 0;
+		for (fd = i; fd < maxfd && fd < i + 1024; fd++)
+			if (!(pfd[z++].revents & POLLNVAL) && fd != except)
+				close(fd);
+
+		i = fd;
+	}
 }
 
 /*
