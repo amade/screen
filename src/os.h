@@ -148,7 +148,7 @@ typedef char* slot_t;	/* used internally in utmp.c */
  */
 
 #ifndef TERMCAP_BUFSIZE
-# define TERMCAP_BUFSIZE 2048
+# define TERMCAP_BUFSIZE 1023
 #endif
 
 /*

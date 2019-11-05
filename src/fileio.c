@@ -44,6 +44,7 @@
 #include "misc.h"
 #include "process.h"
 #include "termcap.h"
+#include "dumptermcap.h"
 #include "encoding.h"
 
 static char *CatExtra(char *, char *);
@@ -438,10 +439,7 @@ void WriteFile(struct acluser *user, char *fn, int dump)
 				}
 				break;
 			case DUMP_TERMCAP:
-				if ((c = strchr(MakeTermcap(fore->w_aflag), '=')) != NULL) {
-					fputs(++c, f);
-					putc('\n', f);
-				}
+				DumpTermcap(fore->w_aflag, f);
 				break;
 			case DUMP_EXCHANGE:
 				c = user->u_plop.buf;
