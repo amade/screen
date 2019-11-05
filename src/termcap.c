@@ -227,7 +227,7 @@ int he;
 	  (D_CKM && (InStr(D_CKM, "\033[M") || InStr(D_CKM, "\033[<"))))
         {
           D_CXT = 1;
-          kmapdef[0] = SaveStr(D_CKM);
+          kmapdef[0] = D_CKM ? SaveStr(D_CKM) : NULL;
         }
       /* "be" seems to be standard for xterms... */
       if (D_CXT)
