@@ -507,7 +507,7 @@ typedef struct fd_set { int fds_bits[1]; } fd_set;
  */
 
 #ifndef TERMCAP_BUFSIZE
-# define TERMCAP_BUFSIZE 2048
+# define TERMCAP_BUFSIZE 1023
 #endif
 
 #ifndef MAXPATHLEN

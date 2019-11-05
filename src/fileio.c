@@ -480,10 +480,7 @@ void WriteFile(struct acluser *user, char *fn, int dump) {
                 break;
 
             case DUMP_TERMCAP:
-              if ((p = index(MakeTermcap(fore->w_aflag), '=')) != NULL) {
-                fputs(++p, f);
-                putc('\n', f);
-              }
+              DumpTermcap(fore->w_aflag, f);
 	      break;
 
 #ifdef COPY_PASTE
