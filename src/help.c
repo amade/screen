@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program (see the file COPYING); if not, see
- * http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc.,
+ * https://www.gnu.org/licenses/, or contact Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  *
  ****************************************************************
@@ -487,7 +487,7 @@ GNU General Public License for more details.\n\
 \n\
 You should have received a copy of the GNU General Public License \
 along with this program (see the file COPYING); if not, see \
-http://www.gnu.org/licenses/, or contact Free Software Foundation, Inc., \
+https://www.gnu.org/licenses/, or contact Free Software Foundation, Inc., \
 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA.\n\
 \n\
 Send bugreports, fixes, enhancements, t-shirts, money, beer & pizza to \
