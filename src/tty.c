@@ -157,6 +157,14 @@ int OpenTTY(char *line, char *opt)
 	return f;
 }
 
+int CloseTTY(int fd)
+{
+#if defined(TIOCEXCL) && defined(TIOCNXCL)
+ (void)ioctl(fd, TIOCNXCL, NULL);
+#endif
+ return close(fd);
+}
+
 /*
  *  Tty mode handling
  */

@@ -4,6 +4,7 @@
 #include "screen.h"
 
 int   OpenTTY (char *, char *);
+int   CloseTTY (int);
 void  InitTTY (struct mode *, int);
 void  GetTTY (int, struct mode *);
 void  SetTTY (int, struct mode *);

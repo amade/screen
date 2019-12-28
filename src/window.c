@@ -798,15 +798,23 @@ int RemakeWindow(Window *window)
 
 void CloseDevice(Window *window)
 {
-	if (window->w_ptyfd < 0)
+	if (window->w_ptyfd < 0) {
 		return;
-	if (window->w_type == W_TYPE_PTY) {
+  }
+  switch (window->w_type) {
+  case W_TYPE_PTY:
 		/* pty 4 SALE */
 		(void)chmod(window->w_tty, 0666);
 		(void)chown(window->w_tty, 0, 0);
 		ClosePTY(window->w_ptyfd);
-	} else
+    break;
+  case W_TYPE_PLAIN:
+    CloseTTY(window->w_ptyfd);
+    break;
+  default:
 		close(window->w_ptyfd);
+    break;
+  }
 	window->w_ptyfd = -1;
 	window->w_tty[0] = 0;
 	evdeq(&window->w_readev);
