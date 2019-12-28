@@ -4111,7 +4111,7 @@ static void DoCommandRendition(struct action *act)
 
 	/* sorendition */
 	if (args[0]) {
-		int i = ParseAttrColor(args[0], 1);
+		uint64_t i = ParseAttrColor(args[0], 1);
 		if (i == 0)
 			return;
 		ApplyAttrColor(i, &mchar_so);
@@ -4129,7 +4129,7 @@ static void DoCommandSorendition(struct action *act)
 	int msgok = display && !*rc_name;
 
 	if (args[0]) {
-		int i = ParseAttrColor(args[0], 1);
+		uint64_t i = ParseAttrColor(args[0], 1);
 		if (i == 0)
 			return;
 		ApplyAttrColor(i, &mchar_so);
