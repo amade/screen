@@ -160,9 +160,9 @@ int OpenTTY(char *line, char *opt)
 int CloseTTY(int fd)
 {
 #if defined(TIOCEXCL) && defined(TIOCNXCL)
- (void)ioctl(fd, TIOCNXCL, NULL);
+	(void)ioctl(fd, TIOCNXCL, NULL);
 #endif
- return close(fd);
+	return close(fd);
 }
 
 /*
