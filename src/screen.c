@@ -353,8 +353,10 @@ int main(int argc, char **argv)
 				argc--;
 				break;
 			}
-			if (ap[1] == '-' && !strncmp(ap, "--version", 9))
-				Panic(0, "Screen version %s", version);
+			if (ap[1] == '-' && !strncmp(ap, "--version", 9)) {
+				printf("Screen version %s\n", version);
+				exit(0);
+			}
 			if (ap[1] == '-' && !strncmp(ap, "--help", 6))
 				exit_with_usage(myname, NULL, NULL);
 			while (ap && *ap && *++ap) {
@@ -568,8 +570,8 @@ int main(int argc, char **argv)
 					cmdflag = true;
 					break;
 				case 'v':
-					Panic(0, "Screen version %s", version);
-					/* NOTREACHED */
+					printf("Screen version %s\n", version);
+					exit(0);
 				case 'U':
 					nwin_options.encoding = nwin_options.encoding == -1 ? UTF8 : 0;
 					break;
