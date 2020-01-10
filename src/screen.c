@@ -1029,7 +1029,7 @@ int main(int ac, char** av)
       Panic(0, "$TERM too long - sorry.");
 
     GetTTY(0, &attach_Mode);
-#ifdef DEBUGGGGGGGGGGGGGGG
+#ifdef DEBUG
     DebugTTY(&attach_Mode);
 #endif /* DEBUG */
     }
