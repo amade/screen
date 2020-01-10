@@ -533,8 +533,10 @@ int main(int ac, char** av)
 	    break;
 	  }
 
-	  if (ap[1] == '-' && !strcmp(ap, "--version"))
-	    Panic(0, "Screen version %s", version);
+	  if (ap[1] == '-' && !strcmp(ap, "--version")) {
+	    printf("Screen version %s\n", version);
+	    exit(0);
+	  }
 	  if (ap[1] == '-' && !strcmp(ap, "--help"))
 	    exit_with_usage(myname, NULL, NULL);
 
@@ -786,8 +788,8 @@ int main(int ac, char** av)
             break;
 
           case 'v':
-            Panic(0, "Screen version %s", version);
-            /* NOTREACHED */
+            printf("Screen version %s\n", version);
+            exit(0);
 
 #ifdef UTF8
           case 'U':
