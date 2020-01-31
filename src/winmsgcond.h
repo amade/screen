@@ -28,19 +28,20 @@
 
 /* represents a window message condition (e.g. %?)*/
 typedef struct {
-	char *pos;     /* starting position in dest string */
-	bool  state;   /* conditional truth value */
-	bool  locked;  /* when set, prevents state from changing */
+	int  offset;  /* offset in dest string */
+	bool initialized;
+	bool state;   /* conditional truth value */
+	bool locked;  /* when set, prevents state from changing */
 } WinMsgCond;
 
 /* WinMsgCond is intended to be used as an opaque type */
-void  wmc_init(WinMsgCond *, char *);
-void  wmc_set(WinMsgCond *);
-void  wmc_clear(WinMsgCond *);
-bool  wmc_is_active(const WinMsgCond *);
-bool  wmc_is_set(const WinMsgCond *);
-char *wmc_else(WinMsgCond *, char *, bool *);
-char *wmc_end(const WinMsgCond *, char *, bool *);
-void  wmc_deinit(WinMsgCond *);
+void wmc_init(WinMsgCond *, int);
+void wmc_set(WinMsgCond *);
+void wmc_clear(WinMsgCond *);
+bool wmc_is_active(const WinMsgCond *);
+bool wmc_is_set(const WinMsgCond *);
+int  wmc_else(WinMsgCond *, int, bool *);
+int  wmc_end(const WinMsgCond *, int, bool *);
+void wmc_deinit(WinMsgCond *);
 
 #endif
