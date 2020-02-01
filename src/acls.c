@@ -396,6 +396,10 @@ int AclLinkUser(char *from, char *to)
  */
 char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 {
+	(void) up;
+	(void) name;
+	(void) pw1;
+	(void) pw2;
 
 #if 0
 	struct acluser *u;
