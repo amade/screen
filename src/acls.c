@@ -396,10 +396,10 @@ int AclLinkUser(char *from, char *to)
  */
 char *DoSu(struct acluser **up, char *name, char *pw1, char *pw2)
 {
-	struct acluser *u;
-	int sorry = 0;
 
 #if 0
+	struct acluser *u;
+	int sorry = 0;
 	if (!(u = *FindUserPtr(name)))
 		sorry++;
 	else {
