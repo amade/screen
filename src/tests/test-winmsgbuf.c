@@ -42,7 +42,7 @@ SIGNATURE_CHECK(wmbc_strcpy, const char *, (WinMsgBufContext *, const char *));
 SIGNATURE_CHECK(wmbc_printf, int, (WinMsgBufContext *, const char *, ...));
 SIGNATURE_CHECK(wmbc_offset, size_t, (WinMsgBufContext *));
 SIGNATURE_CHECK(wmbc_bytesleft, size_t, (WinMsgBufContext *));
-SIGNATURE_CHECK(wmbc_mergewmb, char *, (WinMsgBufContext *, WinMsgBuf *));
+SIGNATURE_CHECK(wmbc_mergewmb, const char *, (WinMsgBufContext *, WinMsgBuf *));
 SIGNATURE_CHECK(wmbc_finish, const char *, (WinMsgBufContext *));
 SIGNATURE_CHECK(wmbc_free, void, (WinMsgBufContext *));
 
