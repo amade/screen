@@ -295,7 +295,7 @@ int main(void)
 		 * concatenation */
 		char *add = "bar";
 		size_t szadd = strlen(add);
-		char *expect2 = alloca(strlen(expect) + szadd + 1);
+		char *expect2 = malloc(strlen(expect) + szadd + 1);
 		strcpy(expect2, expect);
 		strcat(expect2, add);
 		ASSERT(wmbc_printf(wmbc, "%s", add) == (int)szadd);
@@ -322,6 +322,7 @@ int main(void)
 
 		wmbc_free(wmbc);
 		wmb_free(wmb);
+		free(expect2);
 	}
 
 	/* scenerio: merging the contents of two separate buffers, also
