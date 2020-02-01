@@ -92,7 +92,7 @@ static int GrowBitfield(AclBits * bfp, int len, int delta, int defaultbit)
 {
 	AclBits n, o = *bfp;
 
-	if (!(n = (AclBits) calloc(1, (unsigned long)(&ACLBYTE(NULL, len + delta + 1)))))
+	if (!(n = (AclBits) calloc(1, (unsigned long)(&ACLBYTE((char *)NULL, len + delta + 1)))))
 		return -1;
 	for (int i = 0; i < (len + delta); i++) {
 		if (((i < len) && (ACLBIT(i) & ACLBYTE(o, i))) || ((i >= len) && (defaultbit)))
